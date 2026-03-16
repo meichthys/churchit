@@ -36,9 +36,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Attendance by Event",
+   "label": "Function Attendance",
    "link_count": 0,
-   "link_to": "Event Attendance",
+   "link_to": "Function Attendance",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -46,7 +46,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Event Count by Type",
+   "label": "Function Count by Type",
    "link_count": 0,
    "link_to": "Function Count by Type",
    "link_type": "Report",

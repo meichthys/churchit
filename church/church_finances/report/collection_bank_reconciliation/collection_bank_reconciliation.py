@@ -22,7 +22,7 @@ def get_data(filters):
 	church_condition = ""
 	values = {"parent_filter": filters.get("parent_filter")}
 
-	if not frappe.has_role("System Manager"):
+	if "System Manager" not in frappe.get_roles():
 		church_condition = """AND `tabCollection`.church IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'

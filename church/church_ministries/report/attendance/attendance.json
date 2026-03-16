@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 1,
  "is_standard": "Yes",
- "json": "{\"filters\":[[\"Event Attendance\",\"person\",\"is\",\"set\",false],[\"Event Attendance\",\"attendance_type\",\"in\",[\"Confirmed\",\"Assumed\"],false]],\"fields\":[[\"person\",\"Event Attendance\"],[\"event_name\",\"Function\"],[\"type\",\"Function\"],[\"attendance_type\",\"Event Attendance\"],[\"name\",\"Function\"]],\"order_by\":\"`tabFunction`.`modified` desc\",\"page_length\":20,\"column_widths\":{\"Event Attendance:person\":120,\"event_name\":120,\"type\":182,\"Event Attendance:attendance_type\":120,\"name\":361},\"group_by\":null}",
+ "json": "{\"filters\":[[\"Function Attendance\",\"person\",\"is\",\"set\",false],[\"Function Attendance\",\"attendance_type\",\"in\",[\"Confirmed\",\"Assumed\"],false]],\"fields\":[[\"person\",\"Function Attendance\"],[\"event_name\",\"Function\"],[\"type\",\"Function\"],[\"attendance_type\",\"Function Attendance\"],[\"name\",\"Function\"]],\"order_by\":\"`tabFunction`.`modified` desc\",\"page_length\":20,\"column_widths\":{\"Function Attendance:person\":120,\"event_name\":120,\"type\":182,\"Function Attendance:attendance_type\":120,\"name\":361},\"group_by\":null}",
  "letterhead": null,
  "modified": "2025-10-02 01:12:41.676774",
  "modified_by": "Administrator",

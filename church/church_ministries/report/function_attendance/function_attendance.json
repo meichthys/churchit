@@ -13,11 +13,11 @@
  "modified": "2025-10-02 01:11:23.917088",
  "modified_by": "Administrator",
  "module": "Church Ministries",
- "name": "Event Attendance",
+ "name": "Function Attendance",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "Function",
- "report_name": "Event Attendance",
+ "report_name": "Function Attendance",
  "report_type": "Script Report",
  "roles": [
   {

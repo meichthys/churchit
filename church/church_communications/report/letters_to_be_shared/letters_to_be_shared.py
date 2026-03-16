@@ -20,7 +20,7 @@ def get_data():
 	church_condition = ""
 	values = {}
 
-	if not frappe.has_role("System Manager"):
+	if "System Manager" not in frappe.get_roles():
 		church_condition = """AND COALESCE(`tabPerson`.church, `tabMissionary`.church) IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'

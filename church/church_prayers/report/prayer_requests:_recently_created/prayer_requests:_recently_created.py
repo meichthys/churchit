@@ -9,7 +9,7 @@ def get_columns():
 	return [
 		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 120},
 		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 120},
-		{"fieldname": "related_person", "fieldtype": "Link", "label": "Related Person", "options": "Person", "width": 150},
+		{"fieldname": "recipient", "fieldtype": "Dynamic Link", "label": "Recipient", "options": "recipient_type", "width": 150},
 		{"fieldname": "request", "fieldtype": "Data", "label": "Request", "width": 300},
 		{"fieldname": "name", "fieldtype": "Link", "label": "Link to Request", "options": "Prayer Request", "width": 150},
 	]
@@ -20,7 +20,7 @@ def get_data(filters):
 	church_condition = ""
 	values = {"request_since": filters.get("request_since")}
 
-	if not frappe.has_role("System Manager"):
+	if "System Manager" not in frappe.get_roles():
 		church_condition = """AND church IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'
@@ -29,7 +29,7 @@ def get_data(filters):
 
 	return frappe.db.sql(
 		f"""
-		SELECT status, type, related_person, request, name
+		SELECT status, type, recipient_type, recipient, request, name
 		FROM `tabPrayer Request`
 		WHERE creation > %(request_since)s
 			{church_condition}
