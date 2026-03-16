@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Event Documents\",\"col\":3}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":8}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Event Reports\",\"col\":3}}]",
+ "content": "[{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"e90GZyYsvo\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Functions\",\"col\":4}},{\"id\":\"M9Fzjq4QHT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Function Attendance\",\"col\":4}},{\"id\":\"iYgQntDecm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Songs\",\"col\":4}},{\"id\":\"XfFcgMyu0y\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Event Documents\",\"col\":4}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Event Reports\",\"col\":4}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":4}}]",
  "creation": "2025-09-14 22:36:40.737780",
  "custom_blocks": [],
  "docstatus": 0,
@@ -84,7 +84,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Events",
+   "label": "Functions",
    "link_count": 0,
    "link_to": "Function",
    "link_type": "DocType",
@@ -94,9 +94,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Event Types",
+   "label": "Function Types",
    "link_count": 0,
-   "link_to": "Event Type",
+   "link_to": "Function Type",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -104,19 +104,32 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Event Attendance Types",
+   "label": "Function Attendance Types",
    "link_count": 0,
-   "link_to": "Event Attendance Type",
+   "link_to": "Function Attendance Type",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:00.709196",
+ "modified": "2026-03-15 18:40:06.573245",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Functions",
+   "number_card_name": "Functions"
+  },
+  {
+   "label": "Function Attendance",
+   "number_card_name": "Function Attendance"
+  },
+  {
+   "label": "Songs",
+   "number_card_name": "Songs"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

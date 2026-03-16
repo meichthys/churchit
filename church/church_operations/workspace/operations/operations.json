@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
  "creation": "2025-12-15 00:04:59.607521",
  "custom_blocks": [],
  "docstatus": 0,
@@ -43,11 +43,20 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:00.850076",
+ "modified": "2026-03-15 18:28:43.533438",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Tasks",
+   "number_card_name": "Tasks"
+  },
+  {
+   "label": "Assets",
+   "number_card_name": "Assets"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

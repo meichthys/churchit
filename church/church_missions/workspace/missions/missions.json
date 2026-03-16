@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\",\"col\":12}},{\"id\":\"YWaCShFabd\",\"type\":\"card\",\"data\":{\"card_name\":\"Missions Documents\",\"col\":4}},{\"id\":\"iUdtHBDilm\",\"type\":\"card\",\"data\":{\"card_name\":\"Missionary Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\",\"col\":12}},{\"id\":\"HdXD35AVEm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionaries\",\"col\":4}},{\"id\":\"SBUFaJw-aP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Agencies\",\"col\":4}},{\"id\":\"8w-eZYsZPl\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"YWaCShFabd\",\"type\":\"card\",\"data\":{\"card_name\":\"Missions Documents\",\"col\":4}},{\"id\":\"iUdtHBDilm\",\"type\":\"card\",\"data\":{\"card_name\":\"Missionary Reports\",\"col\":4}}]",
  "creation": "2025-09-21 22:14:24.423520",
  "custom_blocks": [],
  "docstatus": 0,
@@ -72,11 +72,20 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:00.782942",
+ "modified": "2026-03-15 18:30:08.450710",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Missionaries",
+   "number_card_name": "Missionaries"
+  },
+  {
+   "label": "Missionary Agencies",
+   "number_card_name": "Missionary Agencies"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

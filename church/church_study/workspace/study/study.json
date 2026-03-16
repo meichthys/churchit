@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":4}},{\"id\":\"wSz8xMwBmx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible References\",\"col\":4}},{\"id\":\"UBixP3IqhZ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible Verses\",\"col\":4}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}}]",
  "creation": "2025-09-18 00:30:32.961356",
  "custom_blocks": [],
  "docstatus": 0,
@@ -73,11 +73,24 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:01.075349",
+ "modified": "2026-03-15 18:27:21.559745",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Sermons",
+   "number_card_name": "Sermons"
+  },
+  {
+   "label": "Bible References",
+   "number_card_name": "Bible References"
+  },
+  {
+   "label": "Bible Verses",
+   "number_card_name": "Bible Verses"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

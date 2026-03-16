@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"vGlW7T54B1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Web Site</b></span>\",\"col\":12}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vwEt3NWuP0\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
+ "content": "[{\"id\":\"vGlW7T54B1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Web Site</b></span>\",\"col\":12}},{\"id\":\"w2pJ9vRw64\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Blog Posts\",\"col\":4}},{\"id\":\"VLlwUJY98u\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bloggers\",\"col\":4}},{\"id\":\"r67sDR4M_N\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vwEt3NWuP0\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,15 +13,6 @@
  "is_hidden": 0,
  "label": "Web Site",
  "links": [
-  {
-   "hidden": 0,
-   "icon": "setting",
-   "is_query_report": 0,
-   "label": "Setup",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "dependencies": "",
    "hidden": 0,
@@ -233,13 +224,75 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Web Settings",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Website Settings",
+   "link_count": 0,
+   "link_to": "Website Settings",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Website Theme",
+   "link_count": 0,
+   "link_to": "Website Theme",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "About Us Settings",
+   "link_count": 0,
+   "link_to": "About Us Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contact Us Settings",
+   "link_count": 0,
+   "link_to": "Contact Us Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:02:28.641748",
+ "modified": "2026-03-15 18:22:51.533864",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Blog Posts",
+   "number_card_name": "Blog Posts"
+  },
+  {
+   "label": "Bloggers",
+   "number_card_name": "Bloggers"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
