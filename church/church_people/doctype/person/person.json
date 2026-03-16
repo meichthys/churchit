@@ -1,390 +1,391 @@
 {
-  "actions": [],
-  "allow_import": 1,
-  "allow_rename": 1,
-  "autoname": "format:Person {#}",
-  "creation": "2025-08-21 01:19:39.714186",
-  "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
-  "doctype": "DocType",
-  "documentation": "/app/manual%3A-people",
-  "engine": "InnoDB",
-  "field_order": [
-    "personal_information_section",
-    "church",
-    "first_name",
-    "last_name",
-    "full_name",
-    "gender",
-    "column_break_agva",
-    "photo",
-    "birthday",
-    "alergies",
-    "portal_user",
-    "church_records_section",
-    "is_member",
-    "membership_date",
-    "membership_status",
-    "column_break_lvwv",
-    "is_baptized",
-    "baptism_date",
-    "section_break_osjz",
-    "positions",
-    "contact_information_tab",
-    "contact_information_section",
-    "home_address",
-    "different_mailing_address",
-    "mailing_address",
-    "column_break_vzrz",
-    "primary_phone",
-    "email",
-    "section_break_eqre",
-    "letters",
-    "family_tab",
-    "column_break_gwhd",
-    "family",
-    "is_head_of_household",
-    "is_married",
-    "anniversary",
-    "spouse",
-    "column_break_fkwj",
-    "notes_tab",
-    "notes"
-  ],
-  "fields": [
-    {
-      "fieldname": "church",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Church",
-      "options": "Church",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "first_name",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "label": "First Name",
-      "reqd": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "last_name",
-      "fieldtype": "Data",
-      "in_standard_filter": 1,
-      "label": "Last Name"
-    },
-    {
-      "fieldname": "full_name",
-      "fieldtype": "Data",
-      "in_preview": 1,
-      "label": "Full Name",
-      "print_hide": 1,
-      "read_only": 1
-    },
-    {
-      "fieldname": "column_break_gwhd",
-      "fieldtype": "Column Break"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "0",
-      "description": "Is this person a church member?",
-      "fieldname": "is_member",
-      "fieldtype": "Check",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Is Member"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "Today",
-      "depends_on": "eval:doc.is_member",
-      "description": "When did the person become a member?",
-      "fieldname": "membership_date",
-      "fieldtype": "Date",
-      "label": "Membership Date",
-      "mandatory_depends_on": "eval:doc.is_member"
-    },
-    {
-      "fieldname": "birthday",
-      "fieldtype": "Date",
-      "label": "Birthday"
-    },
-    {
-      "fieldname": "personal_information_section",
-      "fieldtype": "Section Break",
-      "label": "Personal Information"
-    },
-    {
-      "fieldname": "contact_information_section",
-      "fieldtype": "Section Break"
-    },
-    {
-      "fieldname": "home_address",
-      "fieldtype": "Link",
-      "label": "Home Address",
-      "options": "Address"
-    },
-    {
-      "depends_on": "eval: doc.different_mailing_address",
-      "fieldname": "mailing_address",
-      "fieldtype": "Link",
-      "label": "Mailing Address",
-      "options": "Address"
-    },
-    {
-      "fieldname": "column_break_vzrz",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "primary_phone",
-      "fieldtype": "Phone",
-      "in_preview": 1,
-      "label": "Primary Phone"
-    },
-    {
-      "fieldname": "email",
-      "fieldtype": "Data",
-      "in_preview": 1,
-      "label": "Email"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "family",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_preview": 1,
-      "label": "Family",
-      "options": "Family",
-      "print_hide": 1,
-      "search_index": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "0",
-      "depends_on": "eval:doc.family;",
-      "description": "Is this person 'Head of Household\" for their Family?",
-      "fieldname": "is_head_of_household",
-      "fieldtype": "Check",
-      "in_list_view": 1,
-      "label": "Is Head of Household",
-      "print_hide": 1
-    },
-    {
-      "fieldname": "photo",
-      "fieldtype": "Attach Image",
-      "label": "Photo"
-    },
-    {
-      "fieldname": "contact_information_tab",
-      "fieldtype": "Tab Break",
-      "label": "Contact"
-    },
-    {
-      "fieldname": "alergies",
-      "fieldtype": "Data",
-      "label": "Alergies",
-      "print_hide": 1
-    },
-    {
-      "fieldname": "church_records_section",
-      "fieldtype": "Section Break",
-      "label": "Church Records"
-    },
-    {
-      "fieldname": "column_break_lvwv",
-      "fieldtype": "Column Break"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "depends_on": "eval:doc.is_member",
-      "fieldname": "membership_status",
-      "fieldtype": "Link",
-      "in_preview": 1,
-      "label": "Membership Status",
-      "mandatory_depends_on": "eval:doc.is_member",
-      "options": "Member Status",
-      "search_index": 1
-    },
-    {
-      "default": "0",
-      "fieldname": "is_baptized",
-      "fieldtype": "Check",
-      "label": "Is Baptized"
-    },
-    {
-      "depends_on": "eval:doc.is_baptized",
-      "fieldname": "baptism_date",
-      "fieldtype": "Date",
-      "label": "Baptism Date"
-    },
-    {
-      "fieldname": "positions",
-      "fieldtype": "Table",
-      "label": "Positions",
-      "options": "Position"
-    },
-    {
-      "fieldname": "section_break_osjz",
-      "fieldtype": "Section Break"
-    },
-    {
-      "fieldname": "column_break_agva",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "family_tab",
-      "fieldtype": "Tab Break",
-      "label": "Family"
-    },
-    {
-      "default": "0",
-      "fieldname": "is_married",
-      "fieldtype": "Check",
-      "label": "Is Married",
-      "print_hide": 1
-    },
-    {
-      "depends_on": "eval:doc.is_married;",
-      "fieldname": "anniversary",
-      "fieldtype": "Date",
-      "label": "Anniversary"
-    },
-    {
-      "depends_on": "eval:doc.is_married;",
-      "fieldname": "spouse",
-      "fieldtype": "Link",
-      "in_preview": 1,
-      "label": "Spouse",
-      "link_filters": "[[\"Person\",\"name\",\"!=\",\"{{doc.id}}\"]]",
-      "options": "Person"
-    },
-    {
-      "fieldname": "column_break_fkwj",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "notes_tab",
-      "fieldtype": "Tab Break",
-      "in_preview": 1,
-      "label": "Notes"
-    },
-    {
-      "fieldname": "notes",
-      "fieldtype": "Text Editor",
-      "label": "Notes",
-      "print_hide": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "Unknown",
-      "fieldname": "gender",
-      "fieldtype": "Select",
-      "label": "Gender",
-      "options": "Female\nMale\nUnknown",
-      "print_hide": 1
-    },
-    {
-      "fieldname": "section_break_eqre",
-      "fieldtype": "Section Break"
-    },
-    {
-      "fieldname": "letters",
-      "fieldtype": "Table",
-      "label": "Letters to the Church",
-      "options": "Letter",
-      "print_hide": 1
-    },
-    {
-      "fieldname": "portal_user",
-      "fieldtype": "Link",
-      "label": "Portal User",
-      "options": "User"
-    },
-    {
-      "default": "0",
-      "fieldname": "different_mailing_address",
-      "fieldtype": "Check",
-      "label": "Different Mailing Address"
-    }
-  ],
-  "grid_page_length": 50,
-  "image_field": "photo",
-  "index_web_pages_for_search": 1,
-  "links": [
-    {
-      "link_doctype": "Prayer Request",
-      "link_fieldname": "requestor"
-    },
-    {
-      "link_doctype": "Prayer",
-      "link_fieldname": "person"
-    },
-    {
-      "link_doctype": "Collection",
-      "link_fieldname": "person"
-    },
-    {
-      "link_doctype": "Function",
-      "link_fieldname": "person"
-    },
-    {
-      "link_doctype": "Alms Request",
-      "link_fieldname": "recipient"
-    }
-  ],
-  "modified": "2026-02-22 23:11:46.660564",
-  "modified_by": "Administrator",
-  "module": "Church People",
-  "name": "Person",
-  "naming_rule": "Expression",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "import": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Church Manager",
-      "select": 1,
-      "share": 1,
-      "write": 1
-    },
-    {
-      "read": 1,
-      "role": "Church User",
-      "select": 1,
-      "write": 1
-    }
-  ],
-  "quick_entry": 1,
-  "route": "church-personz",
-  "row_format": "Dynamic",
-  "search_fields": "last_name, first_name",
-  "show_preview_popup": 1,
-  "show_title_field_in_link": 1,
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "title_field": "full_name",
-  "track_changes": 1
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:Person {#}",
+ "creation": "2025-08-21 01:19:39.714186",
+ "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "personal_information_section",
+  "church",
+  "first_name",
+  "last_name",
+  "full_name",
+  "gender",
+  "column_break_agva",
+  "photo",
+  "birthday",
+  "alergies",
+  "portal_user",
+  "church_records_section",
+  "is_member",
+  "membership_date",
+  "membership_status",
+  "column_break_lvwv",
+  "is_baptized",
+  "baptism_date",
+  "section_break_osjz",
+  "positions",
+  "contact_information_tab",
+  "contact_information_section",
+  "home_address",
+  "different_mailing_address",
+  "mailing_address",
+  "column_break_vzrz",
+  "primary_phone",
+  "email",
+  "section_break_eqre",
+  "letters",
+  "family_tab",
+  "column_break_gwhd",
+  "family",
+  "is_head_of_household",
+  "is_married",
+  "anniversary",
+  "spouse",
+  "column_break_fkwj",
+  "notes_tab",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_preview": 1,
+   "label": "Full Name",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gwhd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "description": "Is this person a church member?",
+   "fieldname": "is_member",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Member"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "Today",
+   "depends_on": "eval:doc.is_member",
+   "description": "When did the person become a member?",
+   "fieldname": "membership_date",
+   "fieldtype": "Date",
+   "label": "Membership Date",
+   "mandatory_depends_on": "eval:doc.is_member"
+  },
+  {
+   "fieldname": "birthday",
+   "fieldtype": "Date",
+   "label": "Birthday"
+  },
+  {
+   "fieldname": "personal_information_section",
+   "fieldtype": "Section Break",
+   "label": "Personal Information"
+  },
+  {
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "home_address",
+   "fieldtype": "Link",
+   "label": "Home Address",
+   "options": "Address"
+  },
+  {
+   "depends_on": "eval: doc.different_mailing_address",
+   "fieldname": "mailing_address",
+   "fieldtype": "Link",
+   "label": "Mailing Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_vzrz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "primary_phone",
+   "fieldtype": "Phone",
+   "in_preview": 1,
+   "label": "Primary Phone"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_preview": 1,
+   "label": "Email"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "family",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Family",
+   "options": "Family",
+   "print_hide": 1,
+   "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "depends_on": "eval:doc.family;",
+   "description": "Is this person 'Head of Household\" for their Family?",
+   "fieldname": "is_head_of_household",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Head of Household",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo"
+  },
+  {
+   "fieldname": "contact_information_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "alergies",
+   "fieldtype": "Data",
+   "label": "Alergies",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "church_records_section",
+   "fieldtype": "Section Break",
+   "label": "Church Records"
+  },
+  {
+   "fieldname": "column_break_lvwv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "depends_on": "eval:doc.is_member",
+   "fieldname": "membership_status",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "label": "Membership Status",
+   "mandatory_depends_on": "eval:doc.is_member",
+   "options": "Member Status",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_baptized",
+   "fieldtype": "Check",
+   "label": "Is Baptized"
+  },
+  {
+   "depends_on": "eval:doc.is_baptized",
+   "fieldname": "baptism_date",
+   "fieldtype": "Date",
+   "label": "Baptism Date"
+  },
+  {
+   "fieldname": "positions",
+   "fieldtype": "Table",
+   "label": "Positions",
+   "options": "Position"
+  },
+  {
+   "fieldname": "section_break_osjz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_agva",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "family_tab",
+   "fieldtype": "Tab Break",
+   "label": "Family"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_married",
+   "fieldtype": "Check",
+   "label": "Is Married",
+   "print_hide": 1
+  },
+  {
+   "depends_on": "eval:doc.is_married;",
+   "fieldname": "anniversary",
+   "fieldtype": "Date",
+   "label": "Anniversary"
+  },
+  {
+   "depends_on": "eval:doc.is_married;",
+   "fieldname": "spouse",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "label": "Spouse",
+   "link_filters": "[[\"Person\",\"name\",\"!=\",\"{{doc.id}}\"]]",
+   "options": "Person"
+  },
+  {
+   "fieldname": "column_break_fkwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes_tab",
+   "fieldtype": "Tab Break",
+   "in_preview": 1,
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes",
+   "print_hide": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "Unknown",
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "Female\nMale\nUnknown",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "section_break_eqre",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "letters",
+   "fieldtype": "Table",
+   "label": "Letters to the Church",
+   "options": "Letter",
+   "print_hide": 1
+  },
+  {
+   "description": "Auto-create a portal user by assigning an email address and clicking \"Invite to Portal\" button.",
+   "fieldname": "portal_user",
+   "fieldtype": "Link",
+   "label": "Portal User",
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "different_mailing_address",
+   "fieldtype": "Check",
+   "label": "Different Mailing Address"
+  }
+ ],
+ "grid_page_length": 50,
+ "image_field": "photo",
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Prayer Request",
+   "link_fieldname": "requestor"
+  },
+  {
+   "link_doctype": "Prayer",
+   "link_fieldname": "person"
+  },
+  {
+   "link_doctype": "Collection",
+   "link_fieldname": "person"
+  },
+  {
+   "link_doctype": "Function",
+   "link_fieldname": "person"
+  },
+  {
+   "link_doctype": "Alms Request",
+   "link_fieldname": "recipient"
+  }
+ ],
+ "modified": "2026-03-15 17:51:04.573327",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Person",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church User",
+   "select": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "route": "church-personz",
+ "row_format": "Dynamic",
+ "search_fields": "last_name, first_name",
+ "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name",
+ "track_changes": 1
 }

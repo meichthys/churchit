@@ -147,6 +147,9 @@ class Person(Document):
 				title="Email Not Configured",
 			)
 
+		# Inherit church from the creating user
+		church = frappe.db.get_value("User", frappe.session.user, "church")
+
 		# Check if user already exists with this email
 		user = frappe.db.exists("User", {"email": self.email})
 
@@ -159,24 +162,36 @@ class Person(Document):
 			new_user.send_welcome_email = 1
 			new_user.enabled = 1
 			new_user.role_profile_name = "Church User"
+			new_user.church = church
 			new_user.save(ignore_permissions=True)
 
 			# Update Person to mark as portal user
 			self.portal_user = new_user.name
 			self.save(ignore_permissions=True)
 
-			frappe.msgprint(
-				f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
-				f"and an invitation email was sent to {self.email}.",
-				title="Invitation Sent",
-				indicator="green",
-			)
+			if church:
+				frappe.msgprint(
+					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> at <b>{church}</b> "
+					f"and an invitation email was sent to {self.email}.",
+					title="Invitation Sent",
+					indicator="green",
+				)
+			else:
+				frappe.msgprint(
+					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
+					f"and an invitation email was sent to {self.email}. "
+					f"⚠️ No church was assigned — please set a church on the user.",
+					title="Invitation Sent",
+					indicator="orange",
+				)
 		else:
 			# User already exists, just update the portal_user field
 			self.portal_user = user
 			self.save(ignore_permissions=True)
+			existing_church = frappe.db.get_value("User", user, "church")
+			church_text = f" at <b>{existing_church}</b>" if existing_church else " (no church assigned)"
 			frappe.msgprint(
-				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a> already exists. User is now linked to this person."
+				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a>{church_text} already exists. User is now linked to this person."
 			)
 
 
