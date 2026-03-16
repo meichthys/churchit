@@ -578,7 +578,7 @@ def _hide_default_workspaces():
 	The is_hidden field is preserved through bench migrate / Frappe updates, so
 	this only needs to run once at install time.
 	"""
-	for workspace in ("Tools", "Build", "Users", "Integrations"):
+	for workspace in ("Tools", "Build", "Users", "Integrations", "Website"):
 		if frappe.db.exists("Workspace", workspace):
 			frappe.db.set_value("Workspace", workspace, "is_hidden", 1)
 
