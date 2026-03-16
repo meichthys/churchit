@@ -84,7 +84,7 @@ def _create_event_types():
 		"Communion",
 		"Baptism",
 	):
-		_insert_if_missing("Event Type", event_type, type=event_type)
+		_insert_if_missing("Function Type", event_type, type=event_type)
 
 
 def _create_event_attendance_types():
@@ -95,7 +95,7 @@ def _create_event_attendance_types():
 		"Confirmed": "The person's attendance was confirmed at this event.",
 	}
 	for name, description in types.items():
-		_insert_if_missing("Event Attendance Type", name, type=name, description=description)
+		_insert_if_missing("Function Attendance Type", name, type=name, description=description)
 
 
 def _create_position_types():
