@@ -57,6 +57,11 @@ frappe.ui.form.on("Bible Reference", {
 
 async function fetch_bible_text(frm) {
     try {
+        if (!frm.doc.translation) {
+            frappe.msgprint(__("Please select a Bible Translation before importing reference text."));
+            return;
+        }
+
         // Fetch full translation document from DB
         const translation_doc = await frappe.db.get_doc("Bible Translation", frm.doc.translation);
         const translationAbbr = translation_doc.abbreviation;
