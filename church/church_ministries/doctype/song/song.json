@@ -46,7 +46,7 @@
    "fieldname": "slides",
    "fieldtype": "Table",
    "label": "Slides",
-   "options": "Presentation Slide"
+   "options": "Slide"
   }
  ],
  "grid_page_length": 50,

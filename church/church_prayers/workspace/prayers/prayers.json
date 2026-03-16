@@ -1,15 +1,6 @@
 {
- "charts": [
-  {
-   "chart_name": "Prayer Request Count (Active)",
-   "label": "Active Prayer Request Count"
-  },
-  {
-   "chart_name": "Prayer Requests (Answered)",
-   "label": "Answered Prayers"
-  }
- ],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\",\"col\":12}},{\"id\":\"7xxtlFoDVX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":6}},{\"id\":\"OAUM9QI_Ol\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers\",\"col\":6}},{\"id\":\"DJWYwyHnvf\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Active Prayer Request Count\",\"col\":6}},{\"id\":\"Dd1PoGtYXd\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Answered Prayers\",\"col\":6}},{\"id\":\"Nx2vS9lnXp\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Documents\",\"col\":4}},{\"id\":\"lvZAf1_FTo\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Reports\",\"col\":4}}]",
+ "charts": [],
+ "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\",\"col\":12}},{\"id\":\"7xxtlFoDVX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"YOTS4ifkhO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Comments\",\"col\":4}},{\"id\":\"OAUM9QI_Ol\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers\",\"col\":4}},{\"id\":\"CCnM0m0PPk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Nx2vS9lnXp\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Documents\",\"col\":4}},{\"id\":\"lvZAf1_FTo\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Reports\",\"col\":4}}]",
  "creation": "2025-09-14 22:19:57.991467",
  "custom_blocks": [],
  "docstatus": 0,
@@ -101,7 +92,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:01.004309",
+ "modified": "2026-03-15 18:53:48.760165",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",
@@ -109,6 +100,10 @@
   {
    "label": "Active Prayer Requests",
    "number_card_name": "Prayer Request Count"
+  },
+  {
+   "label": "Prayer Request Comments",
+   "number_card_name": "Prayer Request Comments"
   },
   {
    "label": "Answered Prayers",
