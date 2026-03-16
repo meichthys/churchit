@@ -87,7 +87,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Event Type",
+   "options": "Function Type",
    "reqd": 1
   },
   {
@@ -110,7 +110,7 @@
    "fieldname": "attendance",
    "fieldtype": "Table",
    "label": "Attendance",
-   "options": "Event Attendance"
+   "options": "Function Attendance"
   }
  ],
  "grid_page_length": 50,

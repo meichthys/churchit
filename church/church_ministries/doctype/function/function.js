@@ -19,7 +19,7 @@ frappe.ui.form.on('Function', {
 		// Add template-fill functionality if we have a template specified and this is a new form
 		if (!frm.is_new() || !frm.doc.type) return;
 		// Check if the selected type has a template
-		frappe.db.get_value('Event Type', frm.doc.type, 'template_event').then(r => {
+		frappe.db.get_value('Function Type', frm.doc.type, 'template_event').then(r => {
 			if (!r.message?.template_event) return;
 			// Add 	Fill from Template` button if template exists
 			frm.add_custom_button(__('Fill from Template'), function() {
