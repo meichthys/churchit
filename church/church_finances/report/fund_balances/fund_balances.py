@@ -7,6 +7,7 @@ def execute(filters=None):
 
 def get_columns():
 	return [
+		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 200},
 		{"fieldname": "fund", "fieldtype": "Data", "label": "Fund", "width": 200},
 		{"fieldname": "balance", "fieldtype": "Currency", "label": "Balance", "width": 150},
 	]
@@ -16,7 +17,7 @@ def get_data():
 	church_condition = ""
 	values = {}
 
-	if not frappe.has_role("System Manager"):
+	if "System Manager" not in frappe.get_roles():
 		church_condition = """AND church IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'
@@ -25,7 +26,7 @@ def get_data():
 
 	return frappe.db.sql(
 		f"""
-		SELECT fund, balance
+		SELECT church, fund, balance
 		FROM `tabFund`
 		WHERE 1=1
 			{church_condition}
