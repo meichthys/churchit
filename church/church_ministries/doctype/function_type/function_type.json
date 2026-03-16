@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:type",
  "creation": "2025-08-31 23:41:14.325452",
- "description": "Types of church events (i.e Sunday services, community events, private events, etc)",
+ "description": "Types of church functions (i.e Sunday services, community events, private events, etc)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
@@ -55,10 +55,10 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-03-04 21:45:29.589961",
+ "modified": "2026-03-15 18:33:54.877352",
  "modified_by": "Administrator",
  "module": "Church Ministries",
- "name": "Event Type",
+ "name": "Function Type",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

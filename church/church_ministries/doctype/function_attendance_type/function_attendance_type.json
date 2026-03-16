@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "field:type",
  "creation": "2025-09-01 00:33:34.102307",
- "description": "Type of `Event Attendance` (i.e. Confirmed, Assumed, Unknown, Absent etc.)",
+ "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent etc.)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
@@ -37,10 +37,10 @@
    "table_fieldname": "attendance"
   }
  ],
- "modified": "2026-03-04 21:37:45.793117",
+ "modified": "2026-03-15 18:33:30.257014",
  "modified_by": "Administrator",
  "module": "Church Ministries",
- "name": "Event Attendance Type",
+ "name": "Function Attendance Type",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

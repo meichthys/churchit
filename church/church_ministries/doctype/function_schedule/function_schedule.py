@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class EventAttendanceType(Document):
+class FunctionSchedule(Document):
 	pass

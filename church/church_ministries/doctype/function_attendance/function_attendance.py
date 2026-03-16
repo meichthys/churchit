@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class EventType(Document):
+class FunctionAttendance(Document):
 	pass
