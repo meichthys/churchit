@@ -10,7 +10,8 @@
  "field_order": [
   "book",
   "chapter",
-  "verse"
+  "verse",
+  "church"
  ],
  "fields": [
   {
@@ -50,6 +51,14 @@
    "label": "Verse",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church"
   }
  ],
  "grid_page_length": 50,

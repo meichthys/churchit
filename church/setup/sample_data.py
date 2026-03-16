@@ -69,8 +69,8 @@ def create_sample_data():
 
 	_create_functions(church)
 
-	verses = _create_bible_verses()
-	_create_bible_references(verses)
+	verses = _create_bible_verses(church)
+	_create_bible_references(verses, church)
 
 	_create_sermons(church, people)
 
@@ -85,8 +85,8 @@ def delete_sample_data():
 
 	_delete_docs("Belief", {"church": church})
 	_delete_docs("Sermon", {"church": church})
-	_delete_docs("Bible Reference", {})
-	_delete_docs("Bible Verse", {})
+	_delete_docs("Bible Reference", {"church": church})
+	_delete_docs("Bible Verse", {"church": church})
 	_delete_docs("Function", {"church": church})
 	_delete_docs("Alms Request", {"church": church})
 	_delete_docs("Prayer Request", {"church": church})
@@ -736,7 +736,7 @@ _VERSES = [
 ]
 
 
-def _create_bible_verses():
+def _create_bible_verses(church):
 	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
 	refs = {}
 	for book, chapter, verse in _VERSES:
@@ -747,6 +747,7 @@ def _create_bible_verses():
 			continue
 		doc = frappe.get_doc({
 			"doctype": "Bible Verse",
+			"church": church,
 			"book": book,
 			"chapter": chapter,
 			"verse": verse,
@@ -761,7 +762,7 @@ def _create_bible_verses():
 # ---------------------------------------------------------------------------
 
 
-def _create_bible_references(verses):
+def _create_bible_references(verses, church):
 	"""Create sample Bible references."""
 	references = [
 		{
@@ -835,7 +836,7 @@ def _create_bible_references(verses):
 		})
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Bible Reference", **ref})
+		doc = frappe.get_doc({"doctype": "Bible Reference", "church": church, **ref})
 		doc.insert(ignore_permissions=True)
 
 
