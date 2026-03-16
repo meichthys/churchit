@@ -67,7 +67,7 @@ doctype_js = {"User": "public/js/user.js"}
 # Svg Icons
 # ------------------
 # include app icons in desk
-app_include_icons = ["/assets/church/icons/church.svg"]
+app_include_icons = ["church/icons/church.svg"]
 
 # Home Pages
 # ----------
