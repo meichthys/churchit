@@ -72,13 +72,9 @@ def create_sample_data():
 	verses = _create_bible_verses(church)
 	_create_bible_references(verses, church)
 
+	_create_sermons(church, people)
+
 	_create_beliefs(church)
-
-	# Flush so Belief/Fund/Person records are visible to Dynamic Link validation
-	# when Sermon Slide rows reference them.
-	frappe.db.commit()
-
-	_create_sermons(church, people, funds)
 
 	frappe.db.commit()
 
@@ -849,12 +845,8 @@ def _create_bible_references(verses, church):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(church, people, funds):
-	"""Create sample sermons with slides linking to Person, Fund, and Belief records."""
-	# Look up Fund doc names by fund label
-	general_fund = funds["General"]
-	missions_fund = funds["Missions"]
-
+def _create_sermons(church, people):
+	"""Create sample sermons."""
 	sermons = [
 		{
 			"title": "The Good Shepherd",
@@ -869,23 +861,6 @@ def _create_sermons(church, people, funds):
 				"<li>The Shepherd's Promise (vv. 5-6)</li>"
 				"</ol>"
 			),
-			"slides": [
-				{
-					"slide_type": "Person",
-					"slide": people["James Wilson"],
-					"notes": "<p>Pastor James Wilson — preaching on Psalm 23.</p>",
-				},
-				{
-					"slide_type": "Belief",
-					"slide": "The Bible",
-					"notes": "<p>Our statement of faith regarding the authority of Scripture.</p>",
-				},
-				{
-					"slide_type": "Fund",
-					"slide": general_fund,
-					"notes": "<p>Please consider giving to the General Fund to support ongoing ministry.</p>",
-				},
-			],
 		},
 		{
 			"title": "Walking by Faith",
@@ -900,23 +875,6 @@ def _create_sermons(church, people, funds):
 				"<li>Applying faith to modern challenges</li>"
 				"</ul>"
 			),
-			"slides": [
-				{
-					"slide_type": "Person",
-					"slide": people["Robert Johnson"],
-					"notes": "<p>Elder Robert Johnson — reading from Hebrews 11.</p>",
-				},
-				{
-					"slide_type": "Belief",
-					"slide": "Salvation",
-					"notes": "<p>What we believe about salvation by grace through faith.</p>",
-				},
-				{
-					"slide_type": "Fund",
-					"slide": missions_fund,
-					"notes": "<p>Support our missionaries who walk by faith around the world.</p>",
-				},
-			],
 		},
 		{
 			"title": "The Power of Prayer",
@@ -931,23 +889,6 @@ def _create_sermons(church, people, funds):
 				"<li>Prayer as a means of transformation</li>"
 				"</ol>"
 			),
-			"slides": [
-				{
-					"slide_type": "Person",
-					"slide": people["Martha Evans"],
-					"notes": "<p>Sister Martha Evans — sharing a testimony on answered prayer.</p>",
-				},
-				{
-					"slide_type": "Belief",
-					"slide": "God",
-					"notes": "<p>We believe in one God — the One to whom we direct our prayers.</p>",
-				},
-				{
-					"slide_type": "Fund",
-					"slide": general_fund,
-					"notes": "<p>Your tithes and offerings keep this ministry running.</p>",
-				},
-			],
 		},
 	]
 	for sermon in sermons:
