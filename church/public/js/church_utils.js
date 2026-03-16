@@ -1,15 +1,24 @@
 window.church = window.church || {};
 
-// Auto-fill the `church` field on new documents using the current user's default church.
-frappe.ui.form.on("*", {
-	onload(frm) {
-		if (frm.is_new() && frm.fields_dict.church) {
-			const default_church = frappe.defaults.get_user_default("church");
-			if (default_church) {
-				frm.set_value("church", default_church);
-			}
-		}
+// Cache the church count so we only fetch it once per page load.
+church._church_count = null;
+church._get_church_count = function() {
+	if (church._church_count !== null) {
+		return Promise.resolve(church._church_count);
 	}
+	return frappe.db.count("Church").then(count => {
+		church._church_count = count;
+		return count;
+	});
+};
+
+// Hide the `church` field on all forms when there is only one church in the system.
+// use the document-level "form-refresh" event that Frappe fires after every form render instead.
+$(document).on("form-refresh", function(_e, frm) {
+	if (!frm.fields_dict.church) return;
+	church._get_church_count().then(count => {
+		frm.toggle_display("church", count > 1);
+	});
 });
 
 // Sets a query filter on a DocType link field to only show DocTypes belonging to the church app.
