@@ -74,6 +74,10 @@ def create_sample_data():
 
 	_create_beliefs(church)
 
+	# Flush so Belief/Fund/Person records are visible to Dynamic Link validation
+	# when Sermon Slide rows reference them.
+	frappe.db.commit()
+
 	_create_sermons(church, people, funds)
 
 	frappe.db.commit()
