@@ -1,15 +1,15 @@
 {
  "charts": [
   {
-   "chart_name": "Fund Balances",
-   "label": "Fund Balances"
-  },
-  {
    "chart_name": "Collections Sum",
    "label": "Collections"
+  },
+  {
+   "chart_name": "Expenses Over Time",
+   "label": "Expenses"
   }
  ],
- "content": "[{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and \\ncount the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"MmG7zVkZbr\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Collections\",\"col\":6}},{\"id\":\"K7pkEdUhpZ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Balances\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"qn8J4udcIZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}},{\"id\":\"GhZ9fljXbs\",\"type\":\"card\",\"data\":{\"card_name\":\"Fund Reports\",\"col\":4}},{\"id\":\"xvoDAICiJN\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"l_H4g7YzJQ\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and \\ncount the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"nc01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collections\",\"col\":4}},{\"id\":\"nc02\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses\",\"col\":4}},{\"id\":\"nc03\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"sp01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"MmG7zVkZbr\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Collections\",\"col\":6}},{\"id\":\"ch02\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Expenses\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"qn8J4udcIZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}},{\"id\":\"GhZ9fljXbs\",\"type\":\"card\",\"data\":{\"card_name\":\"Fund Reports\",\"col\":4}},{\"id\":\"xvoDAICiJN\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"l_H4g7YzJQ\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
  "creation": "2025-09-14 22:29:59.428671",
  "custom_blocks": [],
  "docstatus": 0,
@@ -238,11 +238,24 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:00.554962",
+ "modified": "2026-03-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",
- "number_cards": [],
+ "number_cards": [
+  {
+   "number_card_name": "Total Collections",
+   "label": "Total Collections"
+  },
+  {
+   "number_card_name": "Total Expenses",
+   "label": "Total Expenses"
+  },
+  {
+   "number_card_name": "Pending Alms Requests",
+   "label": "Pending Alms Requests"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
