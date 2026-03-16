@@ -41,6 +41,7 @@ fixtures = [
 app_include_js = [
 	"/assets/church/js/help_icon_on_form.js",
 	"/assets/church/js/church_utils.js",
+	"/assets/church/js/published_fields_indicator.js",
 ]
 
 # include js, css files in header of web template

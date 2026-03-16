@@ -1,4 +1,48 @@
+import re
+
 import frappe
+
+
+@frappe.whitelist(allow_guest=False)
+def get_published_fields(doctype):
+	"""Return fields of *doctype* that are published on the website.
+
+	Scans published Web Pages with ``dynamic_template=1`` whose Jinja HTML
+	references fields of *doctype* (detected by ``frappe.get_doc("DocType", …)``
+	or ``frappe.get_list("DocType", …)`` calls followed by attribute access
+	like ``variable.fieldname``).
+
+	Returns a dict mapping fieldname → list of source Web Page titles, e.g.::
+
+	    {"title": ["Missions"], "email": ["Missions"]}
+	"""
+	meta = frappe.get_meta(doctype)
+	known_fields = {f.fieldname for f in meta.fields if f.fieldname}
+
+	result = {}  # fieldname → [source, …]
+
+	web_pages = frappe.get_all(
+		"Web Page",
+		filters={"published": 1, "dynamic_template": 1},
+		fields=["name", "title", "route", "main_section_html"],
+	)
+	# Pattern: frappe.get_doc("DocType", …) or frappe.get_list("DocType", …)
+	dt_escaped = re.escape(doctype)
+	ref_pattern = re.compile(
+		rf"""frappe\.get_(?:doc|list)\(\s*["']{dt_escaped}["']"""
+	)
+	for wp in web_pages:
+		html = wp.main_section_html or ""
+		if not ref_pattern.search(html):
+			continue
+		# Find all .fieldname attribute accesses in the template
+		source = {"title": wp.title or wp.name, "route": wp.route or wp.name}
+		for fieldname in known_fields:
+			# Match variable.fieldname (e.g. church.legal_name, missionary.email)
+			if re.search(rf"\b\w+\.{re.escape(fieldname)}\b", html):
+				result.setdefault(fieldname, []).append(source)
+
+	return result
 
 
 @frappe.whitelist(allow_guest=False)
