@@ -1,3 +1,5 @@
+"""Church Directory Report (AI Generated)"""
+
 import calendar
 import os
 
@@ -6,7 +8,11 @@ from frappe.utils import today as frappe_today
 
 
 def execute(filters=None):
-	return get_columns(), get_data(filters)
+	group_by_family = frappe.utils.cint((filters or {}).get("group_by_family", 1))
+	if group_by_family:
+		return get_columns(), get_data(filters)
+	else:
+		return get_individual_columns(), get_individual_data(filters)
 
 
 def get_columns():
@@ -24,6 +30,52 @@ def get_columns():
 		{"fieldname": "state", "fieldtype": "Data", "label": "State", "width": 100},
 		{"fieldname": "member_count", "fieldtype": "Int", "label": "Members", "width": 80},
 	]
+
+
+def get_individual_columns():
+	return [
+		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
+		{"fieldname": "family", "fieldtype": "Link", "label": "Family", "options": "Family", "width": 160},
+		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 160},
+		{"fieldname": "primary_phone", "fieldtype": "Data", "label": "Phone", "width": 130},
+		{"fieldname": "email", "fieldtype": "Data", "label": "Email", "width": 180},
+		{"fieldname": "city", "fieldtype": "Data", "label": "City", "width": 120},
+		{"fieldname": "state", "fieldtype": "Data", "label": "State", "width": 100},
+	]
+
+
+def get_individual_data(filters):
+	if not filters or not filters.get("church"):
+		return []
+
+	church = filters.get("church")
+	members_only = frappe.utils.cint(filters.get("members_only", 0))
+	include_sub_churches = frappe.utils.cint(filters.get("include_sub_churches", 0))
+
+	churches = get_church_scope(church, include_sub_churches)
+	church_in = build_in_clause(churches)
+
+	member_filter = "AND p.is_member = 1" if members_only else ""
+
+	return frappe.db.sql(
+		f"""
+		SELECT
+			p.name AS person,
+			p.family,
+			p.church,
+			p.primary_phone,
+			p.email,
+			COALESCE(a.city, '') AS city,
+			COALESCE(a.state, '') AS state
+		FROM `tabPerson` p
+		LEFT JOIN `tabFamily` f ON f.name = p.family
+		LEFT JOIN `tabAddress` a ON a.name = f.home_address
+		WHERE p.church IN {church_in}
+			{member_filter}
+		ORDER BY p.last_name, p.first_name
+		""",
+		as_dict=True,
+	)
 
 
 def get_data(filters):
@@ -95,6 +147,7 @@ def get_directory_html(
 	church,
 	members_only=0,
 	include_sub_churches=0,
+	group_by_family=1,
 	show_photos=0,
 	show_roles=0,
 	show_membership=1,
@@ -106,6 +159,7 @@ def get_directory_html(
 	"""Generate the full HTML for the church directory, ready to print."""
 	members_only = frappe.utils.cint(members_only)
 	include_sub_churches = frappe.utils.cint(include_sub_churches)
+	group_by_family = frappe.utils.cint(group_by_family)
 	show_photos = frappe.utils.cint(show_photos)
 	show_roles = frappe.utils.cint(show_roles)
 	show_membership = frappe.utils.cint(show_membership)
@@ -149,12 +203,14 @@ def get_directory_html(
 		SELECT
 			p.name AS person_name,
 			p.full_name,
+			p.last_name,
 			p.primary_phone,
 			p.email,
 			p.membership_status,
 			p.is_head_of_household,
 			p.photo,
-			p.family
+			p.family,
+			p.church AS church_name
 		FROM `tabPerson` p
 		WHERE p.church IN {church_in}
 			AND p.family IS NOT NULL AND p.family != ''
@@ -220,42 +276,69 @@ def get_directory_html(
 	# Build merged sorted entry list
 	all_entries = []
 
-	for family in families:
-		members = members_by_family.get(family.family_id, [])
-		if members:
+	if group_by_family:
+		for family in families:
+			members = members_by_family.get(family.family_id, [])
+			if members:
+				all_entries.append(
+					{
+						"sort_name": family.family_name,
+						"display_name": family.family_name + " Family",
+						"is_individual": False,
+						"church_name": family.church_name,
+						"family_photo": family.family_photo,
+						"address_line1": family.address_line1,
+						"address_line2": family.address_line2,
+						"city": family.city,
+						"state": family.state,
+						"pincode": family.pincode,
+						"members": members,
+					}
+				)
+
+		for person in individuals_raw:
+			sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
 			all_entries.append(
 				{
-					"sort_name": family.family_name,
-					"display_name": family.family_name + " Family",
-					"is_individual": False,
-					"church_name": family.church_name,
-					"family_photo": family.family_photo,
-					"address_line1": family.address_line1,
-					"address_line2": family.address_line2,
-					"city": family.city,
-					"state": family.state,
-					"pincode": family.pincode,
-					"members": members,
+					"sort_name": sort_key,
+					"display_name": person.full_name,
+					"is_individual": True,
+					"church_name": person.church_name,
+					"family_photo": None,
+					"address_line1": "",
+					"address_line2": "",
+					"city": "",
+					"state": "",
+					"pincode": "",
+					"members": [person],
 				}
 			)
+	else:
+		# Flat list: every person is their own entry
+		all_people = list(all_members) + list(individuals_raw)
+		# Fetch address info for family members
+		family_address = {}
+		for family in families:
+			family_address[family.family_id] = family
 
-	for person in individuals_raw:
-		sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
-		all_entries.append(
-			{
-				"sort_name": sort_key,
-				"display_name": person.full_name,
-				"is_individual": True,
-				"church_name": person.church_name,
-				"family_photo": None,
-				"address_line1": "",
-				"address_line2": "",
-				"city": "",
-				"state": "",
-				"pincode": "",
-				"members": [person],
-			}
-		)
+		for person in all_people:
+			sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
+			fam = family_address.get(person.get("family"))
+			all_entries.append(
+				{
+					"sort_name": sort_key,
+					"display_name": person.full_name,
+					"is_individual": True,
+					"church_name": person.get("church_name", ""),
+					"family_photo": None,
+					"address_line1": fam.address_line1 if fam else "",
+					"address_line2": fam.address_line2 if fam else "",
+					"city": fam.city if fam else "",
+					"state": fam.state if fam else "",
+					"pincode": fam.pincode if fam else "",
+					"members": [person],
+				}
+			)
 
 	all_entries.sort(key=lambda e: (e["sort_name"] or "").upper())
 

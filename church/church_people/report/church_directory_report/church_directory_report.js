@@ -20,6 +20,12 @@ frappe.query_reports["Church Directory Report"] = {
 			default: 0,
 		},
 		{
+			fieldname: "group_by_family",
+			label: __("Group by Family"),
+			fieldtype: "Check",
+			default: 1,
+		},
+		{
 			fieldname: "show_photos",
 			label: __("Show Photos"),
 			fieldtype: "Check",
@@ -80,6 +86,7 @@ frappe.query_reports["Church Directory Report"] = {
 			const show_hoh = report.get_filter_value('show_hoh') ? 1 : 0;
 			const show_birthdays = report.get_filter_value('show_birthdays') ? 1 : 0;
 			const show_anniversaries = report.get_filter_value('show_anniversaries') ? 1 : 0;
+			const group_by_family = report.get_filter_value('group_by_family') ? 1 : 0;
 			const show_missionaries = report.get_filter_value('show_missionaries') ? 1 : 0;
 
 			if (!church) {
@@ -93,6 +100,7 @@ frappe.query_reports["Church Directory Report"] = {
 					church,
 					include_sub_churches,
 					members_only,
+					group_by_family,
 					show_photos,
 					show_roles,
 					show_membership,
