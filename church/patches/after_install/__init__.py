@@ -464,12 +464,6 @@ def _create_web_pages():
 			"route": "locations",
 			"template_file": "locations.html",
 		},
-		{
-			"name": "leadership",
-			"title": "Leadership",
-			"route": "leadership",
-			"template_file": "leadership.html",
-		},
 	]
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
@@ -511,7 +505,7 @@ def _setup_about_us_settings():
 		' <a href="/missions">Missions</a> page.</p>'
 	)
 	doc.company_history_heading = "Church History"
-	doc.team_members_heading = "Our Leadership"
+	doc.team_members_heading = "Our Team"
 	doc.save(ignore_permissions=True)
 
 
@@ -536,7 +530,6 @@ def _setup_website_settings():
 		{"label": "Beliefs", "url": "/beliefs", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Locations", "url": "/locations", "right": 1},
-		{"label": "Leadership", "url": "/leadership", "right": 1},
 		{"label": "Blog", "url": "/blog", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
