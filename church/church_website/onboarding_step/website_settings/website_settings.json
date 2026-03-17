@@ -1,0 +1,22 @@
+{
+ "action": "Go to Page",
+ "action_label": "Configure Website",
+ "creation": "2026-03-17 00:00:00",
+ "description": "Website Settings control the overall look and behavior of your church website, including the site name, home page, navigation bar, banner, and footer.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-03-16 19:36:45.203607",
+ "modified_by": "Administrator",
+ "name": "Website Settings",
+ "owner": "Administrator",
+ "path": "/app/website-settings/Website Settings",
+ "reference_document": "Website Settings",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Configure your website settings",
+ "validate_action": 1
+}

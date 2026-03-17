@@ -1,0 +1,22 @@
+{
+ "action": "Go to Page",
+ "action_label": "Configure Contact Us",
+ "creation": "2026-03-17 00:00:00",
+ "description": "The Contact Us page lets visitors reach out to your church. Configure the email address where inquiries are forwarded, subject options, and your church's address and phone number.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-03-16 19:35:58.021930",
+ "modified_by": "Administrator",
+ "name": "Contact Us Settings",
+ "owner": "Administrator",
+ "path": "/app/contact-us-settings/Contact Us Settings",
+ "reference_document": "Contact Us Settings",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Set up your Contact Us page",
+ "validate_action": 1
+}

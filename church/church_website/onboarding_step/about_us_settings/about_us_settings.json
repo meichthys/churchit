@@ -1,0 +1,22 @@
+{
+ "action": "Go to Page",
+ "action_label": "Configure About Us",
+ "creation": "2026-03-17 00:00:00",
+ "description": "The About Us page tells visitors about your church. Configure the page title, introduction, history, and leadership sections to reflect your congregation's story and mission.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-03-16 19:35:43.593979",
+ "modified_by": "Administrator",
+ "name": "About Us Settings",
+ "owner": "Administrator",
+ "path": "/app/about-us-settings/About Us Settings",
+ "reference_document": "About Us Settings",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Set up your About Us page",
+ "validate_action": 1
+}
