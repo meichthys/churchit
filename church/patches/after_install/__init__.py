@@ -464,6 +464,12 @@ def _create_web_pages():
 			"route": "locations",
 			"template_file": "locations.html",
 		},
+		{
+			"name": "leadership",
+			"title": "Leadership",
+			"route": "leadership",
+			"template_file": "leadership.html",
+		},
 	]
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
@@ -480,6 +486,7 @@ def _create_web_pages():
 				"module": "Church Website",
 				"show_title": 1,
 				"text_align": "Center",
+				"css": ".page-header { text-align: center; }",
 				"main_section_html": _read_template(page["template_file"]),
 			}
 		).insert(ignore_permissions=True)
@@ -527,6 +534,7 @@ def _setup_website_settings():
 		{"label": "Beliefs", "url": "/beliefs", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Locations", "url": "/locations", "right": 1},
+		{"label": "Leadership", "url": "/leadership", "right": 1},
 		{"label": "Blog", "url": "/blog", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},

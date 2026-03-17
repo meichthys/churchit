@@ -10,7 +10,8 @@
  "engine": "InnoDB",
  "field_order": [
   "position",
-  "description"
+  "description",
+  "publish"
  ],
  "fields": [
   {
@@ -27,6 +28,14 @@
    "label": "Position",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "Displays the people with this position on the public website.",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Publish"
   }
  ],
  "grid_page_length": 50,
