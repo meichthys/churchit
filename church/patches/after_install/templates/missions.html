@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row justify-content-center">
 {% set root_churches = frappe.get_list("Church", fields=["name"], filters={"parent_church": ""}, ignore_permissions=True, limit=1) %}
 {% if root_churches %}
 {% set root_church_name = root_churches[0].name %}

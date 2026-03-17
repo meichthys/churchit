@@ -1,7 +1,7 @@
 {% set root_churches = frappe.get_list("Church", fields=["name"], filters={"parent_church": ""}, ignore_permissions=True, limit=1) %}
 {% if root_churches %}
 {% set church = frappe.get_doc("Church", root_churches[0].name) %}
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-lg-12 mb-4">
         <div class="card h-100">
             <div class="card-header">

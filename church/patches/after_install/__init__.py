@@ -528,6 +528,8 @@ def _setup_website_settings():
 	doc.hide_login = 1
 	doc.home_page = "home"
 	doc.website_theme = "Standard"
+	# Hide breadcrumbs site-wide
+	doc.head_html = "<style>.page-breadcrumbs { display: none !important; }</style>"
 	doc.top_bar_items = []
 	for item in [
 		{"label": "Home", "url": "/home", "right": 1},
