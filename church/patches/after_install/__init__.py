@@ -536,6 +536,13 @@ def _setup_website_settings():
 		{"label": "Login", "url": "/login", "right": 1},
 	]:
 		doc.append("top_bar_items", item)
+	doc.footer_powered = " "
+	doc.footer_items = []
+	for item in [
+		{"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"},
+		{"label": "My Account", "url": "/me", "right": 1},
+	]:
+		doc.append("footer_items", item)
 	doc.save(ignore_permissions=True)
 
 
