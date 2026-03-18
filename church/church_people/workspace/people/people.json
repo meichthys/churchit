@@ -98,10 +98,20 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Reports",
-   "link_count": 6,
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "People",
+   "link_count": 0,
+   "link_to": "People",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -167,8 +177,8 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-13 20:01:00.922459",
- "modified_by": "Administrator",
+ "modified": "2026-03-17 18:13:58.931680",
+ "modified_by": "mary.johnson@example.com",
  "module": "Church People",
  "name": "People",
  "number_cards": [
