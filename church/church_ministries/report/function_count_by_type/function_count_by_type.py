@@ -14,14 +14,17 @@ def get_columns():
 
 def get_data(filters):
 	filters = filters or {}
-	church_condition = ""
+	conditions = ""
 	values = {
 		"start": filters.get("start"),
 		"end": filters.get("end"),
 	}
 
-	if "System Manager" not in frappe.get_roles():
-		church_condition = """AND church IN (
+	if filters.get("church"):
+		conditions += "AND church = %(church)s"
+		values["church"] = filters["church"]
+	elif "System Manager" not in frappe.get_roles():
+		conditions += """AND church IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'
 		)"""
@@ -32,7 +35,7 @@ def get_data(filters):
 		SELECT type as type, count(name) as counts
 		FROM `tabFunction`
 		WHERE (start_date IS NULL OR end_date IS NULL OR date(start_date) BETWEEN %(start)s AND %(end)s)
-			{church_condition}
+			{conditions}
 		GROUP BY type
 		""",
 		values,

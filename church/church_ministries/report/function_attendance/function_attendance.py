@@ -2,7 +2,7 @@ import frappe
 
 
 def execute(filters=None):
-	return get_columns(), get_data()
+	return get_columns(), get_data(filters)
 
 
 def get_columns():
@@ -12,12 +12,15 @@ def get_columns():
 	]
 
 
-def get_data():
-	church_condition = ""
+def get_data(filters=None):
+	conditions = ""
 	values = {}
 
-	if "System Manager" not in frappe.get_roles():
-		church_condition = """AND `tabFunction`.church IN (
+	if filters and filters.get("church"):
+		conditions += "AND `tabFunction`.church = %(church)s"
+		values["church"] = filters["church"]
+	elif "System Manager" not in frappe.get_roles():
+		conditions += """AND `tabFunction`.church IN (
 			SELECT for_value FROM `tabUser Permission`
 			WHERE user = %(user)s AND allow = 'Church'
 		)"""
@@ -31,7 +34,7 @@ def get_data():
 		FROM `tabFunction Attendance`
 		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
 		WHERE `tabFunction Attendance`.attendance_type IN ('Assumed', 'Confirmed')
-			{church_condition}
+			{conditions}
 		GROUP BY `tabFunction Attendance`.parent
 		""",
 		values,
