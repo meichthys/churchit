@@ -1,4 +1,4 @@
-frappe.query_reports["Function Attendance"] = {
+frappe.query_reports["Function Attendance by Type"] = {
 	filters: [
 		{
 			fieldname: "church",
