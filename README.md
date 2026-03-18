@@ -28,36 +28,81 @@ If you would like to test out the current state of the application, you can try 
 
 The following features have been implemented in this app (see the [🗺️ Roadmap](#-feature-roadmap) below for future plans):
 
-- Built-in Documentation for each module
-- Portal for users with a login:
-  - Prayer request submission & viewing
-- `Person` tracking
-  - Define and track `Person Relation`ships
-    - Define `Person Relation Type`s
-  - Define & track `Person Role`s (i.e. board member, deacon, pastor, etc)
-- `Family` tracking
-  - Track head of household (Set on `Person` record)
-- `Prayer Request` tracking
-  - Authenticated or Anonymous web-form submissions
-  - Authenticated users can manage their own prayer requests
-- `Missionary` & `Missionary Agency` tracking
-- Church module desk workspace with guided setup steps
-- Event tracking
-  - Event types, details, basic attendance tracking & reporting & templating
-- Simple Task tracking
-- Collection/donation tracking
-  - Donation entry with collection totals & split check support
-  - Bank reconciliation report
-- Fund balance tracking
-  - Collections automatically update funds when saved
-- Basic Asset Tracking (location, details)
-- Belief tracking
-- Basic Website
-  - About Page
-- Letter tracking (from people & missionaries)
-- Bible Vers & Reference entry
-  - Fetch Bible text from bible-api.com
-- Alms Requests
+### Multi-Church Support
+- Hierarchical church structure
+- All data is scoped to a church — users only see what they have access to
+- Church filter auto-hides in single-church setups for a cleaner experience
+
+### People & Families
+- Comprehensive person profiles with contact info, photos, notes, etc.
+- Membership tracking with custom statuses and baptism records
+- Family/household management with head-of-household relationship tracking
+- Spouse tracking with automatic bidirectional sync
+- Church position tracking
+- Portal invitations: invite people to a self-service portal
+
+### Portal & Website
+- Portal invitations — one-click "Invite to Portal" auto-creates a user account and sends a welcome email
+- Portal pages for personal details, prayer requests, and alms requests
+- Anonymous prayer request submission (no login required)
+- Publishable beliefs/statement of faith
+- Publishable missionary profiles with sensitive-info redaction
+
+### Events & Attendance
+- Function (event) tracking with types, scheduling, and attendance
+- Attendance types (Confirmed, Assumed, Absent, etc.)
+- Song tracking for worship services
+- Reports: attendance by function, attendance by person, function count by type
+
+### Sermons & Presentations
+- Sermon management with slides referencing any church document
+- Presentation mode with configurable field display per slide
+- Presentation history tracking with date, presenter, and location
+- Audio/video recording support
+
+### Finances
+- Collection and donation tracking with fund allocation
+- Anonymous donation support
+- Payment type tracking (cash, check, etc.)
+- Fund management with automatic balance updates on submission
+- Fund transfers between accounts
+- Expense tracking by category
+- Alms request system for financial assistance (with web form)
+
+### Missions
+- Missionary profiles with contact info, location, and support details
+- Missionary agency tracking
+- Support frequency and amount tracking
+- Letter/correspondence tracking
+
+### Prayer
+- Prayer request management with status tracking and types
+- Authenticated and anonymous web-form submissions
+- Privacy options (private vs. shared with congregation)
+- Prayer recording with topics referencing requests, people, and verses
+
+### Bible & Study
+- Full Bible book, verse, and reference structure
+- Multiple translation support
+- Bible text fetching
+
+### Operations
+- Task tracking with document references
+- Asset tracking (location, details, status)
+- Letter tracking from people and missionaries
+
+### Reports
+- Churches overview (people and family counts)
+- People report (filterable by name, family, role, membership, baptism)
+- Function attendance by type and by person
+- Function count by type
+- Church directory (printable, with photos, roles, family grouping, and other options)
+- Person letters, birthdays, current positions, and more
+
+### Administration
+- Role-based access: System Manager, Church Manager, Church User
+- Built-in documentation for each module
+- Guided setup/onboarding
 
 ## 📥 Installing Frappe
 
@@ -123,22 +168,14 @@ Before you start using the app be sure to:
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.
 
-- [Sermon Doctype](https://github.com/meichthys/church/issues/25)
-- Ministry tracking
 - [Add standard church website pages:](https://github.com/meichthys/church/issues/13)
-  - [Home/Welcome](https://github.com/meichthys/church/issues/16)
-  - [About](https://github.com/meichthys/church/issues/14)
-  - [Missions](https://github.com/meichthys/church/issues/15)
-  - Beliefs/Statement of Faith
   - Calendar
-  - Contact Us
 - Additional portal pages
   - Show tracked giving
   - Show tracked attendance
     - Allow updating attendance status(?)
 - Add Onboarding Tours
   - Add 'Tutorial' button to each doctype form
-  - [Email setup](https://github.com/meichthys/church/issues/32)
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
