@@ -76,6 +76,10 @@ frappe.query_reports["Church Directory Report"] = {
 			report.set_filter_value("church", default_church);
 		}
 
+		church._get_church_count().then(count => {
+			report.page.fields_dict.church.toggle(count > 1);
+		});
+
 		report.page.add_inner_button(__('Print Directory'), function () {
 			const church = report.get_filter_value('church');
 			const include_sub_churches = report.get_filter_value('include_sub_churches') ? 1 : 0;
