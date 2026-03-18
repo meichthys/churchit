@@ -323,7 +323,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-16 19:29:20.236986",
+ "modified": "2026-03-17 19:49:59.791090",
  "modified_by": "Administrator",
  "module": "Church Customizations",
  "name": "Build",
@@ -334,7 +334,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 29.0,
+ "sequence_id": 28.0,
  "shortcuts": [
   {
    "color": "Grey",

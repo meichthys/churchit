@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Manual: Operations",
  "links": [],
- "modified": "2026-03-13 20:01:00.887314",
+ "modified": "2026-03-17 19:49:59.192139",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Manual: Operations",
@@ -23,7 +23,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 15.0,
+ "sequence_id": 14.0,
  "shortcuts": [],
  "title": "Manual: Operations"
 }

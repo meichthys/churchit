@@ -73,7 +73,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-15 18:27:21.559745",
+ "modified": "2026-03-17 19:49:59.375386",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
@@ -96,7 +96,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 20.0,
+ "sequence_id": 19.0,
  "shortcuts": [],
  "title": "Study"
 }
