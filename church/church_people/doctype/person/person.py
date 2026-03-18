@@ -147,8 +147,10 @@ class Person(Document):
 				title="Email Not Configured",
 			)
 
-		# Inherit church from the creating user
+		# Inherit church from the creating user; fall back to root church if unset
 		church = frappe.db.get_value("User", frappe.session.user, "church")
+		if not church:
+			church = frappe.db.get_value("Church", {"parent_church": ("is", "not set")})
 
 		# Check if user already exists with this email
 		user = frappe.db.exists("User", {"email": self.email})
