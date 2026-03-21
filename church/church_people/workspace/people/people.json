@@ -23,66 +23,6 @@
  "label": "People",
  "links": [
   {
-   "description": "Click on shortcuts below to see full lists.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Person Documents",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "People",
-   "link_count": 0,
-   "link_to": "Person",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Families",
-   "link_count": 0,
-   "link_to": "Family",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Relation Types",
-   "link_count": 0,
-   "link_to": "Person Relation Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Member Status Types",
-   "link_count": 0,
-   "link_to": "Member Status",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Position Types",
-   "link_count": 0,
-   "link_to": "Position Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
    "hidden": 0,
    "is_query_report": 0,
    "label": "Church Directory",
@@ -175,9 +115,99 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "description": "Click on shortcuts below to see full lists.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Person Documents",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "People",
+   "link_count": 0,
+   "link_to": "Person",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Families",
+   "link_count": 0,
+   "link_to": "Family",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Groups",
+   "link_count": 0,
+   "link_to": "Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Group Types",
+   "link_count": 0,
+   "link_to": "Group Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Group Roles",
+   "link_count": 0,
+   "link_to": "Group Role",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Relation Types",
+   "link_count": 0,
+   "link_to": "Person Relation Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Member Status Types",
+   "link_count": 0,
+   "link_to": "Member Status",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Position Types",
+   "link_count": 0,
+   "link_to": "Position Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.227907",
+ "modified": "2026-03-20 20:21:20.528153",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

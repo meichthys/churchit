@@ -8,7 +8,7 @@
  "anonymous": 0,
  "apply_document_permissions": 1,
  "button_label": "Save",
- "client_script": "// Runs inside frappe.init_client_script() — fields are already rendered\nvar recip_ctrl = frappe.web_form.fields_dict['recipient'];\nvar type_ctrl = frappe.web_form.fields_dict['recipient_type'];\n\nif (recip_ctrl && type_ctrl) {\n\t// Populate recipient_type with church app doctypes from the server\n\tfrappe.call({\n\t\tmethod: 'church.church_website.api.get_church_doctypes',\n\t\targs: {},\n\t\tcallback: function(r) {\n\t\t\tvar $select = type_ctrl.$input;\n\t\t\t$select.empty().append($('<option value=\"\">').text(''));\n\t\t\t(r.message || []).forEach(function(d) {\n\t\t\t\t$select.append($('<option>').val(d.name).text(d.name));\n\t\t\t});\n\t\t\t// Restore value if editing an existing record\n\t\t\tvar existing = frappe.web_form.doc && frappe.web_form.doc.recipient_type;\n\t\t\tif (existing) $select.val(existing);\n\t\t}\n\t});\n\n\tvar $input = recip_ctrl.$input;\n\tvar $wrap = recip_ctrl.$wrapper;\n\tvar real_name = frappe.web_form.doc && frappe.web_form.doc.recipient || '';\n\n\t// Override get_value so the form submits the document name, not the display label\n\tvar original_get_value = recip_ctrl.get_value.bind(recip_ctrl);\n\trecip_ctrl.get_value = function() {\n\t\treturn real_name || original_get_value();\n\t};\n\n\t// Build custom dropdown for recipient\n\tvar $dd = $('<ul>').css({\n\t\tposition: 'absolute',\n\t\tbackground: '#fff',\n\t\tborder: '1px solid #d1d8dd',\n\t\tborderRadius: '0 0 4px 4px',\n\t\tboxShadow: '0 4px 8px rgba(0,0,0,0.1)',\n\t\tlistStyle: 'none',\n\t\tpadding: 0,\n\t\tmargin: 0,\n\t\tmaxHeight: '180px',\n\t\toverflowY: 'auto',\n\t\tzIndex: 9999,\n\t\tdisplay: 'none',\n\t\tleft: 0,\n\t\tright: 0\n\t});\n\t$wrap.css('position', 'relative').append($dd);\n\n\tvar timer;\n\n\tfunction search(term) {\n\t\tvar doctype = type_ctrl.get_value();\n\t\tif (!doctype) { $dd.empty().hide(); return; }\n\n\t\tclearTimeout(timer);\n\t\ttimer = setTimeout(function() {\n\t\t\tfrappe.call({\n\t\t\t\tmethod: 'church.church_website.api.search_church_recipient',\n\t\t\t\targs: { doctype: doctype, txt: term || '' },\n\t\t\t\tcallback: function(r) {\n\t\t\t\t\t$dd.empty().hide();\n\t\t\t\t\tvar results = r.message || [];\n\t\t\t\t\tresults.forEach(function(d) {\n\t\t\t\t\t\t$('<li>').text(d.label)\n\t\t\t\t\t\t\t.css({ padding: '6px 12px', cursor: 'pointer' })\n\t\t\t\t\t\t\t.hover(\n\t\t\t\t\t\t\t\tfunction() { $(this).css('background', '#f4f5f7'); },\n\t\t\t\t\t\t\t\tfunction() { $(this).css('background', '#fff'); }\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t.on('mousedown', function(e) {\n\t\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\t\treal_name = d.name;\n\t\t\t\t\t\t\t\t$input.val(d.label);\n\t\t\t\t\t\t\t\t$dd.hide();\n\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t.appendTo($dd);\n\t\t\t\t\t});\n\t\t\t\t\tif (results.length) $dd.show();\n\t\t\t\t}\n\t\t\t});\n\t\t}, 250);\n\t}\n\n\t// When user types, clear the stored name so search uses their input\n\t$input.on('input', function() { real_name = ''; search($(this).val()); });\n\t$input.on('focus', function() { search($(this).val()); });\n\t$input.on('blur', function() { setTimeout(function() { $dd.hide(); }, 200); });\n\n\tfrappe.web_form.on('recipient_type', function() {\n\t\treal_name = '';\n\t\t$input.val('');\n\t\t$dd.empty().hide();\n\t});\n\n\t// Resolve label for existing recipient value\n\tif (real_name && frappe.web_form.doc.recipient_type) {\n\t\tfrappe.call({\n\t\t\tmethod: 'church.church_website.api.search_church_recipient',\n\t\t\targs: { doctype: frappe.web_form.doc.recipient_type, txt: '' },\n\t\t\tcallback: function(r) {\n\t\t\t\tvar results = r.message || [];\n\t\t\t\tfor (var i = 0; i < results.length; i++) {\n\t\t\t\t\tif (results[i].name === real_name) {\n\t\t\t\t\t\t$input.val(results[i].label);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\t}\n}\n\n// Auto-populate church from the logged-in user's church\nvar church_ctrl = frappe.web_form.fields_dict['church'];\nif (church_ctrl && !frappe.web_form.doc.name) {\n\tfrappe.call({\n\t\tmethod: 'frappe.client.get_value',\n\t\targs: { doctype: 'User', filters: { name: frappe.session.user }, fieldname: 'church' },\n\t\tcallback: function(r) {\n\t\t\tif (r.message && r.message.church) {\n\t\t\t\tchurch_ctrl.set_value(r.message.church);\n\t\t\t}\n\t\t}\n\t});\n}\n",
+ "client_script": "// Runs inside frappe.init_client_script() \u2014 fields are already rendered\n// recipient_name is the visible search input; recipient (hidden) stores the document ID.\nvar name_ctrl = frappe.web_form.fields_dict['recipient_name'];\nvar type_ctrl = frappe.web_form.fields_dict['recipient_type'];\n\nif (name_ctrl && type_ctrl) {\n\t// Populate recipient_type with church app doctypes from the server\n\tfrappe.call({\n\t\tmethod: 'church.church_website.api.get_church_doctypes',\n\t\targs: {},\n\t\tcallback: function(r) {\n\t\t\tvar $select = type_ctrl.$input;\n\t\t\t$select.empty().append($('<option value=\"\">').text(''));\n\t\t\t(r.message || []).forEach(function(d) {\n\t\t\t\t$select.append($('<option>').val(d.name).text(d.name));\n\t\t\t});\n\t\t\t// Restore value if editing an existing record\n\t\t\tvar existing = frappe.web_form.doc && frappe.web_form.doc.recipient_type;\n\t\t\tif (existing) $select.val(existing);\n\t\t}\n\t});\n\n\t// Make recipient_name editable so the user can search\n\tname_ctrl.df.read_only = 0;\n\tname_ctrl.refresh();\n\n\tvar $input = name_ctrl.$input;\n\tvar $wrap = name_ctrl.$wrapper;\n\n\t// Initialise the input with the already-resolved display name\n\tif (frappe.web_form.doc && frappe.web_form.doc.recipient_name) {\n\t\t$input.val(frappe.web_form.doc.recipient_name);\n\t}\n\n\t// Build custom dropdown for recipient\n\tvar $dd = $('<ul>').css({\n\t\tposition: 'absolute',\n\t\tbackground: '#fff',\n\t\tborder: '1px solid #d1d8dd',\n\t\tborderRadius: '0 0 4px 4px',\n\t\tboxShadow: '0 4px 8px rgba(0,0,0,0.1)',\n\t\tlistStyle: 'none',\n\t\tpadding: 0,\n\t\tmargin: 0,\n\t\tmaxHeight: '180px',\n\t\toverflowY: 'auto',\n\t\tzIndex: 9999,\n\t\tdisplay: 'none',\n\t\tleft: 0,\n\t\tright: 0\n\t});\n\t$wrap.css('position', 'relative').append($dd);\n\n\tvar timer;\n\n\tfunction search(term) {\n\t\tvar doctype = type_ctrl.get_value();\n\t\tif (!doctype) { $dd.empty().hide(); return; }\n\n\t\tclearTimeout(timer);\n\t\ttimer = setTimeout(function() {\n\t\t\tfrappe.call({\n\t\t\t\tmethod: 'church.church_website.api.search_church_recipient',\n\t\t\t\targs: { doctype: doctype, txt: term || '' },\n\t\t\t\tcallback: function(r) {\n\t\t\t\t\t$dd.empty().hide();\n\t\t\t\t\tvar results = r.message || [];\n\t\t\t\t\tresults.forEach(function(d) {\n\t\t\t\t\t\t$('<li>').text(d.label)\n\t\t\t\t\t\t\t.css({ padding: '6px 12px', cursor: 'pointer' })\n\t\t\t\t\t\t\t.hover(\n\t\t\t\t\t\t\t\tfunction() { $(this).css('background', '#f4f5f7'); },\n\t\t\t\t\t\t\t\tfunction() { $(this).css('background', '#fff'); }\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t.on('mousedown', function(e) {\n\t\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\t\t$input.val(d.label);\n\t\t\t\t\t\t\t\t$dd.hide();\n\t\t\t\t\t\t\t\t// Store the document ID and type into the hidden fields\n\t\t\t\t\t\t\t\tfrappe.web_form.set_value('recipient', d.name);\n\t\t\t\t\t\t\t\tfrappe.web_form.set_value('recipient_type', type_ctrl.get_value());\n\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t.appendTo($dd);\n\t\t\t\t\t});\n\t\t\t\t\tif (results.length) $dd.show();\n\t\t\t\t}\n\t\t\t});\n\t\t}, 250);\n\t}\n\n\t$input.on('input', function() { search($(this).val()); });\n\t$input.on('focus', function() { search($(this).val()); });\n\t$input.on('blur', function() { setTimeout(function() { $dd.hide(); }, 200); });\n\n\tfrappe.web_form.on('recipient_type', function() {\n\t\t$input.val('');\n\t\tfrappe.web_form.set_value('recipient', '');\n\t\t$dd.empty().hide();\n\t});\n}\n\n// Auto-populate church from the logged-in user's church\nvar church_ctrl = frappe.web_form.fields_dict['church'];\nif (church_ctrl && !frappe.web_form.doc.name) {\n\tfrappe.call({\n\t\tmethod: 'frappe.client.get_value',\n\t\targs: { doctype: 'User', filters: { name: frappe.session.user }, fieldname: 'church' },\n\t\tcallback: function(r) {\n\t\t\tif (r.message && r.message.church) {\n\t\t\t\tchurch_ctrl.set_value(r.message.church);\n\t\t\t}\n\t\t}\n\t});\n}\n",
  "condition_json": "[]",
  "creation": "2025-09-13 22:28:01.939717",
  "doc_type": "Prayer Request",
@@ -21,43 +21,33 @@
   {
    "fieldname": "status",
    "fieldtype": "Link",
-   "label": ""
+   "label": "Status"
   },
   {
    "fieldname": "type",
    "fieldtype": "Link",
-   "label": ""
+   "label": "Type"
   },
   {
-   "fieldname": "column_break_ynvf",
-   "fieldtype": "Column Break",
-   "label": ""
-  },
-  {
-   "fieldname": "recipient",
+   "fieldname": "recipient_name",
    "fieldtype": "Data",
-   "label": "Recipient"
-  },
-  {
-   "fieldname": "section_break_usaz",
-   "fieldtype": "Section Break",
-   "label": ""
+   "label": "Recipient Name"
   },
   {
    "fieldname": "request",
    "fieldtype": "Small Text",
-   "label": ""
+   "label": "Request"
   },
   {
    "fieldname": "is_private",
    "fieldtype": "Check",
-   "label": ""
+   "label": "Private?"
   }
  ],
  "list_title": "Your Prayer Requests",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-03-15 05:23:34.922923",
+ "modified": "2026-03-18 19:36:45.770371",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "prayer-request",
@@ -114,6 +104,19 @@
    "show_in_filter": 0
   },
   {
+   "fieldname": "recipient_name",
+   "fieldtype": "Data",
+   "hidden": 0,
+   "label": "Recipient",
+   "max_length": 0,
+   "max_value": 0,
+   "precision": "",
+   "read_only": 1,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 0,
    "description": "The type of entity you are requesting prayer for.",
    "fieldname": "recipient_type",
    "fieldtype": "Select",
@@ -128,11 +131,12 @@
    "show_in_filter": 0
   },
   {
+   "allow_read_on_all_link_options": 0,
    "default": "",
    "description": "The person or entity you are requesting prayer for.",
    "fieldname": "recipient",
    "fieldtype": "Data",
-   "hidden": 0,
+   "hidden": 1,
    "label": "Recipient",
    "max_length": 0,
    "max_value": 0,

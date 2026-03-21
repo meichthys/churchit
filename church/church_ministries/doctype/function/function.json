@@ -10,6 +10,7 @@
   "church",
   "type",
   "event_name",
+  "group",
   "all_day",
   "start_date",
   "start_time",
@@ -34,6 +35,14 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "description": "Optionally associate this function with a Group.",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Group",
+   "options": "Group"
   },
   {
    "allow_in_quick_entry": 1,

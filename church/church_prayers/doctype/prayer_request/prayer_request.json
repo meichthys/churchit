@@ -1,199 +1,208 @@
 {
-  "actions": [],
-  "allow_import": 1,
-  "autoname": "format:Prayer Request {#}",
-  "creation": "2025-09-13 00:16:52.698863",
-  "description": "A request for prayer from (or for) a `Person`.",
-  "doctype": "DocType",
-  "documentation": "/app/manual%3A-prayers",
-  "engine": "InnoDB",
-  "field_order": [
-    "church",
-    "status",
-    "type",
-    "recipient_type",
-    "recipient",
-    "column_break_ynvf",
-    "requestor",
-    "is_private",
-    "section_break_usaz",
-    "request"
-  ],
-  "fields": [
-    {
-      "fieldname": "church",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Church",
-      "options": "Church",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "Requested",
-      "fieldname": "status",
-      "fieldtype": "Link",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Status",
-      "options": "Prayer Request Status",
-      "reqd": 1
-    },
-    {
-      "fieldname": "column_break_ynvf",
-      "fieldtype": "Column Break",
-      "placeholder": "If this request is for a specific person, select/add the person here."
-    },
-    {
-      "fieldname": "section_break_usaz",
-      "fieldtype": "Section Break"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "request",
-      "fieldtype": "Small Text",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Request",
-      "mandatory_depends_on": "eval: doc.type!=\"Unspoken\";"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "default": "0",
-      "description": "Check this if you don't want this request shared with the church body.",
-      "fieldname": "is_private",
-      "fieldtype": "Check",
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Is Private"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "type",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Type",
-      "options": "Prayer Request Type",
-      "reqd": 1
-    },
-    {
-      "description": "The person who made the request.",
-      "fieldname": "requestor",
-      "fieldtype": "Link",
-      "in_filter": 1,
-      "in_preview": 1,
-      "label": "Requestor",
-      "options": "Person",
-      "reqd": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "description": "The person for whom prayers will be prayed.",
-      "fieldname": "recipient",
-      "fieldtype": "Dynamic Link",
-      "in_filter": 1,
-      "in_list_view": 1,
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "label": "Recipient",
-      "options": "recipient_type",
-      "search_index": 1
-    },
-    {
-      "default": "Person",
-      "description": "The type of entity for which prayer is being requested.",
-      "fieldname": "recipient_type",
-      "fieldtype": "Link",
-      "label": "Recipient Type",
-      "options": "DocType"
-    }
-  ],
-  "grid_page_length": 50,
-  "links": [
-    {
-      "link_doctype": "Prayer",
-      "link_fieldname": "topic",
-      "table_fieldname": "topics"
-    }
-  ],
-  "modified": "2026-02-19 23:47:54.971006",
-  "modified_by": "Administrator",
-  "module": "Church Prayers",
-  "name": "Prayer Request",
-  "naming_rule": "Expression",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Church Manager",
-      "select": 1,
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "if_owner": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Church User",
-      "select": 1,
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "row_format": "Dynamic",
-  "search_fields": "status,type,recipient",
-  "show_preview_popup": 1,
-  "show_title_field_in_link": 1,
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [
-    {
-      "color": "Purple",
-      "title": "Answered"
-    },
-    {
-      "color": "Yellow",
-      "title": "Requested"
-    },
-    {
-      "color": "Blue",
-      "title": "Being Prayed For"
-    }
-  ],
-  "title_field": "request",
-  "track_changes": 1,
-  "track_seen": 1,
-  "track_views": 1
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "format:Prayer Request {#}",
+ "creation": "2025-09-13 00:16:52.698863",
+ "description": "A request for prayer from (or for) a `Person`.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-prayers",
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "status",
+  "type",
+  "recipient_type",
+  "recipient",
+  "recipient_name",
+  "column_break_ynvf",
+  "requestor",
+  "is_private",
+  "section_break_usaz",
+  "request"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "Requested",
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Prayer Request Status",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ynvf",
+   "fieldtype": "Column Break",
+   "placeholder": "If this request is for a specific person, select/add the person here."
+  },
+  {
+   "fieldname": "section_break_usaz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "request",
+   "fieldtype": "Small Text",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Request",
+   "mandatory_depends_on": "eval: doc.type!=\"Unspoken\";"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "description": "Check this if you don't want this request shared with the church body.",
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Is Private"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "Prayer Request Type",
+   "reqd": 1
+  },
+  {
+   "description": "The person who made the request.",
+   "fieldname": "requestor",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_preview": 1,
+   "label": "Requestor",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "description": "This field is only used to properly display the recipient name in web-forms which don't support dynamic links.",
+   "fieldname": "recipient_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Recipient Name",
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "description": "The person for whom prayers will be prayed.",
+   "fieldname": "recipient",
+   "fieldtype": "Dynamic Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Recipient",
+   "options": "recipient_type",
+   "search_index": 1
+  },
+  {
+   "default": "Person",
+   "description": "The type of entity for which prayer is being requested.",
+   "fieldname": "recipient_type",
+   "fieldtype": "Link",
+   "label": "Recipient Type",
+   "options": "DocType"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [
+  {
+   "link_doctype": "Prayer",
+   "link_fieldname": "topic",
+   "table_fieldname": "topics"
+  }
+ ],
+ "modified": "2026-03-18 19:53:20.787319",
+ "modified_by": "Administrator",
+ "module": "Church Prayers",
+ "name": "Prayer Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "status,type,recipient",
+ "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Purple",
+   "title": "Answered"
+  },
+  {
+   "color": "Yellow",
+   "title": "Requested"
+  },
+  {
+   "color": "Blue",
+   "title": "Being Prayed For"
+  }
+ ],
+ "title_field": "request",
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }
