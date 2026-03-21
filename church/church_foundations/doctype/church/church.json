@@ -10,6 +10,7 @@
  "engine": "InnoDB",
  "field_order": [
   "church_name",
+  "abbreviation",
   "legal_name",
   "is_group",
   "parent_church",
@@ -119,13 +120,19 @@
    "fieldtype": "Link",
    "label": "Old Parent",
    "options": "Church"
+  },
+  {
+   "fieldname": "abbreviation",
+   "fieldtype": "Data",
+   "label": "Abbreviation",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-03-17 17:42:25.547588",
+ "modified": "2026-03-20 20:42:09.609161",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
