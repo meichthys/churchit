@@ -9,10 +9,19 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "position",
   "description"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "fieldname": "description",
    "fieldtype": "Small Text",

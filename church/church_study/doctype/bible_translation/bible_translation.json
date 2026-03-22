@@ -8,10 +8,19 @@
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "translation",
   "abbreviation"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "fieldname": "translation",
    "fieldtype": "Data",

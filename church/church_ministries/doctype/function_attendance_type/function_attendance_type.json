@@ -2,15 +2,24 @@
  "actions": [],
  "autoname": "field:type",
  "creation": "2025-09-01 00:33:34.102307",
- "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent etc.)",
+ "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent, etc.)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "type",
   "description"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "type",

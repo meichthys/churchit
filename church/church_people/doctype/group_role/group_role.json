@@ -7,10 +7,19 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "role",
   "description"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "fieldname": "role",
    "fieldtype": "Data",

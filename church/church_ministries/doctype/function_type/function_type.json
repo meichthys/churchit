@@ -3,11 +3,12 @@
  "allow_rename": 1,
  "autoname": "field:type",
  "creation": "2025-08-31 23:41:14.325452",
- "description": "Types of church functions (i.e Sunday services, community events, private events, etc)",
+ "description": "Types of church functions (i.e. Sunday services, community functions, private functions, etc.)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "type",
   "column_break_pgdp",
   "template_event",
@@ -15,6 +16,14 @@
   "description"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "description",
@@ -27,7 +36,7 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Type of Event",
+   "label": "Type of Function",
    "reqd": 1,
    "unique": 1
   },
@@ -36,10 +45,10 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Select an existing event here to use it as a template for creating future events of the same type.",
+   "description": "Select an existing function here to use it as a template for creating future functions of the same type.",
    "fieldname": "template_event",
    "fieldtype": "Link",
-   "label": "Template Event",
+   "label": "Template Function",
    "options": "Function"
   },
   {

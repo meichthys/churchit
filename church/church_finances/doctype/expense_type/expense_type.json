@@ -8,6 +8,7 @@
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "type",
   "parent_expense_type",
   "is_group",
@@ -20,6 +21,14 @@
   "old_parent"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "fieldname": "section_break_b8hv",
    "fieldtype": "Section Break",

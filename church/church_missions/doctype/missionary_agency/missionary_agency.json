@@ -8,6 +8,7 @@
  "documentation": "/app/doctype?module=Church+Missions",
  "engine": "InnoDB",
  "field_order": [
+  "church",
   "agency_name",
   "image_hhbv",
   "notes",
@@ -18,6 +19,14 @@
   "website"
  ],
  "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "mailing_address",
