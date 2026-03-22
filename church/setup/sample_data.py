@@ -55,11 +55,11 @@ def create_sample_data():
 	_assign_families(people, families)
 	_assign_spouses(people)
 
-	agencies = _create_missionary_agencies()
+	agencies = _create_missionary_agencies(church)
 	_create_missionaries(church, people, agencies)
 
 	funds = _create_funds(church)
-	expense_types = _create_expense_types(funds)
+	expense_types = _create_expense_types(church, funds)
 
 	_create_collections(church, people, funds)
 	_create_expenses(church, expense_types)
@@ -76,8 +76,8 @@ def create_sample_data():
 
 	_create_beliefs(church)
 
-	group_types = _create_group_types()
-	group_roles = _create_group_roles()
+	group_types = _create_group_types(church)
+	group_roles = _create_group_roles(church)
 	_create_groups(church, people, group_types, group_roles)
 
 	_create_fund_transfers(church, funds)
@@ -103,8 +103,8 @@ def delete_sample_data():
 	_delete_docs("Prayer", {"church": church})
 	_delete_submittable_docs("Fund Transfer", {"church": church})
 	_delete_docs("Group", {"church": church})
-	_delete_docs("Group Role", {})
-	_delete_docs("Group Type", {})
+	_delete_docs("Group Role", {"church": church})
+	_delete_docs("Group Type", {"church": church})
 	_delete_docs("Belief", {"church": church})
 	_delete_docs("Sermon", {"church": church})
 	_delete_docs("Bible Reference", {"church": church})
@@ -113,11 +113,11 @@ def delete_sample_data():
 	_delete_docs("Alms Request", {"church": church})
 	_delete_docs("Prayer Request", {"church": church})
 	_delete_submittable_docs("Expense", {"church": church})
-	_delete_docs("Expense Type", {})
+	_delete_docs("Expense Type", {"church": church})
 	_delete_submittable_docs("Collection", {"church": church})
 	_delete_docs("Fund", {"church": church})
 	_delete_docs("Missionary", {"church": church})
-	_delete_docs("Missionary Agency", {})
+	_delete_docs("Missionary Agency", {"church": church})
 	_delete_docs("Family", {"church": church})
 	_delete_docs("Person", {"church": church})
 	_delete_docs("Church", {"church_name": church})
@@ -391,11 +391,11 @@ _AGENCIES = [
 ]
 
 
-def _create_missionary_agencies():
+def _create_missionary_agencies(church):
 	"""Create sample missionary agencies and return dict mapping name → name."""
 	refs = {}
 	for agency in _AGENCIES:
-		name = _insert_if_missing("Missionary Agency", agency["agency_name"], **agency)
+		name = _insert_if_missing("Missionary Agency", agency["agency_name"], church=church, **agency)
 		refs[agency["agency_name"]] = name
 	return refs
 
@@ -492,7 +492,7 @@ def _create_funds(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_expense_types(funds):
+def _create_expense_types(church, funds):
 	"""Create sample expense types and return dict mapping type → name."""
 	refs = {}
 
@@ -507,7 +507,7 @@ def _create_expense_types(funds):
 	for type_name, fund in roots:
 		name = _insert_if_missing(
 			"Expense Type", type_name,
-			type=type_name, fund=fund, is_group=1 if type_name == "Utilities" else 0,
+			church=church, type=type_name, fund=fund, is_group=1 if type_name == "Utilities" else 0,
 		)
 		refs[type_name] = name
 
@@ -519,7 +519,7 @@ def _create_expense_types(funds):
 	for type_name, fund, parent in children:
 		name = _insert_if_missing(
 			"Expense Type", type_name,
-			type=type_name, fund=fund, parent_expense_type=parent,
+			church=church, type=type_name, fund=fund, parent_expense_type=parent,
 		)
 		refs[type_name] = name
 
@@ -1040,20 +1040,20 @@ def _create_beliefs(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_group_types():
+def _create_group_types(church):
 	"""Create sample group types and return dict mapping type → name."""
 	refs = {}
 	for type_name in ("Ministry", "Small Group", "Committee"):
-		name = _insert_if_missing("Group Type", type_name, type=type_name)
+		name = _insert_if_missing("Group Type", type_name, church=church, type=type_name)
 		refs[type_name] = name
 	return refs
 
 
-def _create_group_roles():
+def _create_group_roles(church):
 	"""Create sample group roles and return dict mapping role → name."""
 	refs = {}
 	for role_name in ("Leader", "Member"):
-		name = _insert_if_missing("Group Role", role_name, role=role_name)
+		name = _insert_if_missing("Group Role", role_name, church=church, role=role_name)
 		refs[role_name] = name
 	return refs
 
