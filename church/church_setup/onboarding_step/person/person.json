@@ -10,13 +10,13 @@
  "is_complete": 0,
  "is_single": 0,
  "is_skipped": 0,
- "modified": "2025-09-30 21:56:12.070093",
+ "modified": "2026-03-21 19:25:33.286449",
  "modified_by": "Administrator",
  "name": "Person",
  "owner": "Administrator",
  "reference_document": "Person",
  "show_form_tour": 1,
  "show_full_form": 1,
- "title": "Add people that attend your church.",
+ "title": "People",
  "validate_action": 1
 }
