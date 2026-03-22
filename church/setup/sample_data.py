@@ -76,6 +76,20 @@ def create_sample_data():
 
 	_create_beliefs(church)
 
+	group_types = _create_group_types()
+	group_roles = _create_group_roles()
+	_create_groups(church, people, group_types, group_roles)
+
+	_create_fund_transfers(church, funds)
+
+	_create_prayers(church, people)
+
+	_create_songs(church)
+
+	_create_church_assets(church)
+
+	_create_church_tasks(church, people)
+
 	frappe.db.commit()
 
 
@@ -83,6 +97,14 @@ def delete_sample_data():
 	"""Remove all sample data created by :func:`create_sample_data`."""
 	church = CHURCH_NAME
 
+	_delete_docs("Church Task", {"church": church})
+	_delete_docs("Church Asset", {"church": church})
+	_delete_docs("Song", {"church": church})
+	_delete_docs("Prayer", {"church": church})
+	_delete_submittable_docs("Fund Transfer", {"church": church})
+	_delete_docs("Group", {"church": church})
+	_delete_docs("Group Role", {})
+	_delete_docs("Group Type", {})
 	_delete_docs("Belief", {"church": church})
 	_delete_docs("Sermon", {"church": church})
 	_delete_docs("Bible Reference", {"church": church})
@@ -989,4 +1011,348 @@ def _create_beliefs(church):
 			"bible_references": ref_rows,
 			**belief,
 		})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Group Types & Group Roles (supporting data for Groups)
+# ---------------------------------------------------------------------------
+
+
+def _create_group_types():
+	"""Create sample group types and return dict mapping type → name."""
+	refs = {}
+	for type_name in ("Ministry", "Small Group", "Committee"):
+		name = _insert_if_missing("Group Type", type_name, type=type_name)
+		refs[type_name] = name
+	return refs
+
+
+def _create_group_roles():
+	"""Create sample group roles and return dict mapping role → name."""
+	refs = {}
+	for role_name in ("Leader", "Member"):
+		name = _insert_if_missing("Group Role", role_name, role=role_name)
+		refs[role_name] = name
+	return refs
+
+
+# ---------------------------------------------------------------------------
+# Groups
+# ---------------------------------------------------------------------------
+
+
+def _create_groups(church, people, group_types, group_roles):
+	"""Create sample groups with members."""
+	groups = [
+		{
+			"group_name": "Worship Team",
+			"group_type": group_types["Ministry"],
+			"description": "Musicians and singers who lead the congregation in worship each Sunday.",
+			"members": [
+				{"person": people["James Wilson"], "group_role": group_roles["Leader"]},
+				{"person": people["Rachel Cooper"], "group_role": group_roles["Member"]},
+				{"person": people["Thomas Reed"], "group_role": group_roles["Member"]},
+			],
+		},
+		{
+			"group_name": "Men's Bible Study",
+			"group_type": group_types["Small Group"],
+			"description": "A weekly men's group studying through the book of Romans.",
+			"members": [
+				{"person": people["Robert Johnson"], "group_role": group_roles["Leader"]},
+				{"person": people["David Thompson"], "group_role": group_roles["Member"]},
+				{"person": people["Michael Grant"], "group_role": group_roles["Member"]},
+			],
+		},
+		{
+			"group_name": "Building Committee",
+			"group_type": group_types["Committee"],
+			"description": "Oversees building maintenance, repairs, and future expansion projects.",
+			"members": [
+				{"person": people["David Thompson"], "group_role": group_roles["Leader"]},
+				{"person": people["Martha Evans"], "group_role": group_roles["Member"]},
+			],
+		},
+	]
+	for grp in groups:
+		existing = frappe.db.get_value(
+			"Group", {"church": church, "group_name": grp["group_name"]}, "name",
+		)
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Group", "church": church, **grp})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Fund Transfers (submittable — saved as Draft)
+# ---------------------------------------------------------------------------
+
+
+def _create_fund_transfers(church, funds):
+	"""Create sample fund transfers (saved as Draft)."""
+	transfers = [
+		{
+			"from_fund": funds["General"],
+			"to_fund": funds["Building"],
+			"amount": 500,
+			"date": "2025-12-15 00:00:00",
+			"notes": "Quarterly transfer to building maintenance reserve.",
+		},
+		{
+			"from_fund": funds["General"],
+			"to_fund": funds["Benevolence"],
+			"amount": 200,
+			"date": "2025-12-01 00:00:00",
+			"notes": "Monthly benevolence fund allocation.",
+		},
+	]
+	for xfer in transfers:
+		existing = frappe.db.exists("Fund Transfer", {
+			"church": church, "from_fund": xfer["from_fund"],
+			"to_fund": xfer["to_fund"], "date": xfer["date"],
+		})
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Fund Transfer", "church": church, **xfer})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Prayers
+# ---------------------------------------------------------------------------
+
+
+def _create_prayers(church, people):
+	"""Create sample prayers with topics linking to existing Prayer Requests."""
+	# Look up Prayer Request names by their unique attributes
+	pr_wilson = frappe.db.get_value(
+		"Prayer Request", {"church": church, "requestor": people["Sarah Wilson"], "type": "Health"}, "name",
+	)
+	pr_samuel = frappe.db.get_value(
+		"Prayer Request", {"church": church, "requestor": people["Rachel Cooper"], "type": "Salvation"}, "name",
+	)
+	pr_praise = frappe.db.get_value(
+		"Prayer Request", {"church": church, "requestor": people["Mary Johnson"], "type": "Praise"}, "name",
+	)
+
+	prayers = [
+		{
+			"person": people["James Wilson"],
+			"content": (
+				"Heavenly Father, we come before You this Lord's Day morning with "
+				"grateful hearts. We lift up those among us who are hurting — those "
+				"facing illness, loss, and uncertainty. Grant them Your peace and "
+				"healing. We pray for Samuel, that You would draw him to Yourself. "
+				"In Jesus' name, Amen."
+			),
+			"topics": [
+				{"topic_type": "Prayer Request", "topic": pr_wilson,
+				 "prayer": "Prayed for Pastor Wilson's recovery from knee surgery."},
+				{"topic_type": "Prayer Request", "topic": pr_samuel,
+				 "prayer": "Prayed for Samuel Brooks' salvation."},
+			],
+		},
+		{
+			"person": people["Robert Johnson"],
+			"content": (
+				"Lord, we gather midweek to seek Your face. We thank You for "
+				"answered prayers — for the safe arrival of the Johnsons' grandson. "
+				"We ask for Your guidance as our church considers the building "
+				"expansion project. Give wisdom to the committee and provide the "
+				"resources according to Your will. Amen."
+			),
+			"topics": [
+				{"topic_type": "Prayer Request", "topic": pr_praise,
+				 "prayer": "Gave thanks for the answered prayer — healthy grandson."},
+			],
+		},
+	]
+
+	for pr in prayers:
+		existing = frappe.db.exists("Prayer", {
+			"church": church, "person": pr["person"],
+		})
+		if existing:
+			continue
+
+		# Filter out topics where the Prayer Request wasn't found
+		topics = [t for t in pr.pop("topics") if t.get("topic")]
+
+		doc = frappe.get_doc({
+			"doctype": "Prayer",
+			"church": church,
+			"topics": topics,
+			**pr,
+		})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Songs
+# ---------------------------------------------------------------------------
+
+
+def _create_songs(church):
+	"""Create sample songs with lyric slides."""
+	songs = [
+		{
+			"title": "Amazing Grace",
+			"ccli": "4755360",
+			"slides": [
+				{"content": "<p>Amazing grace! How sweet the sound<br>That saved a wretch like me!<br>I once was lost, but now am found;<br>Was blind, but now I see.</p>"},
+				{"content": "<p>'Twas grace that taught my heart to fear,<br>And grace my fears relieved;<br>How precious did that grace appear<br>The hour I first believed.</p>"},
+				{"content": "<p>Through many dangers, toils, and snares,<br>I have already come;<br>'Tis grace hath brought me safe thus far,<br>And grace will lead me home.</p>"},
+			],
+		},
+		{
+			"title": "How Great Thou Art",
+			"ccli": "14181",
+			"slides": [
+				{"content": "<p>O Lord my God, when I in awesome wonder<br>Consider all the worlds Thy hands have made,<br>I see the stars, I hear the rolling thunder,<br>Thy power throughout the universe displayed.</p>"},
+				{"content": "<p>Then sings my soul, my Saviour God, to Thee:<br>How great Thou art! How great Thou art!<br>Then sings my soul, my Saviour God, to Thee:<br>How great Thou art! How great Thou art!</p>"},
+			],
+		},
+		{
+			"title": "Holy, Holy, Holy",
+			"ccli": "1156",
+			"slides": [
+				{"content": "<p>Holy, holy, holy! Lord God Almighty!<br>Early in the morning our song shall rise to Thee;<br>Holy, holy, holy, merciful and mighty!<br>God in three Persons, blessed Trinity!</p>"},
+				{"content": "<p>Holy, holy, holy! All the saints adore Thee,<br>Casting down their golden crowns around the glassy sea;<br>Cherubim and seraphim falling down before Thee,<br>Who wert, and art, and evermore shalt be.</p>"},
+			],
+		},
+	]
+	for song in songs:
+		existing = frappe.db.exists("Song", {"church": church, "title": song["title"]})
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Song", "church": church, **song})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Church Assets
+# ---------------------------------------------------------------------------
+
+
+def _create_church_assets(church):
+	"""Create sample church assets."""
+	assets = [
+		{
+			"title": "Yamaha Grand Piano",
+			"acquisition_date": "2010-03-15",
+			"location": "Sanctuary",
+			"notes": "<p>Yamaha C3X grand piano. Tuned twice yearly by Davidson Piano Services.</p>",
+		},
+		{
+			"title": "Epson Projector",
+			"acquisition_date": "2020-08-10",
+			"location": "Fellowship Hall",
+			"notes": "<p>Epson PowerLite projector used for presentations and movie nights.</p>",
+		},
+		{
+			"title": "Commercial Refrigerator",
+			"acquisition_date": "2015-01-20",
+			"location": "Kitchen",
+			"notes": "<p>True brand two-door commercial refrigerator for church dinners and events.</p>",
+		},
+		{
+			"title": "15-Passenger Van",
+			"acquisition_date": "2018-06-01",
+			"location": "Parking Lot",
+			"notes": "<p>Ford Transit 15-passenger van used for youth trips and senior outings.</p>",
+		},
+	]
+	for asset in assets:
+		existing = frappe.db.exists("Church Asset", {
+			"church": church, "title": asset["title"],
+		})
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Church Asset", "church": church, **asset})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Church Tasks (tree structure)
+# ---------------------------------------------------------------------------
+
+
+def _create_church_tasks(church, people):
+	"""Create sample church tasks with hierarchy."""
+	# Parent task (is_group)
+	parent_title = "Prepare for Christmas Eve Service"
+	parent_name = frappe.db.get_value(
+		"Church Task", {"church": church, "title": parent_title}, "name",
+	)
+	if not parent_name:
+		parent_doc = frappe.get_doc({
+			"doctype": "Church Task",
+			"church": church,
+			"title": parent_title,
+			"status": "In Progress",
+			"due_date": "2025-12-24 10:00:00",
+			"assigned_person": people["James Wilson"],
+			"is_group": 1,
+			"notes": "<p>Everything that needs to be done before the Christmas Eve candlelight service.</p>",
+		})
+		parent_doc.insert(ignore_permissions=True)
+		parent_name = parent_doc.name
+
+	# Sub-tasks
+	sub_tasks = [
+		{
+			"title": "Set up candles and holders",
+			"status": "Assigned",
+			"due_date": "2025-12-23 17:00:00",
+			"assigned_person": people["David Thompson"],
+			"notes": "<p>Place candles and drip guards on every pew. Extra supplies are in the storage closet.</p>",
+		},
+		{
+			"title": "Prepare song slides",
+			"status": "In Progress",
+			"due_date": "2025-12-22 12:00:00",
+			"assigned_person": people["Rachel Cooper"],
+			"notes": "<p>Create presentation slides for Silent Night, O Holy Night, and Joy to the World.</p>",
+		},
+	]
+	for task in sub_tasks:
+		existing = frappe.db.exists("Church Task", {
+			"church": church, "title": task["title"],
+		})
+		if existing:
+			continue
+		doc = frappe.get_doc({
+			"doctype": "Church Task",
+			"church": church,
+			"parent_task": parent_name,
+			**task,
+		})
+		doc.insert(ignore_permissions=True)
+
+	# Standalone tasks
+	standalone_tasks = [
+		{
+			"title": "Fix Fellowship Hall sink",
+			"status": "In Progress",
+			"due_date": "2025-12-20 00:00:00",
+			"assigned_person": people["David Thompson"],
+			"notes": "<p>The faucet in the Fellowship Hall kitchen is leaking. Parts have been ordered from the hardware store.</p>",
+		},
+		{
+			"title": "Order new hymnals",
+			"status": "Open",
+			"due_date": "2026-01-15 00:00:00",
+			"assigned_person": people["Martha Evans"],
+			"notes": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
+		},
+	]
+	for task in standalone_tasks:
+		existing = frappe.db.exists("Church Task", {
+			"church": church, "title": task["title"],
+		})
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Church Task", "church": church, **task})
 		doc.insert(ignore_permissions=True)

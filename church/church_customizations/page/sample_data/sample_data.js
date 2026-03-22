@@ -26,8 +26,8 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 				</button>
 			</div>
 			<div class="mt-4">
-				<a href="/app/getting-started" class="btn btn-default btn-md">
-					${__("Back to Getting Started")}
+				<a href="/app/welcome" class="btn btn-default btn-md">
+					${__("Back to Welcome")}
 				</a>
 			</div>
 		</div>

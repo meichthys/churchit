@@ -1,18 +1,21 @@
 {
  "action": "Go to Page",
  "action_label": "Manage Sample Data",
- "creation": "2026-03-14 00:00:00.000000",
+ "creation": "2026-03-14 00:00:00",
  "description": "If you selected \"Create Sample Data\" during the setup wizard, your site has been populated with a sample church, people, families, donations, prayer requests, and more.\n\nTake some time to explore the app and see how everything works. When you're ready to start entering your own data, come back here and click the button below to create or remove sample records.",
  "docstatus": 0,
  "doctype": "Onboarding Step",
  "idx": 0,
  "is_complete": 0,
+ "is_single": 0,
  "is_skipped": 0,
- "modified": "2026-03-14 00:00:00.000000",
+ "modified": "2026-03-21 18:34:26.620310",
  "modified_by": "Administrator",
  "name": "Sample Data",
  "owner": "Administrator",
  "path": "sample-data",
+ "show_form_tour": 0,
+ "show_full_form": 0,
  "title": "Sample Data",
  "validate_action": 0
 }
