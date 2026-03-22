@@ -34,9 +34,9 @@ def get_data(filters=None):
 		conditions += " AND `tabFunction Attendance`.person = %(person)s"
 		values["person"] = filters["person"]
 
-	if filters.get("event_type"):
-		conditions += " AND `tabFunction`.type = %(event_type)s"
-		values["event_type"] = filters["event_type"]
+	if filters.get("function_type"):
+		conditions += " AND `tabFunction`.type = %(function_type)s"
+		values["function_type"] = filters["function_type"]
 
 	if filters.get("start"):
 		conditions += " AND `tabFunction`.start_date >= %(start)s"

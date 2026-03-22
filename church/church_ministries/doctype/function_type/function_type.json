@@ -11,7 +11,7 @@
   "church",
   "type",
   "column_break_pgdp",
-  "template_event",
+  "template_function",
   "section_break_pepr",
   "description"
  ],
@@ -46,7 +46,7 @@
   },
   {
    "description": "Select an existing function here to use it as a template for creating future functions of the same type.",
-   "fieldname": "template_event",
+   "fieldname": "template_function",
    "fieldtype": "Link",
    "label": "Template Function",
    "options": "Function"

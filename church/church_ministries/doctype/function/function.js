@@ -19,14 +19,14 @@ frappe.ui.form.on('Function', {
 		// Add template-fill functionality if we have a template specified and this is a new form
 		if (!frm.is_new() || !frm.doc.type) return;
 		// Check if the selected type has a template
-		frappe.db.get_value('Function Type', frm.doc.type, 'template_event').then(r => {
-			if (!r.message?.template_event) return;
+		frappe.db.get_value('Function Type', frm.doc.type, 'template_function').then(r => {
+			if (!r.message?.template_function) return;
 			// Add 	Fill from Template` button if template exists
 			frm.add_custom_button(__('Fill from Template'), function() {
 				frappe.call({
 					method: 'church.ministries.doctype.function.function.apply_template',
 					args: {
-						source_name: r.message.template_event,
+						source_name: r.message.template_function,
 						target_doc: frm.doc
 					},
 					callback: function(r) {

@@ -658,15 +658,15 @@ def _create_alms_requests(church, people):
 
 
 # ---------------------------------------------------------------------------
-# Events / Functions
+# Functions
 # ---------------------------------------------------------------------------
 
 
 def _create_functions(church):
-	"""Create sample church events."""
-	events = [
+	"""Create sample church functions."""
+	functions = [
 		{
-			"event_name": "Sunday Worship",
+			"function_name": "Sunday Worship",
 			"type": "Sunday Morning Service",
 			"start_date": "2025-12-01",
 			"start_time": "10:00:00",
@@ -674,7 +674,7 @@ def _create_functions(church):
 			"description": "Regular Sunday morning worship service with sermon, hymns, and fellowship.",
 		},
 		{
-			"event_name": "Midweek Prayer",
+			"function_name": "Midweek Prayer",
 			"type": "Prayer Meeting",
 			"start_date": "2025-12-03",
 			"start_time": "19:00:00",
@@ -682,7 +682,7 @@ def _create_functions(church):
 			"description": "Weekly prayer meeting — a time to bring our requests before the Lord together.",
 		},
 		{
-			"event_name": "Christmas Eve Service",
+			"function_name": "Christmas Eve Service",
 			"type": "Sunday Evening Service",
 			"start_date": "2025-12-24",
 			"start_time": "18:00:00",
@@ -690,20 +690,20 @@ def _create_functions(church):
 			"description": "A candlelight service celebrating the birth of our Lord Jesus Christ.",
 		},
 		{
-			"event_name": "Church Picnic",
+			"function_name": "Church Picnic",
 			"type": "Communion",
 			"start_date": "2025-09-06",
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
 		},
 	]
-	for ev in events:
+	for fn in functions:
 		existing = frappe.db.exists("Function", {
-			"church": church, "event_name": ev["event_name"], "start_date": ev["start_date"],
+			"church": church, "function_name": fn["function_name"], "start_date": fn["start_date"],
 		})
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Function", "church": church, **ev})
+		doc = frappe.get_doc({"doctype": "Function", "church": church, **fn})
 		doc.insert(ignore_permissions=True)
 
 

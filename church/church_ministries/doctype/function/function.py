@@ -19,7 +19,7 @@ class Function(Document):
 
 	def get_name(self):
 		"""Constructs the document name"""
-		return f"{self.start_date} ({self.type}) - {self.event_name}"
+		return f"{self.start_date} ({self.type}) - {self.function_name}"
 
 	def on_update(self):
 		# Rename document when updating

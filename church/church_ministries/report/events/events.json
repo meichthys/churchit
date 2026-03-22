@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "json": "{\"filters\":[],\"fields\":[[\"name\",\"Function\"],[\"event_name\",\"Function\"],[\"type\",\"Function\"]],\"order_by\":\"`tabFunction`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":341,\"event_name\":125,\"type\":235},\"group_by\":null}",
+ "json": "{\"filters\":[],\"fields\":[[\"name\",\"Function\"],[\"function_name\",\"Function\"],[\"type\",\"Function\"]],\"order_by\":\"`tabFunction`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":341,\"function_name\":125,\"type\":235},\"group_by\":null}",
  "letterhead": null,
  "modified": "2025-09-21 22:47:13.752538",
  "modified_by": "Administrator",

@@ -14,8 +14,8 @@ import frappe
 def execute():
 	# Simple lookup types (no inter-dependencies)
 	_create_member_statuses()
-	_create_event_types()
-	_create_event_attendance_types()
+	_create_function_types()
+	_create_function_attendance_types()
 	_create_position_types()
 	_create_payment_types()
 	_create_person_relation_types()
@@ -75,8 +75,8 @@ def _create_member_statuses():
 		_insert_if_missing("Member Status", status, status=status)
 
 
-def _create_event_types():
-	for event_type in (
+def _create_function_types():
+	for function_type in (
 		"Sunday Morning Service",
 		"Sunday Evening Service",
 		"Prayer Meeting",
@@ -84,15 +84,15 @@ def _create_event_types():
 		"Communion",
 		"Baptism",
 	):
-		_insert_if_missing("Function Type", event_type, type=event_type)
+		_insert_if_missing("Function Type", function_type, type=function_type)
 
 
-def _create_event_attendance_types():
+def _create_function_attendance_types():
 	types = {
-		"Unknown": "Attendance was not tracked for this event.",
-		"Absent": "The person was not present at this event.",
-		"Assumed": "The person was assumed to be present at this event (e.g. their family was present).",
-		"Confirmed": "The person's attendance was confirmed at this event.",
+		"Unknown": "Attendance was not tracked for this function.",
+		"Absent": "The person was not present at this function.",
+		"Assumed": "The person was assumed to be present at this function (e.g. their family was present).",
+		"Confirmed": "The person's attendance was confirmed at this function.",
 	}
 	for name, description in types.items():
 		_insert_if_missing("Function Attendance Type", name, type=name, description=description)

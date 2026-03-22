@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 1,
  "is_standard": "Yes",
- "json": "{\"filters\":[],\"fields\":[[\"name\",\"Collection\"],[\"event\",\"Collection\"],[\"fund\",\"Donation\"],[\"person\",\"Donation\"],[\"payment_type\",\"Donation\"],[\"check_number\",\"Donation\"],[\"amount\",\"Donation\"]],\"order_by\":\"`tabCollection`.`modified` desc\",\"page_length\":20,\"column_widths\":{\"name\":120,\"event\":120,\"Donation:fund\":120,\"Donation:person\":120,\"Donation:payment_type\":120,\"Donation:check_number\":120,\"Donation:amount\":120},\"group_by\":null}",
+ "json": "{\"filters\":[],\"fields\":[[\"name\",\"Collection\"],[\"function\",\"Collection\"],[\"fund\",\"Donation\"],[\"person\",\"Donation\"],[\"payment_type\",\"Donation\"],[\"check_number\",\"Donation\"],[\"amount\",\"Donation\"]],\"order_by\":\"`tabCollection`.`modified` desc\",\"page_length\":20,\"column_widths\":{\"name\":120,\"function\":120,\"Donation:fund\":120,\"Donation:person\":120,\"Donation:payment_type\":120,\"Donation:check_number\":120,\"Donation:amount\":120},\"group_by\":null}",
  "letterhead": null,
  "modified": "2025-10-02 01:10:11.876159",
  "modified_by": "Administrator",
