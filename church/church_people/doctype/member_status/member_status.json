@@ -8,7 +8,6 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "color",
   "description"
  ],
  "fields": [
@@ -27,12 +26,6 @@
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Description"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Color",
-   "in_list_view": 1,
-   "label": "Color"
   }
  ],
  "grid_page_length": 50,
@@ -43,7 +36,7 @@
    "link_fieldname": "membership_status"
   }
  ],
- "modified": "2025-11-15 22:55:21.448686",
+ "modified": "2026-03-21 17:19:17.437673",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Status",
