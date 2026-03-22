@@ -11,21 +11,29 @@ import os
 import frappe
 
 
+DEFAULT_CHURCH_NAME = "My Church"
+DEFAULT_CHURCH_ABBREVIATION = "MC"
+
+
 def execute():
+	# Default church — must exist before lookup types so their church field
+	# can reference it.
+	church = _create_default_church()
+
 	# Simple lookup types (no inter-dependencies)
-	_create_member_statuses()
-	_create_function_types()
-	_create_function_attendance_types()
-	_create_position_types()
-	_create_payment_types()
-	_create_person_relation_types()
-	_create_prayer_request_statuses()
-	_create_prayer_request_types()
-	_create_missionary_support_frequencies()
+	_create_member_statuses(church)
+	_create_function_types(church)
+	_create_function_attendance_types(church)
+	_create_position_types(church)
+	_create_payment_types(church)
+	_create_person_relation_types(church)
+	_create_prayer_request_statuses(church)
+	_create_prayer_request_types(church)
+	_create_missionary_support_frequencies(church)
 
 	# Bible reference data
-	_create_bible_books()
-	_create_bible_translations()
+	_create_bible_books(church)
+	_create_bible_translations(church)
 
 	# Module access control
 	_create_module_profile()
@@ -66,16 +74,36 @@ def _read_template(filename):
 
 
 # ---------------------------------------------------------------------------
+# Default Church
+# ---------------------------------------------------------------------------
+
+
+def _create_default_church():
+	"""Create a default Church so lookup types can reference it at install time.
+
+	The user is expected to rename this church via the onboarding wizard.
+	"""
+	name = DEFAULT_CHURCH_NAME
+	if not frappe.db.exists("Church", name):
+		frappe.get_doc({
+			"doctype": "Church",
+			"church_name": name,
+			"abbreviation": DEFAULT_CHURCH_ABBREVIATION,
+		}).insert(ignore_permissions=True)
+	return name
+
+
+# ---------------------------------------------------------------------------
 # Simple lookup types
 # ---------------------------------------------------------------------------
 
 
-def _create_member_statuses():
+def _create_member_statuses(church):
 	for status in ("Active", "Inactive"):
-		_insert_if_missing("Member Status", status, status=status)
+		_insert_if_missing("Member Status", status, church=church, status=status)
 
 
-def _create_function_types():
+def _create_function_types(church):
 	for function_type in (
 		"Sunday Morning Service",
 		"Sunday Evening Service",
@@ -84,10 +112,10 @@ def _create_function_types():
 		"Communion",
 		"Baptism",
 	):
-		_insert_if_missing("Function Type", function_type, type=function_type)
+		_insert_if_missing("Function Type", function_type, church=church, type=function_type)
 
 
-def _create_function_attendance_types():
+def _create_function_attendance_types(church):
 	types = {
 		"Unknown": "Attendance was not tracked for this function.",
 		"Absent": "The person was not present at this function.",
@@ -95,20 +123,20 @@ def _create_function_attendance_types():
 		"Confirmed": "The person's attendance was confirmed at this function.",
 	}
 	for name, description in types.items():
-		_insert_if_missing("Function Attendance Type", name, type=name, description=description)
+		_insert_if_missing("Function Attendance Type", name, church=church, type=name, description=description)
 
 
-def _create_position_types():
+def _create_position_types(church):
 	for position in ("Pastor", "Elder", "Deacon", "Secretary", "Treasurer"):
-		_insert_if_missing("Position Type", position, position=position)
+		_insert_if_missing("Position Type", position, church=church, position=position)
 
 
-def _create_payment_types():
+def _create_payment_types(church):
 	for payment_type in ("Cash", "Check"):
-		_insert_if_missing("Payment Type", payment_type, type=payment_type)
+		_insert_if_missing("Payment Type", payment_type, church=church, type=payment_type)
 
 
-def _create_person_relation_types():
+def _create_person_relation_types(church):
 	for relation in (
 		"Uncle",
 		"Aunt",
@@ -135,20 +163,20 @@ def _create_person_relation_types():
 		"Stepbrother",
 		"Stepsister",
 	):
-		_insert_if_missing("Person Relation Type", relation, relation_type=relation)
+		_insert_if_missing("Person Relation Type", relation, church=church, relation_type=relation)
 
 
-def _create_prayer_request_statuses():
+def _create_prayer_request_statuses(church):
 	statuses = {
 		"Requested": "This prayer request has been submitted and is awaiting prayer.",
 		"Being Prayed For": "This prayer request is currently being prayed for.",
 		"Answered": "This prayer has been answered.",
 	}
 	for name, description in statuses.items():
-		_insert_if_missing("Prayer Request Status", name, status=name, description=description)
+		_insert_if_missing("Prayer Request Status", name, church=church, status=name, description=description)
 
 
-def _create_prayer_request_types():
+def _create_prayer_request_types(church):
 	types = {
 		"Praise": "A prayer of praise and thanksgiving to God.",
 		"Health": "A prayer request related to health or healing.",
@@ -156,10 +184,10 @@ def _create_prayer_request_types():
 		"Unspoken": "A prayer request that the person does not wish to share details about.",
 	}
 	for name, description in types.items():
-		_insert_if_missing("Prayer Request Type", name, type=name, description=description)
+		_insert_if_missing("Prayer Request Type", name, church=church, type=name, description=description)
 
 
-def _create_missionary_support_frequencies():
+def _create_missionary_support_frequencies(church):
 	frequencies = {
 		"Weekly": "Support is sent once per week.",
 		"Bi-Weekly": "Support is sent every two weeks.",
@@ -169,7 +197,7 @@ def _create_missionary_support_frequencies():
 		"Yearly": "Support is sent once per year.",
 	}
 	for name, description in frequencies.items():
-		_insert_if_missing("Missionary Support Frequency", name, frequency=name, description=description)
+		_insert_if_missing("Missionary Support Frequency", name, church=church, frequency=name, description=description)
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +205,7 @@ def _create_missionary_support_frequencies():
 # ---------------------------------------------------------------------------
 
 
-def _create_bible_books():
+def _create_bible_books(church):
 	"""Insert all 66 canonical Bible books with their standard abbreviations.
 
 	The record ``name`` is the full book name (e.g. "Genesis") and
@@ -254,10 +282,10 @@ def _create_bible_books():
 		("Revelation", "REV"),
 	]
 	for book_name, abbreviation in books:
-		_insert_if_missing("Bible Book", book_name, book=book_name, abbreviation=abbreviation)
+		_insert_if_missing("Bible Book", book_name, church=church, book=book_name, abbreviation=abbreviation)
 
 
-def _create_bible_translations():
+def _create_bible_translations(church):
 	"""Insert common English Bible translations used by bible-api.com."""
 	translations = [
 		("King James Version", "KJV"),
@@ -295,6 +323,7 @@ def _create_bible_translations():
 		_insert_if_missing(
 			"Bible Translation",
 			translation_name,
+			church=church,
 			translation=translation_name,
 			abbreviation=abbreviation,
 		)

@@ -1,6 +1,6 @@
 {
  "action": "Create Entry",
- "action_label": "Add Information",
+ "action_label": "Update Information",
  "creation": "2026-03-02 23:03:31.585100",
  "description": "Church information is used across the application to populate parts of the church website, letterheads, reports, etc.\n\n\u26a0\ufe0f Only `Church Manager`s can edit `Information`.",
  "docstatus": 0,
@@ -17,6 +17,6 @@
  "reference_document": "Church",
  "show_form_tour": 1,
  "show_full_form": 1,
- "title": "Add your church information",
+ "title": "Update your church information",
  "validate_action": 1
 }
