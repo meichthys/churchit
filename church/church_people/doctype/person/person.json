@@ -123,12 +123,14 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "home_address",
    "fieldtype": "Link",
    "label": "Home Address",
    "options": "Address"
   },
   {
+   "allow_in_quick_entry": 1,
    "depends_on": "eval: doc.different_mailing_address",
    "fieldname": "mailing_address",
    "fieldtype": "Link",
@@ -140,12 +142,14 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "primary_phone",
    "fieldtype": "Phone",
    "in_preview": 1,
    "label": "Primary Phone"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "email",
    "fieldtype": "Data",
    "in_preview": 1,
@@ -306,6 +310,7 @@
    "options": "User"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "different_mailing_address",
    "fieldtype": "Check",
@@ -337,7 +342,7 @@
    "link_fieldname": "recipient"
   }
  ],
- "modified": "2026-03-15 17:51:04.573327",
+ "modified": "2026-03-21 17:03:26.029320",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
