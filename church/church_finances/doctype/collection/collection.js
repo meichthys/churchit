@@ -10,11 +10,9 @@ frappe.ui.form.on("Collection", {
 				frappe.show_alert("Save the Collection first!")
 				return;
 			};
-			frm.refresh_field('date');
 			frappe.set_route("query-report", "Collection Bank Reconciliation", {
-				"parent_filter": frm.doc.date
+				"parent_filter": frm.doc.name
 			});
-			frappe.query_report.load();
 		});
 	},
 });
