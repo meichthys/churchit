@@ -122,6 +122,12 @@ def delete_sample_data():
 	_delete_docs("Person", {"church": church})
 	_delete_docs("Church", {"church_name": church})
 
+	# Revert the default church's is_group flag
+	from church.patches.after_install import DEFAULT_CHURCH_NAME
+
+	if frappe.db.exists("Church", DEFAULT_CHURCH_NAME):
+		frappe.db.set_value("Church", DEFAULT_CHURCH_NAME, "is_group", 0)
+
 	frappe.db.commit()
 
 
@@ -163,24 +169,38 @@ def _delete_submittable_docs(doctype, filters):
 # Church
 # ---------------------------------------------------------------------------
 
-CHURCH_NAME = "Grace Community Church"
+CHURCH_NAME = "My Church Branch"
 
 
 def _create_church():
-	"""Create a single sample church."""
-	_insert_if_missing(
-		"Church",
-		CHURCH_NAME,
-		church_name=CHURCH_NAME,
-		legal_name="Grace Community Church, Inc.",
-		founding_date="1985-06-15",
-		default_bible_translation="King James Version",
-		mission_statement=(
+	"""Create a sample church as a child of the default church.
+
+	The default church created by after_install is marked as a group so it
+	can serve as the parent.  Returns the sample church name.
+	"""
+	from church.patches.after_install import DEFAULT_CHURCH_NAME
+
+	if frappe.db.exists("Church", CHURCH_NAME):
+		return CHURCH_NAME
+
+	# Ensure the default church is a group so it can have children
+	if frappe.db.exists("Church", DEFAULT_CHURCH_NAME):
+		frappe.db.set_value("Church", DEFAULT_CHURCH_NAME, "is_group", 1)
+
+	doc = frappe.get_doc({
+		"doctype": "Church",
+		"church_name": CHURCH_NAME,
+		"abbreviation": "MCB",
+		"parent_church": DEFAULT_CHURCH_NAME,
+		"legal_name": "My Church Branch, Inc.",
+		"founding_date": "1985-06-15",
+		"default_bible_translation": "King James Version",
+		"mission_statement": (
 			"To glorify God by making disciples of all nations through the faithful "
 			"preaching of His Word, the fellowship of believers, and compassionate "
 			"service to our community and the world."
 		),
-		about=(
+		"about": (
 			"<p>Grace Community Church was founded in 1985 by a small group of "
 			"families committed to biblical teaching and community outreach. Over the "
 			"years, we have grown into a vibrant congregation that values faithful "
@@ -188,7 +208,8 @@ def _create_church():
 			"<p>We are an independent, non-denominational church committed to the "
 			"authority of the Bible and the sufficiency of Christ.</p>"
 		),
-	)
+	})
+	doc.insert(ignore_permissions=True)
 	return CHURCH_NAME
 
 
