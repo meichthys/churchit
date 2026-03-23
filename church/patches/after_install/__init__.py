@@ -48,7 +48,7 @@ def execute():
 	_create_web_pages()
 	_setup_about_us_settings()
 	_setup_website_settings()
-	_setup_portal_menu_items()
+	_setup_portal_settings()
 
 	# Cleanup
 	_clean_gender_options()
@@ -583,9 +583,10 @@ def _setup_website_settings():
 	doc.save(ignore_permissions=True)
 
 
-def _setup_portal_menu_items():
-	"""Append Church portal menu items to Portal Settings.
+def _setup_portal_settings():
+	"""Configure Portal Settings for Church.
 
+	Sets the default portal home to /me and appends Church portal menu items.
 	Items are only appended if they are not already present, so this is safe
 	to run on sites that may have other portal menu items configured.
 	"""
@@ -610,14 +611,12 @@ def _setup_portal_menu_items():
 		},
 	]
 	doc = frappe.get_doc("Portal Settings")
+	doc.default_portal_home = "/me"
 	existing_titles = {row.title for row in doc.custom_menu}
-	changed = False
 	for item in desired_items:
 		if item["title"] not in existing_titles:
 			doc.append("custom_menu", item)
-			changed = True
-	if changed:
-		doc.save(ignore_permissions=True)
+	doc.save(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
