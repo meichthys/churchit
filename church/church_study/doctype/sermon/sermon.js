@@ -158,6 +158,10 @@ frappe.ui.form.on("Sermon", {
 	},
 
 	refresh(frm) {
+		if (frm.doc.publish) {
+			frm.set_intro('🌐 This sermon is published to the public website', 'blue');
+		}
+
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Present"), function () {
 				function open_presentation() {
