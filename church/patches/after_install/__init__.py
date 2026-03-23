@@ -128,6 +128,7 @@ def _create_function_attendance_types(church):
 		"Absent": "The person was not present at this function.",
 		"Assumed": "The person was assumed to be present at this function (e.g. their family was present).",
 		"Confirmed": "The person's attendance was confirmed at this function.",
+		"Self-Reported": "The person indicated they will attend via the sign-up form.",
 	}
 	for name, description in types.items():
 		_insert_if_missing("Function Attendance Type", name, church=church, type=name, description=description)
