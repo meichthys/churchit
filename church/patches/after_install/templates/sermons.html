@@ -14,13 +14,19 @@
                 {% if sermon.notes %}
                     <p class="card-text">{{ sermon.notes }}</p>
                 {% endif %}
+                {% if sermon.audio_recording %}
+                    <audio controls style="width: 100%; margin-top: 8px;">
+                        <source src="{{ sermon.audio_recording }}">
+                    </audio>
+                {% endif %}
             </div>
-            <div class="card-footer">
+            <div class="card-footer d-flex justify-content-between align-items-center">
                 <div class="small text-muted">
                     {% if sermon.prepared_by %}
                         {{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") }}
                     {% endif %}
                 </div>
+                <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
             </div>
         </div>
     </div>

@@ -6,6 +6,7 @@ import frappe
 
 # Disable caching for sermon presentation page to ensure users always see up-to-date content
 no_cache = 1
+allow_guest = True
 
 
 def _parse_display_fields(raw):
@@ -74,7 +75,8 @@ def get_context(context):
 		frappe.throw("Please specify a sermon name", frappe.exceptions.ValidationError)
 
 	sermon = frappe.get_doc("Sermon", name)
-	frappe.has_permission("Sermon", doc=sermon, throw=True)
+	if not sermon.publish and not frappe.has_permission("Sermon", doc=sermon):
+		frappe.throw("This sermon is not available.", frappe.PermissionError)
 
 	slides = []
 	for row in sermon.get("slides", []):

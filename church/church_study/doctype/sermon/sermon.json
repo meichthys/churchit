@@ -10,6 +10,9 @@
   "title",
   "prepared_by",
   "publish",
+  "column_break_wnxx",
+  "audio_recording",
+  "section_break_zozg",
   "notes",
   "section_break_slides",
   "slides",
@@ -49,6 +52,11 @@
    "label": "Publish"
   },
   {
+   "fieldname": "audio_recording",
+   "fieldtype": "Attach",
+   "label": "Audio Recording"
+  },
+  {
    "fieldname": "section_break_slides",
    "fieldtype": "Section Break",
    "label": "Slides"
@@ -74,12 +82,20 @@
    "fieldname": "notes",
    "fieldtype": "Text Editor",
    "label": "Notes"
+  },
+  {
+   "fieldname": "column_break_wnxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_zozg",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-22 20:41:50.519895",
+ "modified": "2026-03-22 21:22:06.076238",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",
