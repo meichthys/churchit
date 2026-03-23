@@ -50,6 +50,7 @@ def create_sample_data():
 	church = _get_church()
 
 	people = _create_people(church)
+	_create_church_manager_user(church, people)
 
 	families = _create_families(church)
 	_assign_families(people, families)
@@ -119,6 +120,7 @@ def delete_sample_data():
 	_delete_docs("Missionary", {"church": church})
 	_delete_docs("Missionary Agency", {"church": church})
 	_delete_docs("Family", {"church": church})
+	_delete_church_manager_user()
 	_delete_docs("Person", {"church": church})
 
 	frappe.db.commit()
@@ -247,6 +249,42 @@ def _create_people(church):
 		doc.insert(ignore_permissions=True)
 		refs[key] = doc.name
 	return refs
+
+
+# ---------------------------------------------------------------------------
+# Church Manager user
+# ---------------------------------------------------------------------------
+
+_CHURCH_MANAGER_EMAIL = "mary.johnson@example.com"
+
+
+def _create_church_manager_user(church, people):
+	"""Create a Church Manager portal user linked to Mary Johnson."""
+	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
+		return
+
+	user = frappe.get_doc({
+		"doctype": "User",
+		"email": _CHURCH_MANAGER_EMAIL,
+		"first_name": "Mary",
+		"last_name": "Johnson",
+		"send_welcome_email": 0,
+		"enabled": 1,
+		"role_profile_name": "Church Manager",
+		"church": church,
+	})
+	user.insert(ignore_permissions=True)
+	frappe.utils.password.update_password(_CHURCH_MANAGER_EMAIL, _CHURCH_MANAGER_EMAIL)
+
+	person_name = people.get("Mary Johnson")
+	if person_name:
+		frappe.db.set_value("Person", person_name, "portal_user", _CHURCH_MANAGER_EMAIL)
+
+
+def _delete_church_manager_user():
+	"""Remove the sample Church Manager user."""
+	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
+		frappe.delete_doc("User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
