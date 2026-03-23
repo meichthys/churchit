@@ -2,7 +2,20 @@ import frappe
 
 
 def get_context(context):
-	pass
+	# Filter the Function autocomplete options to only show functions with sign-ups enabled
+	sign_up_functions = set(
+		frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name")
+	)
+	for field in context.get("web_form_doc", {}).get("web_form_fields", []):
+		if field.fieldname == "function":
+			if isinstance(field.options, str):
+				options = field.options.split("\n")
+			else:
+				options = field.options or []
+			field.options = "\n".join(
+				opt for opt in options if opt in sign_up_functions
+			)
+			break
 
 
 @frappe.whitelist()
