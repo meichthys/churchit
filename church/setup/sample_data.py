@@ -888,6 +888,7 @@ def _create_sermons(church, people):
 		{
 			"title": "The Good Shepherd",
 			"prepared_by": people["James Wilson"],
+			"publish": 1,
 			"notes": (
 				"<p>A sermon on Psalm 23 exploring the intimate care that God, "
 				"our Shepherd, provides for His sheep.</p>"
@@ -902,6 +903,7 @@ def _create_sermons(church, people):
 		{
 			"title": "Walking by Faith",
 			"prepared_by": people["James Wilson"],
+			"publish": 1,
 			"notes": (
 				"<p>A study of Hebrews 11:1 and what it means to walk by faith "
 				"rather than by sight in our daily lives.</p>"
@@ -916,6 +918,7 @@ def _create_sermons(church, people):
 		{
 			"title": "The Power of Prayer",
 			"prepared_by": people["Robert Johnson"],
+			"publish": 1,
 			"notes": (
 				"<p>An encouraging message on the privilege and power of prayer, "
 				"drawing from multiple passages throughout Scripture.</p>"

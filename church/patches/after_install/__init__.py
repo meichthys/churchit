@@ -496,6 +496,12 @@ def _create_web_pages():
 			"template_file": "missions.html",
 		},
 		{
+			"name": "sermons",
+			"title": "Sermons",
+			"route": "sermons",
+			"template_file": "sermons.html",
+		},
+		{
 			"name": "locations",
 			"title": "Locations",
 			"route": "locations",
@@ -515,6 +521,7 @@ def _create_web_pages():
 				"dynamic_template": 1,
 				"content_type": "HTML",
 				"module": "Church Website",
+				"full_width": 0,
 				"show_title": 1,
 				"text_align": "Center",
 				"css": ".page-header { text-align: center; }",
@@ -565,6 +572,7 @@ def _setup_website_settings():
 	for item in [
 		{"label": "Home", "url": "/home", "right": 1},
 		{"label": "Beliefs", "url": "/beliefs", "right": 1},
+		{"label": "Sermons", "url": "/sermons", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Locations", "url": "/locations", "right": 1},
 		{"label": "Blog", "url": "/blog", "right": 1},
