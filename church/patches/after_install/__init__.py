@@ -82,14 +82,21 @@ def _create_default_church():
 	"""Create a default Church so lookup types can reference it at install time.
 
 	The user is expected to rename this church via the onboarding wizard.
+	If a root church already exists (e.g. on a dev site being re-run),
+	return its name instead of trying to create a second one.
 	"""
+	existing_root = frappe.db.get_value(
+		"Church", {"parent_church": ("is", "not set")}, "name"
+	)
+	if existing_root:
+		return existing_root
+
 	name = DEFAULT_CHURCH_NAME
-	if not frappe.db.exists("Church", name):
-		frappe.get_doc({
-			"doctype": "Church",
-			"church_name": name,
-			"abbreviation": DEFAULT_CHURCH_ABBREVIATION,
-		}).insert(ignore_permissions=True)
+	frappe.get_doc({
+		"doctype": "Church",
+		"church_name": name,
+		"abbreviation": DEFAULT_CHURCH_ABBREVIATION,
+	}).insert(ignore_permissions=True)
 	return name
 
 
@@ -592,6 +599,12 @@ def _setup_portal_menu_items():
 			"title": "Alms Requests",
 			"route": "alms-request",
 			"reference_doctype": "Alms Request",
+			"enabled": 1,
+		},
+		{
+			"title": "Function Sign Ups",
+			"route": "function-sign-up",
+			"reference_doctype": "Function Sign Up",
 			"enabled": 1,
 		},
 	]
