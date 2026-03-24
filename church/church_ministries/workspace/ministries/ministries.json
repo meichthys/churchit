@@ -82,7 +82,7 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
+   "is_query_report": 1,
    "label": "Attendance: All",
    "link_count": 0,
    "link_to": "Church Attendance",
@@ -94,9 +94,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Function Attendance",
+   "label": "Function Attendance by Type",
    "link_count": 0,
-   "link_to": "Function Attendance",
+   "link_to": "Function Attendance by Type",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -122,7 +122,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.005175",
+ "modified": "2026-03-24 00:00:01.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",

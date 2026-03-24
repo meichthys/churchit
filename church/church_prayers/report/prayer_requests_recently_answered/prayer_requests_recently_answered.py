@@ -1,5 +1,7 @@
 import frappe
 
+from church.utils import get_church_condition
+
 
 def execute(filters=None):
 	return get_columns(), get_data(filters)
@@ -16,15 +18,8 @@ def get_columns():
 
 def get_data(filters):
 	filters = filters or {}
-	church_condition = ""
 	values = {"request_since": filters.get("request_since")}
-
-	if "System Manager" not in frappe.get_roles():
-		church_condition = """AND church IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
+	church_condition = get_church_condition(filters, "church", values)
 
 	return frappe.db.sql(
 		f"""

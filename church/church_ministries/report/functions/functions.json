@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "json": "{\"filters\":[],\"fields\":[[\"name\",\"Function\"],[\"function_name\",\"Function\"],[\"type\",\"Function\"]],\"order_by\":\"`tabFunction`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":341,\"function_name\":125,\"type\":235},\"group_by\":null}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2025-09-21 22:47:13.752538",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Functions",
@@ -19,10 +19,16 @@
  "prepared_report": 0,
  "ref_doctype": "Function",
  "report_name": "Functions",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church User"
   }
  ],
  "timeout": 0

@@ -21,6 +21,43 @@ $(document).on("form-refresh", function(_e, frm) {
 	});
 });
 
+// Returns standard church + include_sub_churches filter definitions for Script Reports.
+church.get_church_report_filters = function() {
+	return [
+		{
+			fieldname: "church",
+			label: __("Church"),
+			fieldtype: "Link",
+			options: "Church",
+		},
+		{
+			fieldname: "include_sub_churches",
+			label: __("Include Sub-Churches"),
+			fieldtype: "Check",
+			default: 0,
+			depends_on: "eval:doc.church",
+		},
+	];
+};
+
+// Sets up a Script Report with default church value and hides church filters when only one church exists.
+church.setup_church_report = function(report) {
+	const default_church = frappe.defaults.get_user_default("church");
+	if (default_church) {
+		report.set_filter_value("church", default_church);
+	}
+	church._get_church_count().then(count => {
+		if (count <= 1) {
+			if (report.page.fields_dict.church) {
+				report.page.fields_dict.church.toggle(false);
+			}
+			if (report.page.fields_dict.include_sub_churches) {
+				report.page.fields_dict.include_sub_churches.toggle(false);
+			}
+		}
+	});
+};
+
 // Sets a query filter on a DocType link field to only show DocTypes belonging to the church app.
 // fieldname: the Link field to filter
 // child_table: (optional) the child table fieldname if the field is in a child doctype

@@ -6,6 +6,8 @@ import os
 import frappe
 from frappe.utils import today as frappe_today
 
+from church.utils import build_in_clause, get_church_scope
+
 
 def execute(filters=None):
 	group_by_family = frappe.utils.cint((filters or {}).get("group_by_family", 1))
@@ -454,25 +456,3 @@ def get_directory_html(
 	return frappe.render_template(template, context)
 
 
-def get_church_scope(church, include_sub_churches):
-	"""Return the church itself, or the full subtree if include_sub_churches is set."""
-	if not include_sub_churches:
-		return [church]
-
-	return frappe.db.sql_list(
-		"""
-		SELECT child.name
-		FROM `tabChurch` child
-		INNER JOIN `tabChurch` parent
-			ON child.lft >= parent.lft AND child.rgt <= parent.rgt
-		WHERE parent.name = %s
-		ORDER BY child.lft
-		""",
-		church,
-	)
-
-
-def build_in_clause(values):
-	"""Return a safely escaped SQL IN clause string, e.g. ('A', 'B')."""
-	escaped = [frappe.db.escape(v) for v in values]
-	return "(" + ", ".join(escaped) + ")"

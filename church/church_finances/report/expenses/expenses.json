@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "json": "{\"filters\":[],\"fields\":[[\"name\",\"Expense\"],[\"docstatus\",\"Expense\"],[\"type\",\"Expense\"],[\"notes\",\"Expense\"],[\"date\",\"Expense\"],[\"amount\",\"Expense\"]],\"order_by\":\"`tabExpense`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":238,\"docstatus\":120,\"type\":120,\"notes\":120,\"date\":120,\"amount\":120},\"group_by\":null,\"chart_args\":{\"chart_type\":\"pie\",\"x_axis\":\"type\",\"y_axes\":[\"amount\"]}}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2025-10-10 22:26:37.688841",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expenses",
@@ -19,10 +19,13 @@
  "prepared_report": 0,
  "ref_doctype": "Expense",
  "report_name": "Expenses",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
   }
  ],
  "timeout": 0

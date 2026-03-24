@@ -1,5 +1,7 @@
 import frappe
 
+from church.utils import get_church_condition
+
 
 def execute(filters=None):
 	return get_columns(), get_data(filters)
@@ -23,15 +25,7 @@ def get_data(filters=None):
 	conditions = ""
 	values = {}
 
-	if filters.get("church"):
-		conditions += " AND `tabPerson`.church = %(church)s"
-		values["church"] = filters["church"]
-	elif "System Manager" not in frappe.get_roles():
-		conditions += """ AND `tabPerson`.church IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
+	conditions += get_church_condition(filters, "`tabPerson`.church", values)
 
 	if filters.get("person_name"):
 		conditions += " AND full_name LIKE %(person_name)s"

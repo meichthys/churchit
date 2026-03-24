@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 2,
  "is_standard": "Yes",
- "json": "{\"filters\":[[\"Person\",\"birthday\",\"Timespan\",\"this week\",false]],\"fields\":[[\"name\",\"Person\"],[\"birthday\",\"Person\"]],\"order_by\":\"`tabPerson`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":120,\"birthday\":120},\"group_by\":null}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2025-10-02 01:14:54.138648",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Birthdays (This Week)",
@@ -19,7 +19,7 @@
  "prepared_report": 0,
  "ref_doctype": "Person",
  "report_name": "Person Birthdays (This Week)",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"

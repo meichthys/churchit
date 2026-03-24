@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 1,
  "is_standard": "Yes",
- "json": "{\"filters\":[],\"fields\":[[\"name\",\"Collection\"],[\"function\",\"Collection\"],[\"fund\",\"Donation\"],[\"person\",\"Donation\"],[\"payment_type\",\"Donation\"],[\"check_number\",\"Donation\"],[\"amount\",\"Donation\"]],\"order_by\":\"`tabCollection`.`modified` desc\",\"page_length\":20,\"column_widths\":{\"name\":120,\"function\":120,\"Donation:fund\":120,\"Donation:person\":120,\"Donation:payment_type\":120,\"Donation:check_number\":120,\"Donation:amount\":120},\"group_by\":null}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2025-10-02 01:10:11.876159",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donations",
@@ -19,7 +19,7 @@
  "prepared_report": 0,
  "ref_doctype": "Collection",
  "report_name": "Donations",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"

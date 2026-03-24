@@ -27,36 +27,34 @@
    "fieldname": "request",
    "fieldtype": "Data",
    "label": "Request",
+   "options": "Prayer Request",
+   "width": 0
+  },
+  {
+   "fieldname": "name",
+   "fieldtype": "Link",
+   "label": "Link to Request",
+   "options": "Prayer Request",
    "width": 0
   }
  ],
- "creation": "2025-09-25 22:56:55.686505",
+ "creation": "2025-09-25 22:27:45.158907",
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
- "filters": [
-  {
-   "default": "",
-   "fieldname": "request_since",
-   "fieldtype": "Date",
-   "label": "Requests Since...",
-   "mandatory": 1,
-   "options": "",
-   "wildcard_filter": 0
-  }
- ],
- "idx": 0,
+ "filters": [],
+ "idx": 1,
  "is_standard": "Yes",
  "json": "{}",
  "letterhead": null,
- "modified": "2025-09-25 22:56:55.686505",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
- "name": "Prayer Requests: Recently Answered",
+ "name": "Prayer Requests: Recently Created",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "Prayer Request",
- "report_name": "Prayer Requests: Recently Answered",
+ "report_name": "Prayer Requests: Recently Created",
  "report_type": "Script Report",
  "roles": [
   {

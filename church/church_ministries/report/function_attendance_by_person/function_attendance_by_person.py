@@ -1,18 +1,25 @@
 import frappe
 
+from church.utils import CHURCH_COLUMN, get_church_condition, show_church_column
+
 
 def execute(filters=None):
-	return get_columns(), get_data(filters)
+	return get_columns(filters), get_data(filters)
 
 
-def get_columns():
-	return [
+def get_columns(filters=None):
+	cols = [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
+	]
+	if show_church_column(filters):
+		cols.append(CHURCH_COLUMN)
+	cols += [
 		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
 		{"fieldname": "type", "fieldtype": "Link", "label": "Function Type", "options": "Function Type", "width": 150},
 		{"fieldname": "start_date", "fieldtype": "Date", "label": "Date", "width": 120},
 		{"fieldname": "attendance_type", "fieldtype": "Link", "label": "Attendance Type", "options": "Function Attendance Type", "width": 150},
 	]
+	return cols
 
 
 def get_data(filters=None):
@@ -20,15 +27,8 @@ def get_data(filters=None):
 	conditions = ""
 	values = {}
 
-	if filters.get("church"):
-		conditions += "AND `tabFunction`.church = %(church)s"
-		values["church"] = filters["church"]
-	elif "System Manager" not in frappe.get_roles():
-		conditions += """AND `tabFunction`.church IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
+	conditions += get_church_condition(filters, "`tabFunction`.church", values)
+	church_select = ", `tabFunction`.church" if show_church_column(filters) else ""
 
 	if filters.get("person"):
 		conditions += " AND `tabFunction Attendance`.person = %(person)s"
@@ -49,7 +49,7 @@ def get_data(filters=None):
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabFunction Attendance`.person,
+			`tabFunction Attendance`.person{church_select},
 			`tabFunction Attendance`.parent as `function`,
 			`tabFunction`.type,
 			`tabFunction`.start_date,

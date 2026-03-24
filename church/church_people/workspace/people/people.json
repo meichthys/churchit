@@ -24,96 +24,13 @@
  "links": [
   {
    "hidden": 0,
-   "is_query_report": 0,
+   "is_query_report": 1,
    "label": "Church Directory",
    "link_count": 0,
    "link_to": "Church Directory Report",
    "link_type": "Report",
    "onboard": 0,
    "report_ref_doctype": "Family",
-   "type": "Link"
-  },
-  {
-   "description": "These are some pre-prepared reports. You can always create your own reports by going to `[Document] Report`, filtering the report, then choosing `save as` in the `...` menu.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Person Reports",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "People",
-   "link_count": 0,
-   "link_to": "People",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Current Positions",
-   "link_count": 0,
-   "link_to": "Current Person Positions",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Person",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Birthdays (This Week)",
-   "link_count": 0,
-   "link_to": "Person Birthdays (This Week)",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Person",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Positions Ending This Month",
-   "link_count": 0,
-   "link_to": "Person Positions Ending This Month",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Person",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters",
-   "link_count": 0,
-   "link_to": "Person Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters Not Yet Read",
-   "link_count": 0,
-   "link_to": "People Letters Not Yet Read",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Church Directory",
-   "link_count": 0,
-   "link_to": "Church Directory Report",
-   "link_type": "Report",
-   "onboard": 0,
    "type": "Link"
   },
   {
@@ -205,9 +122,92 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "description": "These are some pre-prepared reports. You can always create your own reports by going to `[Document] Report`, filtering the report, then choosing `save as` in the `...` menu.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Person Reports",
+   "link_count": 7,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "People",
+   "link_count": 0,
+   "link_to": "People",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Current Positions",
+   "link_count": 0,
+   "link_to": "Current Person Positions",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Person",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Birthdays (This Week)",
+   "link_count": 0,
+   "link_to": "Person Birthdays (This Week)",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Person",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Positions Ending This Month",
+   "link_count": 0,
+   "link_to": "Person Positions Ending This Month",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Person",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Person Letters",
+   "link_count": 0,
+   "link_to": "Person Letters",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Person Letters Not Yet Read",
+   "link_count": 0,
+   "link_to": "People Letters Not Yet Read",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Church Directory",
+   "link_count": 0,
+   "link_to": "Church Directory Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-20 20:21:20.528153",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

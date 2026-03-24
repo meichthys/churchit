@@ -1,15 +1,21 @@
 import frappe
 
+from church.utils import CHURCH_COLUMN, get_church_condition, show_church_column
+
 
 def execute(filters=None):
-	return get_columns(), get_data(filters)
+	return get_columns(filters), get_data(filters)
 
 
-def get_columns():
-	return [
+def get_columns(filters=None):
+	cols = []
+	if show_church_column(filters):
+		cols.append(CHURCH_COLUMN)
+	cols += [
 		{"fieldname": "type", "fieldtype": "Data", "label": "Type", "width": 200},
 		{"fieldname": "counts", "fieldtype": "Int", "label": "Count", "width": 100},
 	]
+	return cols
 
 
 def get_data(filters):
@@ -20,23 +26,17 @@ def get_data(filters):
 		"end": filters.get("end"),
 	}
 
-	if filters.get("church"):
-		conditions += "AND church = %(church)s"
-		values["church"] = filters["church"]
-	elif "System Manager" not in frappe.get_roles():
-		conditions += """AND church IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
+	conditions += get_church_condition(filters, "church", values)
+	church_select = "church, " if show_church_column(filters) else ""
+	church_group = "church, " if show_church_column(filters) else ""
 
 	return frappe.db.sql(
 		f"""
-		SELECT type as type, count(name) as counts
+		SELECT {church_select}type as type, count(name) as counts
 		FROM `tabFunction`
 		WHERE (start_date IS NULL OR end_date IS NULL OR date(start_date) BETWEEN %(start)s AND %(end)s)
 			{conditions}
-		GROUP BY type
+		GROUP BY {church_group}type
 		""",
 		values,
 		as_dict=True,

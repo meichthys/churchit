@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "json": "{\"filters\":[[\"Position\",\"end_date\",\"Timespan\",\"this month\",false]],\"fields\":[[\"name\",\"Person\"],[\"role\",\"Position\"],[\"start_date\",\"Position\"],[\"end_date\",\"Position\"],[\"notes\",\"Position\"]],\"order_by\":\"`tabPerson`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"name\":120,\"Position:role\":120,\"Position:start_date\":120,\"Position:end_date\":120,\"Position:notes\":120},\"group_by\":null}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2026-03-04 22:14:31.822540",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Positions Ending This Month",
@@ -19,7 +19,7 @@
  "prepared_report": 0,
  "ref_doctype": "Person",
  "report_name": "Person Positions Ending This Month",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"

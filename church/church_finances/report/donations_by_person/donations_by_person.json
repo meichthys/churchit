@@ -9,9 +9,9 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "json": "{\"filters\":[[\"Collection\",\"date\",\"Timespan\",\"this year\",false]],\"fields\":[[\"person\",\"Donation\"],[\"_aggregate_column\",\"Donation\"]],\"order_by\":\"`tabCollection`.`modified` desc\",\"add_totals_row\":true,\"page_length\":20,\"column_widths\":{\"Donation:person\":120,\"_aggregate_column\":200},\"group_by\":{\"group_by\":\"`tabDonation`.`person`\",\"aggregate_function\":\"sum\",\"aggregate_on\":\"`tabDonation`.`amount`\"}}",
+ "json": "{}",
  "letterhead": null,
- "modified": "2025-10-02 01:09:55.346449",
+ "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donations by Person",
@@ -19,7 +19,7 @@
  "prepared_report": 0,
  "ref_doctype": "Collection",
  "report_name": "Donations by Person",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"

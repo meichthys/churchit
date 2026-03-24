@@ -1,0 +1,88 @@
+import frappe
+
+CHURCH_COLUMN = {"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 150}
+
+
+def show_church_column(filters):
+	"""Return True if include_sub_churches is set, meaning results span multiple churches."""
+	return bool(frappe.utils.cint((filters or {}).get("include_sub_churches", 0)))
+
+
+def get_church_scope(church, include_sub_churches):
+	"""Return list of church names: just the one church, or the full subtree if include_sub_churches is set.
+
+	For non-System Managers, the result is intersected with the user's permitted churches.
+	"""
+	if not include_sub_churches:
+		return [church]
+
+	churches = frappe.db.sql_list(
+		"""
+		SELECT child.name
+		FROM `tabChurch` child
+		INNER JOIN `tabChurch` parent
+			ON child.lft >= parent.lft AND child.rgt <= parent.rgt
+		WHERE parent.name = %s
+		ORDER BY child.lft
+		""",
+		church,
+	)
+
+	if "System Manager" not in frappe.get_roles():
+		permitted = set(
+			frappe.db.sql_list(
+				"""
+				SELECT for_value FROM `tabUser Permission`
+				WHERE user = %s AND allow = 'Church'
+				""",
+				frappe.session.user,
+			)
+		)
+		churches = [c for c in churches if c in permitted]
+
+	return churches
+
+
+def build_in_clause(values):
+	"""Return a safely escaped SQL IN clause string, e.g. ('A', 'B')."""
+	escaped = [frappe.db.escape(v) for v in values]
+	return "(" + ", ".join(escaped) + ")"
+
+
+def get_church_condition(filters, church_field_expr, values_dict):
+	"""Build a SQL condition for church filtering and update values_dict with any needed parameters.
+
+	Handles three cases:
+	1. church + include_sub_churches: IN clause with descendants (intersected with permissions)
+	2. church only: equals clause for the single church
+	3. No church selected: User Permission subquery for non-System Managers, no restriction for System Managers
+
+	Args:
+		filters: dict of report filters (looks for 'church' and 'include_sub_churches')
+		church_field_expr: SQL expression for the church field, e.g. "`tabPerson`.church"
+		values_dict: dict to update with query parameters
+
+	Returns:
+		SQL condition string (including leading AND), or empty string if no restriction.
+	"""
+	church = filters.get("church") if filters else None
+	include_sub_churches = frappe.utils.cint((filters or {}).get("include_sub_churches", 0))
+
+	if church:
+		if include_sub_churches:
+			churches = get_church_scope(church, include_sub_churches=True)
+			if not churches:
+				return " AND 1=0"
+			in_clause = build_in_clause(churches)
+			return f" AND {church_field_expr} IN {in_clause}"
+		else:
+			values_dict["church"] = church
+			return f" AND {church_field_expr} = %(church)s"
+	else:
+		if "System Manager" not in frappe.get_roles():
+			values_dict["user"] = frappe.session.user
+			return f""" AND {church_field_expr} IN (
+				SELECT for_value FROM `tabUser Permission`
+				WHERE user = %(user)s AND allow = 'Church'
+			)"""
+		return ""
