@@ -1,15 +1,19 @@
 import frappe
 
-from church.utils import get_church_condition
+from church.utils import CHURCH_COLUMN, get_church_condition, show_church_column
 
 
 def execute(filters=None):
-	return get_columns(), get_data(filters)
+	return get_columns(filters), get_data(filters)
 
 
-def get_columns():
-	return [
+def get_columns(filters=None):
+	cols = [
 		{"fieldname": "parent", "fieldtype": "Link", "label": "From", "options": "Missionary", "width": 150},
+	]
+	if show_church_column(filters):
+		cols.append(CHURCH_COLUMN)
+	cols += [
 		{"fieldname": "date", "fieldtype": "Date", "label": "Date", "width": 100},
 		{"fieldname": "share_with_church", "fieldtype": "Check", "label": "Share w/ Church?", "width": 120},
 		{"fieldname": "shared_date", "fieldtype": "Date", "label": "Shared Date", "width": 100},
@@ -17,16 +21,18 @@ def get_columns():
 		{"fieldname": "file", "fieldtype": "Link", "label": "File", "options": "File", "width": 150},
 		{"fieldname": "content", "fieldtype": "Data", "label": "Content", "width": 300},
 	]
+	return cols
 
 
 def get_data(filters=None):
 	values = {}
 	church_condition = get_church_condition(filters, "`tabMissionary`.church", values)
+	church_select = ", `tabMissionary`.church" if show_church_column(filters) else ""
 
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabLetter`.parent,
+			`tabLetter`.parent{church_select},
 			`tabLetter`.date,
 			`tabLetter`.share_with_church,
 			`tabLetter`.shared_date,
