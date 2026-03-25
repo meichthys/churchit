@@ -30,6 +30,7 @@ class Function(Document):
 def apply_template(source_name):
 	# Get template document
 	template = frappe.get_doc("Function", source_name)
+	template.check_permission("read")
 	template_dict = template.as_dict()
 
 	copied_doc = {}

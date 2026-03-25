@@ -13,17 +13,19 @@ class AlmsRequest(Document):
 def create_expense(alms_request_name):
 	"""Create a Expense from the given Alms Request."""
 	alms = frappe.get_doc("Alms Request", alms_request_name)
+	alms.check_permission("read")
 	# Make sure an expense type and amount are provided
 	if not alms.amount:
 		frappe.throw("⚠️ An amount is required for an expense to be created.")
 	if not alms.expense_type:
 		frappe.throw("⚠️ An expense type is required for an expense to be created.")
 	expense = frappe.new_doc("Expense")
+	expense.church = alms.church
 	expense.amount = alms.amount
 	expense.notes = f"Alms Request: {alms.name}"
 	expense.type = frappe.db.get_value("Expense Type", alms.expense_type, "type")
 	expense.date = frappe.utils.now()
-	expense.insert(ignore_permissions=True)
+	expense.insert()
 	frappe.msgprint(f"✅ {expense.type} expense created.")
 	expense.submit()
 

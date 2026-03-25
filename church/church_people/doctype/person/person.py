@@ -52,6 +52,16 @@ class Person(Document):
 			family.save()
 
 	def validate(self):
+		# Prevent Church Users (portal users) from modifying sensitive relationship fields
+		if (
+			"Church User" in frappe.get_roles()
+			and "Church Manager" not in frappe.get_roles()
+			and "System Manager" not in frappe.get_roles()
+			and self.get_doc_before_save()
+		):
+			for field in ("family", "spouse", "is_married", "is_head_of_household", "church"):
+				self.set(field, self.get_doc_before_save().get(field))
+
 		# Remove head of household status when family is removed
 		if not self.family and self.is_head_of_household:
 			self.set("is_head_of_household", False)

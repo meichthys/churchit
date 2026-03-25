@@ -170,6 +170,7 @@ def get_directory_html(
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
 	show_missionaries = frappe.utils.cint(show_missionaries)
 
+	frappe.has_permission("Church", doc=church, throw=True)
 	church_doc = frappe.get_doc("Church", church)
 	church_address = None
 	if church_doc.address:

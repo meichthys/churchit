@@ -31,6 +31,7 @@ def create():
 
 	Usage:  frappe.call("church.setup.sample_data.create")
 	"""
+	frappe.only_for("System Manager")
 	create_sample_data()
 	frappe.msgprint("Sample data has been created.", indicator="green", alert=True)
 
@@ -41,6 +42,7 @@ def delete():
 
 	Usage:  frappe.call("church.setup.sample_data.delete")
 	"""
+	frappe.only_for("System Manager")
 	delete_sample_data()
 	frappe.msgprint("Sample data has been removed.", indicator="green", alert=True)
 
