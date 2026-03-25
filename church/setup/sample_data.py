@@ -89,9 +89,12 @@ def create_sample_data():
 
 	_create_songs(church)
 
-	_create_church_assets(church)
+	_create_locations()
+	_create_asset_items()
+	_create_assets(church)
 
-	_create_church_tasks(church, people)
+	_create_projects(church)
+	_create_tasks(church, people)
 
 	frappe.db.commit()
 
@@ -100,8 +103,10 @@ def delete_sample_data():
 	"""Remove all sample data created by :func:`create_sample_data`."""
 	church = _get_church()
 
-	_delete_docs("Church Task", {"church": church})
-	_delete_docs("Church Asset", {"church": church})
+	_delete_docs("Task", {"church": church})
+	_delete_submittable_docs("Asset", {"church": church})
+	_delete_docs("Project", {"church": church})
+	_delete_sample_items_and_locations()
 	_delete_docs("Song", {"church": church})
 	_delete_docs("Prayer", {"church": church})
 	_delete_submittable_docs("Fund Transfer", {"church": church})
@@ -160,6 +165,19 @@ def _delete_submittable_docs(doctype, filters):
 		if doc.docstatus == 1:
 			doc.cancel()
 		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+
+
+def _delete_sample_items_and_locations():
+	"""Delete sample Items and Locations created for asset categorization."""
+	sample_items = ["Equipment", "Vehicle", "Furniture", "Musical Instrument", "Electronics"]
+	for item in sample_items:
+		if frappe.db.exists("Item", item):
+			frappe.delete_doc("Item", item, force=True, ignore_permissions=True)
+
+	sample_locations = ["Sanctuary", "Fellowship Hall", "Kitchen", "Office", "Parking Lot", "Storage"]
+	for loc in sample_locations:
+		if frappe.db.exists("Location", loc):
+			frappe.delete_doc("Location", loc, force=True, ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1252,127 +1270,188 @@ def _create_songs(church):
 
 
 # ---------------------------------------------------------------------------
-# Church Assets
+# Locations (ERPNext Location doctype, used by Asset)
 # ---------------------------------------------------------------------------
 
 
-def _create_church_assets(church):
-	"""Create sample church assets."""
+def _create_locations():
+	"""Create sample locations for asset tracking."""
+	locations = ["Sanctuary", "Fellowship Hall", "Kitchen", "Office", "Parking Lot", "Storage"]
+	for loc in locations:
+		if not frappe.db.exists("Location", loc):
+			frappe.get_doc({"doctype": "Location", "location_name": loc}).insert(
+				ignore_permissions=True,
+			)
+
+
+# ---------------------------------------------------------------------------
+# Asset Items (ERPNext Item doctype with is_fixed_asset=1)
+# ---------------------------------------------------------------------------
+
+
+def _create_asset_items():
+	"""Create sample fixed-asset Items for asset categorization."""
+	items = ["Equipment", "Vehicle", "Furniture", "Musical Instrument", "Electronics"]
+	for item in items:
+		if not frappe.db.exists("Item", item):
+			frappe.get_doc(
+				{
+					"doctype": "Item",
+					"item_code": item,
+					"item_name": item,
+					"item_group": "All Item Groups",
+					"is_fixed_asset": 1,
+					"is_stock_item": 0,
+				}
+			).insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Assets (ERPNext Asset doctype)
+# ---------------------------------------------------------------------------
+
+
+def _create_assets(church):
+	"""Create sample assets using the ERPNext Asset doctype."""
 	assets = [
 		{
-			"title": "Yamaha Grand Piano",
-			"acquisition_date": "2010-03-15",
+			"asset_name": "Yamaha Grand Piano",
+			"item_code": "Musical Instrument",
 			"location": "Sanctuary",
-			"notes": "<p>Yamaha C3X grand piano. Tuned twice yearly by Davidson Piano Services.</p>",
+			"purchase_date": "2010-03-15",
+			"gross_purchase_amount": 25000,
 		},
 		{
-			"title": "Epson Projector",
-			"acquisition_date": "2020-08-10",
+			"asset_name": "Epson Projector",
+			"item_code": "Electronics",
 			"location": "Fellowship Hall",
-			"notes": "<p>Epson PowerLite projector used for presentations and movie nights.</p>",
+			"purchase_date": "2020-08-10",
+			"gross_purchase_amount": 800,
 		},
 		{
-			"title": "Commercial Refrigerator",
-			"acquisition_date": "2015-01-20",
+			"asset_name": "Commercial Refrigerator",
+			"item_code": "Equipment",
 			"location": "Kitchen",
-			"notes": "<p>True brand two-door commercial refrigerator for church dinners and events.</p>",
+			"purchase_date": "2015-01-20",
+			"gross_purchase_amount": 3500,
 		},
 		{
-			"title": "15-Passenger Van",
-			"acquisition_date": "2018-06-01",
+			"asset_name": "15-Passenger Van",
+			"item_code": "Vehicle",
 			"location": "Parking Lot",
-			"notes": "<p>Ford Transit 15-passenger van used for youth trips and senior outings.</p>",
+			"purchase_date": "2018-06-01",
+			"gross_purchase_amount": 35000,
 		},
 	]
 	for asset in assets:
-		existing = frappe.db.exists("Church Asset", {
-			"church": church, "title": asset["title"],
-		})
-		if existing:
+		if frappe.db.exists("Asset", {"church": church, "asset_name": asset["asset_name"]}):
 			continue
-		doc = frappe.get_doc({"doctype": "Church Asset", "church": church, **asset})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Asset",
+				"church": church,
+				"company": "Church",
+				**asset,
+			}
+		)
 		doc.insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
-# Church Tasks (tree structure)
+# Projects (ERPNext Project doctype)
 # ---------------------------------------------------------------------------
 
 
-def _create_church_tasks(church, people):
-	"""Create sample church tasks with hierarchy."""
+def _create_projects(church):
+	"""Create sample projects."""
+	if frappe.db.exists("Project", {"church": church, "project_name": "Christmas Eve Service"}):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Project",
+			"church": church,
+			"company": "Church",
+			"project_name": "Christmas Eve Service",
+			"status": "Open",
+			"expected_start_date": "2025-12-01",
+			"expected_end_date": "2025-12-24",
+			"notes": "<p>Plan and execute the annual Christmas Eve candlelight service.</p>",
+		}
+	).insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Tasks (ERPNext Task doctype, tree structure)
+# ---------------------------------------------------------------------------
+
+
+def _create_tasks(church, people):
+	"""Create sample tasks with hierarchy using the ERPNext Task doctype."""
 	# Parent task (is_group)
-	parent_title = "Prepare for Christmas Eve Service"
+	parent_subject = "Prepare for Christmas Eve Service"
 	parent_name = frappe.db.get_value(
-		"Church Task", {"church": church, "title": parent_title}, "name",
+		"Task", {"church": church, "subject": parent_subject}, "name",
 	)
 	if not parent_name:
-		parent_doc = frappe.get_doc({
-			"doctype": "Church Task",
-			"church": church,
-			"title": parent_title,
-			"status": "In Progress",
-			"due_date": "2025-12-24 10:00:00",
-			"assigned_person": people["James Wilson"],
-			"is_group": 1,
-			"notes": "<p>Everything that needs to be done before the Christmas Eve candlelight service.</p>",
-		})
+		parent_doc = frappe.get_doc(
+			{
+				"doctype": "Task",
+				"church": church,
+				"subject": parent_subject,
+				"status": "Working",
+				"exp_end_date": "2025-12-24",
+				"is_group": 1,
+				"description": "<p>Everything that needs to be done before the Christmas Eve candlelight service.</p>",
+			}
+		)
 		parent_doc.insert(ignore_permissions=True)
 		parent_name = parent_doc.name
 
 	# Sub-tasks
 	sub_tasks = [
 		{
-			"title": "Set up candles and holders",
-			"status": "Assigned",
-			"due_date": "2025-12-23 17:00:00",
-			"assigned_person": people["David Thompson"],
-			"notes": "<p>Place candles and drip guards on every pew. Extra supplies are in the storage closet.</p>",
+			"subject": "Set up candles and holders",
+			"status": "Open",
+			"exp_end_date": "2025-12-23",
+			"description": "<p>Place candles and drip guards on every pew. Extra supplies are in the storage closet.</p>",
 		},
 		{
-			"title": "Prepare song slides",
-			"status": "In Progress",
-			"due_date": "2025-12-22 12:00:00",
-			"assigned_person": people["Rachel Cooper"],
-			"notes": "<p>Create presentation slides for Silent Night, O Holy Night, and Joy to the World.</p>",
+			"subject": "Prepare song slides",
+			"status": "Working",
+			"exp_end_date": "2025-12-22",
+			"description": "<p>Create presentation slides for Silent Night, O Holy Night, and Joy to the World.</p>",
 		},
 	]
 	for task in sub_tasks:
-		existing = frappe.db.exists("Church Task", {
-			"church": church, "title": task["title"],
-		})
-		if existing:
+		if frappe.db.exists("Task", {"church": church, "subject": task["subject"]}):
 			continue
-		doc = frappe.get_doc({
-			"doctype": "Church Task",
-			"church": church,
-			"parent_task": parent_name,
-			**task,
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Task",
+				"church": church,
+				"parent_task": parent_name,
+				**task,
+			}
+		)
 		doc.insert(ignore_permissions=True)
 
 	# Standalone tasks
 	standalone_tasks = [
 		{
-			"title": "Fix Fellowship Hall sink",
-			"status": "In Progress",
-			"due_date": "2025-12-20 00:00:00",
-			"assigned_person": people["David Thompson"],
-			"notes": "<p>The faucet in the Fellowship Hall kitchen is leaking. Parts have been ordered from the hardware store.</p>",
+			"subject": "Fix Fellowship Hall sink",
+			"status": "Working",
+			"exp_end_date": "2025-12-20",
+			"description": "<p>The faucet in the Fellowship Hall kitchen is leaking. Parts have been ordered from the hardware store.</p>",
 		},
 		{
-			"title": "Order new hymnals",
+			"subject": "Order new hymnals",
 			"status": "Open",
-			"due_date": "2026-01-15 00:00:00",
-			"assigned_person": people["Martha Evans"],
-			"notes": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
+			"exp_end_date": "2026-01-15",
+			"description": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
 		},
 	]
 	for task in standalone_tasks:
-		existing = frappe.db.exists("Church Task", {
-			"church": church, "title": task["title"],
-		})
-		if existing:
+		if frappe.db.exists("Task", {"church": church, "subject": task["subject"]}):
 			continue
-		doc = frappe.get_doc({"doctype": "Church Task", "church": church, **task})
+		doc = frappe.get_doc({"doctype": "Task", "church": church, **task})
 		doc.insert(ignore_permissions=True)

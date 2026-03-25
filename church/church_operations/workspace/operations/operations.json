@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"pRjKtNmLqW\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Projects\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
  "creation": "2025-12-15 00:04:59.607521",
  "custom_blocks": [],
  "docstatus": 0,
@@ -17,7 +17,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Operations Documents",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -25,9 +25,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Church Assets",
+   "label": "Assets",
    "link_count": 0,
-   "link_to": "Church Asset",
+   "link_to": "Asset",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -35,15 +35,25 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Church Tasks",
+   "label": "Tasks",
    "link_count": 0,
-   "link_to": "Church Task",
+   "link_to": "Task",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Projects",
+   "link_count": 0,
+   "link_to": "Project",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.156765",
+ "modified": "2026-03-25 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",
@@ -55,6 +65,10 @@
   {
    "label": "Assets",
    "number_card_name": "Assets"
+  },
+  {
+   "label": "Projects",
+   "number_card_name": "Projects"
   }
  ],
  "owner": "Administrator",

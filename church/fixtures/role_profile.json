@@ -2,7 +2,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-03-12 19:29:12.516172",
+  "modified": "2026-03-24 18:31:13.222844",
   "name": "Church Manager",
   "role_profile": "Church Manager",
   "roles": [
@@ -29,6 +29,18 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Workspace Manager"
+   },
+   {
+    "parent": "Church Manager",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Church Manager",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Projects User"
    }
   ]
  },

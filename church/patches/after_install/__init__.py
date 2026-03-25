@@ -16,6 +16,10 @@ DEFAULT_CHURCH_ABBREVIATION = "MC"
 
 
 def execute():
+	# ERPNext defaults — must exist before church data so the hidden company
+	# field on Asset/Project can reference the default Company.
+	_create_erpnext_defaults()
+
 	# Default church — must exist before lookup types so their church field
 	# can reference it.
 	church = _create_default_church()
@@ -71,6 +75,29 @@ def _read_template(filename):
 	templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 	with open(os.path.join(templates_dir, filename)) as f:
 		return f.read()
+
+
+# ---------------------------------------------------------------------------
+# ERPNext Defaults
+# ---------------------------------------------------------------------------
+
+
+def _create_erpnext_defaults():
+	"""Create a default Company so ERPNext doctypes (Asset, Project) work.
+
+	The hidden ``company`` field on Asset and Project defaults to "Church".
+	This function ensures that Company exists at install time.
+	"""
+	if not frappe.db.exists("Company", "Church"):
+		frappe.get_doc(
+			{
+				"doctype": "Company",
+				"company_name": "Church",
+				"abbr": "CH",
+				"default_currency": "USD",
+				"country": "United States",
+			}
+		).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -358,7 +385,6 @@ def _create_module_profile():
 		"EDI",
 		"Stock",
 		"Accounts",
-		"Assets",
 		"Automation",
 		"Bulk Transaction",
 		"Buying",
@@ -370,7 +396,6 @@ def _create_module_profile():
 		"Integrations",
 		"Maintenance",
 		"Geo",
-		"Projects",
 		"Regional",
 		"Setup",
 		"Social",
@@ -633,12 +658,21 @@ def _setup_portal_settings():
 
 
 def _hide_default_workspaces():
-	"""Hide built-in Frappe workspaces that are irrelevant to church users.
+	"""Hide built-in Frappe and ERPNext workspaces that are irrelevant to church users.
 
 	The is_hidden field is preserved through bench migrate / Frappe updates, so
 	this only needs to run once at install time.
 	"""
-	for workspace in ("Tools", "Build", "Users", "Integrations", "Website"):
+	workspaces = (
+		# Frappe
+		"Tools", "Build", "Users", "Integrations", "Website",
+		# ERPNext
+		"Accounting", "Financial Reports", "Payables", "Receivables",
+		"Assets", "Buying", "CRM", "ERPNext Integrations",
+		"Manufacturing", "Projects", "Quality", "Selling",
+		"ERPNext Settings", "Home", "Stock", "Support",
+	)
+	for workspace in workspaces:
 		if frappe.db.exists("Workspace", workspace):
 			frappe.db.set_value("Workspace", workspace, "is_hidden", 1)
 

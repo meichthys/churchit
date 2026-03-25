@@ -13,7 +13,8 @@ website_context = {
 }
 
 fixtures = [
-	{"dt": "Property Setter", "filters": [["doc_type", "=", "About Us Settings"]]},
+	{"dt": "Custom Field", "filters": [["module", "=", "Church Operations"]]},
+	{"dt": "Property Setter", "filters": [["doc_type", "in", ["About Us Settings", "Task", "Asset", "Project"]]]},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
 	# "Self-Reported" attendance type is a fixture since it is used in the Function Sign Up doctype's after_insert method.
