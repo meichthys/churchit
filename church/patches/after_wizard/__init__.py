@@ -1,9 +1,8 @@
 """
-after_install patch — runs once when the Church app is installed on a new site.
+Church post-wizard setup — called from setup_wizard_complete after ERPNext
+has created the Company, so the user's chosen church name is available.
 
-Creates all default reference data, configuration, and website content so the
-app is usable out of the box.  Existing sites are not affected (this hook only
-fires on ``bench install-app church``).
+All inserts are idempotent — safe to run more than once on the same site.
 """
 
 import os
@@ -15,14 +14,15 @@ DEFAULT_CHURCH_NAME = "My Church"
 DEFAULT_CHURCH_ABBREVIATION = "MC"
 
 
-def execute():
-	# ERPNext defaults — must exist before church data so the hidden company
-	# field on Asset/Project can reference the default Company.
-	_create_erpnext_defaults()
+def execute(args=None):
+	"""Create all default church data, configuration, and website content.
 
-	# Default church — must exist before lookup types so their church field
-	# can reference it.
-	church = _create_default_church()
+	Called from ``setup_wizard_complete`` with the wizard args so the
+	church name matches what the user entered.  Can also be called
+	standalone (e.g. ``bench execute``) in which case defaults are used.
+	"""
+	_apply_chart_of_accounts()
+	church = _create_default_church(args)
 
 	# Simple lookup types (no inter-dependencies)
 	_create_member_statuses(church)
@@ -57,6 +57,23 @@ def execute():
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
+	_customize_builtin_doctypes()
+
+
+# ---------------------------------------------------------------------------
+# Chart of Accounts
+# ---------------------------------------------------------------------------
+
+
+def _apply_chart_of_accounts():
+	"""Replace the ERPNext default CoA with the church-specific one."""
+	company = frappe.db.get_value("Company", {}, "name")
+	if not company:
+		return
+
+	from church.setup.chart_of_accounts import apply_church_chart
+
+	apply_church_chart(company)
 
 
 # ---------------------------------------------------------------------------
@@ -78,53 +95,27 @@ def _read_template(filename):
 
 
 # ---------------------------------------------------------------------------
-# ERPNext Defaults
-# ---------------------------------------------------------------------------
-
-
-def _create_erpnext_defaults():
-	"""Create a default Company so ERPNext doctypes (Asset, Project) work.
-
-	The hidden ``company`` field on Asset and Project defaults to "Church".
-	This function ensures that Company exists at install time.
-	"""
-	if not frappe.db.exists("Company", "Church"):
-		frappe.get_doc(
-			{
-				"doctype": "Company",
-				"company_name": "Church",
-				"abbr": "CH",
-				"default_currency": "USD",
-				"country": "United States",
-			}
-		).insert(ignore_permissions=True)
-
-
-# ---------------------------------------------------------------------------
 # Default Church
 # ---------------------------------------------------------------------------
 
 
-def _create_default_church():
-	"""Create a default Church so lookup types can reference it at install time.
-
-	The user is expected to rename this church via the onboarding wizard.
-	If a root church already exists (e.g. on a dev site being re-run),
-	return its name instead of trying to create a second one.
-	"""
+def _create_default_church(args=None):
+	"""Create the root church using the name from the setup wizard args."""
 	existing_root = frappe.db.get_value(
 		"Church", {"parent_church": ("is", "not set")}, "name"
 	)
 	if existing_root:
 		return existing_root
 
-	name = DEFAULT_CHURCH_NAME
+	church_name = (args.get("company_name") if args else None) or DEFAULT_CHURCH_NAME
+	abbreviation = (args.get("company_abbr") if args else None) or DEFAULT_CHURCH_ABBREVIATION
+
 	frappe.get_doc({
 		"doctype": "Church",
-		"church_name": name,
-		"abbreviation": DEFAULT_CHURCH_ABBREVIATION,
+		"church_name": church_name,
+		"abbreviation": abbreviation,
 	}).insert(ignore_permissions=True)
-	return name
+	return church_name
 
 
 # ---------------------------------------------------------------------------
@@ -410,13 +401,17 @@ def _create_module_profile():
 		"Desk",
 		"Core",
 	]
-	frappe.get_doc(
+	doc = frappe.get_doc(
 		{
 			"doctype": "Module Profile",
 			"module_profile_name": "Church",
 			"block_modules": [{"module": m} for m in blocked_modules],
 		}
-	).insert(ignore_permissions=True)
+	)
+	# Use db_insert to skip on_update, which calls queue_action and would
+	# lock the document (conflicting with the setup wizard).  No users have
+	# this profile yet, so update_all_users is a no-op at this point.
+	doc.db_insert(ignore_if_duplicate=True)
 
 
 # ---------------------------------------------------------------------------
@@ -690,3 +685,30 @@ def _clean_gender_options():
 	for gender in frappe.db.get_all("Gender"):
 		if gender.name not in ("Male", "Female", "Unknown"):
 			frappe.delete_doc("Gender", gender.name, force=True)
+
+
+# ---------------------------------------------------------------------------
+# Built-in doctype customizations via Property Setter
+# ---------------------------------------------------------------------------
+
+
+def _set_property(doctype, fieldname, property, value):
+	"""Create a Property Setter if it doesn't already exist."""
+	name = f"{doctype}-{fieldname}-{property}"
+	if not frappe.db.exists("Property Setter", name):
+		frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": doctype,
+				"field_name": fieldname,
+				"property": property,
+				"property_type": "Check" if isinstance(value, int) else "Data",
+				"value": str(value),
+				"module": "Church Operations",
+			}
+		).db_insert(ignore_if_duplicate=True)
+
+
+def _customize_builtin_doctypes():
+	"""Hide irrelevant fields on built-in ERPNext doctypes."""
+	_set_property("Location", "is_container", "hidden", 1)

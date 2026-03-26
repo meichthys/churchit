@@ -19,8 +19,14 @@ import frappe
 def setup_wizard_complete(args):
 	"""Hook called by Frappe's setup wizard on completion.
 
-	Creates sample data when the user opts in during setup.
+	Runs the full after_install setup (church, lookups, website content,
+	etc.) using the church name from the ERPNext organization slide, then
+	optionally creates sample data.
 	"""
+	from church.patches.after_wizard import execute as after_install
+
+	after_install(args)
+
 	if args and args.get("create_sample_data"):
 		create_sample_data()
 
@@ -89,12 +95,16 @@ def create_sample_data():
 
 	_create_songs(church)
 
-	_create_locations()
-	_create_asset_items()
-	_create_assets(church)
+	# Assets, Projects, and Tasks depend on an ERPNext Company existing
+	# (created by the ERPNext setup wizard).  Skip if the wizard hasn't run.
+	company = frappe.db.get_value("Company", {}, "name")
+	if company:
+		_create_locations()
+		_create_asset_items()
+		_create_assets(church, company)
 
-	_create_projects(church)
-	_create_tasks(church, people)
+		_create_projects(church, company)
+		_create_tasks(church, people)
 
 	frappe.db.commit()
 
@@ -179,16 +189,18 @@ def _delete_sample_items_and_locations():
 		if frappe.db.exists("Location", loc):
 			frappe.delete_doc("Location", loc, force=True, ignore_permissions=True)
 
+	if frappe.db.exists("Asset Category", "Church Assets"):
+		frappe.delete_doc("Asset Category", "Church Assets", force=True, ignore_permissions=True)
 
-# ---------------------------------------------------------------------------
-# Church
-# ---------------------------------------------------------------------------
 
 def _get_church():
-	"""Return the default church created by after_install."""
-	from church.patches.after_install import DEFAULT_CHURCH_NAME
-
-	return DEFAULT_CHURCH_NAME
+	"""Return the root church name from the database."""
+	root = frappe.db.get_value(
+		"Church", {"parent_church": ("is", "not set")}, "name"
+	)
+	if not root:
+		frappe.throw("No church found. Please complete the setup wizard first.")
+	return root
 
 
 # ---------------------------------------------------------------------------
@@ -1291,6 +1303,11 @@ def _create_locations():
 
 def _create_asset_items():
 	"""Create sample fixed-asset Items for asset categorization."""
+	if not frappe.db.exists("Asset Category", "Church Assets"):
+		frappe.get_doc({"doctype": "Asset Category", "asset_category_name": "Church Assets"}).insert(
+			ignore_permissions=True, ignore_mandatory=True,
+		)
+
 	items = ["Equipment", "Vehicle", "Furniture", "Musical Instrument", "Electronics"]
 	for item in items:
 		if not frappe.db.exists("Item", item):
@@ -1302,6 +1319,7 @@ def _create_asset_items():
 					"item_group": "All Item Groups",
 					"is_fixed_asset": 1,
 					"is_stock_item": 0,
+					"asset_category": "Church Assets",
 				}
 			).insert(ignore_permissions=True)
 
@@ -1311,7 +1329,7 @@ def _create_asset_items():
 # ---------------------------------------------------------------------------
 
 
-def _create_assets(church):
+def _create_assets(church, company):
 	"""Create sample assets using the ERPNext Asset doctype."""
 	assets = [
 		{
@@ -1350,7 +1368,7 @@ def _create_assets(church):
 			{
 				"doctype": "Asset",
 				"church": church,
-				"company": "Church",
+				"company": company,
 				**asset,
 			}
 		)
@@ -1362,7 +1380,7 @@ def _create_assets(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_projects(church):
+def _create_projects(church, company):
 	"""Create sample projects."""
 	if frappe.db.exists("Project", {"church": church, "project_name": "Christmas Eve Service"}):
 		return
@@ -1370,7 +1388,7 @@ def _create_projects(church):
 		{
 			"doctype": "Project",
 			"church": church,
-			"company": "Church",
+			"company": company,
 			"project_name": "Christmas Eve Service",
 			"status": "Open",
 			"expected_start_date": "2025-12-01",

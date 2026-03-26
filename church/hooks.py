@@ -14,7 +14,7 @@ website_context = {
 
 fixtures = [
 	{"dt": "Custom Field", "filters": [["module", "=", "Church Operations"]]},
-	{"dt": "Property Setter", "filters": [["doc_type", "in", ["About Us Settings", "Task", "Asset", "Project"]]]},
+	{"dt": "Property Setter", "filters": [["doc_type", "in", ["About Us Settings", "Task", "Asset", "Location", "Project"]]]},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
 	# "Self-Reported" attendance type is a fixture since it is used in the Function Sign Up doctype's after_insert method.
@@ -23,7 +23,7 @@ fixtures = [
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["erpnext"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -103,7 +103,9 @@ app_include_icons = ["church/icons/church.svg"]
 # ------------
 
 # before_install = "install.before_install"
-after_install = "church.patches.after_install.execute"
+# after_install — not used. All setup runs from setup_wizard_complete
+# (see church.patches.after_wizard) so the user's chosen church name
+# is available.
 
 setup_wizard_requires = "/assets/church/js/setup_wizard.js"
 
@@ -200,9 +202,6 @@ doc_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "church.event.get_events"
-# }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

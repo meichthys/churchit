@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # frappe is installed and managed by bench.
+    "erpnext",
 ]
 
 [build-system]

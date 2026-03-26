@@ -1,0 +1,133 @@
+{
+	"name": "Church",
+	"country_code": "",
+	"disabled": "No",
+	"tree": {
+		"Assets": {
+			"root_type": "Asset",
+			"Current Assets": {
+				"Cash and Bank": {
+					"Cash on Hand": {"account_type": "Cash"},
+					"Church Checking Account": {"account_type": "Bank"},
+					"Church Savings Account": {"account_type": "Bank"}
+				},
+				"Accounts Receivable": {
+					"Member Receivables": {"account_type": "Receivable"}
+				},
+				"Prepaid Expenses": {"is_group": 1}
+			},
+			"Fixed Assets": {
+				"Land": {"account_type": "Fixed Asset"},
+				"Buildings": {"account_type": "Fixed Asset"},
+				"Furniture and Fixtures": {"account_type": "Fixed Asset"},
+				"Equipment": {"account_type": "Fixed Asset"},
+				"Vehicles": {"account_type": "Fixed Asset"},
+				"Musical Instruments": {"account_type": "Fixed Asset"},
+				"Sound and Media Equipment": {"account_type": "Fixed Asset"},
+				"Accumulated Depreciation": {"account_type": "Accumulated Depreciation"},
+				"Capital Work in Progress": {"account_type": "Capital Work in Progress"}
+			},
+			"Investments": {"is_group": 1},
+			"Temporary Accounts": {
+				"Temporary Opening": {"account_type": "Temporary"}
+			}
+		},
+		"Liabilities": {
+			"root_type": "Liability",
+			"Current Liabilities": {
+				"Accounts Payable": {
+					"Creditors": {"account_type": "Payable"},
+					"Payroll Payable": {}
+				},
+				"Taxes Payable": {"account_type": "Tax", "is_group": 1},
+				"Designated Funds Held": {
+					"Building Fund": {},
+					"Missions Fund": {},
+					"Benevolence Fund": {},
+					"Youth Fund": {}
+				}
+			},
+			"Long-Term Liabilities": {
+				"Mortgage Payable": {},
+				"Loans Payable": {"is_group": 1}
+			}
+		},
+		"Equity": {
+			"root_type": "Equity",
+			"Net Assets - Unrestricted": {"account_type": "Equity"},
+			"Net Assets - Temporarily Restricted": {"account_type": "Equity"},
+			"Net Assets - Permanently Restricted": {"account_type": "Equity"},
+			"Opening Balance Equity": {"account_type": "Equity"},
+			"Retained Earnings": {"account_type": "Equity"}
+		},
+		"Income": {
+			"root_type": "Income",
+			"Tithes and Offerings": {
+				"Tithes": {},
+				"General Offerings": {},
+				"Loose Plate Offerings": {},
+				"Online Giving": {}
+			},
+			"Designated Giving": {
+				"Building Fund Contributions": {},
+				"Missions Fund Contributions": {},
+				"Benevolence Contributions": {},
+				"Youth Fund Contributions": {},
+				"Special Event Offerings": {}
+			},
+			"Other Income": {
+				"Facility Rental Income": {},
+				"Interest Income": {},
+				"Fundraiser Income": {},
+				"Miscellaneous Income": {}
+			}
+		},
+		"Expenses": {
+			"root_type": "Expense",
+			"Personnel": {
+				"Pastoral Salaries": {},
+				"Staff Salaries": {},
+				"Payroll Taxes": {},
+				"Workers Compensation": {},
+				"Health Insurance": {},
+				"Retirement Benefits": {},
+				"Continuing Education": {}
+			},
+			"Facilities": {
+				"Mortgage or Rent": {},
+				"Utilities": {},
+				"Property Insurance": {},
+				"Maintenance and Repairs": {},
+				"Janitorial and Cleaning": {},
+				"Landscaping": {}
+			},
+			"Ministry": {
+				"Worship and Music": {},
+				"Christian Education": {},
+				"Youth Ministry": {},
+				"Children's Ministry": {},
+				"Outreach and Evangelism": {},
+				"Fellowship and Hospitality": {},
+				"Small Groups": {}
+			},
+			"Missions and Benevolence": {
+				"Missionary Support": {},
+				"Mission Trip Expenses": {},
+				"Benevolence Assistance": {},
+				"Community Outreach": {}
+			},
+			"Administration": {
+				"Office Supplies": {},
+				"Postage and Shipping": {},
+				"Telephone and Internet": {},
+				"Software and Subscriptions": {},
+				"Bank Fees": {},
+				"Legal and Professional Fees": {},
+				"Background Checks": {}
+			},
+			"Depreciation": {"account_type": "Depreciation"},
+			"Round Off": {"account_type": "Round Off"},
+			"Cost of Goods Sold": {"account_type": "Cost of Goods Sold"}
+		}
+	}
+}
