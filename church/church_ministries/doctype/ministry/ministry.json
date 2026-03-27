@@ -105,6 +105,7 @@
   },
   {
    "default": "0",
+   "description": "Check this to show this ministry on the public website.",
    "fieldname": "publish",
    "fieldtype": "Check",
    "label": "Publish"

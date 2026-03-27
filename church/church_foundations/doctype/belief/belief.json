@@ -52,7 +52,7 @@
     },
     {
       "default": "0",
-      "description": "Display this belief on the public website.",
+      "description": "Check this to show this belief on the public website.",
       "fieldname": "publish",
       "fieldtype": "Check",
       "label": "Publish"

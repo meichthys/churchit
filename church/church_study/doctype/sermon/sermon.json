@@ -46,7 +46,7 @@
   },
   {
    "default": "0",
-   "description": "Check this to publish the sermon to the public website.",
+   "description": "Check this to show this sermon on the public website.",
    "fieldname": "publish",
    "fieldtype": "Check",
    "label": "Publish"
