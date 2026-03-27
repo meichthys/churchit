@@ -581,7 +581,9 @@ def _setup_website_settings():
 	doc = frappe.get_doc("Website Settings")
 	doc.app_name = "Church"
 	doc.disable_signup = 1
-	doc.hide_login = 1
+	doc.hide_footer_signup = 1
+	doc.hide_login = 0
+	doc.navbar_search = 0
 	doc.home_page = "home"
 	doc.website_theme = "Standard"
 	# Hide breadcrumbs site-wide
@@ -597,7 +599,6 @@ def _setup_website_settings():
 		{"label": "Blog", "url": "/blog", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
-		{"label": "Login", "url": "/login", "right": 1},
 	]:
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
