@@ -20,8 +20,12 @@ frappe.query_reports["Groups"] = {
 	],
 
 	formatter: function (value, row, column, data) {
-		if (column.fieldname === "group_name" && data) {
+		if (!data || !value) return value;
+		if (column.fieldname === "group_name") {
 			return `<a href="/app/group/${encodeURIComponent(data.name)}">${frappe.utils.escape_html(value)}</a>`;
+		}
+		if (column.fieldname === "church") {
+			return `<a href="/app/church/${encodeURIComponent(value)}">${frappe.utils.escape_html(value)}</a>`;
 		}
 		return value;
 	},
