@@ -3,6 +3,7 @@
 {% if root_churches %}
 {% set root_church_name = root_churches[0].name %}
 {% set belief_docs = frappe.get_list("Belief", fields=["name"], filters={"publish": 1, "church": root_church_name}, ignore_permissions=True) %}
+{% if belief_docs %}
 {% for doc in belief_docs %}
     {% set belief = frappe.get_doc("Belief", doc.name) %}
     <div class="col-md-4 mb-4">
@@ -19,5 +20,10 @@
         </div>
     </div>
 {% endfor %}
+{% else %}
+    <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+        <p class="text-muted" style="font-size: 1.1em;">Our statement of beliefs is being prepared. Please check back soon.</p>
+    </div>
+{% endif %}
 {% endif %}
 </div>
