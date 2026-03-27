@@ -18,6 +18,7 @@
   "founding_date",
   "address",
   "default_bible_translation",
+  "publish",
   "mission_statement",
   "section_break_nxne",
   "about",
@@ -77,6 +78,12 @@
    "fieldtype": "Link",
    "label": "Default Bible Translation",
    "options": "Bible Translation"
+  },
+  {
+   "default": "0",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "label": "Publish"
   },
   {
    "fieldname": "mission_statement",
