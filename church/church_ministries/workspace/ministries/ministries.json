@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"e90GZyYsvo\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Functions\",\"col\":4}},{\"id\":\"iYgQntDecm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Songs\",\"col\":4}},{\"id\":\"XfFcgMyu0y\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"mNstr1Card\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Documents\",\"col\":4}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Documents\",\"col\":4}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Reports\",\"col\":4}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"pzAjt6FN7_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":4}},{\"id\":\"e90GZyYsvo\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Functions\",\"col\":4}},{\"id\":\"iYgQntDecm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Songs\",\"col\":4}},{\"id\":\"XfFcgMyu0y\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"E82Mz9TzcZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Documents\",\"col\":4}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Documents\",\"col\":4}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Reports\",\"col\":4}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":4}}]",
  "creation": "2025-09-14 22:36:40.737780",
  "custom_blocks": [],
  "docstatus": 0,
@@ -28,25 +28,6 @@
    "label": "Songs",
    "link_count": 0,
    "link_to": "Song",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Documents",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministries",
-   "link_count": 0,
-   "link_to": "Ministry",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -139,9 +120,28 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Ministry Documents",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Ministries",
+   "link_count": 0,
+   "link_to": "Ministry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-24 00:00:01.000000",
+ "modified": "2026-03-26 20:31:08.439311",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
@@ -149,6 +149,10 @@
   {
    "label": "Functions",
    "number_card_name": "Functions"
+  },
+  {
+   "label": "Ministries",
+   "number_card_name": "Ministries"
   },
   {
    "label": "Songs",
