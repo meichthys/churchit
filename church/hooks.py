@@ -78,6 +78,10 @@ app_include_icons = ["church/icons/church.svg"]
 # application home page (will override Website Settings)
 # home_page = "login"
 
+website_redirects = [
+	{"source": "/index", "target": "/home"},
+]
+
 # website user home page (by Role)
 # role_home_page = {
 # 	"Role": "home_page"
