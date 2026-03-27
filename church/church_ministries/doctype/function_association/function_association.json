@@ -1,0 +1,45 @@
+{
+ "actions": [],
+ "creation": "2026-03-27 00:00:00.000000",
+ "description": "A dynamic link associating a Function with any church document (e.g. Ministry, Group, Fund).",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "association_type",
+  "association"
+ ],
+ "fields": [
+  {
+   "fieldname": "association_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Association Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "association",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Association",
+   "options": "association_type",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Function Association",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

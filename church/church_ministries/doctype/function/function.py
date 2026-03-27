@@ -44,7 +44,7 @@ def apply_template(source_name):
 			copied_doc[field] = template_dict[field]
 
 	# Copy child tables
-	include_child_tables = ["attendance", "schedule"]
+	include_child_tables = ["associations", "attendance", "schedule"]
 	for child_table in include_child_tables:
 		if template_dict.get(child_table):
 			copied_doc[child_table] = []

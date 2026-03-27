@@ -79,9 +79,10 @@ def create_sample_data():
 
 	_create_beliefs(church)
 
-	group_types = _create_group_types(church)
 	group_roles = _create_group_roles(church)
-	_create_groups(church, people, group_types, group_roles)
+	groups = _create_groups(church, people, group_roles)
+
+	_create_ministries(church, groups)
 
 	_create_fund_transfers(church, funds)
 
@@ -105,9 +106,9 @@ def delete_sample_data():
 	_delete_docs("Song", {"church": church})
 	_delete_docs("Prayer", {"church": church})
 	_delete_submittable_docs("Fund Transfer", {"church": church})
+	_delete_docs("Ministry", {"church": church, "ministry_name": ["!=", "General"]})
 	_delete_docs("Group", {"church": church})
 	_delete_docs("Group Role", {"church": church})
-	_delete_docs("Group Type", {"church": church})
 	_delete_docs("Belief", {"church": church})
 	_delete_docs("Sermon", {"church": church})
 	_delete_docs("Bible Reference", {"church": church})
@@ -1035,17 +1036,8 @@ def _create_beliefs(church):
 
 
 # ---------------------------------------------------------------------------
-# Group Types & Group Roles (supporting data for Groups)
+# Group Roles (supporting data for Groups)
 # ---------------------------------------------------------------------------
-
-
-def _create_group_types(church):
-	"""Create sample group types and return dict mapping type → name."""
-	refs = {}
-	for type_name in ("Ministry", "Small Group", "Committee"):
-		name = _insert_if_missing("Group Type", type_name, church=church, type=type_name)
-		refs[type_name] = name
-	return refs
 
 
 def _create_group_roles(church):
@@ -1062,12 +1054,11 @@ def _create_group_roles(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_groups(church, people, group_types, group_roles):
-	"""Create sample groups with members."""
+def _create_groups(church, people, group_roles):
+	"""Create sample groups with members. Returns dict mapping group_name → name."""
 	groups = [
 		{
 			"group_name": "Worship Team",
-			"group_type": group_types["Ministry"],
 			"description": "Musicians and singers who lead the congregation in worship each Sunday.",
 			"members": [
 				{"person": people["James Wilson"], "group_role": group_roles["Leader"]},
@@ -1077,7 +1068,6 @@ def _create_groups(church, people, group_types, group_roles):
 		},
 		{
 			"group_name": "Men's Bible Study",
-			"group_type": group_types["Small Group"],
 			"description": "A weekly men's group studying through the book of Romans.",
 			"members": [
 				{"person": people["Robert Johnson"], "group_role": group_roles["Leader"]},
@@ -1087,7 +1077,6 @@ def _create_groups(church, people, group_types, group_roles):
 		},
 		{
 			"group_name": "Building Committee",
-			"group_type": group_types["Committee"],
 			"description": "Oversees building maintenance, repairs, and future expansion projects.",
 			"members": [
 				{"person": people["David Thompson"], "group_role": group_roles["Leader"]},
@@ -1095,14 +1084,54 @@ def _create_groups(church, people, group_types, group_roles):
 			],
 		},
 	]
+	refs = {}
 	for grp in groups:
 		existing = frappe.db.get_value(
 			"Group", {"church": church, "group_name": grp["group_name"]}, "name",
 		)
 		if existing:
+			refs[grp["group_name"]] = existing
 			continue
 		doc = frappe.get_doc({"doctype": "Group", "church": church, **grp})
 		doc.insert(ignore_permissions=True)
+		refs[grp["group_name"]] = doc.name
+	return refs
+
+
+# ---------------------------------------------------------------------------
+# Ministries
+# ---------------------------------------------------------------------------
+
+
+def _create_ministries(church, groups):
+	"""Create sample ministries, optionally linked to groups."""
+	ministries = [
+		{
+			"ministry_name": "Worship Ministry",
+			"description": "Leading the congregation in musical worship.",
+			"group": groups.get("Worship Team"),
+			"start_date": "2020-01-05",
+		},
+		{
+			"ministry_name": "Men's Ministry",
+			"description": "Equipping men to grow in faith through Bible study and fellowship.",
+			"group": groups.get("Men's Bible Study"),
+			"start_date": "2021-09-12",
+		},
+		{
+			"ministry_name": "Facilities Ministry",
+			"description": "Maintaining and improving the church building and grounds.",
+			"group": groups.get("Building Committee"),
+			"start_date": "2018-06-01",
+		},
+	]
+	for ministry in ministries:
+		_insert_if_missing(
+			"Ministry",
+			ministry["ministry_name"],
+			church=church,
+			**ministry,
+		)
 
 
 # ---------------------------------------------------------------------------

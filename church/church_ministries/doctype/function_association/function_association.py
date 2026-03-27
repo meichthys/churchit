@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class GroupType(Document):
+class FunctionAssociation(Document):
 	pass

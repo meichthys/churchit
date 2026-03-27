@@ -15,6 +15,10 @@ frappe.ui.form.on('Function', {
 		frm.set_value('attendance_total', total_attendance);
 	},
 
+	onload(frm) {
+		church.set_church_doctype_query(frm, 'association_type', 'associations');
+	},
+
 	refresh: function(frm) {
 		// Add template-fill functionality if we have a template specified and this is a new form
 		if (!frm.is_new() || !frm.doc.type) return;

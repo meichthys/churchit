@@ -30,6 +30,7 @@ def execute():
 	_create_prayer_request_statuses(church)
 	_create_prayer_request_types(church)
 	_create_missionary_support_frequencies(church)
+	_create_default_ministry(church)
 
 	# Bible reference data
 	_create_bible_books(church)
@@ -206,6 +207,17 @@ def _create_missionary_support_frequencies(church):
 	}
 	for name, description in frequencies.items():
 		_insert_if_missing("Missionary Support Frequency", name, church=church, frequency=name, description=description)
+
+
+def _create_default_ministry(church):
+	_insert_if_missing(
+		"Ministry",
+		"General",
+		church=church,
+		ministry_name="General",
+		status="Active",
+		mission_statement="The default ministry for general church functions.",
+	)
 
 
 # ---------------------------------------------------------------------------
@@ -502,6 +514,12 @@ def _create_web_pages():
 			"template_file": "sermons.html",
 		},
 		{
+			"name": "ministries",
+			"title": "Ministries",
+			"route": "ministries",
+			"template_file": "ministries.html",
+		},
+		{
 			"name": "locations",
 			"title": "Locations",
 			"route": "locations",
@@ -574,6 +592,7 @@ def _setup_website_settings():
 		{"label": "Beliefs", "url": "/beliefs", "right": 1},
 		{"label": "Sermons", "url": "/sermons", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
+		{"label": "Ministries", "url": "/ministries", "right": 1},
 		{"label": "Locations", "url": "/locations", "right": 1},
 		{"label": "Blog", "url": "/blog", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},

@@ -10,7 +10,6 @@
   "church",
   "type",
   "function_name",
-  "group",
   "all_day",
   "start_date",
   "start_time",
@@ -21,6 +20,8 @@
   "allow_sign_ups",
   "address",
   "description",
+  "section_break_assoc",
+  "associations",
   "section_break_bkwy",
   "schedule",
   "section_break_dlpa",
@@ -36,14 +37,6 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "description": "Optionally associate this function with a Group.",
-   "fieldname": "group",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Group",
-   "options": "Group"
   },
   {
    "default": "0",
@@ -136,7 +129,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "'Person's who attended this function.",
+   "description": "People who attended this function.",
    "fieldname": "attendance",
    "fieldtype": "Table",
    "label": "Attendance",
@@ -150,10 +143,22 @@
    "read_only": 1
   },
   {
+   "fieldname": "section_break_assoc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Associate this function with other church documents (e.g. Ministry, Group, Sermon, etc).",
+   "fieldname": "associations",
+   "fieldtype": "Table",
+   "label": "Associations",
+   "options": "Function Association"
+  },
+  {
    "fieldname": "section_break_bkwy",
    "fieldtype": "Section Break"
   },
   {
+   "description": "The order of events for the church function.",
    "fieldname": "schedule",
    "fieldtype": "Table",
    "label": "Schedule",
@@ -163,7 +168,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-22 19:15:56.997958",
+ "modified": "2026-03-26 18:49:38.725873",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

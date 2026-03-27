@@ -76,16 +76,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Group Types",
-   "link_count": 0,
-   "link_to": "Group Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Group Roles",
    "link_count": 0,
    "link_to": "Group Role",

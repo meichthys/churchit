@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:ministry_name",
+ "creation": "2026-03-27 00:00:00",
+ "description": "A ministry of the church (e.g. Nursing Home Outreach, Youth Group, Nursery, Choir, Bible Study).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "ministry_name",
+  "group",
+  "fund",
+  "publish",
+  "column_break_details",
+  "status",
+  "start_date",
+  "end_date",
+  "section_break_mission",
+  "mission_statement",
+  "section_break_notes",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "ministry_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nInactive"
+  },
+  {
+   "fieldname": "column_break_details",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Optionally associate this ministry with a Group of People.",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Group",
+   "options": "Group"
+  },
+  {
+   "description": "Optionally associate this ministry with a Fund for financial tracking.",
+   "fieldname": "fund",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Fund",
+   "options": "Fund"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_preview": 1,
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_preview": 1,
+   "label": "End Date"
+  },
+  {
+   "fieldname": "section_break_mission",
+   "fieldtype": "Section Break",
+   "label": "Mission Statement"
+  },
+  {
+   "fieldname": "mission_statement",
+   "fieldtype": "Text Editor",
+   "label": "Mission Statement"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_preview": 1,
+   "label": "Description"
+  },
+  {
+   "default": "0",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "label": "Publish"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-26 19:23:59.025348",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Ministry",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "ministry_name",
+ "track_changes": 1,
+ "track_views": 1
+}
