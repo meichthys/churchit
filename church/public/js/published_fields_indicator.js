@@ -36,7 +36,7 @@
 
 			const sources = published[fieldname];
 			const titles = sources.map(function (s) { return s.title; });
-			const tooltip = __("Shown on web page: {0}", [titles.join(", ")]);
+			const tooltip = __("When published, this field is shown on public website: {0}", [titles.join(", ")]);
 			// Link to the first source's route
 			const route = "/" + sources[0].route;
 
