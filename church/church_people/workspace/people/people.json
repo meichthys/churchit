@@ -118,7 +118,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Reports",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -141,7 +141,6 @@
    "link_to": "Current Person Positions",
    "link_type": "Report",
    "onboard": 0,
-   "report_ref_doctype": "Person",
    "type": "Link"
   },
   {
@@ -152,7 +151,6 @@
    "link_to": "Person Birthdays (This Week)",
    "link_type": "Report",
    "onboard": 0,
-   "report_ref_doctype": "Person",
    "type": "Link"
   },
   {
@@ -163,7 +161,6 @@
    "link_to": "Person Positions Ending This Month",
    "link_type": "Report",
    "onboard": 0,
-   "report_ref_doctype": "Person",
    "type": "Link"
   },
   {
@@ -195,9 +192,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Groups",
+   "link_count": 0,
+   "link_to": "Groups",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-26 20:32:45.064186",
+ "modified": "2026-03-26 20:42:38.205670",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
