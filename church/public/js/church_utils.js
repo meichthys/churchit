@@ -1,23 +1,26 @@
 window.church = window.church || {};
 
-// Cache the church count so we only fetch it once per page load.
-church._church_count = null;
-church._get_church_count = function() {
-	if (church._church_count !== null) {
-		return Promise.resolve(church._church_count);
+// Fetch and cache the list of churches once per page load.
+church._churches = null;
+church._get_churches = function() {
+	if (church._churches !== null) {
+		return Promise.resolve(church._churches);
 	}
-	return frappe.db.count("Church").then(count => {
-		church._church_count = count;
-		return count;
+	return frappe.db.get_list("Church", { limit: 0 }).then(list => {
+		church._churches = list;
+		return list;
 	});
 };
 
 // Hide the `church` field on all forms when there is only one church in the system.
-// use the document-level "form-refresh" event that Frappe fires after every form render instead.
+// When there is exactly one church and the field is empty, auto-set it.
 $(document).on("form-refresh", function(_e, frm) {
 	if (!frm.fields_dict.church) return;
-	church._get_church_count().then(count => {
-		frm.toggle_display("church", count > 1);
+	church._get_churches().then(churches => {
+		if (churches.length === 1 && !frm.doc.church) {
+			frm.set_value("church", churches[0].name);
+		}
+		frm.toggle_display("church", churches.length > 1);
 	});
 });
 
@@ -46,8 +49,8 @@ church.setup_church_report = function(report) {
 	if (default_church) {
 		report.set_filter_value("church", default_church);
 	}
-	church._get_church_count().then(count => {
-		if (count <= 1) {
+	church._get_churches().then(churches => {
+		if (churches.length <= 1) {
 			if (report.page.fields_dict.church) {
 				report.page.fields_dict.church.toggle(false);
 			}
