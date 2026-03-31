@@ -1,7 +1,7 @@
 {
   "actions": [],
   "allow_import": 1,
-  "autoname": "format:Task {#}",
+  "autoname": "hash",
   "creation": "2025-12-15 00:41:21.858015",
   "description": "Things that need to get done (Like a checklist or ToDo list)",
   "doctype": "DocType",
@@ -171,7 +171,7 @@
   "modified_by": "Administrator",
   "module": "Church Operations",
   "name": "Church Task",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "nsm_parent_field": "parent_task",
   "owner": "Administrator",
   "permissions": [

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FSU-{####}",
+ "autoname": "hash",
  "creation": "2026-03-23 00:00:00.000000",
  "description": "A sign-up record indicating a person's intent to attend a church function.",
  "doctype": "DocType",
@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "church",
+  "title",
   "function",
   "column_break_abcd",
   "person",
@@ -24,6 +25,13 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
   },
   {
    "fieldname": "function",
@@ -64,7 +72,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign Up",
- "naming_rule": "By \"Autoname\" field",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -105,6 +113,8 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "show_title_field_in_link": 1,
  "states": [],
+ "title_field": "title",
  "track_changes": 1
 }

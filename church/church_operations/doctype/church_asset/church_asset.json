@@ -2,7 +2,7 @@
   "actions": [],
   "allow_import": 1,
   "allow_rename": 1,
-  "autoname": "format: {title} {#}",
+  "autoname": "hash",
   "creation": "2025-12-15 00:18:29.399376",
   "description": "Items that the Church owns (i.e. appliances, equipment, etc)",
   "doctype": "DocType",
@@ -77,7 +77,7 @@
   "modified_by": "Administrator",
   "module": "Church Operations",
   "name": "Church Asset",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {

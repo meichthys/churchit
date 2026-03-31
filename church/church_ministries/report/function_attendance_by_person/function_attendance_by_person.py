@@ -56,7 +56,9 @@ def get_data(filters=None):
 			`tabFunction Attendance`.attendance_type
 		FROM `tabFunction Attendance`
 		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
-		WHERE `tabFunction Attendance`.attendance_type IN ('Assumed', 'Confirmed')
+		WHERE `tabFunction Attendance`.attendance_type IN (
+				SELECT name FROM `tabFunction Attendance Type` WHERE type IN ('Assumed', 'Confirmed')
+			)
 			{conditions}
 		ORDER BY `tabFunction`.start_date DESC, `tabFunction Attendance`.person
 		""",

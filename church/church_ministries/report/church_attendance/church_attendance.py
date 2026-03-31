@@ -38,7 +38,9 @@ def get_data(filters=None):
 		FROM `tabFunction Attendance`
 		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
 		WHERE `tabFunction Attendance`.person IS NOT NULL
-			AND `tabFunction Attendance`.attendance_type IN ('Confirmed', 'Assumed')
+			AND `tabFunction Attendance`.attendance_type IN (
+				SELECT name FROM `tabFunction Attendance Type` WHERE type IN ('Confirmed', 'Assumed')
+			)
 			{church_condition}
 		ORDER BY `tabFunction`.modified DESC
 		""",

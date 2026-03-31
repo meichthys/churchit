@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:type",
+ "autoname": "hash",
  "creation": "2025-09-01 00:33:34.102307",
  "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent, etc.)",
  "doctype": "DocType",
@@ -26,8 +26,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Type of Attendance",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -50,7 +49,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Attendance Type",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -86,7 +85,9 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "type"
 }

@@ -7,6 +7,9 @@ from frappe.utils import get_link_to_form
 
 
 class Expense(Document):
+	def before_save(self):
+		self.title = f"{self.type} - {self.date}" if self.type else ""
+
 	def before_delete(self):
 		# This probably should never get called since frappe prevents the deletion
 		# of submitted documents by default, but just to be sure we'll provide our own warning.

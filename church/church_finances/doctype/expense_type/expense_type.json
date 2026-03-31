@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:type",
+ "autoname": "hash",
  "creation": "2025-10-09 02:26:38.910872",
  "description": "A type of `Expense` (a.k.a. Categories)",
  "doctype": "DocType",
@@ -82,8 +82,7 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "description": "The fund which this type of expense will reduce",
@@ -120,7 +119,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense Type",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "nsm_parent_field": "parent_expense_type",
  "owner": "Administrator",
  "permissions": [
@@ -151,7 +150,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "type"
 }

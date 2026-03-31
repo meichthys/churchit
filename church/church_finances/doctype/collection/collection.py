@@ -6,6 +6,9 @@ from frappe.model.document import Document
 
 
 class Collection(Document):
+	def before_save(self):
+		self.title = str(self.date) if self.date else ""
+
 	def on_submit(self):
 		self.update_funds(reverse=False)
 

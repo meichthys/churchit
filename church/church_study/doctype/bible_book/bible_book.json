@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:book",
+ "autoname": "hash",
  "creation": "2025-09-17 21:56:11.028021",
  "description": "Books of the Bible",
  "doctype": "DocType",
@@ -30,8 +30,7 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Book",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "abbreviation",
@@ -55,7 +54,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Book",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -86,8 +85,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
+ "title_field": "book",
  "track_changes": 1
 }

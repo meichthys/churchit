@@ -7,6 +7,10 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class PrayerRequest(Document):
+	def before_insert(self):
+		if not self.status:
+			self.status = frappe.db.get_value("Prayer Request Status", {"status": "Requested"}, "name")
+
 	def validate(self):
 		# Resolve the display name for the dynamic recipient link using the linked
 		# doctype's title_field (e.g. full_name for Person). Stored so it can be

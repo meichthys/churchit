@@ -1,7 +1,7 @@
 {
   "actions": [],
   "allow_import": 1,
-  "autoname": "format:Family {#}",
+  "autoname": "hash",
   "creation": "2025-08-22 00:15:20.425153",
   "description": "A family of people ('Person's) that are considered to be part of the same household. One 'Person' can be set to be the Head of Household for a family. ",
   "doctype": "DocType",
@@ -92,7 +92,7 @@
   "modified_by": "Administrator",
   "module": "Church People",
   "name": "Family",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {

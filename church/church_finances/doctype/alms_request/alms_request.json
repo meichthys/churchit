@@ -1,7 +1,7 @@
 {
   "actions": [],
   "allow_rename": 1,
-  "autoname": "format: {recipient} Alms {#}",
+  "autoname": "hash",
   "creation": "2025-11-10 22:56:15.677299",
   "description": "A request for financial support for a person or family",
   "doctype": "DocType",
@@ -9,6 +9,7 @@
   "engine": "InnoDB",
   "field_order": [
     "church",
+    "title",
     "status",
     "recipient_type",
     "recipient",
@@ -29,6 +30,13 @@
       "options": "Church",
       "reqd": 1,
       "search_index": 1
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Title",
+      "read_only": 1
     },
     {
       "description": "The entity that would be receiving the alms.",
@@ -116,7 +124,7 @@
   "modified_by": "Administrator",
   "module": "Church Finances",
   "name": "Alms Request",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {
@@ -161,6 +169,7 @@
   ],
   "row_format": "Dynamic",
   "show_preview_popup": 1,
+  "show_title_field_in_link": 1,
   "sort_field": "modified",
   "sort_order": "DESC",
   "states": [
@@ -180,5 +189,6 @@
       "color": "Blue",
       "title": "Distributed"
     }
-  ]
+  ],
+  "title_field": "title"
 }

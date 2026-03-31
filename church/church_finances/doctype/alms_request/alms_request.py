@@ -6,7 +6,8 @@ from frappe.model.document import Document
 
 
 class AlmsRequest(Document):
-	pass
+	def before_save(self):
+		self.title = self.description
 
 
 @frappe.whitelist()

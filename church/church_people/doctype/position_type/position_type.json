@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:position",
+ "autoname": "hash",
  "creation": "2025-08-26 22:57:29.102805",
  "description": "Types of positions that `Person`s can fill in the church.",
  "doctype": "DocType",
@@ -34,8 +34,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Position",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -51,7 +50,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position Type",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

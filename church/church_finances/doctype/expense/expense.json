@@ -1,13 +1,13 @@
 {
   "actions": [],
   "allow_rename": 1,
-  "autoname": "format:{type} - {date}",
+  "autoname": "hash",
   "creation": "2025-10-09 02:25:29.401455",
   "description": "A financial transaction that reduces the balance of a `Fund`",
   "doctype": "DocType",
   "documentation": "/app/manual%3A-finances",
   "engine": "InnoDB",
-  "field_order": ["church", "type", "amount", "date", "notes", "amended_from"],
+  "field_order": ["church", "title", "type", "amount", "date", "notes", "amended_from"],
   "fields": [
     {
       "fieldname": "church",
@@ -18,6 +18,13 @@
       "options": "Church",
       "reqd": 1,
       "search_index": 1
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Title",
+      "read_only": 1
     },
     {
       "fieldname": "amount",
@@ -77,7 +84,7 @@
   "modified_by": "Administrator",
   "module": "Church Finances",
   "name": "Expense",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {
@@ -110,7 +117,9 @@
     }
   ],
   "row_format": "Dynamic",
+  "show_title_field_in_link": 1,
   "sort_field": "modified",
   "sort_order": "DESC",
-  "states": []
+  "states": [],
+  "title_field": "title"
 }

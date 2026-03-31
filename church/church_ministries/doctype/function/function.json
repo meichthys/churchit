@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "church",
+  "title",
   "type",
   "function_name",
   "all_day",
@@ -37,6 +38,13 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -172,7 +180,8 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
- "naming_rule": "By script",
+ "autoname": "hash",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -205,7 +214,9 @@
  "show_preview_popup": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "show_title_field_in_link": 1,
  "states": [],
+ "title_field": "title",
  "track_changes": 1,
  "track_views": 1
 }

@@ -1,7 +1,7 @@
 {
   "actions": [],
   "allow_rename": 1,
-  "autoname": "field:title",
+  "autoname": "hash",
   "creation": "2025-09-17 21:36:27.516552",
   "description": "Specific beliefs of the church",
   "doctype": "DocType",
@@ -34,8 +34,7 @@
       "in_preview": 1,
       "in_standard_filter": 1,
       "label": "Title",
-      "reqd": 1,
-      "unique": 1
+      "reqd": 1
     },
     {
       "fieldname": "belief_statement",
@@ -65,7 +64,7 @@
   "modified_by": "Administrator",
   "module": "Church Foundations",
   "name": "Belief",
-  "naming_rule": "By fieldname",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {

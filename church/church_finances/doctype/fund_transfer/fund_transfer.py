@@ -4,6 +4,9 @@ from frappe.utils import get_link_to_form, nowdate
 
 
 class FundTransfer(Document):
+	def before_save(self):
+		self.title = f"{self.from_fund} to {self.to_fund}"
+
 	def validate(self):
 		if self.from_fund == self.to_fund:
 			frappe.throw("Source and destination funds must be different.")

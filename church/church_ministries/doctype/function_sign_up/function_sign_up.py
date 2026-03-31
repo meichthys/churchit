@@ -3,6 +3,9 @@ from frappe.model.document import Document
 
 
 class FunctionSignUp(Document):
+	def before_save(self):
+		self.title = f"{self.person} - {self.function}"
+
 	def validate(self):
 		if not frappe.db.get_value("Function", self.function, "allow_sign_ups"):
 			frappe.throw("Sign ups are not enabled for this function.")
@@ -22,15 +25,18 @@ class FunctionSignUp(Document):
 			self._add_attendance_record()
 
 	def _add_attendance_record(self):
+		self_reported = frappe.db.get_value("Function Attendance Type", {"type": "Self-Reported"}, "name")
+		if not self_reported:
+			return
 		function_doc = frappe.get_doc("Function", self.function)
 		for row in function_doc.attendance:
 			if row.person == self.person:
-				if row.attendance_type != "Self-Reported":
-					row.attendance_type = "Self-Reported"
+				if row.attendance_type != self_reported:
+					row.attendance_type = self_reported
 					function_doc.save(ignore_permissions=True)
 				return
 		function_doc.append("attendance", {
 			"person": self.person,
-			"attendance_type": "Self-Reported",
+			"attendance_type": self_reported,
 		})
 		function_doc.save(ignore_permissions=True)

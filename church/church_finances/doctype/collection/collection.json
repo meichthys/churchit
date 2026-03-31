@@ -1,7 +1,7 @@
 {
   "actions": [],
   "allow_rename": 1,
-  "autoname": "format:{date}",
+  "autoname": "hash",
   "creation": "2025-09-02 00:47:02.825073",
   "description": "A specific collection of `Donation`s that are generally from `Person`s and associated with a specific `Function`s.",
   "doctype": "DocType",
@@ -9,6 +9,7 @@
   "engine": "InnoDB",
   "field_order": [
     "church",
+    "title",
     "date",
     "function",
     "notes",
@@ -29,6 +30,13 @@
       "options": "Church",
       "reqd": 1,
       "search_index": 1
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Title",
+      "read_only": 1
     },
     {
       "description": "The `Function` associated with this collection.",
@@ -106,7 +114,7 @@
   "modified_by": "Administrator",
   "module": "Church Finances",
   "name": "Collection",
-  "naming_rule": "Expression",
+  "naming_rule": "Random",
   "owner": "Administrator",
   "permissions": [
     {
@@ -143,5 +151,6 @@
   "sort_field": "modified",
   "sort_order": "DESC",
   "states": [],
+  "title_field": "title",
   "track_changes": 1
 }

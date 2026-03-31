@@ -63,7 +63,6 @@
   },
   {
    "allow_read_on_all_link_options": 0,
-   "default": "Requested",
    "fieldname": "status",
    "fieldtype": "Link",
    "hidden": 0,
