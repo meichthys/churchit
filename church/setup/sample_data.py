@@ -137,6 +137,7 @@ def delete_sample_data():
 def _insert_if_missing(doctype, filters, **fields):
 	"""Insert a record only if it does not already exist.
 
+	*filters* can be a string (document name) or a dict of field filters.
 	Returns the name of the existing or newly created record.
 	"""
 	existing = frappe.db.exists(doctype, filters)
@@ -168,10 +169,10 @@ def _delete_submittable_docs(doctype, filters):
 # ---------------------------------------------------------------------------
 
 def _get_church():
-	"""Return the default church created by after_install."""
-	from church.patches.after_install import DEFAULT_CHURCH_NAME
+	"""Return the name of the default church created by after_install."""
+	from church.patches.after_install import DEFAULT_CHURCH_ABBREVIATION
 
-	return DEFAULT_CHURCH_NAME
+	return DEFAULT_CHURCH_ABBREVIATION
 
 
 # ---------------------------------------------------------------------------
@@ -240,14 +241,16 @@ def _create_people(church):
 			"gender": gender,
 			"is_member": is_member,
 			"membership_date": mem_date,
-			"membership_status": "Active" if is_member else None,
+			"membership_status": f"{church} - Active" if is_member else None,
 			"is_baptized": is_baptized,
 			"baptism_date": bap_date,
 			"birthday": birthday,
 			"primary_phone": phone,
 			"email": email,
 			"alergies": allergies,
-			"positions": positions,
+			"positions": [
+				{**p, "position": f"{church} - {p['position']}"} for p in positions
+			],
 		})
 		doc.insert(ignore_permissions=True)
 		refs[key] = doc.name
@@ -392,7 +395,7 @@ def _create_missionary_agencies(church):
 	"""Create sample missionary agencies and return dict mapping name → name."""
 	refs = {}
 	for agency in _AGENCIES:
-		name = _insert_if_missing("Missionary Agency", agency["agency_name"], church=church, **agency)
+		name = _insert_if_missing("Missionary Agency", {"church": church, "agency_name": agency["agency_name"]}, church=church, **agency)
 		refs[agency["agency_name"]] = name
 	return refs
 
@@ -414,7 +417,7 @@ def _create_missionaries(church, people, agencies):
 			"publish": 1,
 			"sensitive": 0,
 			"support_amount": 200,
-			"support_frequency": "Monthly",
+			"support_frequency": f"{church} - Monthly",
 			"support_start_date": "2010-01-01",
 			"email": "michael.grant@example.com",
 		},
@@ -427,7 +430,7 @@ def _create_missionaries(church, people, agencies):
 			"publish": 1,
 			"sensitive": 0,
 			"support_amount": 150,
-			"support_frequency": "Monthly",
+			"support_frequency": f"{church} - Monthly",
 			"support_start_date": "2012-06-01",
 			"email": "elizabeth.harper@example.com",
 		},
@@ -440,13 +443,13 @@ def _create_missionaries(church, people, agencies):
 			"publish": 0,
 			"sensitive": 1,
 			"support_amount": 100,
-			"support_frequency": "Monthly",
+			"support_frequency": f"{church} - Monthly",
 			"support_start_date": "2018-09-01",
 			"email": "thomas.reed@example.com",
 		},
 	]
 	for m in missionaries:
-		existing = frappe.db.exists("Missionary", {"title": m["title"]})
+		existing = frappe.db.exists("Missionary", {"church": church, "title": m["title"]})
 		if existing:
 			continue
 		doc = frappe.get_doc({"doctype": "Missionary", "church": church, **m})
@@ -503,19 +506,19 @@ def _create_expense_types(church, funds):
 	]
 	for type_name, fund in roots:
 		name = _insert_if_missing(
-			"Expense Type", type_name,
+			"Expense Type", {"church": church, "type": type_name},
 			church=church, type=type_name, fund=fund, is_group=1 if type_name == "Utilities" else 0,
 		)
 		refs[type_name] = name
 
 	# Children of Utilities
 	children = [
-		("Electric", funds["General"], "Utilities"),
-		("Water", funds["General"], "Utilities"),
+		("Electric", funds["General"], refs["Utilities"]),
+		("Water", funds["General"], refs["Utilities"]),
 	]
 	for type_name, fund, parent in children:
 		name = _insert_if_missing(
-			"Expense Type", type_name,
+			"Expense Type", {"church": church, "type": type_name},
 			church=church, type=type_name, fund=fund, parent_expense_type=parent,
 		)
 		refs[type_name] = name
@@ -535,17 +538,17 @@ def _create_collections(church, people, funds):
 			"date": "2025-12-01 10:30:00",
 			"notes": "Regular Sunday morning offering.",
 			"donations": [
-				{"amount": 100, "payment_type": "Check", "fund": funds["General"],
+				{"amount": 100, "payment_type": f"{church} - Check", "fund": funds["General"],
 				 "person": people["James Wilson"], "check_number": "1001"},
-				{"amount": 50, "payment_type": "Check", "fund": funds["Missions"],
+				{"amount": 50, "payment_type": f"{church} - Check", "fund": funds["Missions"],
 				 "person": people["James Wilson"], "check_number": "1001"},
-				{"amount": 75, "payment_type": "Check", "fund": funds["General"],
+				{"amount": 75, "payment_type": f"{church} - Check", "fund": funds["General"],
 				 "person": people["Robert Johnson"], "check_number": "2001"},
-				{"amount": 25, "payment_type": "Check", "fund": funds["Building"],
+				{"amount": 25, "payment_type": f"{church} - Check", "fund": funds["Building"],
 				 "person": people["Robert Johnson"], "check_number": "2001"},
-				{"amount": 50, "payment_type": "Cash", "fund": funds["General"],
+				{"amount": 50, "payment_type": f"{church} - Cash", "fund": funds["General"],
 				 "person": None, "check_number": None},
-				{"amount": 30, "payment_type": "Check", "fund": funds["General"],
+				{"amount": 30, "payment_type": f"{church} - Check", "fund": funds["General"],
 				 "person": people["Martha Evans"], "check_number": "3001"},
 			],
 		},
@@ -553,15 +556,15 @@ def _create_collections(church, people, funds):
 			"date": "2025-12-08 10:30:00",
 			"notes": "Sunday offering — missions emphasis week.",
 			"donations": [
-				{"amount": 150, "payment_type": "Check", "fund": funds["General"],
+				{"amount": 150, "payment_type": f"{church} - Check", "fund": funds["General"],
 				 "person": people["James Wilson"], "check_number": "1002"},
-				{"amount": 100, "payment_type": "Check", "fund": funds["Missions"],
+				{"amount": 100, "payment_type": f"{church} - Check", "fund": funds["Missions"],
 				 "person": people["David Thompson"], "check_number": "4001"},
-				{"amount": 40, "payment_type": "Cash", "fund": funds["General"],
+				{"amount": 40, "payment_type": f"{church} - Cash", "fund": funds["General"],
 				 "person": None, "check_number": None},
-				{"amount": 50, "payment_type": "Check", "fund": funds["Benevolence"],
+				{"amount": 50, "payment_type": f"{church} - Check", "fund": funds["Benevolence"],
 				 "person": people["Rachel Cooper"], "check_number": "5001"},
-				{"amount": 25, "payment_type": "Cash", "fund": funds["Missions"],
+				{"amount": 25, "payment_type": f"{church} - Cash", "fund": funds["Missions"],
 				 "person": people["Thomas Reed"], "check_number": None},
 			],
 		},
@@ -615,36 +618,36 @@ def _create_prayer_requests(church, people):
 	"""Create sample prayer requests."""
 	requests = [
 		{
-			"status": "Being Prayed For",
-			"type": "Health",
+			"status": f"{church} - Being Prayed For",
+			"type": f"{church} - Health",
 			"requestor": people["Sarah Wilson"],
 			"recipient_type": "Person",
 			"recipient": people["James Wilson"],
 			"request": "Please pray for Pastor Wilson as he recovers from knee surgery. He is doing well but needs continued healing.",
 		},
 		{
-			"status": "Requested",
-			"type": "Salvation",
+			"status": f"{church} - Requested",
+			"type": f"{church} - Salvation",
 			"requestor": people["Rachel Cooper"],
 			"recipient_type": "Person",
 			"recipient": people["Samuel Brooks"],
 			"request": "Please pray for Samuel, a visitor who has been attending our services. Pray that he would come to know Christ.",
 		},
 		{
-			"status": "Answered",
-			"type": "Praise",
+			"status": f"{church} - Answered",
+			"type": f"{church} - Praise",
 			"requestor": people["Mary Johnson"],
 			"request": "Praise the Lord! Our grandson was born healthy — 7 lbs 8 oz. Mom and baby are doing great.",
 		},
 		{
-			"status": "Being Prayed For",
-			"type": "Unspoken",
+			"status": f"{church} - Being Prayed For",
+			"type": f"{church} - Unspoken",
 			"requestor": people["Martha Evans"],
 			"is_private": 1,
 		},
 		{
-			"status": "Requested",
-			"type": "Health",
+			"status": f"{church} - Requested",
+			"type": f"{church} - Health",
 			"requestor": people["Lisa Thompson"],
 			"recipient_type": "Person",
 			"recipient": people["Lisa Thompson"],
@@ -707,7 +710,7 @@ def _create_functions(church):
 	functions = [
 		{
 			"function_name": "Sunday Worship",
-			"type": "Sunday Morning Service",
+			"type": f"{church} - Sunday Morning Service",
 			"start_date": "2025-12-01",
 			"start_time": "10:00:00",
 			"end_time": "11:30:00",
@@ -715,7 +718,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Midweek Prayer",
-			"type": "Prayer Meeting",
+			"type": f"{church} - Prayer Meeting",
 			"start_date": "2025-12-03",
 			"start_time": "19:00:00",
 			"end_time": "20:00:00",
@@ -723,7 +726,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Christmas Eve Service",
-			"type": "Sunday Evening Service",
+			"type": f"{church} - Sunday Evening Service",
 			"start_date": "2025-12-24",
 			"start_time": "18:00:00",
 			"end_time": "19:30:00",
@@ -731,7 +734,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Church Picnic",
-			"type": "Communion",
+			"type": f"{church} - Communion",
 			"start_date": "2025-09-06",
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
@@ -781,14 +784,17 @@ def _create_bible_verses(church):
 	refs = {}
 	for book, chapter, verse in _VERSES:
 		key = f"{book} {chapter}:{verse}"
-		existing = frappe.db.exists("Bible Verse", key)
+		book_link = f"{church} - {book}"
+		existing = frappe.db.get_value(
+			"Bible Verse", {"church": church, "book": book_link, "chapter": chapter, "verse": verse}, "name",
+		)
 		if existing:
 			refs[key] = existing
 			continue
 		doc = frappe.get_doc({
 			"doctype": "Bible Verse",
 			"church": church,
-			"book": book,
+			"book": book_link,
 			"chapter": chapter,
 			"verse": verse,
 		})
@@ -807,7 +813,7 @@ def _create_bible_references(verses, church):
 	references = [
 		{
 			"start_verse": verses["John 3:16"],
-			"translation": "King James Version",
+			"translation": f"{church} - King James Version",
 			"reference_text": (
 				"For God so loved the world, that he gave his only begotten Son, "
 				"that whosoever believeth in him should not perish, but have "
@@ -816,7 +822,7 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Romans 8:28"],
-			"translation": "English Standard Version",
+			"translation": f"{church} - English Standard Version",
 			"reference_text": (
 				"And we know that for those who love God all things work together "
 				"for good, for those who are called according to his purpose."
@@ -825,7 +831,7 @@ def _create_bible_references(verses, church):
 		{
 			"start_verse": verses["Psalms 23:1"],
 			"end_verse": verses["Psalms 23:6"],
-			"translation": "King James Version",
+			"translation": f"{church} - King James Version",
 			"reference_text": (
 				"The LORD is my shepherd; I shall not want. He maketh me to lie "
 				"down in green pastures: he leadeth me beside the still waters. "
@@ -840,7 +846,7 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Jeremiah 29:11"],
-			"translation": "New International Version",
+			"translation": f"{church} - New International Version",
 			"reference_text": (
 				"For I know the plans I have for you, declares the LORD, plans to "
 				"prosper you and not to harm you, plans to give you hope and a future."
@@ -848,7 +854,7 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Philippians 4:13"],
-			"translation": "New King James Version",
+			"translation": f"{church} - New King James Version",
 			"reference_text": (
 				"I can do all things through Christ who strengthens me."
 			),
@@ -935,7 +941,7 @@ def _create_sermons(church, people):
 		},
 	]
 	for sermon in sermons:
-		existing = frappe.db.exists("Sermon", sermon["title"])
+		existing = frappe.db.exists("Sermon", {"church": church, "title": sermon["title"]})
 		if existing:
 			continue
 		doc = frappe.get_doc({"doctype": "Sermon", "church": church, **sermon})
@@ -1013,18 +1019,25 @@ def _create_beliefs(church):
 	]
 
 	for belief in beliefs:
-		if frappe.db.exists("Belief", belief["title"]):
+		if frappe.db.exists("Belief", {"church": church, "title": belief["title"]}):
 			continue
 
 		# Resolve Bible Reference names from start_verse
 		ref_rows = []
-		for verse_name in belief.pop("bible_references", []):
-			# Find the Bible Reference doc whose start_verse matches
-			ref_name = frappe.db.get_value(
-				"Bible Reference", {"start_verse": verse_name}, "name",
+		for verse_key in belief.pop("bible_references", []):
+			# verse_key is "Book C:V" — find the Bible Verse doc name by
+			# splitting on the last space to separate book from chapter:verse.
+			book, cv = verse_key.rsplit(" ", 1)
+			ch, v = cv.split(":")
+			verse_doc = frappe.db.get_value(
+				"Bible Verse", {"church": church, "book": f"{church} - {book}", "chapter": ch, "verse": v}, "name",
 			)
-			if ref_name:
-				ref_rows.append({"reference": ref_name})
+			if verse_doc:
+				ref_name = frappe.db.get_value(
+					"Bible Reference", {"start_verse": verse_doc}, "name",
+				)
+				if ref_name:
+					ref_rows.append({"reference": ref_name})
 
 		doc = frappe.get_doc({
 			"doctype": "Belief",
@@ -1044,7 +1057,7 @@ def _create_group_roles(church):
 	"""Create sample group roles and return dict mapping role → name."""
 	refs = {}
 	for role_name in ("Leader", "Member"):
-		name = _insert_if_missing("Group Role", role_name, church=church, role=role_name)
+		name = _insert_if_missing("Group Role", {"church": church, "role": role_name}, church=church, role=role_name)
 		refs[role_name] = name
 	return refs
 
@@ -1128,7 +1141,7 @@ def _create_ministries(church, groups):
 	for ministry in ministries:
 		_insert_if_missing(
 			"Ministry",
-			ministry["ministry_name"],
+			{"church": church, "ministry_name": ministry["ministry_name"]},
 			church=church,
 			**ministry,
 		)
@@ -1177,13 +1190,13 @@ def _create_prayers(church, people):
 	"""Create sample prayers with topics linking to existing Prayer Requests."""
 	# Look up Prayer Request names by their unique attributes
 	pr_wilson = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Sarah Wilson"], "type": "Health"}, "name",
+		"Prayer Request", {"church": church, "requestor": people["Sarah Wilson"], "type": f"{church} - Health"}, "name",
 	)
 	pr_samuel = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Rachel Cooper"], "type": "Salvation"}, "name",
+		"Prayer Request", {"church": church, "requestor": people["Rachel Cooper"], "type": f"{church} - Salvation"}, "name",
 	)
 	pr_praise = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Mary Johnson"], "type": "Praise"}, "name",
+		"Prayer Request", {"church": church, "requestor": people["Mary Johnson"], "type": f"{church} - Praise"}, "name",
 	)
 
 	prayers = [

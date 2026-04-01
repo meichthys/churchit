@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:type",
+ "autoname": "format:{church} - {type}",
  "creation": "2025-10-09 02:26:38.910872",
  "description": "A type of `Expense` (a.k.a. Categories)",
  "doctype": "DocType",

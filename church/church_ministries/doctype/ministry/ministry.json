@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:ministry_name",
+ "autoname": "format:{church} - {ministry_name}",
  "creation": "2026-03-27 00:00:00",
  "description": "A ministry of the church (e.g. Nursing Home Outreach, Youth Group, Nursery, Choir, Bible Study).",
  "doctype": "DocType",

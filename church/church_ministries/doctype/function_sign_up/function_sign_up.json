@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FSU-{####}",
+ "autoname": "format:{church} - FSU-{####}",
  "creation": "2026-03-23 00:00:00.000000",
  "description": "A sign-up record indicating a person's intent to attend a church function.",
  "doctype": "DocType",

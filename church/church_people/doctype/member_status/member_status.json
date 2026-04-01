@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:status",
+ "autoname": "format:{church} - {status}",
  "creation": "2025-08-25 22:44:34.512827",
  "description": "Status type of the `Church Member` as defined by the church.",
  "doctype": "DocType",

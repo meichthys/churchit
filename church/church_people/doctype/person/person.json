@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:Person {#}",
+ "autoname": "format:{church} - Person {#}",
  "creation": "2025-08-21 01:19:39.714186",
  "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
  "doctype": "DocType",

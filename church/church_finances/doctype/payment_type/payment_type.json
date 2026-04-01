@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:type",
+ "autoname": "format:{church} - {type}",
  "creation": "2025-09-02 01:03:03.764617",
  "description": "The type of payment used for `Donation`s (i.e. Cash, Check, etc)",
  "doctype": "DocType",

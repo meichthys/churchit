@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format: {group_name} - {church}",
+ "autoname": "format:{church} - {group_name}",
  "creation": "2026-03-19 18:42:32.635733",
  "description": "A collection of people with a related purpose (e.g. Sunday School class, ministry, small group, committee, etc.)",
  "doctype": "DocType",

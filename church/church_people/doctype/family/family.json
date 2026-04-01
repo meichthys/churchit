@@ -1,134 +1,134 @@
 {
-  "actions": [],
-  "allow_import": 1,
-  "autoname": "format:Family {#}",
-  "creation": "2025-08-22 00:15:20.425153",
-  "description": "A family of people ('Person's) that are considered to be part of the same household. One 'Person' can be set to be the Head of Household for a family. ",
-  "doctype": "DocType",
-  "documentation": "/app/manual%3A-people",
-  "engine": "InnoDB",
-  "field_order": [
-    "section_break_acrr",
-    "church",
-    "family_name",
-    "head_of_household",
-    "home_address",
-    "photo",
-    "column_break_pmch",
-    "members"
-  ],
-  "fields": [
-    {
-      "fieldname": "church",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Church",
-      "options": "Church",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "fieldname": "column_break_pmch",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "home_address",
-      "fieldtype": "Link",
-      "in_preview": 1,
-      "label": "Home Address",
-      "options": "Address"
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "family_name",
-      "fieldtype": "Data",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Name",
-      "reqd": 1
-    },
-    {
-      "allow_in_quick_entry": 1,
-      "fieldname": "head_of_household",
-      "fieldtype": "Link",
-      "in_preview": 1,
-      "in_standard_filter": 1,
-      "is_virtual": 1,
-      "label": "Head of Household",
-      "options": "Person"
-    },
-    {
-      "fieldname": "photo",
-      "fieldtype": "Attach Image",
-      "in_preview": 1,
-      "label": "Photo"
-    },
-    {
-      "fieldname": "section_break_acrr",
-      "fieldtype": "Section Break"
-    },
-    {
-      "fieldname": "members",
-      "fieldtype": "Table",
-      "label": "Family Members",
-      "options": "Family Members"
-    }
-  ],
-  "grid_page_length": 50,
-  "image_field": "photo",
-  "index_web_pages_for_search": 1,
-  "links": [
-    {
-      "link_doctype": "Person",
-      "link_fieldname": "family"
-    },
-    {
-      "link_doctype": "Alms Request",
-      "link_fieldname": "recipient"
-    }
-  ],
-  "modified": "2025-12-20 23:03:58.407158",
-  "modified_by": "Administrator",
-  "module": "Church People",
-  "name": "Family",
-  "naming_rule": "Expression",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "import": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Church Manager",
-      "select": 1,
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "quick_entry": 1,
-  "row_format": "Dynamic",
-  "show_preview_popup": 1,
-  "show_title_field_in_link": 1,
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "title_field": "family_name",
-  "track_changes": 1
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "format:{church} - Family {#}",
+ "creation": "2025-08-22 00:15:20.425153",
+ "description": "A family of people ('Person's) that are considered to be part of the same household. One 'Person' can be set to be the Head of Household for a family. ",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_acrr",
+  "church",
+  "family_name",
+  "head_of_household",
+  "home_address",
+  "photo",
+  "column_break_pmch",
+  "members"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_pmch",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "home_address",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "label": "Home Address",
+   "options": "Address"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "family_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "head_of_household",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "is_virtual": 1,
+   "label": "Head of Household",
+   "options": "Person"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "in_preview": 1,
+   "label": "Photo"
+  },
+  {
+   "fieldname": "section_break_acrr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "Family Members",
+   "options": "Family Members"
+  }
+ ],
+ "grid_page_length": 50,
+ "image_field": "photo",
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Person",
+   "link_fieldname": "family"
+  },
+  {
+   "link_doctype": "Alms Request",
+   "link_fieldname": "recipient"
+  }
+ ],
+ "modified": "2025-12-20 23:03:58.407158",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Family",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "family_name",
+ "track_changes": 1
 }

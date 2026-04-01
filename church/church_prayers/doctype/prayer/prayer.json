@@ -1,112 +1,112 @@
 {
-  "actions": [],
-  "allow_rename": 1,
-  "autoname": "format:Prayer {######}",
-  "creation": "2025-10-08 22:02:44.303677",
-  "description": "A recorded prayer, written or spoken",
-  "doctype": "DocType",
-  "documentation": "/app/manual%3A-prayers",
-  "engine": "InnoDB",
-  "field_order": [
-    "church",
-    "person",
-    "file",
-    "column_break_hfvl",
-    "content",
-    "section_break_ojgz",
-    "topics"
-  ],
-  "fields": [
-    {
-      "fieldname": "church",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "in_standard_filter": 1,
-      "label": "Church",
-      "options": "Church",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "fieldname": "person",
-      "fieldtype": "Link",
-      "in_list_view": 1,
-      "label": "Person",
-      "options": "Person",
-      "reqd": 1,
-      "search_index": 1
-    },
-    {
-      "fieldname": "file",
-      "fieldtype": "Attach",
-      "label": "File"
-    },
-    {
-      "fieldname": "content",
-      "fieldtype": "Small Text",
-      "label": "Content"
-    },
-    {
-      "fieldname": "column_break_hfvl",
-      "fieldtype": "Column Break"
-    },
-    {
-      "fieldname": "section_break_ojgz",
-      "fieldtype": "Section Break"
-    },
-    {
-      "description": "Items that were prayed for or about. ",
-      "fieldname": "topics",
-      "fieldtype": "Table",
-      "label": "Prayer Topics",
-      "options": "Prayer Topic"
-    }
-  ],
-  "grid_page_length": 50,
-  "index_web_pages_for_search": 1,
-  "links": [
-    {
-      "link_doctype": "Function",
-      "link_fieldname": "item"
-    }
-  ],
-  "modified": "2025-11-15 22:56:20.377317",
-  "modified_by": "Administrator",
-  "module": "Church Prayers",
-  "name": "Prayer",
-  "naming_rule": "Expression",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    },
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "Church Manager",
-      "select": 1,
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "row_format": "Dynamic",
-  "search_fields": "content, person",
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": [],
-  "track_views": 1
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{church} - Prayer {######}",
+ "creation": "2025-10-08 22:02:44.303677",
+ "description": "A recorded prayer, written or spoken",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-prayers",
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "person",
+  "file",
+  "column_break_hfvl",
+  "content",
+  "section_break_ojgz",
+  "topics"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Small Text",
+   "label": "Content"
+  },
+  {
+   "fieldname": "column_break_hfvl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ojgz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Items that were prayed for or about. ",
+   "fieldname": "topics",
+   "fieldtype": "Table",
+   "label": "Prayer Topics",
+   "options": "Prayer Topic"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Function",
+   "link_fieldname": "item"
+  }
+ ],
+ "modified": "2025-11-15 22:56:20.377317",
+ "modified_by": "Administrator",
+ "module": "Church Prayers",
+ "name": "Prayer",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "content, person",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_views": 1
 }

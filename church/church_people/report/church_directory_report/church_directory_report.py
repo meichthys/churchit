@@ -184,7 +184,7 @@ def get_directory_html(
 		SELECT
 			f.name AS family_id,
 			f.family_name,
-			f.church AS church_name,
+			c.church_name AS church_name,
 			f.photo AS family_photo,
 			COALESCE(a.address_line1, '') AS address_line1,
 			COALESCE(a.address_line2, '') AS address_line2,
@@ -193,6 +193,7 @@ def get_directory_html(
 			COALESCE(a.pincode, '') AS pincode
 		FROM `tabFamily` f
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
+		LEFT JOIN `tabChurch` c ON c.name = f.church
 		WHERE f.church IN {church_in}
 		ORDER BY f.family_name ASC
 		""",
@@ -213,8 +214,9 @@ def get_directory_html(
 			p.is_head_of_household,
 			p.photo,
 			p.family,
-			p.church AS church_name
+			c.church_name AS church_name
 		FROM `tabPerson` p
+		LEFT JOIN `tabChurch` c ON c.name = p.church
 		WHERE p.church IN {church_in}
 			AND p.family IS NOT NULL AND p.family != ''
 			{member_filter}
@@ -262,8 +264,9 @@ def get_directory_html(
 			p.email,
 			p.membership_status,
 			p.photo,
-			p.church AS church_name
+			c.church_name AS church_name
 		FROM `tabPerson` p
+		LEFT JOIN `tabChurch` c ON c.name = p.church
 		WHERE p.church IN {church_in}
 			AND (p.family IS NULL OR p.family = '')
 			{member_filter}

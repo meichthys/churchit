@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:translation",
+ "autoname": "format:{church} - {translation}",
  "creation": "2025-09-17 23:06:44.746941",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",

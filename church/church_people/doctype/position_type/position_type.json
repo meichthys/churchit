@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:position",
+ "autoname": "format:{church} - {position}",
  "creation": "2025-08-26 22:57:29.102805",
  "description": "Types of positions that `Person`s can fill in the church.",
  "doctype": "DocType",

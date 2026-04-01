@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:agency_name",
+ "autoname": "format:{church} - {agency_name}",
  "creation": "2025-10-02 22:14:45.520951",
  "description": "Missionary support entities that aid in the sending of missionaries",
  "doctype": "DocType",

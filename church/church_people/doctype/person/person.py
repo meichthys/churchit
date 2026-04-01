@@ -182,8 +182,9 @@ class Person(Document):
 			self.save(ignore_permissions=True)
 
 			if church:
+				church_name = frappe.db.get_value("Church", church, "church_name") or church
 				frappe.msgprint(
-					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> at <b>{church}</b> "
+					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> at <b>{church_name}</b> "
 					f"and an invitation email was sent to {self.email}.",
 					title="Invitation Sent",
 					indicator="green",
@@ -201,7 +202,8 @@ class Person(Document):
 			self.portal_user = user
 			self.save(ignore_permissions=True)
 			existing_church = frappe.db.get_value("User", user, "church")
-			church_text = f" at <b>{existing_church}</b>" if existing_church else " (no church assigned)"
+			existing_church_name = frappe.db.get_value("Church", existing_church, "church_name") if existing_church else None
+			church_text = f" at <b>{existing_church_name}</b>" if existing_church_name else " (no church assigned)"
 			frappe.msgprint(
 				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a>{church_text} already exists. User is now linked to this person."
 			)

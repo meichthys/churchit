@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:type",
+ "autoname": "format:{church} - {type}",
  "creation": "2025-09-01 00:33:34.102307",
  "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent, etc.)",
  "doctype": "DocType",

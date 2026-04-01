@@ -9,16 +9,10 @@ class BibleReference(Document):
 	pass
 
 	def autoname(self):
-		name = self.get_name()
-		if not frappe.db.exists("Bible Reference", self.name):
-			self.name = name
-			return
-		else:
-			if self.name != self.get_name():
-				frappe.rename_doc("Bible Reference", self.name, name)
+		self.name = self.get_reference_name()
 
-	def get_name(self):
-		"""Constructs the document name"""
+	def get_reference_name(self):
+		"""Constructs the document name."""
 		if self.start_verse and self.end_verse:
 			ref = f"{self.start_verse} - {self.end_verse}"
 		elif self.start_verse:
@@ -27,10 +21,10 @@ class BibleReference(Document):
 			frappe.throw("A start verse is required to name the reference")
 		if self.translation:
 			abbr = frappe.db.get_value("Bible Translation", self.translation, "abbreviation")
-			return f"{ref} ({abbr})"
-		else:
-			return ref
+			ref = f"{ref} ({abbr})"
+		return f"{self.church} - {ref}" if self.church else ref
 
 	def on_update(self):
-		# Rename document when updating
-		self.autoname()
+		new_name = self.get_reference_name()
+		if not self.is_new() and self.name != new_name:
+			frappe.rename_doc("Bible Reference", self.name, new_name)

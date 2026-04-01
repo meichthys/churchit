@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "field:relation_type",
+ "autoname": "format:{church} - {relation_type}",
  "creation": "2025-08-25 21:30:15.393857",
  "description": "The type of relationship between two `Person`s",
  "doctype": "DocType",

@@ -22,15 +22,16 @@ class FunctionSignUp(Document):
 			self._add_attendance_record()
 
 	def _add_attendance_record(self):
+		attendance_type = f"{self.church} - Self-Reported"
 		function_doc = frappe.get_doc("Function", self.function)
 		for row in function_doc.attendance:
 			if row.person == self.person:
-				if row.attendance_type != "Self-Reported":
-					row.attendance_type = "Self-Reported"
+				if row.attendance_type != attendance_type:
+					row.attendance_type = attendance_type
 					function_doc.save(ignore_permissions=True)
 				return
 		function_doc.append("attendance", {
 			"person": self.person,
-			"attendance_type": "Self-Reported",
+			"attendance_type": attendance_type,
 		})
 		function_doc.save(ignore_permissions=True)

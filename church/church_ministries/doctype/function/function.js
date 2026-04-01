@@ -8,7 +8,8 @@ frappe.ui.form.on('Function', {
 		// Only include the number of 'Confirmed' and 'Assumed' attendees
 		var total_attendance = 0;
 		frm.doc.attendance.forEach(function (row) {
-			if (["Confirmed", "Assumed"].includes(row.attendance_type)) {
+			var type = (row.attendance_type || "").replace(/^.*? - /, "");
+			if (["Confirmed", "Assumed"].includes(type)) {
 				total_attendance += 1;
 			}
 		});

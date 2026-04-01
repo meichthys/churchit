@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FUND-{####}",
+ "autoname": "format:{church} - FUND-{####}",
  "creation": "2025-09-02 01:11:30.383380",
  "description": "Financial funds of the church (i.e. General, Trust, etc).",
  "doctype": "DocType",

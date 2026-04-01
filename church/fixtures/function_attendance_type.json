@@ -1,11 +1,11 @@
 [
  {
-  "church": "My Church",
+  "church": "MC",
   "description": "The user self-reported their attendance via the \"Function Sign Up\" web form.",
   "docstatus": 0,
   "doctype": "Function Attendance Type",
   "modified": "2026-03-22 19:13:10.504317",
-  "name": "Self-Reported",
+  "name": "MC - Self-Reported",
   "type": "Self-Reported"
  }
 ]

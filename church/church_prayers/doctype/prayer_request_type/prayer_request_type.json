@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:type",
+ "autoname": "format:{church} - {type}",
  "creation": "2025-09-13 01:12:32.154287",
  "description": "The kind of prayer request (i.e. Praise, Health, Salvation, etc.)",
  "doctype": "DocType",

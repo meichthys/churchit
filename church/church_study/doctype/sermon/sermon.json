@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:title",
+ "autoname": "format:{church} - {title}",
  "creation": "2026-02-26 01:02:02.489497",
  "doctype": "DocType",
  "engine": "InnoDB",

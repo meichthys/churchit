@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:book",
+ "autoname": "format:{church} - {book}",
  "creation": "2025-09-17 21:56:11.028021",
  "description": "Books of the Bible",
  "doctype": "DocType",
