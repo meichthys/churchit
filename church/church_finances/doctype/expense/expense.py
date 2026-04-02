@@ -8,7 +8,12 @@ from frappe.utils import get_link_to_form
 
 class Expense(Document):
 	def before_save(self):
+<<<<<<< Updated upstream
 		self.title = f"{self.type} - {self.date}" if self.type else ""
+=======
+		parts = [self.type or "", str(self.date or "")]
+		self.title = " - ".join(p for p in parts if p)
+>>>>>>> Stashed changes
 
 	def before_delete(self):
 		# This probably should never get called since frappe prevents the deletion

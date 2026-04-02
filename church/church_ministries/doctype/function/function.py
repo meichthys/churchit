@@ -6,6 +6,7 @@ from frappe.model.document import Document
 
 
 class Function(Document):
+<<<<<<< Updated upstream
 	def before_save(self):
 		self.title = f"{self.start_date} ({self.type}) - {self.function_name}"
 		# Set default attendance_type for new rows missing one
@@ -15,6 +16,9 @@ class Function(Document):
 				if confirmed is None:
 					confirmed = frappe.db.get_value("Function Attendance Type", {"type": "Confirmed"}, "name")
 				row.attendance_type = confirmed
+=======
+	pass
+>>>>>>> Stashed changes
 
 
 @frappe.whitelist()

@@ -47,7 +47,7 @@
  "list_title": "Your Prayer Requests",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-03-18 19:36:45.770371",
+ "modified": "2026-04-01 20:24:38.563051",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "prayer-request",
@@ -103,18 +103,6 @@
    "show_in_filter": 0
   },
   {
-   "fieldname": "recipient_name",
-   "fieldtype": "Data",
-   "hidden": 0,
-   "label": "Recipient",
-   "max_length": 0,
-   "max_value": 0,
-   "precision": "",
-   "read_only": 1,
-   "reqd": 0,
-   "show_in_filter": 0
-  },
-  {
    "allow_read_on_all_link_options": 0,
    "description": "The type of entity you are requesting prayer for.",
    "fieldname": "recipient_type",
@@ -131,16 +119,14 @@
   },
   {
    "allow_read_on_all_link_options": 0,
-   "default": "",
-   "description": "The person or entity you are requesting prayer for.",
-   "fieldname": "recipient",
+   "fieldname": "recipient_name",
    "fieldtype": "Data",
-   "hidden": 1,
+   "hidden": 0,
    "label": "Recipient",
    "max_length": 0,
    "max_value": 0,
    "precision": "",
-   "read_only": 0,
+   "read_only": 1,
    "reqd": 0,
    "show_in_filter": 0
   },

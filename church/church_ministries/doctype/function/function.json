@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2025-08-31 23:40:34.324092",
  "description": "Any kind of church gathering. This includes regular services as well as one-off functions.",
  "doctype": "DocType",
@@ -180,7 +181,10 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
+<<<<<<< Updated upstream
  "autoname": "hash",
+=======
+>>>>>>> Stashed changes
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -216,7 +220,11 @@
  "sort_order": "DESC",
  "show_title_field_in_link": 1,
  "states": [],
+<<<<<<< Updated upstream
  "title_field": "title",
+=======
+ "title_field": "function_name",
+>>>>>>> Stashed changes
  "track_changes": 1,
  "track_views": 1
 }

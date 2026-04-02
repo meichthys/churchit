@@ -79,6 +79,13 @@
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+<<<<<<< Updated upstream
  "states": [],
  "title_field": "type"
 }
+=======
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "type"
+}
+>>>>>>> Stashed changes

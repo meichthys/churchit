@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "actions": [],
   "allow_rename": 1,
   "autoname": "hash",
@@ -153,4 +154,161 @@
   "states": [],
   "title_field": "title",
   "track_changes": 1
+=======
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-09-02 00:47:02.825073",
+ "description": "A specific collection of `Donation`s that are generally from `Person`s and associated with a specific `Function`s.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "church",
+  "date",
+  "function",
+  "notes",
+  "column_break_ijpy",
+  "total_amount",
+  "fund_totals",
+  "section_break_izta",
+  "donations",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "description": "The `Function` associated with this collection.",
+   "fieldname": "function",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Function",
+   "options": "Function",
+   "search_index": 1
+  },
+  {
+   "default": "now",
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_izta",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "For 'anonymous' donations, enter the total amount and leave `Person` and `Check #` blank. To apply a single check to multiple funds, create another donation record with the same check number. The `Bank Reconciliation Report` will combine the separate donations together for easier reconciliation with bank statements.",
+   "fieldname": "donations",
+   "fieldtype": "Table",
+   "label": "Donations",
+   "options": "Donation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ijpy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fund_totals",
+   "fieldtype": "Table",
+   "label": "Fund Totals",
+   "options": "Collection Fund Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "in_preview": 1,
+   "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Collection",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-11-15 01:34:36.895717",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Collection",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_preview_popup": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+>>>>>>> Stashed changes
 }

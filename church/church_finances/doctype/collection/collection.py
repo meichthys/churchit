@@ -7,7 +7,12 @@ from frappe.model.document import Document
 
 class Collection(Document):
 	def before_save(self):
+<<<<<<< Updated upstream
 		self.title = str(self.date) if self.date else ""
+=======
+		parts = [self.function or "", str(self.date or "")]
+		self.title = " - ".join(p for p in parts if p)
+>>>>>>> Stashed changes
 
 	def on_submit(self):
 		self.update_funds(reverse=False)

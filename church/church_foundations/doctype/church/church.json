@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:church_name",
+ "autoname": "hash",
  "creation": "2025-09-17 21:10:06.782386",
  "default_view": "List",
  "description": "A church or church branch.",
@@ -144,7 +144,7 @@
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "nsm_parent_field": "parent_church",
  "owner": "Administrator",
  "permissions": [
@@ -173,6 +173,7 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "show_title_field_in_link": 1,
  "states": [],
  "title_field": "church_name",
  "track_changes": 1

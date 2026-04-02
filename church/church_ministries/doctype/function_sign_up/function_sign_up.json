@@ -8,6 +8,7 @@
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "church",
   "title",
   "function",
@@ -16,6 +17,13 @@
   "attending"
  ],
  "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
   {
    "fieldname": "church",
    "fieldtype": "Link",

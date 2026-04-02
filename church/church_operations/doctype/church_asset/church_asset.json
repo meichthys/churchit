@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "actions": [],
   "allow_import": 1,
   "allow_rename": 1,
@@ -113,4 +114,120 @@
   "sort_order": "DESC",
   "states": [],
   "title_field": "title"
+=======
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-12-15 00:18:29.399376",
+ "description": "Items that the Church owns (i.e. appliances, equipment, etc)",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-operations",
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "title",
+  "image",
+  "acquisition_date",
+  "location",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "in_preview": 1,
+   "label": "Image"
+  },
+  {
+   "fieldname": "acquisition_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Acquisition Date"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Location"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "in_preview": 1,
+   "label": "Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "image_field": "image",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-15 00:32:16.361162",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Church Asset",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "title, notes, location",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+>>>>>>> Stashed changes
 }

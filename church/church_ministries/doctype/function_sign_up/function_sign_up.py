@@ -4,7 +4,12 @@ from frappe.model.document import Document
 
 class FunctionSignUp(Document):
 	def before_save(self):
+<<<<<<< Updated upstream
 		self.title = f"{self.person} - {self.function}"
+=======
+		parts = [self.function or "", self.person or ""]
+		self.title = " - ".join(p for p in parts if p)
+>>>>>>> Stashed changes
 
 	def validate(self):
 		if not frappe.db.get_value("Function", self.function, "allow_sign_ups"):

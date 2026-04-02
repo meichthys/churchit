@@ -7,7 +7,12 @@ from frappe.model.document import Document
 
 class AlmsRequest(Document):
 	def before_save(self):
+<<<<<<< Updated upstream
 		self.title = self.description
+=======
+		parts = [self.recipient or "", str(self.amount or ""), self.status or ""]
+		self.title = " - ".join(p for p in parts if p)
+>>>>>>> Stashed changes
 
 
 @frappe.whitelist()
