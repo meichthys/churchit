@@ -33,6 +33,7 @@
   },
   {
    "allow_in_quick_entry": 1,
+   "default": "Requested",
    "fieldname": "status",
    "fieldtype": "Link",
    "in_filter": 1,

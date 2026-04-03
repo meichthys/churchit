@@ -35,7 +35,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Title",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "prepared_by",
@@ -128,16 +129,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
-<<<<<<< Updated upstream
- "states": [],
- "title_field": "title"
-}
-=======
  "show_title_field_in_link": 1,
  "states": [],
  "title_field": "title"
 }
->>>>>>> Stashed changes

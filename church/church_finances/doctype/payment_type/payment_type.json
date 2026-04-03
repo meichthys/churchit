@@ -27,7 +27,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Type of Payment",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -81,16 +82,9 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
-<<<<<<< Updated upstream
- "states": [],
- "title_field": "type"
-}
-=======
  "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"
 }
->>>>>>> Stashed changes

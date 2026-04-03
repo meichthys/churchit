@@ -26,14 +26,9 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "in_list_view": 1,
-<<<<<<< Updated upstream
-   "label": "Relation Type",
-   "reqd": 1
-=======
    "label": "Type",
    "reqd": 1,
    "unique": 1
->>>>>>> Stashed changes
   },
   {
    "allow_in_quick_entry": 1,
@@ -87,18 +82,9 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
-<<<<<<< Updated upstream
- "show_title_field_in_link": 1,
- "sort_field": "relation_type",
- "sort_order": "ASC",
- "states": [],
- "title_field": "relation_type"
-}
-=======
  "sort_field": "type",
  "sort_order": "ASC",
  "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"
 }
->>>>>>> Stashed changes

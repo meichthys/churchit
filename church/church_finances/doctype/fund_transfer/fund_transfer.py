@@ -5,13 +5,9 @@ from frappe.utils import get_link_to_form, nowdate
 
 class FundTransfer(Document):
 	def before_save(self):
-<<<<<<< Updated upstream
-		self.title = f"{self.from_fund} to {self.to_fund}"
-=======
 		fund_part = f"{self.from_fund or ''} to {self.to_fund or ''}".strip()
 		parts = [fund_part, str(self.date or "")]
 		self.title = " - ".join(p for p in parts if p)
->>>>>>> Stashed changes
 
 	def validate(self):
 		if self.from_fund == self.to_fund:

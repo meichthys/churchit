@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "church",
-  "title",
   "type",
   "function_name",
   "all_day",
@@ -39,13 +38,6 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Title",
-   "read_only": 1
   },
   {
    "default": "0",
@@ -181,10 +173,6 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
-<<<<<<< Updated upstream
- "autoname": "hash",
-=======
->>>>>>> Stashed changes
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -220,11 +208,7 @@
  "sort_order": "DESC",
  "show_title_field_in_link": 1,
  "states": [],
-<<<<<<< Updated upstream
- "title_field": "title",
-=======
  "title_field": "function_name",
->>>>>>> Stashed changes
  "track_changes": 1,
  "track_views": 1
 }

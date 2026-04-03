@@ -82,7 +82,8 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "description": "The fund which this type of expense will reduce",
@@ -150,16 +151,9 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
-<<<<<<< Updated upstream
- "states": [],
- "title_field": "type"
-}
-=======
  "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"
 }
->>>>>>> Stashed changes

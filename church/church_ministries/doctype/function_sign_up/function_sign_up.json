@@ -10,7 +10,6 @@
  "field_order": [
   "title",
   "church",
-  "title",
   "function",
   "column_break_abcd",
   "person",
@@ -33,13 +32,6 @@
    "options": "Church",
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Title",
-   "read_only": 1
   },
   {
    "fieldname": "function",

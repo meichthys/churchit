@@ -155,15 +155,9 @@ def _insert_if_missing(doctype, filters, **fields):
 	return doc.name
 
 
-<<<<<<< Updated upstream
-def _lookup(doctype, field, value):
-	"""Resolve a human-readable lookup value to its document name (hash)."""
-	return frappe.db.get_value(doctype, {field: value}, "name")
-=======
 def _resolve_link(doctype, title_field, value, church):
 	"""Look up the hash name for a record given its display value."""
 	return frappe.db.get_value(doctype, {title_field: value, "church": church}, "name")
->>>>>>> Stashed changes
 
 
 def _delete_docs(doctype, filters):
@@ -390,20 +384,10 @@ def _create_positions(church):
 
 def _create_people(church, position_refs):
 	"""Create sample people and return a dict mapping 'First Last' → name."""
-<<<<<<< Updated upstream
-	active_status = _lookup("Member Status", "status", "Active")
-	position_cache = {}
-
-	def _resolve_position(pos_name):
-		if pos_name not in position_cache:
-			position_cache[pos_name] = _lookup("Position Type", "position", pos_name)
-		return position_cache[pos_name]
-=======
 	# Look up hash name for "Active" membership status
 	active_status = frappe.db.get_value(
 		"Member Status", {"status": "Active", "church": church}, "name"
 	)
->>>>>>> Stashed changes
 
 	refs = {}
 	for (
@@ -430,29 +414,6 @@ def _create_people(church, position_refs):
 			refs[key] = existing
 			continue
 
-<<<<<<< Updated upstream
-		resolved_positions = [
-			{**p, "position": _resolve_position(p["position"])}
-			for p in positions
-		]
-		doc = frappe.get_doc({
-			"doctype": "Person",
-			"church": church,
-			"first_name": first,
-			"last_name": last,
-			"gender": gender,
-			"is_member": is_member,
-			"membership_date": mem_date,
-			"membership_status": active_status if is_member else None,
-			"is_baptized": is_baptized,
-			"baptism_date": bap_date,
-			"birthday": birthday,
-			"primary_phone": phone,
-			"email": email,
-			"alergies": allergies,
-			"positions": resolved_positions,
-		})
-=======
 		# Resolve position display names to hash names
 		resolved_positions = [
 			{**p, "position": position_refs[p["position"]]}
@@ -478,7 +439,6 @@ def _create_people(church, position_refs):
 				"positions": resolved_positions,
 			}
 		)
->>>>>>> Stashed changes
 		doc.insert(ignore_permissions=True)
 		refs[key] = doc.name
 	return refs
@@ -628,15 +588,7 @@ def _create_missionary_agencies(church):
 	"""Create sample missionary agencies and return dict mapping name → name."""
 	refs = {}
 	for agency in _AGENCIES:
-<<<<<<< Updated upstream
-		name = _insert_if_missing(
-			"Missionary Agency",
-			{"agency_name": agency["agency_name"], "church": church},
-			church=church, **agency,
-		)
-=======
 		name = _insert_if_missing("Missionary Agency", {"agency_name": agency["agency_name"], "church": church}, church=church, **agency)
->>>>>>> Stashed changes
 		refs[agency["agency_name"]] = name
 	return refs
 
@@ -648,11 +600,7 @@ def _create_missionary_agencies(church):
 
 def _create_missionaries(church, people, agencies):
 	"""Create sample missionaries."""
-<<<<<<< Updated upstream
-	monthly = _lookup("Missionary Support Frequency", "frequency", "Monthly")
-=======
 	monthly = _resolve_link("Missionary Support Frequency", "frequency", "Monthly", church)
->>>>>>> Stashed changes
 	missionaries = [
 		{
 			"title": "Michael & Anna Grant",
@@ -754,17 +702,12 @@ def _create_expense_types(church, funds):
 	]
 	for type_name, fund in roots:
 		name = _insert_if_missing(
-<<<<<<< Updated upstream
-			"Expense Type", {"type": type_name, "church": church},
-			church=church, type=type_name, fund=fund, is_group=1 if type_name == "Utilities" else 0,
-=======
 			"Expense Type",
 			{"type": type_name, "church": church},
 			church=church,
 			type=type_name,
 			fund=fund,
 			is_group=1 if type_name == "Utilities" else 0,
->>>>>>> Stashed changes
 		)
 		refs[type_name] = name
 
@@ -775,17 +718,12 @@ def _create_expense_types(church, funds):
 	]
 	for type_name, fund, parent in children:
 		name = _insert_if_missing(
-<<<<<<< Updated upstream
-			"Expense Type", {"type": type_name, "church": church},
-			church=church, type=type_name, fund=fund, parent_expense_type=refs[parent],
-=======
 			"Expense Type",
 			{"type": type_name, "church": church},
 			church=church,
 			type=type_name,
 			fund=fund,
 			parent_expense_type=refs[parent],
->>>>>>> Stashed changes
 		)
 		refs[type_name] = name
 
@@ -799,32 +737,13 @@ def _create_expense_types(church, funds):
 
 def _create_collections(church, people, funds):
 	"""Create sample collections with donations (saved as Draft)."""
-<<<<<<< Updated upstream
-	check = _lookup("Payment Type", "type", "Check")
-	cash = _lookup("Payment Type", "type", "Cash")
-=======
 	check = _resolve_link("Payment Type", "type", "Check", church)
 	cash = _resolve_link("Payment Type", "type", "Cash", church)
->>>>>>> Stashed changes
 	collections = [
 		{
 			"date": "2025-12-01 10:30:00",
 			"notes": "Regular Sunday morning offering.",
 			"donations": [
-<<<<<<< Updated upstream
-				{"amount": 100, "payment_type": check, "fund": funds["General"],
-				 "person": people["James Wilson"], "check_number": "1001"},
-				{"amount": 50, "payment_type": check, "fund": funds["Missions"],
-				 "person": people["James Wilson"], "check_number": "1001"},
-				{"amount": 75, "payment_type": check, "fund": funds["General"],
-				 "person": people["Robert Johnson"], "check_number": "2001"},
-				{"amount": 25, "payment_type": check, "fund": funds["Building"],
-				 "person": people["Robert Johnson"], "check_number": "2001"},
-				{"amount": 50, "payment_type": cash, "fund": funds["General"],
-				 "person": None, "check_number": None},
-				{"amount": 30, "payment_type": check, "fund": funds["General"],
-				 "person": people["Martha Evans"], "check_number": "3001"},
-=======
 				{
 					"amount": 100,
 					"payment_type": check,
@@ -867,25 +786,12 @@ def _create_collections(church, people, funds):
 					"person": people["Martha Evans"],
 					"check_number": "3001",
 				},
->>>>>>> Stashed changes
 			],
 		},
 		{
 			"date": "2025-12-08 10:30:00",
 			"notes": "Sunday offering — missions emphasis week.",
 			"donations": [
-<<<<<<< Updated upstream
-				{"amount": 150, "payment_type": check, "fund": funds["General"],
-				 "person": people["James Wilson"], "check_number": "1002"},
-				{"amount": 100, "payment_type": check, "fund": funds["Missions"],
-				 "person": people["David Thompson"], "check_number": "4001"},
-				{"amount": 40, "payment_type": cash, "fund": funds["General"],
-				 "person": None, "check_number": None},
-				{"amount": 50, "payment_type": check, "fund": funds["Benevolence"],
-				 "person": people["Rachel Cooper"], "check_number": "5001"},
-				{"amount": 25, "payment_type": cash, "fund": funds["Missions"],
-				 "person": people["Thomas Reed"], "check_number": None},
-=======
 				{
 					"amount": 150,
 					"payment_type": check,
@@ -921,7 +827,6 @@ def _create_collections(church, people, funds):
 					"person": people["Thomas Reed"],
 					"check_number": None,
 				},
->>>>>>> Stashed changes
 			],
 		},
 	]
@@ -991,80 +896,46 @@ def _create_expenses(church, expense_types):
 
 def _create_prayer_requests(church, people):
 	"""Create sample prayer requests."""
-<<<<<<< Updated upstream
-	pr_status = {
-		s: _lookup("Prayer Request Status", "status", s)
-		for s in ("Being Prayed For", "Requested", "Answered")
-	}
-	pr_type = {
-		t: _lookup("Prayer Request Type", "type", t)
-=======
 	_status = {
 		s: _resolve_link("Prayer Request Status", "status", s, church)
 		for s in ("Being Prayed For", "Requested", "Answered")
 	}
 	_type = {
 		t: _resolve_link("Prayer Request Type", "type", t, church)
->>>>>>> Stashed changes
 		for t in ("Health", "Salvation", "Praise", "Unspoken")
 	}
 	requests = [
 		{
-<<<<<<< Updated upstream
-			"status": pr_status["Being Prayed For"],
-			"type": pr_type["Health"],
-=======
 			"status": _status["Being Prayed For"],
 			"type": _type["Health"],
->>>>>>> Stashed changes
 			"requestor": people["Sarah Wilson"],
 			"recipient_type": "Person",
 			"recipient": people["James Wilson"],
 			"request": "Please pray for Pastor Wilson as he recovers from knee surgery. He is doing well but needs continued healing.",
 		},
 		{
-<<<<<<< Updated upstream
-			"status": pr_status["Requested"],
-			"type": pr_type["Salvation"],
-=======
 			"status": _status["Requested"],
 			"type": _type["Salvation"],
->>>>>>> Stashed changes
 			"requestor": people["Rachel Cooper"],
 			"recipient_type": "Person",
 			"recipient": people["Samuel Brooks"],
 			"request": "Please pray for Samuel, a visitor who has been attending our services. Pray that he would come to know Christ.",
 		},
 		{
-<<<<<<< Updated upstream
-			"status": pr_status["Answered"],
-			"type": pr_type["Praise"],
-=======
 			"status": _status["Answered"],
 			"type": _type["Praise"],
->>>>>>> Stashed changes
 			"requestor": people["Mary Johnson"],
 			"request": "Praise the Lord! Our grandson was born healthy — 7 lbs 8 oz. Mom and baby are doing great.",
 		},
 		{
-<<<<<<< Updated upstream
-			"status": pr_status["Being Prayed For"],
-			"type": pr_type["Unspoken"],
-=======
 			"status": _status["Being Prayed For"],
 			"type": _type["Unspoken"],
->>>>>>> Stashed changes
 			"requestor": people["Martha Evans"],
 			"is_private": 1,
 		},
 		{
-<<<<<<< Updated upstream
-			"status": pr_status["Requested"],
-			"type": pr_type["Health"],
-=======
 			"status": _status["Requested"],
 			"type": _type["Health"],
->>>>>>> Stashed changes
 			"requestor": people["Lisa Thompson"],
 			"recipient_type": "Person",
 			"recipient": people["Lisa Thompson"],
@@ -1134,23 +1005,14 @@ def _create_alms_requests(church, people):
 
 def _create_functions(church):
 	"""Create sample church functions."""
-<<<<<<< Updated upstream
-	fn_type = {
-		t: _lookup("Function Type", "type", t)
-=======
 	_ft = {
 		t: _resolve_link("Function Type", "type", t, church)
->>>>>>> Stashed changes
 		for t in ("Sunday Morning Service", "Prayer Meeting", "Sunday Evening Service", "Communion")
 	}
 	functions = [
 		{
 			"function_name": "Sunday Worship",
-<<<<<<< Updated upstream
-			"type": fn_type["Sunday Morning Service"],
-=======
 			"type": _ft["Sunday Morning Service"],
->>>>>>> Stashed changes
 			"start_date": "2025-12-01",
 			"start_time": "10:00:00",
 			"end_time": "11:30:00",
@@ -1158,11 +1020,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Midweek Prayer",
-<<<<<<< Updated upstream
-			"type": fn_type["Prayer Meeting"],
-=======
 			"type": _ft["Prayer Meeting"],
->>>>>>> Stashed changes
 			"start_date": "2025-12-03",
 			"start_time": "19:00:00",
 			"end_time": "20:00:00",
@@ -1170,11 +1028,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Christmas Eve Service",
-<<<<<<< Updated upstream
-			"type": fn_type["Sunday Evening Service"],
-=======
 			"type": _ft["Sunday Evening Service"],
->>>>>>> Stashed changes
 			"start_date": "2025-12-24",
 			"start_time": "18:00:00",
 			"end_time": "19:30:00",
@@ -1182,11 +1036,7 @@ def _create_functions(church):
 		},
 		{
 			"function_name": "Church Picnic",
-<<<<<<< Updated upstream
-			"type": fn_type["Communion"],
-=======
 			"type": _ft["Communion"],
->>>>>>> Stashed changes
 			"start_date": "2025-09-06",
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
@@ -1238,49 +1088,24 @@ _VERSES = [
 
 def _create_bible_verses(church):
 	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
-<<<<<<< Updated upstream
-	book_cache = {}
-
-	def _resolve_book(book_name):
-		if book_name not in book_cache:
-			book_cache[book_name] = _lookup("Bible Book", "book", book_name)
-		return book_cache[book_name]
-=======
 	# Build lookup for Bible Book display name → hash name
 	book_refs = {}
 	for book_name in {b for b, _, _ in _VERSES}:
 		book_refs[book_name] = frappe.db.get_value(
 			"Bible Book", {"book": book_name}, "name"
 		)
->>>>>>> Stashed changes
 
 	refs = {}
 	for book, chapter, verse in _VERSES:
 		key = f"{book} {chapter}:{verse}"
-<<<<<<< Updated upstream
-		book_ref = _resolve_book(book)
-		existing = frappe.db.get_value(
-			"Bible Verse",
-			{"church": church, "book": book_ref, "chapter": chapter, "verse": verse},
-=======
 		existing = frappe.db.get_value(
 			"Bible Verse",
 			{"book": book_refs[book], "chapter": chapter, "verse": verse, "church": church},
->>>>>>> Stashed changes
 			"name",
 		)
 		if existing:
 			refs[key] = existing
 			continue
-<<<<<<< Updated upstream
-		doc = frappe.get_doc({
-			"doctype": "Bible Verse",
-			"church": church,
-			"book": book_ref,
-			"chapter": chapter,
-			"verse": verse,
-		})
-=======
 		doc = frappe.get_doc(
 			{
 				"doctype": "Bible Verse",
@@ -1290,7 +1115,6 @@ def _create_bible_verses(church):
 				"verse": verse,
 			}
 		)
->>>>>>> Stashed changes
 		doc.insert(ignore_permissions=True)
 		refs[key] = doc.name
 	return refs
@@ -1303,16 +1127,6 @@ def _create_bible_verses(church):
 
 def _create_bible_references(verses, church):
 	"""Create sample Bible references."""
-<<<<<<< Updated upstream
-	kjv = _lookup("Bible Translation", "translation", "King James Version")
-	esv = _lookup("Bible Translation", "translation", "English Standard Version")
-	niv = _lookup("Bible Translation", "translation", "New International Version")
-	nkjv = _lookup("Bible Translation", "translation", "New King James Version")
-	references = [
-		{
-			"start_verse": verses["John 3:16"],
-			"translation": kjv,
-=======
 	_tr = {
 		t: _resolve_link("Bible Translation", "translation", t, church)
 		for t in (
@@ -1326,7 +1140,6 @@ def _create_bible_references(verses, church):
 		{
 			"start_verse": verses["John 3:16"],
 			"translation": _tr["King James Version"],
->>>>>>> Stashed changes
 			"reference_text": (
 				"For God so loved the world, that he gave his only begotten Son, "
 				"that whosoever believeth in him should not perish, but have "
@@ -1335,11 +1148,7 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Romans 8:28"],
-<<<<<<< Updated upstream
-			"translation": esv,
-=======
 			"translation": _tr["English Standard Version"],
->>>>>>> Stashed changes
 			"reference_text": (
 				"And we know that for those who love God all things work together "
 				"for good, for those who are called according to his purpose."
@@ -1348,11 +1157,7 @@ def _create_bible_references(verses, church):
 		{
 			"start_verse": verses["Psalms 23:1"],
 			"end_verse": verses["Psalms 23:6"],
-<<<<<<< Updated upstream
-			"translation": kjv,
-=======
 			"translation": _tr["King James Version"],
->>>>>>> Stashed changes
 			"reference_text": (
 				"The LORD is my shepherd; I shall not want. He maketh me to lie "
 				"down in green pastures: he leadeth me beside the still waters. "
@@ -1367,11 +1172,7 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Jeremiah 29:11"],
-<<<<<<< Updated upstream
-			"translation": niv,
-=======
 			"translation": _tr["New International Version"],
->>>>>>> Stashed changes
 			"reference_text": (
 				"For I know the plans I have for you, declares the LORD, plans to "
 				"prosper you and not to harm you, plans to give you hope and a future."
@@ -1379,15 +1180,8 @@ def _create_bible_references(verses, church):
 		},
 		{
 			"start_verse": verses["Philippians 4:13"],
-<<<<<<< Updated upstream
-			"translation": nkjv,
-			"reference_text": (
-				"I can do all things through Christ who strengthens me."
-			),
-=======
 			"translation": _tr["New King James Version"],
 			"reference_text": ("I can do all things through Christ who strengthens me."),
->>>>>>> Stashed changes
 		},
 	]
 	# Belief-supporting references (no text — just verse pointers)
@@ -1562,13 +1356,9 @@ def _create_beliefs(church, verses):
 			if not verse_hash:
 				continue
 			ref_name = frappe.db.get_value(
-<<<<<<< Updated upstream
-				"Bible Reference", {"start_verse": verse_hash}, "name",
-=======
 				"Bible Reference",
 				{"start_verse": verse_name},
 				"name",
->>>>>>> Stashed changes
 			)
 			if ref_name:
 				ref_rows.append({"reference": ref_name})
@@ -1593,14 +1383,7 @@ def _create_group_roles(church):
 	"""Create sample group roles and return dict mapping role → name."""
 	refs = {}
 	for role_name in ("Leader", "Member"):
-<<<<<<< Updated upstream
-		name = _insert_if_missing(
-			"Group Role", {"role": role_name, "church": church},
-			church=church, role=role_name,
-		)
-=======
 		name = _insert_if_missing("Group Role", {"role": role_name, "church": church}, church=church, role=role_name)
->>>>>>> Stashed changes
 		refs[role_name] = name
 	return refs
 
@@ -1739,19 +1522,6 @@ def _create_fund_transfers(church, funds):
 def _create_prayers(church, people):
 	"""Create sample prayers with topics linking to existing Prayer Requests."""
 	# Look up Prayer Request names by their unique attributes
-<<<<<<< Updated upstream
-	health_type = _lookup("Prayer Request Type", "type", "Health")
-	salvation_type = _lookup("Prayer Request Type", "type", "Salvation")
-	praise_type = _lookup("Prayer Request Type", "type", "Praise")
-	pr_wilson = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Sarah Wilson"], "type": health_type}, "name",
-	)
-	pr_samuel = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Rachel Cooper"], "type": salvation_type}, "name",
-	)
-	pr_praise = frappe.db.get_value(
-		"Prayer Request", {"church": church, "requestor": people["Mary Johnson"], "type": praise_type}, "name",
-=======
 	# type field stores hash names, so resolve first
 	_prt = {
 		t: _resolve_link("Prayer Request Type", "type", t, church)
@@ -1771,7 +1541,6 @@ def _create_prayers(church, people):
 		"Prayer Request",
 		{"church": church, "requestor": people["Mary Johnson"], "type": _prt["Praise"]},
 		"name",
->>>>>>> Stashed changes
 	)
 
 	prayers = [
