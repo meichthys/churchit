@@ -378,8 +378,8 @@ body {
 ═════════════════════════════════════════════════════════════ -->
 {% set ns = namespace(current_letter='') %}
 {% for entry in all_entries %}
-    {% set first_letter = (entry.sort_name[0] if entry.sort_name else '#').upper() %}
-    {% if first_letter != ns.current_letter %}
+    {% set first_letter = (entry.sort_name[0] if entry.sort_name else '').upper() %}
+    {% if first_letter and first_letter != ns.current_letter %}
         {% set ns.current_letter = first_letter %}
         <div class="alpha-divider">{{ first_letter }}</div>
     {% endif %}

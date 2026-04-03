@@ -1357,7 +1357,7 @@ def _create_beliefs(church, verses):
 				continue
 			ref_name = frappe.db.get_value(
 				"Bible Reference",
-				{"start_verse": verse_name},
+				{"start_verse": verse_hash},
 				"name",
 			)
 			if ref_name:

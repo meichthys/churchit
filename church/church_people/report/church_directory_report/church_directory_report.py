@@ -6,15 +6,19 @@ import os
 import frappe
 from frappe.utils import today as frappe_today
 
-from church.utils import build_in_clause, get_church_scope
+from church.utils import build_in_clause, get_church_scope, set_report_link_titles
 
 
 def execute(filters=None):
 	group_by_family = frappe.utils.cint((filters or {}).get("group_by_family", 1))
 	if group_by_family:
-		return get_columns(), get_data(filters)
+		columns = get_columns()
+		data = get_data(filters)
 	else:
-		return get_individual_columns(), get_individual_data(filters)
+		columns = get_individual_columns()
+		data = get_individual_data(filters)
+	set_report_link_titles(columns, data)
+	return columns, data
 
 
 def get_columns():

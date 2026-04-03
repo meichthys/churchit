@@ -1,4 +1,5 @@
 frappe.query_reports["Church Directory Report"] = {
+	hide_name_column: true,
 	filters: [
 		{
 			fieldname: "church",
@@ -76,8 +77,8 @@ frappe.query_reports["Church Directory Report"] = {
 			report.set_filter_value("church", default_church);
 		}
 
-		church._get_church_count().then(count => {
-			report.page.fields_dict.church.toggle(count > 1);
+		church._get_churches().then(churches => {
+			report.page.fields_dict.church.toggle(churches.length > 1);
 		});
 
 		report.page.add_inner_button(__('Print Directory'), function () {

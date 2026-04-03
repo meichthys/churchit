@@ -1,6 +1,50 @@
 import frappe
 
-CHURCH_COLUMN = {"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 150}
+CHURCH_COLUMN = {
+	"fieldname": "church",
+	"fieldtype": "Link",
+	"label": "Church",
+	"options": "Church",
+	"width": 150,
+}
+
+
+def set_report_link_titles(columns, data):
+	"""Replace hash names with title field values in report data for Link columns."""
+	if not data:
+		return
+
+	for i, col in enumerate(columns):
+		if col.get("fieldtype") != "Link" or not col.get("options"):
+			continue
+
+		doctype = col["options"]
+		fieldname = col["fieldname"]
+		meta = frappe.get_meta(doctype)
+		if not meta.title_field:
+			continue
+
+		names = {row.get(fieldname) for row in data if row.get(fieldname)}
+		if not names:
+			continue
+
+		title_map = dict(
+			frappe.get_all(
+				doctype,
+				filters={"name": ("in", list(names))},
+				fields=["name", meta.title_field],
+				as_list=True,
+			)
+		)
+
+		# Replace the column with a Data copy so we don't mutate shared constants
+		columns[i] = {k: v for k, v in col.items() if k != "options"}
+		columns[i]["fieldtype"] = "Data"
+
+		for row in data:
+			name = row.get(fieldname)
+			if name and name in title_map:
+				row[fieldname] = title_map[name]
 
 
 def show_church_column(filters):

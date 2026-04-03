@@ -1,8 +1,13 @@
 import frappe
 
+from church.utils import set_report_link_titles
+
 
 def execute(filters=None):
-	return get_columns(), get_data()
+	columns = get_columns()
+	data = get_data()
+	set_report_link_titles(columns, data)
+	return columns, data
 
 
 def get_columns():

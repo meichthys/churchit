@@ -8,7 +8,7 @@ from frappe.utils import get_link_to_form
 
 class Expense(Document):
 	def before_save(self):
-		parts = [self.type or "", str(self.date or "")]
+		parts = [frappe.get_value("Expense Type", self.type, "type") or "", str(self.date or "")]
 		self.title = " - ".join(p for p in parts if p)
 
 	def before_delete(self):

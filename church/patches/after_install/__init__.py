@@ -10,6 +10,7 @@ import os
 
 import frappe
 
+# We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
 
 
@@ -86,6 +87,8 @@ def _create_default_church():
 	"""
 	existing_root = frappe.db.get_value("Church", {"parent_church": ("is", "not set")}, "name")
 	if existing_root:
+		# Set admin's default church to the root church
+		frappe.set_value("User", "Administrator", "church", existing_root)
 		return existing_root
 
 	doc = frappe.get_doc(
@@ -95,6 +98,8 @@ def _create_default_church():
 			"abbreviation": "MC",
 		}
 	).insert(ignore_permissions=True)
+	# Set admin's default church to the default church
+	frappe.set_value("User", "Administrator", "church", doc.name)
 	return doc.name
 
 
