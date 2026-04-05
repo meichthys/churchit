@@ -1,20 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FSU-{####}",
- "creation": "2026-03-23 00:00:00.000000",
+ "autoname": "hash",
+ "creation": "2026-03-23 00:00:00",
  "description": "A sign-up record indicating a person's intent to attend a church function.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "church",
   "function",
-  "column_break_abcd",
   "person",
-  "attending"
+  "attending",
+  "column_break_abcd"
  ],
  "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
   {
    "fieldname": "church",
    "fieldtype": "Link",
@@ -26,11 +35,13 @@
    "search_index": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "function",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Function",
+   "link_filters": "[[\"Function\",\"allow_sign_ups\",\"=\",1]]",
    "options": "Function",
    "reqd": 1,
    "search_index": 1
@@ -40,6 +51,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "person",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -50,6 +62,7 @@
    "search_index": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "1",
    "description": "Check this if you plan to attend this function.",
    "fieldname": "attending",
@@ -60,11 +73,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-23 21:00:00.000000",
+ "modified": "2026-04-04 17:32:15.357686",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign Up",
- "naming_rule": "By \"Autoname\" field",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -103,8 +116,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
+ "title_field": "title",
  "track_changes": 1
 }

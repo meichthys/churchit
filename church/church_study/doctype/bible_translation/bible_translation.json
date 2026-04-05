@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:translation",
+ "autoname": "hash",
  "creation": "2025-09-17 23:06:44.746941",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",
@@ -50,7 +50,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Translation",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -82,5 +82,7 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "translation"
 }

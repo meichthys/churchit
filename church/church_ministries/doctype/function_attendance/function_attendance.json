@@ -23,7 +23,6 @@
    "reqd": 1
   },
   {
-   "default": "Confirmed",
    "fieldname": "attendance_type",
    "fieldtype": "Link",
    "in_list_view": 1,

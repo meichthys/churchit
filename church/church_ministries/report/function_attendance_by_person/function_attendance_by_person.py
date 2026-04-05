@@ -1,10 +1,13 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, show_church_column
+from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
 
 
 def execute(filters=None):
-	return get_columns(filters), get_data(filters)
+	columns = get_columns(filters)
+	data = get_data(filters)
+	set_report_link_titles(columns, data)
+	return columns, data
 
 
 def get_columns(filters=None):
@@ -56,7 +59,9 @@ def get_data(filters=None):
 			`tabFunction Attendance`.attendance_type
 		FROM `tabFunction Attendance`
 		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
-		WHERE `tabFunction Attendance`.attendance_type IN ('Assumed', 'Confirmed')
+		WHERE `tabFunction Attendance`.attendance_type IN (
+				SELECT name FROM `tabFunction Attendance Type` WHERE type IN ('Assumed', 'Confirmed')
+			)
 			{conditions}
 		ORDER BY `tabFunction`.start_date DESC, `tabFunction Attendance`.person
 		""",

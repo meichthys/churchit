@@ -1,22 +1,35 @@
+import json
+
 import frappe
+
+from church.utils import resolve_link_titles, setup_web_form_church_field
 
 
 def get_context(context):
+	setup_web_form_church_field(context)
+	if context.get("reference_doc"):
+		resolve_link_titles([context.reference_doc], "Function Sign Up")
 	sign_up_functions = set(
 		frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name")
 	)
 	context.has_sign_up_functions = bool(sign_up_functions)
 
-	# Filter the Function autocomplete options to only show functions with sign-ups enabled
+	# Filter the Function autocomplete options to only show functions with sign-ups enabled.
+	# Options may be a JSON string of [{value, label}] objects (when show_title_field_in_link
+	# is set) or a newline-separated string of names.
 	for field in context.get("web_form_doc", {}).get("web_form_fields", []):
 		if field.fieldname == "function":
-			if isinstance(field.options, str):
-				options = field.options.split("\n")
-			else:
-				options = field.options or []
-			field.options = "\n".join(
-				opt for opt in options if opt in sign_up_functions
-			)
+			try:
+				options = json.loads(field.options)
+				field.options = json.dumps(
+					[opt for opt in options if opt.get("value") in sign_up_functions],
+					default=str,
+				)
+			except (json.JSONDecodeError, TypeError, AttributeError):
+				options = (field.options or "").split("\n")
+				field.options = "\n".join(
+					opt for opt in options if opt in sign_up_functions
+				)
 			break
 
 

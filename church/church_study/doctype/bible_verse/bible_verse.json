@@ -9,6 +9,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "church",
   "reference",
   "book",
@@ -16,6 +17,13 @@
   "verse"
  ],
  "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "book",
@@ -88,6 +96,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Verse",
+ "autoname": "hash",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -126,7 +135,8 @@
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "show_title_field_in_link": 1,
  "states": [],
- "title_field": "reference",
+ "title_field": "title",
  "track_views": 1
 }

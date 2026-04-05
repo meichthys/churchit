@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:Song {#}",
+ "autoname": "hash",
  "creation": "2025-10-10 22:36:42.168218",
  "description": "A song sung by the Church as part of worship or a `Function`",
  "doctype": "DocType",
@@ -70,7 +70,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",
- "naming_rule": "Expression",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

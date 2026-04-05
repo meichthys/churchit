@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "autoincrement",
  "creation": "2026-03-20 00:00:00.000000",
  "description": "A member of a Group, with an optional role.",
  "doctype": "DocType",
@@ -37,7 +36,6 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group Member",
- "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

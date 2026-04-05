@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:status",
+ "autoname": "hash",
  "creation": "2025-09-13 00:46:26.348653",
  "description": "The state of a prayer request. (i.e. Requested, Answered, etc)",
  "doctype": "DocType",
@@ -45,7 +45,7 @@
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request Status",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -78,5 +78,7 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "status"
 }

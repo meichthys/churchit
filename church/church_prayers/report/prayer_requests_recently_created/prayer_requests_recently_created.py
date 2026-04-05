@@ -1,10 +1,13 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, show_church_column
+from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
 
 
 def execute(filters=None):
-	return get_columns(filters), get_data(filters)
+	columns = get_columns(filters)
+	data = get_data(filters)
+	set_report_link_titles(columns, data)
+	return columns, data
 
 
 def get_columns(filters=None):

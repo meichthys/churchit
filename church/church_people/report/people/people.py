@@ -1,10 +1,13 @@
 import frappe
 
-from church.utils import get_church_condition
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
-	return get_columns(), get_data(filters)
+	columns = get_columns()
+	data = get_data(filters)
+	set_report_link_titles(columns, data)
+	return columns, data
 
 
 def get_columns():
@@ -54,12 +57,13 @@ def get_data(filters=None):
 		SELECT
 			`tabPerson`.name, full_name, `tabPerson`.church, is_member, membership_status,
 			is_baptized, `tabPerson`.family, `tabFamily`.family_name, birthday,
-			GROUP_CONCAT(DISTINCT `tabPosition`.position ORDER BY `tabPosition`.position SEPARATOR ', ') as roles
+			GROUP_CONCAT(DISTINCT `tabPosition Type`.position ORDER BY `tabPosition Type`.position SEPARATOR ', ') as roles
 		FROM `tabPerson`
 		LEFT JOIN `tabFamily` ON `tabFamily`.name = `tabPerson`.family
 		LEFT JOIN `tabPosition` ON `tabPosition`.parent = `tabPerson`.name
 			AND `tabPosition`.parenttype = 'Person'
 			AND (`tabPosition`.end_date IS NULL OR `tabPosition`.end_date >= CURDATE())
+		LEFT JOIN `tabPosition Type` ON `tabPosition Type`.name = `tabPosition`.position
 		WHERE 1=1
 			{conditions}
 		GROUP BY `tabPerson`.name

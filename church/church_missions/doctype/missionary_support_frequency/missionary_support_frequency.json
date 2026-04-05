@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:frequency",
+ "autoname": "hash",
  "creation": "2025-10-02 21:51:33.814292",
  "description": "How often `Missionary` support is given",
  "doctype": "DocType",
@@ -49,7 +49,7 @@
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Support Frequency",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -81,5 +81,7 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "frequency"
 }

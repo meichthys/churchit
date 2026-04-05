@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:role",
+ "autoname": "hash",
  "creation": "2026-03-20 00:00:00.000000",
  "description": "Roles that members can have within a Group (e.g. Leader, Co-Leader, Member, Secretary, etc.)",
  "doctype": "DocType",
@@ -42,7 +42,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group Role",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

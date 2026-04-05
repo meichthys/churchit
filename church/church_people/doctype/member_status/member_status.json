@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:status",
+ "autoname": "hash",
  "creation": "2025-08-25 22:44:34.512827",
  "description": "Status type of the `Church Member` as defined by the church.",
  "doctype": "DocType",
@@ -49,7 +49,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Status",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -82,6 +82,7 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "show_title_field_in_link": 1,
  "states": [],
  "title_field": "status"
 }

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:agency_name",
+ "autoname": "hash",
  "creation": "2025-10-02 22:14:45.520951",
  "description": "Missionary support entities that aid in the sending of missionaries",
  "doctype": "DocType",
@@ -98,7 +98,7 @@
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

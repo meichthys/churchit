@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:type",
+ "autoname": "hash",
  "creation": "2025-08-31 23:41:14.325452",
  "description": "Types of church functions (i.e. Sunday services, community functions, private functions, etc.)",
  "doctype": "DocType",
@@ -68,7 +68,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

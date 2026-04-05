@@ -8,7 +8,7 @@
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
-  "reference",
+  "title",
   "start_verse",
   "end_verse",
   "column_break_fdwn",
@@ -19,6 +19,13 @@
   "reference_text"
  ],
  "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
   {
    "fieldname": "start_verse",
    "fieldtype": "Link",
@@ -99,6 +106,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Reference",
+ "autoname": "hash",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -134,5 +142,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "reference"
+ "title_field": "title"
 }

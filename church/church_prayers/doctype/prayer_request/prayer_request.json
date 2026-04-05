@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "format:Prayer Request {#}",
+ "autoname": "hash",
  "creation": "2025-09-13 00:16:52.698863",
  "description": "A request for prayer from (or for) a `Person`.",
  "doctype": "DocType",
@@ -138,7 +138,7 @@
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
- "naming_rule": "Expression",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

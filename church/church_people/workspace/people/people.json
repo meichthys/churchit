@@ -148,7 +148,7 @@
    "is_query_report": 1,
    "label": "Birthdays (This Week)",
    "link_count": 0,
-   "link_to": "Person Birthdays (This Week)",
+   "link_to": "Person Birthdays This Week",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"

@@ -50,6 +50,9 @@ church.setup_church_report = function(report) {
 		report.set_filter_value("church", default_church);
 	}
 	church._get_churches().then(churches => {
+		if (!default_church && churches.length >= 1) {
+			report.set_filter_value("church", churches[0].name);
+		}
 		if (churches.length <= 1) {
 			if (report.page.fields_dict.church) {
 				report.page.fields_dict.church.toggle(false);

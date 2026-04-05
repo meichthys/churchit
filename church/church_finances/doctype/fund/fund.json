@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FUND-{####}",
+ "autoname": "hash",
  "creation": "2025-09-02 01:11:30.383380",
  "description": "Financial funds of the church (i.e. General, Trust, etc).",
  "doctype": "DocType",
@@ -91,7 +91,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",
- "naming_rule": "Expression",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

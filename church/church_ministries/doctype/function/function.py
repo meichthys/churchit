@@ -8,23 +8,6 @@ from frappe.model.document import Document
 class Function(Document):
 	pass
 
-	def autoname(self):
-		name = self.get_name()
-		if not frappe.db.exists("Function", self.name):
-			self.name = name
-			return
-		else:
-			if self.name != self.get_name():
-				frappe.rename_doc("Function", self.name, name)
-
-	def get_name(self):
-		"""Constructs the document name"""
-		return f"{self.start_date} ({self.type}) - {self.function_name}"
-
-	def on_update(self):
-		# Rename document when updating
-		self.autoname()
-
 
 @frappe.whitelist()
 def apply_template(source_name):

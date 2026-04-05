@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "autoincrement",
  "creation": "2025-08-26 22:42:20.029649",
  "description": "`Person` roles in the church.",
  "doctype": "DocType",
@@ -54,7 +53,6 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position",
- "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

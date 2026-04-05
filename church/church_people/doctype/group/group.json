@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format: {group_name} - {church}",
+ "autoname": "hash",
  "creation": "2026-03-19 18:42:32.635733",
  "description": "A collection of people with a related purpose (e.g. Sunday School class, ministry, small group, committee, etc.)",
  "doctype": "DocType",
@@ -132,7 +132,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
- "naming_rule": "Expression",
+ "naming_rule": "Random",
  "nsm_parent_field": "parent_group",
  "owner": "Administrator",
  "permissions": [
@@ -164,7 +164,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "group_name"
 }

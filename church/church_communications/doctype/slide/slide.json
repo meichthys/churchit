@@ -1,7 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": "format:Slide {#}",
  "creation": "2025-10-10 22:47:37.269992",
  "description": "A presentation slide to be displayed in the Church",
  "doctype": "DocType",
@@ -34,7 +32,6 @@
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Slide",
- "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:title",
+ "autoname": "hash",
  "creation": "2026-02-26 01:02:02.489497",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -99,7 +99,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -131,5 +131,7 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "title"
 }
