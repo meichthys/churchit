@@ -1,5 +1,7 @@
 import frappe
 
+from church.utils import setup_web_form_church_field
+
+
 def get_context(context):
-	# do your magic here
-	pass
+	setup_web_form_church_field(context)

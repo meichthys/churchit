@@ -47,6 +47,19 @@ def set_report_link_titles(columns, data):
 				row[fieldname] = title_map[name]
 
 
+def setup_web_form_church_field(context):
+	"""If only one church exists, default its value and hide the field on web forms."""
+	churches = frappe.get_all("Church", fields=["name"], limit=2)
+	if len(churches) != 1:
+		return
+	church = churches[0].name
+	for field in context.get("web_form_doc", {}).get("web_form_fields", []):
+		if field.fieldname == "church":
+			field.default = church
+			field.hidden = 1
+			break
+
+
 def resolve_link_titles(rows, doctype):
 	"""Replace hash link values with their title field values in-place.
 
