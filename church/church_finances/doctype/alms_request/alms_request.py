@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from church.utils import resolve_link_titles
+
 
 class AlmsRequest(Document):
 	def before_save(self):
@@ -33,8 +35,15 @@ def create_expense(alms_request_name):
 
 
 def get_list_context(context):
-	# Only show documents created by active user
 	context.filters = {"owner": frappe.session.user}
-	# Sort the portal list view by status descending
 	context.order_by = "modified desc"
+
+	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
+		from frappe.www.list import get_list as default_get_list
+
+		rows = default_get_list(doctype, txt, filters, limit_start, limit_page_length, **kwargs)
+		resolve_link_titles(rows, doctype)
+		return rows
+
+	context.get_list = get_list
 	return context
