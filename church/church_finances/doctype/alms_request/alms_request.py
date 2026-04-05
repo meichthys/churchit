@@ -9,7 +9,16 @@ from church.utils import resolve_link_titles
 
 class AlmsRequest(Document):
 	def before_save(self):
-		parts = [self.recipient or "", str(self.amount or ""), self.status or ""]
+		# Set the alms request title
+		recipient_label = self.recipient or ""
+		if self.recipient and self.recipient_type:
+			meta = frappe.get_meta(self.recipient_type)
+			if meta.title_field:
+				recipient_label = (
+					frappe.db.get_value(self.recipient_type, self.recipient, meta.title_field)
+					or self.recipient
+				)
+		parts = [recipient_label, str(self.amount or ""), self.status or ""]
 		self.title = " - ".join(p for p in parts if p)
 
 
