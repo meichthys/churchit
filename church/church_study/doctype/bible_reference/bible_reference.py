@@ -6,15 +6,17 @@ from frappe.model.document import Document
 
 
 class BibleReference(Document):
-	def before_save(self):
-		if self.start_verse and self.end_verse:
-			ref = f"{self.start_verse} - {self.end_verse}"
-		elif self.start_verse:
-			ref = str(self.start_verse)
-		else:
-			ref = ""
-		if self.translation:
-			abbr = frappe.db.get_value("Bible Translation", self.translation, "abbreviation")
-			self.title = f"{ref} ({abbr})"
-		else:
-			self.title = ref
+	pass
+
+	def validate(self):
+		self.reference = self.compute_reference()
+
+	def compute_reference(self):
+		# Determine the translation text to display based on the abbreviation of the Bible Translation
+		abbr = frappe.db.get_value("Bible Translation", self.translation, "abbreviation")
+		translation_text = f" ({abbr})" if abbr else ""
+		end_verse_text = (
+			f" - {self.end_verse}" if self.end_verse and self.end_verse != self.start_verse else ""
+		)
+
+		return f"{self.start_verse}{end_verse_text}{translation_text}"

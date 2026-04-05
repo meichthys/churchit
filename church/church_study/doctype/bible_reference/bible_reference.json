@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2025-10-27 22:53:12.954122",
  "description": "A Bible reverence to a single verse or range of verses along with optional Translation and verse text. i.e. Matthew 10:18 (BSB)",
  "doctype": "DocType",
@@ -83,6 +84,13 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Reference Text"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Reference"
   }
  ],
  "grid_page_length": 50,
@@ -94,7 +102,7 @@
    "table_fieldname": "bible_references"
   }
  ],
- "modified": "2026-01-11 23:23:16.779117",
+ "modified": "2026-03-31 18:45:52.744003",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Reference",
