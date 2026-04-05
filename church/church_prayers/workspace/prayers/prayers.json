@@ -16,35 +16,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Prayer Request Reports",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Recently Created",
-   "link_count": 0,
-   "link_to": "Prayer Requests: Recently Created",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Recently Answered",
-   "link_count": 0,
-   "link_to": "Prayer Requests: Recently Answered",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Prayer Request Documents",
    "link_count": 4,
    "link_type": "DocType",
@@ -90,9 +61,38 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Prayer Request Reports",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Recently Created",
+   "link_count": 0,
+   "link_to": "Prayer Requests: Recently Created",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Recently Answered",
+   "link_count": 0,
+   "link_to": "Prayer Requests: Recently Answered",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.303158",
+ "modified": "2026-04-04 16:47:54.769538",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",
