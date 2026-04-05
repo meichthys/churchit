@@ -13,6 +13,16 @@ class Church(NestedSet):
 		if not self.parent_church:
 			self.is_group = 1
 
+	def on_trash(self):
+		if not self.parent_church:
+			frappe.throw(
+				_(
+					"The root church cannot be deleted. If you'd like to change it, "
+					"please update the Church Name field instead."
+				)
+			)
+		super().on_trash()
+
 	def validate(self):
 		if not self.parent_church:
 			existing_root = frappe.db.get_value(
