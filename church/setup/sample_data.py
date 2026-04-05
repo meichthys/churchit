@@ -9,6 +9,7 @@ All inserts are idempotent — safe to run more than once on the same site.
 """
 
 import frappe
+from frappe.utils import getdate, add_days, add_months
 
 from church.patches.after_install import DEFAULT_CHURCH_NAME
 
@@ -141,6 +142,24 @@ def delete_sample_data():
 # ---------------------------------------------------------------------------
 
 
+def _birthday_this_week(day_offset, birth_year):
+	"""Return a birthday (as string) whose month/day falls *day_offset* days
+	from today, but in *birth_year*.  This guarantees the person shows up in
+	the 'Birthdays This Week' report when sample data is created."""
+	target = add_days(getdate(), day_offset)
+	return str(target.replace(year=birth_year))
+
+
+def _near_date(day_offset):
+	"""Return a date string *day_offset* days from today (negative = past)."""
+	return str(add_days(getdate(), day_offset))
+
+
+def _near_datetime(day_offset, time="10:00:00"):
+	"""Return a datetime string *day_offset* days from today with given time."""
+	return f"{_near_date(day_offset)} {time}"
+
+
 def _insert_if_missing(doctype, filters, **fields):
 	"""Insert a record only if it does not already exist.
 
@@ -161,18 +180,18 @@ def _resolve_link(doctype, title_field, value, church):
 
 
 def _delete_docs(doctype, filters):
-	"""Delete all docs matching *filters*."""
+	"""Delete all docs matching *filters* permanently."""
 	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
-		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
 
 
 def _delete_submittable_docs(doctype, filters):
-	"""Cancel and delete submittable docs matching *filters*."""
+	"""Cancel and delete submittable docs matching *filters* permanently."""
 	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
 		doc = frappe.get_doc(doctype, name)
 		if doc.docstatus == 1:
 			doc.cancel()
-		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
 
 
 # ---------------------------------------------------------------------------
@@ -181,179 +200,191 @@ def _delete_submittable_docs(doctype, filters):
 
 # Each tuple: (first, last, gender, is_member, membership_date, is_baptized,
 #               baptism_date, birthday, phone, email, positions, allergies)
-_PEOPLE = [
-	(
-		"James",
-		"Wilson",
-		"Male",
-		1,
-		"1990-03-12",
-		1,
-		"1988-07-04",
-		"1962-11-08",
-		"+1 202-555-0101",
-		"james.wilson@example.com",
-		[{"position": "Pastor", "start_date": "1995-01-01"}],
-		None,
-	),
-	(
-		"Sarah",
-		"Wilson",
-		"Female",
-		1,
-		"1991-01-20",
-		1,
-		"1989-04-10",
-		"1964-03-22",
-		"+1 202-555-0102",
-		"sarah.wilson@example.com",
-		[],
-		None,
-	),
-	(
-		"Robert",
-		"Johnson",
-		"Male",
-		1,
-		"1998-09-05",
-		1,
-		"1997-12-25",
-		"1970-07-14",
-		"+1 202-555-0201",
-		"robert.johnson@example.com",
-		[{"position": "Elder", "start_date": "2005-01-01"}],
-		None,
-	),
-	(
-		"Mary",
-		"Johnson",
-		"Female",
-		1,
-		"1999-02-14",
-		1,
-		"1998-04-12",
-		"1972-09-30",
-		"+1 202-555-0202",
-		"mary.johnson@example.com",
-		[],
-		"Tree nuts",
-	),
-	(
-		"David",
-		"Thompson",
-		"Male",
-		1,
-		"2005-05-20",
-		1,
-		"2004-09-15",
-		"1980-01-25",
-		"+1 202-555-0301",
-		"david.thompson@example.com",
-		[{"position": "Deacon", "start_date": "2010-01-01"}],
-		None,
-	),
-	(
-		"Lisa",
-		"Thompson",
-		"Female",
-		1,
-		"2006-01-08",
-		1,
-		"2005-06-20",
-		"1982-12-03",
-		"+1 202-555-0302",
-		"lisa.thompson@example.com",
-		[],
-		None,
-	),
-	(
-		"Martha",
-		"Evans",
-		"Female",
-		1,
-		"2000-04-16",
-		1,
-		"1999-08-22",
-		"1975-05-11",
-		"+1 202-555-0401",
-		"martha.evans@example.com",
-		[
-			{"position": "Secretary", "start_date": "2008-01-01"},
-			{"position": "Treasurer", "start_date": "2010-01-01"},
-		],
-		None,
-	),
-	(
-		"Thomas",
-		"Reed",
-		"Male",
-		1,
-		"2010-11-01",
-		1,
-		"2010-04-17",
-		"1988-08-19",
-		"+1 202-555-0501",
-		"thomas.reed@example.com",
-		[],
-		None,
-	),
-	(
-		"Rachel",
-		"Cooper",
-		"Female",
-		1,
-		"2015-06-22",
-		1,
-		"2015-01-05",
-		"1992-02-28",
-		"+1 202-555-0601",
-		"rachel.cooper@example.com",
-		[],
-		"Shellfish",
-	),
-	(
-		"Michael",
-		"Grant",
-		"Male",
-		1,
-		"2002-03-10",
-		1,
-		"2001-07-20",
-		"1978-10-05",
-		"+1 202-555-0701",
-		"michael.grant@example.com",
-		[],
-		None,
-	),
-	(
-		"Elizabeth",
-		"Harper",
-		"Female",
-		1,
-		"2008-08-18",
-		1,
-		"2007-12-25",
-		"1985-04-17",
-		"+1 202-555-0801",
-		"elizabeth.harper@example.com",
-		[],
-		None,
-	),
-	(
-		"Samuel",
-		"Brooks",
-		"Male",
-		0,
-		None,
-		0,
-		None,
-		"1995-06-30",
-		"+1 202-555-0901",
-		"samuel.brooks@example.com",
-		[],
-		None,
-	),
-]
+#
+# Birthdays and position dates are computed dynamically so that reports like
+# "Birthdays This Week" always have data regardless of when sample data is
+# created.  The helper ``_birthday_this_week(offset, year)`` places the
+# birthday *offset* days from today but in the given birth year.
+
+
+def _build_people():
+	"""Return the _PEOPLE list with dynamic dates."""
+	return [
+		(
+			"James",
+			"Wilson",
+			"Male",
+			1,
+			"1990-03-12",
+			1,
+			"1988-07-04",
+			"1962-11-08",
+			"+1 202-555-0101",
+			"james.wilson@example.com",
+			[{"position": "Pastor", "start_date": "1995-01-01"}],
+			None,
+		),
+		(
+			"Sarah",
+			"Wilson",
+			"Female",
+			1,
+			"1991-01-20",
+			1,
+			"1989-04-10",
+			_birthday_this_week(0, 1964),  # birthday today
+			"+1 202-555-0102",
+			"sarah.wilson@example.com",
+			[],
+			None,
+		),
+		(
+			"Robert",
+			"Johnson",
+			"Male",
+			1,
+			"1998-09-05",
+			1,
+			"1997-12-25",
+			"1970-07-14",
+			"+1 202-555-0201",
+			"robert.johnson@example.com",
+			[{"position": "Elder", "start_date": "2005-01-01"}],
+			None,
+		),
+		(
+			"Mary",
+			"Johnson",
+			"Female",
+			1,
+			"1999-02-14",
+			1,
+			"1998-04-12",
+			"1972-09-30",
+			"+1 202-555-0202",
+			"mary.johnson@example.com",
+			[],
+			"Tree nuts",
+		),
+		(
+			"David",
+			"Thompson",
+			"Male",
+			1,
+			"2005-05-20",
+			1,
+			"2004-09-15",
+			_birthday_this_week(2, 1980),  # birthday in 2 days
+			"+1 202-555-0301",
+			"david.thompson@example.com",
+			[
+				{"position": "Deacon", "start_date": "2010-01-01",
+				 "end_date": str(add_months(getdate(), 1))},
+			],
+			None,
+		),
+		(
+			"Lisa",
+			"Thompson",
+			"Female",
+			1,
+			"2006-01-08",
+			1,
+			"2005-06-20",
+			"1982-12-03",
+			"+1 202-555-0302",
+			"lisa.thompson@example.com",
+			[],
+			None,
+		),
+		(
+			"Martha",
+			"Evans",
+			"Female",
+			1,
+			"2000-04-16",
+			1,
+			"1999-08-22",
+			"1975-05-11",
+			"+1 202-555-0401",
+			"martha.evans@example.com",
+			[
+				{"position": "Secretary", "start_date": "2008-01-01"},
+				{"position": "Treasurer", "start_date": "2010-01-01"},
+			],
+			None,
+		),
+		(
+			"Thomas",
+			"Reed",
+			"Male",
+			1,
+			"2010-11-01",
+			1,
+			"2010-04-17",
+			"1988-08-19",
+			"+1 202-555-0501",
+			"thomas.reed@example.com",
+			[],
+			None,
+		),
+		(
+			"Rachel",
+			"Cooper",
+			"Female",
+			1,
+			"2015-06-22",
+			1,
+			"2015-01-05",
+			"1992-02-28",
+			"+1 202-555-0601",
+			"rachel.cooper@example.com",
+			[],
+			"Shellfish",
+		),
+		(
+			"Michael",
+			"Grant",
+			"Male",
+			1,
+			"2002-03-10",
+			1,
+			"2001-07-20",
+			"1978-10-05",
+			"+1 202-555-0701",
+			"michael.grant@example.com",
+			[],
+			None,
+		),
+		(
+			"Elizabeth",
+			"Harper",
+			"Female",
+			1,
+			"2008-08-18",
+			1,
+			"2007-12-25",
+			_birthday_this_week(3, 1985),  # birthday in 3 days
+			"+1 202-555-0801",
+			"elizabeth.harper@example.com",
+			[],
+			None,
+		),
+		(
+			"Samuel",
+			"Brooks",
+			"Male",
+			0,
+			None,
+			0,
+			None,
+			"1995-06-30",
+			"+1 202-555-0901",
+			"samuel.brooks@example.com",
+			[],
+			None,
+		),
+	]
 
 # ---------------------------------------------------------------------------
 # Positions
@@ -403,7 +434,7 @@ def _create_people(church, position_refs):
 		email,
 		positions,
 		allergies,
-	) in _PEOPLE:
+	) in _build_people():
 		key = f"{first} {last}"
 		existing = frappe.db.get_value(
 			"Person",
@@ -479,7 +510,7 @@ def _create_church_manager_user(church, people):
 def _delete_church_manager_user():
 	"""Remove the sample Church Manager user."""
 	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		frappe.delete_doc("User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True)
+		frappe.delete_doc("User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True, delete_permanently=True)
 
 
 # ---------------------------------------------------------------------------
@@ -741,7 +772,7 @@ def _create_collections(church, people, funds):
 	cash = _resolve_link("Payment Type", "type", "Cash", church)
 	collections = [
 		{
-			"date": "2025-12-01 10:30:00",
+			"date": _near_datetime(-7, "10:30:00"),
 			"notes": "Regular Sunday morning offering.",
 			"donations": [
 				{
@@ -789,7 +820,7 @@ def _create_collections(church, people, funds):
 			],
 		},
 		{
-			"date": "2025-12-08 10:30:00",
+			"date": _near_datetime(0, "10:30:00"),
 			"notes": "Sunday offering — missions emphasis week.",
 			"donations": [
 				{
@@ -858,19 +889,19 @@ def _create_expenses(church, expense_types):
 		{
 			"type": expense_types["Electric"],
 			"amount": 245.50,
-			"date": "2025-12-05 00:00:00",
-			"notes": "December electric bill.",
+			"date": _near_datetime(-5),
+			"notes": "Monthly electric bill.",
 		},
 		{
 			"type": expense_types["Water"],
 			"amount": 62.00,
-			"date": "2025-12-05 00:00:00",
-			"notes": "December water bill.",
+			"date": _near_datetime(-5),
+			"notes": "Monthly water bill.",
 		},
 		{
 			"type": expense_types["Office Supplies"],
 			"amount": 89.99,
-			"date": "2025-12-10 00:00:00",
+			"date": _near_datetime(-2),
 			"notes": "Printer paper and toner cartridges.",
 		},
 	]
@@ -1013,7 +1044,7 @@ def _create_functions(church):
 		{
 			"function_name": "Sunday Worship",
 			"type": _ft["Sunday Morning Service"],
-			"start_date": "2025-12-01",
+			"start_date": _near_date(0),
 			"start_time": "10:00:00",
 			"end_time": "11:30:00",
 			"description": "Regular Sunday morning worship service with sermon, hymns, and fellowship.",
@@ -1021,23 +1052,23 @@ def _create_functions(church):
 		{
 			"function_name": "Midweek Prayer",
 			"type": _ft["Prayer Meeting"],
-			"start_date": "2025-12-03",
+			"start_date": _near_date(3),
 			"start_time": "19:00:00",
 			"end_time": "20:00:00",
 			"description": "Weekly prayer meeting — a time to bring our requests before the Lord together.",
 		},
 		{
-			"function_name": "Christmas Eve Service",
+			"function_name": "Evening Service",
 			"type": _ft["Sunday Evening Service"],
-			"start_date": "2025-12-24",
+			"start_date": _near_date(7),
 			"start_time": "18:00:00",
 			"end_time": "19:30:00",
-			"description": "A candlelight service celebrating the birth of our Lord Jesus Christ.",
+			"description": "Sunday evening service with hymns and Bible study.",
 		},
 		{
 			"function_name": "Church Picnic",
 			"type": _ft["Communion"],
-			"start_date": "2025-09-06",
+			"start_date": _near_date(14),
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
 		},
@@ -1487,14 +1518,14 @@ def _create_fund_transfers(church, funds):
 			"from_fund": funds["General"],
 			"to_fund": funds["Building"],
 			"amount": 500,
-			"date": "2025-12-15 00:00:00",
+			"date": _near_datetime(-3),
 			"notes": "Quarterly transfer to building maintenance reserve.",
 		},
 		{
 			"from_fund": funds["General"],
 			"to_fund": funds["Benevolence"],
 			"amount": 200,
-			"date": "2025-12-01 00:00:00",
+			"date": _near_datetime(-7),
 			"notes": "Monthly benevolence fund allocation.",
 		},
 	]
@@ -1721,7 +1752,7 @@ def _create_church_assets(church):
 def _create_church_tasks(church, people):
 	"""Create sample church tasks with hierarchy."""
 	# Parent task (is_group)
-	parent_title = "Prepare for Christmas Eve Service"
+	parent_title = "Prepare for Upcoming Service"
 	parent_name = frappe.db.get_value(
 		"Church Task",
 		{"church": church, "title": parent_title},
@@ -1734,10 +1765,10 @@ def _create_church_tasks(church, people):
 				"church": church,
 				"title": parent_title,
 				"status": "In Progress",
-				"due_date": "2025-12-24 10:00:00",
+				"due_date": _near_datetime(7),
 				"assigned_person": people["James Wilson"],
 				"is_group": 1,
-				"notes": "<p>Everything that needs to be done before the Christmas Eve candlelight service.</p>",
+				"notes": "<p>Everything that needs to be done before next week's service.</p>",
 			}
 		)
 		parent_doc.insert(ignore_permissions=True)
@@ -1748,14 +1779,14 @@ def _create_church_tasks(church, people):
 		{
 			"title": "Set up candles and holders",
 			"status": "Assigned",
-			"due_date": "2025-12-23 17:00:00",
+			"due_date": _near_datetime(6, "17:00:00"),
 			"assigned_person": people["David Thompson"],
 			"notes": "<p>Place candles and drip guards on every pew. Extra supplies are in the storage closet.</p>",
 		},
 		{
 			"title": "Prepare song slides",
 			"status": "In Progress",
-			"due_date": "2025-12-22 12:00:00",
+			"due_date": _near_datetime(5, "12:00:00"),
 			"assigned_person": people["Rachel Cooper"],
 			"notes": "<p>Create presentation slides for Silent Night, O Holy Night, and Joy to the World.</p>",
 		},
@@ -1785,14 +1816,14 @@ def _create_church_tasks(church, people):
 		{
 			"title": "Fix Fellowship Hall sink",
 			"status": "In Progress",
-			"due_date": "2025-12-20 00:00:00",
+			"due_date": _near_datetime(3),
 			"assigned_person": people["David Thompson"],
 			"notes": "<p>The faucet in the Fellowship Hall kitchen is leaking. Parts have been ordered from the hardware store.</p>",
 		},
 		{
 			"title": "Order new hymnals",
 			"status": "Open",
-			"due_date": "2026-01-15 00:00:00",
+			"due_date": _near_datetime(30),
 			"assigned_person": people["Martha Evans"],
 			"notes": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
 		},
