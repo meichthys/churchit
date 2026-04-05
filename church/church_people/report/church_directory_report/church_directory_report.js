@@ -78,7 +78,11 @@ frappe.query_reports["Church Directory Report"] = {
 		}
 
 		church._get_churches().then(churches => {
+			if (!default_church && churches.length >= 1) {
+				report.set_filter_value("church", churches[0].name);
+			}
 			report.page.fields_dict.church.toggle(churches.length > 1);
+			report.page.fields_dict.include_sub_churches.toggle(churches.length > 1);
 		});
 
 		report.page.add_inner_button(__('Print Directory'), function () {

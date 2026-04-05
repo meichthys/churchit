@@ -188,7 +188,7 @@ def get_directory_html(
 		SELECT
 			f.name AS family_id,
 			f.family_name,
-			f.church AS church_name,
+			COALESCE(c.church_name, f.church) AS church_name,
 			f.photo AS family_photo,
 			COALESCE(a.address_line1, '') AS address_line1,
 			COALESCE(a.address_line2, '') AS address_line2,
@@ -196,6 +196,7 @@ def get_directory_html(
 			COALESCE(a.state, '') AS state,
 			COALESCE(a.pincode, '') AS pincode
 		FROM `tabFamily` f
+		LEFT JOIN `tabChurch` c ON c.name = f.church
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
 		WHERE f.church IN {church_in}
 		ORDER BY f.family_name ASC
@@ -217,8 +218,9 @@ def get_directory_html(
 			p.is_head_of_household,
 			p.photo,
 			p.family,
-			p.church AS church_name
+			COALESCE(c.church_name, p.church) AS church_name
 		FROM `tabPerson` p
+		LEFT JOIN `tabChurch` c ON c.name = p.church
 		WHERE p.church IN {church_in}
 			AND p.family IS NOT NULL AND p.family != ''
 			{member_filter}
@@ -233,9 +235,10 @@ def get_directory_html(
 		today = frappe_today()
 		active_positions = frappe.db.sql(
 			f"""
-			SELECT pos.parent AS person_name, pos.position
+			SELECT pos.parent AS person_name, COALESCE(pt.position, pos.position) AS position
 			FROM `tabPosition` pos
 			INNER JOIN `tabPerson` p ON p.name = pos.parent
+			LEFT JOIN `tabPosition Type` pt ON pt.name = pos.position
 			WHERE pos.parenttype = 'Person'
 				AND pos.position IS NOT NULL
 				AND pos.start_date <= %(today)s
@@ -266,8 +269,9 @@ def get_directory_html(
 			p.email,
 			p.membership_status,
 			p.photo,
-			p.church AS church_name
+			COALESCE(c.church_name, p.church) AS church_name
 		FROM `tabPerson` p
+		LEFT JOIN `tabChurch` c ON c.name = p.church
 		WHERE p.church IN {church_in}
 			AND (p.family IS NULL OR p.family = '')
 			{member_filter}
@@ -279,6 +283,17 @@ def get_directory_html(
 	for p in individuals_raw:
 		p["positions"] = roles_by_person.get(p.person_name, [])
 		p["is_head_of_household"] = 0
+
+	# Resolve membership_status hashes to human-readable status labels
+	all_people = list(all_members) + list(individuals_raw)
+	status_names = list({p.membership_status for p in all_people if p.membership_status})
+	status_map = {}
+	if status_names:
+		for row in frappe.get_all("Member Status", filters=[["name", "in", status_names]], fields=["name", "status"]):
+			status_map[row.name] = row.status
+	for p in all_people:
+		if p.membership_status:
+			p["membership_status"] = status_map.get(p.membership_status, p.membership_status)
 
 	# Build merged sorted entry list
 	all_entries = []
@@ -435,6 +450,18 @@ def get_directory_html(
 			""",
 			as_dict=True,
 		)
+		# Resolve agency hashes to human-readable agency names
+		agency_names = list({m.agency for m in missionaries if m.agency})
+		if agency_names:
+			agency_map = {
+				row.name: row.agency_name
+				for row in frappe.get_all(
+					"Missionary Agency", filters=[["name", "in", agency_names]], fields=["name", "agency_name"]
+				)
+			}
+			for m in missionaries:
+				if m.agency:
+					m["agency"] = agency_map.get(m.agency, m.agency)
 
 	template_path = os.path.join(os.path.dirname(__file__), "church_directory.html")
 	with open(template_path) as f:
@@ -444,7 +471,7 @@ def get_directory_html(
 		"church": church_doc,
 		"church_address": church_address,
 		"all_entries": all_entries,
-		"show_church_label": bool(include_sub_churches),
+		"show_church_label": len({e["church_name"] for e in all_entries if e.get("church_name")}) > 1,
 		"show_photos": show_photos,
 		"show_roles": show_roles,
 		"show_membership": show_membership,
