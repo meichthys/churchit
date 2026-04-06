@@ -76,7 +76,7 @@
    "is_query_report": 1,
    "label": "Recently Created",
    "link_count": 0,
-   "link_to": "Prayer Requests: Recently Created",
+   "link_to": "Prayer Requests Recently Created",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -86,13 +86,13 @@
    "is_query_report": 1,
    "label": "Recently Answered",
    "link_count": 0,
-   "link_to": "Prayer Requests: Recently Answered",
+   "link_to": "Prayer Requests Recently Answered",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-04-04 16:47:54.769538",
+ "modified": "2026-04-05 18:49:48.744376",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",

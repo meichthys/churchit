@@ -1,4 +1,4 @@
-frappe.query_reports["Prayer Requests: Recently Created"] = {
+frappe.query_reports["Prayer Requests Recently Created"] = {
 	filters: [
 		...church.get_church_report_filters(),
 		{

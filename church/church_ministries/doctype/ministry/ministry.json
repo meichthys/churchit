@@ -16,9 +16,8 @@
   "status",
   "start_date",
   "end_date",
-  "section_break_mission",
   "mission_statement",
-  "section_break_notes",
+  "section_break_mission",
   "description"
  ],
  "fields": [
@@ -84,22 +83,16 @@
   },
   {
    "fieldname": "section_break_mission",
-   "fieldtype": "Section Break",
-   "label": "Mission Statement"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "mission_statement",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
    "label": "Mission Statement"
   },
   {
-   "fieldname": "section_break_notes",
-   "fieldtype": "Section Break",
-   "label": "Notes"
-  },
-  {
    "fieldname": "description",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "in_preview": 1,
    "label": "Description"
   },
@@ -113,7 +106,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-26 19:23:59.025348",
+ "modified": "2026-04-05 18:46:38.252411",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",

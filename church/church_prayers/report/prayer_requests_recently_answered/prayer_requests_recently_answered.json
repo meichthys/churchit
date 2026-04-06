@@ -42,11 +42,11 @@
  "modified": "2026-03-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
- "name": "Prayer Requests: Recently Answered",
+ "name": "Prayer Requests Recently Answered",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "Prayer Request",
- "report_name": "Prayer Requests: Recently Answered",
+ "report_name": "Prayer Requests Recently Answered",
  "report_type": "Script Report",
  "roles": [
   {
