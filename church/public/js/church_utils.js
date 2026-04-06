@@ -58,6 +58,7 @@ church.setup_church_report = function(report) {
 				report.page.fields_dict.church.toggle(false);
 			}
 			if (report.page.fields_dict.include_sub_churches) {
+				report.page.fields_dict.include_sub_churches.df.depends_on = "";
 				report.page.fields_dict.include_sub_churches.toggle(false);
 			}
 		}

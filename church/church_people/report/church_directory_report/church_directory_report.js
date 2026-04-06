@@ -1,19 +1,7 @@
 frappe.query_reports["Church Directory Report"] = {
 	hide_name_column: true,
 	filters: [
-		{
-			fieldname: "church",
-			label: __("Church"),
-			fieldtype: "Link",
-			options: "Church",
-			reqd: 1,
-		},
-		{
-			fieldname: "include_sub_churches",
-			label: __("Include Sub-Churches"),
-			fieldtype: "Check",
-			default: 0,
-		},
+		...church.get_church_report_filters(),
 		{
 			fieldname: "members_only",
 			label: __("Members Only"),
@@ -72,18 +60,7 @@ frappe.query_reports["Church Directory Report"] = {
 	],
 
 	onload: function (report) {
-		const default_church = frappe.defaults.get_user_default("church");
-		if (default_church) {
-			report.set_filter_value("church", default_church);
-		}
-
-		church._get_churches().then(churches => {
-			if (!default_church && churches.length >= 1) {
-				report.set_filter_value("church", churches[0].name);
-			}
-			report.page.fields_dict.church.toggle(churches.length > 1);
-			report.page.fields_dict.include_sub_churches.toggle(churches.length > 1);
-		});
+		church.setup_church_report(report);
 
 		report.page.add_inner_button(__('Print Directory'), function () {
 			const church = report.get_filter_value('church');
