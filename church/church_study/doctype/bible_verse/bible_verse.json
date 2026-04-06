@@ -10,21 +10,12 @@
  "engine": "InnoDB",
  "field_order": [
   "church",
-  "title",
-  "church",
   "reference",
   "book",
   "chapter",
   "verse"
  ],
  "fields": [
-  {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Title",
-   "read_only": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "book",
@@ -93,11 +84,7 @@
    "link_fieldname": "end_verse"
   }
  ],
-<<<<<<< Updated upstream
- "modified": "2026-03-31 18:47:27.146162",
-=======
- "modified": "2026-04-04 17:45:32.141309",
->>>>>>> Stashed changes
+ "modified": "2026-04-05 18:29:37.034293",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Verse",
@@ -140,6 +127,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title",
+ "title_field": "reference",
  "track_views": 1
 }

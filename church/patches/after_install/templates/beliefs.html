@@ -14,7 +14,7 @@
             </div>
             <div class="card-footer">
                 {% for row in belief.bible_references %}
-                    <div class="small text-muted">{{ row.reference }}</div>
+                    <div class="small text-muted">{{ frappe.db.get_value("Bible Reference", row.reference, "reference") }}</div>
                 {% endfor %}
             </div>
         </div>
