@@ -6,7 +6,39 @@ import os
 import frappe
 from frappe.utils import today as frappe_today
 
-from church.utils import build_in_clause, get_church_scope, set_report_link_titles
+from church.utils import set_report_link_titles
+
+
+def _church_in_scope(church, include_sub_churches):
+	"""Return a tuple of church names for SQL IN clauses."""
+	if not include_sub_churches:
+		return (church,)
+	lft, rgt = frappe.db.get_value("Church", church, ["lft", "rgt"])
+	names = frappe.db.sql(
+		"SELECT name FROM `tabChurch` WHERE lft >= %s AND rgt <= %s",
+		(lft, rgt),
+		pluck="name",
+	)
+	return tuple(names) or (church,)
+
+
+def _sub_exists(doctype, alias, churches):
+	"""Return SQL EXISTS fragment scoping `alias`.name to the given churches.
+
+	Uses escaped literals so the clause can be embedded in queries that use
+	named parameters (%(key)s) without mixing positional and named styles.
+	Churches come from the database so escaping is sufficient.
+	"""
+	esc_dt = frappe.db.escape(doctype)
+	church_list = ", ".join(frappe.db.escape(c) for c in churches)
+	return (
+		f"EXISTS (SELECT 1 FROM `tabChurch Subscription` _cs"
+		f" WHERE _cs.parent = {alias}.name"
+		f" AND _cs.parenttype = {esc_dt}"
+		f" AND _cs.parentfield = 'church_subscriptions'"
+		f" AND _cs.subscribed = 1"
+		f" AND _cs.church IN ({church_list}))"
+	)
 
 
 def execute(filters=None):
@@ -31,7 +63,6 @@ def get_columns():
 			"options": "Person",
 			"width": 180,
 		},
-		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 160},
 		{"fieldname": "city", "fieldtype": "Data", "label": "City", "width": 140},
 		{"fieldname": "state", "fieldtype": "Data", "label": "State", "width": 100},
 		{"fieldname": "member_count", "fieldtype": "Int", "label": "Members", "width": 80},
@@ -42,7 +73,6 @@ def get_individual_columns():
 	return [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
 		{"fieldname": "family", "fieldtype": "Link", "label": "Family", "options": "Family", "width": 160},
-		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 160},
 		{"fieldname": "primary_phone", "fieldtype": "Data", "label": "Phone", "width": 130},
 		{"fieldname": "email", "fieldtype": "Data", "label": "Email", "width": 180},
 		{"fieldname": "city", "fieldtype": "Data", "label": "City", "width": 120},
@@ -58,9 +88,8 @@ def get_individual_data(filters):
 	members_only = frappe.utils.cint(filters.get("members_only", 0))
 	include_sub_churches = frappe.utils.cint(filters.get("include_sub_churches", 0))
 
-	churches = get_church_scope(church, include_sub_churches)
-	church_in = build_in_clause(churches)
-
+	churches = _church_in_scope(church, include_sub_churches)
+	sub_cond = _sub_exists("Person", "p", churches)
 	member_filter = "AND p.is_member = 1" if members_only else ""
 
 	return frappe.db.sql(
@@ -68,7 +97,6 @@ def get_individual_data(filters):
 		SELECT
 			p.name AS person,
 			p.family,
-			p.church,
 			p.primary_phone,
 			p.email,
 			COALESCE(a.city, '') AS city,
@@ -76,7 +104,7 @@ def get_individual_data(filters):
 		FROM `tabPerson` p
 		LEFT JOIN `tabFamily` f ON f.name = p.family
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
-		WHERE p.church IN {church_in}
+		WHERE {sub_cond}
 			{member_filter}
 		ORDER BY p.last_name, p.first_name
 		""",
@@ -92,32 +120,31 @@ def get_data(filters):
 	members_only = frappe.utils.cint(filters.get("members_only", 0))
 	include_sub_churches = frappe.utils.cint(filters.get("include_sub_churches", 0))
 
-	churches = get_church_scope(church, include_sub_churches)
-	church_in = build_in_clause(churches)
+	churches = _church_in_scope(church, include_sub_churches)
+	fam_sub = _sub_exists("Family", "f", churches)
+	mem_sub = _sub_exists("Person", "p", churches)
+	member_filter = "AND p.is_member = 1" if members_only else ""
 
 	families = frappe.db.sql(
 		f"""
 		SELECT
 			f.name AS family_id,
 			f.family_name,
-			f.church,
 			COALESCE(a.city, '') AS city,
 			COALESCE(a.state, '') AS state
 		FROM `tabFamily` f
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
-		WHERE f.church IN {church_in}
+		WHERE {fam_sub}
 		ORDER BY f.family_name ASC
 		""",
 		as_dict=True,
 	)
 
-	member_filter = "AND p.is_member = 1" if members_only else ""
-
 	all_members = frappe.db.sql(
 		f"""
 		SELECT p.name, p.full_name, p.family, p.is_head_of_household
 		FROM `tabPerson` p
-		WHERE p.church IN {church_in}
+		WHERE {mem_sub}
 			AND p.family IS NOT NULL AND p.family != ''
 			{member_filter}
 		""",
@@ -138,7 +165,6 @@ def get_data(filters):
 			{
 				"family": family.family_id,
 				"head_of_household": head or "",
-				"church": family.church,
 				"city": family.city,
 				"state": family.state,
 				"member_count": len(members),
@@ -180,15 +206,17 @@ def get_directory_html(
 	if church_doc.address:
 		church_address = frappe.get_doc("Address", church_doc.address)
 
-	churches = get_church_scope(church, include_sub_churches)
-	church_in = build_in_clause(churches)
+	churches = _church_in_scope(church, include_sub_churches)
+	fam_sub = _sub_exists("Family", "f", churches)
+	person_sub = _sub_exists("Person", "p", churches)
+	miss_sub = _sub_exists("Missionary", "m", churches)
+	member_filter = "AND p.is_member = 1" if members_only else ""
 
 	families = frappe.db.sql(
 		f"""
 		SELECT
 			f.name AS family_id,
 			f.family_name,
-			COALESCE(c.church_name, f.church) AS church_name,
 			f.photo AS family_photo,
 			COALESCE(a.address_line1, '') AS address_line1,
 			COALESCE(a.address_line2, '') AS address_line2,
@@ -196,15 +224,12 @@ def get_directory_html(
 			COALESCE(a.state, '') AS state,
 			COALESCE(a.pincode, '') AS pincode
 		FROM `tabFamily` f
-		LEFT JOIN `tabChurch` c ON c.name = f.church
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
-		WHERE f.church IN {church_in}
+		WHERE {fam_sub}
 		ORDER BY f.family_name ASC
 		""",
 		as_dict=True,
 	)
-
-	member_filter = "AND p.is_member = 1" if members_only else ""
 
 	all_members = frappe.db.sql(
 		f"""
@@ -217,11 +242,9 @@ def get_directory_html(
 			p.membership_status,
 			p.is_head_of_household,
 			p.photo,
-			p.family,
-			COALESCE(c.church_name, p.church) AS church_name
+			p.family
 		FROM `tabPerson` p
-		LEFT JOIN `tabChurch` c ON c.name = p.church
-		WHERE p.church IN {church_in}
+		WHERE {person_sub}
 			AND p.family IS NOT NULL AND p.family != ''
 			{member_filter}
 		ORDER BY p.family, p.is_head_of_household DESC, p.last_name, p.first_name
@@ -243,7 +266,7 @@ def get_directory_html(
 				AND pos.position IS NOT NULL
 				AND pos.start_date <= %(today)s
 				AND (pos.end_date IS NULL OR pos.end_date >= %(today)s)
-				AND p.church IN {church_in}
+				AND {person_sub}
 			ORDER BY pos.parent, pos.start_date
 			""",
 			{"today": today},
@@ -268,11 +291,9 @@ def get_directory_html(
 			p.primary_phone,
 			p.email,
 			p.membership_status,
-			p.photo,
-			COALESCE(c.church_name, p.church) AS church_name
+			p.photo
 		FROM `tabPerson` p
-		LEFT JOIN `tabChurch` c ON c.name = p.church
-		WHERE p.church IN {church_in}
+		WHERE {person_sub}
 			AND (p.family IS NULL OR p.family = '')
 			{member_filter}
 		ORDER BY p.last_name, p.first_name
@@ -307,7 +328,7 @@ def get_directory_html(
 						"sort_name": family.family_name,
 						"display_name": family.family_name + " Family",
 						"is_individual": False,
-						"church_name": family.church_name,
+						"church_name": church_doc.church_name,
 						"family_photo": family.family_photo,
 						"address_line1": family.address_line1,
 						"address_line2": family.address_line2,
@@ -325,7 +346,7 @@ def get_directory_html(
 					"sort_name": sort_key,
 					"display_name": person.full_name,
 					"is_individual": True,
-					"church_name": person.church_name,
+					"church_name": church_doc.church_name,
 					"family_photo": None,
 					"address_line1": "",
 					"address_line2": "",
@@ -337,13 +358,11 @@ def get_directory_html(
 			)
 	else:
 		# Flat list: every person is their own entry
-		all_people = list(all_members) + list(individuals_raw)
+		all_people_flat = list(all_members) + list(individuals_raw)
 		# Fetch address info for family members
-		family_address = {}
-		for family in families:
-			family_address[family.family_id] = family
+		family_address = {family.family_id: family for family in families}
 
-		for person in all_people:
+		for person in all_people_flat:
 			sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
 			fam = family_address.get(person.get("family"))
 			all_entries.append(
@@ -351,7 +370,7 @@ def get_directory_html(
 					"sort_name": sort_key,
 					"display_name": person.full_name,
 					"is_individual": True,
-					"church_name": person.get("church_name", ""),
+					"church_name": church_doc.church_name,
 					"family_photo": None,
 					"address_line1": fam.address_line1 if fam else "",
 					"address_line2": fam.address_line2 if fam else "",
@@ -375,7 +394,7 @@ def get_directory_html(
 				MONTH(p.birthday) AS birth_month,
 				DAY(p.birthday)   AS birth_day
 			FROM `tabPerson` p
-			WHERE p.church IN {church_in}
+			WHERE {person_sub}
 				AND p.birthday IS NOT NULL
 				{member_filter}
 			ORDER BY MONTH(p.birthday), DAY(p.birthday), p.last_name, p.first_name
@@ -405,7 +424,7 @@ def get_directory_html(
 			FROM `tabPerson` p
 			LEFT JOIN `tabPerson` s ON s.name = p.spouse
 			LEFT JOIN `tabFamily` f ON f.name = p.family
-			WHERE p.church IN {church_in}
+			WHERE {person_sub}
 				AND p.anniversary IS NOT NULL
 				AND p.is_married = 1
 				{member_filter}
@@ -445,7 +464,7 @@ def get_directory_html(
 				m.sensitive,
 				m.mission_statement
 			FROM `tabMissionary` m
-			WHERE m.church IN {church_in}
+			WHERE {miss_sub}
 			ORDER BY m.title
 			""",
 			as_dict=True,
@@ -471,7 +490,7 @@ def get_directory_html(
 		"church": church_doc,
 		"church_address": church_address,
 		"all_entries": all_entries,
-		"show_church_label": len({e["church_name"] for e in all_entries if e.get("church_name")}) > 1,
+		"show_church_label": include_sub_churches,
 		"show_photos": show_photos,
 		"show_roles": show_roles,
 		"show_membership": show_membership,
@@ -486,5 +505,3 @@ def get_directory_html(
 	}
 
 	return frappe.render_template(template, context)
-
-

@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
@@ -14,8 +14,6 @@ def get_columns(filters=None):
 	cols = [
 		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 120},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
 	cols += [
 		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 120},
 		{"fieldname": "recipient", "fieldtype": "Dynamic Link", "label": "Recipient", "options": "recipient_type", "width": 150},
@@ -28,12 +26,11 @@ def get_columns(filters=None):
 def get_data(filters):
 	filters = filters or {}
 	values = {"request_since": filters.get("request_since")}
-	church_condition = get_church_condition(filters, "church", values)
-	church_select = ", church" if show_church_column(filters) else ""
+	church_condition = get_church_condition(filters, "Prayer Request", "`tabPrayer Request`.`name`", values)
 
 	return frappe.db.sql(
 		f"""
-		SELECT status{church_select}, type, recipient_type, recipient, request, name
+		SELECT status, type, recipient_type, recipient, request, name
 		FROM `tabPrayer Request`
 		WHERE creation > %(request_since)s
 			{church_condition}

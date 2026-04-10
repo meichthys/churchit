@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
@@ -14,8 +14,6 @@ def get_columns(filters=None):
 	cols = [
 		{"fieldname": "name", "fieldtype": "Link", "label": "Collection", "options": "Collection", "width": 200},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
 	cols += [
 		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
 		{"fieldname": "fund", "fieldtype": "Link", "label": "Fund", "options": "Fund", "width": 150},
@@ -29,13 +27,12 @@ def get_columns(filters=None):
 
 def get_data(filters=None):
 	values = {}
-	church_condition = get_church_condition(filters, "`tabCollection`.church", values)
-	church_select = ", `tabCollection`.church" if show_church_column(filters) else ""
+	church_condition = get_church_condition(filters, "Collection", "`tabCollection`.`name`", values)
 
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabCollection`.name{church_select},
+			`tabCollection`.name,
 			`tabCollection`.function,
 			`tabDonation`.fund,
 			`tabDonation`.person,

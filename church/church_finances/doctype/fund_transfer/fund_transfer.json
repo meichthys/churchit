@@ -8,8 +8,8 @@
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "title",
-  "church",
   "section_break_ev5b",
   "from_fund",
   "to_fund",
@@ -22,21 +22,17 @@
  ],
  "fields": [
   {
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
+  },
+  {
    "fieldname": "title",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "section_break_ev5b",

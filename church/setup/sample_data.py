@@ -109,30 +109,31 @@ def delete_sample_data():
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
 
-	_delete_docs("Church Task", {"church": church})
-	_delete_docs("Church Asset", {"church": church})
-	_delete_docs("Song", {"church": church})
-	_delete_docs("Prayer", {"church": church})
-	_delete_submittable_docs("Fund Transfer", {"church": church})
-	_delete_docs("Ministry", {"church": church, "ministry_name": ["!=", "General"]})
-	_delete_docs("Group", {"church": church})
-	_delete_docs("Group Role", {"church": church})
-	_delete_docs("Belief", {"church": church})
-	_delete_docs("Sermon", {"church": church})
-	_delete_docs("Bible Reference", {"church": church})
-	_delete_docs("Bible Verse", {"church": church})
-	_delete_docs("Function", {"church": church})
-	_delete_docs("Alms Request", {"church": church})
-	_delete_docs("Prayer Request", {"church": church})
-	_delete_submittable_docs("Expense", {"church": church})
-	_delete_docs("Expense Type", {"church": church})
-	_delete_submittable_docs("Collection", {"church": church})
-	_delete_docs("Fund", {"church": church})
-	_delete_docs("Missionary", {"church": church})
-	_delete_docs("Missionary Agency", {"church": church})
-	_delete_docs("Family", {"church": church})
+	_delete_docs("Church Task", church)
+	_delete_docs("Church Asset", church)
+	_delete_docs("Song", church)
+	_delete_docs("Prayer", church)
+	_delete_submittable_docs("Fund Transfer", church)
+	# Delete sample ministries but preserve the default "General" ministry
+	_delete_docs_excluding("Ministry", church, {"ministry_name": ("!=", "General")})
+	_delete_docs("Group", church)
+	_delete_docs("Group Role", church)
+	_delete_docs("Belief", church)
+	_delete_docs("Sermon", church)
+	_delete_docs("Bible Reference", church)
+	_delete_docs("Bible Verse", church)
+	_delete_docs("Function", church)
+	_delete_docs("Alms Request", church)
+	_delete_docs("Prayer Request", church)
+	_delete_submittable_docs("Expense", church)
+	_delete_docs("Expense Type", church)
+	_delete_submittable_docs("Collection", church)
+	_delete_docs("Fund", church)
+	_delete_docs("Missionary", church)
+	_delete_docs("Missionary Agency", church)
+	_delete_docs("Family", church)
 	_delete_church_manager_user()
-	_delete_docs("Person", {"church": church})
+	_delete_docs("Person", church)
 
 	frappe.db.commit()
 
@@ -176,18 +177,38 @@ def _insert_if_missing(doctype, filters, **fields):
 
 def _resolve_link(doctype, title_field, value, church):
 	"""Look up the hash name for a record given its display value."""
-	return frappe.db.get_value(doctype, {title_field: value, "church": church}, "name")
+	return frappe.db.get_value(doctype, {title_field: value}, "name")
 
 
-def _delete_docs(doctype, filters):
-	"""Delete all docs matching *filters* permanently."""
-	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+def _delete_docs(doctype, church):
+	"""Delete all docs that have a Church Subscription row pointing to *church*."""
+	names = frappe.db.get_all(
+		doctype,
+		filters=[["church_subscriptions", "church", "=", church]],
+		pluck="name",
+	)
+	for name in names:
 		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
 
 
-def _delete_submittable_docs(doctype, filters):
-	"""Cancel and delete submittable docs matching *filters* permanently."""
-	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+def _delete_docs_excluding(doctype, church, extra_filters):
+	"""Delete church-subscribed docs matching extra_filters (preserving others)."""
+	filters = [["church_subscriptions", "church", "=", church]]
+	for field, condition in extra_filters.items():
+		filters.append([doctype, field, condition[0], condition[1]])
+	names = frappe.db.get_all(doctype, filters=filters, pluck="name")
+	for name in names:
+		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+
+
+def _delete_submittable_docs(doctype, church):
+	"""Cancel and delete submittable docs that have a Church Subscription row pointing to *church*."""
+	names = frappe.db.get_all(
+		doctype,
+		filters=[["church_subscriptions", "church", "=", church]],
+		pluck="name",
+	)
+	for name in names:
 		doc = frappe.get_doc(doctype, name)
 		if doc.docstatus == 1:
 			doc.cancel()
@@ -405,9 +426,8 @@ def _create_positions(church):
 	for pos in _POSITIONS:
 		name = _insert_if_missing(
 			"Position Type",
-			{"position": pos, "church": church},
+			{"position": pos},
 			position=pos,
-			church=church,
 		)
 		refs[pos] = name
 	return refs
@@ -417,7 +437,7 @@ def _create_people(church, position_refs):
 	"""Create sample people and return a dict mapping 'First Last' → name."""
 	# Look up hash name for "Active" membership status
 	active_status = frappe.db.get_value(
-		"Member Status", {"status": "Active", "church": church}, "name"
+		"Member Status", {"status": "Active"}, "name"
 	)
 
 	refs = {}
@@ -438,7 +458,7 @@ def _create_people(church, position_refs):
 		key = f"{first} {last}"
 		existing = frappe.db.get_value(
 			"Person",
-			{"church": church, "first_name": first, "last_name": last},
+			{"first_name": first, "last_name": last},
 			"name",
 		)
 		if existing:
@@ -454,7 +474,6 @@ def _create_people(church, position_refs):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Person",
-				"church": church,
 				"first_name": first,
 				"last_name": last,
 				"gender": gender,
@@ -496,7 +515,6 @@ def _create_church_manager_user(church, people):
 			"send_welcome_email": 0,
 			"enabled": 1,
 			"role_profile_name": "Church Manager",
-			"church": church,
 		}
 	)
 	user.insert(ignore_permissions=True)
@@ -541,7 +559,7 @@ def _create_families(church):
 	"""Create sample families and return dict mapping family_name → name."""
 	refs = {}
 	for family_name, _ in _FAMILIES:
-		existing = frappe.db.get_value("Family", {"church": church, "family_name": family_name}, "name")
+		existing = frappe.db.get_value("Family", {"family_name": family_name}, "name")
 		if existing:
 			refs[family_name] = existing
 			continue
@@ -549,7 +567,6 @@ def _create_families(church):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Family",
-				"church": church,
 				"family_name": family_name,
 			}
 		)
@@ -619,7 +636,7 @@ def _create_missionary_agencies(church):
 	"""Create sample missionary agencies and return dict mapping name → name."""
 	refs = {}
 	for agency in _AGENCIES:
-		name = _insert_if_missing("Missionary Agency", {"agency_name": agency["agency_name"], "church": church}, church=church, **agency)
+		name = _insert_if_missing("Missionary Agency", {"agency_name": agency["agency_name"]}, **agency)
 		refs[agency["agency_name"]] = name
 	return refs
 
@@ -677,7 +694,7 @@ def _create_missionaries(church, people, agencies):
 		existing = frappe.db.exists("Missionary", {"title": m["title"]})
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Missionary", "church": church, **m})
+		doc = frappe.get_doc({"doctype": "Missionary", **m})
 		doc.insert(ignore_permissions=True)
 
 
@@ -697,14 +714,13 @@ def _create_funds(church):
 	"""Create sample funds and return dict mapping fund name → doc name."""
 	refs = {}
 	for fund_name, description in _FUNDS:
-		existing = frappe.db.get_value("Fund", {"church": church, "fund": fund_name}, "name")
+		existing = frappe.db.get_value("Fund", {"fund": fund_name}, "name")
 		if existing:
 			refs[fund_name] = existing
 			continue
 		doc = frappe.get_doc(
 			{
 				"doctype": "Fund",
-				"church": church,
 				"fund": fund_name,
 				"description": description,
 			}
@@ -734,8 +750,7 @@ def _create_expense_types(church, funds):
 	for type_name, fund in roots:
 		name = _insert_if_missing(
 			"Expense Type",
-			{"type": type_name, "church": church},
-			church=church,
+			{"type": type_name},
 			type=type_name,
 			fund=fund,
 			is_group=1 if type_name == "Utilities" else 0,
@@ -750,8 +765,7 @@ def _create_expense_types(church, funds):
 	for type_name, fund, parent in children:
 		name = _insert_if_missing(
 			"Expense Type",
-			{"type": type_name, "church": church},
-			church=church,
+			{"type": type_name},
 			type=type_name,
 			fund=fund,
 			parent_expense_type=refs[parent],
@@ -863,13 +877,12 @@ def _create_collections(church, people, funds):
 	]
 
 	for coll in collections:
-		existing = frappe.db.exists("Collection", {"church": church, "date": coll["date"]})
+		existing = frappe.db.exists("Collection", {"date": coll["date"]})
 		if existing:
 			continue
 		doc = frappe.get_doc(
 			{
 				"doctype": "Collection",
-				"church": church,
 				"date": coll["date"],
 				"notes": coll["notes"],
 				"donations": coll["donations"],
@@ -909,14 +922,13 @@ def _create_expenses(church, expense_types):
 		existing = frappe.db.exists(
 			"Expense",
 			{
-				"church": church,
 				"type": exp["type"],
 				"date": exp["date"],
 			},
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Expense", "church": church, **exp})
+		doc = frappe.get_doc({"doctype": "Expense", **exp})
 		doc.insert(ignore_permissions=True)
 
 
@@ -977,7 +989,6 @@ def _create_prayer_requests(church, people):
 		existing = frappe.db.exists(
 			"Prayer Request",
 			{
-				"church": church,
 				"requestor": req["requestor"],
 				"type": req["type"],
 				"status": req["status"],
@@ -985,7 +996,7 @@ def _create_prayer_requests(church, people):
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Prayer Request", "church": church, **req})
+		doc = frappe.get_doc({"doctype": "Prayer Request", **req})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1018,14 +1029,13 @@ def _create_alms_requests(church, people):
 		existing = frappe.db.exists(
 			"Alms Request",
 			{
-				"church": church,
 				"recipient": req["recipient"],
 				"status": req["status"],
 			},
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Alms Request", "church": church, **req})
+		doc = frappe.get_doc({"doctype": "Alms Request", **req})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1077,14 +1087,13 @@ def _create_functions(church):
 		existing = frappe.db.exists(
 			"Function",
 			{
-				"church": church,
 				"function_name": fn["function_name"],
 				"start_date": fn["start_date"],
 			},
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Function", "church": church, **fn})
+		doc = frappe.get_doc({"doctype": "Function", **fn})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1131,7 +1140,7 @@ def _create_bible_verses(church):
 		key = f"{book} {chapter}:{verse}"
 		existing = frappe.db.get_value(
 			"Bible Verse",
-			{"book": book_refs[book], "chapter": chapter, "verse": verse, "church": church},
+			{"book": book_refs[book], "chapter": chapter, "verse": verse},
 			"name",
 		)
 		if existing:
@@ -1140,7 +1149,6 @@ def _create_bible_verses(church):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Bible Verse",
-				"church": church,
 				"book": book_refs[book],
 				"chapter": chapter,
 				"verse": verse,
@@ -1240,7 +1248,7 @@ def _create_bible_references(verses, church):
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Bible Reference", "church": church, **ref})
+		doc = frappe.get_doc({"doctype": "Bible Reference", **ref})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1299,10 +1307,10 @@ def _create_sermons(church, people):
 		},
 	]
 	for sermon in sermons:
-		existing = frappe.db.exists("Sermon", {"church": church, "title": sermon["title"]})
+		existing = frappe.db.exists("Sermon", {"title": sermon["title"]})
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Sermon", "church": church, **sermon})
+		doc = frappe.get_doc({"doctype": "Sermon", **sermon})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1377,7 +1385,7 @@ def _create_beliefs(church, verses):
 	]
 
 	for belief in beliefs:
-		if frappe.db.exists("Belief", {"church": church, "title": belief["title"]}):
+		if frappe.db.exists("Belief", {"title": belief["title"]}):
 			continue
 
 		# Resolve Bible Reference names from start_verse display key
@@ -1397,7 +1405,6 @@ def _create_beliefs(church, verses):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Belief",
-				"church": church,
 				"bible_references": ref_rows,
 				**belief,
 			}
@@ -1414,7 +1421,7 @@ def _create_group_roles(church):
 	"""Create sample group roles and return dict mapping role → name."""
 	refs = {}
 	for role_name in ("Leader", "Member"):
-		name = _insert_if_missing("Group Role", {"role": role_name, "church": church}, church=church, role=role_name)
+		name = _insert_if_missing("Group Role", {"role": role_name}, role=role_name)
 		refs[role_name] = name
 	return refs
 
@@ -1458,13 +1465,13 @@ def _create_groups(church, people, group_roles):
 	for grp in groups:
 		existing = frappe.db.get_value(
 			"Group",
-			{"church": church, "group_name": grp["group_name"]},
+			{"group_name": grp["group_name"]},
 			"name",
 		)
 		if existing:
 			refs[grp["group_name"]] = existing
 			continue
-		doc = frappe.get_doc({"doctype": "Group", "church": church, **grp})
+		doc = frappe.get_doc({"doctype": "Group", **grp})
 		doc.insert(ignore_permissions=True)
 		refs[grp["group_name"]] = doc.name
 	return refs
@@ -1500,8 +1507,7 @@ def _create_ministries(church, groups):
 	for ministry in ministries:
 		_insert_if_missing(
 			"Ministry",
-			{"ministry_name": ministry["ministry_name"], "church": church},
-			church=church,
+			{"ministry_name": ministry["ministry_name"]},
 			**ministry,
 		)
 
@@ -1533,7 +1539,6 @@ def _create_fund_transfers(church, funds):
 		existing = frappe.db.exists(
 			"Fund Transfer",
 			{
-				"church": church,
 				"from_fund": xfer["from_fund"],
 				"to_fund": xfer["to_fund"],
 				"date": xfer["date"],
@@ -1541,7 +1546,7 @@ def _create_fund_transfers(church, funds):
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Fund Transfer", "church": church, **xfer})
+		doc = frappe.get_doc({"doctype": "Fund Transfer", **xfer})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1560,17 +1565,17 @@ def _create_prayers(church, people):
 	}
 	pr_wilson = frappe.db.get_value(
 		"Prayer Request",
-		{"church": church, "requestor": people["Sarah Wilson"], "type": _prt["Health"]},
+		{"requestor": people["Sarah Wilson"], "type": _prt["Health"]},
 		"name",
 	)
 	pr_samuel = frappe.db.get_value(
 		"Prayer Request",
-		{"church": church, "requestor": people["Rachel Cooper"], "type": _prt["Salvation"]},
+		{"requestor": people["Rachel Cooper"], "type": _prt["Salvation"]},
 		"name",
 	)
 	pr_praise = frappe.db.get_value(
 		"Prayer Request",
-		{"church": church, "requestor": people["Mary Johnson"], "type": _prt["Praise"]},
+		{"requestor": people["Mary Johnson"], "type": _prt["Praise"]},
 		"name",
 	)
 
@@ -1620,7 +1625,6 @@ def _create_prayers(church, people):
 		existing = frappe.db.exists(
 			"Prayer",
 			{
-				"church": church,
 				"person": pr["person"],
 			},
 		)
@@ -1633,7 +1637,6 @@ def _create_prayers(church, people):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Prayer",
-				"church": church,
 				"topics": topics,
 				**pr,
 			}
@@ -1690,10 +1693,10 @@ def _create_songs(church):
 		},
 	]
 	for song in songs:
-		existing = frappe.db.exists("Song", {"church": church, "title": song["title"]})
+		existing = frappe.db.exists("Song", {"title": song["title"]})
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Song", "church": church, **song})
+		doc = frappe.get_doc({"doctype": "Song", **song})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1734,13 +1737,12 @@ def _create_church_assets(church):
 		existing = frappe.db.exists(
 			"Church Asset",
 			{
-				"church": church,
 				"title": asset["title"],
 			},
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Church Asset", "church": church, **asset})
+		doc = frappe.get_doc({"doctype": "Church Asset", **asset})
 		doc.insert(ignore_permissions=True)
 
 
@@ -1755,14 +1757,13 @@ def _create_church_tasks(church, people):
 	parent_title = "Prepare for Upcoming Service"
 	parent_name = frappe.db.get_value(
 		"Church Task",
-		{"church": church, "title": parent_title},
+		{"title": parent_title},
 		"name",
 	)
 	if not parent_name:
 		parent_doc = frappe.get_doc(
 			{
 				"doctype": "Church Task",
-				"church": church,
 				"title": parent_title,
 				"status": "In Progress",
 				"due_date": _near_datetime(7),
@@ -1795,7 +1796,6 @@ def _create_church_tasks(church, people):
 		existing = frappe.db.exists(
 			"Church Task",
 			{
-				"church": church,
 				"title": task["title"],
 			},
 		)
@@ -1804,7 +1804,6 @@ def _create_church_tasks(church, people):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Church Task",
-				"church": church,
 				"parent_task": parent_name,
 				**task,
 			}
@@ -1832,11 +1831,10 @@ def _create_church_tasks(church, people):
 		existing = frappe.db.exists(
 			"Church Task",
 			{
-				"church": church,
 				"title": task["title"],
 			},
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Church Task", "church": church, **task})
+		doc = frappe.get_doc({"doctype": "Church Task", **task})
 		doc.insert(ignore_permissions=True)

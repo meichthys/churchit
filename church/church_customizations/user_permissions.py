@@ -4,34 +4,17 @@
 import frappe
 
 
-def sync_user_permission(doc, method):
-	"""Auto-create/update User Permission for Church when a user is saved.
+def sync_user_church_field(doc, method):
+	"""Sync the user's default church when their User record is saved.
 
-	Users with Church User or Church Manager roles are scoped to their assigned
-	church. System Manager and other roles are left unrestricted and can view
-	documents across all churches.
+	The church field on User is still the source of truth for which church
+	a user belongs to. Permission enforcement is now handled entirely by
+	permission_query_conditions hooks (Church Subscription model) rather
+	than Frappe User Permissions.
 	"""
-	user_roles = {r.role for r in doc.get("roles", [])}
-
-	if not user_roles:
-		return
-
 	church = doc.get("church")
 
-	# Remove existing User permissions for this user
-	frappe.db.delete("User Permission", {"user": doc.name, "allow": "Church"})
-
-	# Create new User Permission
 	if church:
-		frappe.get_doc(
-			{
-				"doctype": "User Permission",
-				"user": doc.name,
-				"allow": "Church",
-				"for_value": church,
-				"apply_to_all_doctypes": 1,
-			}
-		).insert(ignore_permissions=True)
 		frappe.defaults.set_user_default("church", church, user=doc.name)
 	else:
 		frappe.defaults.clear_user_default("church", user=doc.name)
@@ -58,4 +41,3 @@ def validate_church_manager_edits(doc, method):
 			"Church Managers can only assign the 'Church Manager' or 'Church User' role profiles.",
 			frappe.PermissionError,
 		)
-

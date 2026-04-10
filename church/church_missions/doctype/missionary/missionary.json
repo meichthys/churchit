@@ -8,8 +8,8 @@
  "documentation": "/app/doctype?module=Church+Missions",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "section_break_oyuw",
-  "church",
   "title",
   "person",
   "agency",
@@ -37,14 +37,10 @@
  ],
  "fields": [
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
    "fieldname": "agency",

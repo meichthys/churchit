@@ -28,7 +28,7 @@ def get_data(filters=None):
 	conditions = ""
 	values = {}
 
-	conditions += get_church_condition(filters, "`tabPerson`.church", values)
+	conditions += get_church_condition(filters, "Person", "`tabPerson`.`name`", values)
 
 	if filters.get("person_name"):
 		conditions += " AND full_name LIKE %(person_name)s"

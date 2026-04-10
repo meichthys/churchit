@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
@@ -14,20 +14,17 @@ def get_columns(filters=None):
 	cols = [
 		{"fieldname": "name", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
 	cols.append({"fieldname": "birthday", "fieldtype": "Date", "label": "Birthday", "width": 120})
 	return cols
 
 
 def get_data(filters=None):
 	values = {}
-	church_condition = get_church_condition(filters, "church", values)
-	church_select = ", church" if show_church_column(filters) else ""
+	church_condition = get_church_condition(filters, "Person", "`tabPerson`.`name`", values)
 
 	return frappe.db.sql(
 		f"""
-		SELECT name{church_select}, birthday
+		SELECT name, birthday
 		FROM `tabPerson`
 		WHERE birthday IS NOT NULL
 			AND WEEK(birthday, 1) = WEEK(CURDATE(), 1)

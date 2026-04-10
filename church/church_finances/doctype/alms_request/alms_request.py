@@ -33,7 +33,6 @@ def create_expense(alms_request_name):
 	if not alms.expense_type:
 		frappe.throw("⚠️ An expense type is required for an expense to be created.")
 	expense = frappe.new_doc("Expense")
-	expense.church = alms.church
 	expense.amount = alms.amount
 	expense.notes = f"Alms Request: {alms.name}"
 	expense.type = frappe.db.get_value("Expense Type", alms.expense_type, "type")

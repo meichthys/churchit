@@ -25,7 +25,7 @@ def get_data(filters=None):
 	conditions = ""
 	values = {}
 
-	conditions += get_church_condition(filters, "`tabGroup`.church", values)
+	conditions += get_church_condition(filters, "Group", "`tabGroup`.`name`", values)
 
 	if filters.get("status"):
 		conditions += " AND `tabGroup`.status = %(status)s"

@@ -119,81 +119,66 @@ def show_church_column(filters):
 	return bool(frappe.utils.cint((filters or {}).get("include_sub_churches", 0)))
 
 
-def get_church_scope(church, include_sub_churches):
-	"""Return list of church names: just the one church, or the full subtree if include_sub_churches is set.
-
-	For non-System Managers, the result is intersected with the user's permitted churches.
-	"""
-	if not include_sub_churches:
-		return [church]
-
-	churches = frappe.db.sql_list(
-		"""
-		SELECT child.name
-		FROM `tabChurch` child
-		INNER JOIN `tabChurch` parent
-			ON child.lft >= parent.lft AND child.rgt <= parent.rgt
-		WHERE parent.name = %s
-		ORDER BY child.lft
-		""",
-		church,
-	)
-
-	if "System Manager" not in frappe.get_roles():
-		permitted = set(
-			frappe.db.sql_list(
-				"""
-				SELECT for_value FROM `tabUser Permission`
-				WHERE user = %s AND allow = 'Church'
-				""",
-				frappe.session.user,
-			)
-		)
-		churches = [c for c in churches if c in permitted]
-
-	return churches
-
-
-def build_in_clause(values):
-	"""Return a safely escaped SQL IN clause string, e.g. ('A', 'B')."""
-	escaped = [frappe.db.escape(v) for v in values]
-	return "(" + ", ".join(escaped) + ")"
-
-
-def get_church_condition(filters, church_field_expr, values_dict):
-	"""Build a SQL condition for church filtering and update values_dict with any needed parameters.
-
-	Handles three cases:
-	1. church + include_sub_churches: IN clause with descendants (intersected with permissions)
-	2. church only: equals clause for the single church
-	3. No church selected: User Permission subquery for non-System Managers, no restriction for System Managers
+def get_church_condition(filters, doctype, doc_name_expr, values_dict):
+	"""Build a SQL WHERE condition using the Church Subscription child table.
 
 	Args:
 		filters: dict of report filters (looks for 'church' and 'include_sub_churches')
-		church_field_expr: SQL expression for the church field, e.g. "`tabPerson`.church"
+		doctype: the doctype being filtered (e.g. "Prayer Request")
+		doc_name_expr: SQL expression for the doc name field, e.g. "`tabPrayer Request`.`name`"
 		values_dict: dict to update with query parameters
 
 	Returns:
 		SQL condition string (including leading AND), or empty string if no restriction.
 	"""
 	church = filters.get("church") if filters else None
-	include_sub_churches = frappe.utils.cint((filters or {}).get("include_sub_churches", 0))
+	include_sub = frappe.utils.cint((filters or {}).get("include_sub_churches", 0))
+	is_system_manager = "System Manager" in frappe.get_roles()
+	esc_dt = frappe.db.escape(doctype)
+
+	def _subscribed_exists(extra_condition=""):
+		return f""" AND EXISTS (
+			SELECT 1 FROM `tabChurch Subscription` _cs
+			WHERE _cs.parent = {doc_name_expr}
+			AND _cs.parenttype = {esc_dt}
+			AND _cs.parentfield = 'church_subscriptions'
+			AND _cs.subscribed = 1
+			{extra_condition}
+		)"""
+
+	def _subtree_join(church_name):
+		lft, rgt = frappe.db.get_value("Church", church_name, ["lft", "rgt"])
+		return (
+			f"AND _cs.church IN ("
+			f"SELECT name FROM `tabChurch` WHERE lft >= {lft} AND rgt <= {rgt})"
+		)
+
+	if is_system_manager:
+		if not church:
+			return ""
+		if include_sub:
+			return _subscribed_exists(_subtree_join(church))
+		else:
+			values_dict["_sm_church"] = church
+			return _subscribed_exists("AND _cs.church = %(_sm_church)s")
+
+	user_church = frappe.db.get_value("User", frappe.session.user, "church")
+	if not user_church:
+		return " AND 1=0"
 
 	if church:
-		if include_sub_churches:
-			churches = get_church_scope(church, include_sub_churches=True)
-			if not churches:
-				return " AND 1=0"
-			in_clause = build_in_clause(churches)
-			return f" AND {church_field_expr} IN {in_clause}"
+		if include_sub:
+			# Subtree filter intersected with user's own church
+			lft, rgt = frappe.db.get_value("Church", church, ["lft", "rgt"])
+			values_dict["_user_church"] = user_church
+			return _subscribed_exists(
+				f"AND _cs.church IN ("
+				f"SELECT name FROM `tabChurch` WHERE lft >= {lft} AND rgt <= {rgt}) "
+				f"AND _cs.church = %(_user_church)s"
+			)
 		else:
-			values_dict["church"] = church
-			return f" AND {church_field_expr} = %(church)s"
+			values_dict["_filter_church"] = church
+			return _subscribed_exists("AND _cs.church = %(_filter_church)s")
 	else:
-		if "System Manager" not in frappe.get_roles():
-			values_dict["user"] = frappe.session.user
-			return f""" AND {church_field_expr} IN (
-				SELECT for_value FROM `tabUser Permission`
-				WHERE user = %(user)s AND allow = 'Church'
-			)"""
-		return ""
+		values_dict["_user_church"] = user_church
+		return _subscribed_exists("AND _cs.church = %(_user_church)s")

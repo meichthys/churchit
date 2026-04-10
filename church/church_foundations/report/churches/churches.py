@@ -22,22 +22,26 @@ def get_data():
 	conditions = ""
 	values = {}
 
-	if "System Manager" not in frappe.get_roles():
-		conditions += """ AND `tabChurch`.name IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
+	# Church Managers and Church Users can see all churches (scoping is on records, not churches)
+	# System Manager also unrestricted
 
 	return frappe.db.sql(
 		f"""
 		SELECT
 			`tabChurch`.name,
-			COUNT(DISTINCT `tabPerson`.name) as people,
-			COUNT(DISTINCT `tabFamily`.name) as families
+			COUNT(DISTINCT cs_p.parent) as people,
+			COUNT(DISTINCT cs_f.parent) as families
 		FROM `tabChurch`
-		LEFT JOIN `tabPerson` ON `tabPerson`.church = `tabChurch`.name
-		LEFT JOIN `tabFamily` ON `tabFamily`.church = `tabChurch`.name
+		LEFT JOIN `tabChurch Subscription` cs_p
+			ON cs_p.church = `tabChurch`.name
+			AND cs_p.parenttype = 'Person'
+			AND cs_p.parentfield = 'church_subscriptions'
+			AND cs_p.subscribed = 1
+		LEFT JOIN `tabChurch Subscription` cs_f
+			ON cs_f.church = `tabChurch`.name
+			AND cs_f.parenttype = 'Family'
+			AND cs_f.parentfield = 'church_subscriptions'
+			AND cs_f.subscribed = 1
 		WHERE 1=1
 			{conditions}
 		GROUP BY `tabChurch`.name

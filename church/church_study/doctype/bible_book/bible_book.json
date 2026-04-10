@@ -9,18 +9,16 @@
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
-  "church",
+  "church_subscriptions",
   "book",
   "abbreviation"
  ],
  "fields": [
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
    "fieldname": "book",

@@ -8,7 +8,7 @@
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
-  "church",
+  "church_subscriptions",
   "fund",
   "description",
   "column_break_ojjy",
@@ -20,14 +20,10 @@
  ],
  "fields": [
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
    "fieldname": "fund",

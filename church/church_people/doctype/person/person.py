@@ -8,10 +8,6 @@ from frappe.utils import get_link_to_form
 
 class Person(Document):
 	def on_update(self):
-		# Sync church to linked portal user when church field changes
-		if self.portal_user and self.has_value_changed("church"):
-			frappe.db.set_value("User", self.portal_user, "church", self.church)
-
 		# Update Family Member list in Family
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
@@ -22,7 +18,7 @@ class Person(Document):
 					break
 			if not found:
 				family.append("members", {"member": self.name})
-			family.save()
+			family.save(ignore_permissions=True)
 
 		# Return if this is a new person
 		if not self.get_doc_before_save():
@@ -34,7 +30,7 @@ class Person(Document):
 				if member.member == self.name:
 					family.remove(member)
 					break
-			family.save()
+			family.save(ignore_permissions=True)
 
 	def before_save(self):
 		# We set this here since virtual fields do not work with
@@ -49,7 +45,7 @@ class Person(Document):
 				if member.name == self.name:
 					family.remove(member)
 					break
-			family.save()
+			family.save(ignore_permissions=True)
 
 	def validate(self):
 		# Prevent Church Users (portal users) from modifying sensitive relationship fields
@@ -59,7 +55,7 @@ class Person(Document):
 			and "System Manager" not in frappe.get_roles()
 			and self.get_doc_before_save()
 		):
-			for field in ("family", "spouse", "is_married", "is_head_of_household", "church"):
+			for field in ("family", "spouse", "is_married", "is_head_of_household"):
 				self.set(field, self.get_doc_before_save().get(field))
 
 		# Remove head of household status when family is removed
@@ -138,7 +134,6 @@ class Person(Document):
 
 		doc = frappe.new_doc("Family")
 		doc.family_name = f"{self.last_name} - {self.first_name}"
-		doc.church = self.church
 		doc.save()
 		self.set("family", doc)
 		self.set("is_head_of_household", True)

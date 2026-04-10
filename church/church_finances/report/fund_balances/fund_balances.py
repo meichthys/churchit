@@ -20,7 +20,7 @@ def get_columns():
 
 def get_data(filters=None):
 	values = {}
-	church_condition = get_church_condition(filters, "church", values)
+	church_condition = get_church_condition(filters, "Fund", "`tabFund`.`name`", values)
 
 	return frappe.db.sql(
 		f"""

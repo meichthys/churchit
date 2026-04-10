@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
@@ -15,8 +15,6 @@ def get_columns(filters=None):
 		{"fieldname": "parenttype", "fieldtype": "Data", "label": "Type", "width": 120},
 		{"fieldname": "parent", "fieldtype": "Dynamic Link", "label": "From", "options": "parenttype", "width": 150},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
 	cols += [
 		{"fieldname": "date", "fieldtype": "Date", "label": "Received", "width": 100},
 		{"fieldname": "is_private", "fieldtype": "Check", "label": "Private?", "width": 80},
@@ -29,18 +27,14 @@ def get_columns(filters=None):
 def get_data(filters=None):
 	values = {}
 	church_condition = get_church_condition(
-		filters, "COALESCE(`tabPerson`.church, `tabMissionary`.church)", values
-	)
-	church_select = (
-		", COALESCE(`tabPerson`.church, `tabMissionary`.church) as church"
-		if show_church_column(filters) else ""
+		filters, "Person", "COALESCE(`tabPerson`.`name`, `tabMissionary`.`name`)", values
 	)
 
 	return frappe.db.sql(
 		f"""
 		SELECT
 			`tabLetter`.parenttype,
-			`tabLetter`.parent{church_select},
+			`tabLetter`.parent,
 			`tabLetter`.date,
 			`tabLetter`.is_private,
 			COALESCE(`tabLetter`.file, ''),

@@ -8,8 +8,8 @@
  "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "section_break_fgnk",
-  "church",
   "title",
   "status",
   "due_date",
@@ -28,18 +28,14 @@
  ],
  "fields": [
   {
-   "fieldname": "section_break_fgnk",
-   "fieldtype": "Section Break"
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "section_break_fgnk",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "lft",
@@ -203,7 +199,7 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
- "search_fields": "title, notes",
+ "search_fields": "title,notes",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

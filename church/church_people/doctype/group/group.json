@@ -7,8 +7,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "section_break_x4tp",
-  "church",
   "group_name",
   "description",
   "column_break_details",
@@ -24,18 +24,14 @@
  ],
  "fields": [
   {
-   "fieldname": "section_break_x4tp",
-   "fieldtype": "Section Break"
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "section_break_x4tp",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",

@@ -8,8 +8,8 @@
  "documentation": "/app/manual%3A-prayers",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "title",
-  "church",
   "person",
   "date",
   "file",
@@ -20,21 +20,17 @@
  ],
  "fields": [
   {
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
+  },
+  {
    "fieldname": "title",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "person",
@@ -121,7 +117,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "content, person",
+ "search_fields": "content,person",
  "sort_field": "modified",
  "sort_order": "DESC",
  "show_title_field_in_link": 1,

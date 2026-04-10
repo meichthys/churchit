@@ -44,6 +44,7 @@ app_include_js = [
 	"/assets/church/js/help_icon_on_form.js",
 	"/assets/church/js/church_utils.js",
 	"/assets/church/js/published_fields_indicator.js",
+	"/assets/church/js/subscription_list_button.js",
 ]
 
 # include js, css files in header of web template
@@ -146,12 +147,59 @@ setup_wizard_complete = [
 # -----------
 # Permissions evaluated in scripted ways
 
+# All doctypes using the church subscription system.
+# To add a new doctype: add it here + add church_subscriptions Table field to its JSON.
+CHURCH_SCOPED_DOCTYPES = [
+	"Person",
+	"Family",
+	"Group",
+	"Ministry",
+	"Prayer Request",
+	"Prayer",
+	"Function",
+	"Function Sign Up",
+	"Alms Request",
+	"Collection",
+	"Fund",
+	"Expense",
+	"Fund Transfer",
+	"Sermon",
+	"Missionary",
+	"Missionary Agency",
+	"Church Task",
+	"Church Asset",
+	"Belief",
+	"Song",
+	"Bible Book",
+	"Bible Translation",
+	"Bible Verse",
+	"Prayer Request Status",
+	"Prayer Request Type",
+	"Member Status",
+	"Position Type",
+	"Person Relation Type",
+	"Function Type",
+	"Function Attendance Type",
+	"Payment Type",
+	"Missionary Support Frequency",
+	"Expense Type",
+]
+
+# Generate per-doctype permission functions at import time.
+from church.church_foundations.catalog_permissions import make_perm_func as _mpf  # noqa: E402
+
+for _dt in CHURCH_SCOPED_DOCTYPES:
+	_fname = "get_{}_permission".format(_dt.lower().replace(" ", "_"))
+	globals()[_fname] = _mpf(_dt)
+
 permission_query_conditions = {
-	"Person": "church.church_people.doctype.person.person.get_permission_query_conditions",
+	dt: "church.hooks.get_{}_permission".format(dt.lower().replace(" ", "_"))
+	for dt in CHURCH_SCOPED_DOCTYPES
 }
 
 has_permission = {
-	"Person": "church.church_people.doctype.person.person.has_permission",
+	dt: "church.church_foundations.catalog_permissions.has_subscription_permission"
+	for dt in CHURCH_SCOPED_DOCTYPES
 }
 
 # DocType Class
@@ -167,9 +215,15 @@ has_permission = {
 # Hook on document methods and events
 
 doc_events = {
+	"*": {
+		"before_insert": "church.church_foundations.subscription_hooks.before_insert",
+	},
+	"Church": {
+		"after_insert": "church.church_foundations.subscription_hooks.after_church_insert",
+	},
 	"User": {
-		"after_insert": "church.church_customizations.user_permissions.sync_user_permission",
-		"on_update": "church.church_customizations.user_permissions.sync_user_permission",
+		"after_insert": "church.church_customizations.user_permissions.sync_user_church_field",
+		"on_update": "church.church_customizations.user_permissions.sync_user_church_field",
 		"validate": "church.church_customizations.user_permissions.validate_church_manager_edits",
 	},
 }

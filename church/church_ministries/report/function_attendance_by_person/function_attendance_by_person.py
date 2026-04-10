@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import get_church_condition, set_report_link_titles
 
 
 def execute(filters=None):
@@ -14,8 +14,6 @@ def get_columns(filters=None):
 	cols = [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
 	cols += [
 		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
 		{"fieldname": "type", "fieldtype": "Link", "label": "Function Type", "options": "Function Type", "width": 150},
@@ -30,8 +28,7 @@ def get_data(filters=None):
 	conditions = ""
 	values = {}
 
-	conditions += get_church_condition(filters, "`tabFunction`.church", values)
-	church_select = ", `tabFunction`.church" if show_church_column(filters) else ""
+	conditions += get_church_condition(filters, "Function", "`tabFunction`.`name`", values)
 
 	if filters.get("person"):
 		conditions += " AND `tabFunction Attendance`.person = %(person)s"
@@ -52,7 +49,7 @@ def get_data(filters=None):
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabFunction Attendance`.person{church_select},
+			`tabFunction Attendance`.person,
 			`tabFunction Attendance`.parent as `function`,
 			`tabFunction`.type,
 			`tabFunction`.start_date,

@@ -8,8 +8,8 @@
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
+  "church_subscriptions",
   "section_break_acrr",
-  "church",
   "family_name",
   "head_of_household",
   "home_address",
@@ -19,14 +19,10 @@
  ],
  "fields": [
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
    "fieldname": "column_break_pmch",

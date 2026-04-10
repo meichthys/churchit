@@ -9,7 +9,7 @@
  "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
  "field_order": [
-  "church",
+  "church_subscriptions",
   "title",
   "image",
   "acquisition_date",
@@ -18,14 +18,10 @@
  ],
  "fields": [
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
+   "fieldname": "church_subscriptions",
+   "fieldtype": "Table",
+   "label": "Church Subscriptions",
+   "options": "Church Subscription"
   },
   {
    "allow_in_quick_entry": 1,
@@ -107,7 +103,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "title, notes, location",
+ "search_fields": "title,notes,location",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
