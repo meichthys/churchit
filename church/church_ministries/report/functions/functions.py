@@ -1,39 +1,29 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns(filters)
-	data = get_data(filters)
+	columns = get_columns()
+	data = get_data()
 	set_report_link_titles(columns, data)
 	return columns, data
 
 
-def get_columns(filters=None):
-	cols = [
+def get_columns():
+	return [
 		{"fieldname": "name", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 300},
 		{"fieldname": "function_name", "fieldtype": "Data", "label": "Name", "width": 200},
 		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Function Type", "width": 200},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
-	return cols
 
 
-def get_data(filters=None):
-	values = {}
-	church_condition = get_church_condition(filters, "church", values)
-	church_select = ", church" if show_church_column(filters) else ""
-
+def get_data():
 	return frappe.db.sql(
-		f"""
-		SELECT name, function_name, type{church_select}
+		"""
+		SELECT name, function_name, type
 		FROM `tabFunction`
-		WHERE 1=1
-			{church_condition}
 		ORDER BY modified DESC
 		""",
-		values,
 		as_dict=True,
 	)

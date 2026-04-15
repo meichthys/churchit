@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:BLEF-{###}",
  "creation": "2025-09-17 21:36:27.516552",
  "description": "Specific beliefs of the church",
  "doctype": "DocType",
@@ -9,23 +9,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "title",
   "belief_statement",
   "bible_references",
   "publish"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -65,7 +54,7 @@
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Belief",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

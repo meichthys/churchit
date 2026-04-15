@@ -1,42 +1,34 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns(filters)
+	columns = get_columns()
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
 
 
-def get_columns(filters=None):
-	cols = [
+def get_columns():
+	return [
 		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 120},
-	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
-	cols += [
 		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 120},
 		{"fieldname": "recipient", "fieldtype": "Dynamic Link", "label": "Recipient", "options": "recipient_type", "width": 150},
-		{"fieldname": "request", "fieldtype": "Data", "label": "Request", "width": 300},
+		{"fieldname": "details", "fieldtype": "Data", "label": "Details", "width": 300},
 	]
-	return cols
 
 
 def get_data(filters):
 	filters = filters or {}
 	values = {"request_since": filters.get("request_since")}
-	church_condition = get_church_condition(filters, "church", values)
-	church_select = ", church" if show_church_column(filters) else ""
 
 	return frappe.db.sql(
-		f"""
-		SELECT status{church_select}, type, recipient_type, recipient, request
+		"""
+		SELECT status, type, recipient_type, recipient, details
 		FROM `tabPrayer Request`
 		WHERE creation > %(request_since)s
 			AND status = 'answered'
-			{church_condition}
 		""",
 		values,
 		as_dict=True,

@@ -24,9 +24,9 @@
    "width": 0
   },
   {
-   "fieldname": "request",
+   "fieldname": "details",
    "fieldtype": "Data",
-   "label": "Request",
+   "label": "Details",
    "width": 0
   }
  ],

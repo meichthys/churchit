@@ -28,14 +28,14 @@
    "label": "Type"
   },
   {
-   "fieldname": "request",
+   "fieldname": "details",
    "fieldtype": "Small Text",
-   "label": "Request"
+   "label": "Details"
   }
  ],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-03-09 19:31:49.597847",
+ "modified": "2026-04-14 17:23:04.098921",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "prayer-request-anonymous",
@@ -49,27 +49,12 @@
  "web_form_fields": [
   {
    "allow_read_on_all_link_options": 0,
-   "fieldname": "church",
-   "fieldtype": "Link",
+   "fieldname": "title",
+   "fieldtype": "Data",
    "hidden": 0,
-   "label": "Church",
+   "label": "Title",
    "max_length": 0,
    "max_value": 0,
-   "options": "Church",
-   "precision": "",
-   "read_only": 0,
-   "reqd": 1,
-   "show_in_filter": 0
-  },
-  {
-   "allow_read_on_all_link_options": 0,
-   "fieldname": "status",
-   "fieldtype": "Link",
-   "hidden": 0,
-   "label": "Status",
-   "max_length": 0,
-   "max_value": 0,
-   "options": "Prayer Request Status",
    "precision": "",
    "read_only": 0,
    "reqd": 1,
@@ -105,6 +90,35 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "hidden": 0,
+   "label": "Status",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "Prayer Request Status",
+   "precision": "",
+   "read_only": 0,
+   "reqd": 1,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 0,
+   "default": "",
+   "description": "Check this if you don't want this shared with the church body.",
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "hidden": 0,
+   "label": "Is Private",
+   "max_length": 0,
+   "max_value": 0,
+   "precision": "",
+   "read_only": 0,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 0,
    "fieldname": "section_break_usaz",
    "fieldtype": "Section Break",
    "hidden": 0,
@@ -128,21 +142,6 @@
    "precision": "",
    "read_only": 0,
    "reqd": 1,
-   "show_in_filter": 0
-  },
-  {
-   "allow_read_on_all_link_options": 0,
-   "default": "",
-   "description": "Check this if you don't want this shared with the church body.",
-   "fieldname": "is_private",
-   "fieldtype": "Check",
-   "hidden": 0,
-   "label": "Is Private",
-   "max_length": 0,
-   "max_value": 0,
-   "precision": "",
-   "read_only": 0,
-   "reqd": 0,
    "show_in_filter": 0
   }
  ]

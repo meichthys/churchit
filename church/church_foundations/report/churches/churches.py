@@ -19,30 +19,13 @@ def get_columns():
 
 
 def get_data():
-	conditions = ""
-	values = {}
-
-	if "System Manager" not in frappe.get_roles():
-		conditions += """ AND `tabChurch`.name IN (
-			SELECT for_value FROM `tabUser Permission`
-			WHERE user = %(user)s AND allow = 'Church'
-		)"""
-		values["user"] = frappe.session.user
-
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabChurch`.name,
-			COUNT(DISTINCT `tabPerson`.name) as people,
-			COUNT(DISTINCT `tabFamily`.name) as families
-		FROM `tabChurch`
-		LEFT JOIN `tabPerson` ON `tabPerson`.church = `tabChurch`.name
-		LEFT JOIN `tabFamily` ON `tabFamily`.church = `tabChurch`.name
-		WHERE 1=1
-			{conditions}
-		GROUP BY `tabChurch`.name
-		ORDER BY `tabChurch`.name
-		""",
-		values,
+	churches = frappe.db.sql(
+		"SELECT name FROM `tabChurch` ORDER BY name",
 		as_dict=True,
 	)
+	people_count = frappe.db.count("Person")
+	families_count = frappe.db.count("Family")
+	for church in churches:
+		church["people"] = people_count
+		church["families"] = families_count
+	return churches

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:FT-{####}",
  "creation": "2025-10-09 23:26:05.829776",
  "description": "A financial currency transfer between two `Fund`s",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "church",
   "section_break_ev5b",
   "from_fund",
   "to_fund",
@@ -27,16 +26,6 @@
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "section_break_ev5b",
@@ -118,7 +107,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund Transfer",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

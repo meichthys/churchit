@@ -1,31 +1,25 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns(filters)
+	columns = get_columns()
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
 
 
-def get_columns(filters=None):
-	cols = [
+def get_columns():
+	return [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
+		{"fieldname": "total_amount", "fieldtype": "Currency", "label": "Total Amount", "width": 150},
 	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
-	cols.append({"fieldname": "total_amount", "fieldtype": "Currency", "label": "Total Amount", "width": 150})
-	return cols
 
 
 def get_data(filters=None):
 	filters = filters or {}
 	values = {}
-	church_condition = get_church_condition(filters, "`tabCollection`.church", values)
-	church_select = ", `tabCollection`.church" if show_church_column(filters) else ""
-	church_group = ", `tabCollection`.church" if show_church_column(filters) else ""
 
 	date_condition = ""
 	if filters.get("from_date"):
@@ -38,15 +32,14 @@ def get_data(filters=None):
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabDonation`.person{church_select},
+			`tabDonation`.person,
 			SUM(`tabDonation`.amount) AS total_amount
 		FROM `tabDonation`
 		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
 		WHERE `tabDonation`.parenttype = 'Collection'
 			AND `tabDonation`.person IS NOT NULL
 			{date_condition}
-			{church_condition}
-		GROUP BY `tabDonation`.person{church_group}
+		GROUP BY `tabDonation`.person
 		ORDER BY total_amount DESC
 		""",
 		values,

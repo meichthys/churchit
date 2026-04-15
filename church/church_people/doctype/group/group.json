@@ -1,14 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:GRP-{####}",
  "creation": "2026-03-19 18:42:32.635733",
  "description": "A collection of people with a related purpose (e.g. Sunday School class, ministry, small group, committee, etc.)",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_x4tp",
-  "church",
   "group_name",
   "description",
   "column_break_details",
@@ -26,16 +25,6 @@
   {
    "fieldname": "section_break_x4tp",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "default": "0",
@@ -132,7 +121,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "nsm_parent_field": "parent_group",
  "owner": "Administrator",
  "permissions": [

@@ -2,14 +2,13 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:ASSET-{####}",
  "creation": "2025-12-15 00:18:29.399376",
  "description": "Items that the Church owns (i.e. appliances, equipment, etc)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "title",
   "image",
   "acquisition_date",
@@ -17,16 +16,6 @@
   "notes"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "title",
@@ -77,7 +66,7 @@
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Asset",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

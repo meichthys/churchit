@@ -2,10 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Prayer Request', {
-    recipient_type: function(frm) {
-        // Dynamically update the Recipient field description based on the Recipient Type that is selected
-        if (frm.doc.recipient_type) {
-            frm.set_df_property('recipient', 'description', `Prayers are requested for this ${frm.doc.recipient_type}.`);
+    refresh(frm) {
+        if (frm.doc.is_private) {
+            frm.set_intro('⚠️ This prayer request is marked as private and should not be shared with the full church body.', 'yellow');
         }
     },
     onload: function(frm) {

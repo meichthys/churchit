@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:MISS-{###}",
  "creation": "2025-09-18 22:33:05.489158",
  "description": "Missionaries of the church.",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_oyuw",
-  "church",
   "title",
   "person",
   "agency",
@@ -36,16 +35,6 @@
   "related_documents"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "fieldname": "agency",
    "fieldtype": "Link",
@@ -226,7 +215,7 @@
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import get_church_condition, set_report_link_titles
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
@@ -13,7 +13,6 @@ def execute(filters=None):
 def get_columns():
 	return [
 		{"fieldname": "ministry_name", "fieldtype": "Data", "label": "Ministry", "width": 200},
-		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 150},
 		{"fieldname": "status", "fieldtype": "Data", "label": "Status", "width": 100},
 		{"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date", "width": 120},
 		{"fieldname": "end_date", "fieldtype": "Date", "label": "End Date", "width": 120},
@@ -28,8 +27,6 @@ def get_data(filters=None):
 	filters = filters or {}
 	conditions = ""
 	values = {}
-
-	conditions += get_church_condition(filters, "`tabMinistry`.church", values)
 
 	if filters.get("status"):
 		conditions += " AND `tabMinistry`.status = %(status)s"
@@ -57,7 +54,6 @@ def get_data(filters=None):
 		SELECT
 			`tabMinistry`.name,
 			`tabMinistry`.ministry_name,
-			`tabMinistry`.church,
 			`tabMinistry`.status,
 			`tabMinistry`.start_date,
 			`tabMinistry`.end_date,

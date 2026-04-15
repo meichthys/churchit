@@ -1,14 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:SONG-{####}",
  "creation": "2025-10-10 22:36:42.168218",
  "description": "A song sung by the Church as part of worship or a `Function`",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "title",
   "column_break_odyq",
   "ccli",
@@ -16,14 +15,6 @@
   "slides"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -70,7 +61,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

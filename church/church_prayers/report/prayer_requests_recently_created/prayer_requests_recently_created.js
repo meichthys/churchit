@@ -1,6 +1,5 @@
 frappe.query_reports["Prayer Requests Recently Created"] = {
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "request_since",
 			label: __("Requests Since..."),
@@ -9,7 +8,4 @@ frappe.query_reports["Prayer Requests Recently Created"] = {
 		},
 	],
 
-	onload: function (report) {
-		church.setup_church_report(report);
-	},
 };

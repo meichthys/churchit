@@ -1,6 +1,5 @@
 frappe.query_reports["Function Count by Type"] = {
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "start",
 			label: __("Start Date"),
@@ -13,7 +12,4 @@ frappe.query_reports["Function Count by Type"] = {
 		},
 	],
 
-	onload: function (report) {
-		church.setup_church_report(report);
-	},
 };

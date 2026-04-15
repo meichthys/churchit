@@ -2,25 +2,16 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:translation",
  "creation": "2025-09-17 23:06:44.746941",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "translation",
   "abbreviation"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "translation",
    "fieldtype": "Data",
@@ -50,7 +41,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Translation",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

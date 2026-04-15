@@ -1,25 +1,16 @@
 {
  "actions": [],
- "autoname": "hash",
+ "autoname": "field:status",
  "creation": "2025-08-25 22:44:34.512827",
  "description": "Status type of the `Church Member` as defined by the church.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "status",
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "status",
@@ -49,7 +40,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Status",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

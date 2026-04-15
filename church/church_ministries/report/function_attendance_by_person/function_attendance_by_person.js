@@ -1,6 +1,5 @@
 frappe.query_reports["Function Attendance by Person"] = {
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "person",
 			label: __("Person"),
@@ -25,7 +24,4 @@ frappe.query_reports["Function Attendance by Person"] = {
 		},
 	],
 
-	onload: function (report) {
-		church.setup_church_report(report);
-	},
 };

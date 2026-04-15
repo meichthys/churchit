@@ -18,12 +18,11 @@ class FunctionSignUp(Document):
 		user_roles = frappe.get_roles(frappe.session.user)
 		is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
 		if not is_manager:
-			# Force person and church from the linked Person record to prevent tampering
-			person = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, ["name", "church"], as_dict=True)
-			if not person:
+			# Force person from the linked Person record to prevent tampering
+			person_name = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, "name")
+			if not person_name:
 				frappe.throw("No Person record is linked to your account.")
-			self.person = person.name
-			self.church = person.church
+			self.person = person_name
 
 	def after_insert(self):
 		if self.attending:

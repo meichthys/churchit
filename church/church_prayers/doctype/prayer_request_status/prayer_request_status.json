@@ -1,26 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:status",
  "creation": "2025-09-13 00:46:26.348653",
  "description": "The state of a prayer request. (i.e. Requested, Answered, etc)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-prayers",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "status",
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "status",
@@ -45,7 +36,7 @@
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request Status",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

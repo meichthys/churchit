@@ -1,8 +1,5 @@
 <div class="row justify-content-center">
-{% set root_churches = frappe.get_list("Church", fields=["name"], filters={"parent_church": ""}, ignore_permissions=True, limit=1) %}
-{% if root_churches %}
-{% set root_church_name = root_churches[0].name %}
-{% set ministry_docs = frappe.get_list("Ministry", fields=["name"], filters={"publish": 1, "church": root_church_name, "status": "Active"}, ignore_permissions=True, order_by="ministry_name asc") %}
+{% set ministry_docs = frappe.get_list("Ministry", fields=["name"], filters={"publish": 1, "status": "Active"}, ignore_permissions=True, order_by="ministry_name asc") %}
 {% if ministry_docs %}
 {% for doc in ministry_docs %}
     {% set ministry = frappe.get_doc("Ministry", doc.name) %}
@@ -34,6 +31,5 @@
     <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
         <p class="text-muted" style="font-size: 1.1em;">Our ministries information is being updated. Please check back soon.</p>
     </div>
-{% endif %}
 {% endif %}
 </div>

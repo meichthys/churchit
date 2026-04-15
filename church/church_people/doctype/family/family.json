@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "hash",
+ "autoname": "format:FAM-{####}",
  "creation": "2025-08-22 00:15:20.425153",
  "description": "A family of people ('Person's) that are considered to be part of the same household. One 'Person' can be set to be the Head of Household for a family. ",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_acrr",
-  "church",
   "family_name",
   "head_of_household",
   "home_address",
@@ -18,16 +17,6 @@
   "members"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "fieldname": "column_break_pmch",
    "fieldtype": "Column Break"
@@ -92,7 +81,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

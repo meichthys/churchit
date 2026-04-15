@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:PRAY-{####}",
  "creation": "2025-10-08 22:02:44.303677",
  "description": "A recorded prayer, written or spoken",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "church",
   "person",
   "date",
   "file",
@@ -25,16 +24,6 @@
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "person",
@@ -91,7 +80,7 @@
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

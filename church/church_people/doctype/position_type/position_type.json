@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:position",
  "creation": "2025-08-26 22:57:29.102805",
  "description": "Types of positions that `Person`s can fill in the church.",
  "doctype": "DocType",
@@ -9,19 +9,10 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "position",
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
@@ -51,7 +42,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position Type",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

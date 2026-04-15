@@ -2,26 +2,17 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:book",
  "creation": "2025-09-17 21:56:11.028021",
  "description": "Books of the Bible",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "book",
   "abbreviation"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "book",
    "fieldtype": "Data",
@@ -55,7 +46,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Book",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

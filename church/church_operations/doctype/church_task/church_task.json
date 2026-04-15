@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "hash",
+ "autoname": "format:TASK-{####}",
  "creation": "2025-12-15 00:41:21.858015",
  "description": "Things that need to get done (Like a checklist or ToDo list)",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_fgnk",
-  "church",
   "title",
   "status",
   "due_date",
@@ -30,16 +29,6 @@
   {
    "fieldname": "section_break_fgnk",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "lft",
@@ -171,7 +160,7 @@
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "nsm_parent_field": "parent_task",
  "owner": "Administrator",
  "permissions": [

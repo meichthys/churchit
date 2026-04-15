@@ -17,23 +17,6 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Select the `Church` this person belongs to.\nThis links the person to their church congregation.",
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "has_next_condition": 0,
-   "hide_buttons": 0,
-   "is_table_field": 0,
-   "label": "Church",
-   "modal_trigger": 0,
-   "next_on_click": 0,
-   "offset_x": 0,
-   "offset_y": 0,
-   "popover_element": 0,
-   "position": "Top",
-   "title": "Church",
-   "ui_tour": 0
-  },
-  {
    "description": "A `First Name` is the only required(*) field.\nLet's give this person a name.",
    "fieldname": "first_name",
    "fieldtype": "Data",

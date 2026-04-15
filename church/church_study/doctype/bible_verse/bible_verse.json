@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "",
  "creation": "2025-09-17 21:42:32.438305",
  "description": "A Bible reference to a single verse (i.e John 3:16)",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "reference",
   "book",
   "chapter",
@@ -55,14 +54,6 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_filter": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church"
-  },
-  {
    "fieldname": "reference",
    "fieldtype": "Read Only",
    "in_list_view": 1,
@@ -88,7 +79,7 @@
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Verse",
- "naming_rule": "Random",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

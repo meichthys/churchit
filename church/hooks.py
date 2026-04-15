@@ -146,14 +146,6 @@ setup_wizard_complete = [
 # -----------
 # Permissions evaluated in scripted ways
 
-permission_query_conditions = {
-	"Person": "church.church_people.doctype.person.person.get_permission_query_conditions",
-}
-
-has_permission = {
-	"Person": "church.church_people.doctype.person.person.has_permission",
-}
-
 # DocType Class
 # ---------------
 # Override standard doctype classes
@@ -165,14 +157,6 @@ has_permission = {
 # Document Events
 # ---------------
 # Hook on document methods and events
-
-doc_events = {
-	"User": {
-		"after_insert": "church.church_customizations.user_permissions.sync_user_permission",
-		"on_update": "church.church_customizations.user_permissions.sync_user_permission",
-		"validate": "church.church_customizations.user_permissions.validate_church_manager_edits",
-	},
-}
 
 # Scheduled Tasks
 # ---------------

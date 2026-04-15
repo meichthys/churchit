@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:CHR-{##}",
  "creation": "2025-09-17 21:10:06.782386",
  "default_view": "List",
  "description": "A church or church branch.",
@@ -144,7 +144,7 @@
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "nsm_parent_field": "parent_church",
  "owner": "Administrator",
  "permissions": [

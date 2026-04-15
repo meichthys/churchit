@@ -1,6 +1,6 @@
 import frappe
 
-from church.utils import get_church_condition, set_report_link_titles
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
@@ -14,7 +14,6 @@ def get_columns():
 	return [
 		{"fieldname": "full_name", "fieldtype": "Data", "label": "Name", "width": 200},
 		{"fieldname": "family_name", "fieldtype": "Data", "label": "Family", "width": 150},
-		{"fieldname": "church", "fieldtype": "Link", "label": "Church", "options": "Church", "width": 150},
 		{"fieldname": "roles", "fieldtype": "Data", "label": "Roles", "width": 250},
 		{"fieldname": "membership_status", "fieldtype": "Link", "label": "Member Status", "options": "Member Status", "width": 120},
 		{"fieldname": "birthday", "fieldtype": "Date", "label": "Birthday", "width": 120},
@@ -27,8 +26,6 @@ def get_data(filters=None):
 	filters = filters or {}
 	conditions = ""
 	values = {}
-
-	conditions += get_church_condition(filters, "`tabPerson`.church", values)
 
 	if filters.get("person_name"):
 		conditions += " AND full_name LIKE %(person_name)s"
@@ -55,7 +52,7 @@ def get_data(filters=None):
 	return frappe.db.sql(
 		f"""
 		SELECT
-			`tabPerson`.name, full_name, `tabPerson`.church, is_member, membership_status,
+			`tabPerson`.name, full_name, is_member, membership_status,
 			is_baptized, `tabPerson`.family, `tabFamily`.family_name, birthday,
 			GROUP_CONCAT(DISTINCT `tabPosition Type`.position ORDER BY `tabPosition Type`.position SEPARATOR ', ') as roles
 		FROM `tabPerson`

@@ -1,7 +1,6 @@
 frappe.query_reports["Church Directory Report"] = {
 	hide_name_column: true,
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "members_only",
 			label: __("Members Only"),
@@ -60,11 +59,7 @@ frappe.query_reports["Church Directory Report"] = {
 	],
 
 	onload: function (report) {
-		church.setup_church_report(report);
-
 		report.page.add_inner_button(__('Print Directory'), function () {
-			const church = report.get_filter_value('church');
-			const include_sub_churches = report.get_filter_value('include_sub_churches') ? 1 : 0;
 			const members_only = report.get_filter_value('members_only') ? 1 : 0;
 			const show_photos = report.get_filter_value('show_photos') ? 1 : 0;
 			const show_roles = report.get_filter_value('show_roles') ? 1 : 0;
@@ -75,16 +70,9 @@ frappe.query_reports["Church Directory Report"] = {
 			const group_by_family = report.get_filter_value('group_by_family') ? 1 : 0;
 			const show_missionaries = report.get_filter_value('show_missionaries') ? 1 : 0;
 
-			if (!church) {
-				frappe.msgprint(__('Please select a Church first.'));
-				return;
-			}
-
 			frappe.call({
 				method: 'church.church_people.report.church_directory_report.church_directory_report.get_directory_html',
 				args: {
-					church,
-					include_sub_churches,
 					members_only,
 					group_by_family,
 					show_photos,

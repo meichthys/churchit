@@ -1,14 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:FUNC-{####}",
  "creation": "2025-08-31 23:40:34.324092",
  "description": "Any kind of church gathering. This includes regular services as well as one-off functions.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "type",
   "function_name",
   "all_day",
@@ -29,16 +28,6 @@
   "attendance"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "default": "0",
    "description": "Allow people to sign up for this function via the portal.",
@@ -173,7 +162,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

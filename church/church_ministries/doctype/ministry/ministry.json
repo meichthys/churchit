@@ -1,13 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:MIN-{###}",
  "creation": "2026-03-27 00:00:00",
  "description": "A ministry of the church (e.g. Nursing Home Outreach, Youth Group, Nursery, Choir, Bible Study).",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "ministry_name",
   "group",
   "fund",
@@ -21,16 +20,6 @@
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "fieldname": "ministry_name",
    "fieldtype": "Data",
@@ -110,7 +99,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

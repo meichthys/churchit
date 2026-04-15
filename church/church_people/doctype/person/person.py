@@ -8,10 +8,6 @@ from frappe.utils import get_link_to_form
 
 class Person(Document):
 	def on_update(self):
-		# Sync church to linked portal user when church field changes
-		if self.portal_user and self.has_value_changed("church"):
-			frappe.db.set_value("User", self.portal_user, "church", self.church)
-
 		# Update Family Member list in Family
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
@@ -52,16 +48,6 @@ class Person(Document):
 			family.save()
 
 	def validate(self):
-		# Prevent Church Users (portal users) from modifying sensitive relationship fields
-		if (
-			"Church User" in frappe.get_roles()
-			and "Church Manager" not in frappe.get_roles()
-			and "System Manager" not in frappe.get_roles()
-			and self.get_doc_before_save()
-		):
-			for field in ("family", "spouse", "is_married", "is_head_of_household", "church"):
-				self.set(field, self.get_doc_before_save().get(field))
-
 		# Remove head of household status when family is removed
 		if not self.family and self.is_head_of_household:
 			self.set("is_head_of_household", False)
@@ -138,7 +124,6 @@ class Person(Document):
 
 		doc = frappe.new_doc("Family")
 		doc.family_name = f"{self.last_name} - {self.first_name}"
-		doc.church = self.church
 		doc.save()
 		self.set("family", doc)
 		self.set("is_head_of_household", True)
@@ -157,11 +142,6 @@ class Person(Document):
 				title="Email Not Configured",
 			)
 
-		# Inherit church from the creating user; fall back to root church if unset
-		church = frappe.db.get_value("User", frappe.session.user, "church")
-		if not church:
-			church = frappe.db.get_value("Church", {"parent_church": ("is", "not set")})
-
 		# Check if user already exists with this email
 		user = frappe.db.exists("User", {"email": self.email})
 
@@ -174,67 +154,25 @@ class Person(Document):
 			new_user.send_welcome_email = 1
 			new_user.enabled = 1
 			new_user.role_profile_name = "Church User"
-			new_user.church = church
 			new_user.save(ignore_permissions=True)
 
 			# Update Person to mark as portal user
 			self.portal_user = new_user.name
 			self.save(ignore_permissions=True)
 
-			if church:
-				frappe.msgprint(
-					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> at <b>{church}</b> "
-					f"and an invitation email was sent to {self.email}.",
-					title="Invitation Sent",
-					indicator="green",
-				)
-			else:
-				frappe.msgprint(
-					f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
-					f"and an invitation email was sent to {self.email}. "
-					f"⚠️ No church was assigned — please set a church on the user.",
-					title="Invitation Sent",
-					indicator="orange",
-				)
+			frappe.msgprint(
+				f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
+				f"and an invitation email was sent to {self.email}.",
+				title="Invitation Sent",
+				indicator="green",
+			)
 		else:
 			# User already exists, just update the portal_user field
 			self.portal_user = user
 			self.save(ignore_permissions=True)
-			existing_church = frappe.db.get_value("User", user, "church")
-			church_text = f" at <b>{existing_church}</b>" if existing_church else " (no church assigned)"
 			frappe.msgprint(
-				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a>{church_text} already exists. User is now linked to this person."
+				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a> already exists. User is now linked to this person."
 			)
-
-
-def has_permission(doc, ptype, user):
-	if not user:
-		user = frappe.session.user
-
-	# Church Manager / System Manager — no extra restriction
-	if "Church Manager" in frappe.get_roles(user) or "System Manager" in frappe.get_roles(user):
-		return True
-
-	# Church User — can only access their own Person record
-	if "Church User" in frappe.get_roles(user):
-		return doc.portal_user == user
-
-	return None
-
-
-def get_permission_query_conditions(user):
-	if not user:
-		user = frappe.session.user
-
-	roles = frappe.get_roles(user)
-
-	if "System Manager" in roles or "Church Manager" in roles:
-		return ""
-
-	if "Church User" in roles:
-		return f"(`tabPerson`.portal_user = {frappe.db.escape(user)})"
-
-	return ""
 
 
 def get_list_context(context):

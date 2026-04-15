@@ -1,25 +1,16 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:role",
  "creation": "2026-03-20 00:00:00.000000",
  "description": "Roles that members can have within a Group (e.g. Leader, Co-Leader, Member, Secretary, etc.)",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "role",
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "role",
    "fieldtype": "Data",
@@ -42,7 +33,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group Role",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

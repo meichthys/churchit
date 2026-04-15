@@ -1,14 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:type",
  "creation": "2025-08-31 23:41:14.325452",
  "description": "Types of church functions (i.e. Sunday services, community functions, private functions, etc.)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "type",
   "column_break_pgdp",
   "template_function",
@@ -16,14 +15,6 @@
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "description",
@@ -68,7 +59,7 @@
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

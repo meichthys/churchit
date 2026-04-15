@@ -1,14 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:type",
  "creation": "2025-10-09 02:26:38.910872",
  "description": "A type of `Expense` (a.k.a. Categories)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "type",
   "parent_expense_type",
   "is_group",
@@ -21,14 +20,6 @@
   "old_parent"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "fieldname": "section_break_b8hv",
    "fieldtype": "Section Break",
@@ -120,7 +111,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense Type",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "nsm_parent_field": "parent_expense_type",
  "owner": "Administrator",
  "permissions": [

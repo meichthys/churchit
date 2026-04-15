@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:EXP-{####}",
  "creation": "2025-10-09 02:25:29.401455",
  "description": "A financial transaction that reduces the balance of a `Fund`",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "church",
   "type",
   "amount",
   "date",
@@ -23,16 +22,6 @@
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "fieldname": "amount",
@@ -92,7 +81,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

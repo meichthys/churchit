@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:PRSN-{####}",
  "creation": "2025-08-21 01:19:39.714186",
  "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
  "doctype": "DocType",
@@ -10,7 +10,6 @@
  "engine": "InnoDB",
  "field_order": [
   "personal_information_section",
-  "church",
   "first_name",
   "last_name",
   "full_name",
@@ -51,16 +50,6 @@
   "notes"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "first_name",
@@ -350,7 +339,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

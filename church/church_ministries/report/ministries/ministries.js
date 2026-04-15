@@ -1,6 +1,5 @@
 frappe.query_reports["Ministries"] = {
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "status",
 			label: __("Status"),
@@ -48,7 +47,4 @@ frappe.query_reports["Ministries"] = {
 		return value;
 	},
 
-	onload: function (report) {
-		church.setup_church_report(report);
-	},
 };

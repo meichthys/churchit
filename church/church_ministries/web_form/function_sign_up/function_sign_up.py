@@ -2,11 +2,10 @@ import json
 
 import frappe
 
-from church.utils import resolve_link_titles, setup_web_form_church_field
+from church.utils import resolve_link_titles
 
 
 def get_context(context):
-	setup_web_form_church_field(context)
 	if context.get("reference_doc"):
 		resolve_link_titles([context.reference_doc], "Function Sign Up")
 	sign_up_functions = set(
@@ -35,18 +34,16 @@ def get_context(context):
 
 @frappe.whitelist()
 def get_user_context():
-	"""Return church, person, and role info for the current user."""
+	"""Return person and role info for the current user."""
 	if frappe.session.user == "Guest":
 		return None
 
 	user_roles = frappe.get_roles(frappe.session.user)
 	is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
 
-	church = frappe.db.get_value("User", frappe.session.user, "church")
 	person = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, "name")
 
 	return {
-		"church": church,
 		"person": person,
 		"is_manager": is_manager,
 	}

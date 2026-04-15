@@ -1,22 +1,18 @@
 import frappe
 
-from church.utils import CHURCH_COLUMN, get_church_condition, set_report_link_titles, show_church_column
+from church.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns(filters)
-	data = get_data(filters)
+	columns = get_columns()
+	data = get_data()
 	set_report_link_titles(columns, data)
 	return columns, data
 
 
-def get_columns(filters=None):
-	cols = [
+def get_columns():
+	return [
 		{"fieldname": "name", "fieldtype": "Link", "label": "Collection", "options": "Collection", "width": 200},
-	]
-	if show_church_column(filters):
-		cols.append(CHURCH_COLUMN)
-	cols += [
 		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
 		{"fieldname": "fund", "fieldtype": "Link", "label": "Fund", "options": "Fund", "width": 150},
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 150},
@@ -24,18 +20,13 @@ def get_columns(filters=None):
 		{"fieldname": "check_number", "fieldtype": "Data", "label": "Check #", "width": 100},
 		{"fieldname": "amount", "fieldtype": "Currency", "label": "Amount", "width": 120},
 	]
-	return cols
 
 
-def get_data(filters=None):
-	values = {}
-	church_condition = get_church_condition(filters, "`tabCollection`.church", values)
-	church_select = ", `tabCollection`.church" if show_church_column(filters) else ""
-
+def get_data():
 	return frappe.db.sql(
-		f"""
+		"""
 		SELECT
-			`tabCollection`.name{church_select},
+			`tabCollection`.name,
 			`tabCollection`.function,
 			`tabDonation`.fund,
 			`tabDonation`.person,
@@ -45,9 +36,7 @@ def get_data(filters=None):
 		FROM `tabDonation`
 		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
 		WHERE `tabDonation`.parenttype = 'Collection'
-			{church_condition}
 		ORDER BY `tabCollection`.modified DESC
 		""",
-		values,
 		as_dict=True,
 	)

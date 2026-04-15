@@ -1,6 +1,5 @@
 frappe.query_reports["Collection Bank Reconciliation"] = {
 	filters: [
-		...church.get_church_report_filters(),
 		{
 			fieldname: "parent_filter",
 			label: __("Collections"),
@@ -10,7 +9,4 @@ frappe.query_reports["Collection Bank Reconciliation"] = {
 		},
 	],
 
-	onload: function (report) {
-		church.setup_church_report(report);
-	},
 };

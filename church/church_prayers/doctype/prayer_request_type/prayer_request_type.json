@@ -1,26 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:type",
  "creation": "2025-09-13 01:12:32.154287",
  "description": "The kind of prayer request (i.e. Praise, Health, Salvation, etc.)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-prayers",
  "engine": "InnoDB",
  "field_order": [
-  "church",
   "type",
   "description"
  ],
  "fields": [
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1
-  },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "type",
@@ -46,7 +37,7 @@
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request Type",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

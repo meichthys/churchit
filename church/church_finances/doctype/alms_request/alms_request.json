@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "format:ALMS-{####}",
  "creation": "2025-11-10 22:56:15.677299",
  "description": "A request for financial support for a person or family",
  "doctype": "DocType",
@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "church",
   "status",
   "recipient_type",
   "recipient",
@@ -27,16 +26,6 @@
    "hidden": 1,
    "label": "Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Church",
-   "options": "Church",
-   "reqd": 1,
-   "search_index": 1
   },
   {
    "description": "The entity that would be receiving the alms.",
@@ -124,7 +113,7 @@
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
