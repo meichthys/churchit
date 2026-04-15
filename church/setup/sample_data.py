@@ -13,6 +13,33 @@ from frappe.utils import add_days, add_months, getdate
 
 from church.patches.after_install import DEFAULT_CHURCH_NAME
 
+# Ordered deletion steps: (is_submittable, doctype, filters).
+# Prayer Request comments are handled separately after this list runs.
+_DELETE_STEPS = [
+	(False, "Church Task", {}),
+	(False, "Church Asset", {}),
+	(False, "Song", {}),
+	(False, "Prayer", {}),
+	(True, "Fund Transfer", {}),
+	(False, "Ministry", {"ministry_name": ["!=", "General"]}),
+	(False, "Group", {}),
+	(False, "Belief", {}),
+	(False, "Sermon", {}),
+	(False, "Bible Reference", {}),
+	(False, "Bible Verse", {}),
+	(False, "Function", {}),
+	(False, "Alms Request", {}),
+	(False, "Prayer Request", {}),
+	(True, "Expense", {}),
+	(False, "Expense Type", {}),
+	(True, "Collection", {}),
+	(False, "Fund", {}),
+	(False, "Missionary", {}),
+	(False, "Missionary Agency", {}),
+	(False, "Family", {}),
+	(False, "Person", {}),
+]
+
 # ---------------------------------------------------------------------------
 # Public entry points
 # ---------------------------------------------------------------------------
@@ -55,7 +82,6 @@ def create_sample_data():
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found. Run after_install first.")
 
-	# Ensure positions exist before linking to people
 	position_refs = _create_positions(church)
 	people = _create_people(church, position_refs)
 	_create_church_manager_user(church, people)
@@ -69,6 +95,7 @@ def create_sample_data():
 
 	funds = _create_funds(church)
 	expense_types = _create_expense_types(church, funds)
+	group_roles = _get_group_role_refs()
 
 	_create_collections(church, people, funds)
 	_create_expenses(church, expense_types)
@@ -85,7 +112,6 @@ def create_sample_data():
 
 	_create_beliefs(church, verses)
 
-	group_roles = _create_group_roles(church)
 	groups = _create_groups(church, people, group_roles)
 
 	_create_ministries(church, groups)
@@ -104,37 +130,20 @@ def create_sample_data():
 
 
 def delete_sample_data():
-	"""Remove all sample data created by :func:`create_sample_data`."""
+	"""Execute all deletion steps"""
 	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
 
-	_delete_docs("Church Task", {})
-	_delete_docs("Church Asset", {})
-	_delete_docs("Song", {})
-	_delete_docs("Prayer", {})
-	_delete_submittable_docs("Fund Transfer", {})
-	_delete_docs("Ministry", {"ministry_name": ["!=", "General"]})
-	_delete_docs("Group", {})
-	_delete_docs("Group Role", {})
-	_delete_docs("Belief", {})
-	_delete_docs("Sermon", {})
-	_delete_docs("Bible Reference", {})
-	_delete_docs("Bible Verse", {})
-	_delete_docs("Function", {})
-	_delete_docs("Alms Request", {})
-	_delete_docs("Prayer Request", {})
-	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
-	_delete_submittable_docs("Expense", {})
-	_delete_docs("Expense Type", {})
-	_delete_submittable_docs("Collection", {})
-	_delete_docs("Fund", {})
-	_delete_docs("Missionary", {})
-	_delete_docs("Missionary Agency", {})
-	_delete_docs("Family", {})
-	_delete_church_manager_user()
-	_delete_docs("Person", {})
+	for submittable, doctype, filters in _DELETE_STEPS:
+		if submittable:
+			_delete_submittable_docs(doctype, filters)
+		else:
+			_delete_docs(doctype, filters)
 
+	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
+
+	_delete_church_manager_user()
 	frappe.db.commit()
 
 
@@ -717,39 +726,41 @@ def _create_funds(church):
 
 
 def _create_expense_types(church, funds):
-	"""Create sample expense types and return dict mapping type → name."""
-	refs = {}
+	"""Create expense types with fund assignments.
 
-	# Root-level types
+	Returns dict mapping type name → record name.
+	"""
 	roots = [
-		("Utilities", funds["General"]),
-		("Maintenance", funds["General"]),
-		("Office Supplies", funds["General"]),
-		("Missions Support", funds["Missions"]),
-		("Benevolence", funds["Benevolence"]),
+		("Utilities", funds["General"], True),
+		("Maintenance", funds["General"], False),
+		("Office Supplies", funds["General"], False),
+		("Missions Support", funds["Missions"], False),
+		("Benevolence", funds["Benevolence"], False),
 	]
-	for type_name, fund in roots:
+	children = [
+		("Electric", funds["General"], "Utilities"),
+		("Water", funds["General"], "Utilities"),
+	]
+
+	refs = {}
+	for type_name, fund, is_group in roots:
 		name = _insert_if_missing(
 			"Expense Type",
 			{"type": type_name},
 			type=type_name,
 			fund=fund,
-			is_group=1 if type_name == "Utilities" else 0,
+			is_group=1 if is_group else 0,
 		)
 		refs[type_name] = name
 
-	# Children of Utilities
-	children = [
-		("Electric", funds["General"], "Utilities"),
-		("Water", funds["General"], "Utilities"),
-	]
 	for type_name, fund, parent in children:
 		name = _insert_if_missing(
 			"Expense Type",
 			{"type": type_name},
 			type=type_name,
 			fund=fund,
-			parent_expense_type=refs[parent],
+			is_group=0,
+			parent_expense_type=refs.get(parent),
 		)
 		refs[type_name] = name
 
@@ -1400,13 +1411,9 @@ def _create_beliefs(church, verses):
 # ---------------------------------------------------------------------------
 
 
-def _create_group_roles(church):
-	"""Create sample group roles and return dict mapping role → name."""
-	refs = {}
-	for role_name in ("Leader", "Member"):
-		name = _insert_if_missing("Group Role", {"role": role_name}, role=role_name)
-		refs[role_name] = name
-	return refs
+def _get_group_role_refs():
+	"""Return dict mapping role → name for roles created by after_install."""
+	return {role: frappe.db.get_value("Group Role", {"role": role}, "name") for role in ("Leader", "Member")}
 
 
 # ---------------------------------------------------------------------------

@@ -28,6 +28,7 @@ def execute():
 	_create_prayer_request_statuses()
 	_create_prayer_request_types()
 	_create_missionary_support_frequencies()
+	_create_group_roles()
 	_create_default_ministry()
 
 	# Bible reference data
@@ -227,6 +228,11 @@ def _create_missionary_support_frequencies():
 			frequency=name,
 			description=description,
 		)
+
+
+def _create_group_roles():
+	for role in ("Leader", "Member"):
+		_insert_if_missing("Group Role", {"role": role}, role=role)
 
 
 def _create_default_ministry():

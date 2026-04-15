@@ -375,7 +375,7 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
+ "quick_entry": 0,
  "route": "church-personz",
  "row_format": "Dynamic",
  "search_fields": "last_name, first_name",
