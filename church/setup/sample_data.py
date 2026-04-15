@@ -9,7 +9,7 @@ All inserts are idempotent — safe to run more than once on the same site.
 """
 
 import frappe
-from frappe.utils import getdate, add_days, add_months
+from frappe.utils import add_days, add_months, getdate
 
 from church.patches.after_install import DEFAULT_CHURCH_NAME
 
@@ -279,8 +279,7 @@ def _build_people():
 			"+1 202-555-0301",
 			"david.thompson@example.com",
 			[
-				{"position": "Deacon", "start_date": "2010-01-01",
-				 "end_date": str(add_months(getdate(), 1))},
+				{"position": "Deacon", "start_date": "2010-01-01", "end_date": str(add_months(getdate(), 1))},
 			],
 			None,
 		),
@@ -387,6 +386,7 @@ def _build_people():
 		),
 	]
 
+
 # ---------------------------------------------------------------------------
 # Positions
 # ---------------------------------------------------------------------------
@@ -416,9 +416,7 @@ def _create_positions(church):
 def _create_people(church, position_refs):
 	"""Create sample people and return a dict mapping 'First Last' → name."""
 	# Look up hash name for "Active" membership status
-	active_status = frappe.db.get_value(
-		"Member Status", {"status": "Active"}, "name"
-	)
+	active_status = frappe.db.get_value("Member Status", {"status": "Active"}, "name")
 
 	refs = {}
 	for (
@@ -446,10 +444,9 @@ def _create_people(church, position_refs):
 			continue
 
 		# Resolve position display names to hash names
-		resolved_positions = [
-			{**p, "position": position_refs[p["position"]]}
-			for p in positions
-		] if positions else positions
+		resolved_positions = (
+			[{**p, "position": position_refs[p["position"]]} for p in positions] if positions else positions
+		)
 
 		doc = frappe.get_doc(
 			{
@@ -495,7 +492,7 @@ def _create_church_manager_user(church, people):
 			"send_welcome_email": 0,
 			"enabled": 1,
 			"role_profile_name": "Church Manager",
-			}
+		}
 	)
 	user.insert(ignore_permissions=True)
 	frappe.utils.password.update_password(_CHURCH_MANAGER_EMAIL, _CHURCH_MANAGER_EMAIL)
@@ -508,7 +505,9 @@ def _create_church_manager_user(church, people):
 def _delete_church_manager_user():
 	"""Remove the sample Church Manager user."""
 	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		frappe.delete_doc("User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True, delete_permanently=True)
+		frappe.delete_doc(
+			"User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True, delete_permanently=True
+		)
 
 
 # ---------------------------------------------------------------------------
@@ -587,7 +586,9 @@ def _assign_spouses(people):
 		husband.is_married = 1
 		husband.spouse = wife_name
 		husband.anniversary = anniversary
+		frappe.flags.in_import = True
 		husband.save(ignore_permissions=True)
+		frappe.flags.in_import = False
 
 
 # ---------------------------------------------------------------------------
@@ -1115,9 +1116,7 @@ def _create_bible_verses(church):
 	# Build lookup for Bible Book display name → hash name
 	book_refs = {}
 	for book_name in {b for b, _, _ in _VERSES}:
-		book_refs[book_name] = frappe.db.get_value(
-			"Bible Book", {"book": book_name}, "name"
-		)
+		book_refs[book_name] = frappe.db.get_value("Bible Book", {"book": book_name}, "name")
 
 	refs = {}
 	for book, chapter, verse in _VERSES:
@@ -1546,8 +1545,7 @@ def _create_prayers(church, people):
 	# Look up Prayer Request names by their unique attributes
 	# type field stores hash names, so resolve first
 	_prt = {
-		t: _resolve_link("Prayer Request Type", "type", t, church)
-		for t in ("Health", "Salvation", "Praise")
+		t: _resolve_link("Prayer Request Type", "type", t, church) for t in ("Health", "Salvation", "Praise")
 	}
 	pr_wilson = frappe.db.get_value(
 		"Prayer Request",

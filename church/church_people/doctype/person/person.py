@@ -92,7 +92,9 @@ class Person(Document):
 				frappe.db.set_value("Person", spouse.name, "spouse", self.name)
 				frappe.db.set_value("Person", spouse.name, "is_married", True)
 				frappe.db.set_value("Person", spouse.name, "anniversary", self.anniversary)
-				frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
+				# We hide the messages when setting up sample, data but show it otherwise
+				if not frappe.flags.in_import:
+					frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
 			elif spouse.anniversary != self.anniversary:
 				# Keep anniversary in sync when it changes on either side
 				frappe.db.set_value("Person", spouse.name, "anniversary", self.anniversary)
