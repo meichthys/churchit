@@ -17,6 +17,7 @@
   "column_break_agva",
   "photo",
   "birthday",
+  "age",
   "alergies",
   "portal_user",
   "church_records_section",
@@ -44,6 +45,7 @@
   "is_head_of_household",
   "is_married",
   "anniversary",
+  "marriage_years",
   "spouse",
   "column_break_fkwj",
   "notes_tab",
@@ -101,6 +103,13 @@
    "fieldname": "birthday",
    "fieldtype": "Date",
    "label": "Birthday"
+  },
+  {
+   "depends_on": "eval:doc.birthday",
+   "fieldname": "age",
+   "fieldtype": "Int",
+   "label": "Age",
+   "read_only": 1
   },
   {
    "fieldname": "personal_information_section",
@@ -245,6 +254,13 @@
    "fieldname": "anniversary",
    "fieldtype": "Date",
    "label": "Anniversary"
+  },
+  {
+   "depends_on": "eval:doc.anniversary",
+   "fieldname": "marriage_years",
+   "fieldtype": "Int",
+   "label": "Years Married",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.is_married;",
