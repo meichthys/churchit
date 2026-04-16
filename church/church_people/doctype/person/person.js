@@ -3,8 +3,8 @@
 
 frappe.ui.form.on("Person", {
 	refresh(frm) {
-		// Add 'New Family From Person' button if Last Name is populated
-		if (frm.doc.last_name) {
+		// Add 'New Family From Person' button if Last Name is populated and person is not already in a family
+		if (frm.doc.last_name && !frm.doc.family) {
 			frm.add_custom_button(__('New Family From Person'), function () {
 				frm.call("new_family_from_person")
 			})
