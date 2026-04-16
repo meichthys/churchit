@@ -119,6 +119,21 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "default": "",
+   "description": "Check this if this request needs urgent prayer.",
+   "fieldname": "urgent",
+   "fieldtype": "Check",
+   "hidden": 0,
+   "label": "Urgent",
+   "max_length": 0,
+   "max_value": 0,
+   "precision": "",
+   "read_only": 0,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 0,
    "fieldname": "column_break_ynvf",
    "fieldtype": "Column Break",
    "hidden": 0,

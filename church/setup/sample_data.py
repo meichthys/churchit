@@ -948,6 +948,7 @@ def _create_prayer_requests(church, people):
 			"recipient_type": "Person",
 			"recipient": people["James Wilson"],
 			"details": "Please pray for Pastor Wilson as he recovers from knee surgery. He is doing well but needs continued healing.",
+			"urgent": 1,
 		},
 		{
 			"title": "Samuel Brooks' Salvation",
@@ -957,6 +958,7 @@ def _create_prayer_requests(church, people):
 			"recipient_type": "Person",
 			"recipient": people["Samuel Brooks"],
 			"details": "Please pray for Samuel, a visitor who has been attending our services. Pray that he would come to know Christ.",
+			"urgent": 1,
 		},
 		{
 			"title": "Praise: Healthy Grandson",

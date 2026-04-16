@@ -11,7 +11,9 @@
   "title",
   "status",
   "type",
+  "end_date",
   "is_private",
+  "urgent",
   "column_break_ynvf",
   "recipient_type",
   "recipient",
@@ -62,6 +64,17 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Is Private"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "description": "Check this if this request needs urgent prayer.",
+   "fieldname": "urgent",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Urgent"
   },
   {
    "allow_in_quick_entry": 1,
@@ -123,6 +136,12 @@
    "in_standard_filter": 1,
    "label": "Request",
    "mandatory_depends_on": "eval: doc.type!=\"Unspoken\";"
+  },
+  {
+   "description": "Date at which the prayer request 'expires'.",
+   "fieldname": "end_date",
+   "fieldtype": "Datetime",
+   "label": "End Date"
   }
  ],
  "grid_page_length": 50,
@@ -133,7 +152,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-04-14 16:59:50.700335",
+ "modified": "2026-04-15 17:02:30.902807",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",

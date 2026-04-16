@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\",\"col\":12}},{\"id\":\"7xxtlFoDVX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"YOTS4ifkhO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Comments\",\"col\":4}},{\"id\":\"OAUM9QI_Ol\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers\",\"col\":4}},{\"id\":\"CCnM0m0PPk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Nx2vS9lnXp\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Documents\",\"col\":4}},{\"id\":\"lvZAf1_FTo\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\",\"col\":12}},{\"id\":\"7xxtlFoDVX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"YOTS4ifkhO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Comments\",\"col\":4}},{\"id\":\"OAUM9QI_Ol\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers\",\"col\":4}},{\"id\":\"CCnM0m0PPk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"URc9n8oy-u\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Prayer Requests Ending Within 1 Week\",\"col\":6}},{\"id\":\"YR26DXGWSP\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":6}},{\"id\":\"mCNmTxyAmY\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"lvZAf1_FTo\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Reports\",\"col\":4}},{\"id\":\"Nx2vS9lnXp\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Documents\",\"col\":4}}]",
  "creation": "2025-09-14 22:19:57.991467",
  "custom_blocks": [],
  "docstatus": 0,
@@ -92,7 +92,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-05 18:49:48.744376",
+ "modified": "2026-04-15 17:06:38.433934",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",
@@ -113,7 +113,18 @@
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "quick_lists": [],
+ "quick_lists": [
+  {
+   "document_type": "Prayer Request",
+   "label": "Urgent Prayer Requests",
+   "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1,false],[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false]]"
+  },
+  {
+   "document_type": "Prayer Request",
+   "label": "Prayer Requests Ending Within 1 Week",
+   "quick_list_filter": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false],[\"Prayer Request\",\"end_date\",\"Timespan\",\"next 7 days\",false]]"
+  }
+ ],
  "roles": [],
  "sequence_id": 17.0,
  "shortcuts": [],
