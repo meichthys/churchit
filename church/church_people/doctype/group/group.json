@@ -12,6 +12,7 @@
   "description",
   "column_break_details",
   "status",
+  "public",
   "is_group",
   "parent_group",
   "section_break_members",
@@ -105,6 +106,13 @@
    "fieldname": "group_name",
    "fieldtype": "Data",
    "label": "Name"
+  },
+  {
+   "default": "0",
+   "description": "Anyone can join public groups.",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "label": "Public"
   }
  ],
  "grid_page_length": 50,
@@ -117,7 +125,7 @@
    "link_fieldname": "group"
   }
  ],
- "modified": "2026-03-26 17:52:15.321551",
+ "modified": "2026-04-15 17:53:05.260586",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
