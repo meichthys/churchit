@@ -18,6 +18,7 @@ from church.patches.after_install import DEFAULT_CHURCH_NAME
 _DELETE_STEPS = [
 	(False, "Church Task", {}),
 	(False, "Church Asset", {}),
+	(False, "Location", {}),
 	(False, "Song", {}),
 	(False, "Prayer", {}),
 	(True, "Fund Transfer", {}),
@@ -82,49 +83,50 @@ def create_sample_data():
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found. Run after_install first.")
 
-	position_refs = _create_positions(church)
-	people = _create_people(church, position_refs)
-	_create_church_manager_user(church, people)
+	position_refs = _create_positions()
+	people = _create_people(position_refs)
+	_create_church_manager_user(people)
 
-	families = _create_families(church)
+	families = _create_families()
 	_assign_families(people, families)
 	_assign_spouses(people)
 
-	agencies = _create_missionary_agencies(church)
-	_create_missionaries(church, people, agencies)
+	agencies = _create_missionary_agencies()
+	_create_missionaries(people, agencies)
 
-	funds = _create_funds(church)
-	expense_types = _create_expense_types(church, funds)
+	funds = _create_funds()
+	expense_types = _create_expense_types(funds)
 	group_roles = _get_group_role_refs()
 
-	_create_collections(church, people, funds)
-	_create_expenses(church, expense_types)
+	_create_collections(people, funds)
+	_create_expenses(expense_types)
 
-	_create_prayer_requests(church, people)
-	_create_alms_requests(church, people)
+	_create_prayer_requests(people)
+	_create_alms_requests(people)
 
-	_create_functions(church)
+	_create_functions()
 
-	verses = _create_bible_verses(church)
-	_create_bible_references(verses, church)
+	verses = _create_bible_verses()
+	_create_bible_references(verses)
 
-	_create_sermons(church, people)
+	_create_sermons(people)
 
-	_create_beliefs(church, verses)
+	_create_beliefs(verses)
 
-	groups = _create_groups(church, people, group_roles)
+	groups = _create_groups(people, group_roles)
 
-	_create_ministries(church, groups)
+	_create_ministries(groups)
 
-	_create_fund_transfers(church, funds)
+	_create_fund_transfers(funds)
 
-	_create_prayers(church, people)
+	_create_prayers(people)
 
-	_create_songs(church)
+	_create_songs()
 
-	_create_church_assets(church)
+	locations = _create_locations()
+	_create_church_assets(locations)
 
-	_create_church_tasks(church, people)
+	_create_church_tasks(people)
 
 	frappe.db.commit()
 
@@ -184,7 +186,7 @@ def _insert_if_missing(doctype, filters, **fields):
 	return doc.name
 
 
-def _resolve_link(doctype, title_field, value, church):
+def _resolve_link(doctype, title_field, value):
 	"""Look up the hash name for a record given its display value."""
 	return frappe.db.get_value(doctype, {title_field: value}, "name")
 
@@ -409,7 +411,7 @@ _POSITIONS = [
 ]
 
 
-def _create_positions(church):
+def _create_positions():
 	"""Create sample Position Type records used in people data."""
 	refs = {}
 	for pos in _POSITIONS:
@@ -422,7 +424,7 @@ def _create_positions(church):
 	return refs
 
 
-def _create_people(church, position_refs):
+def _create_people(position_refs):
 	"""Create sample people and return a dict mapping 'First Last' → name."""
 	# Look up hash name for "Active" membership status
 	active_status = frappe.db.get_value("Member Status", {"status": "Active"}, "name")
@@ -487,7 +489,7 @@ def _create_people(church, position_refs):
 _CHURCH_MANAGER_EMAIL = "mary.johnson@example.com"
 
 
-def _create_church_manager_user(church, people):
+def _create_church_manager_user(people):
 	"""Create a Church Manager portal user linked to Mary Johnson."""
 	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
 		return
@@ -543,7 +545,7 @@ _SPOUSES = [
 ]
 
 
-def _create_families(church):
+def _create_families():
 	"""Create sample families and return dict mapping family_name → name."""
 	refs = {}
 	for family_name, _ in _FAMILIES:
@@ -622,7 +624,7 @@ _AGENCIES = [
 ]
 
 
-def _create_missionary_agencies(church):
+def _create_missionary_agencies():
 	"""Create sample missionary agencies and return dict mapping name → name."""
 	refs = {}
 	for agency in _AGENCIES:
@@ -636,9 +638,9 @@ def _create_missionary_agencies(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_missionaries(church, people, agencies):
+def _create_missionaries(people, agencies):
 	"""Create sample missionaries."""
-	monthly = _resolve_link("Missionary Support Frequency", "frequency", "Monthly", church)
+	monthly = _resolve_link("Missionary Support Frequency", "frequency", "Monthly")
 	missionaries = [
 		{
 			"title": "Michael & Anna Grant",
@@ -700,7 +702,7 @@ _FUNDS = [
 ]
 
 
-def _create_funds(church):
+def _create_funds():
 	"""Create sample funds and return dict mapping fund name → doc name."""
 	refs = {}
 	for fund_name, description in _FUNDS:
@@ -725,7 +727,7 @@ def _create_funds(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_expense_types(church, funds):
+def _create_expense_types(funds):
 	"""Create expense types with fund assignments.
 
 	Returns dict mapping type name → record name.
@@ -772,10 +774,10 @@ def _create_expense_types(church, funds):
 # ---------------------------------------------------------------------------
 
 
-def _create_collections(church, people, funds):
+def _create_collections(people, funds):
 	"""Create sample collections with donations (saved as Draft)."""
-	check = _resolve_link("Payment Type", "type", "Check", church)
-	cash = _resolve_link("Payment Type", "type", "Cash", church)
+	check = _resolve_link("Payment Type", "type", "Check")
+	cash = _resolve_link("Payment Type", "type", "Cash")
 	collections = [
 		{
 			"date": _near_datetime(-7, "10:30:00"),
@@ -888,7 +890,7 @@ def _create_collections(church, people, funds):
 # ---------------------------------------------------------------------------
 
 
-def _create_expenses(church, expense_types):
+def _create_expenses(expense_types):
 	"""Create sample expenses (saved as Draft)."""
 	expenses = [
 		{
@@ -929,14 +931,14 @@ def _create_expenses(church, expense_types):
 # ---------------------------------------------------------------------------
 
 
-def _create_prayer_requests(church, people):
+def _create_prayer_requests(people):
 	"""Create sample prayer requests."""
 	_status = {
-		s: _resolve_link("Prayer Request Status", "status", s, church)
+		s: _resolve_link("Prayer Request Status", "status", s)
 		for s in ("Being Prayed For", "Requested", "Answered")
 	}
 	_type = {
-		t: _resolve_link("Prayer Request Type", "type", t, church)
+		t: _resolve_link("Prayer Request Type", "type", t)
 		for t in ("Health", "Salvation", "Praise", "Unspoken")
 	}
 	requests = [
@@ -1003,7 +1005,7 @@ def _create_prayer_requests(church, people):
 # ---------------------------------------------------------------------------
 
 
-def _create_alms_requests(church, people):
+def _create_alms_requests(people):
 	"""Create sample alms requests."""
 	requests = [
 		{
@@ -1042,10 +1044,10 @@ def _create_alms_requests(church, people):
 # ---------------------------------------------------------------------------
 
 
-def _create_functions(church):
+def _create_functions():
 	"""Create sample church functions."""
 	_ft = {
-		t: _resolve_link("Function Type", "type", t, church)
+		t: _resolve_link("Function Type", "type", t)
 		for t in ("Sunday Morning Service", "Prayer Meeting", "Sunday Evening Service", "Communion")
 	}
 	functions = [
@@ -1124,7 +1126,7 @@ _VERSES = [
 ]
 
 
-def _create_bible_verses(church):
+def _create_bible_verses():
 	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
 	# Build lookup for Bible Book display name → hash name
 	book_refs = {}
@@ -1160,10 +1162,10 @@ def _create_bible_verses(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_bible_references(verses, church):
+def _create_bible_references(verses):
 	"""Create sample Bible references."""
 	_tr = {
-		t: _resolve_link("Bible Translation", "translation", t, church)
+		t: _resolve_link("Bible Translation", "translation", t)
 		for t in (
 			"King James Version",
 			"English Standard Version",
@@ -1253,7 +1255,7 @@ def _create_bible_references(verses, church):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(church, people):
+def _create_sermons(people):
 	"""Create sample sermons."""
 	sermons = [
 		{
@@ -1315,7 +1317,7 @@ def _create_sermons(church, people):
 # ---------------------------------------------------------------------------
 
 
-def _create_beliefs(church, verses):
+def _create_beliefs(verses):
 	"""Create sample belief statements for the church website."""
 	beliefs = [
 		{
@@ -1423,7 +1425,7 @@ def _get_group_role_refs():
 # ---------------------------------------------------------------------------
 
 
-def _create_groups(church, people, group_roles):
+def _create_groups(people, group_roles):
 	"""Create sample groups with members. Returns dict mapping group_name → name."""
 	groups = [
 		{
@@ -1474,7 +1476,7 @@ def _create_groups(church, people, group_roles):
 # ---------------------------------------------------------------------------
 
 
-def _create_ministries(church, groups):
+def _create_ministries(groups):
 	"""Create sample ministries, optionally linked to groups."""
 	ministries = [
 		{
@@ -1511,7 +1513,7 @@ def _create_ministries(church, groups):
 # ---------------------------------------------------------------------------
 
 
-def _create_fund_transfers(church, funds):
+def _create_fund_transfers(funds):
 	"""Create sample fund transfers (saved as Draft)."""
 	transfers = [
 		{
@@ -1549,12 +1551,12 @@ def _create_fund_transfers(church, funds):
 # ---------------------------------------------------------------------------
 
 
-def _create_prayers(church, people):
+def _create_prayers(people):
 	"""Create sample prayers with topics linking to existing Prayer Requests."""
 	# Look up Prayer Request names by their unique attributes
 	# type field stores hash names, so resolve first
 	_prt = {
-		t: _resolve_link("Prayer Request Type", "type", t, church) for t in ("Health", "Salvation", "Praise")
+		t: _resolve_link("Prayer Request Type", "type", t) for t in ("Health", "Salvation", "Praise")
 	}
 	pr_wilson = frappe.db.get_value(
 		"Prayer Request",
@@ -1642,7 +1644,7 @@ def _create_prayers(church, people):
 # ---------------------------------------------------------------------------
 
 
-def _create_songs(church):
+def _create_songs():
 	"""Create sample songs with lyric slides."""
 	songs = [
 		{
@@ -1694,45 +1696,75 @@ def _create_songs(church):
 
 
 # ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
+
+_LOCATIONS = [
+	# (name, parent_key, is_group)
+	("Main Campus", None, True),
+	("Sanctuary", "Main Campus", False),
+	("Fellowship Hall", "Main Campus", False),
+	("Kitchen", "Main Campus", False),
+	("Parking Lot", "Main Campus", False),
+]
+
+
+def _create_locations():
+	"""Create sample locations in tree order. Returns dict mapping label → name."""
+	refs = {}
+	for label, parent_key, is_group in _LOCATIONS:
+		existing = frappe.db.get_value("Location", {"location_name": label}, "name")
+		if existing:
+			refs[label] = existing
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "Location",
+				"location_name": label,
+				"is_group": 1 if is_group else 0,
+				"parent_location": refs.get(parent_key),
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		refs[label] = doc.name
+	return refs
+
+
+# ---------------------------------------------------------------------------
 # Church Assets
 # ---------------------------------------------------------------------------
 
 
-def _create_church_assets(church):
-	"""Create sample church assets."""
+def _create_church_assets(locations):
+	"""Create sample church assets linked to locations."""
 	assets = [
 		{
 			"title": "Yamaha Grand Piano",
 			"acquisition_date": "2010-03-15",
-			"location": "Sanctuary",
+			"location": locations.get("Sanctuary"),
 			"notes": "<p>Yamaha C3X grand piano. Tuned twice yearly by Davidson Piano Services.</p>",
 		},
 		{
 			"title": "Epson Projector",
 			"acquisition_date": "2020-08-10",
-			"location": "Fellowship Hall",
+			"location": locations.get("Fellowship Hall"),
 			"notes": "<p>Epson PowerLite projector used for presentations and movie nights.</p>",
 		},
 		{
 			"title": "Commercial Refrigerator",
 			"acquisition_date": "2015-01-20",
-			"location": "Kitchen",
+			"location": locations.get("Kitchen"),
 			"notes": "<p>True brand two-door commercial refrigerator for church dinners and events.</p>",
 		},
 		{
 			"title": "15-Passenger Van",
 			"acquisition_date": "2018-06-01",
-			"location": "Parking Lot",
+			"location": locations.get("Parking Lot"),
 			"notes": "<p>Ford Transit 15-passenger van used for youth trips and senior outings.</p>",
 		},
 	]
 	for asset in assets:
-		existing = frappe.db.exists(
-			"Church Asset",
-			{
-				"title": asset["title"],
-			},
-		)
+		existing = frappe.db.exists("Church Asset", {"title": asset["title"]})
 		if existing:
 			continue
 		doc = frappe.get_doc({"doctype": "Church Asset", **asset})
@@ -1744,7 +1776,7 @@ def _create_church_assets(church):
 # ---------------------------------------------------------------------------
 
 
-def _create_church_tasks(church, people):
+def _create_church_tasks(people):
 	"""Create sample church tasks with hierarchy."""
 	# Parent task (is_group)
 	parent_title = "Prepare for Upcoming Service"
