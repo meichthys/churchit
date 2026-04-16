@@ -44,9 +44,9 @@
   "family",
   "is_head_of_household",
   "is_married",
+  "spouse",
   "anniversary",
   "marriage_years",
-  "spouse",
   "column_break_fkwj",
   "notes_tab",
   "notes"
@@ -268,7 +268,7 @@
    "fieldtype": "Link",
    "in_preview": 1,
    "label": "Spouse",
-   "link_filters": "[[\"Person\",\"name\",\"!=\",\"{{doc.id}}\"]]",
+   "link_filters": "[[\"Person\",\"name\",\"!=\",\"eval:doc.name\"],[\"Person\",\"gender\",\"!=\",\"eval:doc.gender\"]]",
    "options": "Person"
   },
   {
@@ -351,7 +351,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-03-26 18:08:33.689957",
+ "modified": "2026-04-15 17:30:19.808930",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
@@ -391,7 +391,6 @@
    "write": 1
   }
  ],
- "quick_entry": 0,
  "route": "church-personz",
  "row_format": "Dynamic",
  "search_fields": "last_name, first_name",
