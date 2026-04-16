@@ -17,7 +17,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Operations Documents",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -25,7 +25,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Church Assets",
+   "label": "Assets",
    "link_count": 0,
    "link_to": "Church Asset",
    "link_type": "DocType",
@@ -35,15 +35,25 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Church Tasks",
+   "label": "Tasks",
    "link_count": 0,
    "link_to": "Church Task",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Locations",
+   "link_count": 0,
+   "link_to": "Location",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.156765",
+ "modified": "2026-04-15 18:20:08.934358",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",

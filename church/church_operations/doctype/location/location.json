@@ -1,0 +1,118 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:LOC-{####}",
+ "creation": "2026-04-15 18:04:25.757295",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "location_name",
+  "section_break_fxaf",
+  "is_group",
+  "parent_location",
+  "address",
+  "geolocation",
+  "hidden_fields_section",
+  "old_parent",
+  "lft",
+  "rgt"
+ ],
+ "fields": [
+  {
+   "fieldname": "location_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Location Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_fxaf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "geolocation",
+   "fieldtype": "Geolocation",
+   "label": "Geolocation"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Location"
+  },
+  {
+   "fieldname": "parent_location",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Location",
+   "options": "Location"
+  },
+  {
+   "fieldname": "hidden_fields_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Hidden Fields"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_tree": 1,
+ "links": [],
+ "modified": "2026-04-15 18:18:51.872859",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Location",
+ "naming_rule": "Expression",
+ "nsm_parent_field": "parent_location",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "location_name"
+}
