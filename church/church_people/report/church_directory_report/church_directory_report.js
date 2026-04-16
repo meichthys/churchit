@@ -1,5 +1,43 @@
 frappe.query_reports["Church Directory Report"] = {
 	hide_name_column: true,
+
+	after_datatable_render: function() {
+		const self = frappe.query_reports["Church Directory Report"];
+		setTimeout(function() {
+			$('.report-wrapper').hide();
+			if (self._report) {
+				self._refresh_preview(self._report);
+			}
+		}, 0);
+	},
+
+	_refresh_preview: function(report) {
+		const args = {
+			members_only: report.get_filter_value('members_only') ? 1 : 0,
+			group_by_family: report.get_filter_value('group_by_family') ? 1 : 0,
+			show_photos: report.get_filter_value('show_photos') ? 1 : 0,
+			show_roles: report.get_filter_value('show_roles') ? 1 : 0,
+			show_membership: report.get_filter_value('show_membership') ? 1 : 0,
+			show_hoh: report.get_filter_value('show_hoh') ? 1 : 0,
+			show_birthdays: report.get_filter_value('show_birthdays') ? 1 : 0,
+			show_anniversaries: report.get_filter_value('show_anniversaries') ? 1 : 0,
+			show_missionaries: report.get_filter_value('show_missionaries') ? 1 : 0,
+		};
+
+		frappe.call({
+			method: 'church.church_people.report.church_directory_report.church_directory_report.get_directory_html',
+			args: args,
+			callback: function(r) {
+				if (!r.message) return;
+				if (!report._$preview) {
+					report._$preview = $('<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>')
+						.insertAfter($('.report-wrapper'));
+				}
+				report._$preview[0].srcdoc = r.message;
+			}
+		});
+	},
+
 	filters: [
 		{
 			fieldname: "members_only",
@@ -55,49 +93,16 @@ frappe.query_reports["Church Directory Report"] = {
 			fieldtype: "Check",
 			default: 0,
 		},
-
 	],
 
-	onload: function (report) {
-		report.page.add_inner_button(__('Print Directory'), function () {
-			const members_only = report.get_filter_value('members_only') ? 1 : 0;
-			const show_photos = report.get_filter_value('show_photos') ? 1 : 0;
-			const show_roles = report.get_filter_value('show_roles') ? 1 : 0;
-			const show_membership = report.get_filter_value('show_membership') ? 1 : 0;
-			const show_hoh = report.get_filter_value('show_hoh') ? 1 : 0;
-			const show_birthdays = report.get_filter_value('show_birthdays') ? 1 : 0;
-			const show_anniversaries = report.get_filter_value('show_anniversaries') ? 1 : 0;
-			const group_by_family = report.get_filter_value('group_by_family') ? 1 : 0;
-			const show_missionaries = report.get_filter_value('show_missionaries') ? 1 : 0;
+	onload: function(report) {
+		frappe.query_reports["Church Directory Report"]._report = report;
 
-			frappe.call({
-				method: 'church.church_people.report.church_directory_report.church_directory_report.get_directory_html',
-				args: {
-					members_only,
-					group_by_family,
-					show_photos,
-					show_roles,
-					show_membership,
-					show_hoh,
-					show_birthdays,
-					show_anniversaries,
-					show_missionaries,
-				},
-				freeze: true,
-				freeze_message: __('Generating Church Directory\u2026'),
-				callback: function (r) {
-					if (!r.message) return;
-					const win = window.open('', '_blank');
-					win.document.open();
-					win.document.write(r.message);
-					win.document.close();
-					// Allow images/fonts to load before triggering print
-					win.addEventListener('load', function () {
-						win.focus();
-						win.print();
-					});
-				},
-			});
+		report.page.add_inner_button(__('Print Directory'), function() {
+			const self = frappe.query_reports["Church Directory Report"];
+			if (self._report && self._report._$preview) {
+				self._report._$preview[0].contentWindow.print();
+			}
 		});
 	},
 };
