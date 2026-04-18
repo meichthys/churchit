@@ -9,11 +9,10 @@
  "engine": "InnoDB",
  "field_order": [
   "type",
+  "fund",
+  "column_break_spcy",
   "parent_expense_type",
   "is_group",
-  "column_break_spcy",
-  "fund",
-  "color",
   "section_break_b8hv",
   "lft",
   "rgt",
@@ -91,11 +90,6 @@
   {
    "fieldname": "column_break_spcy",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Color",
-   "label": "Color"
   }
  ],
  "grid_page_length": 50,
@@ -107,7 +101,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-03-04 21:42:17.872348",
+ "modified": "2026-04-17 17:54:57.259347",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense Type",
@@ -142,9 +136,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"
 }
