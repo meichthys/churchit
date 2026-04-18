@@ -17,7 +17,9 @@
   "end_date",
   "mission_statement",
   "section_break_mission",
-  "description"
+  "description",
+  "section_break_hbqe",
+  "ministry_expenses"
  ],
  "fields": [
   {
@@ -91,11 +93,21 @@
    "fieldname": "publish",
    "fieldtype": "Check",
    "label": "Publish"
+  },
+  {
+   "fieldname": "section_break_hbqe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "ministry_expenses",
+   "fieldtype": "Table",
+   "label": "Ministry Expenses",
+   "options": "Ministry Expense"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-05 18:46:38.252411",
+ "modified": "2026-04-17 19:36:16.505276",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
