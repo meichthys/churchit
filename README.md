@@ -3,6 +3,9 @@
 > [!WARNING]
 > This app is not ready for production. Large changes should be expected until a 1.0.0 version is released.
 
+> [!NOTE]
+> **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Matrix chat](https://matrix.to/#/#the-church-app:matrix.org) or open an issue on GitHub.
+
 # ⛪ Church
 
 A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
