@@ -10,8 +10,12 @@
  "field_order": [
   "title",
   "type",
+  "associated_fund",
   "amount",
+  "column_break_nqye",
   "date",
+  "ministry",
+  "section_break_fdwq",
   "notes",
   "amended_from"
  ],
@@ -19,9 +23,8 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Title",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "amount",
@@ -44,6 +47,16 @@
    "search_index": 1
   },
   {
+   "allow_in_quick_entry": 1,
+   "fieldname": "ministry",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Ministry",
+   "options": "Ministry",
+   "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -66,6 +79,23 @@
    "fieldtype": "Datetime",
    "in_preview": 1,
    "label": "Date"
+  },
+  {
+   "fieldname": "column_break_nqye",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_fdwq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "type.fund",
+   "fieldname": "associated_fund",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Associated Fund",
+   "options": "Fund"
   }
  ],
  "grid_page_length": 50,
@@ -77,7 +107,7 @@
    "link_fieldname": "source"
   }
  ],
- "modified": "2025-11-15 01:36:35.919702",
+ "modified": "2026-04-17 21:14:27.851996",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",

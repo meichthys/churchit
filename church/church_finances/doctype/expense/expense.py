@@ -7,10 +7,6 @@ from frappe.utils import get_link_to_form
 
 
 class Expense(Document):
-	def before_save(self):
-		parts = [frappe.get_value("Expense Type", self.type, "type") or "", str(self.date or "")]
-		self.title = " - ".join(p for p in parts if p)
-
 	def before_delete(self):
 		# This probably should never get called since frappe prevents the deletion
 		# of submitted documents by default, but just to be sure we'll provide our own warning.
@@ -38,6 +34,9 @@ class Expense(Document):
 		fund.save(ignore_permissions=True)
 		fund.reload()
 
+		if self.ministry:
+			_update_ministry_total(self.ministry)
+
 	def on_submit(self):
 		# Get related Fund via Expense Type
 		fund_name = frappe.db.get_value("Expense Type", self.type, "fund")
@@ -63,3 +62,14 @@ class Expense(Document):
 		frappe.msgprint(
 			f"💸 Associated {get_link_to_form('Fund', fund.fund)} fund has been reduced by ${self.amount}"
 		)
+
+		if self.ministry:
+			_update_ministry_total(self.ministry)
+
+
+def _update_ministry_total(ministry_name):
+	total = frappe.db.sql(
+		"SELECT COALESCE(SUM(amount), 0) FROM `tabExpense` WHERE ministry = %s AND docstatus = 1",
+		ministry_name,
+	)[0][0]
+	frappe.db.set_value("Ministry", ministry_name, "total_expenses", total)

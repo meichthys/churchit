@@ -9,7 +9,7 @@
  "field_order": [
   "ministry_name",
   "group",
-  "fund",
+  "total_expenses",
   "publish",
   "column_break_details",
   "status",
@@ -17,9 +17,7 @@
   "end_date",
   "mission_statement",
   "section_break_mission",
-  "description",
-  "section_break_hbqe",
-  "ministry_expenses"
+  "description"
  ],
  "fields": [
   {
@@ -51,14 +49,6 @@
    "in_standard_filter": 1,
    "label": "Group",
    "options": "Group"
-  },
-  {
-   "description": "Optionally associate this ministry with a Fund for financial tracking.",
-   "fieldname": "fund",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Fund",
-   "options": "Fund"
   },
   {
    "fieldname": "start_date",
@@ -95,19 +85,22 @@
    "label": "Publish"
   },
   {
-   "fieldname": "section_break_hbqe",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "ministry_expenses",
-   "fieldtype": "Table",
-   "label": "Ministry Expenses",
-   "options": "Ministry Expense"
+   "fieldname": "total_expenses",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Total Expenses",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-04-17 19:36:16.505276",
+ "links": [
+  {
+   "link_doctype": "Expense",
+   "link_fieldname": "ministry"
+  }
+ ],
+ "modified": "2026-04-17 20:42:38.034403",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
