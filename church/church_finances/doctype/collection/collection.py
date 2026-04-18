@@ -9,6 +9,42 @@ class Collection(Document):
 	def before_save(self):
 		parts = [self.function or "", str(self.date or "")]
 		self.title = " - ".join(p for p in parts if p)
+		self.update_totals()
+
+	def update_totals(self):
+		# Recalculate entered total
+		self.total_amount = sum(d.amount or 0 for d in self.donations)
+
+		# Recalculate imbalance
+		self.imbalance = (self.total_amount or 0) - (self.expected_total or 0)
+
+		# Recalculate fund totals
+		fund_totals = {}
+		for donation in self.donations:
+			if donation.fund and donation.amount:
+				fund_totals.setdefault(donation.fund, 0)
+				fund_totals[donation.fund] += donation.amount
+
+		self.fund_totals = []
+		for fund, total in fund_totals.items():
+			self.append("fund_totals", {"fund": fund, "total": total})
+
+		# Recalculate payment type totals
+		payment_type_totals = {}
+		for donation in self.donations:
+			if donation.payment_type and donation.amount:
+				payment_type_totals.setdefault(donation.payment_type, 0)
+				payment_type_totals[donation.payment_type] += donation.amount
+
+		self.payment_type_totals = []
+		for payment_type, total in payment_type_totals.items():
+			self.append("payment_type_totals", {"payment_type": payment_type, "total": total})
+
+	def before_submit(self):
+		if self.imbalance != 0:
+			frappe.throw(
+				f"Imbalance of {frappe.utils.fmt_money(self.imbalance)} must be resolved before submitting."
+			)
 
 	def on_submit(self):
 		self.update_funds(reverse=False)

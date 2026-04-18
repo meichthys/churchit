@@ -13,8 +13,13 @@
   "function",
   "notes",
   "column_break_ijpy",
+  "expected_total",
   "total_amount",
+  "imbalance",
+  "section_break_oplj",
   "fund_totals",
+  "column_break_tikj",
+  "payment_type_totals",
   "section_break_izta",
   "donations",
   "amended_from"
@@ -68,7 +73,20 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Total Amount",
+   "label": "Entered Total",
+   "read_only": 1
+  },
+  {
+   "description": "Enter the manually calculated total here.",
+   "fieldname": "expected_total",
+   "fieldtype": "Currency",
+   "label": "Expected Total",
+   "reqd": 1
+  },
+  {
+   "fieldname": "imbalance",
+   "fieldtype": "Currency",
+   "label": "Imbalance",
    "read_only": 1
   },
   {
@@ -76,6 +94,13 @@
    "fieldtype": "Table",
    "label": "Fund Totals",
    "options": "Collection Fund Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_type_totals",
+   "fieldtype": "Table",
+   "label": "Payment Type Totals",
+   "options": "Collection Payment Type Total",
    "read_only": 1
   },
   {
@@ -93,13 +118,21 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "section_break_oplj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tikj",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-15 01:34:36.895717",
+ "modified": "2026-04-17 18:25:50.864489",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Collection",
@@ -137,9 +170,9 @@
  ],
  "row_format": "Dynamic",
  "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "title",
  "track_changes": 1

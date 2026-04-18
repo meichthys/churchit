@@ -782,6 +782,8 @@ def _create_collections(people, funds):
 		{
 			"date": _near_datetime(-7, "10:30:00"),
 			"notes": "Regular Sunday morning offering.",
+			"expected_total": 330,
+			"submit": True,
 			"donations": [
 				{
 					"amount": 100,
@@ -830,6 +832,8 @@ def _create_collections(people, funds):
 		{
 			"date": _near_datetime(0, "10:30:00"),
 			"notes": "Sunday offering — missions emphasis week.",
+			"expected_total": 365,
+			"submit": False,
 			"donations": [
 				{
 					"amount": 150,
@@ -879,10 +883,13 @@ def _create_collections(people, funds):
 				"doctype": "Collection",
 				"date": coll["date"],
 				"notes": coll["notes"],
+				"expected_total": coll["expected_total"],
 				"donations": coll["donations"],
 			}
 		)
 		doc.insert(ignore_permissions=True)
+		if coll.get("submit"):
+			doc.submit()
 
 
 # ---------------------------------------------------------------------------
