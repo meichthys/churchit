@@ -6,7 +6,12 @@ from frappe.model.document import Document
 
 
 class Function(Document):
-	pass
+	def before_save(self):
+		name = self.function_name or ""
+		if self.start_date:
+			self.title = f"{name}: {self.start_date}"
+		else:
+			self.title = name
 
 
 @frappe.whitelist()

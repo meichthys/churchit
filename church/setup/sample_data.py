@@ -901,18 +901,21 @@ def _create_expenses(expense_types):
 	"""Create sample expenses (saved as Draft)."""
 	expenses = [
 		{
+			"title": "Monthly Electric Bill",
 			"type": expense_types["Electric"],
 			"amount": 245.50,
 			"date": _near_datetime(-5),
 			"notes": "Monthly electric bill.",
 		},
 		{
+			"title": "Monthly Water Bill",
 			"type": expense_types["Water"],
 			"amount": 62.00,
 			"date": _near_datetime(-5),
 			"notes": "Monthly water bill.",
 		},
 		{
+			"title": "Office Supplies",
 			"type": expense_types["Office Supplies"],
 			"amount": 89.99,
 			"date": _near_datetime(-2),
