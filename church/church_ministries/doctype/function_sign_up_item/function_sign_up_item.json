@@ -1,0 +1,72 @@
+{
+ "_comments": "[{\"comment\": \"Action Failed<br><br>Another DocType with name Sign Up Item exists, select another name\", \"by\": \"Administrator\", \"name\": \"mnvt0tbig3\"}]",
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-19 20:35:52.290655",
+ "description": "Items that are needed for a 'Function'. People can sign up for these items via a 'Function Sign Up'.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item",
+  "small_text_lwph",
+  "quantity_signed_up",
+  "quantity_needed"
+ ],
+ "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Item",
+   "options": "Sign Up Item",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fetch_from": "item.description",
+   "fieldname": "small_text_lwph",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Description"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "1",
+   "fieldname": "quantity_needed",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Quantity Needed",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "quantity_signed_up",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Quantity Signed Up",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-19 20:52:15.091631",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Function Sign-Up Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -20,12 +20,14 @@
   "allow_sign_ups",
   "address",
   "description",
-  "section_break_assoc",
-  "associations",
+  "section_break_qbbr",
+  "table_cxhh",
   "section_break_bkwy",
   "schedule",
   "section_break_dlpa",
   "attendance",
+  "section_break_assoc",
+  "associations",
   "hidden_fields_section",
   "title"
  ],
@@ -121,7 +123,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "People who attended this function.",
    "fieldname": "attendance",
    "fieldtype": "Table",
    "label": "Attendance",
@@ -135,6 +136,7 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_assoc",
    "fieldtype": "Section Break"
   },
@@ -167,6 +169,19 @@
    "hidden": 1,
    "label": "Title",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval: doc.allow_sign_ups",
+   "fieldname": "section_break_qbbr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Items that are needed for the function. People can sign up to bring items via 'Function Sign Up'",
+   "fieldname": "table_cxhh",
+   "fieldtype": "Table",
+   "label": "Sign Up Items",
+   "options": "Function Sign-Up Item"
   }
  ],
  "grid_page_length": 50,
@@ -181,7 +196,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-04-19 18:44:35.563920",
+ "modified": "2026-04-19 19:24:43.345633",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

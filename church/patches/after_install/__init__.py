@@ -130,7 +130,7 @@ def _create_function_attendance_types():
 		"Absent": "The person was not present at this function.",
 		"Assumed": "The person was assumed to be present at this function (e.g. their family was present).",
 		"Confirmed": "The person's attendance was confirmed at this function.",
-		"Signed Up": "The person (or someone on their behalf) signed up for this function.",
+		"Signed-Up": "The person (or someone on their behalf) signed up for this function.",
 		"Checked-In": "The person was checked in at this function.",
 	}
 	for name, description in types.items():

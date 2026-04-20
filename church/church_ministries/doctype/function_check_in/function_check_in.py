@@ -21,7 +21,6 @@ class FunctionCheckIn(Document):
 		parts = [function_label or "", person_label or ""]
 		self.title = " - ".join(p for p in parts if p)
 
-	def after_save(self):
 		self._add_attendance_record()
 
 	def on_trash(self):
