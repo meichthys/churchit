@@ -1,18 +1,18 @@
 [
  {
   "church": "My Church",
-  "description": "The user self-reported their attendance via the \"Function Sign Up\" web form.",
-  "docstatus": 0,
-  "doctype": "Function Attendance Type",
-  "name": "Self-Reported",
-  "type": "Self-Reported"
- },
- {
-  "church": "My Church",
-  "description": "The person signed up for this function via the sign-up form.",
+  "description": "The person (or someone on their behalf) signed up for this function.",
   "docstatus": 0,
   "doctype": "Function Attendance Type",
   "name": "Signed Up",
   "type": "Signed Up"
+ },
+ {
+  "church": "My Church",
+  "description": "The person was checked in at this function.",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "name": "Checked-In",
+  "type": "Checked-In"
  }
 ]

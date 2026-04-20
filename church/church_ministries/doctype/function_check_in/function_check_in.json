@@ -12,9 +12,19 @@
   "start_date",
   "start_time",
   "person_section",
-  "person"
+  "person",
+  "hidden_fields_section",
+  "title"
  ],
  "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
   {
    "fieldname": "function_section",
    "fieldtype": "Section Break",
@@ -75,12 +85,17 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "fieldname": "hidden_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Hidden Fields"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-19 18:12:43.662895",
+ "modified": "2026-04-19 18:49:34.505758",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",
@@ -101,7 +116,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }

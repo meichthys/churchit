@@ -1,18 +1,19 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FSU-{####}",
+ "autoname": "format:FSU-{######}",
  "creation": "2026-03-23 00:00:00",
  "description": "A sign-up record indicating a person's intent to attend a church function.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
-  "title",
   "function",
   "person",
   "attending",
-  "column_break_abcd"
+  "column_break_abcd",
+  "hidden_fields_section",
+  "title"
  ],
  "fields": [
   {
@@ -58,15 +59,20 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Attending"
+  },
+  {
+   "fieldname": "hidden_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Hidden Fields"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-04 17:32:15.357686",
+ "modified": "2026-04-19 18:51:08.107821",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign Up",
- "naming_rule": "By \"Autoname\" field",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

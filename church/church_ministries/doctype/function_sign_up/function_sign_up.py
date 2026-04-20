@@ -6,7 +6,9 @@ from church.utils import resolve_link_titles
 
 class FunctionSignUp(Document):
 	def before_save(self):
-		function_label = frappe.db.get_value("Function", self.function, "function_name") if self.function else ""
+		function_label = (
+			frappe.db.get_value("Function", self.function, "function_name") if self.function else ""
+		)
 		person_label = frappe.db.get_value("Person", self.person, "full_name") if self.person else ""
 		parts = [function_label or "", person_label or ""]
 		self.title = " - ".join(p for p in parts if p)
@@ -14,6 +16,12 @@ class FunctionSignUp(Document):
 	def validate(self):
 		if not frappe.db.get_value("Function", self.function, "allow_sign_ups"):
 			frappe.throw("Sign ups are not enabled for this function.")
+
+		# Prevent duplicate sign-ups for the same function and person
+		if frappe.db.exists(
+			"Function Sign Up", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
+		):
+			frappe.throw("This person has already signed up for this function.")
 
 		user_roles = frappe.get_roles(frappe.session.user)
 		is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
@@ -36,10 +44,13 @@ class FunctionSignUp(Document):
 					row.attendance_type = "Signed Up"
 					function_doc.save(ignore_permissions=True)
 				return
-		function_doc.append("attendance", {
-			"person": self.person,
-			"attendance_type": "Signed Up",
-		})
+		function_doc.append(
+			"attendance",
+			{
+				"person": self.person,
+				"attendance_type": "Signed Up",
+			},
+		)
 		function_doc.save(ignore_permissions=True)
 
 
