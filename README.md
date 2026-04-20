@@ -46,13 +46,13 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations — one-click "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, and alms requests
+- Portal pages for personal details, prayer requests, alms requests, and function sign-ups
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
 
 ### Events & Attendance
-- Function (event) tracking with types, scheduling, and attendance
+- Function (event) tracking with types, scheduling, sign-ups, check-ins, and attendance tracking
 - Attendance types (Confirmed, Assumed, Absent, etc.)
 - Song tracking for worship services
 - Reports: attendance by function, attendance by person, function count by type
