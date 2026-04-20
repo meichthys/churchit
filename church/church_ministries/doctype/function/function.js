@@ -3,32 +3,6 @@
 
 
 frappe.ui.form.on('Function', {
-	before_save(frm) {
-		// Update Attendance Total when saving
-		// Only include 'Confirmed' and 'Assumed' attendees (looked up by type field)
-		let counted_types = null;
-		const get_counted_types = () => {
-			if (counted_types !== null) return Promise.resolve(counted_types);
-			return frappe.db.get_list("Function Attendance Type", {
-				filters: { type: ["in", ["Confirmed", "Assumed"]] },
-				fields: ["name"],
-				limit: 0,
-			}).then(list => {
-				counted_types = list.map(r => r.name);
-				return counted_types;
-			});
-		};
-		return get_counted_types().then(types => {
-			var total_attendance = 0;
-			frm.doc.attendance.forEach(function (row) {
-				if (types.includes(row.attendance_type)) {
-					total_attendance += 1;
-				}
-			});
-			frm.set_value('attendance_total', total_attendance);
-		});
-	},
-
 	onload(frm) {
 		church.set_church_doctype_query(frm, 'association_type', 'associations');
 	},

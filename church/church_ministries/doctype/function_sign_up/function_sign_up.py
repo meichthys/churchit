@@ -36,6 +36,9 @@ class FunctionSignUp(Document):
 		if self.attending:
 			self._add_attendance_record()
 
+	def on_trash(self):
+		self._remove_attendance_record()
+
 	def _add_attendance_record(self):
 		function_doc = frappe.get_doc("Function", self.function)
 		for row in function_doc.attendance:
@@ -52,6 +55,15 @@ class FunctionSignUp(Document):
 			},
 		)
 		function_doc.save(ignore_permissions=True)
+
+	def _remove_attendance_record(self):
+		function_doc = frappe.get_doc("Function", self.function)
+		for row in function_doc.attendance:
+			if row.person == self.person and row.attendance_type == "Signed Up":
+				function_doc.remove(row)
+				function_doc.save(ignore_permissions=True)
+				frappe.msgprint("The associated attendance record has been removed.")
+				return
 
 
 def get_list_context(context):

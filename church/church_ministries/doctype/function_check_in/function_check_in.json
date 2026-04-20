@@ -13,6 +13,8 @@
   "start_time",
   "person_section",
   "person",
+  "column_break_lwzu",
+  "notes",
   "hidden_fields_section",
   "title"
  ],
@@ -90,12 +92,23 @@
    "fieldname": "hidden_fields_section",
    "fieldtype": "Section Break",
    "label": "Hidden Fields"
+  },
+  {
+   "fieldname": "column_break_lwzu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Notes"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-19 18:49:34.505758",
+ "modified": "2026-04-19 19:47:47.199316",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",

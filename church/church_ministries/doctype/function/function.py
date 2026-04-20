@@ -13,6 +13,15 @@ class Function(Document):
 		else:
 			self.title = name
 
+		counted_types = frappe.get_all(
+			"Function Attendance Type",
+			filters={"type": ["in", ["Confirmed", "Assumed", "Checked-In"]]},
+			pluck="name",
+		)
+		self.attendance_total = sum(
+			1 for row in (self.attendance or []) if row.attendance_type in counted_types
+		)
+
 
 @frappe.whitelist()
 def apply_template(source_name):
