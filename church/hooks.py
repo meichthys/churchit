@@ -16,8 +16,8 @@ fixtures = [
 	{"dt": "Property Setter", "filters": [["doc_type", "=", "About Us Settings"]]},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
-	# "Self-Reported" attendance type is a fixture since it is used in the Function Sign Up doctype's after_insert method.
-	{"dt": "Function Attendance Type", "filters": [["type", "=", "Self-Reported"]]},
+	# "Self-Reported" and "Signed Up" attendance types are fixtures since "Signed Up" is used in the Function Sign Up doctype's after_insert method.
+	{"dt": "Function Attendance Type", "filters": [["type", "in", ["Self-Reported", "Signed Up"]]]},
 ]
 # Apps
 # ------------------

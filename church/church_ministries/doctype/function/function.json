@@ -157,8 +157,17 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-03-26 18:49:38.725873",
+ "links": [
+  {
+   "link_doctype": "Function Sign Up",
+   "link_fieldname": "function"
+  },
+  {
+   "link_doctype": "Function Check-In",
+   "link_fieldname": "function"
+  }
+ ],
+ "modified": "2026-04-19 18:15:03.889926",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
@@ -193,9 +202,9 @@
  ],
  "row_format": "Dynamic",
  "show_preview_popup": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "function_name",
  "track_changes": 1,

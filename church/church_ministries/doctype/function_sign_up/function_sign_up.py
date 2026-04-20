@@ -32,13 +32,13 @@ class FunctionSignUp(Document):
 		function_doc = frappe.get_doc("Function", self.function)
 		for row in function_doc.attendance:
 			if row.person == self.person:
-				if row.attendance_type != "Self-Reported":
-					row.attendance_type = "Self-Reported"
+				if row.attendance_type != "Signed Up":
+					row.attendance_type = "Signed Up"
 					function_doc.save(ignore_permissions=True)
 				return
 		function_doc.append("attendance", {
 			"person": self.person,
-			"attendance_type": "Self-Reported",
+			"attendance_type": "Signed Up",
 		})
 		function_doc.save(ignore_permissions=True)
 

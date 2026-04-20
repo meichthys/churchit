@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "type",
-  "column_break_pgdp",
   "template_function",
   "section_break_pepr",
   "description"
@@ -32,10 +31,6 @@
    "unique": 1
   },
   {
-   "fieldname": "column_break_pgdp",
-   "fieldtype": "Column Break"
-  },
-  {
    "description": "Select an existing function here to use it as a template for creating future functions of the same type.",
    "fieldname": "template_function",
    "fieldtype": "Link",
@@ -55,7 +50,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-03-15 18:33:54.877352",
+ "modified": "2026-04-19 18:17:01.090420",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",

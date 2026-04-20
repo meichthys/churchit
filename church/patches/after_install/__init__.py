@@ -130,6 +130,7 @@ def _create_function_attendance_types():
 		"Absent": "The person was not present at this function.",
 		"Assumed": "The person was assumed to be present at this function (e.g. their family was present).",
 		"Confirmed": "The person's attendance was confirmed at this function.",
+		"Signed Up": "The person signed up for this function via the sign-up form.",
 		# We don't create the "Self-Reported" attendance type here since it is used as a filter in hooks.py
 		# "Self-Reported": "The person indicated they will attend via the sign-up form.",
 	}
