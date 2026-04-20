@@ -6,6 +6,7 @@ from church.utils import resolve_link_titles
 
 class FunctionSignUp(Document):
 	def before_save(self):
+		# Determine the title based on the linked Function and Person records
 		function_label = (
 			frappe.db.get_value("Function", self.function, "function_name") if self.function else ""
 		)
@@ -32,9 +33,11 @@ class FunctionSignUp(Document):
 				frappe.throw("No Person record is linked to your account.")
 			self.person = person_name
 
-	def after_insert(self):
+	def after_save(self):
 		if self.attending:
 			self._add_attendance_record()
+		else:
+			self._remove_attendance_record()
 
 	def on_trash(self):
 		self._remove_attendance_record()
