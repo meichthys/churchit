@@ -16,7 +16,7 @@ frappe.ui.form.on('Function', {
 			// Add 	Fill from Template` button if template exists
 			frm.add_custom_button(__('Fill from Template'), function() {
 				frappe.call({
-					method: 'church.ministries.doctype.function.function.apply_template',
+					method: 'church.church_ministries.doctype.function.function.apply_template',
 					args: {
 						source_name: r.message.template_function,
 						target_doc: frm.doc
@@ -26,6 +26,16 @@ frappe.ui.form.on('Function', {
 						Object.keys(r.message).forEach(fieldname => {
 							frm.set_value(fieldname, r.message[fieldname]);
 						});
+
+						// Fetch link titles for person IDs so the attendance grid
+						// displays names instead of IDs (e.g. "John Smith" not "PRSN-0011")
+						const personIds = [...new Set(
+							(r.message.attendance || []).map(a => a.person).filter(Boolean)
+						)];
+						if (personIds.length) {
+							Promise.all(personIds.map(id => frappe.utils.fetch_link_title('Person', id)))
+								.then(() => frm.refresh_field('attendance'));
+						}
 
 						frappe.msgprint({
 							message: __('Template applied successfully'),

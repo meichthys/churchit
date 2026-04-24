@@ -13,7 +13,7 @@ frappe.ui.form.on('Alms Request', {
         if (!frm.is_new()) {
             frm.add_custom_button(__('Create Expense'), function () {
                 frappe.call({
-                    method: 'church.finances.doctype.alms_request.alms_request.create_expense',
+                    method: 'church.church_finances.doctype.alms_request.alms_request.create_expense',
                     args: {
                         alms_request_name: frm.doc.name
                     },
