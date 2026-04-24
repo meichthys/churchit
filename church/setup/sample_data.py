@@ -28,7 +28,9 @@ _DELETE_STEPS = [
 	(False, "Sermon", {}),
 	(False, "Bible Reference", {}),
 	(False, "Bible Verse", {}),
+	(False, "Function Sign-Up", {}),
 	(False, "Function", {}),
+	(False, "Sign Up Item", {}),
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
@@ -105,6 +107,8 @@ def create_sample_data():
 	_create_alms_requests(people)
 
 	_create_functions()
+	sign_up_items = _create_sign_up_items()
+	_create_function_sign_ups(people, sign_up_items)
 
 	verses = _create_bible_verses()
 	_create_bible_references(verses)
@@ -194,16 +198,22 @@ def _resolve_link(doctype, title_field, value):
 def _delete_docs(doctype, filters):
 	"""Delete all docs matching *filters* permanently."""
 	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
-		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+		try:
+			frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+		except frappe.DoesNotExistError:
+			pass
 
 
 def _delete_submittable_docs(doctype, filters):
 	"""Cancel and delete submittable docs matching *filters* permanently."""
 	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
-		doc = frappe.get_doc(doctype, name)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+		try:
+			doc = frappe.get_doc(doctype, name)
+			if doc.docstatus == 1:
+				doc.cancel()
+			frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+		except frappe.DoesNotExistError:
+			pass
 
 
 # ---------------------------------------------------------------------------
@@ -1068,6 +1078,7 @@ def _create_functions():
 			"start_time": "10:00:00",
 			"end_time": "11:30:00",
 			"description": "Regular Sunday morning worship service with sermon, hymns, and fellowship.",
+			"allow_sign_ups": 0,
 		},
 		{
 			"function_name": "Midweek Prayer",
@@ -1076,6 +1087,7 @@ def _create_functions():
 			"start_time": "19:00:00",
 			"end_time": "20:00:00",
 			"description": "Weekly prayer meeting — a time to bring our requests before the Lord together.",
+			"allow_sign_ups": 0,
 		},
 		{
 			"function_name": "Evening Service",
@@ -1084,6 +1096,7 @@ def _create_functions():
 			"start_time": "18:00:00",
 			"end_time": "19:30:00",
 			"description": "Sunday evening service with hymns and Bible study.",
+			"allow_sign_ups": 0,
 		},
 		{
 			"function_name": "Church Picnic",
@@ -1091,6 +1104,7 @@ def _create_functions():
 			"start_date": _near_date(14),
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
+			"allow_sign_ups": 1,
 		},
 	]
 	for fn in functions:
@@ -1104,6 +1118,142 @@ def _create_functions():
 		if existing:
 			continue
 		doc = frappe.get_doc({"doctype": "Function", **fn})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Sign Up Items
+# ---------------------------------------------------------------------------
+
+_SIGN_UP_ITEMS = [
+	("Drinks", "Beverages for the event (coffee, juice, water, etc.)"),
+	("Snacks", "Light snacks or appetizers"),
+	("Desserts", "Cakes, cookies, brownies, or other desserts"),
+	("Paper Products", "Paper plates, cups, napkins, utensils"),
+	("Setup/Cleanup", "Help setting up tables, chairs, and decorations"),
+	("Serving", "Help serving food or beverages"),
+]
+
+
+def _create_sign_up_items():
+	"""Create sample sign-up items and return dict mapping name → name."""
+	refs = {}
+	for item_name, description in _SIGN_UP_ITEMS:
+		name = _insert_if_missing(
+			"Sign Up Item",
+			{"item": item_name},
+			item=item_name,
+			description=description,
+		)
+		refs[item_name] = name
+	return refs
+
+
+# ---------------------------------------------------------------------------
+# Function Sign-Ups
+# ---------------------------------------------------------------------------
+
+
+def _create_function_sign_ups(people, sign_up_items):
+	"""Create sample function sign-ups for picnic and other events."""
+	picnic = frappe.db.get_value("Function", {"function_name": "Church Picnic"}, "name")
+	if not picnic:
+		return
+
+	sign_ups = [
+		{
+			"function": picnic,
+			"person": people["James Wilson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Drinks"], "quantity_needed": 2},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Sarah Wilson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Desserts"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Robert Johnson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Snacks"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Mary Johnson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Paper Products"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["David Thompson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Setup/Cleanup"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Lisa Thompson"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Serving"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Martha Evans"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Snacks"], "quantity_needed": 1},
+				{"item": sign_up_items["Drinks"], "quantity_needed": 1},
+			],
+		},
+		{
+			"function": picnic,
+			"person": people["Rachel Cooper"],
+			"attending": 1,
+			"items": [
+				{"item": sign_up_items["Desserts"], "quantity_needed": 1},
+			],
+		},
+	]
+
+	for signup in sign_ups:
+		existing = frappe.db.exists(
+			"Function Sign-Up",
+			{
+				"function": signup["function"],
+				"person": signup["person"],
+			},
+		)
+		if existing:
+			continue
+
+		# Build child table items with proper field names
+		items_child = []
+		for item in signup.pop("items", []):
+			items_child.append({
+				"item": item["item"],
+				"quantity_needed": item["quantity_needed"],
+			})
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Function Sign-Up",
+				"table_iprj": items_child,
+				**signup,
+			}
+		)
 		doc.insert(ignore_permissions=True)
 
 
