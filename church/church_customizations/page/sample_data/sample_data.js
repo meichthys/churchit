@@ -22,7 +22,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 					${__("Create Sample Data")}
 				</button>
 				<button class="btn btn-danger btn-md ml-2 btn-delete-sample-data">
-					${__("Delete Sample Data")}
+					${__("Delete All Data")}
 				</button>
 			</div>
 			<div class="mt-4">
@@ -56,15 +56,15 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 
 	$container.find(".btn-delete-sample-data").on("click", function () {
 		frappe.confirm(
-			__("Are you sure you want to permanently delete all sample data?"),
+			__("WARNING: This will permanently delete ALL records in Persons, Families, Missionaries, Prayer Requests, Functions, Collections, Expenses, Funds, and more. Any data you created after installation will also be deleted. This cannot be undone. Continue?"),
 			function () {
 				frappe.call({
 					method: "church.setup.sample_data.delete",
 					freeze: true,
-					freeze_message: __("Removing sample data..."),
+					freeze_message: __("Deleting all data..."),
 					callback: function () {
 						frappe.show_alert({
-							message: __("Sample data has been removed."),
+							message: __("All data has been deleted."),
 							indicator: "green",
 						});
 					},
