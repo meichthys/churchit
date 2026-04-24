@@ -959,7 +959,7 @@ def _create_prayer_requests(people):
 			"requestor": people["Sarah Wilson"],
 			"recipient_type": "Person",
 			"recipient": people["James Wilson"],
-			"details": "Please pray for Pastor Wilson as he recovers from knee surgery. He is doing well but needs continued healing.",
+			"request": "Please pray for Pastor Wilson as he recovers from knee surgery. He is doing well but needs continued healing. Pray for minimal pain, quick mobility recovery, and wisdom for his medical team.",
 			"urgent": 1,
 		},
 		{
@@ -969,7 +969,7 @@ def _create_prayer_requests(people):
 			"requestor": people["Rachel Cooper"],
 			"recipient_type": "Person",
 			"recipient": people["Samuel Brooks"],
-			"details": "Please pray for Samuel, a visitor who has been attending our services. Pray that he would come to know Christ.",
+			"request": "Please pray for Samuel, a visitor who has been attending our services for the past month. Pray that he would come to know Jesus Christ as his Lord and Savior, and that the Holy Spirit would open his heart to the Gospel.",
 			"urgent": 1,
 		},
 		{
@@ -977,7 +977,7 @@ def _create_prayer_requests(people):
 			"status": _status["Answered"],
 			"type": _type["Praise"],
 			"requestor": people["Mary Johnson"],
-			"details": "Praise the Lord! Our grandson was born healthy — 7 lbs 8 oz. Mom and baby are doing great.",
+			"request": "Praise the Lord! Our grandson was born healthy — 7 lbs 8 oz. Mom and baby are doing great. We are so grateful for God's faithfulness and protection through the pregnancy and delivery.",
 		},
 		{
 			"title": "Unspoken Request",
@@ -993,7 +993,7 @@ def _create_prayer_requests(people):
 			"requestor": people["Lisa Thompson"],
 			"recipient_type": "Person",
 			"recipient": people["Lisa Thompson"],
-			"details": "Requesting prayer for upcoming medical tests next week. Trusting God for good results.",
+			"request": "Requesting prayer for upcoming medical tests next week. The doctors want to rule out some concerns, so I'm trusting God for clear results and wisdom for my medical team. Thank you for standing with us in prayer.",
 		},
 	]
 	for req in requests:
