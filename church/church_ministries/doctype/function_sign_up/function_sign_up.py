@@ -42,33 +42,10 @@ class FunctionSignUp(Document):
 
 	def on_trash(self):
 		self._remove_attendance_record()
-
-	def after_delete(self):
 		self._sync_item_quantities()
 
 	def _sync_item_quantities(self):
-		rows = frappe.db.sql(
-			"""
-			SELECT fsi.item, SUM(fsi.quantity_needed) AS total
-			FROM `tabFunction Sign-Up Item` fsi
-			INNER JOIN `tabFunction Sign-Up` fs ON fs.name = fsi.parent
-			WHERE fs.function = %s AND fsi.parenttype = 'Function Sign-Up'
-			GROUP BY fsi.item
-			""",
-			self.function,
-			as_dict=True,
-		)
-		totals = {r.item: r.total for r in rows}
-
-		function_doc = frappe.get_doc("Function", self.function)
-		changed = False
-		for row in function_doc.table_cxhh:
-			new_qty = totals.get(row.item, 0)
-			if row.quantity_signed_up != new_qty:
-				row.quantity_signed_up = new_qty
-				changed = True
-		if changed:
-			function_doc.save(ignore_permissions=True)
+		sync_item_quantities_for_function(self.function)
 
 	def _add_attendance_record(self):
 		function_doc = frappe.get_doc("Function", self.function)
@@ -95,6 +72,33 @@ class FunctionSignUp(Document):
 				function_doc.save(ignore_permissions=True)
 				frappe.msgprint("The associated attendance record has been removed.")
 				return
+
+
+@frappe.whitelist()
+def sync_item_quantities_for_function(function):
+	"""Sync item quantities from Function Sign-Ups to the Function document."""
+	rows = frappe.db.sql(
+		"""
+		SELECT fsi.item, SUM(fsi.quantity_needed) AS total
+		FROM `tabFunction Sign-Up Item` fsi
+		INNER JOIN `tabFunction Sign-Up` fs ON fs.name = fsi.parent
+		WHERE fs.function = %s AND fsi.parenttype = 'Function Sign-Up'
+		GROUP BY fsi.item
+		""",
+		function,
+		as_dict=True,
+	)
+	totals = {r.item: r.total for r in rows}
+
+	function_doc = frappe.get_doc("Function", function)
+	changed = False
+	for row in function_doc.table_cxhh:
+		new_qty = totals.get(row.item, 0)
+		if row.quantity_signed_up != new_qty:
+			row.quantity_signed_up = new_qty
+			changed = True
+	if changed:
+		function_doc.save(ignore_permissions=True)
 
 
 def get_list_context(context):

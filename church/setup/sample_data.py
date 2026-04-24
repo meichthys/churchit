@@ -30,7 +30,7 @@ _DELETE_STEPS = [
 	(False, "Bible Verse", {}),
 	(False, "Function Sign-Up", {}),
 	(False, "Function", {}),
-	(False, "Sign Up Item", {}),
+	(False, "Sign-Up Item", {}),
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
@@ -1122,7 +1122,7 @@ def _create_functions():
 
 
 # ---------------------------------------------------------------------------
-# Sign Up Items
+# Sign-Up Items
 # ---------------------------------------------------------------------------
 
 _SIGN_UP_ITEMS = [
@@ -1140,7 +1140,7 @@ def _create_sign_up_items():
 	refs = {}
 	for item_name, description in _SIGN_UP_ITEMS:
 		name = _insert_if_missing(
-			"Sign Up Item",
+			"Sign-Up Item",
 			{"item": item_name},
 			item=item_name,
 			description=description,
@@ -1242,10 +1242,12 @@ def _create_function_sign_ups(people, sign_up_items):
 		# Build child table items with proper field names
 		items_child = []
 		for item in signup.pop("items", []):
-			items_child.append({
-				"item": item["item"],
-				"quantity_needed": item["quantity_needed"],
-			})
+			items_child.append(
+				{
+					"item": item["item"],
+					"quantity_needed": item["quantity_needed"],
+				}
+			)
 
 		doc = frappe.get_doc(
 			{
@@ -1715,9 +1717,7 @@ def _create_prayers(people):
 	"""Create sample prayers with topics linking to existing Prayer Requests."""
 	# Look up Prayer Request names by their unique attributes
 	# type field stores hash names, so resolve first
-	_prt = {
-		t: _resolve_link("Prayer Request Type", "type", t) for t in ("Health", "Salvation", "Praise")
-	}
+	_prt = {t: _resolve_link("Prayer Request Type", "type", t) for t in ("Health", "Salvation", "Praise")}
 	pr_wilson = frappe.db.get_value(
 		"Prayer Request",
 		{"requestor": people["Sarah Wilson"], "type": _prt["Health"]},

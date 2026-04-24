@@ -673,9 +673,9 @@ def _setup_portal_settings():
 			"enabled": 1,
 		},
 		{
-			"title": "Function Sign Ups",
+			"title": "Function Sign-Ups",
 			"route": "function-sign-up",
-			"reference_doctype": "Function Sign Up",
+			"reference_doctype": "Function Sign-Up",
 			"enabled": 1,
 		},
 	]

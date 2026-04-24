@@ -7,10 +7,8 @@ from church.utils import resolve_link_titles
 
 def get_context(context):
 	if context.get("reference_doc"):
-		resolve_link_titles([context.reference_doc], "Function Sign Up")
-	sign_up_functions = set(
-		frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name")
-	)
+		resolve_link_titles([context.reference_doc], "Function Sign-Up")
+	sign_up_functions = set(frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name"))
 	context.has_sign_up_functions = bool(sign_up_functions)
 
 	# Filter the Function autocomplete options to only show functions with sign-ups enabled.
@@ -26,9 +24,7 @@ def get_context(context):
 				)
 			except (json.JSONDecodeError, TypeError, AttributeError):
 				options = (field.options or "").split("\n")
-				field.options = "\n".join(
-					opt for opt in options if opt in sign_up_functions
-				)
+				field.options = "\n".join(opt for opt in options if opt in sign_up_functions)
 			break
 
 

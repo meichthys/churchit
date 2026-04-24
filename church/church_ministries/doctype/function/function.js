@@ -9,48 +9,75 @@ frappe.ui.form.on('Function', {
 
 	refresh: function(frm) {
 		// Add template-fill functionality if we have a template specified and this is a new form
-		if (!frm.is_new() || !frm.doc.type) return;
-		// Check if the selected type has a template
-		frappe.db.get_value('Function Type', frm.doc.type, 'template_function').then(r => {
-			if (!r.message?.template_function) return;
-			// Add 	Fill from Template` button if template exists
-			frm.add_custom_button(__('Fill from Template'), function() {
-				frappe.call({
-					method: 'church.church_ministries.doctype.function.function.apply_template',
-					args: {
-						source_name: r.message.template_function,
-						target_doc: frm.doc
-					},
-					callback: function(r) {
-						if (!r.message) return;
-						Object.keys(r.message).forEach(fieldname => {
-							frm.set_value(fieldname, r.message[fieldname]);
-						});
+		if (frm.is_new() && frm.doc.type) {
+			frappe.db.get_value('Function Type', frm.doc.type, 'template_function').then(r => {
+				if (!r.message?.template_function) return;
+				// Add 	Fill from Template` button if template exists
+				frm.add_custom_button(__('Fill from Template'), function() {
+					frappe.call({
+						method: 'church.church_ministries.doctype.function.function.apply_template',
+						args: {
+							source_name: r.message.template_function,
+							target_doc: frm.doc
+						},
+						callback: function(r) {
+							if (!r.message) return;
+							Object.keys(r.message).forEach(fieldname => {
+								frm.set_value(fieldname, r.message[fieldname]);
+							});
 
-						// Fetch link titles for person IDs so the attendance grid
-						// displays names instead of IDs (e.g. "John Smith" not "PRSN-0011")
-						const personIds = [...new Set(
-							(r.message.attendance || []).map(a => a.person).filter(Boolean)
-						)];
-						if (personIds.length) {
-							Promise.all(personIds.map(id => frappe.utils.fetch_link_title('Person', id)))
-								.then(() => frm.refresh_field('attendance'));
+							// Fetch link titles for person IDs so the attendance grid
+							// displays names instead of IDs (e.g. "John Smith" not "PRSN-0011")
+							const personIds = [...new Set(
+								(r.message.attendance || []).map(a => a.person).filter(Boolean)
+							)];
+							if (personIds.length) {
+								Promise.all(personIds.map(id => frappe.utils.fetch_link_title('Person', id)))
+									.then(() => frm.refresh_field('attendance'));
+							}
+
+							frappe.msgprint({
+								message: __('Template applied successfully'),
+								indicator: 'green',
+								alert: true
+							});
 						}
-
-						frappe.msgprint({
-							message: __('Template applied successfully'),
-							indicator: 'green',
-							alert: true
-						});
-					}
+					});
 				});
 			});
-		});
+		}
+
+		// Add Sign Ups buttons if sign-ups are enabled and form is saved
+		if (!frm.is_new() && frm.doc.allow_sign_ups) {
+			frm.add_custom_button(__('Show Signed-Up Items'), function() {
+				frappe.set_route('query-report', 'Function Sign-Up Items', {
+					function: frm.doc.name
+				});
+			}, __('Sign Ups'));
+
+			frm.add_custom_button(__('Show Signed-Up People'), function() {
+				frappe.set_route('list', 'Function Sign-Up', {
+					function: frm.doc.name
+				});
+			}, __('Sign Ups'));
+		}
 	},
 
 	type: function(frm) {
 		// Refresh form to re-evaluate button visibility
 		frm.trigger('refresh');
+	},
+
+	after_save: function(frm) {
+		// Sync item quantities after saving
+		if (!frm.is_new()) {
+			frappe.call({
+				method: "church.church_ministries.doctype.function_sign_up.function_sign_up.sync_item_quantities_for_function",
+				args: {
+					function: frm.doc.name,
+				},
+			});
+		}
 	}
 });
 

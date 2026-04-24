@@ -1,241 +1,241 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "format:FUNC-{####}",
- "creation": "2025-08-31 23:40:34.324092",
- "description": "Any kind of church gathering. This includes regular services as well as one-off functions.",
- "doctype": "DocType",
- "documentation": "/app/manual%3A-ministries",
- "engine": "InnoDB",
- "field_order": [
-  "type",
-  "function_name",
-  "all_day",
-  "start_date",
-  "start_time",
-  "end_date",
-  "end_time",
-  "column_break_bkje",
-  "attendance_total",
-  "allow_sign_ups",
-  "address",
-  "description",
-  "section_break_qbbr",
-  "table_cxhh",
-  "section_break_bkwy",
-  "schedule",
-  "section_break_dlpa",
-  "attendance",
-  "section_break_assoc",
-  "associations",
-  "hidden_fields_section",
-  "title"
- ],
- "fields": [
-  {
-   "default": "0",
-   "description": "Allow people to sign up for this function via the portal.",
-   "fieldname": "allow_sign_ups",
-   "fieldtype": "Check",
-   "label": "Allow Sign Ups"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "default": "0",
-   "fieldname": "all_day",
-   "fieldtype": "Check",
-   "label": "All-Day ?"
-  },
-  {
-   "fieldname": "column_break_bkje",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "function_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Name",
-   "reqd": 1
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Type",
-   "options": "Function Type",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "address",
-   "fieldtype": "Link",
-   "in_preview": 1,
-   "label": "Address",
-   "options": "Address"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "in_preview": 1,
-   "label": "Description"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "default": "Today",
-   "fieldname": "start_date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
-   "label": "Start Date",
-   "reqd": 1
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "depends_on": "eval:!doc.all_day",
-   "fieldname": "start_time",
-   "fieldtype": "Time",
-   "in_preview": 1,
-   "label": "Start Time",
-   "mandatory_depends_on": "eval:!doc.all_day"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "end_date",
-   "fieldtype": "Date",
-   "in_preview": 1,
-   "label": "End Date"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "depends_on": "eval:!doc.all_day",
-   "fieldname": "end_time",
-   "fieldtype": "Time",
-   "in_preview": 1,
-   "label": "End Time"
-  },
-  {
-   "fieldname": "section_break_dlpa",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "attendance",
-   "fieldtype": "Table",
-   "label": "Attendance",
-   "options": "Function Attendance"
-  },
-  {
-   "description": "Includes `Confirmed`, `Assumed` attendance.",
-   "fieldname": "attendance_total",
-   "fieldtype": "Int",
-   "label": "Attendance Total",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_assoc",
-   "fieldtype": "Section Break"
-  },
-  {
-   "description": "Associate this function with other church documents (e.g. Ministry, Group, Sermon, etc).",
-   "fieldname": "associations",
-   "fieldtype": "Table",
-   "label": "Associations",
-   "options": "Function Association"
-  },
-  {
-   "fieldname": "section_break_bkwy",
-   "fieldtype": "Section Break"
-  },
-  {
-   "description": "The order of events for the church function.",
-   "fieldname": "schedule",
-   "fieldtype": "Table",
-   "label": "Schedule",
-   "options": "Function Schedule"
-  },
-  {
-   "fieldname": "hidden_fields_section",
-   "fieldtype": "Section Break",
-   "label": "Hidden Fields"
-  },
-  {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Title",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "depends_on": "eval: doc.allow_sign_ups",
-   "fieldname": "section_break_qbbr",
-   "fieldtype": "Section Break"
-  },
-  {
-   "description": "Items that are needed for the function. People can sign up to bring items via 'Function Sign Up'",
-   "fieldname": "table_cxhh",
-   "fieldtype": "Table",
-   "label": "Sign Up Items",
-   "options": "Function Sign-Up Item"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "links": [
-  {
-   "link_doctype": "Function Sign Up",
-   "link_fieldname": "function"
-  },
-  {
-   "link_doctype": "Function Check-In",
-   "link_fieldname": "function"
-  }
- ],
- "modified": "2026-04-19 19:24:43.345633",
- "modified_by": "Administrator",
- "module": "Church Ministries",
- "name": "Function",
- "naming_rule": "Expression",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Church Manager",
-   "select": 1,
-   "share": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "show_preview_popup": 1,
- "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "ASC",
- "states": [],
- "title_field": "title",
- "track_changes": 1,
- "track_views": 1
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "format:FUNC-{####}",
+  "creation": "2025-08-31 23:40:34.324092",
+  "description": "Any kind of church gathering. This includes regular services as well as one-off functions.",
+  "doctype": "DocType",
+  "documentation": "/app/manual%3A-ministries",
+  "engine": "InnoDB",
+  "field_order": [
+    "type",
+    "function_name",
+    "all_day",
+    "start_date",
+    "start_time",
+    "end_date",
+    "end_time",
+    "column_break_bkje",
+    "attendance_total",
+    "allow_sign_ups",
+    "address",
+    "description",
+    "section_break_qbbr",
+    "table_cxhh",
+    "section_break_bkwy",
+    "schedule",
+    "section_break_dlpa",
+    "attendance",
+    "section_break_assoc",
+    "associations",
+    "hidden_fields_section",
+    "title"
+  ],
+  "fields": [
+    {
+      "default": "0",
+      "description": "Allow people to sign up for this function via the portal.",
+      "fieldname": "allow_sign_ups",
+      "fieldtype": "Check",
+      "label": "Allow Sign-Ups"
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "default": "0",
+      "fieldname": "all_day",
+      "fieldtype": "Check",
+      "label": "All-Day ?"
+    },
+    {
+      "fieldname": "column_break_bkje",
+      "fieldtype": "Column Break"
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "fieldname": "function_name",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Name",
+      "reqd": 1
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "fieldname": "type",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Type",
+      "options": "Function Type",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "address",
+      "fieldtype": "Link",
+      "in_preview": 1,
+      "label": "Address",
+      "options": "Address"
+    },
+    {
+      "fieldname": "description",
+      "fieldtype": "Small Text",
+      "in_preview": 1,
+      "label": "Description"
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "default": "Today",
+      "fieldname": "start_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "in_preview": 1,
+      "in_standard_filter": 1,
+      "label": "Start Date",
+      "reqd": 1
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "depends_on": "eval:!doc.all_day",
+      "fieldname": "start_time",
+      "fieldtype": "Time",
+      "in_preview": 1,
+      "label": "Start Time",
+      "mandatory_depends_on": "eval:!doc.all_day"
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "fieldname": "end_date",
+      "fieldtype": "Date",
+      "in_preview": 1,
+      "label": "End Date"
+    },
+    {
+      "allow_in_quick_entry": 1,
+      "depends_on": "eval:!doc.all_day",
+      "fieldname": "end_time",
+      "fieldtype": "Time",
+      "in_preview": 1,
+      "label": "End Time"
+    },
+    {
+      "fieldname": "section_break_dlpa",
+      "fieldtype": "Section Break"
+    },
+    {
+      "fieldname": "attendance",
+      "fieldtype": "Table",
+      "label": "Attendance",
+      "options": "Function Attendance"
+    },
+    {
+      "description": "Includes `Confirmed`, `Assumed` attendance.",
+      "fieldname": "attendance_total",
+      "fieldtype": "Int",
+      "label": "Attendance Total",
+      "read_only": 1
+    },
+    {
+      "collapsible": 1,
+      "fieldname": "section_break_assoc",
+      "fieldtype": "Section Break"
+    },
+    {
+      "description": "Associate this function with other church documents (e.g. Ministry, Group, Sermon, etc).",
+      "fieldname": "associations",
+      "fieldtype": "Table",
+      "label": "Associations",
+      "options": "Function Association"
+    },
+    {
+      "fieldname": "section_break_bkwy",
+      "fieldtype": "Section Break"
+    },
+    {
+      "description": "The order of events for the church function.",
+      "fieldname": "schedule",
+      "fieldtype": "Table",
+      "label": "Schedule",
+      "options": "Function Schedule"
+    },
+    {
+      "fieldname": "hidden_fields_section",
+      "fieldtype": "Section Break",
+      "label": "Hidden Fields"
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Title",
+      "read_only": 1
+    },
+    {
+      "collapsible": 1,
+      "depends_on": "eval: doc.allow_sign_ups",
+      "fieldname": "section_break_qbbr",
+      "fieldtype": "Section Break"
+    },
+    {
+      "description": "Items that are needed for the function. People can sign up to bring items via 'Function Sign-Up'",
+      "fieldname": "table_cxhh",
+      "fieldtype": "Table",
+      "label": "Sign-Up Items",
+      "options": "Function Sign-Up Item"
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "links": [
+    {
+      "link_doctype": "Function Sign-Up",
+      "link_fieldname": "function"
+    },
+    {
+      "link_doctype": "Function Check-In",
+      "link_fieldname": "function"
+    }
+  ],
+  "modified": "2026-04-23 18:31:06.955190",
+  "modified_by": "Administrator",
+  "module": "Church Ministries",
+  "name": "Function",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Church Manager",
+      "select": 1,
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "show_preview_popup": 1,
+  "show_title_field_in_link": 1,
+  "sort_field": "modified",
+  "sort_order": "ASC",
+  "states": [],
+  "title_field": "title",
+  "track_changes": 1,
+  "track_views": 1
 }

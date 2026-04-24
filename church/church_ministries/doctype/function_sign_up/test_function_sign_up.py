@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestFunctionSign-Up(FrappeTestCase):
+class TestFunctionSignUp(FrappeTestCase):
 	pass

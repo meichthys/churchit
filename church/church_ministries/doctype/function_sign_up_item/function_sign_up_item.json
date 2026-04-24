@@ -1,9 +1,8 @@
 {
- "_comments": "[{\"comment\": \"Action Failed<br><br>Another DocType with name Sign Up Item exists, select another name\", \"by\": \"Administrator\", \"name\": \"mnvt0tbig3\"}]",
  "actions": [],
  "allow_rename": 1,
  "creation": "2026-04-19 20:35:52.290655",
- "description": "Items that are needed for a 'Function'. People can sign up for these items via a 'Function Sign Up'.",
+ "description": "Items that are needed for a 'Function'. People can sign up for these items via a 'Function Sign-Up'.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -22,7 +21,7 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Item",
-   "options": "Sign Up Item",
+   "options": "Sign-Up Item",
    "reqd": 1
   },
   {
@@ -41,8 +40,7 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Quantity Needed",
-   "reqd": 1
+   "label": "Quantity"
   },
   {
    "allow_in_quick_entry": 1,
@@ -58,7 +56,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-19 20:52:15.091631",
+ "modified": "2026-04-23 18:28:41.880574",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Item",
