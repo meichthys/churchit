@@ -26,6 +26,11 @@ class PrayerRequest(Document):
 		else:
 			self.recipient_name = None
 
+	def has_webform_permission(self):
+		# Invoked by web forms with apply_document_permissions=0
+		# (the community-prayer-requests form) to grant read access to non-private
+		# requests, without loosening the standard DocPerm (owner-only) used elsewhere.
+		return frappe.session.user != "Guest" and not self.is_private
 
 
 def get_list_context(context):

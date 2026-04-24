@@ -661,6 +661,12 @@ def _setup_portal_settings():
 			"enabled": 1,
 		},
 		{
+			"title": "Community Prayer Requests",
+			"route": "community-prayer-requests",
+			"reference_doctype": "Prayer Request",
+			"enabled": 1,
+		},
+		{
 			"title": "Alms Requests",
 			"route": "alms-request",
 			"reference_doctype": "Alms Request",

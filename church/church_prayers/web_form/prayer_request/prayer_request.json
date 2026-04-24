@@ -34,9 +34,9 @@
    "label": "Recipient Name"
   },
   {
-   "fieldname": "details",
+   "fieldname": "request",
    "fieldtype": "Small Text",
-   "label": "Details"
+   "label": "Request"
   },
   {
    "fieldname": "is_private",

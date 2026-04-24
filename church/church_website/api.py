@@ -49,7 +49,7 @@ def get_published_fields(doctype):
 @frappe.whitelist(allow_guest=False)
 def get_church_doctypes():
 	"""Return non-child doctypes belonging to church app modules."""
-	frappe.only_for(["Church Manager", "System Manager"])
+	frappe.only_for(["Church User", "Church Manager", "System Manager"])
 	return frappe.get_all(
 		"DocType",
 		filters=[["module", "like", "Church%"], ["istable", "=", 0]],
@@ -74,10 +74,15 @@ def search_church_recipient(doctype, txt):
 	meta = frappe.get_meta(doctype)
 	title_field = meta.title_field or None
 
+	or_filters = []
+	if txt:
+		or_filters.append(["name", "like", f"%{txt}%"])
+		if title_field and title_field != "name":
+			or_filters.append([title_field, "like", f"%{txt}%"])
+
 	results = frappe.get_all(
 		doctype,
-		filters=[["name", "like", f"%{txt}%"]] if txt else [],
-		or_filters=([[title_field, "like", f"%{txt}%"]] if txt and title_field and title_field != "name" else []),
+		or_filters=or_filters,
 		fields=["name"] + ([title_field] if title_field and title_field != "name" else []),
 		order_by="name asc",
 		limit=20,
