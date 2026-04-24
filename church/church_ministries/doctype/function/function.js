@@ -47,21 +47,30 @@ frappe.ui.form.on('Function', {
 			});
 		}
 
-		// Add Sign Ups buttons if sign-ups are enabled and form is saved
-		if (!frm.is_new() && frm.doc.allow_sign_ups) {
-			frm.add_custom_button(__('Show Signed-Up Items'), function() {
-				frappe.set_route('query-report', 'Function Sign-Up Items', {
-					function: frm.doc.name
-				});
-			}, __('Sign Ups'));
+		// Add Sign Ups buttons if sign-ups are enabled, there are items, or there are linked sign-ups
+		if (!frm.is_new()) {
+			const has_items = frm.doc.table_cxhh && frm.doc.table_cxhh.length > 0;
 
-			frm.add_custom_button(__('Show Signed-Up People'), function() {
-				frappe.set_route('list', 'Function Sign-Up', {
-					function: frm.doc.name
-				});
-			}, __('Sign Ups'));
+			frappe.db.count('Function Sign-Up', {
+				filters: { function: frm.doc.name }
+			}).then(count => {
+				if (frm.doc.allow_sign_ups || has_items || count > 0) {
+					frm.add_custom_button(__('Show Signed-Up Items'), function() {
+						frappe.set_route('query-report', 'Function Sign-Up Items', {
+							function: frm.doc.name
+						});
+					}, __('Sign Ups'));
+
+					frm.add_custom_button(__('Show Signed-Up People'), function() {
+						frappe.set_route('list', 'Function Sign-Up', {
+							function: frm.doc.name
+						});
+					}, __('Sign Ups'));
+				}
+			});
 		}
 	},
+
 
 	type: function(frm) {
 		// Refresh form to re-evaluate button visibility

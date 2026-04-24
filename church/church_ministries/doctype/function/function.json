@@ -172,7 +172,7 @@
     },
     {
       "collapsible": 1,
-      "depends_on": "eval: doc.allow_sign_ups",
+      "depends_on": "eval: true",
       "fieldname": "section_break_qbbr",
       "fieldtype": "Section Break"
     },
