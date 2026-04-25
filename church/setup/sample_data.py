@@ -792,7 +792,7 @@ def _create_collections(people, funds):
 		{
 			"date": _near_datetime(-7, "10:30:00"),
 			"notes": "Regular Sunday morning offering.",
-			"expected_total": 330,
+			"expected_total": 4000,
 			"submit": True,
 			"donations": [
 				{
@@ -803,30 +803,30 @@ def _create_collections(people, funds):
 					"check_number": "1001",
 				},
 				{
-					"amount": 50,
+					"amount": 500,
 					"payment_type": check,
 					"fund": funds["Missions"],
 					"person": people["James Wilson"],
 					"check_number": "1001",
 				},
 				{
-					"amount": 75,
+					"amount": 3175,
 					"payment_type": check,
 					"fund": funds["General"],
 					"person": people["Robert Johnson"],
 					"check_number": "2001",
 				},
 				{
-					"amount": 25,
+					"amount": 125,
 					"payment_type": check,
 					"fund": funds["Building"],
 					"person": people["Robert Johnson"],
 					"check_number": "2001",
 				},
 				{
-					"amount": 50,
+					"amount": 70,
 					"payment_type": cash,
-					"fund": funds["General"],
+					"fund": funds["Benevolence"],
 					"person": None,
 					"check_number": None,
 				},
@@ -916,20 +916,38 @@ def _create_expenses(expense_types):
 			"amount": 245.50,
 			"date": _near_datetime(-5),
 			"notes": "Monthly electric bill.",
+			"submit": True,
 		},
 		{
 			"title": "Monthly Water Bill",
 			"type": expense_types["Water"],
 			"amount": 62.00,
-			"date": _near_datetime(-5),
+			"date": _near_datetime(-232),
 			"notes": "Monthly water bill.",
+			"submit": True,
 		},
 		{
 			"title": "Office Supplies",
 			"type": expense_types["Office Supplies"],
 			"amount": 89.99,
-			"date": _near_datetime(-2),
+			"date": _near_datetime(-181),
 			"notes": "Printer paper and toner cartridges.",
+		},
+		{
+			"title": "Roof Repair - Sanctuary",
+			"type": expense_types["Maintenance"],
+			"amount": 1250.00,
+			"date": _near_datetime(-92),
+			"notes": "Roofing contractor repair on sanctuary roof after storm damage.",
+			"submit": True,
+		},
+		{
+			"title": "Missions Conference Registration",
+			"type": expense_types["Missions Support"],
+			"amount": 350.00,
+			"date": _near_datetime(-320),
+			"notes": "Registration and travel costs for pastor to attend annual missions conference.",
+			"submit": True,
 		},
 	]
 	for exp in expenses:
@@ -942,8 +960,11 @@ def _create_expenses(expense_types):
 		)
 		if existing:
 			continue
+		submit = exp.pop("submit", False)
 		doc = frappe.get_doc({"doctype": "Expense", **exp})
 		doc.insert(ignore_permissions=True)
+		if submit:
+			doc.submit()
 
 
 # ---------------------------------------------------------------------------

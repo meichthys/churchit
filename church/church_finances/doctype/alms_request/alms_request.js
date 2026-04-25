@@ -34,6 +34,25 @@ frappe.ui.form.on('Alms Request', {
                     }
                 });
         }
+    },
+    after_save: function(frm) {
+        // Prompt user to create an expense when status is set to "Distributed"
+        if (frm.doc.status === 'Distributed') {
+            frappe.confirm(
+                'Would you like to create an associated expense?',
+                function() {
+                    frappe.call({
+                        method: 'church.church_finances.doctype.alms_request.alms_request.create_expense',
+                        args: {
+                            alms_request_name: frm.doc.name
+                        },
+                        callback: function () {
+                            frm.reload_doc();
+                        }
+                    });
+                }
+            );
+        }
     }
 });
 
