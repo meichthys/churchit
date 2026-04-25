@@ -12,15 +12,27 @@ frappe.ui.form.on('Alms Request', {
         // Add a custom button that creates an Expense from the Alms Request
         if (!frm.is_new()) {
             frm.add_custom_button(__('Create Expense'), function () {
-                frappe.call({
-                    method: 'church.church_finances.doctype.alms_request.alms_request.create_expense',
-                    args: {
-                        alms_request_name: frm.doc.name
-                    },
-                    callback: function () {
-                        frm.reload_doc();
-                    }
-                });
+                if (frm.doc.associated_expense) {
+                    frappe.db.get_value('Expense', frm.doc.associated_expense, 'title').then(r => {
+                        const title = r.message.title || frm.doc.associated_expense;
+                        frappe.confirm(
+                            `An expense (<a href="/app/expense/${frm.doc.associated_expense}" target="_blank">${title}</a>) already exists for this alms request. Create another?`,
+                            function() {
+                                frappe.call({
+                                    method: 'church.church_finances.doctype.alms_request.alms_request.create_expense',
+                                    args: { alms_request_name: frm.doc.name },
+                                    callback: function () { frm.reload_doc(); }
+                                });
+                            }
+                        );
+                    });
+                } else {
+                    frappe.call({
+                        method: 'church.church_finances.doctype.alms_request.alms_request.create_expense',
+                        args: { alms_request_name: frm.doc.name },
+                        callback: function () { frm.reload_doc(); }
+                    });
+                }
             });
         }
     },
@@ -37,7 +49,7 @@ frappe.ui.form.on('Alms Request', {
     },
     after_save: function(frm) {
         // Prompt user to create an expense when status is set to "Distributed"
-        if (frm.doc.status === 'Distributed') {
+        if (frm.doc.status === 'Distributed' && !frm.doc.associated_expense) {
             frappe.confirm(
                 'Would you like to create an associated expense?',
                 function() {

@@ -16,6 +16,7 @@
   "requestor",
   "amount",
   "expense_type",
+  "associated_expense",
   "section_break_olzm",
   "description"
  ],
@@ -87,6 +88,13 @@
    "options": "Expense Type"
   },
   {
+   "description": "After alms are distributed, click 'Create Expense' above or manually create an expense for this alms request and link it here.",
+   "fieldname": "associated_expense",
+   "fieldtype": "Link",
+   "label": "Associated Expense",
+   "options": "Expense"
+  },
+  {
    "default": "Person",
    "description": "The type of entity for which alms are being requested.",
    "fieldname": "recipient_type",
@@ -109,7 +117,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-20 00:03:30.229450",
+ "modified": "2026-04-24 17:52:23.249252",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",

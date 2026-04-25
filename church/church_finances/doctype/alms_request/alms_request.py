@@ -33,14 +33,13 @@ def create_expense(alms_request_name):
 	if not alms.expense_type:
 		frappe.throw("⚠️ An expense type is required for an expense to be created.")
 	expense = frappe.new_doc("Expense")
-	expense.church = alms.church
+	expense.title = f"Alms: {alms.title}"
 	expense.amount = alms.amount
-	expense.notes = f"Alms Request: {alms.name}"
-	expense.type = frappe.db.get_value("Expense Type", alms.expense_type, "type")
+	expense.type = alms.expense_type
 	expense.date = frappe.utils.now()
 	expense.insert()
-	frappe.msgprint(f"✅ {expense.type} expense created.")
 	expense.submit()
+	frappe.db.set_value("Alms Request", alms_request_name, "associated_expense", expense.name)
 
 
 def get_list_context(context):
