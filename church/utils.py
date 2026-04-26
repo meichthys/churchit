@@ -2,41 +2,78 @@ import frappe
 
 
 def set_report_link_titles(columns, data):
-	"""Replace hash names with title field values in report data for Link columns."""
+	"""Pre-fetch titles for Link/Dynamic Link columns and attach them to each row.
+
+	Columns stay typed as Link so the cell stays clickable. Each row gets a
+	`_<fieldname>_link_title` key whose value is the linked doc's title. The
+	companion JS hook in `church_utils.js` reads that key and primes
+	`frappe._link_titles` so the desk's Link formatter shows the title."""
 	if not data:
 		return
 
-	for i, col in enumerate(columns):
-		if col.get("fieldtype") != "Link" or not col.get("options"):
-			continue
+	for col in columns:
+		fieldtype = col.get("fieldtype")
+		fieldname = col.get("fieldname")
 
-		doctype = col["options"]
-		fieldname = col["fieldname"]
-		meta = frappe.get_meta(doctype)
-		if not meta.title_field:
-			continue
+		if fieldtype == "Link" and col.get("options"):
+			doctype = col["options"]
+			meta = frappe.get_meta(doctype)
+			if not meta.title_field:
+				continue
 
-		names = {row.get(fieldname) for row in data if row.get(fieldname)}
-		if not names:
-			continue
+			names = {row.get(fieldname) for row in data if row.get(fieldname)}
+			if not names:
+				continue
 
-		title_map = dict(
-			frappe.get_all(
-				doctype,
-				filters={"name": ("in", list(names))},
-				fields=["name", meta.title_field],
-				as_list=True,
+			title_map = dict(
+				frappe.get_all(
+					doctype,
+					filters={"name": ("in", list(names))},
+					fields=["name", meta.title_field],
+					as_list=True,
+				)
 			)
-		)
 
-		# Replace the column with a Data copy so we don't mutate shared constants
-		columns[i] = {k: v for k, v in col.items() if k != "options"}
-		columns[i]["fieldtype"] = "Data"
+			title_key = f"_{fieldname}_link_title"
+			for row in data:
+				name = row.get(fieldname)
+				title = title_map.get(name) if name else None
+				if title and title != name:
+					row[title_key] = title
 
-		for row in data:
-			name = row.get(fieldname)
-			if name and name in title_map:
-				row[fieldname] = title_map[name]
+		elif fieldtype == "Dynamic Link" and col.get("options"):
+			# `options` here is the row field that holds the target doctype.
+			type_field = col["options"]
+			by_doctype = {}
+			for row in data:
+				linked_dt = row.get(type_field)
+				value = row.get(fieldname)
+				if linked_dt and value:
+					by_doctype.setdefault(linked_dt, set()).add(value)
+
+			title_key = f"_{fieldname}_link_title"
+			for linked_dt, names in by_doctype.items():
+				try:
+					linked_meta = frappe.get_meta(linked_dt)
+				except Exception:
+					continue
+				if not linked_meta.title_field:
+					continue
+				title_map = dict(
+					frappe.get_all(
+						linked_dt,
+						filters={"name": ("in", list(names))},
+						fields=["name", linked_meta.title_field],
+						as_list=True,
+					)
+				)
+				for row in data:
+					if row.get(type_field) != linked_dt:
+						continue
+					value = row.get(fieldname)
+					title = title_map.get(value) if value else None
+					if title and title != value:
+						row[title_key] = title
 
 
 def resolve_link_titles(rows, doctype):
