@@ -57,6 +57,7 @@
    "reqd": 1
   },
   {
+   "description": "The dollar amount being requested.",
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -117,7 +118,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-24 17:52:23.249252",
+ "modified": "2026-04-28 18:47:40.285291",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",
