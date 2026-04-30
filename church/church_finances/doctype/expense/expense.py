@@ -7,6 +7,28 @@ from frappe.utils import get_link_to_form
 
 
 class Expense(Document):
+	def validate(self):
+		self._warn_if_fund_would_go_negative()
+
+	def _warn_if_fund_would_go_negative(self):
+		if self.docstatus != 0 or not self.type or not self.amount:
+			return
+		fund_name = frappe.db.get_value("Expense Type", self.type, "fund")
+		if not fund_name:
+			return
+		fund = frappe.db.get_value("Fund", fund_name, ["fund", "balance"], as_dict=True)
+		if not fund:
+			return
+		projected_balance = (fund.balance or 0) - self.amount
+		if projected_balance < 0:
+			frappe.msgprint(
+				f"⚠️ Submitting this expense will reduce the "
+				f"{get_link_to_form('Fund', fund_name, label=fund.fund)} "
+				f"fund balance to ${projected_balance:,.2f}.",
+				indicator="orange",
+				title="Negative Fund Balance",
+			)
+
 	def before_delete(self):
 		# This probably should never get called since frappe prevents the deletion
 		# of submitted documents by default, but just to be sure we'll provide our own warning.
