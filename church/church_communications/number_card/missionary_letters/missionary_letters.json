@@ -1,10 +1,7 @@
 {
- "aggregate_function_based_on": "",
  "creation": "2026-03-15 18:44:12.770061",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
- "document_type": "Letter",
  "dynamic_filters_json": "[]",
  "filters_json": "[]",
  "function": "Count",
@@ -17,9 +14,9 @@
  "module": "Church Communications",
  "name": "Missionary Letters",
  "owner": "Administrator",
- "parent_document_type": "Missionary",
  "report_function": "Sum",
+ "report_name": "Missionary Letters",
  "show_percentage_stats": 1,
  "stats_time_interval": "Monthly",
- "type": "Document Type"
+ "type": "Report"
 }
