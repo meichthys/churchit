@@ -8,9 +8,10 @@
  "engine": "InnoDB",
  "field_order": [
   "item",
-  "small_text_lwph",
+  "description",
+  "quantity_needed",
   "quantity_signed_up",
-  "quantity_needed"
+  "my_quantity"
  ],
  "fields": [
   {
@@ -26,37 +27,48 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "fetch_from": "item.description",
-   "fieldname": "small_text_lwph",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "in_preview": 1,
-   "label": "Description"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "default": "1",
+   "default": "0",
+   "description": "The quantity of this item needed for the function.",
    "fieldname": "quantity_needed",
    "fieldtype": "Int",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Quantity"
+   "label": "Quantity Needed"
   },
   {
-   "allow_in_quick_entry": 1,
+   "description": "The total quantity for which people have signed up (computed from Function Sign-Ups).",
    "fieldname": "quantity_signed_up",
    "fieldtype": "Int",
    "in_list_view": 1,
    "in_preview": 1,
+   "is_virtual": 1,
    "label": "Quantity Signed Up",
    "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "1",
+   "description": "The quantity of this item that the person is signing up to bring.",
+   "fieldname": "my_quantity",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "My Quantity"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fetch_from": "item.description",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_preview": 1,
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-23 18:28:41.880574",
+ "modified": "2026-05-03 17:12:45.932107",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Item",

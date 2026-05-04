@@ -28,7 +28,7 @@ def get_columns():
 			"label": "Person",
 			"width": 250,
 		},
-		{"fieldname": "quantity_needed", "fieldtype": "Int", "label": "Quantity", "width": 100},
+		{"fieldname": "my_quantity", "fieldtype": "Int", "label": "Quantity", "width": 100},
 	]
 
 
@@ -61,7 +61,7 @@ def get_data(filters=None):
 			fsui.item,
 			fsu.person,
 			p.full_name,
-			fsui.quantity_needed
+			fsui.my_quantity
 		FROM `tabFunction Sign-Up` fsu
 		INNER JOIN `tabFunction Sign-Up Item` fsui ON fsu.name = fsui.parent
 		INNER JOIN `tabFunction` f ON fsu.function = f.name

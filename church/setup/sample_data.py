@@ -106,8 +106,8 @@ def create_sample_data():
 	_create_prayer_requests(people)
 	_create_alms_requests(people)
 
-	_create_functions()
 	sign_up_items = _create_sign_up_items()
+	_create_functions(sign_up_items)
 	_create_function_sign_ups(people, sign_up_items)
 
 	verses = _create_bible_verses()
@@ -1085,7 +1085,7 @@ def _create_alms_requests(people):
 # ---------------------------------------------------------------------------
 
 
-def _create_functions():
+def _create_functions(sign_up_items):
 	"""Create sample church functions."""
 	_ft = {
 		t: _resolve_link("Function Type", "type", t)
@@ -1126,6 +1126,14 @@ def _create_functions():
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
 			"allow_sign_ups": 1,
+			"table_cxhh": [
+				{"item": sign_up_items["Drinks"], "quantity_needed": 3},
+				{"item": sign_up_items["Snacks"], "quantity_needed": 3},
+				{"item": sign_up_items["Desserts"], "quantity_needed": 2},
+				{"item": sign_up_items["Paper Products"], "quantity_needed": 2},
+				{"item": sign_up_items["Setup/Cleanup"], "quantity_needed": 2},
+				{"item": sign_up_items["Serving"], "quantity_needed": 2},
+			],
 		},
 	]
 	for fn in functions:
@@ -1266,7 +1274,7 @@ def _create_function_sign_ups(people, sign_up_items):
 			items_child.append(
 				{
 					"item": item["item"],
-					"quantity_needed": item["quantity_needed"],
+					"my_quantity": item["quantity_needed"],
 				}
 			)
 

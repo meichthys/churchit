@@ -8,6 +8,24 @@ frappe.ui.form.on('Function', {
 	},
 
 	refresh: function(frm) {
+		// Customize the Sign-Up Items grid: hide my_quantity (irrelevant on Function)
+		// and the description column; show quantity_needed and quantity_signed_up.
+		const grid = frm.fields_dict.table_cxhh && frm.fields_dict.table_cxhh.grid;
+		if (grid) {
+			grid.update_docfield_property("quantity_needed", "in_list_view", 1);
+			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
+			grid.update_docfield_property("my_quantity", "in_list_view", 0);
+			grid.update_docfield_property("description", "in_list_view", 0);
+			grid.set_column_disp("my_quantity", false);
+			grid.set_column_disp("description", false);
+			// Force re-evaluation of which columns are visible — by default the grid
+			// caches `visible_columns` and won't pick up our docfield property changes.
+			grid.reset_grid();
+		}
+
+		// Populate the virtual quantity_signed_up column for each Sign-Up Item row.
+		populate_signed_up_totals(frm);
+
 		// Add template-fill functionality if we have a template specified and this is a new form
 		if (frm.is_new() && frm.doc.type) {
 			frappe.db.get_value('Function Type', frm.doc.type, 'template_function').then(r => {
@@ -76,18 +94,6 @@ frappe.ui.form.on('Function', {
 		// Refresh form to re-evaluate button visibility
 		frm.trigger('refresh');
 	},
-
-	after_save: function(frm) {
-		// Sync item quantities after saving
-		if (!frm.is_new()) {
-			frappe.call({
-				method: "church.church_ministries.doctype.function_sign_up.function_sign_up.sync_item_quantities_for_function",
-				args: {
-					function: frm.doc.name,
-				},
-			});
-		}
-	}
 });
 
 // Set default attendance_type on new attendance child rows
@@ -100,3 +106,21 @@ frappe.ui.form.on('Function Attendance', {
 		});
 	}
 });
+
+function populate_signed_up_totals(frm) {
+	if (frm.is_new() || !frm.doc.name || !(frm.doc.table_cxhh || []).length) return;
+	frappe.call({
+		method:
+			"church.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		args: { function: frm.doc.name },
+		callback: function (r) {
+			if (!r.message) return;
+			(frm.doc.table_cxhh || []).forEach((row) => {
+				const data = r.message[row.item];
+				if (!data) return;
+				row.quantity_signed_up = data.quantity_signed_up;
+			});
+			frm.refresh_field("table_cxhh");
+		},
+	});
+}

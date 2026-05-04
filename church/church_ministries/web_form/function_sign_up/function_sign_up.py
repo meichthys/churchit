@@ -43,3 +43,21 @@ def get_user_context():
 		"person": person,
 		"is_manager": is_manager,
 	}
+
+
+@frappe.whitelist()
+def get_function_sign_up_items(function):
+	"""Return the sign-up items configured on a Function, with live signed-up totals."""
+	from church.church_ministries.doctype.function_sign_up.function_sign_up import (
+		get_function_item_totals,
+	)
+
+	totals = get_function_item_totals(function)
+	return [
+		{
+			"item": item,
+			"quantity_needed": data["quantity_needed"],
+			"quantity_signed_up": data["quantity_signed_up"],
+		}
+		for item, data in totals.items()
+	]
