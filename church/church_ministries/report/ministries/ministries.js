@@ -35,9 +35,6 @@ frappe.query_reports["Ministries"] = {
 		if (column.fieldname === "ministry_name") {
 			return `<a href="/app/ministry/${encodeURIComponent(data.name)}">${frappe.utils.escape_html(value)}</a>`;
 		}
-		if (column.fieldname === "church") {
-			return `<a href="/app/church/${encodeURIComponent(value)}">${frappe.utils.escape_html(value)}</a>`;
-		}
 		if (column.fieldname === "group") {
 			return `<a href="/app/group/${encodeURIComponent(value)}">${frappe.utils.escape_html(value)}</a>`;
 		}

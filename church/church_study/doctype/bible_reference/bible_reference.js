@@ -2,15 +2,6 @@ frappe.ui.form.on("Bible Reference", {
     import_reference_text: frm => {
         fetch_bible_text(frm);
     },
-    church: function(frm) {
-        if (frm.doc.church) {
-            frappe.db.get_value('Church', frm.doc.church, 'default_bible_translation')
-                .then(r => {
-                    const value = r && r.message && r.message.default_bible_translation;
-                    if (value) frm.set_value('translation', value);
-                });
-        }
-    },
     refresh: async function(frm) {
         frm.add_custom_button('Open in AndBible', async function() {
             const start_verse = await frappe.get_doc("Bible Verse", frm.doc.start_verse);
@@ -44,13 +35,11 @@ frappe.ui.form.on("Bible Reference", {
         });
         // Set default translation if not set
         if (!frm.doc.translation) {
-            const church_name = frm.doc.church;
-            const get_translation = church_name
-                ? frappe.db.get_value('Church', church_name, 'default_bible_translation')
-                    .then(r => r && r.message && r.message.default_bible_translation)
-                : frappe.db.get_list('Church', {fields: ['default_bible_translation'], limit: 1})
-                    .then(data => data && data.length > 0 && data[0].default_bible_translation);
-            get_translation.then(value => { if (value) frm.set_value('translation', value); });
+            frappe.db.get_list('Church', {fields: ['default_bible_translation'], limit: 1})
+                .then(data => {
+                    const value = data && data.length > 0 && data[0].default_bible_translation;
+                    if (value) frm.set_value('translation', value);
+                });
         }
         }
 });

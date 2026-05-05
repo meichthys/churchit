@@ -111,17 +111,3 @@ if (recip_ctrl && type_ctrl) {
 		});
 	}
 }
-
-// Auto-populate church from the logged-in user's church
-var church_ctrl = frappe.web_form.fields_dict['church'];
-if (church_ctrl && !frappe.web_form.doc.name) {
-	frappe.call({
-		method: 'frappe.client.get_value',
-		args: { doctype: 'User', filters: { name: frappe.session.user }, fieldname: 'church' },
-		callback: function(r) {
-			if (r.message && r.message.church) {
-				church_ctrl.set_value(r.message.church);
-			}
-		}
-	});
-}

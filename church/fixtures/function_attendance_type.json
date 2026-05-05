@@ -1,6 +1,5 @@
 [
   {
-    "church": "My Church",
     "description": "The person's attendance was confirmed at this function.",
     "docstatus": 0,
     "doctype": "Function Attendance Type",
@@ -8,7 +7,6 @@
     "type": "Confirmed"
   },
   {
-    "church": "My Church",
     "description": "The person was assumed to be present at this function (e.g. their family was present).",
     "docstatus": 0,
     "doctype": "Function Attendance Type",
@@ -16,7 +14,6 @@
     "type": "Assumed"
   },
   {
-    "church": "My Church",
     "description": "The person (or someone on their behalf) signed up for this function.",
     "docstatus": 0,
     "doctype": "Function Attendance Type",
@@ -24,7 +21,6 @@
     "type": "Signed-Up"
   },
   {
-    "church": "My Church",
     "description": "The person was checked in at this function.",
     "docstatus": 0,
     "doctype": "Function Attendance Type",
