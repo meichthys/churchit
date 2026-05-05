@@ -1,55 +1,46 @@
-// Runs inside frappe.init_client_script() — fields are already rendered
-var recip_ctrl = frappe.web_form.fields_dict['recipient'];
-var type_ctrl = frappe.web_form.fields_dict['recipient_type'];
+frappe.ready(function() {
+	var name_ctrl = frappe.web_form.fields_dict['recipient_name'];
+	var type_ctrl = frappe.web_form.fields_dict['recipient_type'];
 
-if (recip_ctrl && type_ctrl) {
-	// Populate recipient_type with church app doctypes from the server
-	frappe.call({
-		method: 'church.church_website.api.get_church_doctypes',
-		args: {},
-		callback: function(r) {
-			var $select = type_ctrl.$input;
-			$select.empty().append($('<option value="">').text(''));
-			(r.message || []).forEach(function(d) {
-				$select.append($('<option>').val(d.name).text(d.name));
-			});
-			// Restore value if editing an existing record
-			var existing = frappe.web_form.doc && frappe.web_form.doc.recipient_type;
-			if (existing) $select.val(existing);
-		}
-	});
+	// Guard: If fields don't exist OR if we are in read-only mode (no $input)
+	if (!name_ctrl || !type_ctrl || !type_ctrl.$input) {
+		console.log("Web Form is in read-only mode; skipping search initialization.");
+		return;
+	}
 
-	var $input = recip_ctrl.$input;
-	var $wrap = recip_ctrl.$wrapper;
-	var real_name = frappe.web_form.doc && frappe.web_form.doc.recipient || '';
+	var $type_select = type_ctrl.$input;
+	var $input       = name_ctrl.$input;
+	var $wrap        = name_ctrl.$wrapper;
 
-	// Override get_value so the form submits the document name, not the display label
-	var original_get_value = recip_ctrl.get_value.bind(recip_ctrl);
-	recip_ctrl.get_value = function() {
-		return real_name || original_get_value();
-	};
+	// Make recipient_name editable so the user can search
+	name_ctrl.df.read_only = 0;
+	name_ctrl.refresh();
 
-	// Build custom dropdown for recipient
+	// Initialise the input with the already-resolved display name
+	if (frappe.web_form.doc && frappe.web_form.doc.recipient_name) {
+		$input.val(frappe.web_form.doc.recipient_name);
+	}
+
+	// Custom dropdown for searching recipients by label
 	var $dd = $('<ul>').css({
-		position: 'absolute',
-		background: '#fff',
-		border: '1px solid #d1d8dd',
+		position:     'absolute',
+		background:   '#fff',
+		border:       '1px solid #d1d8dd',
 		borderRadius: '0 0 4px 4px',
-		boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-		listStyle: 'none',
-		padding: 0,
-		margin: 0,
-		maxHeight: '180px',
-		overflowY: 'auto',
-		zIndex: 9999,
-		display: 'none',
-		left: 0,
-		right: 0
+		boxShadow:    '0 4px 8px rgba(0,0,0,0.1)',
+		listStyle:    'none',
+		padding:      0,
+		margin:       0,
+		maxHeight:    '180px',
+		overflowY:    'auto',
+		zIndex:       9999,
+		display:      'none',
+		left:         0,
+		right:        0
 	});
 	$wrap.css('position', 'relative').append($dd);
 
 	var timer;
-
 	function search(term) {
 		var doctype = type_ctrl.get_value();
 		if (!doctype) { $dd.empty().hide(); return; }
@@ -71,9 +62,10 @@ if (recip_ctrl && type_ctrl) {
 							)
 							.on('mousedown', function(e) {
 								e.preventDefault();
-								real_name = d.name;
 								$input.val(d.label);
 								$dd.hide();
+								frappe.web_form.set_value('recipient', d.name);
+								frappe.web_form.set_value('recipient_type', type_ctrl.get_value());
 							})
 							.appendTo($dd);
 					});
@@ -83,31 +75,70 @@ if (recip_ctrl && type_ctrl) {
 		}, 250);
 	}
 
-	// When user types, clear the stored name so search uses their input
-	$input.on('input', function() { real_name = ''; search($(this).val()); });
+	$input.on('input', function() { search($(this).val()); });
 	$input.on('focus', function() { search($(this).val()); });
-	$input.on('blur', function() { setTimeout(function() { $dd.hide(); }, 200); });
+	$input.on('blur',  function() { setTimeout(function() { $dd.hide(); }, 200); });
 
 	frappe.web_form.on('recipient_type', function() {
-		real_name = '';
 		$input.val('');
+		frappe.web_form.set_value('recipient', '');
 		$dd.empty().hide();
 	});
 
-	// Resolve label for existing recipient value
-	if (real_name && frappe.web_form.doc.recipient_type) {
+	// Populate recipient_type with church app doctypes, then handle defaults
+	frappe.call({
+		method: 'church.church_website.api.get_church_doctypes',
+		args: {},
+		callback: function(r) {
+			// CHECK: If the input doesn't exist (read-only mode), just stop here.
+			if (!type_ctrl || !type_ctrl.$input) {
+				console.log("Input field not found. Likely in read-only mode.");
+				return;
+			}
+
+			// Use the actual controller input directly to be safe
+			var $el = type_ctrl.$input;
+
+			$el.empty().append($('<option value="">').text(''));
+			(r.message || []).forEach(function(d) {
+				$el.append($('<option>').val(d.name).text(d.name));
+			});
+
+			var existing = frappe.web_form.doc && frappe.web_form.doc.recipient_type;
+			if (existing) {
+				$el.val(existing);
+			} else if (!frappe.web_form.doc.name) {
+				auto_fill_current_user();
+			}
+		}
+	});
+
+	// On new forms, default recipient_type/recipient/recipient_name/requestor to the current user's Person record
+	function auto_fill_current_user() {
 		frappe.call({
-			method: 'church.church_website.api.search_church_recipient',
-			args: { doctype: frappe.web_form.doc.recipient_type, txt: '' },
+			method: 'frappe.client.get_value',
+			args: {
+				doctype: 'Person',
+				filters: { portal_user: frappe.session.user },
+				fieldname: ['name', 'full_name']
+			},
 			callback: function(r) {
-				var results = r.message || [];
-				for (var i = 0; i < results.length; i++) {
-					if (results[i].name === real_name) {
-						$input.val(results[i].label);
-						break;
-					}
-				}
+				if (!r.message || !r.message.name) return;
+				var person_name  = r.message.name;
+				var person_label = r.message.full_name || person_name;
+
+				var requestor_ctrl = frappe.web_form.fields_dict['requestor'];
+				if (requestor_ctrl) requestor_ctrl.set_value(person_name);
+
+				// Setting recipient_type fires our change handler which clears state;
+				// assign recipient/recipient_name afterwards so they aren't clobbered.
+				$type_select.val('Person');
+				Promise.resolve(frappe.web_form.set_value('recipient_type', 'Person')).then(function() {
+					frappe.web_form.set_value('recipient', person_name);
+					frappe.web_form.set_value('recipient_name', person_label);
+					$input.val(person_label);
+				});
 			}
 		});
 	}
-}
+});
