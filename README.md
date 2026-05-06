@@ -51,8 +51,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
 
-### Events & Attendance
-- Function (event) tracking with types, scheduling, sign-ups, check-ins, and attendance tracking
+### Functions (Events) & Attendance
+- Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
 - Attendance types (Confirmed, Assumed, Absent, etc.)
 - Song tracking for worship services
 - Reports: attendance by function, attendance by person, function count by type
