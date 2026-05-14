@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"vGlW7T54B1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Web Site</b></span>\",\"col\":12}},{\"id\":\"IGVEWBT1NL\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Web Site\",\"col\":12}},{\"id\":\"w2pJ9vRw64\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Blog Posts\",\"col\":6}},{\"id\":\"VLlwUJY98u\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bloggers\",\"col\":6}},{\"id\":\"nsP8gvq7Aw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Articles\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vwEt3NWuP0\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
+ "content": "[{\"id\":\"vGlW7T54B1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Web Site</b></span>\",\"col\":12}},{\"id\":\"IGVEWBT1NL\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Web Site\",\"col\":12}},{\"id\":\"w2pJ9vRw64\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Blog Posts\",\"col\":4}},{\"id\":\"VLlwUJY98u\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bloggers\",\"col\":4}},{\"id\":\"yN7TVIlCb7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Blog Categories\",\"col\":4}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"nsP8gvq7Aw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Articles\",\"col\":4}},{\"id\":\"S2WNeqIk0R\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Categories\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vwEt3NWuP0\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -284,7 +284,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-13 18:55:51.138210",
+ "modified": "2026-05-13 19:08:23.538556",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
@@ -298,8 +298,20 @@
    "number_card_name": "Help Articles"
   },
   {
+   "label": "Blog Categories",
+   "number_card_name": "Blog Categories"
+  },
+  {
+   "label": "Dynamic Web Pages",
+   "number_card_name": "Dynamic Web Pages"
+  },
+  {
    "label": "Bloggers",
    "number_card_name": "Bloggers"
+  },
+  {
+   "label": "Help Categories",
+   "number_card_name": "Help Categories"
   }
  ],
  "owner": "Administrator",
