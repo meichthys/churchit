@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-03-16 19:45:49.700552",
+ "modified": "2026-05-13 17:43:36.693511",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
@@ -31,5 +31,5 @@
  ],
  "subtitle": "Configure your church's public website pages and settings.",
  "success_message": "Your website should not be configured. Check it out by clicking on your user icon and choose \"View Website\".",
- "title": "Let's Set Up Your Website."
+ "title": "Let's Set Up Your Public Church Website."
 }

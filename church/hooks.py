@@ -13,7 +13,11 @@ website_context = {
 }
 
 fixtures = [
-	{"dt": "Property Setter", "filters": [["doc_type", "=", "About Us Settings"]]},
+	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
+	{
+		"dt": "Property Setter",
+		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category"]]],
+	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
 	# These attendance types are fixtures since they are referenced in code (attendance total calculation, sign-up, and check-in).

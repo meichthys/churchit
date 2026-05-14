@@ -1,30 +1,34 @@
 [
-  {
-    "description": "The person's attendance was confirmed at this function.",
-    "docstatus": 0,
-    "doctype": "Function Attendance Type",
-    "name": "Confirmed",
-    "type": "Confirmed"
-  },
-  {
-    "description": "The person was assumed to be present at this function (e.g. their family was present).",
-    "docstatus": 0,
-    "doctype": "Function Attendance Type",
-    "name": "Assumed",
-    "type": "Assumed"
-  },
-  {
-    "description": "The person (or someone on their behalf) signed up for this function.",
-    "docstatus": 0,
-    "doctype": "Function Attendance Type",
-    "name": "Signed-Up",
-    "type": "Signed-Up"
-  },
-  {
-    "description": "The person was checked in at this function.",
-    "docstatus": 0,
-    "doctype": "Function Attendance Type",
-    "name": "Checked-In",
-    "type": "Checked-In"
-  }
+ {
+  "description": "The person's attendance was confirmed at this function.",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "modified": "2026-05-04 19:59:05.537513",
+  "name": "Confirmed",
+  "type": "Confirmed"
+ },
+ {
+  "description": "The person was assumed to be present at this function (e.g. their family was present).",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "modified": "2026-05-04 19:59:05.564114",
+  "name": "Assumed",
+  "type": "Assumed"
+ },
+ {
+  "description": "The person (or someone on their behalf) signed up for this function.",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "modified": "2026-05-04 19:59:05.568772",
+  "name": "Signed-Up",
+  "type": "Signed-Up"
+ },
+ {
+  "description": "The person was checked in at this function.",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "modified": "2026-05-04 19:59:05.573227",
+  "name": "Checked-In",
+  "type": "Checked-In"
+ }
 ]
