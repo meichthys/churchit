@@ -1,6 +1,8 @@
 # Copyright (c) 2026, meichthys and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe.model.document import Document
 
@@ -51,3 +53,20 @@ class FunctionCheckIn(Document):
 				function_doc.save(ignore_permissions=True)
 				frappe.msgprint("The associated attendance record has been removed.")
 				return
+
+
+@frappe.whitelist()
+def check_in_persons(function_name, persons):
+	if isinstance(persons, str):
+		persons = json.loads(persons)
+
+	for person in persons:
+		existing = frappe.db.get_value(
+			"Function Check-In", {"function": function_name, "person": person}, "name"
+		)
+		if existing:
+			frappe.get_doc("Function Check-In", existing)._add_attendance_record()
+		else:
+			frappe.get_doc(
+				{"doctype": "Function Check-In", "function": function_name, "person": person}
+			).insert(ignore_permissions=True)
