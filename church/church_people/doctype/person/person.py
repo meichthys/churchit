@@ -177,6 +177,13 @@ class Person(Document):
 			)
 
 
+def get_user_dashboard_data(data):
+	data["transactions"].append({"label": "Church", "items": ["Person"]})
+	data["non_standard_fieldnames"] = data.get("non_standard_fieldnames", {})
+	data["non_standard_fieldnames"]["Person"] = "user"
+	return data
+
+
 def get_list_context(context):
 	# Only show documents related to the active user
 	context.filters = {"portal_user": frappe.session.user}

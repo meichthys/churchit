@@ -201,9 +201,9 @@ setup_wizard_complete = [
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "church.task.get_dashboard_data"
-# }
+override_doctype_dashboards = {
+	"User": "church.church_people.doctype.person.person.get_user_dashboard_data"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #
