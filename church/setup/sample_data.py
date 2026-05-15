@@ -520,7 +520,7 @@ def _create_church_manager_user(people):
 
 	person_name = people.get("Mary Johnson")
 	if person_name:
-		frappe.db.set_value("Person", person_name, "portal_user", _CHURCH_MANAGER_EMAIL)
+		frappe.db.set_value("Person", person_name, "user", _CHURCH_MANAGER_EMAIL)
 
 
 def _delete_church_manager_user():

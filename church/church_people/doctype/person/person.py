@@ -159,7 +159,7 @@ class Person(Document):
 			new_user.save(ignore_permissions=True)
 
 			# Update Person to mark as portal user
-			self.portal_user = new_user.name
+			self.user = new_user.name
 			self.save(ignore_permissions=True)
 
 			frappe.msgprint(
@@ -169,8 +169,8 @@ class Person(Document):
 				indicator="green",
 			)
 		else:
-			# User already exists, just update the portal_user field
-			self.portal_user = user
+			# User already exists, just update the user field
+			self.user = user
 			self.save(ignore_permissions=True)
 			frappe.msgprint(
 				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a> already exists. User is now linked to this person."
@@ -186,7 +186,7 @@ def get_user_dashboard_data(data):
 
 def get_list_context(context):
 	# Only show documents related to the active user
-	context.filters = {"portal_user": frappe.session.user}
+	context.filters = {"user": frappe.session.user}
 	# Sort the portal list view by status descending
 	context.order_by = "modified desc"
 	return context

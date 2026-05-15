@@ -18,7 +18,7 @@ def create_prayer(prayer_request, content=None):
 	if pr.is_private and pr.owner != frappe.session.user:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	person = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, "name")
+	person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
 	if not person:
 		frappe.throw(_("No Person record is linked to your user account."))
 

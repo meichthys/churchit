@@ -13,7 +13,7 @@ frappe.ui.form.on('Prayer Request', {
 
         if (frm.is_new()) {
             // Pre-populate the requestor field with the current user's name
-            frappe.db.get_value('Person', {'portal_user': frappe.session.user}, 'name')
+            frappe.db.get_value('Person', {'user': frappe.session.user}, 'name')
                 .then(r => {
                     if (r && r.message) {
                         frm.set_value('requestor', r.message.name);

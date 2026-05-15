@@ -19,7 +19,7 @@ class FunctionSignUp(Document):
 		is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
 		if not is_manager:
 			# Force person from the linked Person record to prevent tampering
-			person_name = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, "name")
+			person_name = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
 			if not person_name:
 				frappe.throw("No Person record is linked to your account.")
 			self.person = person_name

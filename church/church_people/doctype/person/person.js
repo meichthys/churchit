@@ -46,7 +46,7 @@ frappe.ui.form.on("Person", {
 		}
 
 		// Add 'Invite to Portal' button if email is provided and no Portal User is linked
-		if (frm.doc.email && !frm.doc.portal_user) {
+		if (frm.doc.email && !frm.doc.user) {
 			frm.add_custom_button(__('Invite to Portal'), function () {
 				frm.call("invite_to_portal")
 			});

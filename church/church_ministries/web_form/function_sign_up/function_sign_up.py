@@ -37,7 +37,7 @@ def get_user_context():
 	user_roles = frappe.get_roles(frappe.session.user)
 	is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
 
-	person = frappe.db.get_value("Person", {"portal_user": frappe.session.user}, "name")
+	person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
 
 	return {
 		"person": person,

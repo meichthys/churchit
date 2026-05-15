@@ -39,7 +39,7 @@ frappe.ui.form.on('Alms Request', {
     onload: function(frm) {
         // Pre-populate the requestor field with the current user's name
         if (frm.is_new()) {
-            frappe.db.get_value('Person', {'portal_user': frappe.session.user}, 'name')
+            frappe.db.get_value('Person', {'user': frappe.session.user}, 'name')
                 .then(r => {
                     if (r && r.message) {
                         frm.set_value('requestor', r.message.name);

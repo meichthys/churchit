@@ -100,7 +100,7 @@ frappe.ready(function() {
 				method: 'frappe.client.get_value',
 				args: {
 					doctype: 'Person',
-					filters: { portal_user: frappe.session.user },
+					filters: { user: frappe.session.user },
 					fieldname: ['name', 'full_name']
 				},
 				callback: function(r) {

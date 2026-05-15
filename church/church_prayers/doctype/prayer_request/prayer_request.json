@@ -88,14 +88,14 @@
    "reqd": 1
   },
   {
+   "default": "frappe.session.user",
    "description": "The person who made the request.",
    "fieldname": "requestor",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_preview": 1,
    "label": "Requestor",
-   "options": "Person",
-   "reqd": 1
+   "options": "Person"
   },
   {
    "description": "This field is only used to properly display the recipient name in web-forms which don't support dynamic links.",
@@ -152,7 +152,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-04-15 17:02:30.902807",
+ "modified": "2026-05-14 17:52:21.715206",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
