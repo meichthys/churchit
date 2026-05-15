@@ -87,12 +87,13 @@
   {
    "fieldname": "table_iprj",
    "fieldtype": "Table",
+   "label": "Sign-Up Items",
    "options": "Function Sign-Up Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-19 20:47:46.236163",
+ "modified": "2026-05-14 17:22:16.850635",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up",
