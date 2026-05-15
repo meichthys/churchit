@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "creation": "2026-04-19 16:37:15.283115",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
   "function_section",
@@ -108,7 +109,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-19 19:47:47.199316",
+ "modified": "2026-05-14 19:03:17.971993",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",

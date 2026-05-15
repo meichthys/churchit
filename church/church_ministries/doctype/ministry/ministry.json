@@ -5,6 +5,7 @@
  "creation": "2026-03-27 00:00:00",
  "description": "A ministry of the church (e.g. Nursing Home Outreach, Youth Group, Nursery, Choir, Bible Study).",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
   "ministry_name",
@@ -100,7 +101,7 @@
    "link_fieldname": "ministry"
   }
  ],
- "modified": "2026-04-17 20:42:38.034403",
+ "modified": "2026-05-14 19:03:18.134114",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
