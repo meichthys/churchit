@@ -19,7 +19,7 @@
   "birthday",
   "age",
   "alergies",
-  "portal_user",
+  "user",
   "church_records_section",
   "is_member",
   "membership_date",
@@ -308,18 +308,18 @@
    "print_hide": 1
   },
   {
-   "description": "Auto-create a portal user by assigning an email address and clicking \"Invite to Portal\" button.",
-   "fieldname": "portal_user",
-   "fieldtype": "Link",
-   "label": "Portal User",
-   "options": "User"
-  },
-  {
    "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "different_mailing_address",
    "fieldtype": "Check",
    "label": "Different Mailing Address"
+  },
+  {
+   "description": "Auto-create a portal user by assigning an email address and clicking \"Invite to Portal\" button.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "App User",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
@@ -351,7 +351,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-04-15 17:30:19.808930",
+ "modified": "2026-05-14 17:57:02.135167",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
