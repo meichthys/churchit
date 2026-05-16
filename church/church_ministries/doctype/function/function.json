@@ -17,8 +17,9 @@
   "end_date",
   "end_time",
   "column_break_bkje",
-  "attendance_total",
+  "publish",
   "allow_sign_ups",
+  "attendance_total",
   "address",
   "description",
   "section_break_bkwy",
@@ -86,6 +87,14 @@
    "in_standard_filter": 1,
    "label": "Associated Ministry",
    "options": "Ministry",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "description": "Check this to show this function on the public website calendar.",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "label": "Publish",
    "search_index": 1
   },
   {
@@ -280,7 +289,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-05-15 21:28:28.843537",
+ "modified": "2026-05-15 21:40:56.004167",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
