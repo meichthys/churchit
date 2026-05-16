@@ -1,0 +1,114 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Church Summary</span>\",\"col\":12}},{\"id\":\"c1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Members\",\"col\":3}},{\"id\":\"c2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Weekly Attendance\",\"col\":3}},{\"id\":\"c3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Missionaries\",\"col\":3}},{\"id\":\"c4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":3}},{\"id\":\"c5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Count\",\"col\":3}},{\"id\":\"c6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers This Month\",\"col\":3}},{\"id\":\"c7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collection This Month\",\"col\":3}},{\"id\":\"c8\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses This Month\",\"col\":3}},{\"id\":\"sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"q1\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":4}},{\"id\":\"q2\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Upcoming Functions (7d)\",\"col\":4}},{\"id\":\"q3\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Summary</span>\",\"col\":12}},{\"id\":\"m1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Documents I Created\",\"col\":3}},{\"id\":\"m2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Documents I Updated\",\"col\":3}},{\"id\":\"m3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"My Assignments\",\"col\":3}},{\"id\":\"m4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks Assigned to Me\",\"col\":3}},{\"id\":\"sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"q4\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"My Open ToDos\",\"col\":4}},{\"id\":\"q5\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"My Recent Activity\",\"col\":4}},{\"id\":\"q6\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Shared With Me\",\"col\":4}},{\"id\":\"q7\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Open Church Tasks\",\"col\":4}}]",
+ "creation": "2026-05-16 00:00:00",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "dashboard",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Dashboard",
+ "links": [],
+ "modified": "2026-05-16 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Dashboard",
+ "number_cards": [
+  {
+   "label": "Total Members",
+   "number_card_name": "Total Members"
+  },
+  {
+   "label": "Documents I Created",
+   "number_card_name": "Documents I Created"
+  },
+  {
+   "label": "Documents I Updated",
+   "number_card_name": "Documents I Updated"
+  },
+  {
+   "label": "Tasks Assigned to Me",
+   "number_card_name": "Tasks Assigned to Me"
+  },
+  {
+   "label": "Total Missionaries",
+   "number_card_name": "Total Missionaries"
+  },
+  {
+   "label": "Total Weekly Attendance",
+   "number_card_name": "Total Weekly Attendance"
+  },
+  {
+   "label": "My Assignments",
+   "number_card_name": "Documents Assigned to Me"
+  },
+  {
+   "label": "Ministries",
+   "number_card_name": "Ministries"
+  },
+  {
+   "label": "Prayer Request Count",
+   "number_card_name": "Prayer Request Count"
+  },
+  {
+   "label": "Answered Prayers This Month",
+   "number_card_name": "Answered Prayers This Month"
+  },
+  {
+   "label": "Total Collection This Month",
+   "number_card_name": "Total Collection This Month"
+  },
+  {
+   "label": "Total Expenses This Month",
+   "number_card_name": "Total Expenses This Month"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Prayer Request",
+   "label": "Urgent Prayer Requests",
+   "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1,false],[\"Prayer Request\",\"status\",\"in\",[\"Requested\",\"Intercession\"],false]]"
+  },
+  {
+   "document_type": "Function",
+   "label": "Upcoming Functions (7d)",
+   "quick_list_filter": "[[\"Function\",\"start_date\",\"Timespan\",\"next 7 days\",false]]"
+  },
+  {
+   "document_type": "Alms Request",
+   "label": "Pending Alms Requests",
+   "quick_list_filter": "[[\"Alms Request\",\"status\",\"=\",\"Pending\",false]]"
+  },
+  {
+   "document_type": "ToDo",
+   "label": "My Open ToDos",
+   "quick_list_filter": "[[\"ToDo\",\"allocated_to\",\"=\",frappe.session.user,false],[\"ToDo\",\"status\",\"!=\",\"Cancelled\",false]]"
+  },
+  {
+   "document_type": "Version",
+   "label": "My Recent Activity",
+   "quick_list_filter": "[[\"Version\",\"owner\",\"=\",frappe.session.user,false]]"
+  },
+  {
+   "document_type": "DocShare",
+   "label": "Shared With Me",
+   "quick_list_filter": "[[\"DocShare\",\"user\",\"=\",frappe.session.user,false]]"
+  },
+  {
+   "document_type": "Church Task",
+   "label": "Open Church Tasks",
+   "quick_list_filter": "[[\"Church Task\",\"assigned_person\",\"=\",frappe.boot.user_person,false],[\"Church Task\",\"status\",\"!=\",\"Completed\",false]]"
+  }
+ ],
+ "roles": [],
+ "sequence_id": 2.0,
+ "shortcuts": [],
+ "title": "Dashboard"
+}
