@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2026-05-16 00:00:00",
+ "description": "Convenience link to a Function template (auto_repeat=1) that produces recurring functions for this Ministry.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "function",
+  "repeat_frequency"
+ ],
+ "fields": [
+  {
+   "fieldname": "function",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Function Template",
+   "options": "Function",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "function.repeat_frequency",
+   "fieldname": "repeat_frequency",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Repeat Frequency",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-16 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Ministry Recurring Function",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

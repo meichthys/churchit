@@ -18,7 +18,10 @@
   "end_date",
   "mission_statement",
   "section_break_mission",
-  "description"
+  "description",
+  "section_break_recurring",
+  "recurring_functions",
+  "create_recurring_function"
  ],
  "fields": [
   {
@@ -92,6 +95,26 @@
    "in_preview": 1,
    "label": "Total Expenses",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: true",
+   "description": "Function templates with Auto-Repeat enabled that produce recurring functions for this Ministry. This list is read-only and refreshes automatically.",
+   "fieldname": "section_break_recurring",
+   "fieldtype": "Section Break",
+   "label": "Recurring Functions"
+  },
+  {
+   "fieldname": "recurring_functions",
+   "fieldtype": "Table",
+   "label": "Recurring Functions",
+   "no_copy": 1,
+   "options": "Ministry Recurring Function",
+   "read_only": 1
+  },
+  {
+   "fieldname": "create_recurring_function",
+   "fieldtype": "Button",
+   "label": "Create Recurring Function"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -99,9 +122,13 @@
   {
    "link_doctype": "Expense",
    "link_fieldname": "ministry"
+  },
+  {
+   "link_doctype": "Function",
+   "link_fieldname": "associated_ministry"
   }
  ],
- "modified": "2026-05-14 19:03:18.134114",
+ "modified": "2026-05-15 21:02:54.702859",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",

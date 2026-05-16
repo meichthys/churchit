@@ -168,23 +168,12 @@ setup_wizard_complete = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"church.tasks.all"
-# 	],
-# 	"daily": [
-# 		"church.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"church.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"church.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"church.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"daily": [
+		"church.church_ministries.doctype.function.function.create_scheduled_functions",
+	],
+}
+
 
 # Testing
 # -------
@@ -201,9 +190,7 @@ setup_wizard_complete = [
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-override_doctype_dashboards = {
-	"User": "church.church_people.doctype.person.person.get_user_dashboard_data"
-}
+override_doctype_dashboards = {"User": "church.church_people.doctype.person.person.get_user_dashboard_data"}
 
 # exempt linked doctypes from being automatically cancelled
 #

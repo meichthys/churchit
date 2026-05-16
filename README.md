@@ -53,6 +53,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
+- Recurring functions: Functions are automatically created based on a given frequency.
 - Attendance types (Confirmed, Assumed, Absent, etc.)
 - Song tracking for worship services
 - Reports: attendance by function, attendance by person, function count by type
