@@ -48,16 +48,3 @@ def count_weekly_attendance():
 	}
 
 
-@frappe.whitelist()
-def count_tasks_assigned_to_me():
-	user = frappe.session.user
-	person_names = frappe.get_all("Person", filters={"user": user}, pluck="name")
-	if not person_names:
-		return {"value": 0, "fieldtype": "Int"}
-	total = frappe.db.count("Church Task", {"assigned_person": ["in", person_names]})
-	return {
-		"value": total,
-		"fieldtype": "Int",
-		"route": ["List", "Church Task"],
-		"route_options": {"assigned_person": ["in", person_names]},
-	}

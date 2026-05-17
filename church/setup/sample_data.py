@@ -130,7 +130,7 @@ def create_sample_data():
 	locations = _create_locations()
 	_create_church_assets(locations)
 
-	_create_church_tasks(people)
+	_create_church_tasks()
 
 	frappe.db.commit()
 
@@ -1965,7 +1965,7 @@ def _create_church_assets(locations):
 # ---------------------------------------------------------------------------
 
 
-def _create_church_tasks(people):
+def _create_church_tasks():
 	"""Create sample church tasks with hierarchy."""
 	# Parent task (is_group)
 	parent_title = "Prepare for Upcoming Service"
@@ -1981,7 +1981,6 @@ def _create_church_tasks(people):
 				"title": parent_title,
 				"status": "In Progress",
 				"due_date": _near_datetime(7),
-				"assigned_person": people["James Wilson"],
 				"is_group": 1,
 				"notes": "<p>Everything that needs to be done before next week's service.</p>",
 			}
@@ -1995,14 +1994,12 @@ def _create_church_tasks(people):
 			"title": "Set up candles and holders",
 			"status": "Assigned",
 			"due_date": _near_datetime(6, "17:00:00"),
-			"assigned_person": people["David Thompson"],
 			"notes": "<p>Place candles and drip guards on every pew. Extra supplies are in the storage closet.</p>",
 		},
 		{
 			"title": "Prepare song slides",
 			"status": "In Progress",
 			"due_date": _near_datetime(5, "12:00:00"),
-			"assigned_person": people["Rachel Cooper"],
 			"notes": "<p>Create presentation slides for Silent Night, O Holy Night, and Joy to the World.</p>",
 		},
 	]
@@ -2030,14 +2027,12 @@ def _create_church_tasks(people):
 			"title": "Fix Fellowship Hall sink",
 			"status": "In Progress",
 			"due_date": _near_datetime(3),
-			"assigned_person": people["David Thompson"],
 			"notes": "<p>The faucet in the Fellowship Hall kitchen is leaking. Parts have been ordered from the hardware store.</p>",
 		},
 		{
 			"title": "Order new hymnals",
 			"status": "Open",
 			"due_date": _near_datetime(30),
-			"assigned_person": people["Martha Evans"],
 			"notes": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
 		},
 	]
