@@ -1,0 +1,13 @@
+{
+ "creation": "2026-05-17 14:00:00",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-05-16 18:58:47.602252",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Finance Summary",
+ "owner": "Administrator",
+ "source_name": "Finance Summary",
+ "timeseries": 1
+}

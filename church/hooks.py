@@ -242,8 +242,6 @@ override_doctype_dashboards = {"User": "church.church_people.doctype.person.pers
 # 	"church.auth.validate"
 # ]
 
-boot_session = "church.dashboard.extend_bootinfo"
-
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
 
