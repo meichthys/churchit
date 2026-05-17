@@ -5,7 +5,7 @@
    "label": "Finance Summary"
   }
  ],
- "content": "[{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Church Summary</span>\",\"col\":12}},{\"id\":\"c1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Members\",\"col\":3}},{\"id\":\"c2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Weekly Attendance\",\"col\":3}},{\"id\":\"c3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Missionaries\",\"col\":3}},{\"id\":\"c4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":3}},{\"id\":\"c5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Count\",\"col\":3}},{\"id\":\"c6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers This Month\",\"col\":3}},{\"id\":\"c7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collection This Month\",\"col\":3}},{\"id\":\"c8\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses This Month\",\"col\":3}},{\"id\":\"sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch1\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Finance Summary\",\"col\":12}},{\"id\":\"sp1b\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"q1\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":4}},{\"id\":\"q2\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Upcoming Functions (7d)\",\"col\":4}},{\"id\":\"q3\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Summary</span>\",\"col\":12}},{\"id\":\"m3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"My Assignments\",\"col\":6}},{\"id\":\"m4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks Assigned to Me\",\"col\":6}},{\"id\":\"sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Church Summary</span>\",\"col\":12}},{\"id\":\"c1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Members\",\"col\":3}},{\"id\":\"c2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Weekly Attendance\",\"col\":3}},{\"id\":\"c3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Missionaries\",\"col\":3}},{\"id\":\"c4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":3}},{\"id\":\"c5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Count\",\"col\":3}},{\"id\":\"c6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers This Month\",\"col\":3}},{\"id\":\"c7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collection This Month\",\"col\":3}},{\"id\":\"c8\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses This Month\",\"col\":3}},{\"id\":\"sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch1\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Finance Summary\",\"col\":12}},{\"id\":\"sp1b\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"q1\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":4}},{\"id\":\"q2\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Upcoming Functions (7d)\",\"col\":4}},{\"id\":\"q3\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Summary</span>\",\"col\":12}},{\"id\":\"m3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"My Assignments\",\"col\":6}},{\"id\":\"m4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks Assigned to Me\",\"col\":6}},{\"id\":\"sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"q4\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"My Recent Activity\",\"col\":12}}]",
  "creation": "2026-05-16 00:00:00",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Dashboard",
  "links": [],
- "modified": "2026-05-17 14:30:00.000000",
+ "modified": "2026-05-17 16:00:00.000000",
  "modified_by": "mary.johnson@example.com",
  "module": "Church Setup",
  "name": "Dashboard",
@@ -82,6 +82,11 @@
    "document_type": "Alms Request",
    "label": "Pending Alms Requests",
    "quick_list_filter": "[[\"Alms Request\",\"status\",\"=\",\"Pending\",false]]"
+  },
+  {
+   "document_type": "Version",
+   "label": "My Recent Activity",
+   "quick_list_filter": "[[\"Version\",\"owner\",\"=\",frappe.session.user,false]]"
   }
  ],
  "roles": [],
