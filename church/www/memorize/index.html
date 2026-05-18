@@ -1,0 +1,214 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Bible Memory{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container" id="memorize-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="my-account-header mb-0">Bible Memory</h3>
+        <button class="btn btn-primary btn-sm" id="add-passage-toggle">+ Add passage</button>
+    </div>
+
+    <div id="add-passage-panel" class="account-info mb-4" style="display:none;">
+        <h5 class="mb-3">Add a passage</h5>
+        <div class="row">
+            <div class="form-group col-md-4">
+                <label>Book</label>
+                <select class="form-control" id="add-book">
+                    <option value="">Select…</option>
+                    {% for b in books %}
+                    <option value="{{ b.name }}">{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Translation</label>
+                <select class="form-control" id="add-translation">
+                    <option value="">Select…</option>
+                    {% for t in translations %}
+                    <option value="{{ t.name }}" {% if t.name == default_translation %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Chapter</label>
+                <select class="form-control" id="add-chapter" disabled>
+                    <option value="">—</option>
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Start verse</label>
+                <select class="form-control" id="add-start-verse" disabled>
+                    <option value="">—</option>
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label>End verse</label>
+                <select class="form-control" id="add-end-verse" disabled>
+                    <option value="">(same as start)</option>
+                </select>
+            </div>
+        </div>
+        <div class="d-flex align-items-center mt-2">
+            <button class="btn btn-primary btn-sm mr-2" id="add-passage-submit">Add to my list</button>
+            <button class="btn btn-default btn-sm" id="add-passage-cancel">Cancel</button>
+            <span class="text-muted ml-3" id="add-status"></span>
+        </div>
+    </div>
+
+    {% if items %}
+    <div class="list-group">
+        {% for item in items %}
+        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap" data-item="{{ item.name }}">
+            <div class="mr-3" style="flex: 1 1 260px; min-width: 0;">
+                <div>
+                    <strong>{{ item.label }}</strong>
+                    {% if item.memorized %}
+                    <span class="indicator-pill green ml-2">Memorized</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center mt-2">
+                    <div class="progress mr-2 memorize-progress" data-progress="{{ item.progress or 0 }}">
+                        <div class="progress-bar" role="progressbar"></div>
+                    </div>
+                    <small class="text-muted">{{ item.progress or 0 }}%{% if item.times_memorized %} · {{ item.times_memorized }} perfect run{{ 's' if item.times_memorized != 1 else '' }}{% endif %}</small>
+                </div>
+            </div>
+            <div class="memorize-item-actions">
+                <a class="btn btn-primary btn-sm" href="/memorize/session?mode=type&amp;item={{ item.name }}">Type</a>
+                <a class="btn btn-outline-primary btn-sm" href="/memorize/session?mode=blur&amp;item={{ item.name }}">Blur</a>
+                <button class="btn btn-outline-danger btn-sm memorize-remove-btn" data-item="{{ item.name }}">Remove</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="account-info text-center text-muted">
+        Your memory list is empty. Click <strong>+ Add passage</strong> above to begin.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    #memorize-page .memorize-progress { height: 6px; width: 200px; }
+    #memorize-page .memorize-item-actions .btn + .btn { margin-left: 4px; }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+(function() {
+    const $ = (sel) => document.querySelector(sel);
+    const setStatus = (msg, isErr) => {
+        const el = $('#add-status');
+        el.textContent = msg || '';
+        el.classList.toggle('text-danger', !!isErr);
+        el.classList.toggle('text-muted', !isErr);
+    };
+    const togglePanel = (show) => { $('#add-passage-panel').style.display = show ? 'block' : 'none'; };
+
+    document.querySelectorAll('.memorize-progress').forEach(el => {
+        const v = Math.max(0, Math.min(100, parseInt(el.getAttribute('data-progress'), 10) || 0));
+        const bar = el.querySelector('.progress-bar');
+        if (bar) bar.style.width = v + '%';
+    });
+
+    $('#add-passage-toggle').addEventListener('click', () => togglePanel(true));
+    $('#add-passage-cancel').addEventListener('click', () => { togglePanel(false); setStatus(''); });
+
+    function populateChapters() {
+        const book = $('#add-book').value;
+        const translation = $('#add-translation').value;
+        const chapterSel = $('#add-chapter');
+        chapterSel.innerHTML = '<option value="">—</option>';
+        chapterSel.disabled = true;
+        $('#add-start-verse').innerHTML = '<option value="">—</option>';
+        $('#add-start-verse').disabled = true;
+        $('#add-end-verse').innerHTML = '<option value="">(same as start)</option>';
+        $('#add-end-verse').disabled = true;
+        if (!book || !translation) return;
+
+        setStatus('Loading chapters…');
+        frappe.call({
+            method: 'church.church_study.bible_api.get_chapters_for_book',
+            args: { book, translation },
+        }).then(r => {
+            setStatus('');
+            const chapters = (r && r.message) || [];
+            chapterSel.innerHTML = '<option value="">—</option>' +
+                chapters.map(c => `<option value="${c}">${c}</option>`).join('');
+            chapterSel.disabled = chapters.length === 0;
+        }).catch(() => setStatus('Could not load chapters.', true));
+    }
+
+    function populateVerses() {
+        const book = $('#add-book').value;
+        const translation = $('#add-translation').value;
+        const chapter = $('#add-chapter').value;
+        const startSel = $('#add-start-verse');
+        const endSel = $('#add-end-verse');
+        startSel.innerHTML = '<option value="">—</option>';
+        startSel.disabled = true;
+        endSel.innerHTML = '<option value="">(same as start)</option>';
+        endSel.disabled = true;
+        if (!book || !translation || !chapter) return;
+
+        setStatus('Loading verses…');
+        frappe.call({
+            method: 'church.church_study.bible_api.get_verses_for_chapter',
+            args: { book, chapter, translation },
+        }).then(r => {
+            setStatus('');
+            const verses = (r && r.message) || [];
+            const opts = verses.map(v => `<option value="${v}">${v}</option>`).join('');
+            startSel.innerHTML = '<option value="">—</option>' + opts;
+            endSel.innerHTML = '<option value="">(same as start)</option>' + opts;
+            startSel.disabled = verses.length === 0;
+            endSel.disabled = verses.length === 0;
+        }).catch(() => setStatus('Could not load verses.', true));
+    }
+
+    $('#add-book').addEventListener('change', populateChapters);
+    $('#add-translation').addEventListener('change', populateChapters);
+    $('#add-chapter').addEventListener('change', populateVerses);
+
+    $('#add-passage-submit').addEventListener('click', () => {
+        const book = $('#add-book').value;
+        const translation = $('#add-translation').value;
+        const chapter = $('#add-chapter').value;
+        const start = $('#add-start-verse').value;
+        const end = $('#add-end-verse').value || null;
+        if (!book || !translation || !chapter || !start) {
+            setStatus('Please choose book, translation, chapter, and start verse.', true);
+            return;
+        }
+        setStatus('Fetching passage…');
+        frappe.call({
+            method: 'church.church_study.bible_api.get_or_create_reference',
+            args: { book, chapter, start_verse_num: start, end_verse_num: end, translation },
+        }).then(r => {
+            const ref = r && r.message;
+            if (!ref) throw new Error('No reference returned');
+            return frappe.call({
+                method: 'frappe.client.insert',
+                args: { doc: { doctype: 'Bible Memory Item', bible_reference: ref } },
+            });
+        }).then(() => { setStatus('Added.'); window.location.reload(); })
+          .catch(err => setStatus((err && err.message) || 'Could not add the passage.', true));
+    });
+
+    document.querySelectorAll('.memorize-remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const name = btn.getAttribute('data-item');
+            if (!confirm('Remove this passage from your memory list?')) return;
+            frappe.call({
+                method: 'frappe.client.delete',
+                args: { doctype: 'Bible Memory Item', name },
+            }).then(() => window.location.reload());
+        });
+    });
+})();
+</script>
+{% endblock %}
