@@ -26,6 +26,14 @@ class BibleMemoryItem(Document):
 		if duplicate:
 			frappe.throw(_("This passage is already in your memory list."))
 
+		# Remove Memorized status if progress falls below 100%
+		if (self.progress or 0) < 100 and self.memorized:
+			self.memorized = 0
+			self.memorized_on = None
+
+	def on_trash(self):
+		frappe.db.delete("Memory Session", {"bible_memory_item": self.name})
+
 	@frappe.whitelist()
 	def record_mistake(self, word_index):
 		self._require_self()

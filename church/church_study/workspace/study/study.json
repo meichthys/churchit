@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":4}},{\"id\":\"wSz8xMwBmx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible References\",\"col\":4}},{\"id\":\"UBixP3IqhZ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible Verses\",\"col\":4}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":3}},{\"id\":\"wSz8xMwBmx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible References\",\"col\":3}},{\"id\":\"UBixP3IqhZ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible Verses\",\"col\":3}},{\"id\":\"ckBmem01rd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"References Memorized\",\"col\":3}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}},{\"id\":\"mc4PE39_sG\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Reports\",\"col\":4}}]",
  "creation": "2025-09-18 00:30:32.961356",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,8 +16,27 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Study Reports",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Bible Memory",
+   "link_count": 0,
+   "link_to": "Bible Memory",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Study Documents",
-   "link_count": 5,
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -71,9 +90,29 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bible Memory Items",
+   "link_count": 0,
+   "link_to": "Bible Memory Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bible Memory Sessions",
+   "link_count": 0,
+   "link_to": "Memory Session",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-17 19:49:59.375386",
+ "modified": "2026-05-18 19:43:40.416861",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
@@ -89,6 +128,10 @@
   {
    "label": "Bible Verses",
    "number_card_name": "Bible Verses"
+  },
+  {
+   "label": "References Memorized",
+   "number_card_name": "References Memorized"
   }
  ],
  "owner": "Administrator",

@@ -17,6 +17,15 @@ frappe.ui.form.on("Bible Reference", {
         });
     },
     refresh: async function(frm) {
+        if (!frm.is_new() && church.bible_memory.can_assign()) {
+            frm.add_custom_button(__('Assign to User for Memorization'), () => {
+                church.bible_memory.open_assign_dialog([frm.doc.name], 'user');
+            });
+            frm.add_custom_button(__('Assign to Group for Memorization'), () => {
+                church.bible_memory.open_assign_dialog([frm.doc.name], 'group');
+            });
+        }
+
         frm.add_custom_button('Open in AndBible', async function() {
             const start_verse = await frappe.get_doc("Bible Verse", frm.doc.start_verse);
             if (!start_verse.book || !start_verse.chapter || !start_verse.verse) {
@@ -51,3 +60,4 @@ frappe.ui.form.on("Bible Reference", {
         }
     }
 });
+

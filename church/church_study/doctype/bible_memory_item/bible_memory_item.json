@@ -9,6 +9,7 @@
  "field_order": [
   "user",
   "bible_reference",
+  "assigned_by",
   "column_break_main",
   "progress",
   "memorized",
@@ -36,9 +37,19 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Passage",
+   "label": "Reference",
    "options": "Bible Reference",
    "reqd": 1
+  },
+  {
+   "description": "Set automatically when this item was assigned by a manager; blank when self-added.",
+   "fieldname": "assigned_by",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
+   "label": "Assigned By",
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_main",
@@ -90,7 +101,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-18 00:00:00",
+ "modified": "2026-05-19 00:00:01",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",

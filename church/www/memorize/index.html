@@ -6,13 +6,18 @@
 <div class="my-account-container" id="memorize-page">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="my-account-header mb-0">Bible Memory</h3>
-        <button class="btn btn-primary btn-sm" id="add-passage-toggle">+ Add passage</button>
+        <div class="d-flex align-items-center">
+            <label class="mb-0 mr-3 text-muted" style="font-size: 0.9em;">
+                <input type="checkbox" id="hide-memorized" checked> Hide memorized
+            </label>
+            <button class="btn btn-primary btn-sm" id="add-passage-toggle">+ Add passage</button>
+        </div>
     </div>
 
     <div id="add-passage-panel" class="account-info mb-4" style="display:none;">
         <h5 class="mb-3">Add a passage</h5>
         <div class="row">
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-6">
                 <label>Book</label>
                 <select class="form-control" id="add-book">
                     <option value="">Select…</option>
@@ -21,7 +26,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-6">
                 <label>Translation</label>
                 <select class="form-control" id="add-translation">
                     <option value="">Select…</option>
@@ -59,7 +64,7 @@
     {% if items %}
     <div class="list-group">
         {% for item in items %}
-        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap" data-item="{{ item.name }}">
+        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap" data-item="{{ item.name }}" data-memorized="{{ 1 if item.memorized else 0 }}">
             <div class="mr-3" style="flex: 1 1 260px; min-width: 0;">
                 <div>
                     <strong>{{ item.label }}</strong>
@@ -67,6 +72,9 @@
                     <span class="indicator-pill green ml-2">Memorized</span>
                     {% endif %}
                 </div>
+                {% if item.assigned_by %}
+                <small class="text-muted d-block">Assigned by {{ item.assigned_by_label }}</small>
+                {% endif %}
                 <div class="d-flex align-items-center mt-2">
                     <div class="progress mr-2 memorize-progress" data-progress="{{ item.progress or 0 }}">
                         <div class="progress-bar" role="progressbar"></div>
@@ -108,6 +116,23 @@
         el.classList.toggle('text-muted', !isErr);
     };
     const togglePanel = (show) => { $('#add-passage-panel').style.display = show ? 'block' : 'none'; };
+
+    const HIDE_KEY = 'memorize.hideMemorized';
+    const hideToggle = $('#hide-memorized');
+    const applyHideFilter = () => {
+        const hide = hideToggle.checked;
+        try { localStorage.setItem(HIDE_KEY, hide ? '1' : '0'); } catch (e) {}
+        document.querySelectorAll('[data-memorized="1"]').forEach(el => {
+            if (hide) el.setAttribute('style', 'display: none !important;');
+            else el.removeAttribute('style');
+        });
+    };
+    try {
+        const stored = localStorage.getItem(HIDE_KEY);
+        if (stored !== null) hideToggle.checked = stored === '1';
+    } catch (e) {}
+    hideToggle.addEventListener('change', applyHideFilter);
+    applyHideFilter();
 
     document.querySelectorAll('.memorize-progress').forEach(el => {
         const v = Math.max(0, Math.min(100, parseInt(el.getAttribute('data-progress'), 10) || 0));

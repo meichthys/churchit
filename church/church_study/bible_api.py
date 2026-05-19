@@ -28,6 +28,15 @@ def _http_get_json(url):
 		frappe.throw(_("bible.helloao.org returned an unexpected response."))
 
 
+def _person_link(name, label=None):
+	from urllib.parse import quote
+
+	from frappe.utils import escape_html
+
+	display = escape_html(label or name)
+	return f'<a href="/app/person/{quote(name)}">{display}</a>'
+
+
 def _resolve_translation_id(translation_name):
 	if not translation_name:
 		frappe.throw(_("A Bible Translation is required."))
@@ -174,6 +183,82 @@ def get_or_create_reference(book, chapter, start_verse_num, end_verse_num, trans
 		fetch_reference_text(ref_name)
 
 	return ref_name
+
+
+@frappe.whitelist()
+def assign_memory(references, users=None, group=None):
+	"""Assign Bible References to users for memorization. Creates a
+	Bible Memory Item for each (reference, user) pair that doesn't
+	already exist. Pass either ``users`` or ``group`` (expands to all
+	members of the group with a linked App User). Restricted to Church
+	Manager / System Manager."""
+	import json as _json
+
+	def _coerce(val):
+		if isinstance(val, list):
+			return val
+		if isinstance(val, str):
+			val = val.strip()
+			if val.startswith("["):
+				return _json.loads(val)
+			return [val] if val else []
+		return []
+
+	references = _coerce(references)
+	users = _coerce(users)
+
+	missing_users = []
+	if group and not users:
+		rows = frappe.db.sql(
+			"""
+			SELECT p.name, p.full_name, p.user
+			FROM `tabGroup Member` gm
+			INNER JOIN `tabPerson` p ON p.name = gm.person
+			WHERE gm.parent = %s
+				AND gm.parenttype = 'Group'
+			""",
+			group,
+			as_dict=True,
+		)
+		users = [r.user for r in rows if r.user]
+		missing_users = [_person_link(r.name, r.full_name) for r in rows if not r.user]
+
+	if not references or not users:
+		if missing_users:
+			frappe.throw(
+				_("No members of this group have linked App Users: {0}").format(
+					", ".join(missing_users)
+				)
+			)
+		frappe.throw(_("Select at least one reference and one user (or a group with linked App Users)."))
+
+	if not (set(frappe.get_roles()) & {"Church Manager", "System Manager", "Administrator"}):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+
+	assigner = frappe.session.user
+	created = 0
+	skipped = 0
+	for ref in references:
+		if not frappe.db.exists("Bible Reference", ref):
+			continue
+		for user in users:
+			if not frappe.db.exists("User", user):
+				continue
+			if frappe.db.exists(
+				"Bible Memory Item", {"user": user, "bible_reference": ref}
+			):
+				skipped += 1
+				continue
+			frappe.get_doc(
+				{
+					"doctype": "Bible Memory Item",
+					"user": user,
+					"bible_reference": ref,
+					"assigned_by": assigner if assigner != user else None,
+				}
+			).insert(ignore_permissions=True)
+			created += 1
+	return {"created": created, "skipped": skipped, "missing_users": missing_users}
 
 
 @frappe.whitelist()
