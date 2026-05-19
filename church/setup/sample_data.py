@@ -26,6 +26,8 @@ _DELETE_STEPS = [
 	(False, "Group", {}),
 	(False, "Belief", {}),
 	(False, "Sermon", {}),
+	(False, "Memory Session", {}),
+	(False, "Bible Memory Item", {}),
 	(False, "Bible Reference", {}),
 	(False, "Bible Verse", {}),
 	(False, "Function Sign-Up", {}),
@@ -41,6 +43,8 @@ _DELETE_STEPS = [
 	(False, "Missionary Agency", {}),
 	(False, "Family", {}),
 	(False, "Person", {}),
+	(False, "Help Article", {}),
+	(False, "Help Category", {}),
 ]
 
 # ---------------------------------------------------------------------------
@@ -112,6 +116,7 @@ def create_sample_data():
 
 	verses = _create_bible_verses()
 	_create_bible_references(verses)
+	_create_bible_memory_items(verses)
 
 	_create_sermons(people)
 
@@ -1439,6 +1444,108 @@ def _create_bible_references(verses):
 			continue
 		doc = frappe.get_doc({"doctype": "Bible Reference", **ref})
 		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Bible Memory
+# ---------------------------------------------------------------------------
+
+
+def _create_bible_memory_items(verses):
+	"""Create sample Bible Memory Items + Memory Sessions for the sample
+	Church Manager user (Mary Johnson). Skipped if the user is missing."""
+	user = _CHURCH_MANAGER_EMAIL
+	if not frappe.db.exists("User", user):
+		return
+
+	def find_ref(verse_key, translation_name):
+		start = verses.get(verse_key)
+		translation = _resolve_link("Bible Translation", "translation", translation_name)
+		if not (start and translation):
+			return None
+		return frappe.db.get_value(
+			"Bible Reference",
+			{"start_verse": start, "translation": translation},
+			"name",
+		)
+
+	specs = [
+		{
+			"ref": find_ref("John 3:16", "King James Version"),
+			"progress": 100,
+			"memorized": 1,
+			"memorized_on": _near_date(-14),
+			"times_memorized": 4,
+			"sessions": [
+				{"mode": "Type", "mistakes": 1, "progress_delta": 10, "day_offset": -16},
+				{"mode": "Type", "mistakes": 0, "progress_delta": 50, "day_offset": -15},
+				{"mode": "Blur", "mistakes": 0, "progress_delta": 5, "day_offset": -14},
+				{"mode": "Type", "mistakes": 0, "progress_delta": 50, "day_offset": -14},
+			],
+		},
+		{
+			"ref": find_ref("Psalms 23:1", "King James Version"),
+			"progress": 60,
+			"memorized": 0,
+			"times_memorized": 0,
+			"sessions": [
+				{"mode": "Blur", "mistakes": 0, "progress_delta": 5, "day_offset": -7},
+				{"mode": "Type", "mistakes": 2, "progress_delta": 10, "day_offset": -5},
+				{"mode": "Type", "mistakes": 3, "progress_delta": 0, "day_offset": -3},
+				{"mode": "Blur", "mistakes": 0, "progress_delta": 5, "day_offset": -2},
+			],
+		},
+		{
+			"ref": find_ref("Romans 8:28", "English Standard Version"),
+			"progress": 25,
+			"memorized": 0,
+			"times_memorized": 0,
+			"assigned_by": user,
+			"sessions": [
+				{"mode": "Blur", "mistakes": 0, "progress_delta": 5, "day_offset": -4},
+			],
+		},
+		{
+			"ref": find_ref("Philippians 4:13", "New King James Version"),
+			"progress": 0,
+			"memorized": 0,
+			"times_memorized": 0,
+			"sessions": [],
+		},
+	]
+
+	for spec in specs:
+		if not spec["ref"]:
+			continue
+		if frappe.db.exists(
+			"Bible Memory Item", {"user": user, "bible_reference": spec["ref"]}
+		):
+			continue
+		item = frappe.get_doc(
+			{
+				"doctype": "Bible Memory Item",
+				"user": user,
+				"bible_reference": spec["ref"],
+				"progress": spec["progress"],
+				"memorized": spec["memorized"],
+				"memorized_on": spec.get("memorized_on"),
+				"times_memorized": spec.get("times_memorized", 0),
+				"assigned_by": spec.get("assigned_by"),
+			}
+		)
+		item.insert(ignore_permissions=True)
+		for s in spec["sessions"]:
+			frappe.get_doc(
+				{
+					"doctype": "Memory Session",
+					"bible_memory_item": item.name,
+					"user": user,
+					"mode": s["mode"],
+					"mistakes": s["mistakes"],
+					"progress_delta": s["progress_delta"],
+					"completed": 1,
+				}
+			).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

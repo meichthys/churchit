@@ -55,9 +55,43 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 	});
 
 	$container.find(".btn-delete-sample-data").on("click", function () {
-		frappe.confirm(
-			__("WARNING: This will permanently delete ALL records in Persons, Families, Missionaries, Prayer Requests, Functions, Collections, Expenses, Funds, and more. Any data you created after installation will also be deleted. This cannot be undone. Continue?"),
-			function () {
+		const confirm_phrase = "DELETE ALL DATA";
+		const dialog = new frappe.ui.Dialog({
+			title: __("Permanently Delete All Data?"),
+			fields: [
+				{
+					fieldtype: "HTML",
+					options: `
+						<div style="color: var(--red-600); margin-bottom: 12px;">
+							<p style="margin-bottom: 8px;"><strong>🛑 This cannot be undone.</strong></p>
+							<p style="margin-bottom: 8px;">This will permanently delete <strong>ALL</strong> records in:</p>
+							<p style="margin-bottom: 8px;">
+								Persons, Families, Missionaries, Prayer Requests, Functions,
+								Collections, Expenses, Funds, Bible Memory, Help Articles
+								<em>…and more.</em>
+							</p>
+							<p style="margin-bottom: 0;">Any data you created after installation will <strong>also be deleted</strong>.</p>
+						</div>
+					`,
+				},
+				{
+					fieldtype: "Data",
+					fieldname: "confirm_phrase",
+					label: __('Type <code>{0}</code> to confirm', [confirm_phrase]),
+					reqd: 1,
+				},
+			],
+			primary_action_label: __("Delete All Data"),
+			primary_action(values) {
+				if ((values.confirm_phrase || "").trim() !== confirm_phrase) {
+					frappe.msgprint({
+						title: __("Confirmation phrase doesn't match"),
+						indicator: "orange",
+						message: __('Please type <code>{0}</code> exactly to confirm.', [confirm_phrase]),
+					});
+					return;
+				}
+				dialog.hide();
 				frappe.call({
 					method: "church.setup.sample_data.delete",
 					freeze: true,
@@ -69,7 +103,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 						});
 					},
 				});
-			}
-		);
+			},
+		});
+		dialog.show();
+		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
 	});
 };
