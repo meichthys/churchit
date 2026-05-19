@@ -55,8 +55,9 @@ class BibleMemoryItem(Document):
 		correct_word_indices = self._parse_indices(correct_word_indices)
 
 		if mode == "blur":
-			bonus = 5
-			self.progress = min(99, (self.progress or 0) + bonus)
+			current = self.progress or 0
+			bonus = 0 if current >= 100 else 5
+			self.progress = min(99, current + bonus) if current < 100 else 100
 		else:
 			wm = self._load_word_mistakes()
 			for idx in correct_word_indices:
