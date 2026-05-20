@@ -2,14 +2,14 @@
  "charts": [
   {
    "chart_name": "People",
-   "label": "Persons"
+   "label": "People"
   },
   {
    "chart_name": "Members",
    "label": "New Members"
   }
  ],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Persons\",\"col\":3}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":3}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":3}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":3}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Persons\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
+ "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":3}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":3}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":3}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":3}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
  "creation": "2025-09-14 22:26:02.319281",
  "custom_blocks": [],
  "docstatus": 0,
@@ -204,13 +204,13 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-26 20:42:38.205670",
+ "modified": "2026-05-19 18:00:09.976268",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
  "number_cards": [
   {
-   "label": "Persons",
+   "label": "People",
    "number_card_name": "Persons"
   },
   {
