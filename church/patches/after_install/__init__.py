@@ -655,6 +655,17 @@ def _setup_portal_settings():
 	"""
 	desired_items = [
 		{
+			"title": "Function Sign-Ups",
+			"route": "function-sign-up",
+			"reference_doctype": "Function Sign-Up",
+			"enabled": 1,
+		},
+		{
+			"title": "Bible Memory",
+			"route": "memorize",
+			"enabled": 1,
+		},
+		{
 			"title": "Prayer Requests",
 			"route": "prayer-request",
 			"reference_doctype": "Prayer Request",
@@ -673,9 +684,13 @@ def _setup_portal_settings():
 			"enabled": 1,
 		},
 		{
-			"title": "Function Sign-Ups",
-			"route": "function-sign-up",
-			"reference_doctype": "Function Sign-Up",
+			"title": "Groups",
+			"route": "groups",
+			"enabled": 1,
+		},
+		{
+			"title": "Help Articles",
+			"route": "Help Article",
 			"enabled": 1,
 		},
 	]
