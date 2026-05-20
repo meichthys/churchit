@@ -13,26 +13,14 @@
   "column_break_details",
   "status",
   "public",
-  "is_group",
-  "parent_group",
+  "show_in_portal",
   "section_break_members",
-  "members",
-  "hidden_fields_section",
-  "old_parent",
-  "lft",
-  "rgt"
+  "members"
  ],
  "fields": [
   {
    "fieldname": "section_break_x4tp",
    "fieldtype": "Section Break"
-  },
-  {
-   "default": "0",
-   "description": "Check this if the group can have sub-groups.",
-   "fieldname": "is_group",
-   "fieldtype": "Check",
-   "label": "Is Group"
   },
   {
    "fieldname": "column_break_details",
@@ -46,14 +34,6 @@
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Group Status"
-  },
-  {
-   "description": "If your group is part of a larger group, select the larger group here.",
-   "fieldname": "parent_group",
-   "fieldtype": "Link",
-   "ignore_user_permissions": 1,
-   "label": "Parent Group",
-   "options": "Group"
   },
   {
    "fieldname": "description",
@@ -73,36 +53,6 @@
    "options": "Group Member"
   },
   {
-   "fieldname": "lft",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Left",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "rgt",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Right",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "old_parent",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Old Parent",
-   "options": "Group"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "hidden_fields_section",
-   "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Hidden Fields"
-  },
-  {
    "fieldname": "group_name",
    "fieldtype": "Data",
    "label": "Name"
@@ -113,11 +63,17 @@
    "fieldname": "public",
    "fieldtype": "Check",
    "label": "Public"
+  },
+  {
+   "default": "0",
+   "description": "Make this group visible on the /groups portal page to members (and to anyone if the group is Public).",
+   "fieldname": "show_in_portal",
+   "fieldtype": "Check",
+   "label": "Show in Portal"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_tree": 1,
  "links": [
   {
    "group": "Ministry",
@@ -125,12 +81,11 @@
    "link_fieldname": "group"
   }
  ],
- "modified": "2026-04-15 17:53:05.260586",
+ "modified": "2026-05-19 20:06:56.120080",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
  "naming_rule": "Expression",
- "nsm_parent_field": "parent_group",
  "owner": "Administrator",
  "permissions": [
   {

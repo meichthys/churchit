@@ -46,7 +46,7 @@ def get_data(filters=None):
 			`tabGroup`.description
 		FROM `tabGroup`
 		LEFT JOIN `tabGroup Member` ON `tabGroup Member`.parent = `tabGroup`.name
-		WHERE `tabGroup`.is_group = 0
+		WHERE 1=1
 			{conditions}
 		GROUP BY `tabGroup`.name
 		ORDER BY `tabGroup`.group_name

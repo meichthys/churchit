@@ -55,7 +55,7 @@ app_include_js = [
 
 # include js, css files in header of web template
 # web_include_css = "/assets/church/css/church.css"
-# web_include_js = "/assets/church/js/church.js"
+web_include_js = ["/assets/church/js/portal_groups.js"]
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "church/public/scss/website"
