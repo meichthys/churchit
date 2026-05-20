@@ -96,6 +96,7 @@ def create_sample_data():
 	families = _create_families()
 	_assign_families(people, families)
 	_assign_spouses(people)
+	_assign_relations(people)
 
 	agencies = _create_missionary_agencies()
 	_create_missionaries(people, agencies)
@@ -615,6 +616,69 @@ def _assign_spouses(people):
 		frappe.flags.in_import = True
 		husband.save(ignore_permissions=True)
 		frappe.flags.in_import = False
+
+
+# Cross-family relationships beyond spouse. Each tuple defines the relation
+# from A's perspective; the reciprocal is added automatically using _RECIPROCAL.
+_RELATIONS = [
+	("Sarah Wilson", "Sister", "Mary Johnson"),
+	("Martha Evans", "Daughter", "Elizabeth Harper"),
+	("Thomas Reed", "Brother", "Samuel Brooks"),
+	("Michael Grant", "Daughter", "Rachel Cooper"),
+]
+
+_RECIPROCAL = {
+	"Brother": "Brother",
+	"Sister": "Sister",
+	"Father": "Son",
+	"Mother": "Son",
+	"Son": "Father",
+	"Daughter": "Father",
+	"Husband": "Wife",
+	"Wife": "Husband",
+	"Uncle": "Nephew",
+	"Aunt": "Niece",
+}
+
+
+def _assign_relations(people):
+	"""Add sample Person Relation rows linking people across families."""
+
+	def add_relation(person_key, relation_type, other_key):
+		person_name = people.get(person_key)
+		other_name = people.get(other_key)
+		if not (person_name and other_name):
+			return
+		person = frappe.get_doc("Person", person_name)
+		if any(
+			r.person == other_name and r.type == relation_type
+			for r in (person.relations or [])
+		):
+			return
+		person.append("relations", {"type": relation_type, "person": other_name})
+		frappe.flags.in_import = True
+		person.save(ignore_permissions=True)
+		frappe.flags.in_import = False
+
+	# When the reciprocal depends on the OTHER person's gender (e.g. parent →
+	# Son/Daughter), look it up from the Person record.
+	gendered_reciprocals = {
+		"Father": {"Female": "Daughter", "Male": "Son"},
+		"Mother": {"Female": "Daughter", "Male": "Son"},
+		"Son": {"Female": "Mother", "Male": "Father"},
+		"Daughter": {"Female": "Mother", "Male": "Father"},
+		"Niece": {"Female": "Aunt", "Male": "Uncle"},
+		"Nephew": {"Female": "Aunt", "Male": "Uncle"},
+	}
+
+	for a_key, rel, b_key in _RELATIONS:
+		add_relation(a_key, rel, b_key)
+
+		a_name = people.get(a_key)
+		a_gender = frappe.db.get_value("Person", a_name, "gender") if a_name else None
+		reciprocal = gendered_reciprocals.get(rel, {}).get(a_gender) or _RECIPROCAL.get(rel)
+		if reciprocal:
+			add_relation(b_key, reciprocal, a_key)
 
 
 # ---------------------------------------------------------------------------

@@ -183,6 +183,8 @@ def get_directory_html(
 			p.email,
 			p.membership_status,
 			p.is_head_of_household,
+			p.gender,
+			p.spouse,
 			p.photo,
 			p.family
 		FROM `tabPerson` p
@@ -222,6 +224,46 @@ def get_directory_html(
 	for m in all_members:
 		members_by_family.setdefault(m.family, []).append(m)
 
+	# Compute each non-HoH member's relation to the head of household. Uses
+	# the spouse field for husband/wife, then falls back to the Person
+	# Relation child table (children, parents, siblings, etc.).
+	hoh_by_family = {}
+	for family_id, members in members_by_family.items():
+		hoh = next((m for m in members if m.is_head_of_household), None) or (members[0] if members else None)
+		if hoh:
+			hoh_by_family[family_id] = hoh
+
+	hoh_names = [h.person_name for h in hoh_by_family.values()]
+	hoh_relations = {}
+	if hoh_names:
+		for row in frappe.db.sql(
+			"""
+			SELECT pr.parent AS hoh, pr.person AS other, pr.type AS relation_type
+			FROM `tabPerson Relation` pr
+			WHERE pr.parenttype = 'Person' AND pr.parent IN %(hoh)s
+			""",
+			{"hoh": tuple(hoh_names)},
+			as_dict=True,
+		):
+			hoh_relations[(row.hoh, row.other)] = row.relation_type
+
+	for family_id, members in members_by_family.items():
+		hoh = hoh_by_family.get(family_id)
+		if not hoh:
+			continue
+		for m in members:
+			if m.person_name == hoh.person_name:
+				m["relation_to_hoh"] = ""
+				continue
+			if hoh.spouse and m.person_name == hoh.spouse:
+				m["relation_to_hoh"] = (
+					"Wife" if m.gender == "Female"
+					else "Husband" if m.gender == "Male"
+					else "Spouse"
+				)
+			else:
+				m["relation_to_hoh"] = hoh_relations.get((hoh.person_name, m.person_name), "")
+
 	individuals_raw = frappe.db.sql(
 		f"""
 		SELECT
@@ -254,6 +296,8 @@ def get_directory_html(
 	for p in all_people:
 		if p.membership_status:
 			p["membership_status"] = status_map.get(p.membership_status, p.membership_status)
+		else:
+			p["membership_status"] = "Non-Member"
 
 	# Build merged sorted entry list
 	all_entries = []

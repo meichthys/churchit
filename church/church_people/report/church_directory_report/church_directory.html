@@ -219,6 +219,12 @@ body {
     margin-top: 1px;
 }
 
+.member-relation {
+    font-size: 8pt;
+    color: #888;
+    margin-left: 4px;
+}
+
 /* ── Appendix sections (birthdays, anniversaries, missionaries) */
 .appendix-section {
     break-before: page;
@@ -428,7 +434,11 @@ body {
                     {% endif %}
                     <td class="col-name">
                         {{ member.full_name }}
-                        {% if show_hoh and member.is_head_of_household %}<span class="hoh-star" title="Head of Household">&#9733;</span>{% endif %}
+                        {% if show_hoh and member.is_head_of_household %}
+                        <span class="member-relation">(Head of Household)</span>
+                        {% elif not entry.is_individual and member.relation_to_hoh %}
+                        <span class="member-relation">({{ member.relation_to_hoh }})</span>
+                        {% endif %}
                         {% if show_roles and member.positions %}
                         <div class="member-roles">{{ member.positions | join(', ') }}</div>
                         {% endif %}

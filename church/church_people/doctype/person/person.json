@@ -48,6 +48,7 @@
   "anniversary",
   "marriage_years",
   "column_break_fkwj",
+  "relations",
   "notes_tab",
   "notes"
  ],
@@ -276,6 +277,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Family relationships beyond spouse \u2014 children, parents, siblings, etc.",
+   "fieldname": "relations",
+   "fieldtype": "Table",
+   "label": "Relations",
+   "options": "Person Relation"
+  },
+  {
    "fieldname": "notes_tab",
    "fieldtype": "Tab Break",
    "in_preview": 1,
@@ -351,7 +359,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-05-14 17:57:02.135167",
+ "modified": "2026-05-19 17:34:10.542345",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
