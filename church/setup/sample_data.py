@@ -446,6 +446,7 @@ def _create_people(position_refs):
 	active_status = frappe.db.get_value("Member Status", {"status": "Active"}, "name")
 
 	refs = {}
+	gender_counts = {"Male": 0, "Female": 0}
 	for (
 		first,
 		last,
@@ -475,12 +476,22 @@ def _create_people(position_refs):
 			[{**p, "position": position_refs[p["position"]]} for p in positions] if positions else positions
 		)
 
+		# Pick a randomuser.me portrait. Step by 11 so each successive male
+		# (or female) picks a visually distinct face across the 0-99 range.
+		photo = None
+		if gender in ("Male", "Female"):
+			bucket = "men" if gender == "Male" else "women"
+			idx = (gender_counts[gender] * 11) % 100
+			photo = f"https://randomuser.me/api/portraits/{bucket}/{idx}.jpg"
+			gender_counts[gender] += 1
+
 		doc = frappe.get_doc(
 			{
 				"doctype": "Person",
 				"first_name": first,
 				"last_name": last,
 				"gender": gender,
+				"photo": photo,
 				"is_member": is_member,
 				"membership_date": mem_date,
 				"membership_status": active_status if is_member else None,
