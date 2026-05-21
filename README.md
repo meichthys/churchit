@@ -31,11 +31,6 @@ If you would like to test out the current state of the application, you can try 
 
 The following features have been implemented in this app (see the [🗺️ Roadmap](#-feature-roadmap) below for future plans):
 
-### Multi-Church Support
-- Hierarchical church structure
-- All data is scoped to a church — users only see what they have access to
-- Church filter auto-hides in single-church setups for a cleaner experience
-
 ### People & Families
 - Comprehensive person profiles with contact info, photos, notes, etc.
 - Membership tracking with custom statuses and baptism records
