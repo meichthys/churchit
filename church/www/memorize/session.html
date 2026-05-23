@@ -172,6 +172,13 @@
         progressLabel.textContent = value + "%";
     }
 
+    // Eased ramp: gentle at low progress, fully blurred at 50%+.
+    // 0% → 0px · 25% → ~5px · 40% → ~13px · 50%+ → 20px.
+    function blurForProgress(progress) {
+        const ratio = Math.max(0, Math.min(1, (progress || 0) / 50));
+        return Math.pow(ratio, 2) * 20;
+    }
+
     function applyBlurToWords(blurAmount) {
         // Apply blur to individual words, but not to words that have been typed correctly
         passageEl.querySelectorAll(".tok-word").forEach(el => {
@@ -200,7 +207,7 @@
                 updateProgress(r.message.progress);
                 if (MODE === "type" && currentTypeState) {
                     currentTypeState.currentProgress = r.message.progress;
-                    const blurAmount = Math.max(0, Math.min(20, (r.message.progress / 50) * 20));
+                    const blurAmount = blurForProgress(r.message.progress);
                     applyBlurToWords(blurAmount);
                 }
             }
@@ -221,7 +228,7 @@
                 updateProgress(r.message.progress);
                 if (MODE === "type" && currentTypeState) {
                     currentTypeState.currentProgress = r.message.progress;
-                    const blurAmount = Math.max(0, Math.min(20, (r.message.progress / 50) * 20));
+                    const blurAmount = blurForProgress(r.message.progress);
                     applyBlurToWords(blurAmount);
                 }
                 showBanner(r.message);
@@ -257,7 +264,7 @@
                     el.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
             }
-            const blurAmount = Math.max(0, Math.min(20, (state.currentProgress / 50) * 20));
+            const blurAmount = blurForProgress(state.currentProgress);
             applyBlurToWords(blurAmount);
         }
 
