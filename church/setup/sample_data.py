@@ -45,6 +45,9 @@ _DELETE_STEPS = [
 	(False, "Person", {}),
 	(False, "Help Article", {}),
 	(False, "Help Category", {}),
+	(False, "Blog Post", {}),
+	(False, "Blogger", {}),
+	(False, "Blog Category", {}),
 ]
 
 # ---------------------------------------------------------------------------
@@ -97,6 +100,7 @@ def create_sample_data():
 	_assign_families(people, families)
 	_assign_spouses(people)
 	_assign_relations(people)
+	_create_person_letters(people)
 
 	agencies = _create_missionary_agencies()
 	_create_missionaries(people, agencies)
@@ -137,6 +141,9 @@ def create_sample_data():
 	_create_church_assets(locations)
 
 	_create_church_tasks()
+
+	_create_blog_post(people)
+	_create_help_article()
 
 	frappe.db.commit()
 
@@ -690,6 +697,40 @@ def _assign_relations(people):
 
 
 # ---------------------------------------------------------------------------
+# Person Letters
+# ---------------------------------------------------------------------------
+
+
+def _create_person_letters(people):
+	"""Add a sample letter to a Person record (shared with church, not yet shared)."""
+	person_name = people.get("Martha Evans")
+	if not person_name:
+		return
+	person = frappe.get_doc("Person", person_name)
+	letter_date = _near_date(-5)
+	if any(row.date and str(row.date) == letter_date for row in (person.letters or [])):
+		return
+	person.append(
+		"letters",
+		{
+			"date": letter_date,
+			"share_with_church": 1,
+			"content": (
+				"<p>Dear pastor and church family,</p>"
+				"<p>Thank you so much for the meals and visits during my recent "
+				"recovery. Your kindness reminded me of the love of Christ at work "
+				"in our church family. I am feeling stronger each day and look "
+				"forward to being back in worship with you soon.</p>"
+				"<p>With gratitude,<br>Martha</p>"
+			),
+		},
+	)
+	frappe.flags.in_import = True
+	person.save(ignore_permissions=True)
+	frappe.flags.in_import = False
+
+
+# ---------------------------------------------------------------------------
 # Missionary Agencies
 # ---------------------------------------------------------------------------
 
@@ -741,6 +782,25 @@ def _create_missionaries(people, agencies):
 			"support_frequency": monthly,
 			"support_start_date": "2010-01-01",
 			"email": "michael.grant@example.com",
+			"letters": [
+				{
+					"date": _near_date(-21),
+					"share_with_church": 1,
+					"shared_date": _near_date(-14),
+					"content": (
+						"<p>Dear brothers and sisters,</p>"
+						"<p>Greetings from Brazil! It is hard to believe another month has "
+						"passed. The Lord has been faithful in opening doors in the rural "
+						"villages we visited — we held our first Sunday gatherings in two "
+						"new communities, and three families have asked to study Scripture "
+						"with us each week.</p>"
+						"<p>Please continue to pray for the local pastors as they shepherd "
+						"these young believers, and for our family as Anna and the kids "
+						"adjust to the rainy season.</p>"
+						"<p>Grateful for your partnership,<br>Michael and Anna</p>"
+					),
+				},
+			],
 		},
 		{
 			"title": "Elizabeth Harper",
@@ -1177,6 +1237,7 @@ def _create_functions(sign_up_items):
 			"end_time": "11:30:00",
 			"description": "Regular Sunday morning worship service with sermon, hymns, and fellowship.",
 			"allow_sign_ups": 0,
+			"publish": 1,
 		},
 		{
 			"function_name": "Midweek Prayer",
@@ -1186,6 +1247,7 @@ def _create_functions(sign_up_items):
 			"end_time": "20:00:00",
 			"description": "Weekly prayer meeting — a time to bring our requests before the Lord together.",
 			"allow_sign_ups": 0,
+			"publish": 1,
 		},
 		{
 			"function_name": "Evening Service",
@@ -1195,6 +1257,7 @@ def _create_functions(sign_up_items):
 			"end_time": "19:30:00",
 			"description": "Sunday evening service with hymns and Bible study.",
 			"allow_sign_ups": 0,
+			"publish": 1,
 		},
 		{
 			"function_name": "Church Picnic",
@@ -1203,6 +1266,7 @@ def _create_functions(sign_up_items):
 			"all_day": 1,
 			"description": "Annual church picnic at Riverside Park. Bring a dish to share!",
 			"allow_sign_ups": 1,
+			"publish": 1,
 			"table_cxhh": [
 				{"item": sign_up_items["Drinks"], "quantity_needed": 3},
 				{"item": sign_up_items["Snacks"], "quantity_needed": 3},
@@ -2224,3 +2288,94 @@ def _create_church_tasks():
 			continue
 		doc = frappe.get_doc({"doctype": "Church Task", **task})
 		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Blog (category + blogger + post)
+# ---------------------------------------------------------------------------
+
+
+def _create_blog_post(people):
+	"""Create a sample Blog Category, Blogger, and a published Blog Post."""
+	category = _insert_if_missing(
+		"Blog Category",
+		{"title": "Church Life"},
+		title="Church Life",
+		published=1,
+		description="Stories and updates from the life of our church.",
+	)
+
+	pastor = people.get("James Wilson")
+	blogger = _insert_if_missing(
+		"Blogger",
+		{"short_name": "james-wilson"},
+		short_name="james-wilson",
+		full_name="James Wilson",
+		user=frappe.db.get_value("Person", pastor, "user") if pastor else None,
+		bio="Pastor at our church for over 25 years. Husband, father, and lifelong student of the Word.",
+	)
+
+	if frappe.db.exists("Blog Post", {"title": "A Word of Welcome"}):
+		return
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Blog Post",
+			"title": "A Word of Welcome",
+			"blog_category": category,
+			"blogger": blogger,
+			"published": 1,
+			"published_on": _near_date(-7),
+			"blog_intro": "Whether you have been with us for decades or are visiting for the first time, we are glad you are here.",
+			"content_type": "Markdown",
+			"content_md": (
+				"## You Belong Here\n\n"
+				"Our doors are open to anyone who would like to come and worship with us. "
+				"We believe the local church is a family, and families grow stronger when "
+				"everyone has a seat at the table.\n\n"
+				"### What to Expect on Sunday\n\n"
+				"- A warm welcome at the door\n"
+				"- Congregational singing of hymns and modern worship songs\n"
+				"- A sermon rooted in Scripture\n"
+				"- Coffee and conversation in the fellowship hall afterward\n\n"
+				"If you have any questions, feel free to reach out — we would love to hear from you."
+			),
+		}
+	)
+	doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Help Article
+# ---------------------------------------------------------------------------
+
+
+def _create_help_article():
+	"""Create a sample Help Category and Help Article."""
+	category = _insert_if_missing(
+		"Help Category",
+		{"category_name": "Getting Started"},
+		category_name="Getting Started",
+		category_description="Answers to common questions for new visitors and members.",
+		published=1,
+	)
+
+	_insert_if_missing(
+		"Help Article",
+		{"title": "How do I become a member?"},
+		title="How do I become a member?",
+		category=category,
+		published=1,
+		level="Beginner",
+		content=(
+			"<p>We are glad you are considering membership with us! Joining the "
+			"church family is a simple process:</p>"
+			"<ol>"
+			"<li>Attend our membership class, offered quarterly on a Saturday morning.</li>"
+			"<li>Meet briefly with one of the pastors to share your testimony.</li>"
+			"<li>Be received by the congregation at a Sunday service.</li>"
+			"</ol>"
+			"<p>If you have questions or would like to sign up for the next class, "
+			"please reach out to the church office.</p>"
+		),
+	)
