@@ -5,6 +5,7 @@
 frappe.ui.form.on('Function', {
 	onload(frm) {
 		church.set_church_doctype_query(frm, 'association_type', 'associations');
+		church.set_church_doctype_query(frm, 'item_type', 'schedule');
 	},
 
 	refresh: function(frm) {
