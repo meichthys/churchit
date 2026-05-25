@@ -60,11 +60,14 @@ class FundTransfer(Document):
 
 		frappe.msgprint(
 			f"✅ Transferred ${self.amount} from "
-			f"{get_link_to_form('Fund', self.from_fund)} to "
-			f"{get_link_to_form('Fund', self.to_fund)}."
+			f"{get_link_to_form('Fund', self.from_fund, from_fund.fund)} to "
+			f"{get_link_to_form('Fund', self.to_fund, to_fund.fund)}."
 		)
 
 	def remove_fund_transfer_transactions(self):
+		from_label = frappe.db.get_value("Fund", self.from_fund, "fund") or self.from_fund
+		to_label = frappe.db.get_value("Fund", self.to_fund, "fund") or self.to_fund
+
 		# Remove matching transactions from both funds
 		for fund_name in [self.from_fund, self.to_fund]:
 			fund_doc = frappe.get_doc("Fund", fund_name)
@@ -82,6 +85,6 @@ class FundTransfer(Document):
 
 		frappe.msgprint(
 			f"⏪ Reverted transfer of ${self.amount} from "
-			f"{get_link_to_form('Fund', self.from_fund)} to "
-			f"{get_link_to_form('Fund', self.to_fund)}."
+			f"{get_link_to_form('Fund', self.from_fund, from_label)} to "
+			f"{get_link_to_form('Fund', self.to_fund, to_label)}."
 		)
