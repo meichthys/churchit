@@ -869,7 +869,7 @@ def _create_collections(people, funds):
 		{
 			"date": _near_datetime(-7, "10:30:00"),
 			"notes": "Regular Sunday morning offering.",
-			"expected_total": 4000,
+			"expected_total": 1200,
 			"submit": True,
 			"donations": [
 				{
@@ -887,7 +887,7 @@ def _create_collections(people, funds):
 					"check_number": "1001",
 				},
 				{
-					"amount": 1175,
+					"amount": 375,
 					"payment_type": check,
 					"fund": funds["General"],
 					"person": people["Robert Johnson"],
@@ -998,7 +998,7 @@ def _create_expenses(expense_types):
 		{
 			"title": "Monthly Water Bill",
 			"type": expense_types["Water"],
-			"amount": 62.00,
+			"amount": 562.00,
 			"date": _near_datetime(-232),
 			"notes": "Monthly water bill.",
 			"submit": True,
@@ -1006,7 +1006,7 @@ def _create_expenses(expense_types):
 		{
 			"title": "Office Supplies",
 			"type": expense_types["Office Supplies"],
-			"amount": 89.99,
+			"amount": 389.99,
 			"date": _near_datetime(-181),
 			"notes": "Printer paper and toner cartridges.",
 		},
