@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 0,
- "autoname": "hash",
+ "autoname": "format:BMEMS{######}",
  "creation": "2026-05-18 00:00:00",
  "description": "Append-only log of completed Bible memory study sessions.",
  "doctype": "DocType",
@@ -72,13 +71,12 @@
    "label": "Completed"
   }
  ],
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-18 00:00:00",
+ "modified": "2026-05-24 17:41:30.323929",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Memory Session",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -117,6 +115,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 0
+ "states": []
 }

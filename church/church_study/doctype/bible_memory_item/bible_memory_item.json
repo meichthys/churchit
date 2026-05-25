@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 0,
- "autoname": "hash",
+ "autoname": "format:BMEM-{######}",
  "creation": "2026-05-18 00:00:00",
  "description": "A passage that a user is memorizing, with progress and per-word mistake history.",
  "doctype": "DocType",
@@ -99,13 +98,12 @@
    "read_only": 1
   }
  ],
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-19 00:00:01",
+ "modified": "2026-05-24 17:40:29.962180",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
