@@ -661,10 +661,7 @@ def _assign_relations(people):
 		if not (person_name and other_name):
 			return
 		person = frappe.get_doc("Person", person_name)
-		if any(
-			r.person == other_name and r.type == relation_type
-			for r in (person.relations or [])
-		):
+		if any(r.person == other_name and r.type == relation_type for r in (person.relations or [])):
 			return
 		person.append("relations", {"type": relation_type, "person": other_name})
 		frappe.flags.in_import = True
@@ -890,7 +887,7 @@ def _create_collections(people, funds):
 					"check_number": "1001",
 				},
 				{
-					"amount": 3175,
+					"amount": 1175,
 					"payment_type": check,
 					"fund": funds["General"],
 					"person": people["Robert Johnson"],
@@ -1592,9 +1589,7 @@ def _create_bible_memory_items(verses):
 	for spec in specs:
 		if not spec["ref"]:
 			continue
-		if frappe.db.exists(
-			"Bible Memory Item", {"user": user, "bible_reference": spec["ref"]}
-		):
+		if frappe.db.exists("Bible Memory Item", {"user": user, "bible_reference": spec["ref"]}):
 			continue
 		item = frappe.get_doc(
 			{
