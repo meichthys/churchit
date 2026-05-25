@@ -123,9 +123,9 @@ def create_sample_data():
 	_create_bible_references(verses)
 	_create_bible_memory_items(verses)
 
-	_create_sermons(people)
-
 	_create_beliefs(verses)
+
+	_create_sermons(people, verses)
 
 	groups = _create_groups(people, group_roles)
 
@@ -1162,6 +1162,7 @@ def _create_prayer_requests(people):
 			"recipient_type": "Person",
 			"recipient": people["Lisa Thompson"],
 			"request": "Requesting prayer for upcoming medical tests next week. The doctors want to rule out some concerns, so I'm trusting God for clear results and wisdom for my medical team. Thank you for standing with us in prayer.",
+			"end_date": _near_date(3),
 		},
 	]
 	for req in requests:
@@ -1687,8 +1688,27 @@ def _create_bible_memory_items(verses):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(people):
-	"""Create sample sermons."""
+def _create_sermons(people, verses):
+	"""Create sample sermons with slides referencing bible references, people,
+	missionaries, and beliefs."""
+
+	def bible_ref(verse_key, translation_name):
+		verse = verses.get(verse_key)
+		translation = _resolve_link("Bible Translation", "translation", translation_name)
+		if not (verse and translation):
+			return None
+		return frappe.db.get_value(
+			"Bible Reference",
+			{"start_verse": verse, "translation": translation},
+			"name",
+		)
+
+	def belief(title):
+		return frappe.db.get_value("Belief", {"title": title}, "name")
+
+	def missionary(title):
+		return frappe.db.get_value("Missionary", {"title": title}, "name")
+
 	sermons = [
 		{
 			"title": "The Good Shepherd",
@@ -1704,6 +1724,25 @@ def _create_sermons(people):
 				"<li>The Shepherd's Promise (vv. 5-6)</li>"
 				"</ol>"
 			),
+			"slides": [
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Psalms 23:1", "King James Version"),
+					"notes": "<p>Read the full Psalm slowly before beginning the exposition.</p>",
+				},
+				{"slide_type": "Belief", "slide": belief("God")},
+				{
+					"slide_type": "Person",
+					"slide": people.get("Sarah Wilson"),
+					"notes": "<p>Pause to pray for Sarah and others recovering this week.</p>",
+				},
+				{
+					"slide_type": "Missionary",
+					"slide": missionary("Michael & Anna Grant"),
+					"notes": "<p>Remind the congregation that the Shepherd cares for sheep across the world.</p>",
+				},
+				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+			],
 		},
 		{
 			"title": "Walking by Faith",
@@ -1719,6 +1758,17 @@ def _create_sermons(people):
 				"<li>Applying faith to modern challenges</li>"
 				"</ul>"
 			),
+			"slides": [
+				{"slide_type": "Bible Reference", "slide": bible_ref("Romans 8:28", "English Standard Version")},
+				{"slide_type": "Belief", "slide": belief("Salvation")},
+				{
+					"slide_type": "Missionary",
+					"slide": missionary("Elizabeth Harper"),
+					"notes": "<p>Elizabeth's story is a living example of stepping out in faith.</p>",
+				},
+				{"slide_type": "Person", "slide": people.get("David Thompson")},
+				{"slide_type": "Bible Reference", "slide": bible_ref("Philippians 4:13", "New King James Version")},
+			],
 		},
 		{
 			"title": "The Power of Prayer",
@@ -1734,12 +1784,28 @@ def _create_sermons(people):
 				"<li>Prayer as a means of transformation</li>"
 				"</ol>"
 			),
+			"slides": [
+				{"slide_type": "Bible Reference", "slide": bible_ref("Jeremiah 29:11", "New International Version")},
+				{"slide_type": "Belief", "slide": belief("The Bible")},
+				{
+					"slide_type": "Person",
+					"slide": people.get("Mary Johnson"),
+					"notes": "<p>Invite Mary to share her recent answered prayer.</p>",
+				},
+				{
+					"slide_type": "Missionary",
+					"slide": missionary("Thomas Reed"),
+					"notes": "<p>Sensitive — share only the prayer points, not the field.</p>",
+				},
+				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+			],
 		},
 	]
 	for sermon in sermons:
 		existing = frappe.db.exists("Sermon", {"title": sermon["title"]})
 		if existing:
 			continue
+		sermon["slides"] = [s for s in sermon.get("slides", []) if s.get("slide")]
 		doc = frappe.get_doc({"doctype": "Sermon", **sermon})
 		doc.insert(ignore_permissions=True)
 
