@@ -1,5 +1,5 @@
 {
- "allow_comments": 0,
+ "allow_comments": 1,
  "allow_delete": 0,
  "allow_edit": 0,
  "allow_incomplete": 0,
@@ -8,8 +8,9 @@
  "anonymous": 0,
  "apply_document_permissions": 0,
  "button_label": "Submit",
+ "client_script": "var doc = frappe.web_form && frappe.web_form.doc;\nif (doc && doc.name) {\n\tvar $actions = $(\".web-form-header .web-form-actions\").first();\n\tif ($actions.length && !$actions.find(\".btn-create-prayer\").length) {\n\t\tvar $btn = $('<button type=\"button\" class=\"btn btn-primary btn-sm ml-2 btn-create-prayer\">' + __(\"Pray for this request\") + '</button>');\n\t\t$actions.append($btn);\n\t\t$btn.on(\"click\", function(e) {\n\t\t\te.preventDefault();\n\t\t\tvar d = new frappe.ui.Dialog({\n\t\t\t\ttitle: __(\"Pray for {0}\", [doc.title || doc.name]),\n\t\t\t\tfields: [\n\t\t\t\t\t{ fieldname: \"content\", fieldtype: \"Small Text\", label: __(\"Prayer\") }\n\t\t\t\t],\n\t\t\t\tprimary_action_label: __(\"Save Prayer\"),\n\t\t\t\tprimary_action: function(values) {\n\t\t\t\t\tfrappe.call({\n\t\t\t\t\t\tmethod: \"church.church_prayers.api.create_prayer\",\n\t\t\t\t\t\targs: { prayer_request: doc.name, content: values.content || null },\n\t\t\t\t\t\tfreeze: true,\n\t\t\t\t\t\tcallback: function(r) {\n\t\t\t\t\t\t\tif (r.message) {\n\t\t\t\t\t\t\t\tfrappe.show_alert({ message: __(\"Prayer saved\"), indicator: \"green\" });\n\t\t\t\t\t\t\t\td.hide();\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t\td.show();\n\t\t});\n\t}\n}\n",
  "condition_json": "[[\"Prayer Request\",\"is_private\",\"=\",0]]",
- "creation": "2026-04-23 00:00:00.000000",
+ "creation": "2026-04-23 00:00:00",
  "doc_type": "Prayer Request",
  "docstatus": 0,
  "doctype": "Web Form",
@@ -46,7 +47,7 @@
  "list_title": "Community Prayer Requests",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-04-23 00:00:00.000000",
+ "modified": "2026-05-24 20:08:32.226781",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "community-prayer-requests",
@@ -139,6 +140,5 @@
    "show_in_filter": 0
   }
  ],
- "website_sidebar": "",
- "client_script": "var doc = frappe.web_form && frappe.web_form.doc;\nif (doc && doc.name) {\n\tvar $actions = $(\".web-form-header .web-form-actions\").first();\n\tif ($actions.length && !$actions.find(\".btn-create-prayer\").length) {\n\t\tvar $btn = $('<button type=\"button\" class=\"btn btn-primary btn-sm ml-2 btn-create-prayer\">' + __(\"Pray for this request\") + '</button>');\n\t\t$actions.append($btn);\n\t\t$btn.on(\"click\", function(e) {\n\t\t\te.preventDefault();\n\t\t\tvar d = new frappe.ui.Dialog({\n\t\t\t\ttitle: __(\"Pray for {0}\", [doc.title || doc.name]),\n\t\t\t\tfields: [\n\t\t\t\t\t{ fieldname: \"content\", fieldtype: \"Small Text\", label: __(\"Prayer\") }\n\t\t\t\t],\n\t\t\t\tprimary_action_label: __(\"Save Prayer\"),\n\t\t\t\tprimary_action: function(values) {\n\t\t\t\t\tfrappe.call({\n\t\t\t\t\t\tmethod: \"church.church_prayers.api.create_prayer\",\n\t\t\t\t\t\targs: { prayer_request: doc.name, content: values.content || null },\n\t\t\t\t\t\tfreeze: true,\n\t\t\t\t\t\tcallback: function(r) {\n\t\t\t\t\t\t\tif (r.message) {\n\t\t\t\t\t\t\t\tfrappe.show_alert({ message: __(\"Prayer saved\"), indicator: \"green\" });\n\t\t\t\t\t\t\t\td.hide();\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t\td.show();\n\t\t});\n\t}\n}\n"
+ "website_sidebar": ""
 }
