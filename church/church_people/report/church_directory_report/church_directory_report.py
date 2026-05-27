@@ -50,10 +50,9 @@ def get_individual_columns():
 
 def get_individual_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
-	member_filter = "AND p.is_member = 1" if members_only else ""
 
 	return frappe.db.sql(
-		f"""
+		"""
 		SELECT
 			p.name AS person,
 			p.family,
@@ -64,10 +63,10 @@ def get_individual_data(filters):
 		FROM `tabPerson` p
 		LEFT JOIN `tabFamily` f ON f.name = p.family
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
-		WHERE 1=1
-			{member_filter}
+		WHERE (NOT %(members_only)s OR p.is_member = 1)
 		ORDER BY p.last_name, p.first_name
 		""",
+		{"members_only": members_only},
 		as_dict=True,
 	)
 
@@ -89,15 +88,14 @@ def get_data(filters):
 		as_dict=True,
 	)
 
-	member_filter = "AND p.is_member = 1" if members_only else ""
-
 	all_members = frappe.db.sql(
-		f"""
+		"""
 		SELECT p.name, p.full_name, p.family, p.is_head_of_household
 		FROM `tabPerson` p
 		WHERE p.family IS NOT NULL AND p.family != ''
-			{member_filter}
+			AND (NOT %(members_only)s OR p.is_member = 1)
 		""",
+		{"members_only": members_only},
 		as_dict=True,
 	)
 
@@ -171,10 +169,8 @@ def get_directory_html(
 		as_dict=True,
 	)
 
-	member_filter = "AND p.is_member = 1" if members_only else ""
-
 	all_members = frappe.db.sql(
-		f"""
+		"""
 		SELECT
 			p.name AS person_name,
 			p.full_name,
@@ -189,9 +185,10 @@ def get_directory_html(
 			p.family
 		FROM `tabPerson` p
 		WHERE p.family IS NOT NULL AND p.family != ''
-			{member_filter}
+			AND (NOT %(members_only)s OR p.is_member = 1)
 		ORDER BY p.family, p.is_head_of_household DESC, p.last_name, p.first_name
 		""",
+		{"members_only": members_only},
 		as_dict=True,
 	)
 
@@ -265,7 +262,7 @@ def get_directory_html(
 				m["relation_to_hoh"] = hoh_relations.get((hoh.person_name, m.person_name), "")
 
 	individuals_raw = frappe.db.sql(
-		f"""
+		"""
 		SELECT
 			p.name AS person_name,
 			p.full_name,
@@ -276,9 +273,10 @@ def get_directory_html(
 			p.photo
 		FROM `tabPerson` p
 		WHERE (p.family IS NULL OR p.family = '')
-			{member_filter}
+			AND (NOT %(members_only)s OR p.is_member = 1)
 		ORDER BY p.last_name, p.first_name
 		""",
+		{"members_only": members_only},
 		as_dict=True,
 	)
 
@@ -369,7 +367,7 @@ def get_directory_html(
 	birthdays = []
 	if show_birthdays:
 		raw_birthdays = frappe.db.sql(
-			f"""
+			"""
 			SELECT
 				p.full_name,
 				p.birthday,
@@ -377,9 +375,10 @@ def get_directory_html(
 				DAY(p.birthday)   AS birth_day
 			FROM `tabPerson` p
 			WHERE p.birthday IS NOT NULL
-				{member_filter}
+				AND (NOT %(members_only)s OR p.is_member = 1)
 			ORDER BY MONTH(p.birthday), DAY(p.birthday), p.last_name, p.first_name
 			""",
+			{"members_only": members_only},
 			as_dict=True,
 		)
 		for row in raw_birthdays:
@@ -391,7 +390,7 @@ def get_directory_html(
 	anniversaries = []
 	if show_anniversaries:
 		raw_anniversaries = frappe.db.sql(
-			f"""
+			"""
 			SELECT
 				p.name         AS person_name,
 				p.spouse       AS spouse_name,
@@ -407,9 +406,10 @@ def get_directory_html(
 			LEFT JOIN `tabFamily` f ON f.name = p.family
 			WHERE p.anniversary IS NOT NULL
 				AND p.is_married = 1
-				{member_filter}
+				AND (NOT %(members_only)s OR p.is_member = 1)
 			ORDER BY MONTH(p.anniversary), DAY(p.anniversary), p.last_name, p.first_name
 			""",
+			{"members_only": members_only},
 			as_dict=True,
 		)
 		seen_persons = set()
