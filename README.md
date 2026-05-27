@@ -187,6 +187,13 @@ Hopefully this roadmap will help avoid too much scope creep and provide a sense 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
 
+
+# AI Policy
+
+Disclaimer:Some AI was used in the development of this app (mostly just SQL queries & client scripts).
+
+- AI generated/heavily-assisted pull-requests will likely be rejected or de-prioritized.
+
 # 🤝 Contributing
 
 Contributions are very welcome! If you plan any large contributions, please let me know first so we can coordinate and make the chances of a merged pull-request more likely.
@@ -281,6 +288,7 @@ Then append to `patches.txt` (always append — never insert above existing entr
 ```
 church.patches.v2_0.remove_old_attendance_type
 ```
+
 
 # 🔑 License: MIT
 
