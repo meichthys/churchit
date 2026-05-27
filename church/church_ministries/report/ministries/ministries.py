@@ -17,7 +17,6 @@ def get_columns():
 		{"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date", "width": 120},
 		{"fieldname": "end_date", "fieldtype": "Date", "label": "End Date", "width": 120},
 		{"fieldname": "group", "fieldtype": "Link", "label": "Group", "options": "Group", "width": 150},
-		{"fieldname": "fund", "fieldtype": "Link", "label": "Fund", "options": "Fund", "width": 150},
 		{"fieldname": "publish", "fieldtype": "Check", "label": "Published", "width": 100},
 		{"fieldname": "description", "fieldtype": "Data", "label": "Description", "width": 300},
 	]
@@ -37,7 +36,6 @@ def get_data(filters=None):
 			Ministry.start_date,
 			Ministry.end_date,
 			Ministry["group"],
-			Ministry.fund,
 			Ministry.publish,
 			Ministry.description,
 		)
@@ -50,8 +48,6 @@ def get_data(filters=None):
 		query = query.where(Ministry.start_date >= filters["from_date"])
 	if filters.get("to_date"):
 		query = query.where(Ministry.start_date <= filters["to_date"])
-	if filters.get("fund"):
-		query = query.where(Ministry.fund == filters["fund"])
 	if filters.get("publish") == "Yes":
 		query = query.where(Ministry.publish == 1)
 	elif filters.get("publish") == "No":
