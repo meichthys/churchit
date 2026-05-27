@@ -1,5 +1,4 @@
 # Privacy Policy
 
-We don't collect any of your data like the big bad boys.
-If you contact us then we have your contact information - that's it.
-You are responsible for your own data privacy.
+We treat your data like Manna - we don't keep it for tomorrow!
+Treat your own data like the 10 Commandments - keep a backup copy!
