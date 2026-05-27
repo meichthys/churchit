@@ -25,47 +25,36 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	conditions = ""
-	values = {}
+
+	Ministry = frappe.qb.DocType("Ministry")
+
+	query = (
+		frappe.qb.from_(Ministry)
+		.select(
+			Ministry.name,
+			Ministry.ministry_name,
+			Ministry.status,
+			Ministry.start_date,
+			Ministry.end_date,
+			Ministry["group"],
+			Ministry.fund,
+			Ministry.publish,
+			Ministry.description,
+		)
+		.orderby(Ministry.ministry_name)
+	)
 
 	if filters.get("status"):
-		conditions += " AND `tabMinistry`.status = %(status)s"
-		values["status"] = filters["status"]
-
+		query = query.where(Ministry.status == filters["status"])
 	if filters.get("from_date"):
-		conditions += " AND `tabMinistry`.start_date >= %(from_date)s"
-		values["from_date"] = filters["from_date"]
-
+		query = query.where(Ministry.start_date >= filters["from_date"])
 	if filters.get("to_date"):
-		conditions += " AND `tabMinistry`.start_date <= %(to_date)s"
-		values["to_date"] = filters["to_date"]
-
+		query = query.where(Ministry.start_date <= filters["to_date"])
 	if filters.get("fund"):
-		conditions += " AND `tabMinistry`.fund = %(fund)s"
-		values["fund"] = filters["fund"]
-
+		query = query.where(Ministry.fund == filters["fund"])
 	if filters.get("publish") == "Yes":
-		conditions += " AND `tabMinistry`.publish = 1"
+		query = query.where(Ministry.publish == 1)
 	elif filters.get("publish") == "No":
-		conditions += " AND `tabMinistry`.publish = 0"
+		query = query.where(Ministry.publish == 0)
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabMinistry`.name,
-			`tabMinistry`.ministry_name,
-			`tabMinistry`.status,
-			`tabMinistry`.start_date,
-			`tabMinistry`.end_date,
-			`tabMinistry`.`group`,
-			`tabMinistry`.fund,
-			`tabMinistry`.publish,
-			`tabMinistry`.description
-		FROM `tabMinistry`
-		WHERE 1=1
-			{conditions}
-		ORDER BY `tabMinistry`.ministry_name
-		""",
-		values,
-		as_dict=True,
-	)
+	return query.run(as_dict=True)
