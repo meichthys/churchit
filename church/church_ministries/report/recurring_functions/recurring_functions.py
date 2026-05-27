@@ -29,26 +29,31 @@ def get_columns():
 
 
 def get_data(filters):
-	conditions = ["auto_repeat = 1"]
-	values = {}
-	if filters.get("associated_ministry"):
-		conditions.append("associated_ministry = %(associated_ministry)s")
-		values["associated_ministry"] = filters["associated_ministry"]
-	if filters.get("repeat_frequency"):
-		conditions.append("repeat_frequency = %(repeat_frequency)s")
-		values["repeat_frequency"] = filters["repeat_frequency"]
+	Function = frappe.qb.DocType("Function")
 
-	rows = frappe.db.sql(
-		f"""
-		SELECT name, function_name, type, associated_ministry,
-		       repeat_frequency, repeat_day_of_week, repeat_month_day, repeat_until
-		FROM `tabFunction`
-		WHERE {" AND ".join(conditions)}
-		ORDER BY associated_ministry, function_name
-		""",
-		values,
-		as_dict=True,
+	query = (
+		frappe.qb.from_(Function)
+		.select(
+			Function.name,
+			Function.function_name,
+			Function.type,
+			Function.associated_ministry,
+			Function.repeat_frequency,
+			Function.repeat_day_of_week,
+			Function.repeat_month_day,
+			Function.repeat_until,
+		)
+		.where(Function.auto_repeat == 1)
+		.orderby(Function.associated_ministry)
+		.orderby(Function.function_name)
 	)
+
+	if filters.get("associated_ministry"):
+		query = query.where(Function.associated_ministry == filters["associated_ministry"])
+	if filters.get("repeat_frequency"):
+		query = query.where(Function.repeat_frequency == filters["repeat_frequency"])
+
+	rows = query.run(as_dict=True)
 
 	for row in rows:
 		if row["repeat_frequency"] == "Weekly":
