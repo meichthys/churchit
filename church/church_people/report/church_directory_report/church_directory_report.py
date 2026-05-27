@@ -1,12 +1,13 @@
 """Church Directory Report"""
 
 import calendar
-import os
 
 import frappe
 from frappe.utils import today as frappe_today
 
 from church.utils import set_report_link_titles
+
+_TEMPLATE_PATH = "church/church_people/report/church_directory_report/church_directory.html"
 
 
 def execute(filters=None):
@@ -461,10 +462,6 @@ def get_directory_html(
 				if m.agency:
 					m["agency"] = agency_map.get(m.agency, m.agency)
 
-	template_path = os.path.join(os.path.dirname(__file__), "church_directory.html")
-	with open(template_path) as f:
-		template = f.read()
-
 	context = {
 		"church": church_doc,
 		"church_address": church_address,
@@ -483,4 +480,4 @@ def get_directory_html(
 		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
 	}
 
-	return frappe.render_template(template, context)
+	return frappe.render_template(_TEMPLATE_PATH, context, is_path=True)
