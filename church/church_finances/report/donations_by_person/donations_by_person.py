@@ -1,4 +1,6 @@
 import frappe
+from frappe.query_builder.functions import Sum
+from pypika import Order
 
 from church.utils import set_report_link_titles
 
@@ -19,29 +21,24 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	values = {}
 
-	date_condition = ""
-	if filters.get("from_date"):
-		date_condition += " AND `tabCollection`.date >= %(from_date)s"
-		values["from_date"] = filters["from_date"]
-	if filters.get("to_date"):
-		date_condition += " AND `tabCollection`.date <= %(to_date)s"
-		values["to_date"] = filters["to_date"]
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
+	total_amount = Sum(Donation.amount).as_("total_amount")
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabDonation`.person,
-			SUM(`tabDonation`.amount) AS total_amount
-		FROM `tabDonation`
-		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
-		WHERE `tabDonation`.parenttype = 'Collection'
-			AND `tabDonation`.person IS NOT NULL
-			{date_condition}
-		GROUP BY `tabDonation`.person
-		ORDER BY total_amount DESC
-		""",
-		values,
-		as_dict=True,
+	query = (
+		frappe.qb.from_(Donation)
+		.inner_join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(Donation.person, total_amount)
+		.where((Donation.parenttype == "Collection") & Donation.person.isnotnull())
+		.groupby(Donation.person)
+		.orderby(Sum(Donation.amount), order=Order.desc)
 	)
+
+	if filters.get("from_date"):
+		query = query.where(Collection.date >= filters["from_date"])
+	if filters.get("to_date"):
+		query = query.where(Collection.date <= filters["to_date"])
+
+	return query.run(as_dict=True)
