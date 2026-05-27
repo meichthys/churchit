@@ -127,10 +127,17 @@ If you're the more technical and/or frugal type, you can self-host an instance o
 Making a local instance of frappe accessible from outside of your network is currently out of the scope of this project, but with some persistence and some technical expertise, it can be achieved. If you are completely lost or uncomfortable with this, it may be best to use the Frappe Cloud option above, or contact us for help. We'd be glad to help where we can.
 
 ## ⛪ Installing this Church app
-To install this app on your frappe instance:
 
-- If hosting on Frappe Cloud, you should be able to log into your Frappe Cloud dashboard, select your site, and install the app from the list of apps.
-- If you are self-hosting, you can use bench by activating the [bench](https://github.com/frappe/bench) environment with `fm shell` and then running the following
+**To install the Church app via the Frappe Marketplace (easiest, requires Frappe Cloud):**
+  1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
+  2. Open the [Church listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Church" from **Marketplace** in the sidebar).
+  3. Click **Install**, then choose the site you want to install it on.
+  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Church` app under **Help > About**.
+
+  Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**) — no shell access required.
+
+**To install the Church app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
+Activate the [bench](https://github.com/frappe/bench) environment with `fm shell` and then run the following:
 
   ```bash
   # Set the bench command to use your site (Replace `<church.your_site.com>` with your actual site name):
