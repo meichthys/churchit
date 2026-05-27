@@ -34,44 +34,43 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	conditions = []
-	params = {}
+
+	SignUp = frappe.qb.DocType("Function Sign-Up")
+	SignUpItem = frappe.qb.DocType("Function Sign-Up Item")
+	Function = frappe.qb.DocType("Function")
+	Person = frappe.qb.DocType("Person")
+
+	query = (
+		frappe.qb.from_(SignUp)
+		.inner_join(SignUpItem)
+		.on(SignUp.name == SignUpItem.parent)
+		.inner_join(Function)
+		.on(SignUp.function == Function.name)
+		.inner_join(Person)
+		.on(SignUp.person == Person.name)
+		.select(
+			SignUp.name,
+			SignUp.title,
+			SignUp.function,
+			Function.function_name,
+			SignUpItem.item,
+			SignUp.person,
+			Person.full_name,
+			SignUpItem.my_quantity,
+		)
+		.orderby(SignUp.name)
+		.orderby(SignUp.function)
+		.orderby(SignUpItem.item)
+	)
 
 	if filters.get("function"):
-		conditions.append("fsu.function = %(function)s")
-		params["function"] = filters["function"]
-
+		query = query.where(SignUp.function == filters["function"])
 	if filters.get("item"):
-		conditions.append("fsui.item = %(item)s")
-		params["item"] = filters["item"]
-
+		query = query.where(SignUpItem.item == filters["item"])
 	if filters.get("person"):
-		conditions.append("fsu.person = %(person)s")
-		params["person"] = filters["person"]
+		query = query.where(SignUp.person == filters["person"])
 
-	where_clause = " AND ".join(conditions) if conditions else "1=1"
-
-	rows = frappe.db.sql(
-		f"""
-		SELECT
-			fsu.name,
-			fsu.title,
-			fsu.function,
-			f.function_name,
-			fsui.item,
-			fsu.person,
-			p.full_name,
-			fsui.my_quantity
-		FROM `tabFunction Sign-Up` fsu
-		INNER JOIN `tabFunction Sign-Up Item` fsui ON fsu.name = fsui.parent
-		INNER JOIN `tabFunction` f ON fsu.function = f.name
-		INNER JOIN `tabPerson` p ON fsu.person = p.name
-		WHERE {where_clause}
-		ORDER BY fsu.name, fsu.function, fsui.item
-		""",
-		params,
-		as_dict=True,
-	)
+	rows = query.run(as_dict=True)
 
 	# Format as clickable links with titles
 	for row in rows:
