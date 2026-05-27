@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -98,12 +99,10 @@ def _label(start, time_interval):
 
 
 def _sum_in_range(doctype, date_field, amount_field, start, end):
-	total = frappe.db.sql(
-		f"""
-		SELECT COALESCE(SUM(`{amount_field}`), 0)
-		FROM `tab{doctype}`
-		WHERE docstatus = 1 AND `{date_field}` BETWEEN %s AND %s
-		""",
-		(start, end),
-	)[0][0]
+	table = frappe.qb.DocType(doctype)
+	total = (
+		frappe.qb.from_(table)
+		.select(Coalesce(Sum(table[amount_field]), 0))
+		.where((table.docstatus == 1) & table[date_field].between(start, end))
+	).run()[0][0]
 	return float(total or 0)
