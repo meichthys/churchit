@@ -1,4 +1,5 @@
 import frappe
+from pypika import Order
 
 from church.utils import set_report_link_titles
 
@@ -23,28 +24,27 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	values = {}
 
-	person_condition = ""
-	if filters.get("person"):
-		person_condition = " AND `tabDonation`.person = %(person)s"
-		values["person"] = filters["person"]
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabCollection`.name AS collection,
-			`tabCollection`.date,
-			`tabDonation`.fund,
-			`tabDonation`.payment_type,
-			`tabDonation`.check_number,
-			`tabDonation`.amount
-		FROM `tabDonation`
-		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
-		WHERE `tabDonation`.parenttype = 'Collection'
-			{person_condition}
-		ORDER BY `tabCollection`.date DESC
-		""",
-		values,
-		as_dict=True,
+	query = (
+		frappe.qb.from_(Donation)
+		.inner_join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(
+			Collection.name.as_("collection"),
+			Collection.date,
+			Donation.fund,
+			Donation.payment_type,
+			Donation.check_number,
+			Donation.amount,
+		)
+		.where(Donation.parenttype == "Collection")
+		.orderby(Collection.date, order=Order.desc)
 	)
+
+	if filters.get("person"):
+		query = query.where(Donation.person == filters["person"])
+
+	return query.run(as_dict=True)
