@@ -1,4 +1,5 @@
 import frappe
+from pypika import Order
 
 from church.utils import set_report_link_titles
 
@@ -22,41 +23,40 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	conditions = ""
-	values = {}
+
+	Attendance = frappe.qb.DocType("Function Attendance")
+	Function = frappe.qb.DocType("Function")
+	AttendanceType = frappe.qb.DocType("Function Attendance Type")
+
+	counted_types = (
+		frappe.qb.from_(AttendanceType)
+		.select(AttendanceType.name)
+		.where(AttendanceType.type.isin(["Assumed", "Confirmed"]))
+	)
+
+	query = (
+		frappe.qb.from_(Attendance)
+		.inner_join(Function)
+		.on(Function.name == Attendance.parent)
+		.select(
+			Attendance.person,
+			Attendance.parent.as_("function"),
+			Function.type,
+			Function.start_date,
+			Attendance.attendance_type,
+		)
+		.where(Attendance.attendance_type.isin(counted_types))
+		.orderby(Function.start_date, order=Order.desc)
+		.orderby(Attendance.person)
+	)
 
 	if filters.get("person"):
-		conditions += " AND `tabFunction Attendance`.person = %(person)s"
-		values["person"] = filters["person"]
-
+		query = query.where(Attendance.person == filters["person"])
 	if filters.get("function_type"):
-		conditions += " AND `tabFunction`.type = %(function_type)s"
-		values["function_type"] = filters["function_type"]
-
+		query = query.where(Function.type == filters["function_type"])
 	if filters.get("start"):
-		conditions += " AND `tabFunction`.start_date >= %(start)s"
-		values["start"] = filters["start"]
-
+		query = query.where(Function.start_date >= filters["start"])
 	if filters.get("end"):
-		conditions += " AND `tabFunction`.start_date <= %(end)s"
-		values["end"] = filters["end"]
+		query = query.where(Function.start_date <= filters["end"])
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabFunction Attendance`.person,
-			`tabFunction Attendance`.parent as `function`,
-			`tabFunction`.type,
-			`tabFunction`.start_date,
-			`tabFunction Attendance`.attendance_type
-		FROM `tabFunction Attendance`
-		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
-		WHERE `tabFunction Attendance`.attendance_type IN (
-				SELECT name FROM `tabFunction Attendance Type` WHERE type IN ('Assumed', 'Confirmed')
-			)
-			{conditions}
-		ORDER BY `tabFunction`.start_date DESC, `tabFunction Attendance`.person
-		""",
-		values,
-		as_dict=True,
-	)
+	return query.run(as_dict=True)
