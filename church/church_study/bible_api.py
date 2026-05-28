@@ -16,7 +16,7 @@ def _http_get_json(url):
 		resp = requests.get(url, timeout=HTTP_TIMEOUT)
 	except requests.RequestException as exc:
 		frappe.throw(
-			_("Could not reach bible.helloao.org. Please try again later. ({0})").format(exc)
+			_("Could not reach bible.helloao.org. Please try again later. ({0})").format(str(exc))
 		)
 	if not resp.ok:
 		frappe.throw(
