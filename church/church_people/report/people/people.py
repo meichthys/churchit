@@ -1,4 +1,6 @@
 import frappe
+from frappe.query_builder.functions import GroupConcat
+from frappe.utils import nowdate
 
 from church.utils import set_report_link_titles
 
@@ -24,48 +26,60 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	conditions = ""
-	values = {}
+	today = nowdate()
+
+	Person = frappe.qb.DocType("Person")
+	Family = frappe.qb.DocType("Family")
+	Position = frappe.qb.DocType("Position")
+	PositionType = frappe.qb.DocType("Position Type")
+
+	roles = GroupConcat(PositionType.position).distinct().as_("roles")
+
+	query = (
+		frappe.qb.from_(Person)
+		.left_join(Family)
+		.on(Family.name == Person.family)
+		.left_join(Position)
+		.on(
+			(Position.parent == Person.name)
+			& (Position.parenttype == "Person")
+			& (Position.end_date.isnull() | (Position.end_date >= today))
+		)
+		.left_join(PositionType)
+		.on(PositionType.name == Position.position)
+		.select(
+			Person.name,
+			Person.full_name,
+			Person.is_member,
+			Person.membership_status,
+			Person.is_baptized,
+			Person.family,
+			Family.family_name,
+			Person.birthday,
+			roles,
+		)
+		.groupby(Person.name)
+		.orderby(Person.full_name)
+	)
 
 	if filters.get("person_name"):
-		conditions += " AND full_name LIKE %(person_name)s"
-		values["person_name"] = f"%{filters['person_name']}%"
-
+		query = query.where(Person.full_name.like(f"%{filters['person_name']}%"))
 	if filters.get("is_member"):
-		conditions += " AND is_member = 1"
-
+		query = query.where(Person.is_member == 1)
 	if filters.get("is_baptized"):
-		conditions += " AND is_baptized = 1"
-
+		query = query.where(Person.is_baptized == 1)
 	if filters.get("family"):
-		conditions += " AND family = %(family)s"
-		values["family"] = filters["family"]
-
+		query = query.where(Person.family == filters["family"])
 	if filters.get("role"):
-		conditions += """ AND name IN (
-			SELECT parent FROM `tabPosition`
-			WHERE position = %(role)s
-				AND (end_date IS NULL OR end_date >= CURDATE())
-		)"""
-		values["role"] = filters["role"]
+		ActivePosition = frappe.qb.DocType("Position")
+		role_subquery = (
+			frappe.qb.from_(ActivePosition)
+			.select(ActivePosition.parent)
+			.where(
+				(ActivePosition.position == filters["role"])
+				& (ActivePosition.end_date.isnull() | (ActivePosition.end_date >= today))
+			)
+		)
+		query = query.where(Person.name.isin(role_subquery))
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabPerson`.name, full_name, is_member, membership_status,
-			is_baptized, `tabPerson`.family, `tabFamily`.family_name, birthday,
-			GROUP_CONCAT(DISTINCT `tabPosition Type`.position ORDER BY `tabPosition Type`.position SEPARATOR ', ') as roles
-		FROM `tabPerson`
-		LEFT JOIN `tabFamily` ON `tabFamily`.name = `tabPerson`.family
-		LEFT JOIN `tabPosition` ON `tabPosition`.parent = `tabPerson`.name
-			AND `tabPosition`.parenttype = 'Person'
-			AND (`tabPosition`.end_date IS NULL OR `tabPosition`.end_date >= CURDATE())
-		LEFT JOIN `tabPosition Type` ON `tabPosition Type`.name = `tabPosition`.position
-		WHERE 1=1
-			{conditions}
-		GROUP BY `tabPerson`.name
-		ORDER BY full_name
-		""",
-		values,
-		as_dict=True,
-	)
+	return query.run(as_dict=True)
