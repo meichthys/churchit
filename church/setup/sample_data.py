@@ -145,8 +145,6 @@ def create_sample_data():
 	_create_blog_post(people)
 	_create_help_article()
 
-	frappe.db.commit()
-
 
 def delete_sample_data():
 	"""Execute all deletion steps"""
@@ -163,7 +161,6 @@ def delete_sample_data():
 	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
 
 	_delete_church_manager_user()
-	frappe.db.commit()
 
 
 # ---------------------------------------------------------------------------
