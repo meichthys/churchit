@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Count
 
 from church.utils import set_report_link_titles
 
@@ -21,36 +22,30 @@ def get_columns():
 
 def get_data(filters=None):
 	filters = filters or {}
-	conditions = ""
-	values = {}
+
+	Group = frappe.qb.DocType("Group")
+	GroupMember = frappe.qb.DocType("Group Member")
+
+	query = (
+		frappe.qb.from_(Group)
+		.left_join(GroupMember)
+		.on(GroupMember.parent == Group.name)
+		.select(
+			Group.name,
+			Group.group_name,
+			Group.status,
+			Count(GroupMember.name).as_("members"),
+			Group.description,
+		)
+		.groupby(Group.name)
+		.orderby(Group.group_name)
+	)
 
 	if filters.get("status"):
-		conditions += " AND `tabGroup`.status = %(status)s"
-		values["status"] = filters["status"]
-
+		query = query.where(Group.status == filters["status"])
 	if filters.get("from_date"):
-		conditions += " AND `tabGroup`.creation >= %(from_date)s"
-		values["from_date"] = filters["from_date"]
-
+		query = query.where(Group.creation >= filters["from_date"])
 	if filters.get("to_date"):
-		conditions += " AND `tabGroup`.creation <= %(to_date)s"
-		values["to_date"] = filters["to_date"]
+		query = query.where(Group.creation <= filters["to_date"])
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			`tabGroup`.name,
-			`tabGroup`.group_name,
-			`tabGroup`.status,
-			COUNT(`tabGroup Member`.name) as members,
-			`tabGroup`.description
-		FROM `tabGroup`
-		LEFT JOIN `tabGroup Member` ON `tabGroup Member`.parent = `tabGroup`.name
-		WHERE 1=1
-			{conditions}
-		GROUP BY `tabGroup`.name
-		ORDER BY `tabGroup`.group_name
-		""",
-		values,
-		as_dict=True,
-	)
+	return query.run(as_dict=True)
