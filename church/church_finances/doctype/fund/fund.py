@@ -10,9 +10,6 @@ class Fund(Document):
 		# Ensure balance is always current before saving
 		self.recalculate_balance()
 
-	def on_update(self):
-		self.recalculate_balance()
-
 	def recalculate_balance(self):
 		# Calculate balance from all financial transactions
 		total_balance = 0
