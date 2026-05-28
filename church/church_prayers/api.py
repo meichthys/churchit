@@ -32,5 +32,4 @@ def create_prayer(prayer_request, content=None):
 		}
 	)
 	prayer.insert(ignore_permissions=True)
-	frappe.db.commit()
 	return {"name": prayer.name}
