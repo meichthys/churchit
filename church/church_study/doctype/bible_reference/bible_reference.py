@@ -7,13 +7,7 @@ from frappe.model.document import Document
 
 class BibleReference(Document):
 	def autoname(self):
-		name = self.get_name()
-		if not frappe.db.exists("Bible Reference", self.name):
-			self.name = name
-			return
-		else:
-			if self.name != self.get_name():
-				frappe.rename_doc("Bible Reference", self.name, name)
+		self.name = self.get_name()
 
 	def get_name(self):
 		"""Constructs the document name"""
@@ -30,8 +24,10 @@ class BibleReference(Document):
 			return ref
 
 	def on_update(self):
-		# Rename document when updating
-		self.autoname()
+		# Rename if the source fields (start/end verse, translation) changed.
+		new_name = self.get_name()
+		if self.name != new_name:
+			frappe.rename_doc("Bible Reference", self.name, new_name)
 
 	def validate(self):
 		self.reference = self.compute_reference()
