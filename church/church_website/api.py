@@ -1,5 +1,5 @@
-import os
 import re
+from pathlib import Path
 
 import frappe
 
@@ -52,22 +52,27 @@ def _scan_web_pages(doctype, known_fields, result):
 
 def _scan_www_python(doctype, known_fields, result):
 	"""In any installed app's www/*.py files that mention *doctype*, treat every
-	quoted field name as a published field. Filename = route."""
+	quoted field name as a published field. Filename = route.
+
+	Path inputs (app names from ``frappe.get_installed_apps``; filenames from
+	directory listing) are entirely server-derived — no user input reaches the
+	filesystem call.
+	"""
 	doctype_re = re.compile(rf"""['"]{re.escape(doctype)}['"]""")
 	for app in frappe.get_installed_apps():
-		www_dir = os.path.join(frappe.get_app_path(app), "www")
-		if not os.path.isdir(www_dir):
+		www_dir = Path(frappe.get_app_path(app)) / "www"
+		if not www_dir.is_dir():
 			continue
-		for fname in os.listdir(www_dir):
-			if not fname.endswith(".py") or fname.startswith("__"):
+		for entry in www_dir.glob("*.py"):
+			if entry.name.startswith("__"):
 				continue
-			code = open(os.path.join(www_dir, fname), encoding="utf-8").read()
+			code = entry.read_text(encoding="utf-8")
 			if not doctype_re.search(code):
 				continue
 			used = {f for f in known_fields if re.search(rf"""['"]{re.escape(f)}['"]""", code)}
 			if not used:
 				continue
-			route = os.path.splitext(fname)[0]
+			route = entry.stem
 			source = {"title": route.replace("_", " ").title(), "route": route}
 			for fieldname in used:
 				result.setdefault(fieldname, []).append(source)
