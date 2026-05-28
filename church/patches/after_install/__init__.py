@@ -6,7 +6,7 @@ app is usable out of the box.  Existing sites are not affected (this hook only
 fires on ``bench install-app church``).
 """
 
-import os
+from pathlib import Path
 
 import frappe
 
@@ -67,11 +67,16 @@ def _insert_if_missing(doctype, filters, **fields):
 		frappe.get_doc({"doctype": doctype, **fields}).insert(ignore_permissions=True)
 
 
+_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+
+
 def _read_template(filename):
-	"""Read an HTML template from the templates/ subdirectory next to this file."""
-	templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-	with open(os.path.join(templates_dir, filename)) as f:
-		return f.read()
+	"""Read an HTML template from the templates/ subdirectory next to this file.
+
+	Called only from this module with hardcoded ``template_file`` literals
+	(home.html, beliefs.html, etc.); no caller passes user input.
+	"""
+	return (_TEMPLATES_DIR / filename).read_text()
 
 
 # ---------------------------------------------------------------------------
