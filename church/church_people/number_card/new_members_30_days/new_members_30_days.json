@@ -1,0 +1,23 @@
+{
+ "creation": "2026-05-29 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Life Event",
+ "dynamic_filters_json": "[[\"Life Event\",\"date\",\">=\",\"frappe.datetime.add_days(frappe.datetime.nowdate(), -30)\",false]]",
+ "filters_json": "[[\"Life Event\",\"event_type\",\"=\",\"Membership\",false]]",
+ "function": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "New Members (30 days)",
+ "modified": "2026-06-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "New Members 30 Days",
+ "owner": "Administrator",
+ "parent_document_type": "Person",
+ "report_function": "Sum",
+ "show_percentage_stats": 1,
+ "stats_time_interval": "Monthly",
+ "type": "Document Type"
+}

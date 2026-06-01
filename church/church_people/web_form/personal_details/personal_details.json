@@ -32,11 +32,6 @@
    "label": "Gender"
   },
   {
-   "fieldname": "birthday",
-   "fieldtype": "Date",
-   "label": "Birthday"
-  },
-  {
    "fieldname": "photo",
    "fieldtype": "Attach Image",
    "label": "Photo"
@@ -154,19 +149,6 @@
    "fieldtype": "Attach Image",
    "hidden": 0,
    "label": "Photo",
-   "max_length": 0,
-   "max_value": 0,
-   "precision": "",
-   "read_only": 0,
-   "reqd": 0,
-   "show_in_filter": 0
-  },
-  {
-   "allow_read_on_all_link_options": 0,
-   "fieldname": "birthday",
-   "fieldtype": "Date",
-   "hidden": 0,
-   "label": "Birthday",
    "max_length": 0,
    "max_value": 0,
    "precision": "",

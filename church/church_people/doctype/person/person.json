@@ -14,19 +14,16 @@
   "last_name",
   "full_name",
   "gender",
+  "membership_status",
   "column_break_agva",
   "photo",
-  "birthday",
   "age",
   "alergies",
   "user",
-  "church_records_section",
-  "is_member",
-  "membership_date",
-  "membership_status",
+  "membership_section",
   "column_break_lvwv",
-  "is_baptized",
-  "baptism_date",
+  "life_events_section",
+  "life_events",
   "section_break_osjz",
   "positions",
   "contact_information_tab",
@@ -81,32 +78,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "allow_in_quick_entry": 1,
-   "default": "0",
-   "description": "Is this person a church member?",
-   "fieldname": "is_member",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Is Member"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "default": "Today",
-   "depends_on": "eval:doc.is_member",
-   "description": "When did the person become a member?",
-   "fieldname": "membership_date",
-   "fieldtype": "Date",
-   "label": "Membership Date",
-   "mandatory_depends_on": "eval:doc.is_member"
-  },
-  {
-   "fieldname": "birthday",
-   "fieldtype": "Date",
-   "label": "Birthday"
-  },
-  {
-   "depends_on": "eval:doc.birthday",
+   "description": "Calculated from the Birth event in Life Events.",
    "fieldname": "age",
    "fieldtype": "Int",
    "label": "Age",
@@ -193,9 +165,9 @@
    "print_hide": 1
   },
   {
-   "fieldname": "church_records_section",
+   "fieldname": "membership_section",
    "fieldtype": "Section Break",
-   "label": "Church Records"
+   "label": "Membership"
   },
   {
    "fieldname": "column_break_lvwv",
@@ -203,26 +175,28 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "depends_on": "eval:doc.is_member",
+   "depends_on": "eval:doc.life_events && doc.life_events.some(le => le.event_type == \"Membership\")",
+   "description": "Visible once a Membership life event is added.",
    "fieldname": "membership_status",
    "fieldtype": "Link",
    "in_preview": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Membership Status",
-   "mandatory_depends_on": "eval:doc.is_member",
    "options": "Member Status",
    "search_index": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_baptized",
-   "fieldtype": "Check",
-   "label": "Is Baptized"
+   "fieldname": "life_events_section",
+   "fieldtype": "Section Break",
+   "label": "Life Events",
+   "description": "Birth, baptism, marriage, death, salvation, etc."
   },
   {
-   "depends_on": "eval:doc.is_baptized",
-   "fieldname": "baptism_date",
-   "fieldtype": "Date",
-   "label": "Baptism Date"
+   "fieldname": "life_events",
+   "fieldtype": "Table",
+   "label": "Life Events",
+   "options": "Life Event"
   },
   {
    "fieldname": "positions",
@@ -357,7 +331,19 @@
   {
    "link_doctype": "Group",
    "link_fieldname": "person"
-  }
+  },
+  {
+   "link_doctype": "Visitation Log",
+   "link_fieldname": "person"
+  },
+  {
+   "link_doctype": "Member Transfer",
+   "link_fieldname": "person"
+  },
+  {
+   "link_doctype": "Care Request",
+   "link_fieldname": "person"
+  },
  ],
  "modified": "2026-05-19 17:34:10.542345",
  "modified_by": "Administrator",

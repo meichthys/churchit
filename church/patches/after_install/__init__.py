@@ -51,6 +51,12 @@ def execute():
 	_setup_website_settings()
 	_setup_portal_settings()
 
+	# Visit Type lookups (referenced by Visitation Log)
+	_create_default_visit_types()
+
+	# Life Event Type lookups (referenced by Life Event)
+	_create_default_life_event_types()
+
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
@@ -478,15 +484,16 @@ def _create_dashboard_charts():
 				"doctype": "Dashboard Chart",
 				"chart_name": "Members",
 				"module": "Church People",
-				"document_type": "Person",
-				"based_on": "membership_date",
+				"document_type": "Life Event",
+				"parent_document_type": "Person",
+				"based_on": "date",
 				"type": "Line",
 				"time_interval": "Monthly",
 				"timespan": "Last Year",
 				"timeseries": 1,
 				"is_standard": 0,
 				"show_values_over_chart": 1,
-				"filters_json": '[["Person","is_member","=",1,false]]',
+				"filters_json": '[["Life Event","event_type","=","Membership",false]]',
 				"dynamic_filters_json": "[]",
 			}
 		).insert(ignore_permissions=True)
@@ -737,3 +744,37 @@ def _clean_gender_options():
 	for gender in frappe.db.get_all("Gender"):
 		if gender.name not in ("Male", "Female", "Unknown"):
 			frappe.delete_doc("Gender", gender.name, force=True)
+
+
+def _create_default_visit_types():
+	"""Seed the standard Visit Type lookup values.
+
+	These were previously hardcoded as a Select on Visitation Log; promoted
+	to a Link doctype so churches can add their own types.
+	"""
+	if not frappe.db.exists("DocType", "Visit Type"):
+		return
+	for visit_type in (
+		"First Time Guest",
+		"Hospital",
+		"Homebound",
+		"Bereavement",
+		"Inactive Member",
+		"New Member",
+		"Evangelistic",
+		"Other",
+	):
+		_insert_if_missing("Visit Type", {"type": visit_type}, type=visit_type)
+
+
+def _create_default_life_event_types():
+	"""Seed the standard Life Event Type lookup values.
+
+	A starting set churches can add to (graduation, dedication, etc.) — the
+	six events that every congregation tracks. The Membership row is what
+	makes the membership_status field appear on the Person form.
+	"""
+	if not frappe.db.exists("DocType", "Life Event Type"):
+		return
+	for event_type in ("Birth", "Baptism", "Marriage", "Membership", "Death", "Salvation"):
+		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)

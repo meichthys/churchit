@@ -1,0 +1,142 @@
+{
+ "actions": [],
+ "autoname": "format:VISIT-{####}",
+ "creation": "2026-05-29 00:00:00",
+ "description": "A pastoral visitation record (hospital, home, phone, or care call).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "person",
+  "visit_date",
+  "visited_by",
+  "column_break_1",
+  "visit_type",
+  "duration_minutes",
+  "follow_up_needed",
+  "section_break_1",
+  "notes",
+  "section_break_2",
+  "follow_up_date",
+  "follow_up_assignee"
+ ],
+ "fields": [
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Visit Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "visited_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Visited By",
+   "options": "Person"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Home",
+   "fieldname": "visit_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Visit Type",
+   "options": "Visit Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (Minutes)"
+  },
+  {
+   "default": "0",
+   "fieldname": "follow_up_needed",
+   "fieldtype": "Check",
+   "label": "Follow-Up Needed"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "description": "Confidential \u2014 visible to Church Manager only",
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "depends_on": "follow_up_needed",
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Follow-Up"
+  },
+  {
+   "fieldname": "follow_up_date",
+   "fieldtype": "Date",
+   "label": "Follow-Up Date"
+  },
+  {
+   "fieldname": "follow_up_assignee",
+   "fieldtype": "Link",
+   "label": "Follow-Up Assignee",
+   "options": "Person"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-05-31 20:07:53.953767",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Visitation Log",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "visit_date",
+ "sort_order": "DESC",
+ "states": []
+}

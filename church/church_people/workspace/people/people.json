@@ -38,7 +38,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Documents",
-   "link_count": 8,
+   "link_count": 11,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -114,11 +114,51 @@
    "type": "Link"
   },
   {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Visitation Log",
+   "link_count": 0,
+   "link_to": "Visitation Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Visit Types",
+   "link_count": 0,
+   "link_to": "Visit Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Life Event Types",
+   "link_count": 0,
+   "link_to": "Life Event Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Member Transfers",
+   "link_count": 0,
+   "link_to": "Member Transfer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
    "description": "These are some pre-prepared reports. You can always create your own reports by going to `[Document] Report`, filtering the report, then choosing `save as` in the `...` menu.",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Reports",
-   "link_count": 8,
+   "link_count": 15,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -202,9 +242,79 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Birthdays (This Month)",
+   "link_count": 0,
+   "link_to": "Person Birthdays This Month",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Anniversaries (This Month)",
+   "link_count": 0,
+   "link_to": "Person Anniversaries This Month",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "New Members (Last 90 Days)",
+   "link_count": 0,
+   "link_to": "New Members Last 90 Days",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Inactive Members",
+   "link_count": 0,
+   "link_to": "Inactive Members",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Member Demographics",
+   "link_count": 0,
+   "link_to": "Member Demographics",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Visitor Log (Non-Member)",
+   "link_count": 0,
+   "link_to": "Visitor Log",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Position Roster",
+   "link_count": 0,
+   "link_to": "Position Roster",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-05-19 18:00:09.976268",
+ "modified": "2026-05-31 19:50:13.551200",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

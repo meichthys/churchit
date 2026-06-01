@@ -64,7 +64,7 @@ def get_individual_data(filters):
 		FROM `tabPerson` p
 		LEFT JOIN `tabFamily` f ON f.name = p.family
 		LEFT JOIN `tabAddress` a ON a.name = f.home_address
-		WHERE (NOT %(members_only)s OR p.is_member = 1)
+		WHERE (NOT %(members_only)s OR p.membership_status = 'Active')
 		ORDER BY p.last_name, p.first_name
 		""",
 		{"members_only": members_only},
@@ -94,7 +94,7 @@ def get_data(filters):
 		SELECT p.name, p.full_name, p.family, p.is_head_of_household
 		FROM `tabPerson` p
 		WHERE p.family IS NOT NULL AND p.family != ''
-			AND (NOT %(members_only)s OR p.is_member = 1)
+			AND (NOT %(members_only)s OR p.membership_status = 'Active')
 		""",
 		{"members_only": members_only},
 		as_dict=True,
@@ -186,7 +186,7 @@ def get_directory_html(
 			p.family
 		FROM `tabPerson` p
 		WHERE p.family IS NOT NULL AND p.family != ''
-			AND (NOT %(members_only)s OR p.is_member = 1)
+			AND (NOT %(members_only)s OR p.membership_status = 'Active')
 		ORDER BY p.family, p.is_head_of_household DESC, p.last_name, p.first_name
 		""",
 		{"members_only": members_only},
@@ -274,7 +274,7 @@ def get_directory_html(
 			p.photo
 		FROM `tabPerson` p
 		WHERE (p.family IS NULL OR p.family = '')
-			AND (NOT %(members_only)s OR p.is_member = 1)
+			AND (NOT %(members_only)s OR p.membership_status = 'Active')
 		ORDER BY p.last_name, p.first_name
 		""",
 		{"members_only": members_only},
@@ -371,13 +371,17 @@ def get_directory_html(
 			"""
 			SELECT
 				p.full_name,
-				p.birthday,
-				MONTH(p.birthday) AS birth_month,
-				DAY(p.birthday)   AS birth_day
+				le.date AS birthday,
+				MONTH(le.date) AS birth_month,
+				DAY(le.date)   AS birth_day
 			FROM `tabPerson` p
-			WHERE p.birthday IS NOT NULL
-				AND (NOT %(members_only)s OR p.is_member = 1)
-			ORDER BY MONTH(p.birthday), DAY(p.birthday), p.last_name, p.first_name
+			JOIN `tabLife Event` le
+				ON le.parent = p.name
+				AND le.parenttype = 'Person'
+				AND le.event_type = 'Birth'
+			WHERE le.date IS NOT NULL
+				AND (NOT %(members_only)s OR p.membership_status = 'Active')
+			ORDER BY MONTH(le.date), DAY(le.date), p.last_name, p.first_name
 			""",
 			{"members_only": members_only},
 			as_dict=True,
@@ -407,7 +411,7 @@ def get_directory_html(
 			LEFT JOIN `tabFamily` f ON f.name = p.family
 			WHERE p.anniversary IS NOT NULL
 				AND p.is_married = 1
-				AND (NOT %(members_only)s OR p.is_member = 1)
+				AND (NOT %(members_only)s OR p.membership_status = 'Active')
 			ORDER BY MONTH(p.anniversary), DAY(p.anniversary), p.last_name, p.first_name
 			""",
 			{"members_only": members_only},

@@ -25,7 +25,7 @@ fixtures = [
 		"dt": "Function Attendance Type",
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In"]]],
 	},
-	{"dt": "Workflow", "filters": [["name", "in", ["Alms Request Approval", "Expense Approval"]]]},
+	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
 ]
 # Apps
 # ------------------

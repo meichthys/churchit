@@ -33,6 +33,8 @@ _DELETE_STEPS = [
 	(False, "Function Sign-Up", {}),
 	(False, "Function", {}),
 	(False, "Sign-Up Item", {}),
+	(False, "Visitation Log", {}),
+	(False, "Member Transfer", {}),
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
@@ -115,6 +117,8 @@ def create_sample_data():
 	_create_budget(expense_types)
 
 	_create_prayer_requests(people)
+	_create_member_transfers(people)
+	_create_visitations(people)
 	_create_alms_requests(people)
 
 	sign_up_items = _create_sign_up_items()
@@ -491,6 +495,15 @@ def _create_people(position_refs):
 			photo = f"https://randomuser.me/api/portraits/{bucket}/{idx}.jpg"
 			gender_counts[gender] += 1
 
+		# Build the life_events child table from the legacy tuple shape.
+		life_events = []
+		if birthday:
+			life_events.append({"event_type": "Birth", "date": birthday})
+		if is_baptized and bap_date:
+			life_events.append({"event_type": "Baptism", "date": bap_date})
+		if is_member and mem_date:
+			life_events.append({"event_type": "Membership", "date": mem_date})
+
 		doc = frappe.get_doc(
 			{
 				"doctype": "Person",
@@ -498,16 +511,12 @@ def _create_people(position_refs):
 				"last_name": last,
 				"gender": gender,
 				"photo": photo,
-				"is_member": is_member,
-				"membership_date": mem_date,
 				"membership_status": active_status if is_member else None,
-				"is_baptized": is_baptized,
-				"baptism_date": bap_date,
-				"birthday": birthday,
 				"primary_phone": phone,
 				"email": email,
 				"alergies": allergies,
 				"positions": resolved_positions,
+				"life_events": life_events,
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -1208,6 +1217,125 @@ def _create_prayer_requests(people):
 			continue
 		doc = frappe.get_doc({"doctype": "Prayer Request", **req})
 		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Visitation Logs
+# ---------------------------------------------------------------------------
+
+
+def _create_visitations(people):
+	"""Create sample visitation log records for pastoral-care demo."""
+	if not frappe.db.exists("DocType", "Visitation Log"):
+		return
+	if not frappe.db.exists("DocType", "Visit Type"):
+		return
+
+	visits = [
+		{
+			"person": people["James Wilson"],
+			"visited_by": people["Robert Johnson"],
+			"visit_date": _near_date(-3),
+			"visit_type": "Hospital",
+			"duration_minutes": 45,
+			"follow_up_needed": 1,
+			"follow_up_date": _near_date(4),
+			"follow_up_assignee": people["Robert Johnson"],
+			"notes": "Visited Pastor Wilson at St. Luke's after knee surgery. Spirits good but managing pain. Prayed together. Family present and supportive. Surgeon expects 6 week recovery.",
+		},
+		{
+			"person": people["Mary Johnson"],
+			"visited_by": people["Sarah Wilson"],
+			"visit_date": _near_date(-7),
+			"visit_type": "Home",
+			"duration_minutes": 60,
+			"follow_up_needed": 0,
+			"notes": "Stopped by to congratulate Mary on her grandson's birth. Shared cookies and coffee. Mary radiant with joy — wanted to share photos. No prayer concerns at this time.",
+		},
+		{
+			"person": people["Lisa Thompson"],
+			"visited_by": people["Martha Evans"],
+			"visit_date": _near_date(-1),
+			"visit_type": "Phone",
+			"duration_minutes": 20,
+			"follow_up_needed": 1,
+			"follow_up_date": _near_date(7),
+			"follow_up_assignee": people["Martha Evans"],
+			"notes": "Called Lisa about upcoming medical tests next week. Anxious but trusting. Prayed with her over the phone. Will check in after results come back.",
+		},
+		{
+			"person": people["Samuel Brooks"],
+			"visited_by": people["Rachel Cooper"],
+			"visit_date": _near_date(-10),
+			"visit_type": "Care Call",
+			"duration_minutes": 30,
+			"follow_up_needed": 1,
+			"follow_up_date": _near_date(-2),
+			"follow_up_assignee": people["Rachel Cooper"],
+			"notes": "First-time follow-up call. Samuel has been attending for a month. Asked about his background, family, and questions about the church. Open to learning more. Invited him to coffee next week.",
+		},
+		{
+			"person": people["Martha Evans"],
+			"visited_by": people["Sarah Wilson"],
+			"visit_date": _near_date(-14),
+			"visit_type": "Bereavement",
+			"duration_minutes": 90,
+			"follow_up_needed": 1,
+			"follow_up_date": _near_date(0),
+			"follow_up_assignee": people["Sarah Wilson"],
+			"notes": "Visit following Martha's sister's passing last week. Long conversation, much grief but anchored in hope. Brought casserole. Family gathering for memorial next month. Will continue to check in weekly for the next several weeks.",
+		},
+	]
+
+	for visit in visits:
+		existing = frappe.db.exists(
+			"Visitation Log",
+			{
+				"person": visit["person"],
+				"visit_date": visit["visit_date"],
+				"visit_type": visit["visit_type"],
+			},
+		)
+		if existing:
+			continue
+		doc = frappe.get_doc({"doctype": "Visitation Log", **visit})
+		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Member Transfers
+# ---------------------------------------------------------------------------
+
+
+def _create_member_transfers(people):
+	"""Create two sample member transfers: one in, one out."""
+	pastor = people.get("James Wilson")
+	transfers = [
+		{
+			"person": people.get("Martha Evans"),
+			"direction": "In",
+			"letter_date": _near_date(-120),
+			"other_church": "Grace Baptist Church",
+			"approved_by": pastor,
+			"status": "Confirmed",
+			"notes": "Transferred in from Grace Baptist Church. Letter received and confirmed.",
+		},
+		{
+			"person": people.get("Thomas Reed"),
+			"direction": "Out",
+			"letter_date": _near_date(-45),
+			"other_church": "First Community Church",
+			"approved_by": pastor,
+			"status": "Letter Issued",
+			"notes": "Family relocating out of state. Letter of transfer issued.",
+		},
+	]
+	for transfer in transfers:
+		if not transfer["person"]:
+			continue
+		if frappe.db.exists("Member Transfer", {"person": transfer["person"], "direction": transfer["direction"]}):
+			continue
+		frappe.get_doc({"doctype": "Member Transfer", **transfer}).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

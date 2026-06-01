@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"comm_docs\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":6}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":6}}]",
  "creation": "2025-10-03 23:10:33.370229",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,6 +13,45 @@
  "is_hidden": 0,
  "label": "Communications",
  "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Communications Documents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Announcements",
+   "link_count": 0,
+   "link_to": "Announcement",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Newsletter Subscribers",
+   "link_count": 0,
+   "link_to": "Newsletter Subscriber",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Letters",
+   "link_count": 0,
+   "link_to": "Letter",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
   {
    "hidden": 0,
    "is_query_report": 0,
