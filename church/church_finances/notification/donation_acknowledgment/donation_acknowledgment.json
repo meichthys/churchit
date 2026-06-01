@@ -1,28 +1,27 @@
 {
  "attach_print": 0,
  "channel": "Email",
- "condition": "doc.person and frappe.db.get_value(\"Person\", doc.person, \"email\")",
- "creation": "2026-05-29 00:00:00.000000",
+ "condition": "doc.donations",
+ "creation": "2026-06-01 00:00:00.000000",
  "days_in_advance": 0,
  "docstatus": 0,
  "doctype": "Notification",
- "document_type": "Donation",
- "enabled": 1,
- "event": "New",
+ "document_type": "Collection",
+ "enabled": 0,
+ "event": "Submit",
  "is_standard": 1,
- "message": "<p>Dear {{ frappe.db.get_value(\"Person\", doc.person, \"first_name\") }},</p>\n\n<p>Thank you for your gift of <strong>{{ frappe.utils.fmt_money(doc.amount) }}</strong> to the {{ doc.fund }}. Your generosity is a blessing to the ministry of our church.</p>\n\n<p>A formal receipt is attached for your records.</p>\n\n<p>With gratitude,<br>The Treasury Team</p>",
- "modified": "2026-05-29 00:00:00.000000",
+ "message": "<p>Dear Friend,</p>\n\n<p>Thank you for your generous gift to {{ frappe.db.get_value(\"Church\", {\"parent_church\": [\"is\", \"not set\"]}, \"church_name\") or \"our church\" }}. Your faithfulness is a blessing to the ministry and mission of our congregation.</p>\n\n<p>This message confirms that your contribution has been received and recorded. If you would like a detailed giving statement for your records, please contact the church office.</p>\n\n<p><em>\"Each one must give as he has decided in his heart, not reluctantly or under compulsion, for God loves a cheerful giver.\"</em> &mdash; 2 Corinthians 9:7</p>\n\n<p>With gratitude,<br>The Treasury Team</p>",
+ "modified": "2026-06-01 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donation Acknowledgment",
  "owner": "Administrator",
- "print_format": "",
  "recipients": [
   {
-   "receiver_by_document_field": "person.email"
+   "receiver_by_document_field": "person_email,donations"
   }
  ],
  "send_system_notification": 0,
  "send_to_all_assignees": 0,
- "subject": "Receipt for your gift to {{ doc.fund }}"
+ "subject": "Thank you for your gift to {{ frappe.db.get_value(\"Church\", {\"parent_church\": [\"is\", \"not set\"]}, \"church_name\") or \"our church\" }}"
 }

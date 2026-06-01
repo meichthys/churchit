@@ -1,0 +1,32 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.follow_up_needed",
+ "creation": "2026-05-29 00:00:00",
+ "date_changed": "follow_up_date",
+ "days_in_advance": 1,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Visitation Log",
+ "enabled": 0,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>A visitation follow-up is due tomorrow:</p>\n\n<ul>\n  <li><strong>Person:</strong> {{ doc.person }}</li>\n  <li><strong>Original Visit:</strong> {{ frappe.utils.formatdate(doc.visit_date) }} ({{ doc.visit_type }})</li>\n  <li><strong>Follow-Up Date:</strong> {{ frappe.utils.formatdate(doc.follow_up_date) }}</li>\n</ul>\n\n<p><strong>Original Notes:</strong></p>\n<p>{{ doc.notes }}</p>",
+ "modified": "2026-05-31 21:12:11.372280",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Visitation Follow-Up Due",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "follow_up_assignee"
+  },
+  {
+   "receiver_by_role": "Church Manager"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "Visitation follow-up due tomorrow: {{ doc.person }}"
+}

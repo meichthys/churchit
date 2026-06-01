@@ -13,6 +13,7 @@
   "check_number",
   "fund",
   "person",
+  "person_email",
   "notes"
  ],
  "fields": [
@@ -48,6 +49,16 @@
    "label": "Person",
    "mandatory_depends_on": "eval:doc.payment_type==\"Check\"",
    "options": "Person"
+  },
+  {
+   "fetch_from": "person.email",
+   "fieldname": "person_email",
+   "fieldtype": "Data",
+   "label": "Person Email",
+   "options": "Email",
+   "read_only": 1,
+   "print_hide": 1,
+   "no_copy": 1
   },
   {
    "fieldname": "notes",

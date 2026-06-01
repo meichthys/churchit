@@ -57,6 +57,12 @@ def execute():
 	# Life Event Type lookups (referenced by Life Event)
 	_create_default_life_event_types()
 
+	# Counseling Case Type lookups (referenced by Counseling Case)
+	_create_default_case_types()
+
+	# Care Request Type lookups (referenced by Care Request)
+	_create_default_care_request_types()
+
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
@@ -778,3 +784,36 @@ def _create_default_life_event_types():
 		return
 	for event_type in ("Birth", "Baptism", "Marriage", "Membership", "Death", "Salvation"):
 		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
+
+
+def _create_default_case_types():
+	"""Seed the standard Case Type lookup values.
+
+	Previously hardcoded as a Select on Counseling Case; promoted to a Link
+	doctype so churches can add their own.
+	"""
+	if not frappe.db.exists("DocType", "Case Type"):
+		return
+	for case_type in ("Marriage", "Premarital", "Grief", "Financial", "Spiritual", "Family", "Other"):
+		_insert_if_missing("Case Type", {"type": case_type}, type=case_type)
+
+
+def _create_default_care_request_types():
+	"""Seed the standard Care Request Type lookup values.
+
+	Previously hardcoded as a Select on Care Request; promoted to a Link
+	doctype so churches can add their own.
+	"""
+	if not frappe.db.exists("DocType", "Care Request Type"):
+		return
+	for care_type in (
+		"General Need",
+		"Meal Help",
+		"Hospital",
+		"Grief",
+		"Financial",
+		"Spiritual",
+		"Counseling",
+		"Other",
+	):
+		_insert_if_missing("Care Request Type", {"type": care_type}, type=care_type)

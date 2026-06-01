@@ -1,347 +1,411 @@
 {
- "charts": [
-  {
-   "chart_name": "People",
-   "label": "People"
-  },
-  {
-   "chart_name": "Members",
-   "label": "New Members"
-  }
- ],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":3}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":3}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":3}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":3}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
- "creation": "2025-09-14 22:26:02.319281",
- "custom_blocks": [],
- "docstatus": 0,
- "doctype": "Workspace",
- "for_user": "",
- "hide_custom": 0,
- "icon": "share",
- "idx": 0,
- "indicator_color": "",
- "is_hidden": 0,
- "label": "People",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Church Directory",
-   "link_count": 0,
-   "link_to": "Church Directory Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Family",
-   "type": "Link"
-  },
-  {
-   "description": "Click on shortcuts below to see full lists.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Person Documents",
-   "link_count": 11,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "People",
-   "link_count": 0,
-   "link_to": "Person",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Families",
-   "link_count": 0,
-   "link_to": "Family",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Groups",
-   "link_count": 0,
-   "link_to": "Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Group Roles",
-   "link_count": 0,
-   "link_to": "Group Role",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Relation Types",
-   "link_count": 0,
-   "link_to": "Person Relation Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Member Status Types",
-   "link_count": 0,
-   "link_to": "Member Status",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Position Types",
-   "link_count": 0,
-   "link_to": "Position Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Visitation Log",
-   "link_count": 0,
-   "link_to": "Visitation Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Visit Types",
-   "link_count": 0,
-   "link_to": "Visit Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Life Event Types",
-   "link_count": 0,
-   "link_to": "Life Event Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Member Transfers",
-   "link_count": 0,
-   "link_to": "Member Transfer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "description": "These are some pre-prepared reports. You can always create your own reports by going to `[Document] Report`, filtering the report, then choosing `save as` in the `...` menu.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Person Reports",
-   "link_count": 15,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "People",
-   "link_count": 0,
-   "link_to": "People",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Current Positions",
-   "link_count": 0,
-   "link_to": "Current Person Positions",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Birthdays (This Week)",
-   "link_count": 0,
-   "link_to": "Person Birthdays This Week",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Positions Ending This Month",
-   "link_count": 0,
-   "link_to": "Person Positions Ending This Month",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters",
-   "link_count": 0,
-   "link_to": "Person Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters Not Yet Read",
-   "link_count": 0,
-   "link_to": "People Letters Not Yet Read",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Church Directory",
-   "link_count": 0,
-   "link_to": "Church Directory Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Groups",
-   "link_count": 0,
-   "link_to": "Groups",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Birthdays (This Month)",
-   "link_count": 0,
-   "link_to": "Person Birthdays This Month",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Anniversaries (This Month)",
-   "link_count": 0,
-   "link_to": "Person Anniversaries This Month",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "New Members (Last 90 Days)",
-   "link_count": 0,
-   "link_to": "New Members Last 90 Days",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Inactive Members",
-   "link_count": 0,
-   "link_to": "Inactive Members",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Member Demographics",
-   "link_count": 0,
-   "link_to": "Member Demographics",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Visitor Log (Non-Member)",
-   "link_count": 0,
-   "link_to": "Visitor Log",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Position Roster",
-   "link_count": 0,
-   "link_to": "Position Roster",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-05-31 19:50:13.551200",
- "modified_by": "Administrator",
- "module": "Church People",
- "name": "People",
- "number_cards": [
-  {
-   "label": "People",
-   "number_card_name": "Persons"
-  },
-  {
-   "label": "Groups",
-   "number_card_name": "Groups"
-  },
-  {
-   "label": "Members",
-   "number_card_name": "Members"
-  },
-  {
-   "label": "Families",
-   "number_card_name": "Families"
-  }
- ],
- "owner": "Administrator",
- "parent_page": "",
- "public": 1,
- "quick_lists": [],
- "roles": [],
- "sequence_id": 15.0,
- "shortcuts": [],
- "title": "People"
+  "charts": [
+    {
+      "chart_name": "People",
+      "label": "People"
+    },
+    {
+      "chart_name": "Members",
+      "label": "New Members"
+    }
+  ],
+  "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":3}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":3}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":3}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":3}},{\"id\":\"visweek01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitations This Week\",\"col\":3}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
+  "creation": "2025-09-14 22:26:02.319281",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "share",
+  "idx": 0,
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "People",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Church Directory",
+      "link_count": 0,
+      "link_to": "Church Directory Report",
+      "link_type": "Report",
+      "onboard": 0,
+      "report_ref_doctype": "Family",
+      "type": "Link"
+    },
+    {
+      "description": "Click on shortcuts below to see full lists.",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Person Documents",
+      "link_count": 16,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "People",
+      "link_count": 0,
+      "link_to": "Person",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Families",
+      "link_count": 0,
+      "link_to": "Family",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Groups",
+      "link_count": 0,
+      "link_to": "Group",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Group Roles",
+      "link_count": 0,
+      "link_to": "Group Role",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Relation Types",
+      "link_count": 0,
+      "link_to": "Person Relation Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Member Status Types",
+      "link_count": 0,
+      "link_to": "Member Status",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Position Types",
+      "link_count": 0,
+      "link_to": "Position Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Visitation Log",
+      "link_count": 0,
+      "link_to": "Visitation Log",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Visit Types",
+      "link_count": 0,
+      "link_to": "Visit Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Life Event Types",
+      "link_count": 0,
+      "link_to": "Life Event Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Member Transfers",
+      "link_count": 0,
+      "link_to": "Member Transfer",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Counseling Cases",
+      "link_count": 0,
+      "link_to": "Counseling Case",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Case Types",
+      "link_count": 0,
+      "link_to": "Case Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Care Assignments",
+      "link_count": 0,
+      "link_to": "Care Assignment",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Care Requests",
+      "link_count": 0,
+      "link_to": "Care Request",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Care Request Types",
+      "link_count": 0,
+      "link_to": "Care Request Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "description": "These are some pre-prepared reports. You can always create your own reports by going to `[Document] Report`, filtering the report, then choosing `save as` in the `...` menu.",
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Person Reports",
+      "link_count": 15,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "People",
+      "link_count": 0,
+      "link_to": "People",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Current Positions",
+      "link_count": 0,
+      "link_to": "Current Person Positions",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Birthdays (This Week)",
+      "link_count": 0,
+      "link_to": "Person Birthdays This Week",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Positions Ending This Month",
+      "link_count": 0,
+      "link_to": "Person Positions Ending This Month",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Person Letters",
+      "link_count": 0,
+      "link_to": "Person Letters",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Person Letters Not Yet Read",
+      "link_count": 0,
+      "link_to": "People Letters Not Yet Read",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Church Directory",
+      "link_count": 0,
+      "link_to": "Church Directory Report",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Groups",
+      "link_count": 0,
+      "link_to": "Groups",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Birthdays (This Month)",
+      "link_count": 0,
+      "link_to": "Person Birthdays This Month",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Anniversaries (This Month)",
+      "link_count": 0,
+      "link_to": "Person Anniversaries This Month",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "New Members (Last 90 Days)",
+      "link_count": 0,
+      "link_to": "New Members Last 90 Days",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Inactive Members",
+      "link_count": 0,
+      "link_to": "Inactive Members",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Member Demographics",
+      "link_count": 0,
+      "link_to": "Member Demographics",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Visitor Log (Non-Member)",
+      "link_count": 0,
+      "link_to": "Visitor Log",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Position Roster",
+      "link_count": 0,
+      "link_to": "Position Roster",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Pastoral Care Watch List",
+      "link_count": 0,
+      "link_to": "Pastoral Care Watch List",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-05-31 19:50:13.551200",
+  "modified_by": "Administrator",
+  "module": "Church People",
+  "name": "People",
+  "number_cards": [
+    {
+      "label": "People",
+      "number_card_name": "Persons"
+    },
+    {
+      "label": "Groups",
+      "number_card_name": "Groups"
+    },
+    {
+      "label": "Members",
+      "number_card_name": "Members"
+    },
+    {
+      "label": "Families",
+      "number_card_name": "Families"
+    },
+    {
+      "label": "Visitations This Week",
+      "number_card_name": "Visitations This Week"
+    }
+  ],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "roles": [],
+  "sequence_id": 15.0,
+  "shortcuts": [],
+  "title": "People"
 }

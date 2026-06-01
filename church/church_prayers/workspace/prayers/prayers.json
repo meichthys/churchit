@@ -90,6 +90,16 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Active Prayer List",
+   "link_count": 0,
+   "link_to": "Active Prayer List",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
  "modified": "2026-04-15 17:06:38.433934",

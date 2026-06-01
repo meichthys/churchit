@@ -35,6 +35,9 @@ _DELETE_STEPS = [
 	(False, "Sign-Up Item", {}),
 	(False, "Visitation Log", {}),
 	(False, "Member Transfer", {}),
+	(False, "Counseling Case", {}),
+	(False, "Care Request", {}),
+	(False, "Care Assignment", {}),
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
@@ -119,6 +122,9 @@ def create_sample_data():
 	_create_prayer_requests(people)
 	_create_member_transfers(people)
 	_create_visitations(people)
+	_create_care_assignments(people)
+	_create_care_requests(people)
+	_create_counseling_cases(people)
 	_create_alms_requests(people)
 
 	sign_up_items = _create_sign_up_items()
@@ -1247,7 +1253,7 @@ def _create_visitations(people):
 			"person": people["Mary Johnson"],
 			"visited_by": people["Sarah Wilson"],
 			"visit_date": _near_date(-7),
-			"visit_type": "Home",
+			"visit_type": "Homebound",
 			"duration_minutes": 60,
 			"follow_up_needed": 0,
 			"notes": "Stopped by to congratulate Mary on her grandson's birth. Shared cookies and coffee. Mary radiant with joy — wanted to share photos. No prayer concerns at this time.",
@@ -1256,7 +1262,7 @@ def _create_visitations(people):
 			"person": people["Lisa Thompson"],
 			"visited_by": people["Martha Evans"],
 			"visit_date": _near_date(-1),
-			"visit_type": "Phone",
+			"visit_type": "Inactive Member",
 			"duration_minutes": 20,
 			"follow_up_needed": 1,
 			"follow_up_date": _near_date(7),
@@ -1267,7 +1273,7 @@ def _create_visitations(people):
 			"person": people["Samuel Brooks"],
 			"visited_by": people["Rachel Cooper"],
 			"visit_date": _near_date(-10),
-			"visit_type": "Care Call",
+			"visit_type": "First Time Guest",
 			"duration_minutes": 30,
 			"follow_up_needed": 1,
 			"follow_up_date": _near_date(-2),
@@ -1300,6 +1306,184 @@ def _create_visitations(people):
 			continue
 		doc = frappe.get_doc({"doctype": "Visitation Log", **visit})
 		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Care Assignments
+# ---------------------------------------------------------------------------
+
+
+def _create_care_assignments(people):
+	"""Map a few members to their care-team deacon."""
+	if not frappe.db.exists("DocType", "Care Assignment"):
+		return
+
+	assignments = [
+		{
+			"person": people["Samuel Brooks"],
+			"deacon": people["Robert Johnson"],
+			"start_date": _near_date(-180),
+			"notes": "New attendee — assigned for follow-up and integration.",
+		},
+		{
+			"person": people["Lisa Thompson"],
+			"deacon": people["Robert Johnson"],
+			"start_date": _near_date(-90),
+			"notes": "Ongoing health concerns; regular check-ins.",
+		},
+		{
+			"person": people["Michael Grant"],
+			"deacon": people["David Thompson"],
+			"start_date": _near_date(-365),
+			"end_date": _near_date(-30),
+			"notes": "Care season concluded — doing well.",
+		},
+	]
+
+	for assignment in assignments:
+		if frappe.db.exists("Care Assignment", {"person": assignment["person"], "deacon": assignment["deacon"]}):
+			continue
+		frappe.get_doc({"doctype": "Care Assignment", **assignment}).insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Care Requests
+# ---------------------------------------------------------------------------
+
+
+def _create_care_requests(people):
+	"""Create sample 'need help' care requests."""
+	if not frappe.db.exists("DocType", "Care Request"):
+		return
+
+	requests = [
+		{
+			"person": people["Samuel Brooks"],
+			"submitted_on": _near_date(-5),
+			"category": "Meal Help",
+			"urgency": "Medium",
+			"status": "Triaged",
+			"description": "Recovering from minor surgery and could use a few meals this week.",
+			"preferred_contact": "Phone",
+		},
+		{
+			"person": people["Lisa Thompson"],
+			"submitted_on": _near_date(-2),
+			"category": "Hospital",
+			"urgency": "High",
+			"status": "In Progress",
+			"description": "Admitted for tests; would appreciate a pastoral visit.",
+			"preferred_contact": "In Person",
+		},
+		{
+			"person": people["Elizabeth Harper"],
+			"submitted_on": _near_date(-1),
+			"category": "Financial",
+			"urgency": "Urgent",
+			"status": "Requested",
+			"description": "Behind on rent after a job loss. Requesting benevolence assistance.",
+			"preferred_contact": "Email",
+		},
+		{
+			"person": people["Michael Grant"],
+			"submitted_on": _near_date(-20),
+			"category": "Grief",
+			"urgency": "Medium",
+			"status": "Resolved",
+			"description": "Needed someone to talk to after a loss in the family.",
+			"preferred_contact": "Phone",
+			"resolution_notes": "Met twice and connected with the grief support group. Doing better.",
+		},
+	]
+
+	for request in requests:
+		if frappe.db.exists(
+			"Care Request", {"person": request["person"], "submitted_on": request["submitted_on"]}
+		):
+			continue
+		frappe.get_doc({"doctype": "Care Request", **request}).insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Counseling Cases
+# ---------------------------------------------------------------------------
+
+
+def _create_counseling_cases(people):
+	"""Create sample confidential counseling cases with sessions."""
+	if not frappe.db.exists("DocType", "Counseling Case"):
+		return
+
+	cases = [
+		{
+			"person": people["Robert Johnson"],
+			"counselor": people["James Wilson"],
+			"start_date": _near_date(-60),
+			"status": "Active",
+			"case_type": "Marriage",
+			"summary": "Marriage enrichment and communication.",
+			"sessions": [
+				{
+					"session_date": _near_date(-60),
+					"counselor": people["James Wilson"],
+					"duration_minutes": 60,
+					"notes": "Intake session. Discussed goals and communication patterns.",
+				},
+				{
+					"session_date": _near_date(-30),
+					"counselor": people["James Wilson"],
+					"duration_minutes": 50,
+					"notes": "Reviewed homework; good progress on active listening.",
+				},
+			],
+		},
+		{
+			"person": people["Michael Grant"],
+			"counselor": people["Robert Johnson"],
+			"start_date": _near_date(-25),
+			"status": "Active",
+			"case_type": "Grief",
+			"summary": "Grief support following a family loss.",
+			"sessions": [
+				{
+					"session_date": _near_date(-25),
+					"counselor": people["Robert Johnson"],
+					"duration_minutes": 45,
+					"notes": "First session. Created space to share and pray together.",
+				},
+			],
+		},
+		{
+			"person": people["Elizabeth Harper"],
+			"counselor": people["James Wilson"],
+			"start_date": _near_date(-200),
+			"status": "Closed",
+			"case_type": "Financial",
+			"end_date": _near_date(-120),
+			"summary": "Stewardship and budgeting guidance.",
+			"sessions": [
+				{
+					"session_date": _near_date(-200),
+					"counselor": people["James Wilson"],
+					"duration_minutes": 60,
+					"notes": "Built a household budget and a debt-reduction plan.",
+				},
+				{
+					"session_date": _near_date(-150),
+					"counselor": people["James Wilson"],
+					"duration_minutes": 40,
+					"notes": "Follow-up; on track. Closed case with encouragement.",
+				},
+			],
+		},
+	]
+
+	for case in cases:
+		if frappe.db.exists(
+			"Counseling Case", {"person": case["person"], "start_date": case["start_date"]}
+		):
+			continue
+		frappe.get_doc({"doctype": "Counseling Case", **case}).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
