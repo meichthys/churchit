@@ -1,0 +1,13 @@
+{
+ "creation": "2026-06-01 00:00:00",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-06-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Giving by Fund",
+ "owner": "Administrator",
+ "source_name": "Giving by Fund",
+ "timeseries": 0
+}

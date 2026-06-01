@@ -1,0 +1,40 @@
+{
+  "chart_name": "Budget Summary",
+  "chart_type": "Report",
+  "creation": "2026-05-31 18:07:05.966098",
+  "currency": "USD",
+  "custom_options": "{\"x_field\": \"expense_type\", \"chart_type\": \"Bar\", \"y_axis_fields\": [{\"idx\": 1, \"__islocal\": true, \"y_field\": \"budgeted\", \"name\": \"row 1\"}, {\"idx\": 2, \"__islocal\": true, \"y_field\": \"expected_to_date\", \"name\": \"row 2\"}, {\"idx\": 3, \"__islocal\": true, \"y_field\": \"actual\", \"name\": \"row 3\"}], \"y_fields\": [\"budgeted\", \"expected_to_date\", \"actual\"], \"colors\": [null, null, null]}",
+  "docstatus": 0,
+  "doctype": "Dashboard Chart",
+  "filters_json": "{}",
+  "group_by_type": "Count",
+  "idx": 0,
+  "is_public": 1,
+  "is_standard": 1,
+  "modified": "2026-05-31 18:07:45.833691",
+  "modified_by": "Administrator",
+  "module": "Church Finances",
+  "name": "Budget Summary",
+  "number_of_groups": 0,
+  "owner": "Administrator",
+  "report_name": "Budget vs Actual",
+  "roles": [],
+  "show_values_over_chart": 0,
+  "time_interval": "Yearly",
+  "timeseries": 0,
+  "timespan": "Last Year",
+  "type": "Bar",
+  "use_report_chart": 0,
+  "x_field": "expense_type",
+  "y_axis": [
+    {
+      "y_field": "budgeted"
+    },
+    {
+      "y_field": "expected_to_date"
+    },
+    {
+      "y_field": "actual"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "creation": "2026-06-01 00:00:00",
+ "description": "An budgeted amount for a given expense type",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "expense_type",
+  "budgeted_amount",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "expense_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Expense Type",
+   "options": "Expense Type",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "budgeted_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Budgeted Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Data",
+   "label": "Notes"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-31 17:15:33.143907",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Budget Line",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

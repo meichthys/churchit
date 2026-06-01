@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.person and frappe.db.get_value(\"Person\", doc.person, \"email\")",
+ "creation": "2026-05-29 00:00:00.000000",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Donation",
+ "enabled": 1,
+ "event": "New",
+ "is_standard": 1,
+ "message": "<p>Dear {{ frappe.db.get_value(\"Person\", doc.person, \"first_name\") }},</p>\n\n<p>Thank you for your gift of <strong>{{ frappe.utils.fmt_money(doc.amount) }}</strong> to the {{ doc.fund }}. Your generosity is a blessing to the ministry of our church.</p>\n\n<p>A formal receipt is attached for your records.</p>\n\n<p>With gratitude,<br>The Treasury Team</p>",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Donation Acknowledgment",
+ "owner": "Administrator",
+ "print_format": "",
+ "recipients": [
+  {
+   "receiver_by_document_field": "person.email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Receipt for your gift to {{ doc.fund }}"
+}

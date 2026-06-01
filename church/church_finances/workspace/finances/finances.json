@@ -1,19 +1,23 @@
 {
  "charts": [
   {
-   "chart_name": "Collections Sum",
-   "label": "Collections"
-  },
-  {
    "chart_name": "Fund Balances",
    "label": "Fund Balances"
   },
   {
+   "chart_name": "Budget Summary",
+   "label": "Budget Summary"
+  },
+  {
    "chart_name": "Expenses Over Time",
    "label": "Expenses"
+  },
+  {
+   "chart_name": "Giving by Fund",
+   "label": "Giving by Fund"
   }
  ],
- "content": "[{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and \\ncount the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"nc01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collections\",\"col\":4}},{\"id\":\"nc02\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses\",\"col\":4}},{\"id\":\"nc03\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"sp01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"MmG7zVkZbr\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Collections\",\"col\":6}},{\"id\":\"ch02\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Expenses\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"jKo5dVGIjS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Balances\",\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"qn8J4udcIZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}},{\"id\":\"GhZ9fljXbs\",\"type\":\"card\",\"data\":{\"card_name\":\"Fund Reports\",\"col\":4}},{\"id\":\"xvoDAICiJN\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"l_H4g7YzJQ\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and count the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"nc01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collections\",\"col\":3}},{\"id\":\"nc02\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses\",\"col\":3}},{\"id\":\"nc03\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Alms Requests\",\"col\":3}},{\"id\":\"3RDswhPDV_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Last 7-Day Collections\",\"col\":3}},{\"id\":\"sp01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch02\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving by Fund\",\"col\":6}},{\"id\":\"ch03\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Expenses\",\"col\":6}},{\"id\":\"WmFCfAUdWf\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Budget Summary\",\"col\":12}},{\"id\":\"p1iebhjysw\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Budget Overview\",\"col\":12}},{\"id\":\"sp02\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch04\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Balances\",\"col\":12}},{\"id\":\"sp03\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yscGDkihb9\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"al01\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"bg01\",\"type\":\"card\",\"data\":{\"card_name\":\"Budgets\",\"col\":4}},{\"id\":\"sp04\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iavQ4D6r7w\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"L903_mCFqf\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}}]",
  "creation": "2025-09-14 22:29:59.428671",
  "custom_blocks": [],
  "docstatus": 0,
@@ -26,47 +30,6 @@
  "is_hidden": 0,
  "label": "Finances",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Collection Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Donations",
-   "link_count": 0,
-   "link_to": "Donations",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Collection",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Collection Bank Reconciliation",
-   "link_count": 0,
-   "link_to": "Collection Bank Reconciliation",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Donations Totals by Person (This Year)",
-   "link_count": 0,
-   "link_to": "Donations by Person",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Collection",
-   "type": "Link"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -94,45 +57,6 @@
    "link_to": "Fund Transfer",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Fund Reports",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Fund Balances",
-   "link_count": 0,
-   "link_to": "Fund Balances",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Expense Reports",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Expenses",
-   "link_count": 0,
-   "link_to": "Expenses",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Expense",
    "type": "Link"
   },
   {
@@ -168,7 +92,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Expenses",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -196,6 +120,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Vendors",
+   "link_count": 0,
+   "link_to": "Vendor",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Alms",
    "link_count": 1,
    "link_type": "DocType",
@@ -211,9 +145,126 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Budgets",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Budgets",
+   "link_count": 0,
+   "link_to": "Budget",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Collection Reports",
+   "link_count": 6,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Donations",
+   "link_count": 0,
+   "link_to": "Donations",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Collection Bank Reconciliation",
+   "link_count": 0,
+   "link_to": "Collection Bank Reconciliation",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Donations Totals by Person",
+   "link_count": 0,
+   "link_to": "Donations by Person",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "First-Time Givers",
+   "link_count": 0,
+   "link_to": "First-Time Givers",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "YTD Giving by Person",
+   "link_count": 0,
+   "link_to": "YTD Giving by Person",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Income Statement",
+   "link_count": 0,
+   "link_to": "Income Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Expense Reports",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Expenses",
+   "link_count": 0,
+   "link_to": "Expenses",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Budget vs Actual",
+   "link_count": 0,
+   "link_to": "Budget vs Actual",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-24 17:18:50.149373",
+ "modified": "2026-05-31 18:10:27.909950",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",
@@ -221,6 +272,10 @@
   {
    "label": "Total Collections",
    "number_card_name": "Total Collections"
+  },
+  {
+   "label": "Last 7-Day Collections",
+   "number_card_name": "Last 7-Day Collections"
   },
   {
    "label": "Total Expenses",

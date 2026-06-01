@@ -36,6 +36,7 @@ _DELETE_STEPS = [
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
+	(False, "Budget", {}),
 	(False, "Expense Type", {}),
 	(True, "Collection", {}),
 	(False, "Fund", {}),
@@ -111,6 +112,7 @@ def create_sample_data():
 
 	_create_collections(people, funds)
 	_create_expenses(expense_types)
+	_create_budget(expense_types)
 
 	_create_prayer_requests(people)
 	_create_alms_requests(people)
@@ -1099,6 +1101,38 @@ def _create_expenses(expense_types):
 		doc.insert(ignore_permissions=True)
 		if submit:
 			doc.submit()
+
+
+# ---------------------------------------------------------------------------
+# Budget
+# ---------------------------------------------------------------------------
+
+
+def _create_budget(expense_types):
+	"""Create a sample annual budget for the current calendar year."""
+	year = getdate().year
+	start_date = f"{year}-01-01"
+	end_date = f"{year}-12-31"
+
+	if frappe.db.exists("Budget", {"start_date": start_date, "end_date": end_date}):
+		return
+
+	lines = [
+		{"expense_type": expense_types["Electric"], "budgeted_amount": 3000},
+		{"expense_type": expense_types["Water"], "budgeted_amount": 1200},
+		{"expense_type": expense_types["Office Supplies"], "budgeted_amount": 600},
+		{"expense_type": expense_types["Maintenance"], "budgeted_amount": 2400},
+		{"expense_type": expense_types["Missions Support"], "budgeted_amount": 6000},
+		{"expense_type": expense_types["Benevolence"], "budgeted_amount": 1800},
+	]
+
+	doc = frappe.get_doc({
+		"doctype": "Budget",
+		"start_date": start_date,
+		"end_date": end_date,
+		"lines": lines,
+	})
+	doc.insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

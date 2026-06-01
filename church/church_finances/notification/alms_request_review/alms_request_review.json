@@ -1,0 +1,27 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2026-05-29 00:00:00",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Alms Request",
+ "enabled": 0,
+ "event": "New",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>A new alms request was submitted:</p>\n\n<ul>\n  <li><strong>Recipient:</strong> {{ doc.recipient_name or doc.recipient }}</li>\n  <li><strong>Amount:</strong> {{ frappe.utils.fmt_money(doc.amount) }}</li>\n  <li><strong>Status:</strong> {{ doc.status }}</li>\n</ul>\n\n<p>Description:</p>\n<p>{{ doc.description }}</p>",
+ "modified": "2026-05-31 18:43:31.301815",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Alms Request Review",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Church Manager"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "New alms request: {{ doc.recipient_name or doc.recipient }}"
+}

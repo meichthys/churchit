@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "vendor",
   "type",
   "associated_fund",
   "amount",
@@ -44,6 +45,14 @@
    "label": "Type",
    "options": "Expense Type",
    "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Vendor",
+   "options": "Vendor",
    "search_index": 1
   },
   {
@@ -89,13 +98,14 @@
    "fieldtype": "Section Break"
   },
   {
-   "fetch_from": "type.fund",
    "fieldname": "associated_fund",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Associated Fund",
-   "options": "Fund"
+   "options": "Fund",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
