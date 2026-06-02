@@ -1,37 +1,156 @@
 <div class="row justify-content-center">
-{% set sermon_docs = frappe.get_list("Sermon", fields=["name"], filters={"publish": 1}, ignore_permissions=True, order_by="modified desc") %}
-{% if sermon_docs %}
-{% for doc in sermon_docs %}
-    {% set sermon = frappe.get_doc("Sermon", doc.name) %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <strong>{{ sermon.title }}</strong>
-            </div>
-            <div class="card-body">
-                {% if sermon.notes %}
-                    <p class="card-text">{{ sermon.notes }}</p>
-                {% endif %}
-                {% if sermon.audio_recording %}
-                    <audio controls style="width: 100%; margin-top: 8px;">
-                        <source src="{{ sermon.audio_recording }}">
-                    </audio>
-                {% endif %}
-            </div>
-            <div class="card-footer d-flex justify-content-between align-items-center">
-                <div class="small text-muted">
-                    {% if sermon.prepared_by %}
-                        {{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") }}
-                    {% endif %}
-                </div>
-                <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
-            </div>
+
+{%- set published_sermons = frappe.get_all(
+    "Sermon",
+    fields=["name", "title", "notes", "audio_recording", "prepared_by", "series"],
+    filters={"publish": 1},
+    ignore_permissions=True,
+    order_by="modified desc"
+) -%}
+{%- set published_series = frappe.get_all(
+    "Sermon Series",
+    fields=["name", "series_name", "description"],
+    filters={"publish": 1},
+    ignore_permissions=True,
+    order_by="start_date desc"
+) -%}
+
+{%- macro sermon_card(sermon) -%}
+  <div class="col-md-4 mb-4">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ sermon.title }}</strong></div>
+      <div class="card-body">
+        {% if sermon.notes %}<p class="card-text">{{ sermon.notes }}</p>{% endif %}
+        {% if sermon.audio_recording %}
+          <audio controls style="width: 100%; margin-top: 8px;">
+            <source src="{{ sermon.audio_recording }}">
+          </audio>
+        {% endif %}
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <div class="small text-muted">
+          {% if sermon.prepared_by %}{{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") }}{% endif %}
         </div>
+        <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
+      </div>
     </div>
-{% endfor %}
+  </div>
+{%- endmacro -%}
+
+{% if published_sermons %}
+  {%- set grouped_names = [] -%}
+
+  {# A published series is a single card listing its sermons. #}
+  {% for series in published_series %}
+    {% set series_sermons = published_sermons | selectattr("series", "equalto", series.name) | list %}
+    {% if series_sermons %}
+      {% for s in series_sermons %}{% set _ = grouped_names.append(s.name) %}{% endfor %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 series-card" data-series-card>
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>{{ series.series_name }}</strong>
+            <span class="series-tag">Series</span>
+          </div>
+          <div class="card-body">
+
+            {# List view (default) #}
+            <div data-series-list>
+              {% if series.description %}<p class="text-muted small">{{ series.description | safe }}</p>{% endif %}
+              <div class="small text-muted mb-2">{{ series_sermons | length }} sermon{{ "" if series_sermons | length == 1 else "s" }} in this series</div>
+              <ul class="list-unstyled series-sermon-list mb-0">
+                {% for sermon in series_sermons %}
+                <li><a href="#" class="series-sermon-link" data-sermon-link="{{ loop.index }}">{{ sermon.title }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            {# Per-sermon detail views (hidden until selected) #}
+            {% for sermon in series_sermons %}
+            <div data-sermon-detail="{{ loop.index }}" style="display: none;">
+              <a href="#" class="series-back small" data-series-back>&larr; Back to series</a>
+              <h6 class="mt-2 mb-1">{{ sermon.title }}</h6>
+              {% if sermon.prepared_by %}<div class="small text-muted mb-2">{{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") }}</div>{% endif %}
+              {% if sermon.notes %}<p class="card-text">{{ sermon.notes }}</p>{% endif %}
+              {% if sermon.audio_recording %}
+                <audio controls style="width: 100%; margin-top: 8px;">
+                  <source src="{{ sermon.audio_recording }}">
+                </audio>
+              {% endif %}
+              <div class="mt-2">
+                <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
+              </div>
+            </div>
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {# Standalone sermons (not in a published series) shown directly as normal cards. #}
+  {% for sermon in published_sermons %}
+    {% if sermon.name not in grouped_names %}{{ sermon_card(sermon) }}{% endif %}
+  {% endfor %}
+
 {% else %}
-    <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
-        <p class="text-muted" style="font-size: 1.1em;">No sermons have been published yet. Please check back soon.</p>
-    </div>
+  <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+    <p class="text-muted" style="font-size: 1.1em;">No sermons have been published yet. Please check back soon.</p>
+  </div>
 {% endif %}
+
 </div>
+
+<style>
+  .series-card .card-header { background: #f4f6f9; }
+  .series-tag {
+    font-size: 0.7em;
+    color: #fff;
+    background: #6c757d;
+    border-radius: 10px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .series-sermon-list li { border-bottom: 1px solid #f0f0f0; }
+  .series-sermon-list li:last-child { border-bottom: none; }
+  .series-sermon-link {
+    display: block;
+    padding: 8px 4px;
+    color: #2c3e50;
+    text-decoration: none;
+  }
+  .series-sermon-link:hover {
+    background: #f8f9fa;
+    color: #0d6efd;
+    text-decoration: none;
+    padding-left: 8px;
+  }
+  .series-back { display: inline-block; margin-bottom: 6px; text-decoration: none; }
+</style>
+
+<script>
+(function () {
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest("[data-sermon-link]");
+    if (link) {
+      e.preventDefault();
+      var card = link.closest("[data-series-card]");
+      if (!card) return;
+      var target = link.getAttribute("data-sermon-link");
+      card.querySelector("[data-series-list]").style.display = "none";
+      card.querySelectorAll("[data-sermon-detail]").forEach(function (d) {
+        d.style.display = d.getAttribute("data-sermon-detail") === target ? "block" : "none";
+      });
+      return;
+    }
+    var back = e.target.closest("[data-series-back]");
+    if (back) {
+      e.preventDefault();
+      var card = back.closest("[data-series-card]");
+      if (!card) return;
+      card.querySelectorAll("[data-sermon-detail]").forEach(function (d) { d.style.display = "none"; });
+      card.querySelector("[data-series-list]").style.display = "block";
+    }
+  });
+})();
+</script>

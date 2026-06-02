@@ -1,117 +1,107 @@
 {
- "charts": [],
- "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"comm_docs\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":6}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":6}}]",
- "creation": "2025-10-03 23:10:33.370229",
- "custom_blocks": [],
- "docstatus": 0,
- "doctype": "Workspace",
- "for_user": "",
- "hide_custom": 0,
- "icon": "mail",
- "idx": 0,
- "indicator_color": "green",
- "is_hidden": 0,
- "label": "Communications",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Communications Documents",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Announcements",
-   "link_count": 0,
-   "link_to": "Announcement",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Newsletter Subscribers",
-   "link_count": 0,
-   "link_to": "Newsletter Subscriber",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Letters",
-   "link_count": 0,
-   "link_to": "Letter",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Letter Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Missionary Letters",
-   "link_count": 0,
-   "link_to": "Missionary Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters",
-   "link_count": 0,
-   "link_to": "Person Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Letters Not Yet Shared With Curch",
-   "link_count": 0,
-   "link_to": "Letters To Be Shared",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-03-17 19:49:58.772454",
- "modified_by": "Administrator",
- "module": "Church Communications",
- "name": "Communications",
- "number_cards": [
-  {
-   "label": "Person Letters",
-   "number_card_name": "Person Letters"
-  },
-  {
-   "label": "Missionary Letters",
-   "number_card_name": "Missionary Letters"
-  }
- ],
- "owner": "Administrator",
- "parent_page": "",
- "public": 1,
- "quick_lists": [],
- "roles": [],
- "sequence_id": 3.0,
- "shortcuts": [],
- "title": "Communications"
+  "charts": [],
+  "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"1ozkmhwUfX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Person Letters\", \"col\": 4}}, {\"id\": \"URO83YzARG\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Letters\", \"col\": 4}}, {\"id\": \"UoQwSv6u6X\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"commDocsCard0\", \"type\": \"card\", \"data\": {\"card_name\": \"Communications Documents\", \"col\": 4}}, {\"id\": \"ybuIQ-BIW-\", \"type\": \"card\", \"data\": {\"card_name\": \"Letter Reports\", \"col\": 4}}]",
+  "creation": "2026-06-01 19:31:42.472874",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "mail",
+  "idx": 0,
+  "indicator_color": "green",
+  "is_hidden": 0,
+  "label": "Communications",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Communications Documents",
+      "link_count": 2,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Newsletters",
+      "link_count": 0,
+      "link_to": "Newsletter",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Email Groups",
+      "link_count": 0,
+      "link_to": "Email Group",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Letter Reports",
+      "link_count": 3,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Missionary Letters",
+      "link_count": 0,
+      "link_to": "Missionary Letters",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Person Letters",
+      "link_count": 0,
+      "link_to": "Person Letters",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Letters Not Yet Shared With Curch",
+      "link_count": 0,
+      "link_to": "Letters To Be Shared",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-06-01 19:33:25.890258",
+  "modified_by": "Administrator",
+  "module": "Church Communications",
+  "name": "Communications",
+  "number_cards": [
+    {
+      "label": "Person Letters",
+      "number_card_name": "Person Letters"
+    },
+    {
+      "label": "Missionary Letters",
+      "number_card_name": "Missionary Letters"
+    }
+  ],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "roles": [],
+  "sequence_id": 3.0,
+  "shortcuts": [],
+  "title": "Communications"
 }

@@ -1,6 +1,9 @@
 {
   "charts": [
-    {"chart_name": "Attendance Trailing 12 Weeks", "label": "Attendance (12 weeks)"}
+    {
+      "chart_name": "Attendance Trailing 12 Weeks",
+      "label": "Attendance (12 weeks)"
+    }
   ],
   "content": "[{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"pzAjt6FN7_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":3}},{\"id\":\"e90GZyYsvo\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Functions\",\"col\":3}},{\"id\":\"uf01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Upcoming Functions\",\"col\":3}},{\"id\":\"iYgQntDecm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Songs\",\"col\":3}},{\"id\":\"ch01\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance Trailing 12 Weeks\",\"col\":12}},{\"id\":\"XfFcgMyu0y\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"mR7kYz3pQw\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Documents\",\"col\":4}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Documents\",\"col\":4}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":4}},{\"id\":\"8rlNHndDdV\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Reports\",\"col\":4}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Reports\",\"col\":4}}]",
   "creation": "2025-09-14 22:36:40.737780",
@@ -226,10 +229,10 @@
   "module": "Church Ministries",
   "name": "Ministries",
   "number_cards": [
-    {"label": "Functions", "number_card_name": "Functions"},
-    {"label": "Upcoming Functions", "number_card_name": "Upcoming Functions"},
-    {"label": "Ministries", "number_card_name": "Ministries"},
-    {"label": "Songs", "number_card_name": "Songs"}
+    { "label": "Functions", "number_card_name": "Functions" },
+    { "label": "Upcoming Functions", "number_card_name": "Upcoming Functions" },
+    { "label": "Ministries", "number_card_name": "Ministries" },
+    { "label": "Songs", "number_card_name": "Songs" }
   ],
   "owner": "Administrator",
   "parent_page": "",

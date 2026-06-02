@@ -1,0 +1,12 @@
+{
+ "creation": "2026-05-29 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Birthday Greeting",
+ "owner": "Administrator",
+ "reference_doctype": "Person",
+ "response": "<p>Dear {{ first_name }},</p>\n\n<p>Happy birthday from your church family! We thank God for you and pray He blesses you abundantly this year.</p>\n\n<p>\"This is the day that the Lord has made; let us rejoice and be glad in it.\" - Psalm 118:24</p>\n\n<p>With love,<br>The Church</p>",
+ "subject": "Happy Birthday, {{ first_name }}!",
+ "use_html": 1
+}

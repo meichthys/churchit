@@ -16,7 +16,7 @@ fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
 	{
 		"dt": "Property Setter",
-		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category"]]],
+		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category", "Newsletter"]]],
 	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
@@ -26,6 +26,17 @@ fixtures = [
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In"]]],
 	},
 	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
+	{
+		"dt": "Email Template",
+		"filters": [
+			[
+				"name",
+				"in",
+				["Donation Acknowledgment", "Birthday Greeting", "New Member Welcome", "Visitor Follow-Up"],
+			]
+		],
+	},
+	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
 ]
 # Apps
 # ------------------
@@ -171,6 +182,7 @@ setup_wizard_complete = [
 scheduler_events = {
 	"daily": [
 		"church.church_ministries.doctype.function.function.create_scheduled_functions",
+		"church.church_communications.newsletter.sync_member_email_group",
 	],
 }
 

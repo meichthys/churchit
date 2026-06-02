@@ -1,0 +1,17 @@
+{
+ "align": "Center",
+ "content": "<div style=\"text-align: center; padding: 6px 0; border-bottom: 2px solid #2a4a85;\"><div style=\"font-size: 22pt; font-weight: bold; letter-spacing: 1px; color: #2a4a85;\">{{ frappe.db.get_value(\"Church\", {\"is_default\": 1}, \"church_name\") or \"My Church\" }}</div><div style=\"font-size: 10pt; color: #666; margin-top: 4px;\">123 Main Street, Anytown · (555) 555-5555 · church@example.com</div></div>",
+ "creation": "2026-05-29 00:00:00.000000",
+ "disabled": 0,
+ "doctype": "Letter Head",
+ "footer": "<div style=\"text-align: center; padding-top: 6px; border-top: 1px solid #ddd; font-size: 9pt; color: #888;\">Soli Deo Gloria</div>",
+ "footer_image": null,
+ "header_image": null,
+ "is_default": 1,
+ "letter_head_name": "Church Letter Head",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Church Letter Head",
+ "owner": "Administrator",
+ "source": "HTML"
+}

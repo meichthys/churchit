@@ -8,6 +8,7 @@
  "field_order": [
   "title",
   "prepared_by",
+  "series",
   "publish",
   "column_break_wnxx",
   "audio_recording",
@@ -32,6 +33,13 @@
    "fieldtype": "Link",
    "label": "Prepared By",
    "options": "Person"
+  },
+  {
+   "fieldname": "series",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Series",
+   "options": "Sermon Series"
   },
   {
    "default": "0",

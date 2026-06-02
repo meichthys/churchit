@@ -94,6 +94,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Sermon Series",
+   "link_count": 0,
+   "link_to": "Sermon Series",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Bible Memory Items",
    "link_count": 0,
    "link_to": "Bible Memory Item",

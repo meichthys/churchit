@@ -1,0 +1,12 @@
+{
+ "creation": "2026-05-29 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Donation Acknowledgment",
+ "owner": "Administrator",
+ "reference_doctype": "Donation",
+ "response": "<p>Dear {{ first_name }},</p>\n\n<p>Thank you for your gift of {{ amount }} to the {{ fund }} on {{ date }}.</p>\n\n<p>A formal receipt is attached for your records. No goods or services were exchanged for this gift.</p>\n\n<p>With gratitude,<br>The Treasury Team</p>",
+ "subject": "Receipt for your gift to {{ fund }}",
+ "use_html": 1
+}

@@ -67,6 +67,14 @@ def execute():
 	_clean_gender_options()
 	_hide_default_workspaces()
 
+	# D.9 audit seeds — default Pledge Campaign + Budgets for current year
+	_create_default_pledge_campaign()
+	_create_default_budgets()
+	_create_default_life_event_types()
+
+	# Newsletter recipients — Email Group seeded from Person emails
+	_create_member_email_group()
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -817,3 +825,57 @@ def _create_default_care_request_types():
 		"Other",
 	):
 		_insert_if_missing("Care Request Type", {"type": care_type}, type=care_type)
+
+
+def _create_default_budgets():
+	"""Seed a zero-amount Budget for every existing Fund for the current year."""
+	if not frappe.db.exists("DocType", "Budget"):
+		return
+	year = frappe.utils.now_datetime().year
+	for fund in frappe.db.get_all("Fund", fields=["name"]):
+		_insert_if_missing(
+			"Budget",
+			{"fund": fund.name, "fiscal_year": year},
+			fund=fund.name,
+			fiscal_year=year,
+			budgeted_amount=0,
+			period="Annual",
+			is_active=1,
+		)
+
+
+def _create_member_email_group():
+	"""Create the church newsletter Email Group and seed it from Person emails.
+
+	The list is kept current automatically by the daily
+	``church.church_communications.newsletter.sync_member_email_group`` job, so
+	the recipient list is never maintained by hand.
+	"""
+	from church.church_communications.newsletter import (
+		MEMBER_EMAIL_GROUP,
+		sync_member_email_group,
+	)
+
+	if not frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
+		frappe.get_doc({"doctype": "Email Group", "title": MEMBER_EMAIL_GROUP}).insert(
+			ignore_permissions=True
+		)
+	sync_member_email_group()
+
+
+def _create_default_life_event_types():
+	"""Seed the standard Life Event Type lookup values."""
+	if not frappe.db.exists("DocType", "Life Event Type"):
+		return
+	for event_type in (
+		"Birth",
+		"Death",
+		"Baptism",
+		"Wedding",
+		"Anniversary",
+		"Confirmation",
+		"Graduation",
+		"Dedication",
+		"Conversion",
+	):
+		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)

@@ -124,7 +124,8 @@
    "fieldname": "email",
    "fieldtype": "Data",
    "in_preview": 1,
-   "label": "Email"
+   "label": "Email",
+   "options": "Email"
   },
   {
    "allow_in_quick_entry": 1,
