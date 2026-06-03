@@ -17,7 +17,7 @@
  "name": "Position Roster",
  "owner": "Administrator",
  "prepared_report": 0,
- "ref_doctype": "Position",
+ "ref_doctype": "Person",
  "report_name": "Position Roster",
  "report_type": "Script Report",
  "roles": [
