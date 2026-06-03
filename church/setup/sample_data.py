@@ -16,8 +16,13 @@ from church.patches.after_install import DEFAULT_CHURCH_NAME
 # Ordered deletion steps: (is_submittable, doctype, filters).
 # Prayer Request comments are handled separately after this list runs.
 _DELETE_STEPS = [
+	# Leaf docs that link to functions / people / rooms — delete first.
+	(False, "Announcement", {}),
+	(False, "Meeting Minutes", {}),
+	(False, "Room Booking", {}),
 	(False, "Church Task", {}),
 	(False, "Church Asset", {}),
+	(False, "Room", {}),
 	(False, "Location", {}),
 	(False, "Song", {}),
 	(False, "Prayer", {}),
@@ -26,11 +31,13 @@ _DELETE_STEPS = [
 	(False, "Group", {}),
 	(False, "Belief", {}),
 	(False, "Sermon", {}),
+	(False, "Sermon Series", {}),
 	(False, "Memory Session", {}),
 	(False, "Bible Memory Item", {}),
 	(False, "Bible Reference", {}),
 	(False, "Bible Verse", {}),
 	(False, "Function Sign-Up", {}),
+	(False, "Function Check-In", {}),
 	(False, "Function", {}),
 	(False, "Sign-Up Item", {}),
 	(False, "Visitation Log", {}),
@@ -41,6 +48,7 @@ _DELETE_STEPS = [
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
+	(False, "Vendor", {}),
 	(False, "Budget", {}),
 	(False, "Expense Type", {}),
 	(True, "Collection", {}),
@@ -113,6 +121,7 @@ def create_sample_data():
 
 	funds = _create_funds()
 	expense_types = _create_expense_types(funds)
+	_create_vendors(expense_types)
 	group_roles = _get_group_role_refs()
 
 	_create_collections(people, funds)
@@ -126,10 +135,13 @@ def create_sample_data():
 	_create_care_requests(people)
 	_create_counseling_cases(people)
 	_create_alms_requests(people)
+	_create_announcements()
 
 	sign_up_items = _create_sign_up_items()
 	_create_functions(sign_up_items)
 	_create_function_sign_ups(people, sign_up_items)
+	_create_function_check_ins(people)
+	_create_meeting_minutes(people)
 
 	verses = _create_bible_verses()
 	_create_bible_references(verses)
@@ -137,7 +149,8 @@ def create_sample_data():
 
 	_create_beliefs(verses)
 
-	_create_sermons(people, verses)
+	sermon_series = _create_sermon_series(people)
+	_create_sermons(people, verses, sermon_series)
 
 	groups = _create_groups(people, group_roles)
 
@@ -150,6 +163,8 @@ def create_sample_data():
 	_create_songs()
 
 	locations = _create_locations()
+	rooms = _create_rooms(locations)
+	_create_room_bookings(rooms, people)
 	_create_church_assets(locations)
 
 	_create_church_tasks()
@@ -786,6 +801,7 @@ def _create_missionaries(people, agencies):
 	missionaries = [
 		{
 			"title": "Michael & Anna Grant",
+			"photo": "https://randomuser.me/api/portraits/men/52.jpg",
 			"person": people["Michael Grant"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Brazil",
@@ -818,6 +834,7 @@ def _create_missionaries(people, agencies):
 		},
 		{
 			"title": "Elizabeth Harper",
+			"photo": "https://randomuser.me/api/portraits/women/52.jpg",
 			"person": people["Elizabeth Harper"],
 			"agency": agencies["Faithful Servants Mission Board"],
 			"country": "Japan",
@@ -831,6 +848,7 @@ def _create_missionaries(people, agencies):
 		},
 		{
 			"title": "Thomas Reed",
+			"photo": "https://randomuser.me/api/portraits/men/63.jpg",
 			"person": people["Thomas Reed"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Kenya",
@@ -1802,6 +1820,38 @@ _VERSES = [
 ]
 
 
+def _create_function_check_ins(people):
+	"""Create sample check-in records against the Sunday Worship function."""
+	function = frappe.db.get_value("Function", {"function_name": "Sunday Worship"}, "name")
+	if not function:
+		return
+	function_doc = frappe.get_doc("Function", function)
+	check_in_people = [
+		"James Wilson",
+		"Sarah Wilson",
+		"Robert Johnson",
+		"Mary Johnson",
+		"David Thompson",
+		"Martha Evans",
+	]
+	for key in check_in_people:
+		person = people.get(key)
+		if not person:
+			continue
+		if frappe.db.exists("Function Check-In", {"function": function, "person": person}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Function Check-In",
+				"function": function,
+				"function_type": function_doc.type,
+				"start_date": function_doc.start_date,
+				"start_time": function_doc.start_time,
+				"person": person,
+			}
+		).insert(ignore_permissions=True)
+
+
 def _create_bible_verses():
 	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
 	# Build lookup for Bible Book display name → hash name
@@ -2031,7 +2081,7 @@ def _create_bible_memory_items(verses):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(people, verses):
+def _create_sermons(people, verses, series_refs=None):
 	"""Create sample sermons with slides referencing bible references, people,
 	missionaries, and beliefs."""
 
@@ -2144,6 +2194,14 @@ def _create_sermons(people, verses):
 			],
 		},
 	]
+	# Group two of the sermons under the sample series; leave one standalone
+	# so the website shows both a series card and a standalone sermon card.
+	if series_refs:
+		series_name = series_refs.get("Foundations of Faith")
+		for s in sermons:
+			if s["title"] in ("The Good Shepherd", "Walking by Faith"):
+				s["series"] = series_name
+
 	for sermon in sermons:
 		existing = frappe.db.exists("Sermon", {"title": sermon["title"]})
 		if existing:
@@ -2757,6 +2815,197 @@ def _create_blog_post(people):
 # ---------------------------------------------------------------------------
 # Help Article
 # ---------------------------------------------------------------------------
+
+
+def _create_vendors(expense_types):
+	"""Create sample vendors used for church expenses."""
+	vendors = [
+		{
+			"vendor_name": "City Power & Light",
+			"default_expense_type": expense_types.get("Utilities"),
+			"email": "billing@citypower.example.com",
+			"phone": "+1 202-555-1010",
+			"notes": "Monthly electricity and gas service.",
+		},
+		{
+			"vendor_name": "Grace Print & Mail",
+			"default_expense_type": expense_types.get("Office Supplies"),
+			"email": "orders@graceprint.example.com",
+			"phone": "+1 202-555-1020",
+			"notes": "Bulletins, mailers, and office supplies.",
+		},
+		{
+			"vendor_name": "Faithful Facilities Co.",
+			"default_expense_type": expense_types.get("Maintenance"),
+			"email": "service@faithfulfacilities.example.com",
+			"phone": "+1 202-555-1030",
+			"notes": "HVAC and general building maintenance.",
+		},
+	]
+	for v in vendors:
+		_insert_if_missing("Vendor", {"vendor_name": v["vendor_name"]}, **v)
+
+
+def _create_announcements():
+	"""Create sample announcements for the bulletin / website."""
+	announcements = [
+		{
+			"title": "Annual Church Picnic",
+			"start_date": _near_date(-2),
+			"end_date": _near_date(12),
+			"publish_to_bulletin": 1,
+			"publish_to_website": 1,
+			"audience": "All",
+			"body": (
+				"<p>Join us for our annual all-church picnic at Riverside Park! "
+				"Bring a dish to share — games, fellowship, and fun for the whole "
+				"family. Invite your neighbors!</p>"
+			),
+		},
+		{
+			"title": "Quarterly Members' Meeting",
+			"start_date": _near_date(1),
+			"end_date": _near_date(8),
+			"publish_to_bulletin": 1,
+			"audience": "Members Only",
+			"body": (
+				"<p>Our quarterly members' meeting will be held immediately after "
+				"the morning service. We will review the budget and vote on the "
+				"upcoming ministry plans.</p>"
+			),
+		},
+	]
+	for a in announcements:
+		_insert_if_missing("Announcement", {"title": a["title"]}, **a)
+
+
+def _create_meeting_minutes(people):
+	"""Create a sample board meeting minutes record with attendees."""
+	if frappe.db.exists("Meeting Minutes", {"title": "Deacon Board Meeting"}):
+		return
+	attendees = []
+	for key, role in (
+		("James Wilson", "Pastor"),
+		("Robert Johnson", "Elder"),
+		("David Thompson", "Deacon"),
+		("Martha Evans", "Secretary"),
+	):
+		if people.get(key):
+			attendees.append({"person": people[key], "role": role})
+	frappe.get_doc(
+		{
+			"doctype": "Meeting Minutes",
+			"title": "Deacon Board Meeting",
+			"meeting_date": _near_date(-5),
+			"status": "Approved",
+			"recorded_by": people.get("Martha Evans"),
+			"approved_on": _near_date(-3),
+			"attendees": attendees,
+			"minutes": (
+				"<h3>Agenda</h3>"
+				"<ol><li>Opening prayer</li><li>Treasurer's report</li>"
+				"<li>Benevolence requests</li><li>Upcoming events</li></ol>"
+				"<h3>Decisions</h3>"
+				"<p>Approved the benevolence request for the Brooks family. "
+				"Scheduled the annual church picnic for next month.</p>"
+			),
+		}
+	).insert(ignore_permissions=True)
+
+
+def _create_sermon_series(people):
+	"""Create a sample sermon series. Returns dict mapping title → name."""
+	refs = {}
+	series = [
+		{
+			"series_name": "Foundations of Faith",
+			"speaker": people.get("James Wilson"),
+			"start_date": _near_date(-30),
+			"end_date": _near_date(14),
+			"publish": 1,
+			"description": (
+				"<p>A journey through the bedrock truths of the Christian life — "
+				"who God is, how He shepherds us, and how we walk by faith in "
+				"response.</p>"
+			),
+		},
+	]
+	for s in series:
+		name = _insert_if_missing("Sermon Series", {"series_name": s["series_name"]}, **s)
+		refs[s["series_name"]] = name
+	return refs
+
+
+def _create_rooms(locations):
+	"""Create sample bookable rooms. Returns dict mapping room_name → name."""
+	refs = {}
+	rooms = [
+		{
+			"room_name": "Main Auditorium",
+			"location": locations.get("Sanctuary"),
+			"capacity": 300,
+			"is_bookable": 1,
+			"requires_approval": 1,
+			"description": "The main worship space.",
+		},
+		{
+			"room_name": "Fellowship Hall",
+			"location": locations.get("Fellowship Hall"),
+			"capacity": 120,
+			"is_bookable": 1,
+			"description": "Multi-purpose hall for meals and gatherings.",
+		},
+		{
+			"room_name": "Conference Room",
+			"location": locations.get("Fellowship Hall"),
+			"capacity": 20,
+			"is_bookable": 1,
+			"requires_approval": 1,
+			"description": "Meeting room for committees and small groups.",
+		},
+	]
+	for r in rooms:
+		name = _insert_if_missing("Room", {"room_name": r["room_name"]}, **r)
+		refs[r["room_name"]] = name
+	return refs
+
+
+def _create_room_bookings(rooms, people):
+	"""Create sample room bookings (each in a different room to avoid conflicts)."""
+	a_function = frappe.db.get_value("Function", {}, "name")
+	bookings = [
+		{
+			"room": rooms.get("Conference Room"),
+			"requester": people.get("Martha Evans"),
+			"purpose": "Deacons' monthly meeting",
+			"start_datetime": _near_datetime(3, "18:00:00"),
+			"end_datetime": _near_datetime(3, "19:30:00"),
+			"status": "Approved",
+		},
+		{
+			"room": rooms.get("Fellowship Hall"),
+			"requester": people.get("Lisa Thompson"),
+			"purpose": "Women's ministry luncheon",
+			"start_datetime": _near_datetime(6, "11:30:00"),
+			"end_datetime": _near_datetime(6, "14:00:00"),
+			"status": "Requested",
+		},
+		{
+			"room": rooms.get("Main Auditorium"),
+			"requester": people.get("James Wilson"),
+			"purpose": "Special prayer service",
+			"start_datetime": _near_datetime(10, "19:00:00"),
+			"end_datetime": _near_datetime(10, "20:30:00"),
+			"status": "Approved",
+			"function": a_function,
+		},
+	]
+	for b in bookings:
+		if not b.get("room") or not b.get("requester"):
+			continue
+		if frappe.db.exists("Room Booking", {"room": b["room"], "start_datetime": b["start_datetime"]}):
+			continue
+		frappe.get_doc({"doctype": "Room Booking", **b}).insert(ignore_permissions=True)
 
 
 def _create_help_article():

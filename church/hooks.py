@@ -98,6 +98,9 @@ app_include_icons = ["church/icons/church.svg"]
 
 website_redirects = [
 	{"source": "/index", "target": "/home"},
+	# Newsletters are member-only — managed via the portal (/newsletter-subscription)
+	# and delivered by email. Keep the public Frappe newsletter web view off the site.
+	{"source": r"/newsletters.*", "target": "/home"},
 ]
 
 # website user home page (by Role)

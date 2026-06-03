@@ -67,11 +67,6 @@ def execute():
 	_clean_gender_options()
 	_hide_default_workspaces()
 
-	# D.9 audit seeds — default Pledge Campaign + Budgets for current year
-	_create_default_pledge_campaign()
-	_create_default_budgets()
-	_create_default_life_event_types()
-
 	# Newsletter recipients — Email Group seeded from Person emails
 	_create_member_email_group()
 
@@ -715,6 +710,11 @@ def _setup_portal_settings():
 			"enabled": 1,
 		},
 		{
+			"title": "Newsletter Subscription",
+			"route": "newsletter-subscription",
+			"enabled": 1,
+		},
+		{
 			"title": "Help Articles",
 			"route": "Help Article",
 			"enabled": 1,
@@ -779,19 +779,6 @@ def _create_default_visit_types():
 		"Other",
 	):
 		_insert_if_missing("Visit Type", {"type": visit_type}, type=visit_type)
-
-
-def _create_default_life_event_types():
-	"""Seed the standard Life Event Type lookup values.
-
-	A starting set churches can add to (graduation, dedication, etc.) — the
-	six events that every congregation tracks. The Membership row is what
-	makes the membership_status field appear on the Person form.
-	"""
-	if not frappe.db.exists("DocType", "Life Event Type"):
-		return
-	for event_type in ("Birth", "Baptism", "Marriage", "Membership", "Death", "Salvation"):
-		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
 
 
 def _create_default_case_types():
@@ -871,6 +858,7 @@ def _create_default_life_event_types():
 		"Birth",
 		"Death",
 		"Baptism",
+		"Membership",
 		"Wedding",
 		"Anniversary",
 		"Confirmation",
