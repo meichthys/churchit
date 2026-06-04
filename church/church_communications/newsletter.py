@@ -85,5 +85,4 @@ def set_subscription(subscribed):
 				"unsubscribed": 0 if subscribe else 1,
 			}
 		).insert(ignore_permissions=True)
-	frappe.db.commit()
 	return {"subscribed": subscribe}
