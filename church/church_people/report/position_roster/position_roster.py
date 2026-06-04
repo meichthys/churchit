@@ -23,9 +23,8 @@ def get_columns():
 
 def get_data(filters=None):
 	only_active = (filters or {}).get("only_active", 1)
-	clause = "AND (pos.end_date IS NULL OR pos.end_date >= CURDATE())" if only_active else ""
 	return frappe.db.sql(
-		f"""
+		"""
 		SELECT
 			pos.position,
 			pos.parent AS person,
@@ -35,8 +34,10 @@ def get_data(filters=None):
 			p.email
 		FROM `tabPosition` pos
 		LEFT JOIN `tabPerson` p ON p.name = pos.parent
-		WHERE pos.parenttype = 'Person' {clause}
+		WHERE pos.parenttype = 'Person'
+			AND (%(only_active)s = 0 OR pos.end_date IS NULL OR pos.end_date >= CURDATE())
 		ORDER BY pos.position, p.full_name
 		""",
+		{"only_active": 1 if only_active else 0},
 		as_dict=True,
 	)
