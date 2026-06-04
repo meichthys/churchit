@@ -257,12 +257,6 @@ override_doctype_dashboards = {"User": "church.church_people.doctype.person.pers
 # 	"church.auth.validate"
 # ]
 
-doc_events = {
-	"*": {
-		# We log events for 'church' doctypes so we can track activity for users
-		"after_insert": "church.dashboard.log_creation_as_version",
-	},
-}
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
