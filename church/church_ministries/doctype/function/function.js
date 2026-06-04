@@ -66,6 +66,32 @@ frappe.ui.form.on('Function', {
 			});
 		}
 
+		// Allow booking a room for this saved function (the Room Booking links back to it)
+		if (!frm.is_new()) {
+			frm.add_custom_button(__('Book a Room'), function() {
+				let start_dt = null, end_dt = null;
+				if (frm.doc.start_date) {
+					const stime = frm.doc.all_day ? '00:00:00' : (frm.doc.start_time || '00:00:00');
+					start_dt = frm.doc.start_date + ' ' + stime;
+					const edate = frm.doc.end_date || frm.doc.start_date;
+					const etime = frm.doc.all_day ? '23:59:59' : frm.doc.end_time;
+					if (etime) {
+						end_dt = edate + ' ' + etime;
+					}
+					// Room Booking requires end > start; default to a 1-hour slot otherwise
+					if (!end_dt || end_dt <= start_dt) {
+						end_dt = frappe.datetime.add_to_date(start_dt, { hours: 1 });
+					}
+				}
+				frappe.new_doc('Room Booking', {
+					function: frm.doc.name,
+					purpose: frm.doc.function_name || frm.doc.type,
+					start_datetime: start_dt,
+					end_datetime: end_dt,
+				});
+			}, __('Create'));
+		}
+
 		// Add Sign Ups buttons if sign-ups are enabled, there are items, or there are linked sign-ups
 		if (!frm.is_new()) {
 			const has_items = frm.doc.table_cxhh && frm.doc.table_cxhh.length > 0;

@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "autoname": "format:MT-{####}",
+ "creation": "2026-05-29 00:00:00",
+ "description": "A member transfer in or out of this church (letter of recommendation).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "person",
+  "direction",
+  "letter_date",
+  "column_break_1",
+  "other_church",
+  "approved_by",
+  "status",
+  "section_break_1",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "default": "Out",
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Direction",
+   "options": "In\nOut",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "letter_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Letter Date"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "other_church",
+   "fieldtype": "Data",
+   "label": "Other Church (Name)"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "Person"
+  },
+  {
+   "default": "Requested",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Requested\nPending\nLetter Issued\nConfirmed\nCancelled"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-05-31 19:24:47.723411",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Member Transfer",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "letter_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "person"
+}

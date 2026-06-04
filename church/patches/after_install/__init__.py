@@ -51,9 +51,24 @@ def execute():
 	_setup_website_settings()
 	_setup_portal_settings()
 
+	# Visit Type lookups (referenced by Visitation Log)
+	_create_default_visit_types()
+
+	# Life Event Type lookups (referenced by Life Event)
+	_create_default_life_event_types()
+
+	# Counseling Case Type lookups (referenced by Counseling Case)
+	_create_default_case_types()
+
+	# Care Request Type lookups (referenced by Care Request)
+	_create_default_care_request_types()
+
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
+
+	# Newsletter recipients — Email Group seeded from Person emails
+	_create_member_email_group()
 
 
 # ---------------------------------------------------------------------------
@@ -478,15 +493,16 @@ def _create_dashboard_charts():
 				"doctype": "Dashboard Chart",
 				"chart_name": "Members",
 				"module": "Church People",
-				"document_type": "Person",
-				"based_on": "membership_date",
+				"document_type": "Life Event",
+				"parent_document_type": "Person",
+				"based_on": "date",
 				"type": "Line",
 				"time_interval": "Monthly",
 				"timespan": "Last Year",
 				"timeseries": 1,
 				"is_standard": 0,
 				"show_values_over_chart": 1,
-				"filters_json": '[["Person","is_member","=",1,false]]',
+				"filters_json": '[["Life Event","event_type","=","Membership",false]]',
 				"dynamic_filters_json": "[]",
 			}
 		).insert(ignore_permissions=True)
@@ -694,6 +710,11 @@ def _setup_portal_settings():
 			"enabled": 1,
 		},
 		{
+			"title": "Newsletter Subscription",
+			"route": "newsletter-subscription",
+			"enabled": 1,
+		},
+		{
 			"title": "Help Articles",
 			"route": "Help Article",
 			"enabled": 1,
@@ -737,3 +758,112 @@ def _clean_gender_options():
 	for gender in frappe.db.get_all("Gender"):
 		if gender.name not in ("Male", "Female", "Unknown"):
 			frappe.delete_doc("Gender", gender.name, force=True)
+
+
+def _create_default_visit_types():
+	"""Seed the standard Visit Type lookup values.
+
+	These were previously hardcoded as a Select on Visitation Log; promoted
+	to a Link doctype so churches can add their own types.
+	"""
+	if not frappe.db.exists("DocType", "Visit Type"):
+		return
+	for visit_type in (
+		"First Time Guest",
+		"Hospital",
+		"Homebound",
+		"Bereavement",
+		"Inactive Member",
+		"New Member",
+		"Evangelistic",
+		"Other",
+	):
+		_insert_if_missing("Visit Type", {"type": visit_type}, type=visit_type)
+
+
+def _create_default_case_types():
+	"""Seed the standard Case Type lookup values.
+
+	Previously hardcoded as a Select on Counseling Case; promoted to a Link
+	doctype so churches can add their own.
+	"""
+	if not frappe.db.exists("DocType", "Case Type"):
+		return
+	for case_type in ("Marriage", "Premarital", "Grief", "Financial", "Spiritual", "Family", "Other"):
+		_insert_if_missing("Case Type", {"type": case_type}, type=case_type)
+
+
+def _create_default_care_request_types():
+	"""Seed the standard Care Request Type lookup values.
+
+	Previously hardcoded as a Select on Care Request; promoted to a Link
+	doctype so churches can add their own.
+	"""
+	if not frappe.db.exists("DocType", "Care Request Type"):
+		return
+	for care_type in (
+		"General Need",
+		"Meal Help",
+		"Hospital",
+		"Grief",
+		"Financial",
+		"Spiritual",
+		"Counseling",
+		"Other",
+	):
+		_insert_if_missing("Care Request Type", {"type": care_type}, type=care_type)
+
+
+def _create_default_budgets():
+	"""Seed a zero-amount Budget for every existing Fund for the current year."""
+	if not frappe.db.exists("DocType", "Budget"):
+		return
+	year = frappe.utils.now_datetime().year
+	for fund in frappe.db.get_all("Fund", fields=["name"]):
+		_insert_if_missing(
+			"Budget",
+			{"fund": fund.name, "fiscal_year": year},
+			fund=fund.name,
+			fiscal_year=year,
+			budgeted_amount=0,
+			period="Annual",
+			is_active=1,
+		)
+
+
+def _create_member_email_group():
+	"""Create the church newsletter Email Group and seed it from Person emails.
+
+	The list is kept current automatically by the daily
+	``church.church_communications.newsletter.sync_member_email_group`` job, so
+	the recipient list is never maintained by hand.
+	"""
+	from church.church_communications.newsletter import (
+		MEMBER_EMAIL_GROUP,
+		sync_member_email_group,
+	)
+
+	if not frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
+		frappe.get_doc({"doctype": "Email Group", "title": MEMBER_EMAIL_GROUP}).insert(
+			ignore_permissions=True
+		)
+	sync_member_email_group()
+
+
+def _create_default_life_event_types():
+	"""Seed the standard Life Event Type lookup values."""
+	if not frappe.db.exists("DocType", "Life Event Type"):
+		return
+	for event_type in (
+		"Birth",
+		"Death",
+		"Baptism",
+		"Membership",
+		"Wedding",
+		"Anniversary",
+		"Confirmation",
+		"Graduation",
+		"Dedication",
+		"Conversion",
+	):
+		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)

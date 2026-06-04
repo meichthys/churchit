@@ -16,7 +16,7 @@ fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
 	{
 		"dt": "Property Setter",
-		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category"]]],
+		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category", "Newsletter"]]],
 	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
@@ -25,6 +25,18 @@ fixtures = [
 		"dt": "Function Attendance Type",
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In"]]],
 	},
+	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
+	{
+		"dt": "Email Template",
+		"filters": [
+			[
+				"name",
+				"in",
+				["Donation Acknowledgment", "Birthday Greeting", "New Member Welcome", "Visitor Follow-Up"],
+			]
+		],
+	},
+	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
 ]
 # Apps
 # ------------------
@@ -86,6 +98,9 @@ app_include_icons = ["church/icons/church.svg"]
 
 website_redirects = [
 	{"source": "/index", "target": "/home"},
+	# Newsletters are member-only — managed via the portal (/newsletter-subscription)
+	# and delivered by email. Keep the public Frappe newsletter web view off the site.
+	{"source": r"/newsletters.*", "target": "/home"},
 ]
 
 # website user home page (by Role)
@@ -170,6 +185,7 @@ setup_wizard_complete = [
 scheduler_events = {
 	"daily": [
 		"church.church_ministries.doctype.function.function.create_scheduled_functions",
+		"church.church_communications.newsletter.sync_member_email_group",
 	],
 }
 
@@ -241,12 +257,6 @@ override_doctype_dashboards = {"User": "church.church_people.doctype.person.pers
 # 	"church.auth.validate"
 # ]
 
-doc_events = {
-	"*": {
-		# We log events for 'church' doctypes so we can track activity for users
-		"after_insert": "church.dashboard.log_creation_as_version",
-	},
-}
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True

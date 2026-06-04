@@ -8,6 +8,8 @@ from frappe.utils import get_link_to_form
 
 class Expense(Document):
 	def validate(self):
+		if self.type:
+			self.associated_fund = frappe.db.get_value("Expense Type", self.type, "fund")
 		self._warn_if_fund_would_go_negative()
 
 	def _warn_if_fund_would_go_negative(self):

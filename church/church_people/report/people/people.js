@@ -19,7 +19,7 @@ frappe.query_reports["People"] = {
 		},
 		{
 			fieldname: "is_member",
-			label: __("Member"),
+			label: __("Active Member"),
 			fieldtype: "Check",
 		},
 		{
@@ -40,7 +40,7 @@ frappe.query_reports["People"] = {
 		if (column.fieldname === "roles" && !value) {
 			return "";
 		}
-		if (column.fieldname === "is_member" || column.fieldname === "is_baptized") {
+		if (column.fieldname === "is_baptized") {
 			return value ? __("Yes") : __("No");
 		}
 		return value;

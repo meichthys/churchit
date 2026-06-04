@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:room_name",
+ "creation": "2026-05-29 00:00:00.000000",
+ "description": "A bookable room or facility (sanctuary, classroom, fellowship hall).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room_name",
+  "location",
+  "capacity",
+  "column_break_1",
+  "is_bookable",
+  "requires_approval",
+  "section_break_1",
+  "description"
+ ],
+ "fields": [
+  {"fieldname": "room_name", "fieldtype": "Data", "label": "Room Name", "reqd": 1, "unique": 1, "in_list_view": 1},
+  {"fieldname": "location", "fieldtype": "Link", "label": "Location", "options": "Location", "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "capacity", "fieldtype": "Int", "label": "Capacity", "in_list_view": 1},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "is_bookable", "fieldtype": "Check", "label": "Bookable", "default": "1", "in_standard_filter": 1},
+  {"fieldname": "requires_approval", "fieldtype": "Check", "label": "Requires Approval"},
+  {"fieldname": "section_break_1", "fieldtype": "Section Break"},
+  {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"}
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Room",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Church Manager", "select": 1, "share": 1, "write": 1},
+  {"read": 1, "role": "Church User", "select": 1}
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "room_name"
+}

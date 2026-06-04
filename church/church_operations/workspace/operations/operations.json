@@ -1,82 +1,112 @@
 {
- "charts": [],
- "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
- "creation": "2025-12-15 00:04:59.607521",
- "custom_blocks": [],
- "docstatus": 0,
- "doctype": "Workspace",
- "for_user": "",
- "hide_custom": 0,
- "icon": "getting-started",
- "idx": 0,
- "indicator_color": "green",
- "is_hidden": 0,
- "label": "Operations",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Operations Documents",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Assets",
-   "link_count": 0,
-   "link_to": "Church Asset",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Tasks",
-   "link_count": 0,
-   "link_to": "Church Task",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Locations",
-   "link_count": 0,
-   "link_to": "Location",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-04-15 18:53:42.579356",
- "modified_by": "Administrator",
- "module": "Church Operations",
- "name": "Operations",
- "number_cards": [
-  {
-   "label": "Tasks",
-   "number_card_name": "Tasks"
-  },
-  {
-   "label": "Locations",
-   "number_card_name": "Locations"
-  },
-  {
-   "label": "Assets",
-   "number_card_name": "Assets"
-  }
- ],
- "owner": "Administrator",
- "parent_page": "",
- "public": 1,
- "quick_lists": [],
- "roles": [],
- "sequence_id": 13.0,
- "shortcuts": [],
- "title": "Operations"
+  "charts": [],
+  "content": "[{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
+  "creation": "2025-12-15 00:04:59.607521",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "getting-started",
+  "idx": 0,
+  "indicator_color": "green",
+  "is_hidden": 0,
+  "label": "Operations",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Operations Documents",
+      "link_count": 3,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Assets",
+      "link_count": 0,
+      "link_to": "Church Asset",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Tasks",
+      "link_count": 0,
+      "link_to": "Church Task",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Locations",
+      "link_count": 0,
+      "link_to": "Location",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Meeting Minutes",
+      "link_count": 0,
+      "link_to": "Meeting Minutes",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Rooms",
+      "link_count": 0,
+      "link_to": "Room",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Room Bookings",
+      "link_count": 0,
+      "link_to": "Room Booking",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-04-15 18:53:42.579356",
+  "modified_by": "Administrator",
+  "module": "Church Operations",
+  "name": "Operations",
+  "number_cards": [
+    {
+      "label": "Tasks",
+      "number_card_name": "Tasks"
+    },
+    {
+      "label": "Locations",
+      "number_card_name": "Locations"
+    },
+    {
+      "label": "Assets",
+      "number_card_name": "Assets"
+    }
+  ],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "roles": [],
+  "sequence_id": 13.0,
+  "shortcuts": [],
+  "title": "Operations"
 }

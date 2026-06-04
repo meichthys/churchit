@@ -88,5 +88,50 @@
     "role": "Church User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-29 00:00:00.000000",
+  "name": "Church Treasurer",
+  "role_profile": "Church Treasurer",
+  "roles": [
+   {"parent": "Church Treasurer", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church User"},
+   {"parent": "Church Treasurer", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church Treasurer"}
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-29 00:00:00.000000",
+  "name": "Church Secretary",
+  "role_profile": "Church Secretary",
+  "roles": [
+   {"parent": "Church Secretary", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church User"},
+   {"parent": "Church Secretary", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church Secretary"}
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-29 00:00:00.000000",
+  "name": "Church Deacon",
+  "role_profile": "Church Deacon",
+  "roles": [
+   {"parent": "Church Deacon", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church User"},
+   {"parent": "Church Deacon", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church Deacon"}
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-29 00:00:00.000000",
+  "name": "Church Pastor",
+  "role_profile": "Church Pastor",
+  "roles": [
+   {"parent": "Church Pastor", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church User"},
+   {"parent": "Church Pastor", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church Manager"},
+   {"parent": "Church Pastor", "parentfield": "roles", "parenttype": "Role Profile", "role": "Church Pastor"}
+  ]
  }
 ]

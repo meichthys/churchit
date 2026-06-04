@@ -36,6 +36,25 @@ class Person(Document):
 		# We set this here since virtual fields do not work with
 		#   View Settings -> Title Field as of 2025-08-26
 		self.full_name = f"{self.first_name}" + ((" " + self.last_name) if self.last_name else "")
+		self._recompute_age()
+
+	def _recompute_age(self):
+		"""Set age from the Birth row in life_events. Cleared when no Birth event."""
+		from frappe.utils import getdate, nowdate
+
+		birth = next(
+			(le for le in (self.life_events or []) if le.event_type == "Birth" and le.date),
+			None,
+		)
+		if not birth:
+			self.age = None
+			return
+		birth_date = getdate(birth.date)
+		today = getdate(nowdate())
+		years = today.year - birth_date.year
+		if (today.month, today.day) < (birth_date.month, birth_date.day):
+			years -= 1
+		self.age = max(years, 0)
 
 	def before_delete(self):
 		# Remove person from Family

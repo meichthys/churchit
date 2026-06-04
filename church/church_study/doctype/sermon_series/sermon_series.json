@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:series_name",
+ "creation": "2026-05-29 00:00:00.000000",
+ "description": "A sermon series (e.g., 'Romans', 'Sermon on the Mount', 'Advent 2025').",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "series_name",
+  "speaker",
+  "start_date",
+  "column_break_1",
+  "end_date",
+  "publish",
+  "section_break_1",
+  "description",
+  "image"
+ ],
+ "fields": [
+  {"fieldname": "series_name", "fieldtype": "Data", "label": "Series Name", "reqd": 1, "unique": 1, "in_list_view": 1},
+  {"fieldname": "speaker", "fieldtype": "Link", "label": "Primary Speaker", "options": "Person", "in_list_view": 1},
+  {"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date", "in_list_view": 1},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "end_date", "fieldtype": "Date", "label": "End Date"},
+  {"fieldname": "publish", "fieldtype": "Check", "label": "Publish to Website"},
+  {"fieldname": "section_break_1", "fieldtype": "Section Break"},
+  {"fieldname": "description", "fieldtype": "Text Editor", "label": "Description"},
+  {"fieldname": "image", "fieldtype": "Attach Image", "label": "Series Image"}
+ ],
+ "grid_page_length": 50,
+ "links": [{"link_doctype": "Sermon", "link_fieldname": "series"}],
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Study",
+ "name": "Sermon Series",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Church Manager", "select": 1, "share": 1, "write": 1},
+  {"read": 1, "role": "Church User", "select": 1}
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "start_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "series_name"
+}

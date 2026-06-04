@@ -1,0 +1,16 @@
+{
+ "add_total_row": 1,
+ "creation": "2026-06-01 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Report",
+ "is_standard": "Yes",
+ "modified": "2026-06-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Budget vs Actual",
+ "owner": "Administrator",
+ "ref_doctype": "Budget",
+ "report_name": "Budget vs Actual",
+ "report_type": "Script Report",
+ "roles": []
+}

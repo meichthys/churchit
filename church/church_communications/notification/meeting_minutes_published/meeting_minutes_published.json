@@ -1,0 +1,29 @@
+{
+ "attach_print": 1,
+ "channel": "Email",
+ "condition": "doc.status == \"Published\"",
+ "creation": "2026-05-29 00:00:00",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Meeting Minutes",
+ "enabled": 0,
+ "event": "Value Change",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Minutes for <strong>{{ doc.title }}</strong> ({{ frappe.utils.formatdate(doc.meeting_date) }}) have been published.</p>\n\n<p>See the attached document for details.</p>",
+ "modified": "2026-05-31 21:12:11.386840",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Meeting Minutes Published",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Church Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Minutes published: {{ doc.title }}",
+ "value_changed": "status"
+}

@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "creation": "2026-05-29 00:00:00",
+ "description": "A significant life event for a Person (birth, baptism, marriage, death, salvation). Embedded as a child table on Person.life_events.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "event_type",
+  "date",
+  "column_break_1",
+  "location",
+  "officiant",
+  "section_break_1",
+  "notes"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "event_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Event Type",
+   "options": "Life Event Type",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Location"
+  },
+  {
+   "columns": 2,
+   "fieldname": "officiant",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Officiant",
+   "options": "Person"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-31 19:03:07.753603",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Life Event",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "date",
+ "sort_order": "DESC",
+ "states": []
+}

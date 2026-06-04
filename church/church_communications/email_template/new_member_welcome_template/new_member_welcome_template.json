@@ -1,0 +1,12 @@
+{
+ "creation": "2026-05-29 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "New Member Welcome",
+ "owner": "Administrator",
+ "reference_doctype": "Person",
+ "response": "<p>Dear {{ first_name }},</p>\n\n<p>Welcome to our church family! We are thrilled to have you as a member of our congregation.</p>\n\n<p>Our pastor or one of our deacons will reach out to you shortly. In the meantime, please don't hesitate to contact us with any questions or needs.</p>\n\n<p>\"So then you are no longer strangers and aliens, but you are fellow citizens with the saints and members of the household of God.\" - Ephesians 2:19</p>\n\n<p>In Christ,<br>The Pastoral Team</p>",
+ "subject": "Welcome to Our Church Family!",
+ "use_html": 1
+}

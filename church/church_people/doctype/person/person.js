@@ -3,23 +3,6 @@
 
 frappe.ui.form.on("Person", {
 	refresh(frm) {
-		// Calculate age from birthday
-		if (frm.doc.birthday) {
-			const today = frappe.datetime.get_today();
-			const birthDate = new Date(frm.doc.birthday);
-			const todayDate = new Date(today);
-
-			let age = todayDate.getFullYear() - birthDate.getFullYear();
-
-			if (todayDate.getMonth() < birthDate.getMonth() ||
-			    (todayDate.getMonth() === birthDate.getMonth() && todayDate.getDate() < birthDate.getDate())) {
-				age--;
-			}
-
-			frm.doc.age = age;
-			frm.refresh_field('age');
-		}
-
 		// Calculate marriage years from anniversary
 		if (frm.doc.anniversary) {
 			const today = frappe.datetime.get_today();

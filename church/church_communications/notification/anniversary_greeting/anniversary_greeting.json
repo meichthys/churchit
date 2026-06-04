@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.email and doc.is_head_of_household",
+ "creation": "2026-05-29 00:00:00.000000",
+ "date_changed": "anniversary",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Person",
+ "enabled": 0,
+ "event": "Days After",
+ "is_standard": 1,
+ "message": "<p>Dear {{ doc.first_name }}{% if doc.spouse %} and {{ frappe.db.get_value('Person', doc.spouse, 'first_name') }}{% endif %},</p>\n\n<p>On behalf of your church family, we want to wish you a very happy anniversary! We thank the Lord for His grace and faithfulness in your marriage and pray His continued blessing on your home.</p>\n\n<p><em>\"What therefore God hath joined together, let not man put asunder.\"</em> — Mark 10:9</p>\n\n<p>With love,<br>{{ frappe.db.get_value(\"Church\", {\"parent_church\": [\"is\", \"not set\"]}, \"church_name\") or \"Your Church Family\" }}</p>",
+ "modified": "2026-05-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Anniversary Greeting",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Happy Anniversary!"
+}
