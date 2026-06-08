@@ -11,7 +11,7 @@
 A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
 
 ![](./church/public/media/feature_image.png)
-
+<img width="1150" height="855" alt="Screenshot 2026-06-08 101701" src="https://github.com/user-attachments/assets/ac424269-8452-476e-bd23-400e9c154768" />
 
 
 ## 🧪 Demo
