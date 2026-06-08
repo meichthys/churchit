@@ -294,4 +294,4 @@ church.patches.v2_0.remove_old_attendance_type
 
 >You can copy, translate, modify, and distribute this resource, without restriction, and without needing to ask permission. This resource is freely given (Matt 10:8) for the sake of the gospel.
 
-![Freely given](church/public/media/freely_given.svg)
+[![Freely given](church/public/media/freely_given.svg)](https://sellingjesus.org)
