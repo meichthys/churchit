@@ -67,7 +67,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Collections",
-   "link_count": 2,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -88,6 +88,26 @@
    "label": "Payment Types",
    "link_count": 0,
    "link_to": "Payment Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Online Donations",
+   "link_count": 0,
+   "link_to": "Online Donation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Giving Settings",
+   "link_count": 0,
+   "link_to": "Giving Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"

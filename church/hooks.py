@@ -41,7 +41,7 @@ fixtures = [
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["payments"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -126,7 +126,12 @@ website_redirects = [
 # Installation
 # ------------
 
-# before_install = "install.before_install"
+# Clear stale per-document lock files so `bench install`/`bench reinstall` and
+# `bench migrate` don't abort with DocumentLockedError when a prior run queued a
+# background action (e.g. Role Profile fixtures) on a bench with no worker.
+before_install = "church.install.clear_stale_document_locks"
+before_migrate = "church.install.clear_stale_document_locks"
+
 after_install = "church.patches.after_install.execute"
 
 setup_wizard_requires = "/assets/church/js/setup_wizard.js"

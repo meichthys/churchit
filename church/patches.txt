@@ -5,3 +5,4 @@
 
 # Patches added in this section will be executed after doctypes are migrated
 [post_model_sync]
+church.patches.add_online_payment_type
