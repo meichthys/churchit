@@ -16,6 +16,7 @@
   "column_break_nqye",
   "date",
   "ministry",
+  "missionary",
   "section_break_fdwq",
   "notes",
   "amended_from"
@@ -106,6 +107,17 @@
    "label": "Associated Fund",
    "options": "Fund",
    "read_only": 1
+  },
+  {
+   "description": "Set automatically when this expense is generated from a `Missionary`'s recurring support.",
+   "fieldname": "missionary",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Missionary",
+   "no_copy": 1,
+   "options": "Missionary",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,

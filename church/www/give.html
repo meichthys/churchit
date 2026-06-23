@@ -1,0 +1,106 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Give") }}{% endblock %}
+
+{% block page_content %}
+<div class="give-page" style="max-width: 560px; margin: 2rem auto;">
+	<h1 class="mb-2">{{ _("Give to the Church") }}</h1>
+	<p class="text-muted mb-4">
+		{{ _("Thank you for supporting the ministry and mission of our church.") }}
+	</p>
+
+	{% if success %}
+	<div class="alert alert-success" role="alert">
+		{{ thank_you_message or _("Thank you for your generous gift!") }}
+	</div>
+	{% endif %}
+
+	{% if not enabled %}
+	<div class="alert alert-info" role="alert">
+		{{ _("Online giving is currently unavailable. Please check back later or contact the church office.") }}
+	</div>
+	{% else %}
+	<form id="give-form">
+		<div class="form-group mb-3">
+			<label for="give-amount">{{ _("Amount") }} <span class="text-muted">({{ currency }})</span></label>
+			<input type="number" min="1" step="0.01" class="form-control" id="give-amount" placeholder="0.00" required>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="give-fund">{{ _("Give to") }}</label>
+			<select class="form-control" id="give-fund" required>
+				{% for f in funds %}
+				<option value="{{ f.name }}" {% if f.name == default_fund %}selected{% endif %}>{{ f.fund }}</option>
+				{% endfor %}
+			</select>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="give-name">{{ _("Your Name") }}</label>
+			<input type="text" class="form-control" id="give-name"
+				value="{{ donor_name or '' }}" {% if is_logged_in and donor_name %}readonly{% endif %} required>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="give-email">{{ _("Your Email") }}</label>
+			<input type="email" class="form-control" id="give-email"
+				value="{{ donor_email or '' }}" {% if is_logged_in and donor_email %}readonly{% endif %} required>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="give-notes">{{ _("Notes (optional)") }}</label>
+			<input type="text" class="form-control" id="give-notes">
+		</div>
+
+		<button type="submit" class="btn btn-primary btn-block" id="give-submit">{{ _("Give") }}</button>
+		<div id="give-error" class="text-danger mt-2" style="display: none;"></div>
+	</form>
+	{% endif %}
+</div>
+
+<script>
+frappe.ready(function () {
+	const form = document.getElementById('give-form');
+	if (!form) return;
+
+	const btn = document.getElementById('give-submit');
+	const errEl = document.getElementById('give-error');
+	const giveLabel = '{{ _("Give") }}';
+
+	function showError(msg) {
+		btn.disabled = false;
+		btn.textContent = giveLabel;
+		errEl.textContent = msg;
+		errEl.style.display = 'block';
+	}
+
+	form.addEventListener('submit', function (e) {
+		e.preventDefault();
+		errEl.style.display = 'none';
+		btn.disabled = true;
+		btn.textContent = '{{ _("Redirecting to secure payment…") }}';
+
+		frappe.call({
+			method: 'church.www.give.start_donation',
+			args: {
+				amount: document.getElementById('give-amount').value,
+				fund: document.getElementById('give-fund').value,
+				donor_name: document.getElementById('give-name').value,
+				email: document.getElementById('give-email').value,
+				notes: document.getElementById('give-notes').value,
+			},
+			callback: function (r) {
+				if (r.message) {
+					window.location.href = r.message;
+				} else {
+					showError('{{ _("Could not start payment. Please try again.") }}');
+				}
+			},
+			error: function () {
+				showError('{{ _("Something went wrong. Please try again.") }}');
+			},
+		});
+	});
+});
+</script>
+{% endblock %}

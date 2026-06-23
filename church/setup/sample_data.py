@@ -126,6 +126,7 @@ def create_sample_data():
 
 	_create_collections(people, funds)
 	_create_expenses(expense_types)
+	_set_sample_fund_goal(funds)
 	_create_budget(expense_types)
 
 	_create_prayer_requests(people)
@@ -899,6 +900,22 @@ def _create_funds():
 		doc.insert(ignore_permissions=True)
 		refs[fund_name] = doc.name
 	return refs
+
+
+def _set_sample_fund_goal(funds):
+	"""Give one fund with a positive balance a fundraising goal, sized so the
+	current balance is ~40% of the goal — a realistic in-progress example for the
+	Fund Goals dashboard and report. Run after balances are populated."""
+	for fund_name in ("Building", "Missions", "General", "Benevolence"):
+		name = funds.get(fund_name)
+		if not name:
+			continue
+		fund = frappe.get_doc("Fund", name)
+		if (fund.balance or 0) > 0:
+			# goal = balance / 0.4 so progress lands near 40%, rounded to $100.
+			fund.goal_amount = round((fund.balance / 0.4) / 100) * 100
+			fund.save(ignore_permissions=True)
+			return
 
 
 # ---------------------------------------------------------------------------

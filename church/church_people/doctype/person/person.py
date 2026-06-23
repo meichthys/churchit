@@ -56,12 +56,12 @@ class Person(Document):
 			years -= 1
 		self.age = max(years, 0)
 
-	def before_delete(self):
+	def on_trash(self):
 		# Remove person from Family
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
 			for member in family.members:
-				if member.name == self.name:
+				if member.member == self.name:
 					family.remove(member)
 					break
 			family.save()

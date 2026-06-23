@@ -28,6 +28,8 @@
   "column_break_esna",
   "support_amount",
   "support_frequency",
+  "auto_create_expenses",
+  "expense_type",
   "section_break_appf",
   "notes",
   "section_break_qxbh",
@@ -132,6 +134,23 @@
    "label": "Support Frequency",
    "mandatory_depends_on": "eval: doc.support_amount>0;",
    "options": "Missionary Support Frequency"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.support_amount>0",
+   "description": "Automatically create a draft `Expense` each support period based on the support amount and frequency. Drafts are left unsubmitted for review. Enabling this backfills drafts for any periods already elapsed since the support start date.",
+   "fieldname": "auto_create_expenses",
+   "fieldtype": "Check",
+   "label": "Auto-create Expenses"
+  },
+  {
+   "depends_on": "eval:doc.auto_create_expenses",
+   "description": "The `Expense Type` (and therefore `Fund`) that auto-created support expenses are charged to.",
+   "fieldname": "expense_type",
+   "fieldtype": "Link",
+   "label": "Expense Type",
+   "mandatory_depends_on": "eval:doc.auto_create_expenses",
+   "options": "Expense Type"
   },
   {
    "fieldname": "email",

@@ -168,7 +168,7 @@ def _create_position_types():
 
 
 def _create_payment_types():
-	for payment_type in ("Cash", "Check"):
+	for payment_type in ("Cash", "Check", "Online"):
 		_insert_if_missing("Payment Type", {"type": payment_type}, type=payment_type)
 
 
@@ -655,6 +655,7 @@ def _setup_website_settings():
 		{"label": "Blog", "url": "/blog", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
+		{"label": "Give", "url": "/give", "right": 1},
 	]:
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
