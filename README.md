@@ -11,7 +11,7 @@
 A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
 
 ![](./church/public/media/feature_image.png)
-
+<img width="1150" height="855" alt="Screenshot 2026-06-08 101701" src="https://github.com/user-attachments/assets/ac424269-8452-476e-bd23-400e9c154768" />
 
 
 ## 🧪 Demo
@@ -294,4 +294,4 @@ church.patches.v2_0.remove_old_attendance_type
 
 >You can copy, translate, modify, and distribute this resource, without restriction, and without needing to ask permission. This resource is freely given (Matt 10:8) for the sake of the gospel.
 
-![Freely given](church/public/media/freely_given.svg)
+[![Freely given](church/public/media/freely_given.svg)](https://sellingjesus.org)
