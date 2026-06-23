@@ -191,6 +191,7 @@ scheduler_events = {
 	"daily": [
 		"church.church_ministries.doctype.function.function.create_scheduled_functions",
 		"church.church_communications.newsletter.sync_member_email_group",
+		"church.church_missions.doctype.missionary.missionary.create_missionary_expenses",
 	],
 }
 
