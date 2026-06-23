@@ -31,10 +31,9 @@ class Expense(Document):
 				title="Negative Fund Balance",
 			)
 
-	def before_delete(self):
-		# This probably should never get called since frappe prevents the deletion
-		# of submitted documents by default, but just to be sure we'll provide our own warning.
-		# Prevent deletion if the document is not cancelled
+	def on_trash(self):
+		# Prevent deletion unless the document is cancelled, so an Expense can't be
+		# removed while it is still reducing a Fund balance.
 		if not self.docstatus == 2:  # 2 is Cancelled
 			frappe.throw("❌ You must cancel this Expense before deleting it.")
 

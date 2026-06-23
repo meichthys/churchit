@@ -1,0 +1,13 @@
+{
+ "creation": "2026-06-23 00:00:00",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-06-22 18:52:22.618836",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Fund Goal Progress",
+ "owner": "Administrator",
+ "source_name": "Fund Goal Progress",
+ "timeseries": 1
+}

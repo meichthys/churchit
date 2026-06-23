@@ -1,0 +1,25 @@
+{
+ "cards": [],
+ "charts": [
+  {
+   "chart": "Fund Goal Progress",
+   "width": "Full"
+  },
+  {
+   "chart": "Fund Balances",
+   "width": "Full"
+  }
+ ],
+ "creation": "2026-06-23 00:00:00.000000",
+ "dashboard_name": "Fund Goals",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2026-06-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Fund Goals",
+ "owner": "Administrator"
+}

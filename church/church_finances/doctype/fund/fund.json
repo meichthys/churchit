@@ -14,6 +14,8 @@
   "start_date",
   "end_date",
   "balance",
+  "goal_amount",
+  "goal_progress",
   "section_break_xcgh",
   "transactions"
  ],
@@ -55,6 +57,26 @@
    "fieldtype": "Currency",
    "in_preview": 1,
    "label": "Balance"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "description": "Optional fundraising target for this fund (e.g. a building project or missions trip). Leave at 0 for no goal.",
+   "fieldname": "goal_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Goal Amount",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.goal_amount>0",
+   "description": "Progress of the current balance toward the goal amount.",
+   "fieldname": "goal_progress",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Goal Progress",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_xcgh",

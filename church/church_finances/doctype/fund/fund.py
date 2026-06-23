@@ -7,8 +7,9 @@ from frappe.model.document import Document
 
 class Fund(Document):
 	def before_save(self):
-		# Ensure balance is always current before saving
+		# Ensure balance and goal progress are always current before saving
 		self.recalculate_balance()
+		self.update_goal_progress()
 
 	def recalculate_balance(self):
 		# Calculate balance from all financial transactions
@@ -18,3 +19,10 @@ class Fund(Document):
 
 		# Update the balance field
 		self.balance = total_balance
+
+	def update_goal_progress(self):
+		# Percentage of the goal amount reached by the current balance.
+		if self.goal_amount and self.goal_amount > 0:
+			self.goal_progress = (self.balance or 0) / self.goal_amount * 100
+		else:
+			self.goal_progress = 0
