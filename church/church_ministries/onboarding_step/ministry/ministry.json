@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create a Ministry",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Ministries organize your programs, their gatherings, and their spending.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Ministry",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Ministry",
+ "owner": "Administrator",
+ "reference_document": "Ministry",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Ministries",
+ "validate_action": 1
+}

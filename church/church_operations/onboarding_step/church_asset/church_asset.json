@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add an Asset",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Assets are the equipment and property the church owns, tracked by location.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Church Asset",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Church Asset",
+ "owner": "Administrator",
+ "reference_document": "Church Asset",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Assets",
+ "validate_action": 1
+}

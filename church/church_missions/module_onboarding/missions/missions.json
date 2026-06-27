@@ -1,0 +1,32 @@
+{
+ "allow_roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Church Manager"
+  }
+ ],
+ "creation": "2026-06-27 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/meichthys/church",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Missions",
+ "name": "Missions",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Missionary Agency"
+  },
+  {
+   "step": "Missionary"
+  }
+ ],
+ "subtitle": "Agencies, missionaries, and recurring support.",
+ "success_message": "Your missionaries and their support are set up.",
+ "title": "\ud83c\udf0d Tracking Missions & Missionaries"
+}

@@ -6,7 +6,7 @@
  "idx": 0,
  "include_name_field": 1,
  "is_standard": 1,
- "modified": "2026-05-20 00:00:00.000000",
+ "modified": "2026-06-27 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Domain Setup",
@@ -16,7 +16,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Enter the domain part of your email address — everything after the <strong>@</strong>. For example, if your address is <em>pastor@gracechurch.org</em>, the domain is <em>gracechurch.org</em>. The server settings below will be reused by any Email Account that points at this domain.",
+   "description": "Enter the domain part of your email address, meaning everything after the <strong>@</strong>. For example, if your address is <em>pastor@gracechurch.org</em>, the domain is <em>gracechurch.org</em>. The server settings below will be reused by any Email Account that points at this domain.",
    "field": "",
    "fieldname": "domain_name",
    "fieldtype": "Data",
@@ -28,7 +28,7 @@
    "title": "Domain Name"
   },
   {
-   "description": "Hostname of your <strong>incoming</strong> mail server — the server you fetch messages from. Examples: <code>imap.gmail.com</code>, <code>outlook.office365.com</code>, <code>mail.gracechurch.org</code>. Your email provider's help docs list this; search “IMAP settings”.",
+   "description": "Hostname of your <strong>incoming</strong> mail server, meaning the server you fetch messages from. Examples: <code>imap.gmail.com</code>, <code>outlook.office365.com</code>, <code>mail.gracechurch.org</code>. Your email provider's help docs list this; search “IMAP settings”.",
    "field": "",
    "fieldname": "email_server",
    "fieldtype": "Data",
@@ -40,7 +40,7 @@
    "title": "Incoming Server"
   },
   {
-   "description": "Leave this <strong>checked</strong> for IMAP (recommended) — read/unread state and folders stay in sync between Frappe and your other mail clients. Uncheck only if your provider supports just POP3.",
+   "description": "Leave this <strong>checked</strong> for IMAP (recommended) so that read/unread state and folders stay in sync between Frappe and your other mail clients. Uncheck only if your provider supports just POP3.",
    "field": "",
    "fieldname": "use_imap",
    "fieldtype": "Check",
@@ -52,7 +52,7 @@
    "title": "Use IMAP"
   },
   {
-   "description": "Encrypt the incoming connection. Leave <strong>checked</strong> in almost all cases — modern providers require it.",
+   "description": "Encrypt the incoming connection. Leave <strong>checked</strong> in almost all cases, since modern providers require it.",
    "field": "",
    "fieldname": "use_ssl",
    "fieldtype": "Check",
@@ -76,7 +76,7 @@
    "title": "Incoming Port"
   },
   {
-   "description": "Hostname of your <strong>outgoing</strong> mail server — where Frappe sends messages from. Examples: <code>smtp.gmail.com</code>, <code>smtp.office365.com</code>, <code>mail.gracechurch.org</code>. Search your provider's docs for “SMTP settings”.",
+   "description": "Hostname of your <strong>outgoing</strong> mail server, meaning where Frappe sends messages from. Examples: <code>smtp.gmail.com</code>, <code>smtp.office365.com</code>, <code>mail.gracechurch.org</code>. Search your provider's docs for “SMTP settings”.",
    "field": "",
    "fieldname": "smtp_server",
    "fieldtype": "Data",

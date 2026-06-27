@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Log a Prayer",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Prayers record an individual's prayer and the topics they prayed for.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Prayer",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Prayer",
+ "owner": "Administrator",
+ "reference_document": "Prayer",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Prayers",
+ "validate_action": 1
+}

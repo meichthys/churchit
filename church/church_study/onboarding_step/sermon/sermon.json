@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add a Sermon",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Sermons hold notes, audio, and projection slides, and can be published online.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Sermon",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Sermon",
+ "owner": "Administrator",
+ "reference_document": "Sermon",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Sermons",
+ "validate_action": 1
+}

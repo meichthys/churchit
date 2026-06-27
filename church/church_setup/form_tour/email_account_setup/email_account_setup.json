@@ -6,7 +6,7 @@
  "idx": 0,
  "include_name_field": 1,
  "is_standard": 1,
- "modified": "2026-05-20 00:00:00.000000",
+ "modified": "2026-06-27 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Account Setup",
@@ -16,7 +16,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "A short label for this account, e.g. <em>Office</em>, <em>Pastor Inbox</em>, or <em>Giving</em>. This is how the account will appear in lists and selectors — it doesn't need to match the email address.",
+   "description": "A short label for this account, e.g. <em>Office</em>, <em>Pastor Inbox</em>, or <em>Giving</em>. This is how the account will appear in lists and selectors. It doesn't need to match the email address.",
    "field": "",
    "fieldname": "email_account_name",
    "fieldtype": "Data",
@@ -28,7 +28,7 @@
    "title": "Account Name"
   },
   {
-   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created — Frappe will pull server settings from that domain.",
+   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created, since Frappe will pull server settings from that domain.",
    "field": "",
    "fieldname": "email_id",
    "fieldtype": "Data",
@@ -76,7 +76,7 @@
    "title": "Enable Incoming"
   },
   {
-   "description": "Mark this account as the <strong>default</strong> for incoming mail. Only one account should be the default — it's where messages addressed to no specific inbox get routed.",
+   "description": "Mark this account as the <strong>default</strong> for incoming mail. Only one account should be the default. It's where messages addressed to no specific inbox get routed.",
    "field": "",
    "fieldname": "default_incoming",
    "fieldtype": "Check",
@@ -100,7 +100,7 @@
    "title": "Enable Outgoing"
   },
   {
-   "description": "Mark this account as the <strong>default</strong> for outgoing mail. Only one account should be the default outgoing — it's the From address used when no specific account is chosen.",
+   "description": "Mark this account as the <strong>default</strong> for outgoing mail. Only one account should be the default outgoing. It's the From address used when no specific account is chosen.",
    "field": "",
    "fieldname": "default_outgoing",
    "fieldtype": "Check",

@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Record an Expense",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Expenses draw down a fund and can be attributed to a ministry, vendor, or missionary.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Expense",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Expense",
+ "owner": "Administrator",
+ "reference_document": "Expense",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Expenses",
+ "validate_action": 1
+}

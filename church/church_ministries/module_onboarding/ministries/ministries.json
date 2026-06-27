@@ -1,0 +1,35 @@
+{
+ "allow_roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Church Manager"
+  }
+ ],
+ "creation": "2026-06-27 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/meichthys/church",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Ministries",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Ministry"
+  },
+  {
+   "step": "Function"
+  },
+  {
+   "step": "Song"
+  }
+ ],
+ "subtitle": "Ministries, their functions, and worship songs.",
+ "success_message": "Your ministries and gatherings are ready to run.",
+ "title": "\ud83e\udd1d Organizing Ministries & Gatherings"
+}

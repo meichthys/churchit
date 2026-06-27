@@ -9,13 +9,14 @@
  "is_complete": 0,
  "is_single": 0,
  "is_skipped": 0,
- "modified": "2026-03-21 19:27:14.142902",
+ "modified": "2026-06-27 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "Function",
  "owner": "Administrator",
  "reference_document": "Function",
- "show_form_tour": 0,
- "show_full_form": 0,
+ "show_form_tour": 1,
+ "show_full_form": 1,
  "title": "Functions",
- "validate_action": 1
+ "validate_action": 1,
+ "form_tour": "Function"
 }

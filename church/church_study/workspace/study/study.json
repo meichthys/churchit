@@ -1,155 +1,155 @@
 {
- "charts": [],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":3}},{\"id\":\"wSz8xMwBmx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible References\",\"col\":3}},{\"id\":\"UBixP3IqhZ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible Verses\",\"col\":3}},{\"id\":\"ckBmem01rd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"References Memorized\",\"col\":3}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}},{\"id\":\"mc4PE39_sG\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Reports\",\"col\":4}}]",
- "creation": "2025-09-18 00:30:32.961356",
- "custom_blocks": [],
- "docstatus": 0,
- "doctype": "Workspace",
- "for_user": "",
- "hide_custom": 0,
- "icon": "education",
- "idx": 0,
- "indicator_color": "",
- "is_hidden": 0,
- "label": "Study",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Study Reports",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Bible Memory",
-   "link_count": 0,
-   "link_to": "Bible Memory",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Study Documents",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Books",
-   "link_count": 0,
-   "link_to": "Bible Book",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Translations",
-   "link_count": 0,
-   "link_to": "Bible Translation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Verses",
-   "link_count": 0,
-   "link_to": "Bible Verse",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible References",
-   "link_count": 0,
-   "link_to": "Bible Reference",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sermons",
-   "link_count": 0,
-   "link_to": "Sermon",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sermon Series",
-   "link_count": 0,
-   "link_to": "Sermon Series",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Memory Items",
-   "link_count": 0,
-   "link_to": "Bible Memory Item",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Memory Sessions",
-   "link_count": 0,
-   "link_to": "Memory Session",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-05-18 19:43:40.416861",
- "modified_by": "Administrator",
- "module": "Church Study",
- "name": "Study",
- "number_cards": [
-  {
-   "label": "Sermons",
-   "number_card_name": "Sermons"
-  },
-  {
-   "label": "Bible References",
-   "number_card_name": "Bible References"
-  },
-  {
-   "label": "Bible Verses",
-   "number_card_name": "Bible Verses"
-  },
-  {
-   "label": "References Memorized",
-   "number_card_name": "References Memorized"
-  }
- ],
- "owner": "Administrator",
- "parent_page": "",
- "public": 1,
- "quick_lists": [],
- "roles": [],
- "sequence_id": 19.0,
- "shortcuts": [],
- "title": "Study"
+  "charts": [],
+  "content": "[{\"id\": \"g8CNKH3aRO\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Study\", \"col\": 12}}, {\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\", \"col\": 12}}, {\"id\": \"ZQz8Pr7Ozj\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Sermons\", \"col\": 3}}, {\"id\": \"wSz8xMwBmx\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Bible References\", \"col\": 3}}, {\"id\": \"UBixP3IqhZ\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Bible Verses\", \"col\": 3}}, {\"id\": \"ckBmem01rd\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"References Memorized\", \"col\": 3}}, {\"id\": \"nN5R0rrK8W\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"OfmuFWcqcK\", \"type\": \"card\", \"data\": {\"card_name\": \"Study Documents\", \"col\": 4}}, {\"id\": \"mc4PE39_sG\", \"type\": \"card\", \"data\": {\"card_name\": \"Study Reports\", \"col\": 4}}]",
+  "creation": "2025-09-18 00:30:32.961356",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "education",
+  "idx": 0,
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Study",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Study Reports",
+      "link_count": 1,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Bible Memory",
+      "link_count": 0,
+      "link_to": "Bible Memory",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Study Documents",
+      "link_count": 7,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible Books",
+      "link_count": 0,
+      "link_to": "Bible Book",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible Translations",
+      "link_count": 0,
+      "link_to": "Bible Translation",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible Verses",
+      "link_count": 0,
+      "link_to": "Bible Verse",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible References",
+      "link_count": 0,
+      "link_to": "Bible Reference",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sermons",
+      "link_count": 0,
+      "link_to": "Sermon",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Sermon Series",
+      "link_count": 0,
+      "link_to": "Sermon Series",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible Memory Items",
+      "link_count": 0,
+      "link_to": "Bible Memory Item",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Bible Memory Sessions",
+      "link_count": 0,
+      "link_to": "Memory Session",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-06-27 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Church Study",
+  "name": "Study",
+  "number_cards": [
+    {
+      "label": "Sermons",
+      "number_card_name": "Sermons"
+    },
+    {
+      "label": "Bible References",
+      "number_card_name": "Bible References"
+    },
+    {
+      "label": "Bible Verses",
+      "number_card_name": "Bible Verses"
+    },
+    {
+      "label": "References Memorized",
+      "number_card_name": "References Memorized"
+    }
+  ],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "roles": [],
+  "sequence_id": 19.0,
+  "shortcuts": [],
+  "title": "Study"
 }

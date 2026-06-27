@@ -1,0 +1,29 @@
+{
+ "allow_roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Church Manager"
+  }
+ ],
+ "creation": "2026-06-27 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/meichthys/church",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Communications",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Announcement"
+  }
+ ],
+ "subtitle": "Broadcast news to your bulletin, website, and inbox.",
+ "success_message": "Your first announcement is ready to share.",
+ "title": "\ud83d\udce3 Communicating With Your Church"
+}

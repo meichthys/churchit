@@ -11,7 +11,7 @@
  "event": "Submit",
  "is_standard": 1,
  "message": "<p>Dear Friend,</p>\n\n<p>Thank you for your generous gift to {{ frappe.db.get_value(\"Church\", {\"parent_church\": [\"is\", \"not set\"]}, \"church_name\") or \"our church\" }}. Your faithfulness is a blessing to the ministry and mission of our congregation.</p>\n\n<p>This message confirms that your contribution has been received and recorded. If you would like a detailed giving statement for your records, please contact the church office.</p>\n\n<p><em>\"Each one must give as he has decided in his heart, not reluctantly or under compulsion, for God loves a cheerful giver.\"</em> &mdash; 2 Corinthians 9:7</p>\n\n<p>With gratitude,<br>The Treasury Team</p>",
- "modified": "2026-06-01 00:00:00.000000",
+ "modified": "2026-06-27 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donation Acknowledgment",

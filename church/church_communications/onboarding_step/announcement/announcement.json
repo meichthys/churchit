@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create an Announcement",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Announcements broadcast church news to the bulletin, website, and email from one record.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Announcement",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Announcement",
+ "owner": "Administrator",
+ "reference_document": "Announcement",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Announcements",
+ "validate_action": 1
+}
