@@ -484,5 +484,4 @@ def get_directory_html(
 		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
 	}
 
-	template = frappe.get_jinja_environment().get_template(_TEMPLATE_PATH)
-	return template.render(context)
+	return frappe.render_template(_TEMPLATE_PATH, context)
