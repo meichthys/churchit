@@ -17,7 +17,6 @@ from church.patches.after_install import DEFAULT_CHURCH_NAME
 # Prayer Request comments are handled separately after this list runs.
 _DELETE_STEPS = [
 	# Leaf docs that link to functions / people / rooms — delete first.
-	(False, "Announcement", {}),
 	(False, "Meeting Minutes", {}),
 	(False, "Room Booking", {}),
 	(False, "Church Task", {}),
@@ -136,7 +135,6 @@ def create_sample_data():
 	_create_care_requests(people)
 	_create_counseling_cases(people)
 	_create_alms_requests(people)
-	_create_announcements()
 
 	sign_up_items = _create_sign_up_items()
 	_create_functions(sign_up_items)
@@ -2862,39 +2860,6 @@ def _create_vendors(expense_types):
 	]
 	for v in vendors:
 		_insert_if_missing("Vendor", {"vendor_name": v["vendor_name"]}, **v)
-
-
-def _create_announcements():
-	"""Create sample announcements for the bulletin / website."""
-	announcements = [
-		{
-			"title": "Annual Church Picnic",
-			"start_date": _near_date(-2),
-			"end_date": _near_date(12),
-			"publish_to_bulletin": 1,
-			"publish_to_website": 1,
-			"audience": "All",
-			"body": (
-				"<p>Join us for our annual all-church picnic at Riverside Park! "
-				"Bring a dish to share — games, fellowship, and fun for the whole "
-				"family. Invite your neighbors!</p>"
-			),
-		},
-		{
-			"title": "Quarterly Members' Meeting",
-			"start_date": _near_date(1),
-			"end_date": _near_date(8),
-			"publish_to_bulletin": 1,
-			"audience": "Members Only",
-			"body": (
-				"<p>Our quarterly members' meeting will be held immediately after "
-				"the morning service. We will review the budget and vote on the "
-				"upcoming ministry plans.</p>"
-			),
-		},
-	]
-	for a in announcements:
-		_insert_if_missing("Announcement", {"title": a["title"]}, **a)
 
 
 def _create_meeting_minutes(people):

@@ -1,6 +1,6 @@
 {
   "charts": [],
-  "content": "[{\"id\": \"Vzf7YjCR4C\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Communications\", \"col\": 12}}, {\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"1ozkmhwUfX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Person Letters\", \"col\": 4}}, {\"id\": \"URO83YzARG\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Letters\", \"col\": 4}}, {\"id\": \"UoQwSv6u6X\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"commDocsCard0\", \"type\": \"card\", \"data\": {\"card_name\": \"Communications Documents\", \"col\": 4}}, {\"id\": \"ybuIQ-BIW-\", \"type\": \"card\", \"data\": {\"card_name\": \"Letter Reports\", \"col\": 4}}]",
+  "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"1ozkmhwUfX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Person Letters\", \"col\": 4}}, {\"id\": \"URO83YzARG\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Letters\", \"col\": 4}}, {\"id\": \"UoQwSv6u6X\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"commDocsCard0\", \"type\": \"card\", \"data\": {\"card_name\": \"Communications Documents\", \"col\": 4}}, {\"id\": \"ybuIQ-BIW-\", \"type\": \"card\", \"data\": {\"card_name\": \"Letter Reports\", \"col\": 4}}]",
   "creation": "2026-06-01 19:31:42.472874",
   "custom_blocks": [],
   "docstatus": 0,
@@ -82,7 +82,7 @@
       "type": "Link"
     }
   ],
-  "modified": "2026-06-27 00:00:00.000000",
+  "modified": "2026-06-27 20:00:00.000000",
   "modified_by": "Administrator",
   "module": "Church Communications",
   "name": "Communications",
