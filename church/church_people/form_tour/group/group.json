@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-06-27 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
@@ -53,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Add people and their Group Role. Roles drive communication and permissions for the group.<br><br><b>Add at least one member to continue.</b>",
+   "description": "Add people and their Group Role. Roles determine communication and permissions for the group.<br><br><b>Add at least one member to continue.</b>",
    "fieldname": "members",
    "fieldtype": "Table",
    "has_next_condition": 1,

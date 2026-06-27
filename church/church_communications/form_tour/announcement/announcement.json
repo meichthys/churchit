@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-06-27 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Announcement",
@@ -35,7 +35,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The three publish toggles are independent. Bulletin (printed), Website (public), and Email each drive one channel, so combine them as needed.",
+   "description": "The three publish toggles are independent. Bulletin (printed), Website (public), and Email each control one channel, so combine them as needed.",
    "fieldname": "publish_to_website",
    "fieldtype": "Check",
    "has_next_condition": 0,

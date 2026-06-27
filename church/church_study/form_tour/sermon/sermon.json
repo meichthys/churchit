@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-06-27 13:00:00.000000",
+  "modified": "2026-06-27 18:00:00.000000",
   "modified_by": "Administrator",
   "module": "Church Study",
   "name": "Sermon",
@@ -35,7 +35,7 @@
       "ui_tour": 0
     },
     {
-      "description": "The Person who prepared or delivered it. This drives speaker filters in the sermon list.",
+      "description": "The Person who prepared or delivered it. This can be used to filter the sermon list by the person who prepared the sermon.",
       "fieldname": "prepared_by",
       "fieldtype": "Link",
       "has_next_condition": 0,
@@ -71,7 +71,7 @@
       "ui_tour": 0
     },
     {
-      "description": "Build slides here to drive projection via sermon presentation mode.",
+      "description": "Build slides here for projection via sermon presentation mode.",
       "fieldname": "slides",
       "fieldtype": "Table",
       "has_next_condition": 0,
