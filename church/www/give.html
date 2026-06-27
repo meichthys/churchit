@@ -52,6 +52,17 @@
 			<input type="text" class="form-control" id="give-notes">
 		</div>
 
+		{% if gateways | length > 1 %}
+		<div class="form-group mb-3">
+			<label for="give-gateway">{{ _("Pay with") }}</label>
+			<select class="form-control" id="give-gateway" required>
+				{% for g in gateways %}
+				<option value="{{ g.name }}" {% if g.name == default_gateway %}selected{% endif %}>{{ g.label }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		{% endif %}
+
 		<button type="submit" class="btn btn-primary btn-block" id="give-submit">{{ _("Give") }}</button>
 		<div id="give-error" class="text-danger mt-2" style="display: none;"></div>
 	</form>
@@ -85,6 +96,7 @@ frappe.ready(function () {
 			args: {
 				amount: document.getElementById('give-amount').value,
 				fund: document.getElementById('give-fund').value,
+				payment_gateway: (document.getElementById('give-gateway') || {}).value,
 				donor_name: document.getElementById('give-name').value,
 				email: document.getElementById('give-email').value,
 				notes: document.getElementById('give-notes').value,

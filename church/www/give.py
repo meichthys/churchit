@@ -29,6 +29,11 @@ def get_context(context):
 	)
 	context.default_fund = settings.default_fund
 
+	# Gateways the donor may choose from. With one gateway the page hides the
+	# picker and uses it silently; with several the donor selects one.
+	context.gateways = settings.get_offered_gateways()
+	context.default_gateway = settings.get_default_gateway()
+
 	# Prefill the giver's details from their linked Person when logged in.
 	context.is_logged_in = frappe.session.user != "Guest"
 	context.donor_name = ""
@@ -47,7 +52,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def start_donation(amount, fund, donor_name=None, email=None, notes=None):
+def start_donation(amount, fund, payment_gateway=None, donor_name=None, email=None, notes=None):
 	"""Create a pending Online Donation and return the payment-gateway URL the
 	browser should redirect to. The gateway calls back into
 	``OnlineDonation.on_payment_authorized`` once the donor pays."""
@@ -62,8 +67,14 @@ def start_donation(amount, fund, donor_name=None, email=None, notes=None):
 	if not fund or not frappe.db.get_value("Fund", fund, "allow_giving"):
 		frappe.throw(_("Please choose a valid fund."))
 
-	if not settings.payment_gateway:
+	# Resolve the gateway from the donor's choice, but only honour values that
+	# are actually offered — never trust a client-supplied gateway blindly.
+	offered = {g["name"] for g in settings.get_offered_gateways()}
+	if not offered:
 		frappe.throw(_("No payment gateway is configured. Please contact the church office."))
+	if payment_gateway and payment_gateway not in offered:
+		frappe.throw(_("Please choose a valid payment method."))
+	payment_gateway = payment_gateway or settings.get_default_gateway()
 
 	# Resolve the giver's Person from the session — never trust a client-supplied person.
 	person = None
@@ -87,14 +98,14 @@ def start_donation(amount, fund, donor_name=None, email=None, notes=None):
 			"email": email,
 			"notes": notes,
 			"currency": currency,
-			"payment_gateway": settings.payment_gateway,
+			"payment_gateway": payment_gateway,
 			"status": "Pending",
 		}
 	).insert(ignore_permissions=True)
 
 	from payments.utils import get_payment_gateway_controller
 
-	controller = get_payment_gateway_controller(settings.payment_gateway)
+	controller = get_payment_gateway_controller(payment_gateway)
 	if hasattr(controller, "validate_transaction_currency"):
 		controller.validate_transaction_currency(currency)
 
