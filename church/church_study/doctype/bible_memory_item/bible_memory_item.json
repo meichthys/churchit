@@ -19,6 +19,7 @@
  ],
  "fields": [
   {
+   "default": "__user",
    "fieldname": "user",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -99,7 +100,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-24 17:40:29.962180",
+ "modified": "2026-06-27 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",
