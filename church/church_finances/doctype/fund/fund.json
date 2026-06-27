@@ -10,6 +10,7 @@
  "field_order": [
   "fund",
   "description",
+  "allow_giving",
   "column_break_ojjy",
   "start_date",
   "end_date",
@@ -35,6 +36,15 @@
    "label": "Description"
   },
   {
+   "default": "0",
+   "description": "Show this fund as an option on the public online giving page.",
+   "fieldname": "allow_giving",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Allow giving to this fund"
+  },
+  {
    "fieldname": "column_break_ojjy",
    "fieldtype": "Column Break"
   },
@@ -55,6 +65,7 @@
   {
    "fieldname": "balance",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "in_preview": 1,
    "label": "Balance"
   },
@@ -98,7 +109,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-03-21 17:39:17.727616",
+ "modified": "2026-06-26 19:44:57.616949",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",

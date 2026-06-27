@@ -895,6 +895,7 @@ def _create_funds():
 				"doctype": "Fund",
 				"fund": fund_name,
 				"description": description,
+				"allow_giving": 1,
 			}
 		)
 		doc.insert(ignore_permissions=True)

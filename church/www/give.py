@@ -23,7 +23,10 @@ def get_context(context):
 		raise frappe.Redirect
 
 	# Funds the giver can choose from (name = link value, fund = display label).
-	context.funds = frappe.get_all("Fund", fields=["name", "fund"], order_by="fund")
+	# Only funds explicitly opted in via "Allow giving to this fund" are offered.
+	context.funds = frappe.get_all(
+		"Fund", filters={"allow_giving": 1}, fields=["name", "fund"], order_by="fund"
+	)
 	context.default_fund = settings.default_fund
 
 	# Prefill the giver's details from their linked Person when logged in.
@@ -56,7 +59,7 @@ def start_donation(amount, fund, donor_name=None, email=None, notes=None):
 	if amount <= 0:
 		frappe.throw(_("Please enter an amount greater than zero."))
 
-	if not fund or not frappe.db.exists("Fund", fund):
+	if not fund or not frappe.db.get_value("Fund", fund, "allow_giving"):
 		frappe.throw(_("Please choose a valid fund."))
 
 	if not settings.payment_gateway:
