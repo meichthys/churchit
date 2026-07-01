@@ -7,8 +7,6 @@ from frappe.utils import today as frappe_today
 
 from churchit.utils import set_report_link_titles
 
-_TEMPLATE_PATH = "church/church_people/report/church_directory_report/church_directory.html"
-
 
 def execute(filters=None):
 	group_by_family = frappe.utils.cint((filters or {}).get("group_by_family", 1))
@@ -255,9 +253,7 @@ def get_directory_html(
 				continue
 			if hoh.spouse and m.person_name == hoh.spouse:
 				m["relation_to_hoh"] = (
-					"Wife" if m.gender == "Female"
-					else "Husband" if m.gender == "Male"
-					else "Spouse"
+					"Wife" if m.gender == "Female" else "Husband" if m.gender == "Male" else "Spouse"
 				)
 			else:
 				m["relation_to_hoh"] = hoh_relations.get((hoh.person_name, m.person_name), "")
@@ -290,7 +286,9 @@ def get_directory_html(
 	status_names = list({p.membership_status for p in all_people if p.membership_status})
 	status_map = {}
 	if status_names:
-		for row in frappe.get_all("Member Status", filters=[["name", "in", status_names]], fields=["name", "status"]):
+		for row in frappe.get_all(
+			"Member Status", filters=[["name", "in", status_names]], fields=["name", "status"]
+		):
 			status_map[row.name] = row.status
 	for p in all_people:
 		if p.membership_status:
@@ -459,7 +457,9 @@ def get_directory_html(
 			agency_map = {
 				row.name: row.agency_name
 				for row in frappe.get_all(
-					"Missionary Agency", filters=[["name", "in", agency_names]], fields=["name", "agency_name"]
+					"Missionary Agency",
+					filters=[["name", "in", agency_names]],
+					fields=["name", "agency_name"],
 				)
 			}
 			for m in missionaries:
@@ -484,4 +484,6 @@ def get_directory_html(
 		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
 	}
 
-	return frappe.render_template(_TEMPLATE_PATH, context)
+	return frappe.render_template(
+		"church/church_people/report/church_directory_report/church_directory.html", context
+	)

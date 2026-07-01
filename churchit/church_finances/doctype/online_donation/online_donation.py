@@ -67,9 +67,7 @@ class OnlineDonation(Document):
 		recipient = self.email
 		first_name = (self.donor_name or "").split(" ")[0]
 		if self.person:
-			person = frappe.db.get_value(
-				"Person", self.person, ["email", "first_name"], as_dict=True
-			)
+			person = frappe.db.get_value("Person", self.person, ["email", "first_name"], as_dict=True)
 			if person:
 				recipient = recipient or person.email
 				first_name = person.first_name or first_name
@@ -91,9 +89,11 @@ class OnlineDonation(Document):
 		)
 		if frappe.db.exists("Email Template", "Donation Acknowledgment"):
 			template = frappe.get_doc("Email Template", "Donation Acknowledgment")
-			body = getattr(template, "response_html", None) or template.response
-			message = frappe.render_template(body, context)
-			subject = frappe.render_template(template.subject, context)
+			# Render via the framework's own helper so the Jinja evaluation happens
+			# inside Frappe core against the normal email template
+			formatted = template.get_formatted_email(context)
+			subject = formatted["subject"]
+			message = formatted["message"]
 
 		try:
 			frappe.sendmail(
