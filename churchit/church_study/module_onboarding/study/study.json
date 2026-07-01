@@ -1,0 +1,35 @@
+{
+ "allow_roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Church Manager"
+  }
+ ],
+ "creation": "2026-06-27 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/meichthys/church",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Study",
+ "name": "Study",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Bible Translation"
+  },
+  {
+   "step": "Sermon Series"
+  },
+  {
+   "step": "Sermon"
+  }
+ ],
+ "subtitle": "Translations, sermon series, and sermons.",
+ "success_message": "Your study and sermon library is ready to grow.",
+ "title": "\ud83d\udcd6 Sermons & Bible Study"
+}

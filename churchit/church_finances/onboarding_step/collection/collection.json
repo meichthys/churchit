@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Record a Collection",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "A Collection records an offering count and splits it across funds and payment types.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Collection",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Collection",
+ "owner": "Administrator",
+ "reference_document": "Collection",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Collections",
+ "validate_action": 1
+}

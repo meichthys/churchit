@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.publish",
+ "creation": "2026-05-29 00:00:00.000000",
+ "date_changed": "start_date",
+ "days_in_advance": 1,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Function",
+ "enabled": 0,
+ "event": "Days Before",
+ "is_standard": 1,
+ "message": "<p>This is a reminder that <strong>{{ doc.function_name }}</strong> is tomorrow.</p>\n\n<ul>\n  <li><strong>Date:</strong> {{ frappe.utils.formatdate(doc.start_date, \"EEEE, MMMM d, yyyy\") }}</li>\n  <li><strong>Time:</strong> {{ doc.start_time or \"TBA\" }}</li>\n  {% if doc.address %}<li><strong>Location:</strong> {{ doc.address }}</li>{% endif %}\n</ul>\n\n{% if doc.description %}<p>{{ doc.description }}</p>{% endif %}\n\n<p>We look forward to seeing you there!</p>\n\n<p>{{ frappe.db.get_value(\"Church\", {\"parent_church\": [\"is\", \"not set\"]}, \"church_name\") or \"Your Church\" }}</p>",
+ "modified": "2026-06-27 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Function Reminder 24h",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Church User"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Tomorrow: {{ doc.function_name }}"
+}

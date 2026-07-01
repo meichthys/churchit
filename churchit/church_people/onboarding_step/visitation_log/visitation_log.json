@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Log a Visitation",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Visitation Logs record pastoral-care contacts and their follow-ups.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Visitation Log",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Visitation Log",
+ "owner": "Administrator",
+ "reference_document": "Visitation Log",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Visitations",
+ "validate_action": 1
+}

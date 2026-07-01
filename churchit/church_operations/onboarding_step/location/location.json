@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add a Location",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Locations form a tree of campuses, buildings, and areas that rooms and assets hang off.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Location",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Location",
+ "owner": "Administrator",
+ "reference_document": "Location",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Locations",
+ "validate_action": 1
+}

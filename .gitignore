@@ -2,9 +2,10 @@
 *.pyc
 *.egg-info
 *.swp
-CLAUDE.md
+*LAUDE.md
 tags
 node_modules
 __pycache__
 /.continue
 /.vscode
+/.vscodium

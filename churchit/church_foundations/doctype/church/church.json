@@ -1,0 +1,180 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:CHR-{##}",
+ "creation": "2025-09-17 21:10:06.782386",
+ "default_view": "List",
+ "description": "A church or church branch.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "church_name",
+  "abbreviation",
+  "legal_name",
+  "is_group",
+  "parent_church",
+  "column_break_rmsm",
+  "founding_date",
+  "address",
+  "default_bible_translation",
+  "publish",
+  "mission_statement",
+  "section_break_nxne",
+  "about",
+  "hidden_fields_section",
+  "lft",
+  "rgt",
+  "old_parent"
+ ],
+ "fields": [
+  {
+   "fieldname": "church_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "legal_name",
+   "fieldtype": "Data",
+   "label": "Legal Name"
+  },
+  {
+   "fieldname": "founding_date",
+   "fieldtype": "Date",
+   "label": "Founding Date"
+  },
+  {
+   "fieldname": "column_break_rmsm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Check this if other churches are grouped under this one.",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "description": "If this church is a branch of another, select the parent here.",
+   "fieldname": "parent_church",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "Parent Church",
+   "options": "Church"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "default_bible_translation",
+   "fieldtype": "Link",
+   "label": "Default Bible Translation",
+   "options": "Bible Translation"
+  },
+  {
+   "default": "0",
+   "description": "Check this to show this church on the public website.",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "label": "Publish"
+  },
+  {
+   "fieldname": "mission_statement",
+   "fieldtype": "Small Text",
+   "label": "Mission Statement"
+  },
+  {
+   "fieldname": "section_break_nxne",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "A short description of the church. By default, this is used on the 'About Us' webpage.",
+   "fieldname": "about",
+   "fieldtype": "Text Editor",
+   "label": "About"
+  },
+  {
+   "fieldname": "hidden_fields_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Hidden Fields"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Church"
+  },
+  {
+   "fieldname": "abbreviation",
+   "fieldtype": "Data",
+   "label": "Abbreviation",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_tree": 1,
+ "links": [],
+ "modified": "2026-06-27 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Foundations",
+ "name": "Church",
+ "naming_rule": "Expression",
+ "nsm_parent_field": "parent_church",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "show_title_field_in_link": 1,
+ "states": [],
+ "title_field": "church_name",
+ "track_changes": 1
+}

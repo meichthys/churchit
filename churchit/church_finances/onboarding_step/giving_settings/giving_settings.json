@@ -1,0 +1,23 @@
+{
+ "action": "Go to Page",
+ "action_label": "Configure Online Giving",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Giving Settings powers the public /give webpage, controlling gateways, funds, and messaging.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Giving Settings",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-06-27 14:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Giving Settings",
+ "owner": "Administrator",
+ "reference_document": "Giving Settings",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Online Giving",
+ "validate_action": 1,
+ "path": "/app/giving-settings/Giving Settings"
+}

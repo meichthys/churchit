@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "A payment gateway offered to donors on the /give page.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "payment_gateway",
+  "label",
+  "is_default"
+ ],
+ "fields": [
+  {
+   "fieldname": "payment_gateway",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment Gateway",
+   "options": "Payment Gateway",
+   "reqd": 1
+  },
+  {
+   "description": "Name shown to the donor. Defaults to the gateway name when blank.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Label"
+  },
+  {
+   "default": "0",
+   "description": "Pre-selected gateway on the giving page. Exactly one row should be the default.",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Default"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Giving Gateway",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

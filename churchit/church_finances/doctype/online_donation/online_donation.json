@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:GIVE-{#####}",
+ "creation": "2026-06-05 00:00:00.000000",
+ "description": "An online gift made through the public /give page and paid via the Payments app. On successful payment it records a submitted Collection so the gift flows through the normal Fund and reporting logic.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "engine": "InnoDB",
+ "field_order": [
+  "amount",
+  "fund",
+  "status",
+  "column_break_giver",
+  "person",
+  "donor_name",
+  "email",
+  "section_break_payment",
+  "currency",
+  "payment_gateway",
+  "transaction_reference",
+  "column_break_link",
+  "collection",
+  "section_break_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fund",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Fund",
+   "options": "Fund",
+   "reqd": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nPaid\nFailed\nCancelled"
+  },
+  {
+   "fieldname": "column_break_giver",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Set automatically when the giver is logged in. Blank for anonymous gifts.",
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Person",
+   "options": "Person"
+  },
+  {
+   "fieldname": "donor_name",
+   "fieldtype": "Data",
+   "label": "Donor Name"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "section_break_payment",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "payment_gateway",
+   "fieldtype": "Link",
+   "label": "Payment Gateway",
+   "options": "Payment Gateway"
+  },
+  {
+   "description": "Reference id from the payment gateway / Integration Request.",
+   "fieldname": "transaction_reference",
+   "fieldtype": "Data",
+   "label": "Transaction Reference",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_link",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The Collection created in the Finance module once the gift is paid.",
+   "fieldname": "collection",
+   "fieldtype": "Link",
+   "label": "Collection",
+   "no_copy": 1,
+   "options": "Collection",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-05 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Online Donation",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

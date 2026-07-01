@@ -1,0 +1,38 @@
+{
+ "allow_roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Church Manager"
+  }
+ ],
+ "creation": "2026-06-27 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/meichthys/church",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-06-27 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Finances",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Fund"
+  },
+  {
+   "step": "Collection"
+  },
+  {
+   "step": "Expense"
+  },
+  {
+   "step": "Giving Settings"
+  }
+ ],
+ "subtitle": "Funds, collections, expenses, and online giving.",
+ "success_message": "Your finances are wired up. Gifts and spending now flow into Fund balances and reports.",
+ "title": "💰 Setting Up Church Finances"
+}

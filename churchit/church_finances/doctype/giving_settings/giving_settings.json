@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "creation": "2026-06-05 00:00:00",
+ "description": "Configuration for the public online giving page (/give).",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "column_break_uffx",
+  "allow_anonymous",
+  "section_break_gateway",
+  "gateways",
+  "column_break_funds",
+  "default_fund",
+  "currency",
+  "section_break_message",
+  "thank_you_message"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "description": "When unchecked, the /give page shows an \"unavailable\" notice and rejects new gifts.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Online Giving"
+  },
+  {
+   "default": "1",
+   "description": "When unchecked, visitors must log in before giving so the gift links to their Person.",
+   "fieldname": "allow_anonymous",
+   "fieldtype": "Check",
+   "label": "Allow Anonymous (Guest) Giving"
+  },
+  {
+   "fieldname": "section_break_gateway",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "description": "Payments-app gateways offered to donors on the /give page. With more than one, donors choose; mark one row as the default.",
+   "fieldname": "gateways",
+   "fieldtype": "Table",
+   "label": "Payment Gateways",
+   "options": "Giving Gateway"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_funds",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Pre-selected fund on the giving page. Leave blank to let the giver choose.",
+   "fieldname": "default_fund",
+   "fieldtype": "Link",
+   "label": "Default Fund",
+   "options": "Fund"
+  },
+  {
+   "fieldname": "section_break_message",
+   "fieldtype": "Section Break",
+   "label": "Thank You"
+  },
+  {
+   "default": "Thank you for your generous gift!",
+   "description": "Shown on the giving page after a successful payment.",
+   "fieldname": "thank_you_message",
+   "fieldtype": "Small Text",
+   "label": "Thank You Message"
+  },
+  {
+   "fieldname": "column_break_uffx",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-26 20:06:45.749502",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Giving Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

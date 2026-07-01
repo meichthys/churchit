@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add a Missionary",
+ "creation": "2026-06-27 00:00:00.000000",
+ "description": "Missionaries track the people you support, their pledge, and optional auto-expenses.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Missionary",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-06-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Missionary",
+ "owner": "Administrator",
+ "reference_document": "Missionary",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Missionaries",
+ "validate_action": 1
+}

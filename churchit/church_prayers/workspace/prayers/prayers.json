@@ -1,0 +1,142 @@
+{
+  "charts": [],
+  "content": "[{\"id\": \"K7vLW8jz7z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Prayers\", \"col\": 12}}, {\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\", \"col\": 12}}, {\"id\": \"7xxtlFoDVX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Active Prayer Requests\", \"col\": 4}}, {\"id\": \"YOTS4ifkhO\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Prayer Request Comments\", \"col\": 4}}, {\"id\": \"OAUM9QI_Ol\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Answered Prayers\", \"col\": 4}}, {\"id\": \"CCnM0m0PPk\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"URc9n8oy-u\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Prayer Requests Ending Within 1 Week\", \"col\": 6}}, {\"id\": \"YR26DXGWSP\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Urgent Prayer Requests\", \"col\": 6}}, {\"id\": \"mCNmTxyAmY\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"lvZAf1_FTo\", \"type\": \"card\", \"data\": {\"card_name\": \"Prayer Request Reports\", \"col\": 4}}, {\"id\": \"Nx2vS9lnXp\", \"type\": \"card\", \"data\": {\"card_name\": \"Prayer Request Documents\", \"col\": 4}}]",
+  "creation": "2025-09-14 22:19:57.991467",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "upload",
+  "idx": 0,
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Prayers",
+  "links": [
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Prayer Request Documents",
+      "link_count": 4,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Requests",
+      "link_count": 0,
+      "link_to": "Prayer Request",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Request Statuses",
+      "link_count": 0,
+      "link_to": "Prayer Request Status",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Request Types",
+      "link_count": 0,
+      "link_to": "Prayer Request Type",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Prayers",
+      "link_count": 0,
+      "link_to": "Prayer",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Prayer Request Reports",
+      "link_count": 2,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Recently Created",
+      "link_count": 0,
+      "link_to": "Prayer Requests Recently Created",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Recently Answered",
+      "link_count": 0,
+      "link_to": "Prayer Requests Recently Answered",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 1,
+      "label": "Active Prayer List",
+      "link_count": 0,
+      "link_to": "Active Prayer List",
+      "link_type": "Report",
+      "onboard": 0,
+      "type": "Link"
+    }
+  ],
+  "modified": "2026-06-27 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Church Prayers",
+  "name": "Prayers",
+  "number_cards": [
+    {
+      "label": "Active Prayer Requests",
+      "number_card_name": "Prayer Request Count"
+    },
+    {
+      "label": "Prayer Request Comments",
+      "number_card_name": "Prayer Request Comments"
+    },
+    {
+      "label": "Answered Prayers",
+      "number_card_name": "Prayer Request Count (Answered)"
+    }
+  ],
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [
+    {
+      "document_type": "Prayer Request",
+      "label": "Urgent Prayer Requests",
+      "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1,false],[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false]]"
+    },
+    {
+      "document_type": "Prayer Request",
+      "label": "Prayer Requests Ending Within 1 Week",
+      "quick_list_filter": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false],[\"Prayer Request\",\"end_date\",\"Timespan\",\"next 7 days\",false]]"
+    }
+  ],
+  "roles": [],
+  "sequence_id": 17.0,
+  "shortcuts": [],
+  "title": "Prayers"
+}
