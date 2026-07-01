@@ -1,10 +1,10 @@
-[![Discord](https://img.shields.io/discord/1513373810685116466?logo=discord&label=Discord)](https://discord.gg/AJHKHQXp) [![Matrix](https://img.shields.io/matrix/the-church-app%3Amatrix.org?label=Matrix%20Chat)](https://matrix.to/#/#the-church-app:matrix.org) [![Static Badge](https://img.shields.io/badge/YouTube%20-%20red?style=flat)](https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg) [![GitHub License](https://img.shields.io/github/license/meichthys/church)](https://github.com/meichthys/church?tab=readme-ov-file#-license-mit) ![GitHub contributors](https://img.shields.io/github/contributors/meichthys/church) ![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/church) [![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://church.meichthys.com)
+[![Discord](https://img.shields.io/discord/1513373810685116466?logo=discord&label=Discord)](https://discord.gg/AJHKHQXp) [![Matrix](https://img.shields.io/matrix/the-church-app%3Amatrix.org?label=Matrix%20Chat)](https://matrix.to/#/#the-church-app:matrix.org) [![Static Badge](https://img.shields.io/badge/YouTube%20-%20red?style=flat)](https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg) [![GitHub License](https://img.shields.io/github/license/meichthys/churchit)](https://github.com/meichthys/churchit?tab=readme-ov-file#-license-mit) ![GitHub contributors](https://img.shields.io/github/contributors/meichthys/churchit) ![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/churchit) [![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://church.meichthys.com)
 
 > [!WARNING]
 > This app is not ready for production. Large changes should be expected until a 1.0.0 version is released.
 
 > [!NOTE]
-> **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/AJHKHQXp)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/church/issues/new).
+> **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/AJHKHQXp)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/churchit/issues/new).
 
 # ⛪ Church
 
@@ -16,7 +16,7 @@ A fully open-source church management system built on the [Frappe Framework](htt
 
 ## 🧪 Demo
 
-If you would like to test out the current state of the application, you can try our Demo instance. Please keep in mind that this project is under active development and that there will likely be rough edges, bugs, and incomplete features. If you come across any of these, feel free to report them on our [issue tracker](https://github.com/meichthys/church/issues).
+If you would like to test out the current state of the application, you can try our Demo instance. Please keep in mind that this project is under active development and that there will likely be rough edges, bugs, and incomplete features. If you come across any of these, feel free to report them on our [issue tracker](https://github.com/meichthys/churchit/issues).
 
 [![Demo](./church/public/media/demo_button.png)](https://church.meichthys.com/login)
 
@@ -144,9 +144,9 @@ Activate the [bench](https://github.com/frappe/bench) environment with `fm shell
   bench use <church.your_site.com>
 
   # Download the app:
-  bench get-app https://github.com/meichthys/church
+  bench get-app https://github.com/meichthys/churchit
   ## Or if you want to try the latest development version:
-  bench get-app https://github.com/meichthys/church --branch develop
+  bench get-app https://github.com/meichthys/churchit --branch develop
 
   # Install the app:
   bench install-app church
@@ -175,7 +175,7 @@ Before you start using the app be sure to:
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.
 
-- [Add standard church website pages:](https://github.com/meichthys/church/issues/13)
+- [Add standard church website pages:](https://github.com/meichthys/churchit/issues/13)
   - Calendar
 - Additional portal pages
   - Show tracked giving
@@ -224,14 +224,14 @@ We use fixtures to load data/configurations that the user should not change. If 
 
 To add a new fixture, add an entry to the `fixtures` list in `hooks.py` and run:
 ```bash
-bench execute church.utils.export_fixtures
+bench execute churchit.utils.export_fixtures
 ```
 
 ### After-install data — user-owned starter data (applied once, on new installs only)
 
 We use `patches/after_install/` for shipping default documents. Users can modify or delete them freely and they will not be recreated on migration or upgrade. Examples: default funds, event types, Bible translations, web pages, etc.
 
-This data is loaded by the `after_install` hook (`church.patches.after_install.execute`) which runs only when the app is first installed on a new site. Existing sites are not affected.
+This data is loaded by the `after_install` hook (`churchit.patches.after_install.execute`) which runs only when the app is first installed on a new site. Existing sites are not affected.
 
 #### Process for adding new starter data
 
@@ -246,13 +246,13 @@ This data is loaded by the `after_install` hook (`church.patches.after_install.e
    ```
 3. Run the `export_fixtures` utility script — it exports all fixtures and automatically moves patch fixture files into `patches/after_install/data/`:
    ```bash
-   bench execute church.utils.export_fixtures
+   bench execute churchit.utils.export_fixtures
    ```
    - If the file is **new or changed**, it is moved to `patches/after_install/data/`.
    - If the file is **identical** to the existing one, it is removed (no change needed).
 
 > [!WARNING]
-> Never run `bench export-fixtures` directly. Always use `bench execute church.utils.export_fixtures` instead, which handles routing patch fixture files automatically.
+> Never run `bench export-fixtures` directly. Always use `bench execute churchit.utils.export_fixtures` instead, which handles routing patch fixture files automatically.
 
 #### Pushing new starter data to existing sites
 
@@ -261,7 +261,7 @@ The `after_install` hook does not run on existing installations. If we need to p
 1. Add the doctype as a fixture in `hooks.py` with `"patch": "<patch_name>"` (e.g. `"patch": "v2_0"`).
 2. Run the `export_fixtures` utility script — it exports all fixtures, moves the files, scaffolds `__init__.py` and `insert_data.py` from the template, and registers the patch in `patches.txt` automatically:
    ```bash
-   bench execute church.utils.export_fixtures
+   bench execute churchit.utils.export_fixtures
    ```
 
 #### Removing data from existing sites
@@ -286,7 +286,7 @@ def execute():
 Then append to `patches.txt` (always append — never insert above existing entries):
 
 ```
-church.patches.v2_0.remove_old_attendance_type
+churchit.patches.v2_0.remove_old_attendance_type
 ```
 
 

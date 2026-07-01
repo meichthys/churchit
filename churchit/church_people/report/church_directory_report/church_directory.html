@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ churchit.church_name }} – Church Directory</title>
+<style>
+/* ── Page setup ─────────────────────────────────────────────── */
+@page {
+    size: letter;
+    margin: 18mm 18mm 18mm 18mm;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    color: #1a1a2e;
+    background: #fff;
+}
+
+/* ── Cover page ─────────────────────────────────────────────── */
+.cover {
+    break-after: page;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 40mm 20mm;
+}
+
+.cover-church-name {
+    font-size: 30pt;
+    font-weight: bold;
+    color: #1f3c88;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.cover-legal-name {
+    font-size: 14pt;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+.cover-address {
+    font-size: 12pt;
+    color: #444;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.cover-title {
+    font-size: 24pt;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #1f3c88;
+    border-top: 2px solid #1f3c88;
+    border-bottom: 2px solid #1f3c88;
+    padding: 10px 30px;
+    margin-bottom: 20px;
+}
+
+.cover-date {
+    font-size: 13pt;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.cover-mission {
+    font-size: 12pt;
+    font-style: italic;
+    color: #444;
+    max-width: 420px;
+    line-height: 1.6;
+    border-left: 3px solid #1f3c88;
+    padding-left: 14px;
+    text-align: left;
+    margin-top: 20px;
+}
+
+/* ── Directory section header ───────────────────────────────── */
+.alpha-divider {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #1f3c88;
+    border-bottom: 2px solid #1f3c88;
+    margin: 14px 0 8px 0;
+    padding-bottom: 2px;
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+/* ── Family block ───────────────────────────────────────────── */
+.family-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #d0d8e8;
+    border-left: 4px solid #1f3c88;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: #f9fafd;
+}
+
+.family-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3px;
+}
+
+.family-name {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1f3c88;
+}
+
+.family-church-label {
+    font-size: 8.5pt;
+    color: #888;
+    font-style: italic;
+    margin-top: 1px;
+}
+
+/* Right side of family header: address + optional photo */
+.family-meta {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.family-address {
+    font-size: 9.5pt;
+    color: #555;
+    text-align: right;
+    line-height: 1.4;
+}
+
+.family-photo-img {
+    height: 150px;
+    width: auto;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #d0d8e8;
+    display: block;
+}
+
+/* ── Member table ───────────────────────────────────────────── */
+.member-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    font-size: 10pt;
+}
+
+.member-table thead tr {
+    border-bottom: 1px solid #c5cfe0;
+}
+
+.member-table th {
+    font-size: 8.5pt;
+    font-weight: normal;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 6px 3px 0;
+    text-align: left;
+}
+
+.member-table td {
+    padding: 3px 6px 3px 0;
+    vertical-align: middle;
+    color: #222;
+    border-bottom: 1px dotted #e4e8f0;
+}
+
+.member-table tr:last-child td {
+    border-bottom: none;
+}
+
+.col-photo      { width: 58px; padding-right: 4px !important; }
+.col-name       { width: 30%; font-weight: 600; }
+.col-membership { width: 18%; }
+.col-phone      { width: 22%; }
+.col-email      { width: 26%; word-break: break-all; }
+
+.member-photo {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.hoh-star {
+    color: #1f3c88;
+    font-size: 9pt;
+    margin-left: 3px;
+}
+
+.status-badge {
+    display: inline-block;
+    font-size: 8.5pt;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: #e8edf8;
+    color: #1f3c88;
+    white-space: nowrap;
+}
+
+.member-roles {
+    font-size: 8pt;
+    color: #666;
+    font-style: italic;
+    margin-top: 1px;
+}
+
+.member-relation {
+    font-size: 8pt;
+    color: #888;
+    margin-left: 4px;
+}
+
+/* ── Appendix sections (birthdays, anniversaries, missionaries) */
+.appendix-section {
+    break-before: page;
+    page-break-before: always;
+}
+
+.appendix-heading {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #1f3c88;
+    border-bottom: 2px solid #1f3c88;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+}
+
+.month-divider {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1f3c88;
+    margin: 14px 0 4px 0;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #d0d8e8;
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+.calendar-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    border-bottom: 1px dotted #e4e8f0;
+    font-size: 10pt;
+}
+
+.calendar-row:last-child {
+    border-bottom: none;
+}
+
+.calendar-name {
+    color: #222;
+}
+
+.calendar-date {
+    color: #555;
+    font-style: italic;
+}
+
+/* ── Missionary cards ───────────────────────────────────────── */
+.missionary-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #d0d8e8;
+    border-left: 4px solid #1f3c88;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: #f9fafd;
+}
+
+.missionary-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.missionary-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #d0d8e8;
+    flex-shrink: 0;
+}
+
+.missionary-info {
+    flex: 1;
+}
+
+.missionary-title {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1f3c88;
+}
+
+.missionary-meta {
+    font-size: 10pt;
+    color: #555;
+    margin-top: 2px;
+}
+
+.missionary-statement {
+    font-size: 9.5pt;
+    color: #444;
+    font-style: italic;
+    margin-top: 5px;
+    line-height: 1.5;
+}
+
+.missionary-contact {
+    font-size: 9.5pt;
+    color: #444;
+    margin-top: 6px;
+    line-height: 1.6;
+    word-break: break-all;
+}
+
+.sensitive-badge {
+    display: inline-block;
+    font-size: 8pt;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: #fff3cd;
+    color: #856404;
+    margin-top: 3px;
+}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+@page {
+    @bottom-center {
+        content: "{{ churchit.church_name }} Church Directory  –  {{ generated_date }}";
+        font-family: Georgia, serif;
+        font-size: 8pt;
+        color: #999;
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     COVER PAGE
+═════════════════════════════════════════════════════════════ -->
+<div class="cover">
+    <div class="cover-church-name">{{ churchit.church_name }}</div>
+
+    {% if church.legal_name and church.legal_name != churchit.church_name %}
+    <div class="cover-legal-name">{{ church.legal_name }}</div>
+    {% endif %}
+
+    {% if church_address %}
+    <div class="cover-address">
+        {{ church_address.address_line1 }}{% if church_address.address_line2 %}<br>{{ church_address.address_line2 }}{% endif %}<br>
+        {{ church_address.city }}{% if church_address.state %}, {{ church_address.state }}{% endif %}{% if church_address.pincode %} {{ church_address.pincode }}{% endif %}
+    </div>
+    {% endif %}
+
+    <div class="cover-title">Church Directory</div>
+    <div class="cover-date">{{ generated_date }}</div>
+
+    {% if church.mission_statement %}
+    <div class="cover-mission">{{ church.mission_statement }}</div>
+    {% endif %}
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     DIRECTORY (families + individuals merged alphabetically)
+═════════════════════════════════════════════════════════════ -->
+{% set ns = namespace(current_letter='') %}
+{% for entry in all_entries %}
+    {% set first_letter = (entry.sort_name[0] if entry.sort_name else '').upper() %}
+    {% if first_letter and first_letter != ns.current_letter %}
+        {% set ns.current_letter = first_letter %}
+        <div class="alpha-divider">{{ first_letter }}</div>
+    {% endif %}
+
+    <div class="family-block">
+        <div class="family-header">
+            <!-- Left: name + optional sub-church label -->
+            <div>
+                <div class="family-name">{{ entry.display_name }}</div>
+                {% if show_church_label %}<div class="family-church-label">{{ entry.church_name }}</div>{% endif %}
+            </div>
+
+            <!-- Right: address + optional family photo -->
+            <div class="family-meta">
+                {% if entry.address_line1 or entry.city %}
+                <div class="family-address">
+                    {% if entry.address_line1 %}{{ entry.address_line1 }}{% if entry.address_line2 %}, {{ entry.address_line2 }}{% endif %}<br>{% endif %}
+                    {% if entry.city %}{{ entry.city }}{% if entry.state %}, {{ entry.state }}{% endif %}{% if entry.pincode %} {{ entry.pincode }}{% endif %}{% endif %}
+                </div>
+                {% endif %}
+                {% if show_photos and entry.family_photo %}
+                <img class="family-photo-img" src="{{ entry.family_photo }}" alt="{{ entry.display_name }}">
+                {% endif %}
+            </div>
+        </div>
+
+        <table class="member-table">
+            <thead>
+                <tr>
+                    {% if show_photos %}<th class="col-photo"></th>{% endif %}
+                    <th class="col-name">Name</th>
+                    {% if show_membership %}<th class="col-membership">Membership</th>{% endif %}
+                    <th class="col-phone">Phone</th>
+                    <th class="col-email">Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in entry.members %}
+                <tr>
+                    {% if show_photos %}
+                    <td class="col-photo">
+                        {% if member.photo %}
+                        <img class="member-photo" src="{{ member.photo }}" alt="">
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td class="col-name">
+                        {{ member.full_name }}
+                        {% if show_hoh and member.is_head_of_household %}
+                        <span class="member-relation">(Head of Household)</span>
+                        {% elif not entry.is_individual and member.relation_to_hoh %}
+                        <span class="member-relation">({{ member.relation_to_hoh }})</span>
+                        {% endif %}
+                        {% if show_roles and member.positions %}
+                        <div class="member-roles">{{ member.positions | join(', ') }}</div>
+                        {% endif %}
+                    </td>
+                    {% if show_membership %}
+                    <td class="col-membership">
+                        {% if member.membership_status %}
+                        <span class="status-badge">{{ member.membership_status }}</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td class="col-phone">{{ member.primary_phone or '' }}</td>
+                    <td class="col-email">{{ member.email or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endfor %}
+
+<!-- ════════════════════════════════════════════════════════════
+     BIRTHDAYS
+═════════════════════════════════════════════════════════════ -->
+{% if show_birthdays and birthdays %}
+<div class="appendix-section">
+    <div class="appendix-heading">Birthdays</div>
+    {% set ns2 = namespace(current_month='') %}
+    {% for person in birthdays %}
+        {% if person.month_name != ns2.current_month %}
+            {% set ns2.current_month = person.month_name %}
+            <div class="month-divider">{{ person.month_name }}</div>
+        {% endif %}
+        <div class="calendar-row">
+            <span class="calendar-name">{{ person.full_name }}</span>
+            <span class="calendar-date">{{ person.month_day }}</span>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════════════
+     ANNIVERSARIES
+═════════════════════════════════════════════════════════════ -->
+{% if show_anniversaries and anniversaries %}
+<div class="appendix-section">
+    <div class="appendix-heading">Anniversaries</div>
+    {% set ns3 = namespace(current_month='') %}
+    {% for couple in anniversaries %}
+        {% if couple.month_name != ns3.current_month %}
+            {% set ns3.current_month = couple.month_name %}
+            <div class="month-divider">{{ couple.month_name }}</div>
+        {% endif %}
+        <div class="calendar-row">
+            <span class="calendar-name">{{ couple.display_name }}</span>
+            <span class="calendar-date">{{ couple.month_day }}</span>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════════════
+     MISSIONARIES
+═════════════════════════════════════════════════════════════ -->
+{% if show_missionaries and missionaries %}
+<div class="appendix-section">
+    <div class="appendix-heading">Missionaries</div>
+    {% for m in missionaries %}
+    <div class="missionary-block">
+        <div class="missionary-header">
+            {% if show_photos and m.photo %}
+            <img class="missionary-photo" src="{{ m.photo }}" alt="{{ m.title }}">
+            {% endif %}
+            <div class="missionary-info">
+                <div class="missionary-title">{{ m.title }}</div>
+                {% if m.agency %}<div class="missionary-meta">{{ m.agency }}</div>{% endif %}
+                {% if m.country and not m.sensitive %}<div class="missionary-meta">{{ m.country }}</div>{% endif %}
+                {% if m.sensitive %}<span class="sensitive-badge">Sensitive</span>{% endif %}
+                {% if m.mission_statement %}<div class="missionary-statement">{{ m.mission_statement }}</div>{% endif %}
+            </div>
+        </div>
+        {% if not m.sensitive and (m.email or m.website) %}
+        <div class="missionary-contact">
+            {% if m.email %}Email: {{ m.email }}{% endif %}
+            {% if m.email and m.website %}<br>{% endif %}
+            {% if m.website %}Website: {{ m.website }}{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+</body>
+</html>
