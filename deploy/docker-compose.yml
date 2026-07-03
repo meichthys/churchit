@@ -1,0 +1,200 @@
+# churchit self-host stack.
+#   Start:   docker compose up -d
+#   Stop:    docker compose down          (data is kept in named volumes)
+#   Update:  docker compose pull && docker compose up -d
+#
+# Values marked ${...} are replaced from the values set in the .env file.
+name: churchit
+
+# Shared settings for every container that runs the churchit image.
+x-backend: &backend
+  image: ${IMAGE:-ghcr.io/meichthys/churchit}:${TAG:-latest}
+  restart: unless-stopped
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+
+services:
+  db:
+    # MariaDB 10.6 is the floor for frappe v15. Recheck this minimum when
+    # upgrading Frappe (see the checklist in .github/workflows/build-image.yml).
+    image: mariadb:10.6
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  redis-cache:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-cache-data:/data
+
+  redis-queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+  configurator:
+    # Temp container to write bench config
+    <<: *backend
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        ls -1 apps > sites/apps.txt;
+        bench set-config -g db_host db;
+        bench set-config -gp db_port 3306;
+        bench set-config -g redis_cache "redis://redis-cache:6379";
+        bench set-config -g redis_queue "redis://redis-queue:6379";
+        bench set-config -g redis_socketio "redis://redis-queue:6379";
+        bench set-config -gp socketio_port 9000;
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+
+  create-site:
+    # Temp container to create the site
+    <<: *backend
+    restart: "no"
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        if [ -d "sites/${SITE_NAME}" ]; then
+          echo "Site ${SITE_NAME} already exists — nothing to do.";
+          exit 0;
+        fi;
+        bench new-site
+        --mariadb-user-host-login-scope=%
+        --db-root-username=root
+        --db-root-password="${DB_ROOT_PASSWORD}"
+        --admin-password="${ADMIN_PASSWORD}"
+        --install-app churchit
+        --set-default
+        "${SITE_NAME}";
+
+  migrate:
+    # Temp container: runs on every `up`. Installs any app that is in the image
+    # (deploy/apps.json -> sites/apps.txt) but not yet on this site, then runs
+    # migrations. This is what makes existing sites pick up churchit upgrades and
+    # newly-added apps automatically — the app list comes from the image, which
+    # is what gets pulled, not from this compose file.
+    <<: *backend
+    restart: "no"
+    depends_on:
+      create-site:
+        condition: service_completed_successfully
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        if [ ! -d "sites/${SITE_NAME}" ]; then
+          echo "Site ${SITE_NAME} not found — skipping migrate.";
+          exit 0;
+        fi;
+        installed="$$(bench --site ${SITE_NAME} list-apps 2>/dev/null)";
+        for app in $$(cat sites/apps.txt); do
+          if ! echo "$$installed" | grep -qw "$$app"; then
+            echo "Installing app new to this site: $$app";
+            bench --site ${SITE_NAME} install-app "$$app";
+          fi;
+        done;
+        echo "Running migrations for ${SITE_NAME}...";
+        bench --site ${SITE_NAME} migrate;
+
+  backend:
+    <<: *backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  websocket:
+    <<: *backend
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  scheduler:
+    <<: *backend
+    command: ["bench", "schedule"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  queue-short:
+    <<: *backend
+    command: ["bench", "worker", "--queue", "short,default"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  queue-long:
+    <<: *backend
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    <<: *backend
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: "50m"
+    depends_on:
+      backend:
+        condition: service_started
+      websocket:
+        condition: service_started
+
+  proxy:
+    # Handles configuring https in front of the frontend
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Real domain -> automatic HTTPS. http://<name>.localhost -> plain HTTP.
+      # Falls back to SITE_NAME (HTTPS) if CADDY_ADDRESS is left unset.
+      CADDY_ADDRESS: ${CADDY_ADDRESS:-${SITE_NAME}}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      frontend:
+        condition: service_started
+
+volumes:
+  sites:
+  logs:
+  db-data:
+  redis-cache-data:
+  redis-queue-data:
+  caddy-data:
+  caddy-config:

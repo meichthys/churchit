@@ -1,0 +1,10 @@
+# Reverse proxy with automatic HTTPS.
+#
+# CADDY_ADDRESS comes from the .env file (via docker-compose):
+#   - a real domain (e.g. churchit.example.org) -> Caddy fetches a free,
+#     fully-trusted Let's Encrypt certificate automatically.
+#   - http://churchit.localhost                 -> plain HTTP for local
+#     testing, so there is no browser certificate warning.
+{$CADDY_ADDRESS} {
+	reverse_proxy frontend:8080
+}
