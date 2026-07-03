@@ -82,6 +82,84 @@ docker compose logs -f migrate            # watch upgrades / migrations
 **To Update, run: `docker compose pull && docker compose up -d`.**
 Upgrades add any newly-added dependencies, with no need for manual frappe `bench` commands.
 
+## Making Churchit reachable from the internet
+
+By default Churchit runs locally (`http://churchit.localhost`). To let people
+reach it from anywhere with a real web address and a trusted HTTPS certificate,
+you need three things: a **domain name**, **DNS** pointing at your internet
+connection, and your **router forwarding** web traffic to the host machine.
+Caddy can then fetches a free HTTPS certificate automatically.
+
+> ⚠️ Exposing anything to the internet has security implications (see the
+> disclaimer at the top). Use a strong `Administrator` password, keep the host
+> patched, and take regular backups. If this feels like too much, hosting on
+> Frappe Cloud may be a better option for you.
+
+**1. Get a domain name.** Register one (e.g. `yourchurchname.org`) with a domain
+registrar, or use a subdomain you already control (e.g. `churchit.yourchurchname.org`).
+
+**2. Run setup with that domain — and keep ports 80/443.** At the setup prompts,
+enter your domain (not `churchit.localhost`) and press Enter for the default
+ports. Public HTTPS **requires ports 80 and 443**: Let's Encrypt validates over
+port 80, and browsers expect 443. (The custom-port option is only for local or
+behind-another-proxy setups.)
+
+**3. Point DNS at your connection.** In your domain's DNS settings, add an
+**A record** for your domain pointing to your **public IP address**:
+
+```
+Type: A    Name: @ (or your subdomain)    Value: <your public IP>
+```
+
+You can find your public IP address by running `curl -4 ifconfig.me` on the host
+(or search online for "what is my IP"). If your public IP changes over time
+(most home connections do), you will need to use **Dynamic DNS (DDNS)** so the DNS
+record updates itself each time your public ip address changes. Many registrars offer
+DDNS services, but if not, you can use a free service like DuckDNS or Cloudflare.
+
+**4. Forward ports on your router.** In your router's admin page, forward inbound
+**TCP 80 and 443** to the host machine's LAN address:
+
+```
+External 80  ->  <host LAN IP>:80
+External 443 ->  <host LAN IP>:443
+```
+
+Give the host a **reserved/static LAN IP** first (in the router's DHCP settings)
+so the forward doesn't break after a reboot.
+
+**5. Allow 80/443 through the host firewall.**
+
+```bash
+sudo ufw allow 80,443/tcp     # Linux (ufw)
+```
+
+On Windows, Docker Desktop usually prompts to allow this the first time.
+
+**6. Test the connection from outside your network.**
+
+### Can't open ports? (CGNAT, restrictive ISP, or you'd rather not)
+
+Some connections (many residential/mobile/fibre plans) put you behind **CGNAT**, where port
+forwarding can't work because you don't have your own public IP. Two options that
+need **no open ports**:
+
+- **A tunnel** — e.g. **Cloudflare Tunnel** (`cloudflared`) or **Tailscale
+  Funnel**. These connect *out* from the host and expose it publicly, handling
+  HTTPS for you. Run Churchit locally (keep the `churchit.localhost` / `http://`
+  address) and let the tunnel front it. Setting this up is outside the scope of this tutorial.
+- **Frappe Cloud**: See the project Readme for more details.
+
+### Troubleshooting
+
+- **"Not secure" / no certificate:** DNS isn't resolving to your IP yet, or port
+  80 isn't reachable from outside. Check that `nslookup your-domain` returns your
+  public IP and that port 80 is forwarded.
+- **Works on your network but not from outside:** Possibly **CGNAT** - you
+  may not have a public IP. Use a tunnel (above), or Frappe Cloud.
+- **Certificate keeps failing:** make sure `HTTP_PORT`/`HTTPS_PORT` are `80`/`443`
+  (not custom) - Let's Encrypt won't validate on other ports.
+
 ## What's in this folder
 
 | File | Purpose |
