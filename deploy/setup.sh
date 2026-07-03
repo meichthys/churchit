@@ -41,10 +41,21 @@ curl -fsSL "$RAW/Caddyfile"          -o Caddyfile
 if [ ! -f .env ]; then
   curl -fsSL "$RAW/.env.example" -o .env
   say "First-time setup:"
-  printf '  Domain name for this server\n'
-  printf '  (press Enter for a local test at http://churchit.localhost): '
+  printf '  Enter the domain name for this server — just the name, with no\n'
+  printf '  "http://" or "https://" and no trailing slash (e.g. church.example.org).\n'
+  printf '  Or press Enter for a local test on this machine: '
   read -r DOMAIN </dev/tty || DOMAIN=""
   DOMAIN="${DOMAIN:-churchit.localhost}"
+  # Be forgiving if someone pastes a full URL: keep only the bare host name.
+  DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
+  # Web ports. Standard is 80/443 — change only if those are already used on
+  # this machine (another web server, or local testing alongside other apps).
+  printf '  HTTP port  (press Enter for 80): '
+  read -r HTTP_PORT_IN </dev/tty || HTTP_PORT_IN=""
+  HTTP_PORT_IN="${HTTP_PORT_IN:-80}"
+  printf '  HTTPS port (press Enter for 443): '
+  read -r HTTPS_PORT_IN </dev/tty || HTTPS_PORT_IN=""
+  HTTPS_PORT_IN="${HTTPS_PORT_IN:-443}"
   DBP="$(openssl rand -hex 16 2>/dev/null  || echo "db${RANDOM}${RANDOM}")"
   ADMP="$(openssl rand -hex 10 2>/dev/null || echo "admin${RANDOM}")"
   # Local *.localhost -> plain HTTP (no cert warning). Real domain -> auto HTTPS.
@@ -55,6 +66,8 @@ if [ ! -f .env ]; then
   sed -i.bak \
     -e "s|^SITE_NAME=.*|SITE_NAME=${DOMAIN}|" \
     -e "s|^CADDY_ADDRESS=.*|CADDY_ADDRESS=${CADDY}|" \
+    -e "s|^HTTP_PORT=.*|HTTP_PORT=${HTTP_PORT_IN}|" \
+    -e "s|^HTTPS_PORT=.*|HTTPS_PORT=${HTTPS_PORT_IN}|" \
     -e "s|^DB_ROOT_PASSWORD=.*|DB_ROOT_PASSWORD=${DBP}|" \
     -e "s|^ADMIN_PASSWORD=.*|ADMIN_PASSWORD=${ADMP}|" .env
   rm -f .env.bak
@@ -76,8 +89,11 @@ case "${SITE_NAME}" in
   localhost|*.localhost) SCHEME="http" ;;
   *)                     SCHEME="https" ;;
 esac
+PORT=""
+if [ "$SCHEME" = "http"  ] && [ "${HTTP_PORT:-80}"   != "80"  ]; then PORT=":${HTTP_PORT}"; fi
+if [ "$SCHEME" = "https" ] && [ "${HTTPS_PORT:-443}" != "443" ]; then PORT=":${HTTPS_PORT}"; fi
 say "All done!  🎉"
-echo "   Address:  ${SCHEME}://${SITE_NAME}"
+echo "   Address:  ${SCHEME}://${SITE_NAME}${PORT}"
 echo "   Login:    Administrator"
 echo "   Password: ${ADMIN_PASSWORD}"
 echo

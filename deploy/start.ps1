@@ -31,9 +31,12 @@ catch {
 $firstRun = -not (Test-Path ".env")
 if ($firstRun) {
   Info "First-time setup:"
-  Write-Host "  Domain name for this server"
-  $domain = Read-Host "  (press Enter for a local test at http://churchit.localhost)"
+  Write-Host "  Enter the domain name for this server - just the name, with no"
+  Write-Host "  'http://' or 'https://' and no trailing slash (e.g. church.example.org)."
+  $domain = Read-Host "  Or press Enter for a local test on this machine"
   if ([string]::IsNullOrWhiteSpace($domain)) { $domain = "churchit.localhost" }
+  # Be forgiving if someone pastes a full URL: keep only the bare host name.
+  $domain = $domain.Trim() -replace '^https?://','' -replace '/.*$',''
 
   # Local *.localhost -> plain HTTP (no cert warning). Real domain -> auto HTTPS.
   if ($domain -eq "localhost" -or $domain -like "*.localhost") {
@@ -42,11 +45,19 @@ if ($firstRun) {
     $caddy = $domain
   }
 
+  # Web ports. Standard is 80/443 - change only if those are already in use.
+  $httpPort = Read-Host "  HTTP port  (press Enter for 80)"
+  if ([string]::IsNullOrWhiteSpace($httpPort)) { $httpPort = "80" }
+  $httpsPort = Read-Host "  HTTPS port (press Enter for 443)"
+  if ([string]::IsNullOrWhiteSpace($httpsPort)) { $httpsPort = "443" }
+
   $db    = [guid]::NewGuid().ToString('N')                    # 32 hex chars
   $admin = [guid]::NewGuid().ToString('N').Substring(0, 20)   # 20 hex chars
   (Get-Content ".env.example") | ForEach-Object {
     $_ -replace '^SITE_NAME=.*',        "SITE_NAME=$domain" `
        -replace '^CADDY_ADDRESS=.*',    "CADDY_ADDRESS=$caddy" `
+       -replace '^HTTP_PORT=.*',        "HTTP_PORT=$httpPort" `
+       -replace '^HTTPS_PORT=.*',       "HTTPS_PORT=$httpsPort" `
        -replace '^DB_ROOT_PASSWORD=.*', "DB_ROOT_PASSWORD=$db" `
        -replace '^ADMIN_PASSWORD=.*',   "ADMIN_PASSWORD=$admin"
   } | Set-Content ".env"
@@ -81,7 +92,10 @@ Get-Content ".env" | ForEach-Object {
 $site  = $envmap['SITE_NAME']
 $admin = $envmap['ADMIN_PASSWORD']
 if ($site -eq "localhost" -or $site -like "*.localhost") { $scheme = "http" } else { $scheme = "https" }
-$addr = "${scheme}://${site}"
+$portSuffix = ""
+if ($scheme -eq "http"  -and $envmap['HTTP_PORT']  -and $envmap['HTTP_PORT']  -ne "80")  { $portSuffix = ":" + $envmap['HTTP_PORT'] }
+if ($scheme -eq "https" -and $envmap['HTTPS_PORT'] -and $envmap['HTTPS_PORT'] -ne "443") { $portSuffix = ":" + $envmap['HTTPS_PORT'] }
+$addr = "${scheme}://${site}${portSuffix}"
 
 Info "All done!"
 Write-Host "   Address:  $addr"

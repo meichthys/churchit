@@ -176,8 +176,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
     environment:
       # Real domain -> automatic HTTPS. http://<name>.localhost -> plain HTTP.
       # Falls back to SITE_NAME (HTTPS) if CADDY_ADDRESS is left unset.
