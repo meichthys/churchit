@@ -16,6 +16,7 @@ x-backend: &backend
 
 services:
   db:
+    container_name: churchit-db
     # MariaDB 10.6 is the floor for frappe v15. Recheck this minimum when
     # upgrading Frappe (see the checklist in .github/workflows/build-image.yml).
     image: mariadb:10.6
@@ -35,18 +36,21 @@ services:
       - db-data:/var/lib/mysql
 
   redis-cache:
+    container_name: churchit-redis-cache
     image: redis:6.2-alpine
     restart: unless-stopped
     volumes:
       - redis-cache-data:/data
 
   redis-queue:
+    container_name: churchit-redis-queue
     image: redis:6.2-alpine
     restart: unless-stopped
     volumes:
       - redis-queue-data:/data
 
   configurator:
+    container_name: churchit-configurator
     # Temp container to write bench config
     <<: *backend
     restart: "no"
@@ -69,6 +73,7 @@ services:
         condition: service_started
 
   create-site:
+    container_name: churchit-create-site
     # Temp container to create the site
     <<: *backend
     restart: "no"
@@ -92,6 +97,7 @@ services:
         "${SITE_NAME}";
 
   migrate:
+    container_name: churchit-migrate
     # Temp container: runs on every `up`. Installs any app that is in the image
     # (deploy/apps.json -> sites/apps.txt) but not yet on this site, then runs
     # migrations. This is what makes existing sites pick up churchit upgrades and
@@ -120,12 +126,14 @@ services:
         bench --site ${SITE_NAME} migrate;
 
   backend:
+    container_name: churchit-backend
     <<: *backend
     depends_on:
       migrate:
         condition: service_completed_successfully
 
   websocket:
+    container_name: churchit-websocket
     <<: *backend
     command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
     depends_on:
@@ -133,6 +141,7 @@ services:
         condition: service_completed_successfully
 
   scheduler:
+    container_name: churchit-scheduler
     <<: *backend
     command: ["bench", "schedule"]
     depends_on:
@@ -140,6 +149,7 @@ services:
         condition: service_completed_successfully
 
   queue-short:
+    container_name: churchit-queue-short
     <<: *backend
     command: ["bench", "worker", "--queue", "short,default"]
     depends_on:
@@ -147,6 +157,7 @@ services:
         condition: service_completed_successfully
 
   queue-long:
+    container_name: churchit-queue-long
     <<: *backend
     command: ["bench", "worker", "--queue", "long,default,short"]
     depends_on:
@@ -154,6 +165,7 @@ services:
         condition: service_completed_successfully
 
   frontend:
+    container_name: churchit-frontend
     <<: *backend
     command: ["nginx-entrypoint.sh"]
     environment:
@@ -172,6 +184,7 @@ services:
         condition: service_started
 
   proxy:
+    container_name: churchit-proxy
     # Handles configuring https in front of the frontend
     image: caddy:2-alpine
     restart: unless-stopped
