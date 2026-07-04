@@ -160,6 +160,32 @@ need **no open ports**:
 - **Certificate keeps failing:** make sure `HTTP_PORT`/`HTTPS_PORT` are `80`/`443`
   (not custom) - Let's Encrypt won't validate on other ports.
 
+## Uninstall / start fresh
+
+In case something went wrong during the initial setup, or you want to start fresh
+you can run the commands below.
+
+⚠️ Warning: This permanently deletes the site, database, and uploaded files.
+
+**Linux / macOS:**
+
+```bash
+cd ~/churchit
+docker compose down -v     # stop & remove containers, network, and ALL data
+cd ~ && rm -rf churchit    # remove the config folder (.env, compose files)
+```
+
+**Windows (PowerShell):**
+
+```powershell
+cd ~\churchit
+docker compose down -v                        # stop & remove containers, network, and ALL data
+cd ~; Remove-Item -Recurse -Force churchit    # remove the config folder (.env, compose files)
+```
+
+Be sure to run ` docker compose down -v` **before** deleting the folder.
+To also remove the downloaded docker images, you can run `docker image prune -a`
+
 ## What's in this folder
 
 | File | Purpose |
