@@ -6,7 +6,7 @@ The user-facing manuals live as Frappe workspace content blocks in
 reads those blocks and renders them into the glassy marketing-site shell so the
 documentation on the website always mirrors what's shipped in the app.
 
-Run from the app root (apps/churchit):  python website/build_docs.py
+Run from the app root (apps/churchit):  python docs/build_docs.py
 """
 
 import glob
@@ -15,7 +15,7 @@ import os
 import re
 
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(APP_ROOT, "website", "documentation.html")
+OUT = os.path.join(APP_ROOT, "docs", "documentation.html")
 
 # Base address of the self-hosted churchit desk that /app/ links point at.
 DESK_URL = "http://localhost:1423"
@@ -148,9 +148,9 @@ TEMPLATE = '''<!DOCTYPE html>
       <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
       <nav class="nav-links">
         <a href="index.html#features">Features</a>
-        <a href="pricing.html">No&nbsp;Pricing</a>
+        <a href="pricing.html">Pricing</a>
         <a href="documentation.html" class="active">Documentation</a>
-        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
         <a class="btn btn-primary" href="pricing.html">Get started</a>
       </nav>
     </div>
@@ -186,12 +186,12 @@ TEMPLATE = '''<!DOCTYPE html>
       <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
       <nav class="foot-links">
         <a href="index.html#features">Features</a>
-        <a href="pricing.html">No Pricing</a>
+        <a href="pricing.html">Pricing</a>
         <a href="documentation.html">Documentation</a>
         <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
       </nav>
     </div>
-    <div class="wrap"><small>Generated from the churchit in-app manuals. Re-run <code>website/build_docs.py</code> to refresh.</small></div>
+    <div class="wrap"><small>Generated from the churchit in-app manuals. Re-run <code>docs/build_docs.py</code> to refresh.</small></div>
   </footer>
 
   <script src="assets/app.js"></script>
