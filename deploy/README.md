@@ -25,33 +25,10 @@ Common requirements:
 To make the setup as easy as possible, we have one-liner setup scripts you can run
 to pre-configure Churchit with default settings.
 
-### Windows
-
-1. Install **Docker Desktop for Windows** and reboot:
-   https://www.docker.com/products/docker-desktop/
-   (The installer enables WSL2 for you in the background.)
-2. Download this `deploy` folder and unzip it.
-3. Double-click **`Start Churchit.bat`**.
-
-It downloads everything, creates the site, and opens `http://churchit.localhost`
-in your browser. Your `Administrator` password is shown at the end and saved in
-the `.env` file next to the script.
-
-To start it again later, just double-click `Start Churchit.bat` again. On these
-later runs it asks whether to **[1] just start** (keep your current version) or
-**[2] start and update** to the latest — so a normal restart never changes your
-version unless you choose to update. (Pressing Enter picks "just start".)
-
-### macOS
-
-Install **Docker Desktop for Mac**, then in Terminal run the same one command as
-Linux below.
-
 ### Linux (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh -o setup.sh
-bash setup.sh
+curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh | bash
 ```
 
 The script installs Docker if it's missing, downloads the churchit compose files,
@@ -66,6 +43,28 @@ When it finishes it prints your address and the `Administrator` password
 > **For a real, always-on church server**, a cheap Linux mini-PC or VPS are
 > good options. Windows/macOS with Docker Desktop is good for trying it out, but
 > remember that Docker Desktop must stay running for the site to be up.
+
+### Windows (via WSL)
+
+On Windows, Churchit runs inside **WSL** (Windows Subsystem for Linux):
+
+1. Install Docker Desktop for Windows and reboot:
+   https://www.docker.com/products/docker-desktop/
+2. Open PowerShell and run `wsl --install`:
+   Reboot if asked, then set the username/password it
+   prompts for. If WSL is already present on your system, use `wsl --install -d Ubuntu`.
+3. In Docker Desktop → Settings → Resources → WSL Integration, confirm Ubuntu
+   is enabled (it should be enabled by default).
+4. Open **Ubuntu** from the Start menu and run the 'curl' command form the `Linux` section above.
+
+The downloaded files, `docker compose` commands, and
+the `~/churchit/.env` that holds your password all live inside WSL (Ubuntu).
+
+### macOS
+
+Install '[Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)',
+then in Terminal run the 'curl' command in the 'Linux' section above.
+
 
 ## Everyday commands
 
@@ -167,20 +166,12 @@ you can run the commands below.
 
 ⚠️ Warning: This permanently deletes the site, database, and uploaded files.
 
-**Linux / macOS:**
+**Linux / macOS / Windows** (on Windows, run these in your **Ubuntu / WSL** terminal):
 
 ```bash
 cd ~/churchit
 docker compose down -v     # stop & remove containers, network, and ALL data
 cd ~ && rm -rf churchit    # remove the config folder (.env, compose files)
-```
-
-**Windows (PowerShell):**
-
-```powershell
-cd ~\churchit
-docker compose down -v                        # stop & remove containers, network, and ALL data
-cd ~; Remove-Item -Recurse -Force churchit    # remove the config folder (.env, compose files)
 ```
 
 Be sure to run ` docker compose down -v` **before** deleting the folder.
@@ -190,9 +181,7 @@ To also remove the downloaded docker images, you can run `docker image prune -a`
 
 | File | Purpose |
 |---|---|
-| `Start Churchit.bat` | Windows: double-click to start (runs `start.ps1`). |
-| `start.ps1` | Windows launcher logic (PowerShell). |
-| `setup.sh` | Linux/macOS one-command installer. |
+| `setup.sh` | One-command installer for Linux, macOS, and Windows (via WSL). |
 | `docker-compose.yml` | The full docker stack: app, workers, MariaDB, Redis, Caddy. |
 | `Caddyfile` | Reverse proxy + automatic HTTPS. |
 | `.env.example` | Settings template (domain, passwords, image tag). |
