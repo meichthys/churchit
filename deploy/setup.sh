@@ -43,7 +43,7 @@ if [ ! -f .env ]; then
   say "First-time setup:"
   printf '  Enter the domain name for this server — just the name, with no\n'
   printf '  "http://" or "https://" and no trailing slash (e.g. church.example.org).\n'
-  printf '  Or press Enter for a local test on this machine: '
+  printf '  Or press Enter to use the default of churchit.localhost: '
   read -r DOMAIN </dev/tty || DOMAIN=""
   DOMAIN="${DOMAIN:-churchit.localhost}"
   # Be forgiving if someone pastes a full URL: keep only the bare host name.
