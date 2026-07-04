@@ -95,6 +95,8 @@ say "All done!  🎉"
 echo "   Address:  ${SCHEME}://${SITE_NAME}${PORT}"
 echo "   Login:    Administrator"
 echo "   Password: ${ADMIN_PASSWORD}"
+echo "   Note:     that is the initial password. If you change it in the web UI,"
+echo "             this password will not be correct!"
 echo
 echo "   Settings & passwords are saved in: ${DIR}/.env"
 echo "   Stop:     (cd ${DIR} && docker compose down)"

@@ -37,8 +37,7 @@ generates strong passwords, and starts everything.
 
 The first run will download ~1–2 GB of data.
 
-When it finishes it prints your address and the `Administrator` password
-(also saved in `~/churchit/.env`).
+When it finishes it prints your site address. Log in as `Administrator`. Your initial password is saved in `~/churchit/.env` — see [Logging in](#logging-in) below. It is HIGHLY recommended to change the Administrator password after first logging in.
 
 > **For a real, always-on church server**, a cheap Linux mini-PC or VPS are
 > good options. Windows/macOS with Docker Desktop is good for trying it out, but
@@ -65,6 +64,28 @@ the `~/churchit/.env` that holds your password all live inside WSL (Ubuntu).
 Install '[Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)',
 then in Terminal run the 'curl' command in the 'Linux' section above.
 
+
+## Logging in
+
+- **Username:** `Administrator`
+- **Initial password:** the `ADMIN_PASSWORD` value in `~/churchit/.env`. Show it with:
+
+  ```bash
+  grep ADMIN_PASSWORD ~/churchit/.env
+  ```
+
+After your first login, change it to something memorable from the web UI
+(top-right avatar → **My Settings** → set a new password). Editing `ADMIN_PASSWORD`
+in `.env` afterward has **no effect** — that value is only used when the site is
+first created.
+
+**Forgot the password?** Reset it any time (replace `<your-site>` with the
+`SITE_NAME` from `.env`, e.g. `churchit.localhost`):
+
+```bash
+cd ~/churchit
+docker compose exec backend bench --site <your-site> set-admin-password '<new-password>'
+```
 
 ## Everyday commands
 

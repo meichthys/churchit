@@ -105,7 +105,9 @@ services:
     # (deploy/apps.json -> sites/apps.txt) but not yet on this site, then runs
     # migrations. This is what makes existing sites pick up churchit upgrades and
     # newly-added apps automatically — the app list comes from the image, which
-    # is what gets pulled, not from this compose file.
+    # is what gets pulled, not from this compose file. The Administrator password
+    # is intentionally NOT touched here — create-site sets it once at creation and
+    # after that it is owned by the user (changeable in the web UI).
     <<: *backend
     restart: "no"
     depends_on:
