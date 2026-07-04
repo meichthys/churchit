@@ -1,32 +1,30 @@
-# Builds the churchit image (frappe v15 + payments + churchit) and pushes it to
-# GitHub Container Registry, so self-hosters only pull it — never build it.
+# Builds the churchit image (frappe v15, churchit, and dependencies) and pushes it to
+# GitHub Container Registry.
 #
 # It builds with frappe_docker's official custom Containerfile
 # (images/custom/Containerfile). That file pulls frappe from source via
 # `bench init` and installs our extra apps from apps.json, which is passed as a
 # BuildKit *secret* named "apps_json" (NOT a build-arg).
 #
-# frappe_docker is pinned to a commit so an upstream change can't break the
-# build without warning. To update it: bump the `ref:` SHA below, then re-check
-# that images/custom/Containerfile still expects the `apps_json` secret and the
-# same build-args (upstream has changed both before).
-#
-# ── Upgrading Frappe (e.g. v15 → v16) ────────────────────────────────────────
+# frappe_docker is pinned to a specific commit ref so an upstream change can't break the
+# build without warning. To use a newer frappe_docker, we bump the `ref:` SHA below.
+
+## Notes on upgrading to frappe 16
 # Version knobs are spread across the deploy setup. To move to a new version:
 #   In THIS file:
-#     - `branches: [version-15]` trigger        -> the new app branch
+#     - `branches: [version-15]` trigger         -> the new app branch
 #     - build-arg `FRAPPE_BRANCH=version-15`     -> the new branch
 #     - re-pin frappe_docker `ref:` to a commit whose images/custom/Containerfile
-#       targets the new version, then re-verify the `apps_json` secret + arg names
+#       targets the new version.
 #     - `PYTHON_VERSION` / `NODE_VERSION`: newer Frappe needs newer runtimes. The
-#       Containerfile's own defaults will likely already be correct, so you can
+#       Containerfile's own defaults will likely already be correct, so we can
 #       probably DELETE these two overrides. Confirm against the target frappe's
 #       `requires-python` (v15 was `>=3.10,<3.14`, hence our 3.12 pin).
 #   Elsewhere in deploy/:
 #     - apps.json          -> bump the `payments` and `churchit` branches
 #     - setup.sh           -> `REF="version-15"` (drives the raw download URLs)
-#     - docker-compose.yml -> recheck the `mariadb:10.6` / redis minimums
-#     - make sure a matching `version-16` churchit branch actually exists first
+#     - docker-compose.yml -> recheck the `mariadb:10.6` / redis minimums for frappe 16
+#     - make sure a matching `version-16` for churchit exists and is up to date
 name: build-image
 
 on:

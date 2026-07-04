@@ -1,6 +1,14 @@
+# Hosting Churchit on Frappe Cloud (Coming Soon)
+
+The easiest (but not free) way to get a working Frappe environment is to use [Frappe Cloud](https://frappe.io/cloud). For a few dollars per month you can run an instance in the cloud. You get your choice of support options and shouldn't need to worry about data loss yourself.
+
+Note: With this option, the money you pay to FrappeCloud is not received by maintainers of this 'Church' app. - We offer the 'Church' software for free, but you pay the cloud hosting costs to [Frappe](https://frappe.io/).
+
+Additional details on this hosting method will become available in the near future.
+
 # Self-hosting churchit
 
-This is the free (and recommended) way to run Churchit on your own hardware.
+Self-hosting Churchit is the free way to run Churchit on your own hardware, but does require some technical expertise.
 
 It runs anywhere Docker runs (which includes Linux, Windows, or macOS).
 
