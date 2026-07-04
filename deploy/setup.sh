@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# churchit self-host installer.
+# churchit self-host automated installer script.
 #
-#   curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh -o setup.sh
-#   cat setup.sh      # read it before running (recommended)
-#   bash setup.sh
-#
+#   # Run the following command
+#   curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh | bash
+
 set -euo pipefail
 
 REPO="meichthys/churchit"
