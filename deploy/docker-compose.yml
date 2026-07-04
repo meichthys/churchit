@@ -17,6 +17,7 @@ x-backend: &backend
 services:
   db:
     container_name: churchit-db
+    # The database stores all site data (records, users, settings).
     # MariaDB 10.6 is the floor for frappe v15. Recheck this minimum when
     # upgrading Frappe (see the checklist in .github/workflows/build-image.yml).
     image: mariadb:10.6
@@ -37,6 +38,7 @@ services:
 
   redis-cache:
     container_name: churchit-redis-cache
+    # Redis for the framework cache (sessions, rate limits, cached documents).
     image: redis:6.2-alpine
     restart: unless-stopped
     volumes:
@@ -44,6 +46,7 @@ services:
 
   redis-queue:
     container_name: churchit-redis-queue
+    # Redis backing the background-job queue and websocket pub/sub.
     image: redis:6.2-alpine
     restart: unless-stopped
     volumes:
@@ -127,6 +130,7 @@ services:
 
   backend:
     container_name: churchit-backend
+    # The Python app server (gunicorn) which serves the churchit/Frappe API.
     <<: *backend
     depends_on:
       migrate:
@@ -134,6 +138,7 @@ services:
 
   websocket:
     container_name: churchit-websocket
+    # Socket.IO server which pushes realtime UI updates to the browser.
     <<: *backend
     command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
     depends_on:
@@ -142,6 +147,7 @@ services:
 
   scheduler:
     container_name: churchit-scheduler
+    # Runs scheduled/cron jobs (bench schedule) for periodic tasks.
     <<: *backend
     command: ["bench", "schedule"]
     depends_on:
@@ -150,6 +156,7 @@ services:
 
   queue-short:
     container_name: churchit-queue-short
+    # Background worker for the short & default queues (quick jobs).
     <<: *backend
     command: ["bench", "worker", "--queue", "short,default"]
     depends_on:
@@ -158,6 +165,7 @@ services:
 
   queue-long:
     container_name: churchit-queue-long
+    # Background worker for the long queue (slow jobs: reports, bulk ops, emails).
     <<: *backend
     command: ["bench", "worker", "--queue", "long,default,short"]
     depends_on:
@@ -166,6 +174,7 @@ services:
 
   frontend:
     container_name: churchit-frontend
+    # Nginx server which serves static assets and reverse-proxies to backend + websocket.
     <<: *backend
     command: ["nginx-entrypoint.sh"]
     environment:
