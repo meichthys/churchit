@@ -17,8 +17,9 @@ import re
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(APP_ROOT, "docs", "documentation.html")
 
-# Base address of the self-hosted churchit desk that /app/ links point at.
-DESK_URL = "http://localhost:1423"
+# Base address of the churchit desk that /app/ links point at — the public demo
+# site, so the documentation's desk links resolve for website visitors.
+DESK_URL = "https://church.meichthys.com"
 
 # Display order + presentation metadata (slug is the on-page anchor id).
 MODULES = [
