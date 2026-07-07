@@ -113,7 +113,7 @@ def _create_default_church():
 			"doctype": "Church",
 			"church_name": DEFAULT_CHURCH_NAME,
 			"abbreviation": "MC",
-			"legal_name": "My Church, Inc.",
+			"legal_name": "My Church",
 			"founding_date": "1990-03-15",
 			"publish": 1,
 			"mission_statement": "To glorify God by making disciples, building community, and serving our neighbors with the love of Christ.",
