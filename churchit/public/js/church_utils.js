@@ -77,7 +77,7 @@ church.bible_memory.open_assign_dialog = function(references, mode, on_done) {
 // child_table: (optional) the child table fieldname if the field is in a child doctype
 church.set_church_doctype_query = function(frm, fieldname, child_table) {
 	frappe.db.get_list('Module Def', {
-		filters: { app_name: 'church' },
+		filters: { app_name: 'churchit' },
 		fields: ['name'],
 		limit: 0
 	}).then(modules => {
