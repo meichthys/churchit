@@ -58,9 +58,6 @@ _DELETE_STEPS = [
 	(False, "Person", {}),
 	(False, "Help Article", {}),
 	(False, "Help Category", {}),
-	(False, "Blog Post", {}),
-	(False, "Blogger", {}),
-	(False, "Blog Category", {}),
 ]
 
 # ---------------------------------------------------------------------------
@@ -168,7 +165,6 @@ def create_sample_data():
 
 	_create_church_tasks()
 
-	_create_blog_post(people)
 	_create_help_article()
 
 
@@ -2771,61 +2767,6 @@ def _create_church_tasks():
 			continue
 		doc = frappe.get_doc({"doctype": "Church Task", **task})
 		doc.insert(ignore_permissions=True)
-
-
-# ---------------------------------------------------------------------------
-# Blog (category + blogger + post)
-# ---------------------------------------------------------------------------
-
-
-def _create_blog_post(people):
-	"""Create a sample Blog Category, Blogger, and a published Blog Post."""
-	category = _insert_if_missing(
-		"Blog Category",
-		{"title": "Church Life"},
-		title="Church Life",
-		published=1,
-		description="Stories and updates from the life of our church.",
-	)
-
-	pastor = people.get("James Wilson")
-	blogger = _insert_if_missing(
-		"Blogger",
-		{"short_name": "james-wilson"},
-		short_name="james-wilson",
-		full_name="James Wilson",
-		user=frappe.db.get_value("Person", pastor, "user") if pastor else None,
-		bio="Pastor at our church for over 25 years. Husband, father, and lifelong student of the Word.",
-	)
-
-	if frappe.db.exists("Blog Post", {"title": "A Word of Welcome"}):
-		return
-
-	doc = frappe.get_doc(
-		{
-			"doctype": "Blog Post",
-			"title": "A Word of Welcome",
-			"blog_category": category,
-			"blogger": blogger,
-			"published": 1,
-			"published_on": _near_date(-7),
-			"blog_intro": "Whether you have been with us for decades or are visiting for the first time, we are glad you are here.",
-			"content_type": "Markdown",
-			"content_md": (
-				"## You Belong Here\n\n"
-				"Our doors are open to anyone who would like to come and worship with us. "
-				"We believe the local church is a family, and families grow stronger when "
-				"everyone has a seat at the table.\n\n"
-				"### What to Expect on Sunday\n\n"
-				"- A warm welcome at the door\n"
-				"- Congregational singing of hymns and modern worship songs\n"
-				"- A sermon rooted in Scripture\n"
-				"- Coffee and conversation in the fellowship hall afterward\n\n"
-				"If you have any questions, feel free to reach out — we would love to hear from you."
-			),
-		}
-	)
-	doc.insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
