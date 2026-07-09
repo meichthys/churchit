@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-08 09:30:48.857205",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "expand-alt",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Missions",
+ "link_to": "Missions",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-07 19:49:57.260398",
+ "modified_by": "Administrator",
+ "name": "Missions",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

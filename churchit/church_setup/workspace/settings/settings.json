@@ -1,7 +1,8 @@
 {
+ "app": "churchit",
  "charts": [],
  "content": "[{\"id\":\"setup_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Application Settings</span>\",\"col\":12}},{\"id\":\"bgt613uRM0\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Users\",\"col\":4}},{\"id\":\"t5GQK59QKk\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Email Accounts\",\"col\":4}},{\"id\":\"znV30Ypvij\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Deleted Documents\",\"col\":4}},{\"id\":\"_Woe7N_CzZ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2TvKGfkiZj\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"1cLuGOAo_8\",\"type\":\"card\",\"data\":{\"card_name\":\"Import/Export\",\"col\":4}},{\"id\":\"tV_3YiGiYe\",\"type\":\"card\",\"data\":{\"card_name\":\"Backups\",\"col\":4}},{\"id\":\"rcKwF32x0K\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"JUS_PLDjed\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"a_ckFJIueu\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"ZuomdDZ0op\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial\",\"col\":4}}]",
- "creation": "2026-03-14 00:00:00",
+ "creation": "2026-07-07 19:43:06.898779",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -237,7 +238,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-26 20:08:13.724034",
+ "modified": "2026-07-07 19:47:13.917732",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",
@@ -262,5 +263,6 @@
  "roles": [],
  "sequence_id": 23.0,
  "shortcuts": [],
- "title": "Settings"
+ "title": "Settings",
+ "type": "Workspace"
 }

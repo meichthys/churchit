@@ -1,4 +1,5 @@
 {
+ "app": "churchit",
  "charts": [
   {
    "chart_name": "People",
@@ -9,8 +10,8 @@
    "label": "New Members"
   }
  ],
- "content": "[{\"id\":\"Qy1zVOexc8\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"People\",\"col\":12}},{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":4}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":4}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":6}},{\"id\":\"visweek01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitations This Week\",\"col\":6}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
- "creation": "2025-09-14 22:26:02.319281",
+ "content": "[{\"id\": \"Qy1zVOexc8\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"People\", \"col\": 12}}, {\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\", \"col\": 12}}, {\"id\": \"IJrKjV4okF\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"People\", \"col\": 4}}, {\"id\": \"KKEzrzUrHD\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Members\", \"col\": 4}}, {\"id\": \"kGIFAvXSgO\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Families\", \"col\": 4}}, {\"id\": \"l03F-OPFNn\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Groups\", \"col\": 6}}, {\"id\": \"visweek01\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Visitations This Week\", \"col\": 6}}, {\"id\": \"saevJoJvF7\", \"type\": \"chart\", \"data\": {\"chart_name\": \"People\", \"col\": 6}}, {\"id\": \"Pump9_CfUX\", \"type\": \"chart\", \"data\": {\"chart_name\": \"New Members\", \"col\": 6}}, {\"id\": \"nN5R0rrK8W\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"PjWabbxTec\", \"type\": \"card\", \"data\": {\"card_name\": \"Person Documents\", \"col\": 6}}, {\"id\": \"ssO7yMeqJ9\", \"type\": \"card\", \"data\": {\"card_name\": \"Person Reports\", \"col\": 6}}]",
+ "creation": "2026-07-07 19:43:06.673659",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -38,7 +39,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Documents",
-   "link_count": 16,
+   "link_count": 14,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -149,26 +150,6 @@
    "label": "Member Transfers",
    "link_count": 0,
    "link_to": "Member Transfer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Counseling Cases",
-   "link_count": 0,
-   "link_to": "Counseling Case",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Case Types",
-   "link_count": 0,
-   "link_to": "Case Type",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -374,7 +355,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-26 21:57:58.105023",
+ "modified": "2026-07-08 16:51:55.181460",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
@@ -407,5 +388,6 @@
  "roles": [],
  "sequence_id": 15.0,
  "shortcuts": [],
- "title": "People"
+ "title": "People",
+ "type": "Workspace"
 }

@@ -2,6 +2,7 @@
  "creation": "2026-03-15 18:44:25.791402",
  "docstatus": 0,
  "doctype": "Number Card",
+ "document_type": "Letter",
  "dynamic_filters_json": "[]",
  "filters_json": "[]",
  "function": "Count",
@@ -9,14 +10,13 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Person Letters",
- "modified": "2026-03-15 18:44:31.973268",
+ "modified": "2026-07-09 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Person Letters",
  "owner": "Administrator",
- "report_function": "Sum",
- "report_name": "Person Letters",
+ "parent_document_type": "Person",
  "show_percentage_stats": 1,
  "stats_time_interval": "Monthly",
- "type": "Report"
+ "type": "Document Type"
 }

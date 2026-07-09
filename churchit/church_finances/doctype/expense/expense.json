@@ -129,11 +129,11 @@
    "link_fieldname": "source"
   }
  ],
- "modified": "2026-04-17 21:14:27.851996",
+ "modified": "2026-07-08 17:53:43.951602",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

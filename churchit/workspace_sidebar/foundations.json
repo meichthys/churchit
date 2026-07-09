@@ -1,0 +1,41 @@
+{
+ "app": "churchit",
+ "creation": "2026-07-08 09:30:48.603921",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "milestone",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Foundations",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "help",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Manual",
+   "link_to": "Manual: Foundations",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-07-08 16:51:55.352360",
+ "modified_by": "Administrator",
+ "module": "Church Foundations",
+ "module_onboarding": "Foundations",
+ "name": "Foundations",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Foundations"
+}

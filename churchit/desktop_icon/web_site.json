@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-07 19:49:57.381001",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "website",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Web Site",
+ "link_to": "Web Site",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-07 19:49:57.381001",
+ "modified_by": "Administrator",
+ "name": "Web Site",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

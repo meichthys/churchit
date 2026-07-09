@@ -1,0 +1,29 @@
+{
+ "app": "churchit",
+ "creation": "2026-07-08 09:30:48.786586",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "star",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Welcome",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-07-08 17:12:00.259875",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "module_onboarding": "Church",
+ "name": "Welcome",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Welcome"
+}

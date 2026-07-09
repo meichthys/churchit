@@ -1,7 +1,8 @@
 {
+ "app": "churchit",
  "charts": [],
  "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h1\\\" style=\\\"font-weight: normal;\\\">\ud83c\udf10Website&nbsp;Manual</span>\",\"col\":12}},{\"id\":\"B-CtTCmVDX\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span style=\\\"font-weight: normal;\\\">The website module consists of two main features: a public website, and a user portal.</span>\",\"col\":12}},{\"id\":\"fAFxFk8rny\",\"type\":\"header\",\"data\":{\"text\":\"\ud83c\udf0e<span class=\\\"h4\\\"><b>Website</b></span>\",\"col\":12}},{\"id\":\"WCW6FzkHwB\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span style=\\\"font-weight: normal;\\\">The public facing website is accessible by anyone and can be dynamically updated based on information in the Church App </span>(i.e. Beliefs, Missionaries, Ministries, etc).<br><span style=\\\"font-weight: normal;\\\">User accounts with \\\"Church Manager\\\" permissions can <i>modify</i> the website by editing the website settings and publishing documents.<br>No user account is required to <i>view</i> the website - anyone with an internet connection and a web browser can view the public website.</span>\",\"col\":12}},{\"id\":\"nZdduTPzRH\",\"type\":\"header\",\"data\":{\"text\":\"\ud83d\udc64<span class=\\\"h4\\\"><b>User Portal</b></span>\",\"col\":12}},{\"id\":\"8qBfIl0adi\",\"type\":\"paragraph\",\"data\":{\"text\":\"The user portal requires login credentials and provides users a personalized interface for accessing church information relevant to their account (i.e. Personal Profile, Prayer Requests, Alms Requests, Function Sign-Ups, etc).<br>Portal users cannot access all information in the Church App, they can only access information related to their 'Person', or information shared with them (i.e. non-private prayer requests).\",\"col\":12}}]",
- "creation": "2025-10-26 22:57:00.373845",
+ "creation": "2026-07-07 19:43:06.872178",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -13,7 +14,7 @@
  "is_hidden": 0,
  "label": "Manual: Website",
  "links": [],
- "modified": "2026-05-14 18:47:38.524227",
+ "modified": "2026-07-07 19:47:13.980277",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Manual: Website",
@@ -25,5 +26,6 @@
  "roles": [],
  "sequence_id": 22.0,
  "shortcuts": [],
- "title": "Manual: Website"
+ "title": "Manual: Website",
+ "type": "Workspace"
 }

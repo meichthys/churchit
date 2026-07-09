@@ -88,7 +88,7 @@ web_include_js = ["/assets/churchit/js/portal_groups.js"]
 # Svg Icons
 # ------------------
 # include app icons in desk
-app_include_icons = ["churchit/icons/church.svg"]
+app_include_icons = ["/assets/churchit/icons/church.svg"]
 
 # Home Pages
 # ----------

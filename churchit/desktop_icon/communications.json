@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-08 09:30:48.807489",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "mail",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Communications",
+ "link_to": "Communications",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-07 19:49:57.147964",
+ "modified_by": "Administrator",
+ "name": "Communications",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

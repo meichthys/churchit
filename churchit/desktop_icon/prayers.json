@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-07 19:49:57.335149",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "upload",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Prayers",
+ "link_to": "Prayers",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-07 19:49:57.335149",
+ "modified_by": "Administrator",
+ "name": "Prayers",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

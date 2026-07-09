@@ -1,0 +1,28 @@
+{
+ "app": "churchit",
+ "creation": "2026-07-08 09:30:48.657897",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "help",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Manual: Ministries",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-07-07 19:49:57.231460",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Manual: Ministries",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Manual: Ministries"
+}

@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-08 09:30:48.850466",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "milestone",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Foundations",
+ "link_to": "Foundations",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-07 19:49:57.210784",
+ "modified_by": "Administrator",
+ "name": "Foundations",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}
