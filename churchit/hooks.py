@@ -66,7 +66,9 @@ app_include_js = [
 ]
 
 # include js, css files in header of web template
-# web_include_css = "/assets/churchit/css/church.css"
+# Skins the public website (Web Pages, portal pages) in the same glassy style
+# as the marketing site in docs/.
+web_include_css = ["/assets/churchit/css/website.css"]
 web_include_js = ["/assets/churchit/js/portal_groups.js"]
 
 # include custom scss in every website theme (without file extension ".scss")

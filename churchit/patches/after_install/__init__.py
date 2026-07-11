@@ -48,6 +48,7 @@ def execute():
 	# Website content
 	_create_web_pages()
 	_setup_about_us_settings()
+	_setup_contact_us_settings()
 	_setup_website_settings()
 	_setup_portal_settings()
 
@@ -614,6 +615,8 @@ def _create_web_pages():
 def _setup_about_us_settings():
 	"""Populate the About Us page with default church-oriented content."""
 	doc = frappe.get_doc("About Us Settings")
+	# frappe ships the /about page disabled; the navbar links to it, so enable it
+	doc.is_disabled = 0
 	doc.page_title = "About Our Church"
 	doc.company_introduction = (
 		"<p>We are a congregation of believers committed to worshipping God, growing"
@@ -624,6 +627,20 @@ def _setup_about_us_settings():
 	)
 	doc.company_history_heading = "Church History"
 	doc.team_members_heading = "Our Team"
+	doc.save(ignore_permissions=True)
+
+
+def _setup_contact_us_settings():
+	"""Enable and populate the Contact Us page (shipped disabled by frappe)."""
+	doc = frappe.get_doc("Contact Us Settings")
+	# frappe ships the /contact page disabled; the navbar links to it, so enable it
+	doc.is_disabled = 0
+	doc.heading = "Get in Touch"
+	doc.introduction = (
+		"<p>We would love to hear from you. Send us a message and someone from"
+		" our church will get back to you soon.</p>"
+	)
+	doc.query_options = "General\nPrayer Request\nPlanning a Visit\nGiving"
 	doc.save(ignore_permissions=True)
 
 

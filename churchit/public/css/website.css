@@ -1,0 +1,199 @@
+/* ==========================================================================
+   churchit — public website skin
+   Mirrors the docs/ marketing site design system (Inter type, indigo→violet
+   accent, frosted glass surfaces) by restyling the Bootstrap card markup the
+   Web Page templates already use. Loaded site-wide via web_include_css.
+   ========================================================================== */
+
+:root {
+  --ch-brand:      #6366f1; /* indigo-500 */
+  --ch-brand-2:    #8b5cf6; /* violet-500 */
+  --ch-brand-3:    #ec4899; /* pink-500   */
+  --ch-brand-ink:  #4338ca;
+
+  --ch-ink:        #0f172a; /* slate-900 */
+  --ch-body:       #334155; /* slate-700 */
+  --ch-muted:      #64748b; /* slate-500 */
+  --ch-line:       rgba(15, 23, 42, 0.08);
+
+  --ch-glass:      rgba(255, 255, 255, 0.55);
+  --ch-glass-2:    rgba(255, 255, 255, 0.72);
+  --ch-glass-brd:  rgba(255, 255, 255, 0.6);
+  --ch-glass-shdw: 0 8px 40px -12px rgba(30, 27, 75, 0.28);
+
+  --ch-radius:     18px;
+  --ch-grad:       linear-gradient(120deg, var(--ch-brand) 0%, var(--ch-brand-2) 50%, var(--ch-brand-3) 100%);
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ch-body);
+  background: #eef1fb;
+}
+
+/* Aurora mesh backdrop — fixed so glass surfaces always have something to blur */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 38vmax at 12% 8%,  rgba(99,102,241,0.7), transparent 60%),
+    radial-gradient(36vmax 36vmax at 88% 4%,  rgba(236,72,153,0.55), transparent 60%),
+    radial-gradient(44vmax 44vmax at 78% 82%, rgba(139,92,246,0.65), transparent 62%),
+    radial-gradient(40vmax 40vmax at 8% 92%,  rgba(56,189,248,0.55), transparent 60%);
+  filter: saturate(1.3);
+}
+
+h1, h2, h3, h4, .page-header h1 {
+  color: var(--ch-ink);
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+/* page titles in the gradient brand ink, like the docs headlines.
+   Web Pages put the title in .page-header; the about page renders a
+   hero block, and give/contact write their own h1. */
+.page-header h1,
+.about-content .hero-title,
+.contact-content h1,
+.give-page h1 {
+  background: var(--ch-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+}
+
+/* Frosted navbar + footer */
+.navbar {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-bottom: 1px solid var(--ch-line);
+}
+.web-footer {
+  background: transparent;
+  border-top: 1px solid var(--ch-line);
+}
+
+/* ---- Glass cards (skins the templates' Bootstrap cards) ------------------ */
+.page_content .card {
+  background: var(--ch-glass);
+  border: 1px solid var(--ch-glass-brd);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: var(--ch-glass-shdw);
+  border-radius: var(--ch-radius);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+/* gradient accent bar along the top of every card */
+.page_content .card::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: var(--ch-grad);
+}
+.page_content .card:hover {
+  box-shadow: 0 14px 44px -16px rgba(67, 56, 202, 0.5);
+}
+.page_content .card-header {
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
+  border-bottom: 1px solid var(--ch-line);
+  color: var(--ch-brand-ink);
+  font-size: 1.05rem;
+  padding: 1rem 1.25rem;
+}
+.page_content .card-footer {
+  background: rgba(139, 92, 246, 0.06);
+  border-top: 1px solid var(--ch-line);
+  border-radius: 0 0 var(--ch-radius) var(--ch-radius);
+}
+.page_content .card img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+.web-page-content audio {
+  width: 100%;
+}
+
+/* ---- Buttons: gradient pills like the docs site -------------------------- */
+.page_content .btn-primary {
+  color: #fff;
+  background: var(--ch-grad);
+  border: none;
+  border-radius: 999px;
+  font-weight: 650;
+  box-shadow: 0 10px 30px -8px rgba(99, 102, 241, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.page_content .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
+}
+
+/* ---- Full-page glass panels (frappe about/contact + churchit give) -------- */
+.about-content,
+.contact-content,
+.give-page {
+  background: var(--ch-glass);
+  border: 1px solid var(--ch-glass-brd);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: var(--ch-glass-shdw);
+  border-radius: var(--ch-radius);
+  padding: 1.5rem 1.75rem;
+}
+.page_content .form-control {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--ch-line);
+  border-radius: 10px;
+}
+/* the about page is built from frappe web blocks (hero + sections) that carry
+   their own backgrounds/padding; flatten them so the glass panel shows through */
+.about-content .hero,
+.about-content .section {
+  background: transparent;
+}
+.about-content .section {
+  padding: 1rem 0;
+}
+.about-content .hero-subtitle {
+  color: var(--ch-muted);
+}
+
+/* ---- Sermon series cards (moved from the sermons template) --------------- */
+.series-tag {
+  font-size: 0.7em;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ch-grad);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.series-sermon-list li { border-bottom: 1px solid var(--ch-line); }
+.series-sermon-list li:last-child { border-bottom: none; }
+.series-sermon-link {
+  display: block;
+  padding: 8px 6px;
+  color: var(--ch-brand-ink);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.series-sermon-link:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--ch-brand-ink);
+  text-decoration: none;
+}
+.series-back {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--ch-brand-ink);
+  text-decoration: none;
+}
