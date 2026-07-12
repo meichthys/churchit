@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-11 19:24:57.450269",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 1,
+ "icon": "help",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Manual: Ministries",
+ "link_to": "Manual: Ministries",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-11 19:24:57.450269",
+ "modified_by": "Administrator",
+ "name": "Manual: Ministries",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

@@ -1,0 +1,21 @@
+{
+ "app": "churchit",
+ "bg_color": "gray",
+ "creation": "2026-07-11 19:24:57.480449",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 1,
+ "icon": "help",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Manual: People",
+ "link_to": "Manual: People",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-11 19:24:57.480449",
+ "modified_by": "Administrator",
+ "name": "Manual: People",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}
