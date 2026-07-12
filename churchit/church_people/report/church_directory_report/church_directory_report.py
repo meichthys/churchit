@@ -487,5 +487,5 @@ def get_directory_html(
 	# Load the shipped template through the Jinja filesystem loader (path-only, so
 	# no user-supplied string can ever be rendered as a template).
 	return frappe.get_template(
-		"church/church_people/report/church_directory_report/church_directory.html"
+		"churchit/church_people/report/church_directory_report/church_directory.html"
 	).render(context)

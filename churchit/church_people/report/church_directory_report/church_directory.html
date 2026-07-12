@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{{ churchit.church_name }} – Church Directory</title>
+<title>{{ church.church_name }} – Church Directory</title>
 <style>
 /* ── Page setup ─────────────────────────────────────────────── */
 @page {
@@ -344,7 +344,7 @@ body {
 /* ── Footer ─────────────────────────────────────────────────── */
 @page {
     @bottom-center {
-        content: "{{ churchit.church_name }} Church Directory  –  {{ generated_date }}";
+        content: "{{ church.church_name }} Church Directory  –  {{ generated_date }}";
         font-family: Georgia, serif;
         font-size: 8pt;
         color: #999;
@@ -358,9 +358,9 @@ body {
      COVER PAGE
 ═════════════════════════════════════════════════════════════ -->
 <div class="cover">
-    <div class="cover-church-name">{{ churchit.church_name }}</div>
+    <div class="cover-church-name">{{ church.church_name }}</div>
 
-    {% if church.legal_name and church.legal_name != churchit.church_name %}
+    {% if church.legal_name and church.legal_name != church.church_name %}
     <div class="cover-legal-name">{{ church.legal_name }}</div>
     {% endif %}
 
