@@ -31,7 +31,7 @@
    "type": "Link"
   },
   {
-   "child": 1,
+   "child": 0,
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
@@ -42,7 +42,7 @@
    "type": "Link"
   },
   {
-   "child": 1,
+   "child": 0,
    "collapsible": 1,
    "icon": "table",
    "indent": 0,
@@ -287,7 +287,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-09 20:04:44.819375",
+ "modified": "2026-07-11 18:56:11.538104",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "module_onboarding": "Ministries",
