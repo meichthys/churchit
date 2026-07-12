@@ -128,12 +128,6 @@ website_redirects = [
 # Installation
 # ------------
 
-# Clear stale per-document lock files so `bench install`/`bench reinstall` and
-# `bench migrate` don't abort with DocumentLockedError when a prior run queued a
-# background action (e.g. Role Profile fixtures) on a bench with no worker.
-before_install = "churchit.install.clear_stale_document_locks"
-before_migrate = "churchit.install.clear_stale_document_locks"
-
 after_install = "churchit.patches.after_install.execute"
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
