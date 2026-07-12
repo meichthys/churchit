@@ -10,7 +10,7 @@
    "label": "New Members"
   }
  ],
- "content": "[{\"id\": \"Qy1zVOexc8\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"People\", \"col\": 12}}, {\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\", \"col\": 12}}, {\"id\": \"IJrKjV4okF\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"People\", \"col\": 4}}, {\"id\": \"KKEzrzUrHD\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Members\", \"col\": 4}}, {\"id\": \"kGIFAvXSgO\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Families\", \"col\": 4}}, {\"id\": \"l03F-OPFNn\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Groups\", \"col\": 6}}, {\"id\": \"visweek01\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Visitations This Week\", \"col\": 6}}, {\"id\": \"saevJoJvF7\", \"type\": \"chart\", \"data\": {\"chart_name\": \"People\", \"col\": 6}}, {\"id\": \"Pump9_CfUX\", \"type\": \"chart\", \"data\": {\"chart_name\": \"New Members\", \"col\": 6}}, {\"id\": \"nN5R0rrK8W\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"PjWabbxTec\", \"type\": \"card\", \"data\": {\"card_name\": \"Person Documents\", \"col\": 6}}, {\"id\": \"ssO7yMeqJ9\", \"type\": \"card\", \"data\": {\"card_name\": \"Person Reports\", \"col\": 6}}]",
+ "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":4}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":4}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":6}},{\"id\":\"visweek01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitations This Week\",\"col\":6}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
  "creation": "2026-07-07 19:43:06.673659",
  "custom_blocks": [],
  "docstatus": 0,
@@ -32,156 +32,6 @@
    "link_type": "Report",
    "onboard": 0,
    "report_ref_doctype": "Family",
-   "type": "Link"
-  },
-  {
-   "description": "Click on shortcuts below to see full lists.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Person Documents",
-   "link_count": 14,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "People",
-   "link_count": 0,
-   "link_to": "Person",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Families",
-   "link_count": 0,
-   "link_to": "Family",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Groups",
-   "link_count": 0,
-   "link_to": "Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Group Roles",
-   "link_count": 0,
-   "link_to": "Group Role",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Relation Types",
-   "link_count": 0,
-   "link_to": "Person Relation Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Member Status Types",
-   "link_count": 0,
-   "link_to": "Member Status",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Position Types",
-   "link_count": 0,
-   "link_to": "Position Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Visitation Log",
-   "link_count": 0,
-   "link_to": "Visitation Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Visit Types",
-   "link_count": 0,
-   "link_to": "Visit Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Life Event Types",
-   "link_count": 0,
-   "link_to": "Life Event Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Member Transfers",
-   "link_count": 0,
-   "link_to": "Member Transfer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Care Assignments",
-   "link_count": 0,
-   "link_to": "Care Assignment",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Care Requests",
-   "link_count": 0,
-   "link_to": "Care Request",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Care Request Types",
-   "link_count": 0,
-   "link_to": "Care Request Type",
-   "link_type": "DocType",
-   "onboard": 0,
    "type": "Link"
   },
   {
@@ -353,9 +203,169 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "description": "Click on shortcuts below to see full lists.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Person Documents",
+   "link_count": 15,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "People",
+   "link_count": 0,
+   "link_to": "Person",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Families",
+   "link_count": 0,
+   "link_to": "Family",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Groups",
+   "link_count": 0,
+   "link_to": "Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Group Roles",
+   "link_count": 0,
+   "link_to": "Group Role",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Group Statuses",
+   "link_count": 0,
+   "link_to": "Group Status",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Relation Types",
+   "link_count": 0,
+   "link_to": "Person Relation Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Member Status Types",
+   "link_count": 0,
+   "link_to": "Member Status",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Position Types",
+   "link_count": 0,
+   "link_to": "Position Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Visitation Log",
+   "link_count": 0,
+   "link_to": "Visitation Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Visit Types",
+   "link_count": 0,
+   "link_to": "Visit Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Life Event Types",
+   "link_count": 0,
+   "link_to": "Life Event Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Member Transfers",
+   "link_count": 0,
+   "link_to": "Member Transfer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Care Assignments",
+   "link_count": 0,
+   "link_to": "Care Assignment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Care Requests",
+   "link_count": 0,
+   "link_to": "Care Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Care Request Types",
+   "link_count": 0,
+   "link_to": "Care Request Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-08 16:51:55.181460",
+ "modified": "2026-07-11 19:30:19.431372",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
