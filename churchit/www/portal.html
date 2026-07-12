@@ -1,0 +1,27 @@
+{% extends "templates/web.html" %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="portal-home">
+    <h1>{{ _("Member Portal") }}</h1>
+    {% if frappe.session.user == "Guest" %}
+        <p class="lead">{{ _("Sign in to sign up for events, share prayer requests, and stay connected with your church family.") }}</p>
+        <a class="btn btn-primary" href="/login?redirect-to=/portal">{{ _("Log In") }}</a>
+    {% else %}
+        <p class="lead">{{ _("Welcome, {0}. Everything for your church family in one place.").format(frappe.get_fullname(frappe.session.user)) }}</p>
+    {% endif %}
+
+    {% if sidebar_items %}
+    <div class="portal-home-grid">
+        {% for item in sidebar_items %}
+        <a class="card" href="{{ item.route if item.route.startswith('/') else '/' + item.route }}">
+            <div class="card-body">
+                <span class="portal-card-title">{{ _(item.title) }}</span>
+                <span class="portal-card-arrow" aria-hidden="true">&rarr;</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

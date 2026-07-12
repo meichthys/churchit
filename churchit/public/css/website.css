@@ -58,7 +58,8 @@ h1, h2, h3, h4, .page-header h1 {
 .page-header h1,
 .about-content .hero-title,
 .contact-content h1,
-.give-page h1 {
+.give-page h1,
+.portal-home h1 {
   background: var(--ch-grad);
   -webkit-background-clip: text;
   background-clip: text;
@@ -135,6 +136,14 @@ h1, h2, h3, h4, .page-header h1 {
   box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
 }
 
+/* ---- Breadcrumbs ------------------------------------------------------------
+   Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
+   Account), but hide them on Web Page documents where the lone "Home" crumb
+   is clutter. */
+.page-content-wrapper:has(.web-page-content) .page-breadcrumbs {
+  display: none;
+}
+
 /* ---- Full-page glass panels (frappe about/contact + churchit give) -------- */
 .about-content,
 .contact-content,
@@ -163,6 +172,124 @@ h1, h2, h3, h4, .page-header h1 {
 }
 .about-content .hero-subtitle {
   color: var(--ch-muted);
+}
+
+/* ---- Account menu ---------------------------------------------------------
+   v16 renders the navbar avatar dropdown (My Account / Log out) with an inline
+   display:none and reveals it via client JS after load. Key it off the
+   server-rendered session attribute instead so it can never fail to appear. */
+body[frappe-session-status="logged-in"] #website-post-login {
+  /* flex, not list-item: frappe centers the avatar via .logged-in's flex */
+  display: flex !important;
+}
+body[frappe-session-status="logged-in"] .btn-login-area {
+  display: none !important;
+}
+/* the avatar inside the dropdown is also JS-injected; show a placeholder
+   until (or in case) the script doesn't fill it */
+#website-post-login .user-image-wrapper:empty::before {
+  content: "👤";
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ch-grad);
+  font-size: 0.95rem;
+}
+
+/* ---- Portal landing (/portal) ---------------------------------------------
+   The menu-item cards reuse .card, so the glass skin and gradient accent bar
+   apply automatically. */
+.portal-home {
+  padding: 1rem 0 2rem;
+}
+.portal-home .lead {
+  color: var(--ch-muted);
+  font-size: 1.1rem;
+  max-width: 52ch;
+}
+.portal-home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.portal-home-grid .card {
+  color: var(--ch-ink);
+  text-decoration: none;
+}
+.portal-home-grid .card:hover {
+  text-decoration: none;
+}
+.portal-home-grid .card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 650;
+}
+.portal-card-arrow {
+  color: var(--ch-brand-ink);
+  transition: transform 0.15s ease;
+}
+.portal-home-grid .card:hover .portal-card-arrow {
+  transform: translateX(3px);
+}
+
+/* ---- Portal (/me and portal list views) ----------------------------------- */
+.portal-container {
+  background: var(--ch-glass);
+  border: 1px solid var(--ch-glass-brd);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: var(--ch-glass-shdw);
+  border-radius: var(--ch-radius);
+}
+.portal-container .portal-section.head .title {
+  background: var(--ch-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.portal-container .avatar-frame {
+  background: var(--ch-grad);
+  color: #fff;
+}
+.portal-items {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--ch-line);
+  border-radius: 12px;
+}
+.portal-items .portal-section {
+  border-bottom: 1px solid var(--ch-line);
+  transition: background 0.15s ease;
+}
+.portal-items .portal-section:hover {
+  background: rgba(99, 102, 241, 0.07);
+}
+.portal-section .item-link-text {
+  color: var(--ch-brand-ink);
+  font-weight: 600;
+}
+
+/* portal list pages (Prayer Requests, Alms Requests, Function Sign-Ups, ...) */
+.page_content .website-list {
+  background: var(--ch-glass);
+  border: 1px solid var(--ch-glass-brd);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: var(--ch-glass-shdw);
+  border-radius: var(--ch-radius);
+  padding: 1rem 1.5rem;
+}
+.portal-row {
+  border-bottom: 1px solid var(--ch-line);
+  transition: background 0.15s ease;
+}
+.portal-row:hover {
+  background: rgba(99, 102, 241, 0.07);
 }
 
 /* ---- Sermon series cards (moved from the sermons template) --------------- */

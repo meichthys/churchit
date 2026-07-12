@@ -659,8 +659,6 @@ def _setup_website_settings():
 	doc.navbar_search = 0
 	doc.home_page = "home"
 	doc.website_theme = "Standard"
-	# Hide breadcrumbs site-wide
-	doc.head_html = "<style>.page-breadcrumbs { display: none !important; }</style>"
 	doc.top_bar_items = []
 	for item in [
 		{"label": "Home", "url": "/home", "right": 1},
@@ -685,64 +683,32 @@ def _setup_website_settings():
 
 
 def _setup_portal_settings():
-	"""Configure Portal Settings for Church.
+	"""Seed the member portal menu (Portal Settings) with Church defaults.
 
-	Sets the default portal home to /me and appends Church portal menu items.
-	Items are only appended if they are not already present, so this is safe
-	to run on sites that may have other portal menu items configured.
+	Seeds frappe's standard menu table — the one get_portal_roles() reads, so
+	the "Church User" role on the items is what makes members portal users and
+	shows the Portal link on /me. Runs once at install; from then on the menu
+	belongs to the site admin (Desk > Portal Settings). reference_doctype must
+	resolve to a real DocType even for route-only items, or Portal Settings
+	prunes the row on the next migrate.
 	"""
-	desired_items = [
-		{
-			"title": "Function Sign-Ups",
-			"route": "function-sign-up",
-			"reference_doctype": "Function Sign-Up",
-			"enabled": 1,
-		},
-		{
-			"title": "Bible Memory",
-			"route": "memorize",
-			"enabled": 1,
-		},
-		{
-			"title": "Prayer Requests",
-			"route": "prayer-request",
-			"reference_doctype": "Prayer Request",
-			"enabled": 1,
-		},
-		{
-			"title": "Community Prayer Requests",
-			"route": "community-prayer-requests",
-			"reference_doctype": "Prayer Request",
-			"enabled": 1,
-		},
-		{
-			"title": "Alms Requests",
-			"route": "alms-request",
-			"reference_doctype": "Alms Request",
-			"enabled": 1,
-		},
-		{
-			"title": "Groups",
-			"route": "groups",
-			"enabled": 1,
-		},
-		{
-			"title": "Newsletter Subscription",
-			"route": "newsletter-subscription",
-			"enabled": 1,
-		},
-		{
-			"title": "Help Articles",
-			"route": "Help Article",
-			"enabled": 1,
-		},
+	items = [
+		("Function Sign-Ups", "function-sign-up", "Function Sign-Up", "Church User"),
+		("Bible Memory", "memorize", "Bible Memory Item", "Church User"),
+		("Prayer Requests", "prayer-request", "Prayer Request", "Church User"),
+		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
+		("Alms Requests", "alms-request", "Alms Request", "Church User"),
+		("Groups", "groups", "Group", "Church User"),
+		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
+		# no role: visible to any logged-in user
+		("Help Articles", "Help Article", "Help Article", None),
 	]
 	doc = frappe.get_doc("Portal Settings")
 	doc.default_portal_home = "/me"
-	existing_titles = {row.title for row in doc.custom_menu}
-	for item in desired_items:
-		if item["title"] not in existing_titles:
-			doc.append("custom_menu", item)
+	titles = {title for title, _route, _ref, _role in items}
+	doc.custom_menu = [row for row in doc.custom_menu if row.title not in titles]
+	for title, route, ref, role in items:
+		doc.add_item({"title": title, "route": route, "reference_doctype": ref, "role": role})
 	doc.save(ignore_permissions=True)
 
 
