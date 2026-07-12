@@ -67,6 +67,7 @@ def execute():
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
+	_reorder_default_desktop_icons()
 
 	# Newsletter recipients — Email Group seeded from Person emails
 	_create_member_email_group()
@@ -850,3 +851,22 @@ def _create_default_life_event_types():
 		"Conversion",
 	):
 		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
+
+
+def _reorder_default_desktop_icons():
+	"""Push frappe's default desktop icons (Framework, Tools, ...) behind the
+	church icons on the desk grid.
+
+	Icons sort by idx; churchit ships its icons with idx 1-12 (Welcome first),
+	but frappe's icons default to idx 0 and would land in front. frappe installs
+	(and creates its icons) before churchit, so they all exist by the time this
+	patch runs.
+	"""
+	icons = frappe.get_all(
+		"Desktop Icon",
+		filters={"app": ("!=", "churchit"), "parent_icon": ("is", "not set"), "idx": ("<", 90)},
+		pluck="name",
+		order_by="label asc",
+	)
+	for pos, name in enumerate(icons, start=90):
+		frappe.db.set_value("Desktop Icon", name, "idx", pos, update_modified=False)
