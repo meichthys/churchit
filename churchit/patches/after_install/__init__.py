@@ -67,10 +67,18 @@ def execute():
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
-	_reorder_default_desktop_icons()
 
 	# Newsletter recipients — Email Group seeded from Person emails
 	_create_member_email_group()
+
+
+def after_sync():
+	"""Runs after frappe's ``after_app_install`` hook, which auto-generates the
+	"Tools" desktop icon from the Tools workspace. That icon does not exist yet
+	when ``execute()`` (``after_install``) runs, so reordering has to happen
+	here instead — otherwise Tools keeps its default idx of 0 and lands first.
+	"""
+	_reorder_default_desktop_icons()
 
 
 # ---------------------------------------------------------------------------

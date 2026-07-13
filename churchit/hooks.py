@@ -129,6 +129,7 @@ website_redirects = [
 # ------------
 
 after_install = "churchit.patches.after_install.execute"
+after_sync = "churchit.patches.after_install.after_sync"
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
