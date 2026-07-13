@@ -10,7 +10,7 @@
    "label": "New Members"
   }
  ],
- "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":4}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":4}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":6}},{\"id\":\"visweek01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitations This Week\",\"col\":6}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
+ "content": "[{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Just as each of us has one body with many members, and not all members have the same function,&nbsp;so in Christ we who are many are one body\\\"</i>\",\"col\":12}},{\"id\":\"IJrKjV4okF\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"People\",\"col\":4}},{\"id\":\"KKEzrzUrHD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"kGIFAvXSgO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Families\",\"col\":4}},{\"id\":\"l03F-OPFNn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Groups\",\"col\":4}},{\"id\":\"visweek01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitations This Week\",\"col\":4}},{\"id\":\"visfollowup1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visitation Followups Needed\",\"col\":4}},{\"id\":\"saevJoJvF7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"People\",\"col\":6}},{\"id\":\"Pump9_CfUX\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Members\",\"col\":6}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PjWabbxTec\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Documents\",\"col\":6}},{\"id\":\"ssO7yMeqJ9\",\"type\":\"card\",\"data\":{\"card_name\":\"Person Reports\",\"col\":6}}]",
  "creation": "2026-07-07 19:43:06.673659",
  "custom_blocks": [],
  "docstatus": 0,
@@ -39,7 +39,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Reports",
-   "link_count": 15,
+   "link_count": 17,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -205,6 +205,16 @@
    "type": "Link"
   },
   {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Visitation Followups Needed",
+   "link_count": 0,
+   "link_to": "Visitation Followups Needed",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
    "description": "Click on shortcuts below to see full lists.",
    "hidden": 0,
    "is_query_report": 0,
@@ -365,7 +375,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-11 19:30:19.431372",
+ "modified": "2026-07-12 19:22:30.538619",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
@@ -389,6 +399,10 @@
   {
    "label": "Visitations This Week",
    "number_card_name": "Visitations This Week"
+  },
+  {
+   "label": "Visitation Followups Needed",
+   "number_card_name": "Visitation Followups Needed"
   }
  ],
  "owner": "Administrator",

@@ -1,0 +1,23 @@
+{
+ "creation": "2026-07-13 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Visitation Log",
+ "dynamic_filters_json": "[]",
+ "filters_json": "[[\"Visitation Log\",\"follow_up_needed\",\"=\",1,false]]",
+ "function": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Visitation Followups Needed",
+ "modified": "2026-07-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Visitation Followups Needed",
+ "owner": "Administrator",
+ "parent_document_type": "",
+ "report_function": "Sum",
+ "show_percentage_stats": 0,
+ "stats_time_interval": "Weekly",
+ "type": "Document Type"
+}
