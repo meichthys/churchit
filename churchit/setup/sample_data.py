@@ -560,7 +560,7 @@ def _create_church_manager_user(people):
 			"last_name": "Johnson",
 			"send_welcome_email": 0,
 			"enabled": 1,
-			"role_profile_name": "Church Manager",
+			"role_profiles": [{"role_profile": "Church Manager"}],
 		}
 	)
 	user.insert(ignore_permissions=True)

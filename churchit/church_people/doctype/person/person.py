@@ -174,7 +174,7 @@ class Person(Document):
 			new_user.last_name = self.last_name
 			new_user.send_welcome_email = 1
 			new_user.enabled = 1
-			new_user.role_profile_name = "Church User"
+			new_user.append("role_profiles", {"role_profile": "Church User"})
 			new_user.save(ignore_permissions=True)
 
 			# Update Person to mark as portal user
