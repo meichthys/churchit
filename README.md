@@ -40,7 +40,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Portal invitations: invite people to a self-service portal
 
 ### Portal & Website
-- Portal invitations — one-click "Invite to Portal" auto-creates a user account and sends a welcome email
+- Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
 - Portal pages for personal details, prayer requests, alms requests, and function sign-ups
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
@@ -134,7 +134,7 @@ Making a local instance of frappe accessible from outside of your network is cur
   3. Click **Install**, then choose the site you want to install it on.
   4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Church` app under **Help > About**.
 
-  Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**) — no shell access required.
+  Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**).
 
 **To install the Church app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
 Activate the [bench](https://github.com/frappe/bench) environment with `fm shell` and then run the following:
@@ -213,21 +213,21 @@ Contributions are very welcome! If you plan any large contributions, please let 
 
 There are two mechanisms for shipping data with the app. Choosing the right one depends on whether the data belongs to the **app** or to the **user**.
 
-### Fixtures — app-owned data (re-applied on every `bench migrate`)
+### Fixtures: app-owned data (re-applied on every `bench migrate`)
 
 We use fixtures to load data/configurations that the user should not change. If a user modifies or deletes a fixture record, it will be restored on the next migration.
 
 **Current fixtures in this app:**
-- `Role` — church-specific user roles
-- `Role Profile` — church-specific user role profiles
-- `Property Setter` — customizations to built-in Frappe doctypes
+- `Role`: church-specific user roles
+- `Role Profile`: church-specific user role profiles
+- `Property Setter`: customizations to built-in Frappe doctypes
 
 To add a new fixture, add an entry to the `fixtures` list in `hooks.py` and run:
 ```bash
-bench execute churchit.utils.export_fixtures
+bench export-fixtures --app churchit
 ```
 
-### After-install data — user-owned starter data (applied once, on new installs only)
+### After-install data: user-owned starter data (applied once, on new installs only)
 
 We use `patches/after_install/` for shipping default documents. Users can modify or delete them freely and they will not be recreated on migration or upgrade. Examples: default funds, event types, Bible translations, web pages, etc.
 
@@ -235,34 +235,41 @@ This data is loaded by the `after_install` hook (`churchit.patches.after_install
 
 #### Process for adding new starter data
 
-1. Set up the records in the Frappe desk exactly as you want them shipped.
-2. Add the doctype as a fixture in `hooks.py` with a `"patch": "after_install"` key (leave it there permanently — it tells the `update_patches` utility script where to move the files):
-   ```python
-   {"dt": "My Doctype", "filters": [...], "patch": "after_install"}
-   ```
-   Use the optional `"order"` key if this doctype must be inserted before others (e.g. a parent document before its children):
-   ```python
-   {"dt": "My Doctype", "filters": [...], "patch": "after_install", "order": 4}
-   ```
-3. Run the `export_fixtures` utility script — it exports all fixtures and automatically moves patch fixture files into `patches/after_install/data/`:
-   ```bash
-   bench execute churchit.utils.export_fixtures
-   ```
-   - If the file is **new or changed**, it is moved to `patches/after_install/data/`.
-   - If the file is **identical** to the existing one, it is removed (no change needed).
+Starter data is hand-written directly in `patches/after_install/__init__.py` — there's no Desk-export step or generated data files.
 
-> [!WARNING]
-> Never run `bench export-fixtures` directly. Always use `bench execute churchit.utils.export_fixtures` instead, which handles routing patch fixture files automatically.
+1. Write a `_create_*()` (or `_setup_*()`) function that inserts the record(s), guarded so it's safe to run more than once. Use the `_insert_if_missing()` helper for simple lookups:
+   ```python
+   def _create_my_lookup():
+       for value in ("Foo", "Bar"):
+           _insert_if_missing("My Doctype", {"some_field": value}, some_field=value)
+   ```
+   For anything more involved, check `frappe.db.exists(...)` yourself before inserting; see the other `_create_*`/`_setup_*` functions in the file for examples.
+2. Call the function from `execute()`, ordered after anything it depends on (e.g. a parent document before its children).
+
+Demo/sample content (fake people, families, funds, etc. used to try out the app) is a separate concern — it lives in `churchit/setup/sample_data.py` and runs from the `setup_wizard_complete` hook, not `after_install`.
 
 #### Pushing new starter data to existing sites
 
-The `after_install` hook does not run on existing installations. If we need to push new records to **all** sites (new and existing), we can use a versioned patch instead:
+The `after_install` hook does not run on existing installations. If we need to push new records to **all** sites (new and existing), write a versioned patch instead — same mechanism as [Removing data from existing sites](#removing-data-from-existing-sites) below, just inserting instead of deleting:
 
-1. Add the doctype as a fixture in `hooks.py` with `"patch": "<patch_name>"` (e.g. `"patch": "v2_0"`).
-2. Run the `export_fixtures` utility script — it exports all fixtures, moves the files, scaffolds `__init__.py` and `insert_data.py` from the template, and registers the patch in `patches.txt` automatically:
-   ```bash
-   bench execute churchit.utils.export_fixtures
-   ```
+```
+churchit/patches/v2_0/add_livestream_attendance_type.py
+```
+
+```python
+import frappe
+
+
+def execute():
+    if not frappe.db.exists("Function Attendance Type", "Livestream"):
+        frappe.get_doc({"doctype": "Function Attendance Type", "type": "Livestream"}).insert()
+```
+
+Then append to `patches.txt` (always append — never insert above existing entries):
+
+```
+churchit.patches.v2_0.add_livestream_attendance_type
+```
 
 #### Removing data from existing sites
 
@@ -271,7 +278,7 @@ Removal always requires a hand-written patch — there is no automated utility s
 Create a descriptively named patch file alongside the other patches in the relevant version directory:
 
 ```
-church/patches/v2_0/remove_old_attendance_type.py
+churchit/patches/v2_0/remove_old_attendance_type.py
 ```
 
 ```python
