@@ -81,7 +81,7 @@ a:hover { text-decoration: underline; }
   font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   color: var(--brand-ink);
   padding: .4em .9em; border-radius: 999px;
-  background: var(--glass); border: 1px solid var(--glass-brd);
+  background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25);
   backdrop-filter: blur(8px);
 }
 .lead { font-size: clamp(1.05rem, 1.7vw, 1.28rem); color: var(--body); max-width: 44ch; }
@@ -97,10 +97,24 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 .btn:hover { text-decoration: none; transform: translateY(-2px); }
-.btn-primary { color: #fff; background: var(--grad); box-shadow: 0 10px 30px -8px rgba(99,102,241,.6); }
+/* background-origin: border-box keeps the gradient aligned to the outer edge so
+   the 1px transparent border doesn't leave a mismatched colour fringe on the sides. */
+.btn-primary { color: #fff; background: var(--grad); background-origin: border-box; box-shadow: 0 10px 30px -8px rgba(99,102,241,.6); }
 .btn-primary:hover { box-shadow: 0 16px 40px -10px rgba(139,92,246,.7); }
 .btn-ghost { color: var(--ink); background: var(--glass-2); border-color: var(--glass-brd); backdrop-filter: blur(10px); }
 .btn-lg { padding: 1em 1.8em; font-size: 1.05rem; }
+
+/* ---- Warning callout ----------------------------------------------------- */
+.callout-warn {
+  display: flex; gap: .65em; align-items: flex-start; text-align: left;
+  margin-top: 1rem; padding: .8em 1.05em;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: var(--radius);
+  color: #92400e; font-size: .88rem; line-height: 1.5;
+}
+.callout-warn .callout-ico { flex: none; font-size: 1.05rem; line-height: 1.45; }
+.callout-warn strong { color: #b45309; }
 
 /* ---- Glass card ---------------------------------------------------------- */
 .glass {
@@ -133,6 +147,10 @@ a:hover { text-decoration: underline; }
 }
 .nav-links a:hover { color: var(--ink); background: rgba(99,102,241,.08); text-decoration: none; }
 .nav-links a.active { color: var(--brand-ink); }
+/* The primary CTA in the nav is a button, not a link — keep its button colors
+   (the generic `.nav-links a` rule above is more specific than `.btn-primary`). */
+.nav-links a.btn-primary,
+.nav-links a.btn-primary:hover { color: #fff; background: var(--grad); background-origin: border-box; }
 .nav-toggle { display: none; margin-left: auto; background: none; border: 0; cursor: pointer; padding: .4em; }
 .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--ink); margin: 5px 0; border-radius: 2px; }
 
