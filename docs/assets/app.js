@@ -2,6 +2,31 @@
 (function () {
   "use strict";
 
+  // Dark-mode toggle. The initial theme is set by an inline <head> script
+  // (before paint); here we just wire the button to flip and persist it.
+  var themeBtn = document.querySelector(".theme-toggle");
+  if (themeBtn) {
+    var root = document.documentElement;
+    var syncPressed = function () {
+      themeBtn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "dark" ? "true" : "false");
+    };
+    syncPressed();
+    themeBtn.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("theme", next); } catch (e) {}
+      syncPressed();
+    });
+    // Follow the OS theme as long as the visitor hasn't picked one explicitly.
+    try {
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+        if (localStorage.getItem("theme")) return;
+        root.setAttribute("data-theme", e.matches ? "dark" : "light");
+        syncPressed();
+      });
+    } catch (e) {}
+  }
+
   // Mobile nav toggle
   var toggle = document.querySelector(".nav-toggle");
   var links = document.querySelector(".nav-links");

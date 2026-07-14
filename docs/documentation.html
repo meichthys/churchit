@@ -3,6 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Set the theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "dark" && t !== "light") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
   <title>Documentation — churchit</title>
   <meta name="description" content="The churchit manual: how every module works, straight from the app's built-in guides." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,6 +33,10 @@
         <a href="pricing.html">Pricing</a>
         <a href="documentation.html" class="active">Documentation</a>
         <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
         <a class="btn btn-primary" href="pricing.html">Get started</a>
       </nav>
     </div>

@@ -23,117 +23,124 @@ DESK_URL = "https://church.meichthys.com"
 
 # Display order + presentation metadata (slug is the on-page anchor id).
 MODULES = [
-    ("Church Foundations",    "foundations",    "🏛️"),
-    ("Church People",         "people",         "👥"),
-    ("Church Finances",       "finances",       "💰"),
-    ("Church Ministries",     "ministries",     "🤝"),
-    ("Church Missions",       "missions",       "🌍"),
-    ("Church Prayers",        "prayers",        "🙏"),
-    ("Church Study",          "study",          "📖"),
-    ("Church Communications", "communications", "✉️"),
-    ("Church Operations",     "operations",     "🔧"),
-    ("Church Website",        "website",        "🌐"),
+	("Church Foundations", "foundations", "🏛️"),
+	("Church People", "people", "👥"),
+	("Church Finances", "finances", "💰"),
+	("Church Ministries", "ministries", "🤝"),
+	("Church Missions", "missions", "🌍"),
+	("Church Prayers", "prayers", "🙏"),
+	("Church Study", "study", "📖"),
+	("Church Communications", "communications", "✉️"),
+	("Church Operations", "operations", "🔧"),
+	("Church Website", "website", "🌐"),
 ]
 
 
 def strip_tags(html):
-    return re.sub(r"<[^>]+>", "", html or "").replace("&nbsp;", " ").strip()
+	return re.sub(r"<[^>]+>", "", html or "").replace("&nbsp;", " ").strip()
 
 
 def clean_inline(html):
-    """Keep meaningful inline markup (links, breaks, emphasis); drop the
-    styling <span> wrappers and inline style attributes the desk editor adds."""
-    html = re.sub(r"</?span[^>]*>", "", html)          # unwrap styling spans
-    html = re.sub(r'\sstyle="[^"]*"', "", html)         # drop inline styles
-    html = re.sub(r'\sclass="[^"]*"', "", html)         # drop editor classes
-    # Normalise Frappe desk links to a single self-hosted address. The editor
-    # bakes in absolute dev URLs (http://development.localhost/app/...), bare
-    # relative paths (/app/...), and occasionally mangles "app/x" into
-    # "http://app/x". Collapse every variant to the /app/ path, then point it at
-    # the local churchit desk. These links only resolve when self-hosting.
-    html = re.sub(r'href="https?://app/', 'href="/app/', html)          # mangled host
-    html = re.sub(r'href="https?://[^"/]+/app/', 'href="/app/', html)   # absolute dev URL
-    html = re.sub(r'href="/app/', f'href="{DESK_URL}/app/', html)       # -> self-hosted desk
-    return html.strip()
+	"""Keep meaningful inline markup (links, breaks, emphasis); drop the
+	styling <span> wrappers and inline style attributes the desk editor adds."""
+	html = re.sub(r"</?span[^>]*>", "", html)  # unwrap styling spans
+	html = re.sub(r'\sstyle="[^"]*"', "", html)  # drop inline styles
+	html = re.sub(r'\sclass="[^"]*"', "", html)  # drop editor classes
+	# Normalise Frappe desk links to a single self-hosted address. The editor
+	# bakes in absolute dev URLs (http://development.localhost/app/...), bare
+	# relative paths (/app/...), and occasionally mangles "app/x" into
+	# "http://app/x". Collapse every variant to the /app/ path, then point it at
+	# the local churchit desk. These links only resolve when self-hosting.
+	html = re.sub(r'href="https?://app/', 'href="/app/', html)  # mangled host
+	html = re.sub(r'href="https?://[^"/]+/app/', 'href="/app/', html)  # absolute dev URL
+	html = re.sub(r'href="/app/', f'href="{DESK_URL}/app/', html)  # -> self-hosted desk
+	return html.strip()
 
 
 def load_manual(module):
-    matches = glob.glob(
-        os.path.join(APP_ROOT, "churchit", "*", "workspace", "manual:_*", "manual:_*.json")
-    )
-    for f in matches:
-        data = json.load(open(f))
-        if data.get("module") == module:
-            return json.loads(data.get("content") or "[]")
-    return []
+	matches = glob.glob(os.path.join(APP_ROOT, "churchit", "*", "workspace", "manual:_*", "manual:_*.json"))
+	for f in matches:
+		data = json.load(open(f))
+		if data.get("module") == module:
+			return json.loads(data.get("content") or "[]")
+	return []
 
 
 def render_blocks(blocks):
-    """Convert workspace editor blocks -> clean documentation HTML."""
-    out = []
-    for b in blocks:
-        btype = b.get("type")
-        data = b.get("data", {})
-        raw = data.get("text", "")
+	"""Convert workspace editor blocks -> clean documentation HTML."""
+	out = []
+	for b in blocks:
+		btype = b.get("type")
+		data = b.get("data", {})
+		raw = data.get("text", "")
 
-        if btype in ("header",):
-            lvl = min(int(data.get("level", 2)) + 1, 4)
-            out.append(f"<h{lvl}>{strip_tags(raw)}</h{lvl}>")
-            continue
+		if btype in ("header",):
+			lvl = min(int(data.get("level", 2)) + 1, 4)
+			out.append(f"<h{lvl}>{strip_tags(raw)}</h{lvl}>")
+			continue
 
-        if btype == "list":
-            tag = "ol" if data.get("style") == "ordered" else "ul"
-            items = "".join(f"<li>{clean_inline(i)}</li>" for i in data.get("items", []))
-            out.append(f"<{tag}>{items}</{tag}>")
-            continue
+		if btype == "list":
+			tag = "ol" if data.get("style") == "ordered" else "ul"
+			items = "".join(f"<li>{clean_inline(i)}</li>" for i in data.get("items", []))
+			out.append(f"<{tag}>{items}</{tag}>")
+			continue
 
-        if btype != "paragraph":
-            continue
+		if btype != "paragraph":
+			continue
 
-        # Paragraphs carry the manual's headings as styled spans (h1/h2 classes).
-        if 'class="h1"' in raw:
-            continue  # the manual title — we render our own section header
-        if 'class="h2"' in raw:
-            out.append(f"<h3>{strip_tags(raw)}</h3>")
-            continue
+		# Paragraphs carry the manual's headings as styled spans (h1/h2 classes).
+		if 'class="h1"' in raw:
+			continue  # the manual title — we render our own section header
+		if 'class="h2"' in raw:
+			out.append(f"<h3>{strip_tags(raw)}</h3>")
+			continue
 
-        text = clean_inline(raw)
-        if text:
-            out.append(f"<p>{text}</p>")
-    return "\n          ".join(out)
+		text = clean_inline(raw)
+		if text:
+			out.append(f"<p>{text}</p>")
+	return "\n          ".join(out)
 
 
 def build():
-    sidebar, sections = [], []
-    for module, slug, emoji in MODULES:
-        blocks = load_manual(module)
-        if not blocks:
-            continue
-        label = module.replace("Church ", "")
-        sidebar.append(
-            f'<a href="#{slug}"><span aria-hidden="true">{emoji}</span> {label}</a>'
-        )
-        sections.append(
-            f'''<article class="glass doc-section reveal" id="{slug}">
+	sidebar, sections = [], []
+	for module, slug, emoji in MODULES:
+		blocks = load_manual(module)
+		if not blocks:
+			continue
+		label = module.replace("Church ", "")
+		sidebar.append(f'<a href="#{slug}"><span aria-hidden="true">{emoji}</span> {label}</a>')
+		sections.append(
+			f'''<article class="glass doc-section reveal" id="{slug}">
           <h2><span aria-hidden="true">{emoji}</span> {label} <span class="doc-badge">Manual</span></h2>
           {render_blocks(blocks)}
         </article>'''
-        )
+		)
 
-    html = TEMPLATE.format(
-        sidebar="\n        ".join(sidebar),
-        sections="\n\n        ".join(sections),
-    )
-    with open(OUT, "w") as fh:
-        fh.write(html)
-    print(f"Wrote {OUT}  ({len(sections)} modules)")
+	html = TEMPLATE.replace("{sidebar}", "\n        ".join(sidebar)).replace(
+		"{sections}", "\n\n        ".join(sections)
+	)
+	with open(OUT, "w") as fh:
+		fh.write(html)
+	print(f"Wrote {OUT}  ({len(sections)} modules)")
 
 
-TEMPLATE = '''<!DOCTYPE html>
+TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Set the theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "dark" && t !== "light") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
   <title>Documentation — churchit</title>
   <meta name="description" content="The churchit manual: how every module works, straight from the app's built-in guides." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -152,6 +159,10 @@ TEMPLATE = '''<!DOCTYPE html>
         <a href="pricing.html">Pricing</a>
         <a href="documentation.html" class="active">Documentation</a>
         <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
         <a class="btn btn-primary" href="pricing.html">Get started</a>
       </nav>
     </div>
@@ -198,8 +209,8 @@ TEMPLATE = '''<!DOCTYPE html>
   <script src="assets/app.js"></script>
 </body>
 </html>
-'''
+"""
 
 
 if __name__ == "__main__":
-    build()
+	build()
