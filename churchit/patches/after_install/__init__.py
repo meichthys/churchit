@@ -127,7 +127,7 @@ def _create_default_church():
 			"founding_date": "1990-03-15",
 			"publish": 1,
 			"mission_statement": "To glorify God by making disciples, and serving our neighbors with the love of Christ.",
-			"about": "<p>Welcome to My Church — a community of believers committed to worship, fellowship, and service. We are a congregation rooted in Scripture and passionate about sharing the grace of God with all people.</p><p>Founded in 1990, we have grown from a small gathering into a vibrant church family. Whether you are a lifelong believer or simply curious about faith, you are welcome here.</p>",
+			"about": "<p>Welcome to My Church. We are a community of believers committed to worship, fellowship, and service. We are a congregation rooted in Scripture and passionate about sharing the grace of God with all people.</p><p>Founded in 1990, we have grown from a small gathering into a vibrant church family. Whether you are a lifelong believer or simply curious about faith, you are welcome here.</p>",
 		}
 	).insert(ignore_permissions=True)
 
