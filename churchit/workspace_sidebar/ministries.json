@@ -12,9 +12,21 @@
    "icon": "home",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Home",
+   "label": "Ministries",
    "link_to": "Ministries",
    "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "layout-grid",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Desk",
+   "link_to": "desktop",
+   "link_type": "Page",
    "show_arrow": 0,
    "type": "Link"
   },
@@ -287,7 +299,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-11 18:56:11.538104",
+ "modified": "2026-08-01 01:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "module_onboarding": "Ministries",
