@@ -1,9 +1,14 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\": \"K7vLW8jz7z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Prayers\", \"col\": 12}}, {\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\", \"col\": 12}}, {\"id\": \"7xxtlFoDVX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Active Prayer Requests\", \"col\": 4}}, {\"id\": \"YOTS4ifkhO\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Prayer Request Comments\", \"col\": 4}}, {\"id\": \"OAUM9QI_Ol\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Answered Prayers\", \"col\": 4}}, {\"id\": \"CCnM0m0PPk\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"URc9n8oy-u\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Prayer Requests Ending Within 1 Week\", \"col\": 6}}, {\"id\": \"YR26DXGWSP\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Urgent Prayer Requests\", \"col\": 6}}, {\"id\": \"mCNmTxyAmY\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"lvZAf1_FTo\", \"type\": \"card\", \"data\": {\"card_name\": \"Prayer Request Reports\", \"col\": 4}}, {\"id\": \"Nx2vS9lnXp\", \"type\": \"card\", \"data\": {\"card_name\": \"Prayer Request Documents\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"K7vLW8jz7z\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Prayers\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\",\"col\":12}},{\"id\":\"7xxtlFoDVX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"YOTS4ifkhO\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayer Request Comments\",\"col\":4}},{\"id\":\"OAUM9QI_Ol\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Answered Prayers\",\"col\":4}},{\"id\":\"CCnM0m0PPk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"URc9n8oy-u\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Prayer Requests Ending Within 1 Week\",\"col\":6}},{\"id\":\"YR26DXGWSP\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":6}},{\"id\":\"mCNmTxyAmY\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"lvZAf1_FTo\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Reports\",\"col\":4}},{\"id\":\"Nx2vS9lnXp\",\"type\":\"card\",\"data\":{\"card_name\":\"Prayer Request Documents\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.695947",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -103,7 +108,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-08 16:51:55.149250",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",

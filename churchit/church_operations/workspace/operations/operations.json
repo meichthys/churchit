@@ -1,9 +1,14 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\": \"9adGE55P2Z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Operations\", \"col\": 12}}, {\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\", \"col\": 12}}, {\"id\": \"mdXg9JNSYu\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Tasks\", \"col\": 4}}, {\"id\": \"4XPzZfLTim\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Assets\", \"col\": 4}}, {\"id\": \"Xclw1M0291\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Locations\", \"col\": 4}}, {\"id\": \"ronRJLfg_I\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"G8_0zqHj_v\", \"type\": \"card\", \"data\": {\"card_name\": \"Operations Documents\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"9adGE55P2Z\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Operations\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.744443",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -84,7 +89,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-07 19:47:14.165584",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",

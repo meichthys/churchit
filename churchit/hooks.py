@@ -37,6 +37,10 @@ fixtures = [
 		],
 	},
 	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
+	# The module nav shown at the top of every module workspace. App-owned: the
+	# workspace JSONs reference it by name and are re-synced on every migrate,
+	# so the block has to be re-applied alongside them.
+	{"dt": "Custom HTML Block", "filters": [["name", "=", "WorkspaceHeader"]]},
 ]
 # Apps
 # ------------------

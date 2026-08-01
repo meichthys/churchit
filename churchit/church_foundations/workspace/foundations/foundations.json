@@ -1,9 +1,14 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\": \"8XjH3f8cwR\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Foundations\", \"col\": 12}}, {\"id\": \"OWPn6Kpcf3\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Everyone who hears these words of Mine and acts on them is like a wise man who built his house on the rock.\\\"</i>\", \"col\": 12}}, {\"id\": \"fokJ0IiV6s\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Churches\", \"col\": 4}}, {\"id\": \"gNUoQjbZnR\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Beliefs\", \"col\": 4}}, {\"id\": \"ylyqGkXuED\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"Wy5acT4D_A\", \"type\": \"card\", \"data\": {\"card_name\": \"Documents\", \"col\": 4}}, {\"id\": \"81_jIoIqoq\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"8XjH3f8cwR\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Foundations\",\"col\":12}},{\"id\":\"OWPn6Kpcf3\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Everyone who hears these words of Mine and acts on them is like a wise man who built his house on the rock.\\\"</i>\",\"col\":12}},{\"id\":\"fokJ0IiV6s\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Churches\",\"col\":4}},{\"id\":\"gNUoQjbZnR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Beliefs\",\"col\":4}},{\"id\":\"ylyqGkXuED\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Wy5acT4D_A\",\"type\":\"card\",\"data\":{\"card_name\":\"Documents\",\"col\":4}},{\"id\":\"81_jIoIqoq\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.799754",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -63,7 +68,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-07 19:47:14.080592",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Foundations",

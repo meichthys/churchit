@@ -6,9 +6,14 @@
    "label": "Attendance (12 weeks)"
   }
  ],
- "content": "[{\"id\": \"Wr2BcHNTcg\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Ministries\", \"col\": 12}}, {\"id\": \"Kwawi9Etd-\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\", \"col\": 12}}, {\"id\": \"pzAjt6FN7_\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ministries\", \"col\": 3}}, {\"id\": \"e90GZyYsvo\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Functions\", \"col\": 3}}, {\"id\": \"uf01\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Upcoming Functions\", \"col\": 3}}, {\"id\": \"iYgQntDecm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Songs\", \"col\": 3}}, {\"id\": \"ch01\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Attendance (12 weeks)\", \"col\": 12}}, {\"id\": \"XfFcgMyu0y\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"mR7kYz3pQw\", \"type\": \"card\", \"data\": {\"card_name\": \"Ministry Documents\", \"col\": 4}}, {\"id\": \"TDh-inBJuc\", \"type\": \"card\", \"data\": {\"card_name\": \"Function Documents\", \"col\": 4}}, {\"id\": \"Sr-qVFGTSJ\", \"type\": \"card\", \"data\": {\"card_name\": \"Song Documents\", \"col\": 4}}, {\"id\": \"counseling_card\", \"type\": \"card\", \"data\": {\"card_name\": \"Counseling\", \"col\": 4}}, {\"id\": \"8rlNHndDdV\", \"type\": \"card\", \"data\": {\"card_name\": \"Ministry Reports\", \"col\": 4}}, {\"id\": \"Rbw38py5Jn\", \"type\": \"card\", \"data\": {\"card_name\": \"Function Reports\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"Wr2BcHNTcg\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Ministries\",\"col\":12}},{\"id\":\"Kwawi9Etd-\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\",\"col\":12}},{\"id\":\"pzAjt6FN7_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":3}},{\"id\":\"e90GZyYsvo\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Functions\",\"col\":3}},{\"id\":\"uf01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Upcoming Functions\",\"col\":3}},{\"id\":\"iYgQntDecm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Songs\",\"col\":3}},{\"id\":\"ch01\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance (12 weeks)\",\"col\":12}},{\"id\":\"XfFcgMyu0y\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"mR7kYz3pQw\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Documents\",\"col\":4}},{\"id\":\"TDh-inBJuc\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Documents\",\"col\":4}},{\"id\":\"Sr-qVFGTSJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Song Documents\",\"col\":4}},{\"id\":\"counseling_card\",\"type\":\"card\",\"data\":{\"card_name\":\"Counseling\",\"col\":4}},{\"id\":\"8rlNHndDdV\",\"type\":\"card\",\"data\":{\"card_name\":\"Ministry Reports\",\"col\":4}},{\"id\":\"Rbw38py5Jn\",\"type\":\"card\",\"data\":{\"card_name\":\"Function Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.917550",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -254,7 +259,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-08 16:51:55.009720",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",

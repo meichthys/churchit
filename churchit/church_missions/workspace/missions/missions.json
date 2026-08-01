@@ -1,9 +1,14 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\": \"RPmabcwgTz\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Missions\", \"col\": 12}}, {\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\", \"col\": 12}}, {\"id\": \"HdXD35AVEm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionaries\", \"col\": 4}}, {\"id\": \"SBUFaJw-aP\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Agencies\", \"col\": 4}}, {\"id\": \"8w-eZYsZPl\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"YWaCShFabd\", \"type\": \"card\", \"data\": {\"card_name\": \"Missions Documents\", \"col\": 4}}, {\"id\": \"iUdtHBDilm\", \"type\": \"card\", \"data\": {\"card_name\": \"Missionary Reports\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"RPmabcwgTz\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Missions\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\",\"col\":12}},{\"id\":\"HdXD35AVEm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionaries\",\"col\":4}},{\"id\":\"SBUFaJw-aP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Agencies\",\"col\":4}},{\"id\":\"8w-eZYsZPl\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"YWaCShFabd\",\"type\":\"card\",\"data\":{\"card_name\":\"Missions Documents\",\"col\":4}},{\"id\":\"iUdtHBDilm\",\"type\":\"card\",\"data\":{\"card_name\":\"Missionary Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.859477",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -73,7 +78,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-07 19:47:13.996736",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",

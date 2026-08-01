@@ -1,9 +1,14 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"1ozkmhwUfX\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Person Letters\", \"col\": 4}}, {\"id\": \"URO83YzARG\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Letters\", \"col\": 4}}, {\"id\": \"UoQwSv6u6X\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"commDocsCard0\", \"type\": \"card\", \"data\": {\"card_name\": \"Communications Documents\", \"col\": 4}}, {\"id\": \"ybuIQ-BIW-\", \"type\": \"card\", \"data\": {\"card_name\": \"Letter Reports\", \"col\": 4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"commDocsCard0\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":4}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.553969",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "WorkspaceHeader",
+   "label": "WorkspaceHeader"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -73,7 +78,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-07 19:47:14.463669",
+ "modified": "2026-08-01 00:10:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",
