@@ -7,7 +7,16 @@ from churchit.utils import resolve_link_titles
 
 def get_context(context):
 	if context.get("reference_doc"):
-		resolve_link_titles([context.reference_doc], "Function Sign-Up")
+		# Link fields render as Autocomplete on the portal, which shows the raw docname
+		# once the field is read only. Resolve the titles into a separate map for display:
+		# rewriting them on reference_doc would leave the client script without the real
+		# Function name, which it needs to load that function's sign-up items.
+		display_doc = frappe._dict(context.reference_doc)
+		resolve_link_titles([display_doc], "Function Sign-Up")
+		context.link_titles = {
+			"function": display_doc.function,
+			"person": display_doc.person,
+		}
 	sign_up_functions = set(frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name"))
 	context.has_sign_up_functions = bool(sign_up_functions)
 

@@ -6,7 +6,18 @@ frappe.ready(function() {
 	);
 	{% endif %}
 
-	// Ensure title fields are displayed for Link fields
-	frappe.web_form.form.set_df_property('function', 'show_title_field_in_link', 1);
-	frappe.web_form.form.set_df_property('person', 'show_title_field_in_link', 1);
+	{% if link_titles %}
+	// Read-only Link fields show the raw docname, since the portal renders them as
+	// Autocomplete. Display the title instead — the values on the doc stay as docnames
+	// so the client script can look up the function's sign-up items. Overriding the
+	// display rather than writing to it once keeps the title through later re-renders.
+	$.each({{ link_titles | json }}, function(fieldname, title) {
+		var field = frappe.web_form.fields_dict[fieldname];
+		if (!field || !field.disp_area || !field.df.read_only || !title) return;
+		field.set_disp_area = function() {
+			$(this.disp_area).text(title);
+		};
+		field.refresh();
+	});
+	{% endif %}
 })
