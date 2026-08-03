@@ -10,9 +10,7 @@
 
 A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
 
-![](./church/public/media/feature_image.png)
-<img width="1150" height="855" alt="Screenshot 2026-06-08 101701" src="https://github.com/user-attachments/assets/ac424269-8452-476e-bd23-400e9c154768" />
-
+<img width="900" height="504" alt="churchit-tour" src="https://github.com/user-attachments/assets/a636d7d1-6224-4df6-b148-4c3d5818b86e" />
 
 ## 🧪 Demo
 
