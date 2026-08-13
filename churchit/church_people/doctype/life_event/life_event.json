@@ -29,8 +29,7 @@
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
+   "label": "Date"
   },
   {
    "fieldname": "column_break_1",
