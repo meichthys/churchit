@@ -100,7 +100,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Web Site",
-   "link_count": 5,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -134,17 +134,6 @@
    "label": "Website Sidebar",
    "link_count": 0,
    "link_to": "Website Sidebar",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Slideshow",
-   "link_count": 0,
-   "link_to": "Website Slideshow",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"

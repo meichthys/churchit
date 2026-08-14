@@ -6,7 +6,7 @@
 > [!NOTE]
 > **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/AJHKHQXp)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/churchit/issues/new).
 
-# ⛪ Church
+# ⛪ Churchit
 
 A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
 
@@ -16,7 +16,7 @@ A fully open-source church management system built on the [Frappe Framework](htt
 
 If you would like to test out the current state of the application, you can try our Demo instance. Please keep in mind that this project is under active development and that there will likely be rough edges, bugs, and incomplete features. If you come across any of these, feel free to report them on our [issue tracker](https://github.com/meichthys/churchit/issues).
 
-[![Demo](./church/public/media/demo_button.png)](https://church.meichthys.com/login)
+[![Demo](./churchit/public/media/demo_button.png)](https://church.meichthys.com/login)
 
 > When logging in, use the following credentials:
 > ```
@@ -104,7 +104,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ## 📥 Installing Frappe
 
-To use the 'Church' app, you must have a working Frappe environment first. There are a variety of ways to install a Frappe instance.
+To use the 'Churchit' app, you must have a working Frappe environment first. There are a variety of ways to install a Frappe instance.
   If you are running a Frappe v15 environment, then use the `version-15` branch.
   If you are running a Frappe v16 environment, then use the `version-16` branch
 
@@ -112,10 +112,10 @@ The recommended ways for installig this project are:
 
 ### ☁️ In the Cloud
 The easiest (but not free) way to get a working Frappe environment is to use [Frappe Cloud](https://frappe.io/cloud). For a few dollars per month you can run an instance in the cloud. You get your choice of support options and shouldn't need to worry about data loss yourself.
-Note: With this option, the money you pay to FrappeCloud is not received by maintainers of this 'Church' app. - We offer the 'Church' software for free, but you pay the cloud hosting costs to [Frappe](https://frappe.io/).
+Note: With this option, the money you pay to FrappeCloud is not received by maintainers of this 'Churchit' app. - We offer the 'Churchit' software for free, but you pay the cloud hosting costs to [Frappe](https://frappe.io/).
 
 ### 💪 Self-Host
-If you're the more technical and/or frugal type, you can self-host an instance of the Church app on a home pc or server. [Frappe Manager](https://github.com/rtcamp/frappe-manager) can be used to quickly setup a local frappe instance. It's not as easy as a simple app install, but we think you can do it (Please ask us for help if you can't)! The general steps are:
+If you're the more technical and/or frugal type, you can self-host an instance of the Churchit app on a home pc or server. [Frappe Manager](https://github.com/rtcamp/frappe-manager) can be used to quickly setup a local frappe instance. It's not as easy as a simple app install, but we think you can do it (Please ask us for help if you can't)! The general steps are:
 
 1. Find a machine onto which you can install Frappe (A dedicated linux-based machine is best. Windows is possible, but is not recommended as it requires some extra steps and the use of [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).)
 2. Run the [frappe-manager install script](https://github.com/rtCamp/Frappe-Manager/tree/develop/scripts)
@@ -124,17 +124,17 @@ If you're the more technical and/or frugal type, you can self-host an instance o
 
 Making a local instance of frappe accessible from outside of your network is currently out of the scope of this project, but with some persistence and some technical expertise, it can be achieved. If you are completely lost or uncomfortable with this, it may be best to use the Frappe Cloud option above, or contact us for help. We'd be glad to help where we can.
 
-## ⛪ Installing this Church app
+## ⛪ Installing this Churchit app
 
-**To install the Church app via the Frappe Marketplace (easiest, requires Frappe Cloud):**
+**To install the Churchit app via the Frappe Marketplace (easiest, requires Frappe Cloud):**
   1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
-  2. Open the [Church listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Church" from **Marketplace** in the sidebar).
+  2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Churchit" from **Marketplace** in the sidebar).
   3. Click **Install**, then choose the site you want to install it on.
-  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Church` app under **Help > About**.
+  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` app under **Help > About**.
 
   Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**).
 
-**To install the Church app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
+**To install the Churchit app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
 Activate the [bench](https://github.com/frappe/bench) environment with `fm shell` and then run the following:
 
   ```bash
@@ -147,7 +147,7 @@ Activate the [bench](https://github.com/frappe/bench) environment with `fm shell
   bench get-app https://github.com/meichthys/churchit --branch develop
 
   # Install the app:
-  bench install-app church
+  bench install-app churchit
 
   # Migrate the app for good measure:
   bench migrate
@@ -158,7 +158,7 @@ Activate the [bench](https://github.com/frappe/bench) environment with `fm shell
   bench migrate
   ```
 
-After the above installation you should be able to access the web interface using the URL you defined in the `bench create` command above. You should see the `Church` app installed when you view `Help > About`.
+After the above installation you should be able to access the web interface using the URL you defined in the `bench create` command above. You should see the `Churchit` app installed when you view `Help > About`.
 
 Before you start using the app be sure to:
 
@@ -299,4 +299,4 @@ churchit.patches.v2_0.remove_old_attendance_type
 
 >You can copy, translate, modify, and distribute this resource, without restriction, and without needing to ask permission. This resource is freely given (Matt 10:8) for the sake of the gospel.
 
-[![Freely given](church/public/media/freely_given.svg)](https://sellingjesus.org)
+[![Freely given](churchit/public/media/freely_given.svg)](https://sellingjesus.org)
