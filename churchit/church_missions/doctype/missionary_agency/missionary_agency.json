@@ -15,9 +15,7 @@
   "website",
   "contact_information_section",
   "emails",
-  "phone_numbers_section",
   "phones",
-  "addresses_section",
   "addresses"
  ],
  "fields": [
@@ -58,6 +56,12 @@
    "unique": 1
   },
   {
+   "description": "Mark one email and one phone as primary. Those are the ones the church uses. Also tick which address receives mail.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Information"
+  },
+  {
    "fieldname": "emails",
    "fieldtype": "Table",
    "label": "Emails",
@@ -74,24 +78,6 @@
    "fieldtype": "Table",
    "label": "Addresses",
    "options": "Postal Address"
-  },
-  {
-   "description": "The address marked \"Is Primary\" is the one the church uses to reach the agency.",
-   "fieldname": "contact_information_section",
-   "fieldtype": "Section Break",
-   "label": "Email Addresses"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "phone_numbers_section",
-   "fieldtype": "Section Break",
-   "label": "Phone Numbers"
-  },
-  {
-   "description": "Mark the address that receives mail, such as where support is sent.",
-   "fieldname": "addresses_section",
-   "fieldtype": "Section Break",
-   "label": "Addresses"
   }
  ],
  "grid_page_length": 50,

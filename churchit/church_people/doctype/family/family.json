@@ -16,15 +16,19 @@
   "members",
   "contact_information_section",
   "addresses",
-  "phone_numbers_section",
   "phones",
-  "email_addresses_section",
   "emails"
  ],
  "fields": [
   {
    "fieldname": "column_break_pmch",
    "fieldtype": "Column Break"
+  },
+  {
+   "description": "Household details shared by the whole family; anything belonging to one person goes on that Person instead. Tick which address receives mail.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Information"
   },
   {
    "fieldname": "addresses",
@@ -78,26 +82,6 @@
    "fieldtype": "Table",
    "label": "Family Members",
    "options": "Family Members"
-  },
-  {
-   "description": "The household's addresses. Mark which one receives mail, since mailing labels and giving statements are sent there.",
-   "fieldname": "contact_information_section",
-   "fieldtype": "Section Break",
-   "label": "Addresses"
-  },
-  {
-   "collapsible": 1,
-   "description": "Shared household numbers, such as a landline. Numbers belonging to one person go on that Person instead.",
-   "fieldname": "phone_numbers_section",
-   "fieldtype": "Section Break",
-   "label": "Phone Numbers"
-  },
-  {
-   "collapsible": 1,
-   "description": "Shared household email addresses. Addresses belonging to one person go on that Person instead.",
-   "fieldname": "email_addresses_section",
-   "fieldtype": "Section Break",
-   "label": "Email Addresses"
   }
  ],
  "grid_page_length": 50,
