@@ -11,10 +11,15 @@
   "section_break_acrr",
   "family_name",
   "head_of_household",
-  "home_address",
   "photo",
   "column_break_pmch",
-  "members"
+  "members",
+  "contact_information_section",
+  "addresses",
+  "phone_numbers_section",
+  "phones",
+  "email_addresses_section",
+  "emails"
  ],
  "fields": [
   {
@@ -22,11 +27,22 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "home_address",
-   "fieldtype": "Link",
-   "in_preview": 1,
-   "label": "Home Address",
-   "options": "Address"
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Postal Address"
+  },
+  {
+   "fieldname": "phones",
+   "fieldtype": "Table",
+   "label": "Phone Numbers",
+   "options": "Phone Number"
+  },
+  {
+   "fieldname": "emails",
+   "fieldtype": "Table",
+   "label": "Emails",
+   "options": "Email Address"
   },
   {
    "allow_in_quick_entry": 1,
@@ -62,6 +78,26 @@
    "fieldtype": "Table",
    "label": "Family Members",
    "options": "Family Members"
+  },
+  {
+   "description": "The household's addresses. Mark which one receives mail, since mailing labels and giving statements are sent there.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Addresses"
+  },
+  {
+   "collapsible": 1,
+   "description": "Shared household numbers, such as a landline. Numbers belonging to one person go on that Person instead.",
+   "fieldname": "phone_numbers_section",
+   "fieldtype": "Section Break",
+   "label": "Phone Numbers"
+  },
+  {
+   "collapsible": 1,
+   "description": "Shared household email addresses. Addresses belonging to one person go on that Person instead.",
+   "fieldname": "email_addresses_section",
+   "fieldtype": "Section Break",
+   "label": "Email Addresses"
   }
  ],
  "grid_page_length": 50,
@@ -77,7 +113,7 @@
    "link_fieldname": "recipient"
   }
  ],
- "modified": "2025-12-20 23:03:58.407158",
+ "modified": "2026-08-17 03:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",

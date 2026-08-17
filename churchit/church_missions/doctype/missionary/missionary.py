@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, today
 
+from churchit.contacts import validate_contact_tables
+
 # Maps each Missionary Support Frequency to the function that advances a date by
 # one period. Keyed off the frequency record names seeded in
 # churchit.patches.after_install._create_missionary_support_frequencies.
@@ -23,6 +25,8 @@ MAX_EXPENSES_PER_RUN = 1000
 
 class Missionary(Document):
 	def validate(self):
+		validate_contact_tables(self)
+
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
 				frappe.throw(

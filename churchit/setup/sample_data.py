@@ -528,11 +528,15 @@ def _create_people(position_refs):
 				"gender": gender,
 				"photo": photo,
 				"membership_status": active_status if is_member else None,
-				"primary_phone": phone,
-				"email": email,
 				"alergies": allergies,
 				"positions": resolved_positions,
 				"life_events": life_events,
+				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}]
+				if phone
+				else [],
+				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}]
+				if email
+				else [],
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -806,7 +810,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 200,
 			"support_frequency": monthly,
 			"support_start_date": "2010-01-01",
-			"email": "michael.grant@example.com",
+			"emails": [
+				{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}
+			],
 			"letters": [
 				{
 					"date": _near_date(-21),
@@ -839,7 +845,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 150,
 			"support_frequency": monthly,
 			"support_start_date": "2012-06-01",
-			"email": "elizabeth.harper@example.com",
+			"emails": [
+				{"email_address": "elizabeth.harper@example.com", "email_type": "Home", "is_primary": 1}
+			],
 		},
 		{
 			"title": "Thomas Reed",
@@ -853,7 +861,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 100,
 			"support_frequency": monthly,
 			"support_start_date": "2018-09-01",
-			"email": "thomas.reed@example.com",
+			"emails": [
+				{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}
+			],
 		},
 	]
 	for m in missionaries:

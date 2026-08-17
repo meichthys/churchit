@@ -52,17 +52,13 @@ function email_members(frm, selected_only) {
 	}
 
 	frappe.call({
-		method: "frappe.client.get_list",
+		method: "churchit.contacts.get_emails_for",
 		args: {
-			doctype: "Person",
-			filters: { name: ["in", persons] },
-			fields: ["name", "email"],
-			limit_page_length: 0,
+			parenttype: "Person",
+			parents: persons,
 		},
 		callback(r) {
-			const results = r.message || [];
-			const emails = results.filter((p) => p.email).map((p) => p.email);
-			const missing = results.filter((p) => !p.email).map((p) => p.name);
+			const { emails = [], missing = [] } = r.message || {};
 
 			if (missing.length) {
 				frappe.msgprint({

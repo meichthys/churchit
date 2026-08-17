@@ -4,9 +4,12 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.contacts import validate_contact_tables
+
 
 class Family(Document):
-	pass
+	def validate(self):
+		validate_contact_tables(self)
 
 	@property
 	def head_of_household(self):

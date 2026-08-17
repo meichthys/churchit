@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import fmt_money, formatdate, now, nowdate
 
+from churchit.contacts import get_primary_email
+
 # Statuses reported by Payments-app gateway controllers that mean the
 # payment succeeded. Different gateways use slightly different words.
 PAID_STATUSES = ("Authorized", "Completed", "Paid")
@@ -67,9 +69,9 @@ class OnlineDonation(Document):
 		recipient = self.email
 		first_name = (self.donor_name or "").split(" ")[0]
 		if self.person:
-			person = frappe.db.get_value("Person", self.person, ["email", "first_name"], as_dict=True)
+			person = frappe.db.get_value("Person", self.person, ["first_name"], as_dict=True)
 			if person:
-				recipient = recipient or person.email
+				recipient = recipient or get_primary_email("Person", self.person)
 				first_name = person.first_name or first_name
 
 		if not recipient:

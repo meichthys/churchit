@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.contacts import get_primary_email, get_primary_phone
 from churchit.utils import set_report_link_titles
 
 
@@ -55,7 +56,7 @@ def get_data(filters=None):
 		rows.append(r)
 
 	for row in rows:
-		person = frappe.db.get_value("Person", row.get("person"), ["primary_phone", "email"], as_dict=True) or {}
-		row["primary_phone"] = person.get("primary_phone")
-		row["email"] = person.get("email")
+		person = row.get("person")
+		row["primary_phone"] = get_primary_phone("Person", person)
+		row["email"] = get_primary_email("Person", person)
 	return rows

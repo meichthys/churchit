@@ -17,11 +17,14 @@
   "sensitive",
   "column_break_vedu",
   "country",
-  "email",
-  "mailing_address",
-  "physical_address",
   "website",
   "photo",
+  "contact_information_section",
+  "emails",
+  "phone_numbers_section",
+  "phones",
+  "addresses_section",
+  "addresses",
   "support_section",
   "support_start_date",
   "support_end_date",
@@ -59,16 +62,10 @@
    "options": "Country"
   },
   {
-   "fieldname": "mailing_address",
-   "fieldtype": "Link",
-   "label": "Mailing Address",
-   "options": "Address"
-  },
-  {
-   "fieldname": "physical_address",
-   "fieldtype": "Link",
-   "label": "Physical Address",
-   "options": "Address"
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Postal Address"
   },
   {
    "fieldname": "column_break_vedu",
@@ -153,11 +150,16 @@
    "options": "Expense Type"
   },
   {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_preview": 1,
-   "label": "Email",
-   "options": "Email"
+   "fieldname": "emails",
+   "fieldtype": "Table",
+   "label": "Emails",
+   "options": "Email Address"
+  },
+  {
+   "fieldname": "phones",
+   "fieldtype": "Table",
+   "label": "Phone Numbers",
+   "options": "Phone Number"
   },
   {
    "description": "Link an associated `Person` (or primary contact person)",
@@ -224,13 +226,31 @@
   {
    "fieldname": "section_break_oyuw",
    "fieldtype": "Section Break"
+  },
+  {
+   "description": "The address marked \"Is Primary\" is the one used for prayer letters and correspondence.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Email Addresses"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "phone_numbers_section",
+   "fieldtype": "Section Break",
+   "label": "Phone Numbers"
+  },
+  {
+   "description": "Where the missionary is reached and where support mail is sent. Mark the address that receives mail.",
+   "fieldname": "addresses_section",
+   "fieldtype": "Section Break",
+   "label": "Addresses"
   }
  ],
  "grid_page_length": 50,
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-19 00:58:04.376350",
+ "modified": "2026-08-17 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",

@@ -51,14 +51,14 @@
    "options": "Person"
   },
   {
-   "fetch_from": "person.email",
+   "description": "Set automatically from the giver's primary email when the Collection is saved. Used by the Donation Acknowledgment notification.",
    "fieldname": "person_email",
    "fieldtype": "Data",
    "label": "Person Email",
+   "no_copy": 1,
    "options": "Email",
-   "read_only": 1,
    "print_hide": 1,
-   "no_copy": 1
+   "read_only": 1
   },
   {
    "fieldname": "notes",
@@ -88,7 +88,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-13 23:57:46.966670",
+ "modified": "2026-08-17 02:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donation",
