@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "creation": "2026-08-17 00:00:00.000000",
+ "description": "One email address on a Person, Family or Missionary.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["email_address", "email_type", "is_primary", "notification_address"],
+ "fields": [
+  {
+   "columns": 5,
+   "fieldname": "email_address",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email Address",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "default": "Home",
+   "fieldname": "email_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Email Type",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "description": "The address used when the church emails this record.",
+   "fieldname": "is_primary",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary"
+  },
+  {
+   "description": "Set automatically. Holds a copy of the address on the primary row and is blank on every other row, which is what limits Notifications to one recipient. See churchit.contacts.",
+   "fieldname": "notification_address",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Notification Address",
+   "no_copy": 1,
+   "options": "Email",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-17 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Email Address",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

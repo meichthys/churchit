@@ -179,6 +179,39 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Email Types",
+   "link_to": "Email Type",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Phone Types",
+   "link_to": "Phone Type",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Address Types",
+   "link_to": "Address Type",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Member Transfers",
    "link_to": "Member Transfer",
    "link_type": "DocType",
@@ -430,7 +463,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 01:00:00.000000",
+ "modified": "2026-08-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "module_onboarding": "People",
