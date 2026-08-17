@@ -28,8 +28,9 @@ frappe.ui.form.on("Person", {
 			})
 		}
 
-		// Add 'Invite to Portal' button if email is provided and no Portal User is linked
-		if (frm.doc.email && !frm.doc.user) {
+		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
+		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+		if (has_email && !frm.doc.user) {
 			frm.add_custom_button(__('Invite to Portal'), function () {
 				frm.call("invite_to_portal")
 			});
@@ -40,13 +41,6 @@ frappe.ui.form.on("Person", {
 			frm.tour.init("Person").then(() => frm.tour.start());
 		});
 
-	},
-
-	// Set mailing address to home address if "Different Mailing Address" is unchecked
-	before_save: function(frm) {
-		if (!frm.doc.different_mailing_address) {
-			frm.set_value("mailing_address", frm.doc.home_address);
-		}
 	}
 
 });

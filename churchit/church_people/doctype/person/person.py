@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import get_link_to_form
 
+from churchit.contacts import primary_email, validate_contact_tables
+
 
 class Person(Document):
 	def on_update(self):
@@ -67,6 +69,10 @@ class Person(Document):
 			family.save()
 
 	def validate(self):
+		# Normalise the emails / phones / addresses tables before anything else
+		# reads a primary value off them.
+		validate_contact_tables(self)
+
 		# Remove head of household status when family is removed
 		if not self.family and self.is_head_of_household:
 			self.set("is_head_of_household", False)
@@ -163,13 +169,21 @@ class Person(Document):
 				title="Email Not Configured",
 			)
 
+		# The invitation goes to the address marked primary in the Emails table.
+		email = primary_email(self)
+		if not email:
+			frappe.throw(
+				"Add an email address on the Contact tab before inviting this person to the portal.",
+				title="No Email Address",
+			)
+
 		# Check if user already exists with this email
-		user = frappe.db.exists("User", {"email": self.email})
+		user = frappe.db.exists("User", {"email": email})
 
 		if not user:
 			# Create a new portal user
 			new_user = frappe.new_doc("User")
-			new_user.email = self.email
+			new_user.email = email
 			new_user.first_name = self.first_name
 			new_user.last_name = self.last_name
 			new_user.send_welcome_email = 1
@@ -183,7 +197,7 @@ class Person(Document):
 
 			frappe.msgprint(
 				f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
-				f"and an invitation email was sent to {self.email}.",
+				f"and an invitation email was sent to {email}.",
 				title="Invitation Sent",
 				indicator="green",
 			)

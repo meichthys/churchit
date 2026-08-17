@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.contacts import primary_email_sql, primary_phone_sql
 from churchit.utils import set_report_link_titles
 
 
@@ -22,13 +23,13 @@ def get_columns():
 
 def get_data():
 	return frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			p.name,
 			le.date AS birthday,
 			YEAR(CURDATE()) - YEAR(le.date) AS age,
-			p.primary_phone,
-			p.email
+			{primary_phone_sql("p")} AS primary_phone,
+			{primary_email_sql("p")} AS email
 		FROM `tabPerson` p
 		JOIN `tabLife Event` le
 			ON le.parent = p.name
