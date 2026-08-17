@@ -29,9 +29,7 @@
   "contact_information_tab",
   "contact_information_section",
   "emails",
-  "phone_numbers_section",
   "phones",
-  "addresses_section",
   "addresses",
   "section_break_eqre",
   "letters",
@@ -87,6 +85,11 @@
    "fieldname": "personal_information_section",
    "fieldtype": "Section Break",
    "label": "Personal Information"
+  },
+  {
+   "description": "Mark one email and one phone as primary. Those are the ones the church uses. Also tick which address receives mail.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "emails",
@@ -275,24 +278,6 @@
    "fieldtype": "Link",
    "label": "App User",
    "options": "User"
-  },
-  {
-   "description": "The address marked \"Is Primary\" is the one the church emails.",
-   "fieldname": "contact_information_section",
-   "fieldtype": "Section Break",
-   "label": "Email Addresses"
-  },
-  {
-   "description": "The number marked \"Is Primary\" is the one the church calls.",
-   "fieldname": "phone_numbers_section",
-   "fieldtype": "Section Break",
-   "label": "Phone Numbers"
-  },
-  {
-   "description": "Mark which address receives mail. The primary address is the one shown in the directory.",
-   "fieldname": "addresses_section",
-   "fieldtype": "Section Break",
-   "label": "Addresses"
   }
  ],
  "grid_page_length": 50,
