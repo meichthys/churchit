@@ -1,8 +1,9 @@
 """Move the single-value contact fields onto the new contact tables.
 
-Person, Family and Missionary used to carry one email, one phone and one or two
-Link fields to Address. Those fields are gone; each record now has ``emails``,
-``phones`` and ``addresses`` child tables (see ``churchit.contacts``).
+Person, Family, Missionary and Missionary Agency used to carry one email, one
+phone and one or two Link fields to Address. Those fields are gone; each record
+now has ``emails``, ``phones`` and ``addresses`` child tables (see
+``churchit.contacts``).
 
 Frappe leaves removed columns in place rather than dropping them, so the old
 values are still readable here with raw SQL even though the doctypes no longer
@@ -28,6 +29,7 @@ def execute():
 	_migrate_person()
 	_migrate_family()
 	_migrate_missionary()
+	_migrate_missionary_agency()
 
 	_backfill_notification_addresses()
 
@@ -102,6 +104,20 @@ def _migrate_missionary():
 			addresses = []
 
 		_add_addresses("Missionary", row.name, addresses)
+
+
+def _migrate_missionary_agency():
+	for row in _read_legacy("Missionary Agency", ["email", "phone", "mailing_address"]):
+		if row.get("email"):
+			_add_email("Missionary Agency", row.name, row["email"])
+		if row.get("phone"):
+			_add_phone("Missionary Agency", row.name, row["phone"])
+		if row.get("mailing_address"):
+			_add_addresses(
+				"Missionary Agency",
+				row.name,
+				[(row["mailing_address"], OTHER_ADDRESS_TYPE, 1, 1)],
+			)
 
 
 def _backfill_notification_addresses():

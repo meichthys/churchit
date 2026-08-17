@@ -765,15 +765,19 @@ def _create_person_letters(people):
 _AGENCIES = [
 	{
 		"agency_name": "Gospel Outreach International",
-		"phone": "+1 202-555-8001",
-		"email": "info@gospeloutreach.example.com",
+		"phones": [{"phone_number": "+1 202-555-8001", "phone_type": "Work", "is_primary": 1}],
+		"emails": [
+			{"email_address": "info@gospeloutreach.example.com", "email_type": "Work", "is_primary": 1}
+		],
 		"website": "https://www.gospeloutreach.example.com",
 		"notes": "A missions agency focused on unreached people groups in South America and Africa.",
 	},
 	{
 		"agency_name": "Faithful Servants Mission Board",
-		"phone": "+1 202-555-8002",
-		"email": "contact@faithfulservants.example.com",
+		"phones": [{"phone_number": "+1 202-555-8002", "phone_type": "Work", "is_primary": 1}],
+		"emails": [
+			{"email_address": "contact@faithfulservants.example.com", "email_type": "Work", "is_primary": 1}
+		],
 		"website": "https://www.faithfulservants.example.com",
 		"notes": "An interdenominational mission board supporting church-planting efforts in Asia.",
 	},

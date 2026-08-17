@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-08-17 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",
@@ -17,13 +17,13 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Link a full Address record so support letters and statements can be addressed correctly.",
-   "fieldname": "mailing_address",
-   "fieldtype": "Link",
+   "description": "Add the agency's addresses and mark the one that receives mail, so support letters and statements are addressed correctly.",
+   "fieldname": "addresses",
+   "fieldtype": "Table",
    "has_next_condition": 0,
    "hide_buttons": 0,
    "is_table_field": 0,
-   "label": "Mailing Address",
+   "label": "Addresses",
    "modal_trigger": 0,
    "next_on_click": 0,
    "next_step_condition": "",
@@ -31,7 +31,7 @@
    "offset_y": 0,
    "popover_element": 0,
    "position": "Bottom",
-   "title": "Mailing Address",
+   "title": "Addresses",
    "ui_tour": 0
   },
   {
@@ -53,13 +53,13 @@
    "ui_tour": 0
   },
   {
-   "description": "Primary contact for coordinating support and updates.",
-   "fieldname": "email",
-   "fieldtype": "Data",
+   "description": "Contacts for coordinating support and updates. Mark one as primary, since that is the address the church emails.",
+   "fieldname": "emails",
+   "fieldtype": "Table",
    "has_next_condition": 0,
    "hide_buttons": 0,
    "is_table_field": 0,
-   "label": "Contact Email",
+   "label": "Emails",
    "modal_trigger": 0,
    "next_on_click": 0,
    "next_step_condition": "",
@@ -67,7 +67,7 @@
    "offset_y": 0,
    "popover_element": 0,
    "position": "Bottom",
-   "title": "Contact Email",
+   "title": "Email Addresses",
    "ui_tour": 0
   }
  ],

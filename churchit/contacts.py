@@ -34,7 +34,7 @@ ADDRESS_DOCTYPE = "Postal Address"
 
 # Doctypes that carry the contact tables. Used to bound the parenttype that can
 # reach the SQL builders below.
-CONTACT_PARENTS = ("Person", "Family", "Missionary")
+CONTACT_PARENTS = ("Person", "Family", "Missionary", "Missionary Agency")
 
 # (parent fieldname, child doctype, value fieldname, label) for the three tables
 CONTACT_TABLES = (

@@ -12,34 +12,15 @@
   "image_hhbv",
   "notes",
   "column_break_qofu",
-  "phone",
-  "email",
-  "mailing_address",
-  "website"
+  "website",
+  "contact_information_section",
+  "emails",
+  "phone_numbers_section",
+  "phones",
+  "addresses_section",
+  "addresses"
  ],
  "fields": [
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "mailing_address",
-   "fieldtype": "Link",
-   "label": "Mailing Address",
-   "options": "Address"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "phone",
-   "fieldtype": "Phone",
-   "in_list_view": 1,
-   "label": "Phone"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Email",
-   "options": "Email"
-  },
   {
    "fieldname": "column_break_qofu",
    "fieldtype": "Column Break"
@@ -75,6 +56,42 @@
    "label": "Agency Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "emails",
+   "fieldtype": "Table",
+   "label": "Emails",
+   "options": "Email Address"
+  },
+  {
+   "fieldname": "phones",
+   "fieldtype": "Table",
+   "label": "Phone Numbers",
+   "options": "Phone Number"
+  },
+  {
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Postal Address"
+  },
+  {
+   "description": "The address marked \"Is Primary\" is the one the church uses to reach the agency.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Email Addresses"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "phone_numbers_section",
+   "fieldtype": "Section Break",
+   "label": "Phone Numbers"
+  },
+  {
+   "description": "Mark the address that receives mail, such as where support is sent.",
+   "fieldname": "addresses_section",
+   "fieldtype": "Section Break",
+   "label": "Addresses"
   }
  ],
  "grid_page_length": 50,
@@ -85,7 +102,7 @@
    "link_fieldname": "agency"
   }
  ],
- "modified": "2026-03-04 21:41:42.841040",
+ "modified": "2026-08-17 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",
