@@ -224,7 +224,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Person Documents",
-   "link_count": 15,
+   "link_count": 18,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -342,6 +342,36 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Email Types",
+   "link_count": 0,
+   "link_to": "Email Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Phone Types",
+   "link_count": 0,
+   "link_to": "Phone Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Address Types",
+   "link_count": 0,
+   "link_to": "Address Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Member Transfers",
    "link_count": 0,
    "link_to": "Member Transfer",
@@ -380,7 +410,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 00:10:00.000000",
+ "modified": "2026-08-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

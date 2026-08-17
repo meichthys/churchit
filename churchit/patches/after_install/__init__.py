@@ -19,6 +19,7 @@ def execute():
 	_create_default_church()
 
 	# Simple lookup types (no inter-dependencies)
+	_create_contact_types()
 	_create_member_statuses()
 	_create_function_types()
 	_create_function_attendance_types()
@@ -840,6 +841,14 @@ def _create_member_email_group():
 			ignore_permissions=True
 		)
 	sync_member_email_group()
+
+
+def _create_contact_types():
+	"""Seed the Email Type / Phone Type / Address Type lookups used by the
+	emails, phones and addresses tables on Person, Family and Missionary."""
+	from churchit.contacts import create_default_contact_types
+
+	create_default_contact_types()
 
 
 def _create_default_life_event_types():
