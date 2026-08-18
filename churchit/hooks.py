@@ -87,7 +87,10 @@ web_include_js = ["/assets/churchit/js/portal_groups.js"]
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	# Filters the payments app's unfiltered "Gateway Settings" doctype picker.
+	"Payment Gateway": "public/js/payment_gateway.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
