@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.contacts import primary_email_sql, primary_phone_sql
 from churchit.utils import set_report_link_titles
 
 
@@ -24,13 +25,13 @@ def get_columns():
 def get_data(filters=None):
 	days = (filters or {}).get("days", 90)
 	return frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			p.name,
 			p.membership_status,
 			p.family,
-			p.primary_phone,
-			p.email,
+			{primary_phone_sql("p")} AS primary_phone,
+			{primary_email_sql("p")} AS email,
 			(
 				SELECT le.date
 				FROM `tabLife Event` le

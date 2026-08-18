@@ -528,11 +528,15 @@ def _create_people(position_refs):
 				"gender": gender,
 				"photo": photo,
 				"membership_status": active_status if is_member else None,
-				"primary_phone": phone,
-				"email": email,
 				"alergies": allergies,
 				"positions": resolved_positions,
 				"life_events": life_events,
+				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}]
+				if phone
+				else [],
+				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}]
+				if email
+				else [],
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -761,15 +765,19 @@ def _create_person_letters(people):
 _AGENCIES = [
 	{
 		"agency_name": "Gospel Outreach International",
-		"phone": "+1 202-555-8001",
-		"email": "info@gospeloutreach.example.com",
+		"phones": [{"phone_number": "+1 202-555-8001", "phone_type": "Work", "is_primary": 1}],
+		"emails": [
+			{"email_address": "info@gospeloutreach.example.com", "email_type": "Work", "is_primary": 1}
+		],
 		"website": "https://www.gospeloutreach.example.com",
 		"notes": "A missions agency focused on unreached people groups in South America and Africa.",
 	},
 	{
 		"agency_name": "Faithful Servants Mission Board",
-		"phone": "+1 202-555-8002",
-		"email": "contact@faithfulservants.example.com",
+		"phones": [{"phone_number": "+1 202-555-8002", "phone_type": "Work", "is_primary": 1}],
+		"emails": [
+			{"email_address": "contact@faithfulservants.example.com", "email_type": "Work", "is_primary": 1}
+		],
 		"website": "https://www.faithfulservants.example.com",
 		"notes": "An interdenominational mission board supporting church-planting efforts in Asia.",
 	},
@@ -806,7 +814,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 200,
 			"support_frequency": monthly,
 			"support_start_date": "2010-01-01",
-			"email": "michael.grant@example.com",
+			"emails": [
+				{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}
+			],
 			"letters": [
 				{
 					"date": _near_date(-21),
@@ -839,7 +849,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 150,
 			"support_frequency": monthly,
 			"support_start_date": "2012-06-01",
-			"email": "elizabeth.harper@example.com",
+			"emails": [
+				{"email_address": "elizabeth.harper@example.com", "email_type": "Home", "is_primary": 1}
+			],
 		},
 		{
 			"title": "Thomas Reed",
@@ -853,7 +865,9 @@ def _create_missionaries(people, agencies):
 			"support_amount": 100,
 			"support_frequency": monthly,
 			"support_start_date": "2018-09-01",
-			"email": "thomas.reed@example.com",
+			"emails": [
+				{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}
+			],
 		},
 	]
 	for m in missionaries:

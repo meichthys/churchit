@@ -12,34 +12,13 @@
   "image_hhbv",
   "notes",
   "column_break_qofu",
-  "phone",
-  "email",
-  "mailing_address",
-  "website"
+  "website",
+  "contact_information_section",
+  "emails",
+  "phones",
+  "addresses"
  ],
  "fields": [
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "mailing_address",
-   "fieldtype": "Link",
-   "label": "Mailing Address",
-   "options": "Address"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "phone",
-   "fieldtype": "Phone",
-   "in_list_view": 1,
-   "label": "Phone"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Email",
-   "options": "Email"
-  },
   {
    "fieldname": "column_break_qofu",
    "fieldtype": "Column Break"
@@ -75,6 +54,30 @@
    "label": "Agency Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "description": "Mark one email and one phone as primary. Those are the ones the church uses. Also tick which address receives mail.",
+   "fieldname": "contact_information_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Information"
+  },
+  {
+   "fieldname": "emails",
+   "fieldtype": "Table",
+   "label": "Emails",
+   "options": "Email Address"
+  },
+  {
+   "fieldname": "phones",
+   "fieldtype": "Table",
+   "label": "Phone Numbers",
+   "options": "Phone Number"
+  },
+  {
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Postal Address"
   }
  ],
  "grid_page_length": 50,
@@ -85,7 +88,7 @@
    "link_fieldname": "agency"
   }
  ],
- "modified": "2026-03-04 21:41:42.841040",
+ "modified": "2026-08-17 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",

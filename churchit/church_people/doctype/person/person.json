@@ -28,12 +28,9 @@
   "positions",
   "contact_information_tab",
   "contact_information_section",
-  "home_address",
-  "different_mailing_address",
-  "mailing_address",
-  "column_break_vzrz",
-  "primary_phone",
-  "email",
+  "emails",
+  "phones",
+  "addresses",
   "section_break_eqre",
   "letters",
   "family_tab",
@@ -90,42 +87,27 @@
    "label": "Personal Information"
   },
   {
+   "description": "Mark one email and one phone as primary. Those are the ones the church uses. Also tick which address receives mail.",
    "fieldname": "contact_information_section",
    "fieldtype": "Section Break"
   },
   {
-   "allow_in_quick_entry": 1,
-   "fieldname": "home_address",
-   "fieldtype": "Link",
-   "label": "Home Address",
-   "options": "Address"
+   "fieldname": "emails",
+   "fieldtype": "Table",
+   "label": "Emails",
+   "options": "Email Address"
   },
   {
-   "allow_in_quick_entry": 1,
-   "depends_on": "eval: doc.different_mailing_address",
-   "fieldname": "mailing_address",
-   "fieldtype": "Link",
-   "label": "Mailing Address",
-   "options": "Address"
+   "fieldname": "phones",
+   "fieldtype": "Table",
+   "label": "Phone Numbers",
+   "options": "Phone Number"
   },
   {
-   "fieldname": "column_break_vzrz",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "primary_phone",
-   "fieldtype": "Phone",
-   "in_preview": 1,
-   "label": "Primary Phone"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_preview": 1,
-   "label": "Email",
-   "options": "Email"
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Postal Address"
   },
   {
    "allow_in_quick_entry": 1,
@@ -180,18 +162,18 @@
    "description": "Visible once a Membership life event is added.",
    "fieldname": "membership_status",
    "fieldtype": "Link",
-   "in_preview": 1,
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Membership Status",
    "options": "Member Status",
    "search_index": 1
   },
   {
+   "description": "Birth, baptism, marriage, death, salvation, etc.",
    "fieldname": "life_events_section",
    "fieldtype": "Section Break",
-   "label": "Life Events",
-   "description": "Birth, baptism, marriage, death, salvation, etc."
+   "label": "Life Events"
   },
   {
    "fieldname": "life_events",
@@ -291,13 +273,6 @@
    "print_hide": 1
   },
   {
-   "allow_in_quick_entry": 1,
-   "default": "0",
-   "fieldname": "different_mailing_address",
-   "fieldtype": "Check",
-   "label": "Different Mailing Address"
-  },
-  {
    "description": "Auto-create a portal user by assigning an email address and clicking \"Invite to Portal\" button.",
    "fieldname": "user",
    "fieldtype": "Link",
@@ -346,7 +321,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-05-19 17:34:10.542345",
+ "modified": "2026-08-17 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

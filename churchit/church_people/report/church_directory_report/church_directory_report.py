@@ -5,6 +5,7 @@ import calendar
 import frappe
 from frappe.utils import today as frappe_today
 
+from churchit.contacts import primary_address_sql, primary_email_sql, primary_phone_sql
 from churchit.utils import set_report_link_titles
 
 
@@ -51,17 +52,19 @@ def get_individual_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
 
 	return frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			p.name AS person,
 			p.family,
-			p.primary_phone,
-			p.email,
+			{primary_phone_sql("p")} AS primary_phone,
+			{primary_email_sql("p")} AS email,
 			COALESCE(a.city, '') AS city,
 			COALESCE(a.state, '') AS state
 		FROM `tabPerson` p
 		LEFT JOIN `tabFamily` f ON f.name = p.family
-		LEFT JOIN `tabAddress` a ON a.name = f.home_address
+		LEFT JOIN `tabAddress` a ON a.name = COALESCE(
+			{primary_address_sql("p")}, {primary_address_sql("f", "Family")}
+		)
 		WHERE (NOT %(members_only)s OR p.membership_status = 'Active')
 		ORDER BY p.last_name, p.first_name
 		""",
@@ -74,14 +77,14 @@ def get_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
 
 	families = frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			f.name AS family_id,
 			f.family_name,
 			COALESCE(a.city, '') AS city,
 			COALESCE(a.state, '') AS state
 		FROM `tabFamily` f
-		LEFT JOIN `tabAddress` a ON a.name = f.home_address
+		LEFT JOIN `tabAddress` a ON a.name = {primary_address_sql("f", "Family")}
 		ORDER BY f.family_name ASC
 		""",
 		as_dict=True,
@@ -151,7 +154,7 @@ def get_directory_html(
 		church_address = frappe.get_doc("Address", church_doc.address)
 
 	families = frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			f.name AS family_id,
 			f.family_name,
@@ -162,20 +165,20 @@ def get_directory_html(
 			COALESCE(a.state, '') AS state,
 			COALESCE(a.pincode, '') AS pincode
 		FROM `tabFamily` f
-		LEFT JOIN `tabAddress` a ON a.name = f.home_address
+		LEFT JOIN `tabAddress` a ON a.name = {primary_address_sql("f", "Family")}
 		ORDER BY f.family_name ASC
 		""",
 		as_dict=True,
 	)
 
 	all_members = frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			p.name AS person_name,
 			p.full_name,
 			p.last_name,
-			p.primary_phone,
-			p.email,
+			{primary_phone_sql("p")} AS primary_phone,
+			{primary_email_sql("p")} AS email,
 			p.membership_status,
 			p.is_head_of_household,
 			p.gender,
@@ -259,13 +262,13 @@ def get_directory_html(
 				m["relation_to_hoh"] = hoh_relations.get((hoh.person_name, m.person_name), "")
 
 	individuals_raw = frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			p.name AS person_name,
 			p.full_name,
 			p.last_name,
-			p.primary_phone,
-			p.email,
+			{primary_phone_sql("p")} AS primary_phone,
+			{primary_email_sql("p")} AS email,
 			p.membership_status,
 			p.photo
 		FROM `tabPerson` p
@@ -436,12 +439,12 @@ def get_directory_html(
 	missionaries = []
 	if show_missionaries:
 		missionaries = frappe.db.sql(
-			"""
+			f"""
 			SELECT
 				m.title,
 				m.agency,
 				m.country,
-				m.email,
+				{primary_email_sql("m", "Missionary")} AS email,
 				m.website,
 				m.photo,
 				m.sensitive,

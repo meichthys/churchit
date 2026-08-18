@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.contacts import get_primary_emails
+
 
 class Group(Document):
 	def has_webform_permission(self):
@@ -25,7 +27,7 @@ class Group(Document):
 def create_email_group(group):
 	"""Create (or top up) a Frappe Email Group from this Person Group's members.
 
-	Pulls each member's Person.email into an Email Group named after the group so
+	Pulls each member's primary email into an Email Group named after the group so
 	the group can be used as a newsletter recipient list. Idempotent — the unique
 	(email_group, email) index means re-running just adds any new members.
 	"""
@@ -44,15 +46,20 @@ def create_email_group(group):
 	person_ids = [m.person for m in doc.members if m.person]
 	emails, missing = [], []
 	if person_ids:
-		for row in frappe.get_all(
-			"Person",
-			filters={"name": ["in", person_ids]},
-			fields=["name", "full_name", "email"],
-		):
-			if row.email:
-				emails.append(row.email)
+		by_person = get_primary_emails("Person", person_ids)
+		names = dict(
+			frappe.get_all(
+				"Person",
+				filters={"name": ["in", person_ids]},
+				fields=["name", "full_name"],
+				as_list=True,
+			)
+		)
+		for person in person_ids:
+			if by_person.get(person):
+				emails.append(by_person[person])
 			else:
-				missing.append(row.full_name or row.name)
+				missing.append(names.get(person) or person)
 
 	if emails:
 		add_subscribers(email_group, emails)

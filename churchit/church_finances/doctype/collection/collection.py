@@ -4,12 +4,28 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.contacts import get_primary_emails
+
 
 class Collection(Document):
 	def before_save(self):
 		parts = [self.function or "", str(self.date or "")]
 		self.title = " - ".join(p for p in parts if p)
 		self.update_totals()
+		self.set_donor_emails()
+
+	def set_donor_emails(self):
+		"""Copy each giver's primary email onto their Donation row.
+
+		The Donation Acknowledgment notification reads ``person_email`` off the
+		rows it walks. This used to be a ``fetch_from`` on ``person.email``, which
+		stopped working when emails moved to a child table, because Frappe can
+		fetch across a Link but not into the linked record's own child rows.
+		"""
+		people = [d.person for d in self.donations if d.person]
+		by_person = get_primary_emails("Person", people)
+		for donation in self.donations:
+			donation.person_email = by_person.get(donation.person) if donation.person else None
 
 	def update_totals(self):
 		# Recalculate entered total

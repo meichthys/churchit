@@ -5,3 +5,4 @@
 
 # Patches added in this section will be executed after doctypes are migrated
 [post_model_sync]
+churchit.patches.v1_0.migrate_contact_fields_to_child_tables

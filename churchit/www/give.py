@@ -5,6 +5,8 @@ import frappe
 from frappe import _
 from frappe.utils import flt, get_fullname, get_url
 
+from churchit.contacts import get_primary_email
+
 no_cache = 1
 
 
@@ -40,11 +42,11 @@ def get_context(context):
 	context.donor_email = ""
 	if context.is_logged_in:
 		person = frappe.db.get_value(
-			"Person", {"user": frappe.session.user}, ["full_name", "email"], as_dict=True
+			"Person", {"user": frappe.session.user}, ["name", "full_name"], as_dict=True
 		)
 		if person:
 			context.donor_name = person.full_name or ""
-			context.donor_email = person.email or ""
+			context.donor_email = get_primary_email("Person", person.name) or ""
 		if not context.donor_name:
 			context.donor_name = get_fullname(frappe.session.user)
 		if not context.donor_email:

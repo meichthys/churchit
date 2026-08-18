@@ -1,9 +1,13 @@
 # Copyright (c) 2025, meichthys and contributors
 # For license information, please see license.txt
 
+import contextlib
+
 import frappe
 from frappe import _
 from frappe.utils import cint
+
+from churchit.contacts import get_primary_email, get_primary_emails
 
 MEMBER_EMAIL_GROUP = "Church Members"
 
@@ -13,28 +17,49 @@ def sync_member_email_group():
 	"""Pull email addresses from Person records into the church newsletter
 	Email Group so the recipient list never has to be maintained by hand.
 
-	Uses Frappe's native ``Email Group.import_from()``, which reads the
-	Email-type field on Person and inserts an Email Group Member per address.
-	The unique index on (email_group, email) makes re-running idempotent, and
-	anyone who unsubscribed via a newsletter link is left untouched on
-	subsequent syncs.
+	Each Person contributes the one address marked primary in their Emails
+	table, since a member's work address is not newsletter material unless they
+	made it their primary. Re-running only adds addresses that are not already in
+	the group, so anyone who unsubscribed via a newsletter link stays unsubscribed.
 	"""
 	if not frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
 		return
-	frappe.get_doc("Email Group", MEMBER_EMAIL_GROUP).import_from("Person")
+
+	people = frappe.get_all("Person", pluck="name")
+	emails = set(get_primary_emails("Person", people).values())
+	if not emails:
+		return
+
+	existing = set(
+		frappe.get_all(
+			"Email Group Member",
+			filters={"email_group": MEMBER_EMAIL_GROUP, "email": ("in", list(emails))},
+			pluck="email",
+		)
+	)
+
+	for email in sorted(emails - existing):
+		with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
+			frappe.get_doc(
+				{
+					"doctype": "Email Group Member",
+					"email_group": MEMBER_EMAIL_GROUP,
+					"email": email,
+				}
+			).insert(ignore_permissions=True)
 
 
 def _current_subscriber_email():
 	"""Return the email address to manage for the logged-in user.
 
-	Prefers the linked Person's email, falling back to the User's own email.
-	Returns ``None`` for guests or users with no email on file.
+	Prefers the linked Person's primary email, falling back to the User's own
+	email. Returns ``None`` for guests or users with no email on file.
 	"""
 	user = frappe.session.user
 	if user == "Guest":
 		return None
 	person = frappe.db.get_value("Person", {"user": user}, "name")
-	email = frappe.db.get_value("Person", person, "email") if person else None
+	email = get_primary_email("Person", person) if person else None
 	return email or frappe.db.get_value("User", user, "email")
 
 

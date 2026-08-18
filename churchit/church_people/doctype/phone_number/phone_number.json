@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2026-08-17 00:00:00.000000",
+ "description": "One phone number on a Person, Family or Missionary.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["phone_number", "phone_type", "is_primary"],
+ "fields": [
+  {
+   "columns": 5,
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Phone Number",
+   "options": "Phone",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "default": "Mobile",
+   "fieldname": "phone_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Phone Type",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "description": "The number used when the church calls or texts this record.",
+   "fieldname": "is_primary",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-17 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Phone Number",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}
