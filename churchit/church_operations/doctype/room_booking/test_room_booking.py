@@ -28,7 +28,13 @@ class TestRoomBooking(FrappeTestCase):
 		self.requester = _ensure("Person", {"first_name": "_Test Booker"}, {"first_name": "_Test Booker"})
 
 	def tearDown(self):
+		# Bookings outlive the per-test rollback, so clear them here or the conflict
+		# check trips on slots left behind by earlier tests in the same run.
 		frappe.set_user("Administrator")
+		for name in frappe.get_all(
+			"Room Booking", filters={"room": ["in", [self.gated_room, self.open_room]]}, pluck="name"
+		):
+			frappe.delete_doc("Room Booking", name, force=True, ignore_permissions=True)
 
 	def _make_booking(self, room, hour=9, **values):
 		return frappe.get_doc(
