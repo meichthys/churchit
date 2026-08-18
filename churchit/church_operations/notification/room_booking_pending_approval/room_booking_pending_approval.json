@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.status == \"Requested\" and frappe.db.get_value(\"Room\", doc.room, \"requires_approval\")",
+ "creation": "2026-05-29 00:00:00",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Room Booking",
+ "enabled": 0,
+ "event": "New",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>A room booking is waiting for approval:</p>\n\n<ul>\n  <li><strong>Room:</strong> {{ doc.room }}</li>\n  <li><strong>Requester:</strong> {{ doc.requester }}</li>\n  <li><strong>Purpose:</strong> {{ doc.purpose }}</li>\n  <li><strong>Start:</strong> {{ frappe.utils.format_datetime(doc.start_datetime) }}</li>\n  <li><strong>End:</strong> {{ frappe.utils.format_datetime(doc.end_datetime) }}</li>\n  {% if doc.function %}<li><strong>Function:</strong> {{ doc.function }}</li>{% endif %}\n</ul>\n\n{% if doc.notes %}<p>{{ doc.notes }}</p>{% endif %}\n\n<p>Please review and approve in the system.</p>",
+ "modified": "2026-08-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Room Booking Pending Approval",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Church Manager"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "Room booking pending approval: {{ doc.room }}"
+}
