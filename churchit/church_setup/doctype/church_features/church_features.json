@@ -1,0 +1,179 @@
+{
+ "actions": [],
+ "creation": "2026-08-24 00:00:00",
+ "description": "Turn churchit modules on or off for this church. Disabled modules are hidden from the desk.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "features_intro",
+  "section_modules",
+  "enable_people",
+  "enable_foundations",
+  "enable_ministries",
+  "enable_prayers",
+  "column_break_features_1",
+  "enable_study",
+  "enable_communications",
+  "enable_missions",
+  "enable_operations",
+  "column_break_features_2",
+  "enable_finances",
+  "enable_website",
+  "enable_setup",
+  "enable_customizations",
+  "section_state",
+  "managed_records"
+ ],
+ "fields": [
+  {
+   "fieldname": "features_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its icon in the app switcher for everyone, and drops its dashboards, charts and number cards from the desk. Nothing is deleted and no permissions change, so records stay reachable by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was.</p>"
+  },
+  {
+   "fieldname": "section_modules",
+   "fieldtype": "Section Break",
+   "label": "Modules"
+  },
+  {
+   "default": "1",
+   "description": "People, families, groups, care requests and visitation.",
+   "fieldname": "enable_people",
+   "fieldtype": "Check",
+   "label": "People"
+  },
+  {
+   "default": "1",
+   "description": "The church record, statement of beliefs and their scripture references.",
+   "fieldname": "enable_foundations",
+   "fieldtype": "Check",
+   "label": "Foundations"
+  },
+  {
+   "default": "1",
+   "description": "Ministries, functions, scheduling, sign-ups, check-in and counseling.",
+   "fieldname": "enable_ministries",
+   "fieldtype": "Check",
+   "label": "Ministries"
+  },
+  {
+   "default": "1",
+   "description": "Prayer requests, prayer topics and answered prayer tracking.",
+   "fieldname": "enable_prayers",
+   "fieldtype": "Check",
+   "label": "Prayers"
+  },
+  {
+   "fieldname": "column_break_features_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Sermons, sermon series, presentations, Bible references and memory work.",
+   "fieldname": "enable_study",
+   "fieldtype": "Check",
+   "label": "Study"
+  },
+  {
+   "default": "1",
+   "description": "Letters, slides and newsletters.",
+   "fieldname": "enable_communications",
+   "fieldtype": "Check",
+   "label": "Communications"
+  },
+  {
+   "default": "1",
+   "description": "Missionaries, agencies and support schedules.",
+   "fieldname": "enable_missions",
+   "fieldtype": "Check",
+   "label": "Missions"
+  },
+  {
+   "default": "1",
+   "description": "Assets, rooms, bookings, tasks, locations and meeting minutes.",
+   "fieldname": "enable_operations",
+   "fieldtype": "Check",
+   "label": "Operations"
+  },
+  {
+   "fieldname": "column_break_features_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Collections, donations, funds, budgets, expenses and online giving.",
+   "fieldname": "enable_finances",
+   "fieldtype": "Check",
+   "label": "Finances"
+  },
+  {
+   "default": "1",
+   "description": "Desk tools for the public website. Does not take the public site offline.",
+   "fieldname": "enable_website",
+   "fieldtype": "Check",
+   "label": "Web Site"
+  },
+  {
+   "default": "1",
+   "description": "The Welcome workspace and onboarding. The Settings workspace always stays visible so this page remains reachable.",
+   "fieldname": "enable_setup",
+   "fieldtype": "Check",
+   "label": "Setup"
+  },
+  {
+   "default": "1",
+   "description": "Developer and administrator tooling. Its workspaces ship hidden already, so this mainly affects its dashboards and charts.",
+   "fieldname": "enable_customizations",
+   "fieldtype": "Check",
+   "label": "Customizations"
+  },
+  {
+   "fieldname": "section_state",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "description": "Internal bookkeeping: the records this page hid, so re-enabling only restores what it changed.",
+   "fieldname": "managed_records",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Managed Records",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-24 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Church Features",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

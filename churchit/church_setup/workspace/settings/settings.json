@@ -1,7 +1,7 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"setup_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Application Settings</span>\",\"col\":12}},{\"id\":\"2TvKGfkiZj\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"1cLuGOAo_8\",\"type\":\"card\",\"data\":{\"card_name\":\"Import/Export\",\"col\":4}},{\"id\":\"tV_3YiGiYe\",\"type\":\"card\",\"data\":{\"card_name\":\"Backups\",\"col\":4}},{\"id\":\"rcKwF32x0K\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"JUS_PLDjed\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"a_ckFJIueu\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"ZuomdDZ0op\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial\",\"col\":4}},{\"id\":\"O5LCZuJL7O\",\"type\":\"card\",\"data\":{\"card_name\":\"Website Settings\",\"col\":4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"setup_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Application Settings</span>\",\"col\":12}},{\"id\":\"2TvKGfkiZj\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"1cLuGOAo_8\",\"type\":\"card\",\"data\":{\"card_name\":\"Import/Export\",\"col\":4}},{\"id\":\"tV_3YiGiYe\",\"type\":\"card\",\"data\":{\"card_name\":\"Backups\",\"col\":4}},{\"id\":\"rcKwF32x0K\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"JUS_PLDjed\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"a_ckFJIueu\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"ZuomdDZ0op\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial\",\"col\":4}},{\"id\":\"O5LCZuJL7O\",\"type\":\"card\",\"data\":{\"card_name\":\"Website Settings\",\"col\":4}},{\"id\":\"Vger5bmrWB\",\"type\":\"card\",\"data\":{\"card_name\":\"Churchit Modules\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.898779",
  "custom_blocks": [
   {
@@ -290,9 +290,28 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Churchit Modules",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Enable/Disable Churchit Features",
+   "link_count": 0,
+   "link_to": "Church Features",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-31 16:52:07.422957",
+ "modified": "2026-08-23 18:50:54.890020",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",

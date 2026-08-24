@@ -139,6 +139,10 @@ website_redirects = [
 after_install = "churchit.patches.after_install.execute"
 after_sync = "churchit.patches.after_install.after_sync"
 
+# Workspaces and Desktop Icons ship as standard records, so migrate re-imports
+# them and resets the visibility flags Church Features set. Re-apply them.
+after_migrate = "churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"
+
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
 setup_wizard_complete = [
