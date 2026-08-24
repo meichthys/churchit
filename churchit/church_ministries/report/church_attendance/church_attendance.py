@@ -1,6 +1,9 @@
 import frappe
+from pypika import Order
 
 from churchit.utils import set_report_link_titles
+
+COUNTED_TYPES = ("Confirmed", "Assumed")
 
 
 def execute(filters=None):
@@ -21,21 +24,28 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabFunction Attendance`.person,
-			`tabFunction`.function_name,
-			`tabFunction`.type,
-			`tabFunction Attendance`.attendance_type,
-			`tabFunction`.name
-		FROM `tabFunction Attendance`
-		INNER JOIN `tabFunction` ON `tabFunction`.name = `tabFunction Attendance`.parent
-		WHERE `tabFunction Attendance`.person IS NOT NULL
-			AND `tabFunction Attendance`.attendance_type IN (
-				SELECT name FROM `tabFunction Attendance Type` WHERE type IN ('Confirmed', 'Assumed')
-			)
-		ORDER BY `tabFunction`.modified DESC
-		""",
-		as_dict=True,
+	Attendance = frappe.qb.DocType("Function Attendance")
+	Function = frappe.qb.DocType("Function")
+	AttendanceType = frappe.qb.DocType("Function Attendance Type")
+
+	counted = (
+		frappe.qb.from_(AttendanceType)
+		.select(AttendanceType.name)
+		.where(AttendanceType.type.isin(list(COUNTED_TYPES)))
+	)
+
+	return (
+		frappe.qb.from_(Attendance)
+		.join(Function)
+		.on(Function.name == Attendance.parent)
+		.select(
+			Attendance.person,
+			Function.function_name,
+			Function.type,
+			Attendance.attendance_type,
+			Function.name,
+		)
+		.where(Attendance.person.isnotnull() & Attendance.attendance_type.isin(counted))
+		.orderby(Function.modified, order=Order.desc)
+		.run(as_dict=True)
 	)

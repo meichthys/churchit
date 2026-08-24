@@ -1,5 +1,6 @@
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder.functions import Coalesce, Sum
 
 from churchit.utils import resolve_link_titles
 
@@ -74,22 +75,15 @@ def get_function_items(doctype, txt, searchfield, start, page_len, filters):
 	function = (filters or {}).get("function")
 	if not function:
 		return []
-	return frappe.db.sql(
-		"""
-		SELECT fsi.item
-		FROM `tabFunction Sign-Up Item` fsi
-		WHERE fsi.parent = %(function)s
-		  AND fsi.parenttype = 'Function'
-		  AND fsi.item LIKE %(txt)s
-		ORDER BY fsi.idx ASC
-		LIMIT %(start)s, %(page_len)s
-		""",
-		{
-			"function": function,
-			"txt": f"%{txt or ''}%",
-			"start": start or 0,
-			"page_len": page_len or 20,
-		},
+	Item = frappe.qb.DocType("Function Sign-Up Item")
+	return (
+		frappe.qb.from_(Item)
+		.select(Item.item)
+		.where((Item.parent == function) & (Item.parenttype == "Function") & Item.item.like(f"%{txt or ''}%"))
+		.orderby(Item.idx)
+		.limit(page_len or 20)
+		.offset(start or 0)
+		.run()
 	)
 
 
@@ -110,20 +104,20 @@ def get_item_status(function, item, exclude_sign_up=None):
 		"quantity_needed",
 	)
 
-	query = """
-		SELECT COALESCE(SUM(fsi.my_quantity), 0) AS total
-		FROM `tabFunction Sign-Up Item` fsi
-		INNER JOIN `tabFunction Sign-Up` fs ON fs.name = fsi.parent
-		WHERE fs.function = %(function)s
-		  AND fsi.parenttype = 'Function Sign-Up'
-		  AND fsi.item = %(item)s
-	"""
-	params = {"function": function, "item": item}
-	if exclude_sign_up:
-		query += " AND fs.name != %(exclude)s"
-		params["exclude"] = exclude_sign_up
+	Item = frappe.qb.DocType("Function Sign-Up Item")
+	SignUp = frappe.qb.DocType("Function Sign-Up")
 
-	result = frappe.db.sql(query, params, as_dict=True)
+	query = (
+		frappe.qb.from_(Item)
+		.join(SignUp)
+		.on(SignUp.name == Item.parent)
+		.select(Coalesce(Sum(Item.my_quantity), 0).as_("total"))
+		.where((SignUp.function == function) & (Item.parenttype == "Function Sign-Up") & (Item.item == item))
+	)
+	if exclude_sign_up:
+		query = query.where(SignUp.name != exclude_sign_up)
+
+	result = query.run(as_dict=True)
 	qty_signed_up = (result[0].total if result else 0) or 0
 
 	return {
@@ -144,20 +138,20 @@ def get_function_item_totals(function, exclude_sign_up=None):
 		fields=["item", "quantity_needed"],
 	)
 
-	query = """
-		SELECT fsi.item, COALESCE(SUM(fsi.my_quantity), 0) AS total
-		FROM `tabFunction Sign-Up Item` fsi
-		INNER JOIN `tabFunction Sign-Up` fs ON fs.name = fsi.parent
-		WHERE fs.function = %(function)s
-		  AND fsi.parenttype = 'Function Sign-Up'
-	"""
-	params = {"function": function}
-	if exclude_sign_up:
-		query += " AND fs.name != %(exclude)s"
-		params["exclude"] = exclude_sign_up
-	query += " GROUP BY fsi.item"
+	Item = frappe.qb.DocType("Function Sign-Up Item")
+	SignUp = frappe.qb.DocType("Function Sign-Up")
 
-	totals = {row.item: int(row.total or 0) for row in frappe.db.sql(query, params, as_dict=True)}
+	query = (
+		frappe.qb.from_(Item)
+		.join(SignUp)
+		.on(SignUp.name == Item.parent)
+		.select(Item.item, Coalesce(Sum(Item.my_quantity), 0).as_("total"))
+		.where((SignUp.function == function) & (Item.parenttype == "Function Sign-Up"))
+	)
+	if exclude_sign_up:
+		query = query.where(SignUp.name != exclude_sign_up)
+
+	totals = {row.item: int(row.total or 0) for row in query.groupby(Item.item).run(as_dict=True)}
 
 	return {
 		row.item: {

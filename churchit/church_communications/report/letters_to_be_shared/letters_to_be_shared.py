@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Coalesce
 
 from churchit.utils import set_report_link_titles
 
@@ -22,19 +23,19 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabLetter`.parenttype,
-			`tabLetter`.parent,
-			`tabLetter`.date,
-			`tabLetter`.is_private,
-			COALESCE(`tabLetter`.file, ''),
-			`tabLetter`.content,
-			`tabLetter`.name
-		FROM `tabLetter`
-		WHERE `tabLetter`.share_with_church = 1
-			AND `tabLetter`.shared_date IS NULL
-		""",
-		as_dict=True,
+	Letter = frappe.qb.DocType("Letter")
+
+	return (
+		frappe.qb.from_(Letter)
+		.select(
+			Letter.parenttype,
+			Letter.parent,
+			Letter.date,
+			Letter.is_private,
+			Coalesce(Letter.file, "").as_("file"),
+			Letter.content,
+			Letter.name,
+		)
+		.where((Letter.share_with_church == 1) & Letter.shared_date.isnull())
+		.run(as_dict=True)
 	)

@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Sum
 
 from churchit.utils import set_report_link_titles
 
@@ -23,24 +24,25 @@ def get_columns():
 
 
 def get_data(filters):
-	filters = filters or {}
-	values = {"parent_filter": filters.get("parent_filter")}
+	parent_filter = (filters or {}).get("parent_filter")
 
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabDonation`.parent as collection,
-			`tabDonation`.fund,
-			`tabDonation`.person,
-			`tabDonation`.payment_type,
-			`tabDonation`.check_number,
-			sum(`tabDonation`.amount) as amount,
-			`tabDonation`.notes
-		FROM `tabDonation`
-		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
-		WHERE `tabDonation`.parent = %(parent_filter)s
-		GROUP BY check_number
-		""",
-		values,
-		as_dict=True,
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
+
+	return (
+		frappe.qb.from_(Donation)
+		.join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(
+			Donation.parent.as_("collection"),
+			Donation.fund,
+			Donation.person,
+			Donation.payment_type,
+			Donation.check_number,
+			Sum(Donation.amount).as_("amount"),
+			Donation.notes,
+		)
+		.where(Donation.parent == parent_filter)
+		.groupby(Donation.check_number)
+		.run(as_dict=True)
 	)

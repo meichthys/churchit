@@ -1,6 +1,10 @@
 import frappe
+from frappe.query_builder.functions import Count, Min
+from frappe.utils import cint
+from pypika import Interval, Order
 
-from churchit.contacts import primary_email_sql, primary_phone_sql
+from churchit.contacts import primary_email_query, primary_phone_query
+from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
 
 
@@ -24,37 +28,38 @@ def get_columns():
 
 
 def get_data(filters=None):
-	days = (filters or {}).get("days", 60)
-	return frappe.db.sql(
-		f"""
-		SELECT
-			p.name,
-			p.creation,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			(
-				SELECT fa2.parent
-				FROM `tabFunction Attendance` fa2
-				JOIN `tabFunction` f2 ON f2.name = fa2.parent
-				WHERE fa2.person = p.name
-				ORDER BY f2.start_date ASC LIMIT 1
-			) AS first_visit,
-			(
-				SELECT MIN(f2.start_date)
-				FROM `tabFunction Attendance` fa2
-				JOIN `tabFunction` f2 ON f2.name = fa2.parent
-				WHERE fa2.person = p.name
-			) AS first_visit_date,
-			(
-				SELECT COUNT(*)
-				FROM `tabFunction Attendance` fa3
-				WHERE fa3.person = p.name
-			) AS visit_count
-		FROM `tabPerson` p
-		WHERE p.membership_status IS NULL
-			AND p.creation >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
-		ORDER BY p.creation DESC
-		""",
-		(days,),
-		as_dict=True,
+	days = cint((filters or {}).get("days", 60)) or 60
+
+	Person = frappe.qb.DocType("Person")
+	Attendance = frappe.qb.DocType("Function Attendance")
+	Function = frappe.qb.DocType("Function")
+
+	def attended():
+		return (
+			frappe.qb.from_(Attendance)
+			.join(Function)
+			.on(Function.name == Attendance.parent)
+			.where(Attendance.person == Person.name)
+		)
+
+	first_visit = attended().select(Attendance.parent).orderby(Function.start_date).limit(1)
+	first_visit_date = attended().select(Min(Function.start_date))
+	visit_count = (
+		frappe.qb.from_(Attendance).select(Count("*")).where(Attendance.person == Person.name)
+	)
+
+	return (
+		frappe.qb.from_(Person)
+		.select(
+			Person.name,
+			Person.creation,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			first_visit.as_("first_visit"),
+			first_visit_date.as_("first_visit_date"),
+			visit_count.as_("visit_count"),
+		)
+		.where(Person.membership_status.isnull() & (Person.creation >= CurDate() - Interval(days=days)))
+		.orderby(Person.creation, order=Order.desc)
+		.run(as_dict=True)
 	)

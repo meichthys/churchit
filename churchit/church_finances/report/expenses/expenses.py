@@ -1,4 +1,5 @@
 import frappe
+from pypika import Order
 
 from churchit.utils import set_report_link_titles
 
@@ -21,12 +22,12 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT name, type, notes, date, amount
-		FROM `tabExpense`
-		WHERE docstatus < 2
-		ORDER BY date DESC
-		""",
-		as_dict=True,
+	Expense = frappe.qb.DocType("Expense")
+
+	return (
+		frappe.qb.from_(Expense)
+		.select(Expense.name, Expense.type, Expense.notes, Expense.date, Expense.amount)
+		.where(Expense.docstatus < 2)
+		.orderby(Expense.date, order=Order.desc)
+		.run(as_dict=True)
 	)

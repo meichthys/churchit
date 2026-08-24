@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.query import CurDate, DayOfWeek, Month, Week
 from churchit.utils import set_report_link_titles
 
 
@@ -18,18 +19,24 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT p.name, le.date AS birthday
-		FROM `tabPerson` p
-		JOIN `tabLife Event` le
-			ON le.parent = p.name
-			AND le.parenttype = 'Person'
-			AND le.event_type = 'Birth'
-		WHERE le.date IS NOT NULL
-			AND WEEK(le.date, 1) = WEEK(CURDATE(), 1)
-			AND MONTH(le.date) = MONTH(CURDATE())
-		ORDER BY DAYOFWEEK(le.date), p.full_name
-		""",
-		as_dict=True,
+	Person = frappe.qb.DocType("Person")
+	LifeEvent = frappe.qb.DocType("Life Event")
+
+	return (
+		frappe.qb.from_(Person)
+		.join(LifeEvent)
+		.on(
+			(LifeEvent.parent == Person.name)
+			& (LifeEvent.parenttype == "Person")
+			& (LifeEvent.event_type == "Birth")
+		)
+		.select(Person.name, LifeEvent.date.as_("birthday"))
+		.where(
+			LifeEvent.date.isnotnull()
+			& (Week(LifeEvent.date, 1) == Week(CurDate(), 1))
+			& (Month(LifeEvent.date) == Month(CurDate()))
+		)
+		.orderby(DayOfWeek(LifeEvent.date))
+		.orderby(Person.full_name)
+		.run(as_dict=True)
 	)

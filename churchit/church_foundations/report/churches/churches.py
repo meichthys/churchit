@@ -19,10 +19,8 @@ def get_columns():
 
 
 def get_data():
-	churches = frappe.db.sql(
-		"SELECT name FROM `tabChurch` ORDER BY name",
-		as_dict=True,
-	)
+	Church = frappe.qb.DocType("Church")
+	churches = frappe.qb.from_(Church).select(Church.name).orderby(Church.name).run(as_dict=True)
 	people_count = frappe.db.count("Person")
 	families_count = frappe.db.count("Family")
 	for church in churches:

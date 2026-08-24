@@ -1,8 +1,5 @@
 [![Discord](https://img.shields.io/discord/1513373810685116466?logo=discord&label=Discord)](https://discord.gg/AJHKHQXp) [![Matrix](https://img.shields.io/matrix/the-church-app%3Amatrix.org?label=Matrix%20Chat)](https://matrix.to/#/#the-church-app:matrix.org) [![Static Badge](https://img.shields.io/badge/YouTube%20-%20red?style=flat)](https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg) [![GitHub License](https://img.shields.io/github/license/meichthys/churchit)](https://github.com/meichthys/churchit?tab=readme-ov-file#-license-mit) ![GitHub contributors](https://img.shields.io/github/contributors/meichthys/churchit) ![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/churchit) [![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://church.meichthys.com)
 
-> [!WARNING]
-> This app is not ready for production. Large changes should be expected until a 1.0.0 version is released.
-
 > [!NOTE]
 > **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/AJHKHQXp)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/churchit/issues/new).
 
@@ -102,63 +99,47 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Built-in documentation for each module
 - Guided setup/onboarding
 
-## 📥 Installing Frappe
-
-To use the 'Churchit' app, you must have a working Frappe environment first. There are a variety of ways to install a Frappe instance.
-  If you are running a Frappe v15 environment, then use the `version-15` branch.
-  If you are running a Frappe v16 environment, then use the `version-16` branch
-
-The recommended ways for installig this project are:
-
-### ☁️ In the Cloud
-The easiest (but not free) way to get a working Frappe environment is to use [Frappe Cloud](https://frappe.io/cloud). For a few dollars per month you can run an instance in the cloud. You get your choice of support options and shouldn't need to worry about data loss yourself.
-Note: With this option, the money you pay to FrappeCloud is not received by maintainers of this 'Churchit' app. - We offer the 'Churchit' software for free, but you pay the cloud hosting costs to [Frappe](https://frappe.io/).
-
-### 💪 Self-Host
-If you're the more technical and/or frugal type, you can self-host an instance of the Churchit app on a home pc or server. [Frappe Manager](https://github.com/rtcamp/frappe-manager) can be used to quickly setup a local frappe instance. It's not as easy as a simple app install, but we think you can do it (Please ask us for help if you can't)! The general steps are:
-
-1. Find a machine onto which you can install Frappe (A dedicated linux-based machine is best. Windows is possible, but is not recommended as it requires some extra steps and the use of [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).)
-2. Run the [frappe-manager install script](https://github.com/rtCamp/Frappe-Manager/tree/develop/scripts)
-3. Create a new site using frappe-manager: `fm create -e prod <church.your_site.com>`.
-4. Update DNS records to point to your new site. This is a bit outside the scope of this project, but basically you need to either update your hosts file to map your site url (used in the above command) to the ip address of the machine hosting the frappe instance. Alternatively, you can update your DNS server on your router to point to your new site. If you need help with this, you can file an issue and I'd be glad to schedule a call to try to help you set it up.
-
-Making a local instance of frappe accessible from outside of your network is currently out of the scope of this project, but with some persistence and some technical expertise, it can be achieved. If you are completely lost or uncomfortable with this, it may be best to use the Frappe Cloud option above, or contact us for help. We'd be glad to help where we can.
-
-## ⛪ Installing this Churchit app
+## 📥 Installing Churchit
 
 **To install the Churchit app via the Frappe Marketplace (easiest, requires Frappe Cloud):**
   1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
   2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Churchit" from **Marketplace** in the sidebar).
   3. Click **Install**, then choose the site you want to install it on.
-  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` app under **Help > About**.
+  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` icons in the desk.
 
   Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**).
 
 **To install the Churchit app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
-Activate the [bench](https://github.com/frappe/bench) environment with `fm shell` and then run the following:
+If you're the more technical and/or frugal type, you can self-host an instance of the Churchit app on a home pc or server. [Frappe Manager](https://github.com/rtcamp/frappe-manager) can be used to quickly setup a local frappe instance. It's not as easy as a simple app install, but we think you can do it (Please ask us for help if you can't)! The general steps are:
 
-  ```bash
-  # Set the bench command to use your site (Replace `<church.your_site.com>` with your actual site name):
-  bench use <church.your_site.com>
+1. Find a machine onto which you can install Frappe (A dedicated linux-based machine is best. Windows is possible, but is not recommended as it requires some extra steps and the use of [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).)
+2. Run the [frappe-manager install script](https://github.com/rtCamp/Frappe-Manager/tree/develop/scripts)
+3. Create a new site using frappe-manager: `fm create -e prod <church.your_site.com>`.
+4. (Only required if you want to access the site remotely): Update DNS records to point to your new site. This is a bit outside the scope of this project, but basically you need to either update your hosts file to map your site url (used in the above command) to the ip address of the machine hosting the frappe instance. Alternatively, you can update your DNS server on your router to point to your new site. If you need help with this, you can file an issue and I'd be glad to schedule a call to try to help you set it up. Making a local instance of frappe accessible from outside of your network is currently out of the scope of this project, but with some persistence and some technical expertise, it can be achieved. If you are completely lost or uncomfortable with this, it may be best to use the Frappe Cloud option above, or contact us for help. We'd be glad to help where we can.
 
-  # Download the app:
-  bench get-app https://github.com/meichthys/churchit
-  ## Or if you want to try the latest development version:
-  bench get-app https://github.com/meichthys/churchit --branch develop
+5. Activate the frappe bench environment with `fm shell` and then run the following:
 
-  # Install the app:
-  bench install-app churchit
+    ```bash
+    # Set the bench command to use your site (Replace `<church.your_site.com>` with your actual site name):
+    bench use <church.your_site.com>
 
-  # Migrate the app for good measure:
-  bench migrate
+    # Download the app:
+    bench get-app https://github.com/meichthys/churchit
+    ## Or if you want to try the latest development version:
+    bench get-app https://github.com/meichthys/churchit --branch develop
 
-  # In the future, to update the app to the latest version, log into the host server and run:
-  fm shell
-  bench update
-  bench migrate
-  ```
+    # Install the app:
+    bench install-app churchit
 
-After the above installation you should be able to access the web interface using the URL you defined in the `bench create` command above. You should see the `Churchit` app installed when you view `Help > About`.
+    # Migrate the app for good measure:
+    bench migrate
+
+    # In the future, to update the app to the latest version, log into the host server and run:
+    fm shell
+    bench update
+    bench migrate
+    ```
+6. You should be able to access the web interface using the URL you defined in the `bench create` command above.
 
 Before you start using the app be sure to:
 
@@ -179,18 +160,16 @@ Hopefully this roadmap will help avoid too much scope creep and provide a sense 
   - Show tracked giving
   - Show tracked attendance
     - Allow updating attendance status(?)
-- Add Onboarding Tours
-  - Add 'Tutorial' button to each doctype form
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/AJHKHQXp) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
 
 
-# AI Policy
+# 🤖 AI Policy
 
-Disclaimer:Some AI was used in the development of this app (mostly just SQL queries & client scripts).
+Disclaimer:This app was developed pre-AI but AI is used in current development of Churchit.
 
-- AI generated/heavily-assisted pull-requests will likely be rejected or de-prioritized.
+- Fully automated AI pull-requests without personal input will likely be rejected or de-prioritized.
 
 # 🤝 Contributing
 
@@ -295,8 +274,24 @@ churchit.patches.v2_0.remove_old_attendance_type
 ```
 
 
-# 🔑 License: MIT
+# 🔑 License: MIT-0
 
->You can copy, translate, modify, and distribute this resource, without restriction, and without needing to ask permission. This resource is freely given (Matt 10:8) for the sake of the gospel.
+```
+MIT No Attribution
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
 
 [![Freely given](churchit/public/media/freely_given.svg)](https://sellingjesus.org)
+`This resource is freely given (Matt 10:8) for the sake of the gospel`

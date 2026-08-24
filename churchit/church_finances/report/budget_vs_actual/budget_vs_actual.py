@@ -1,5 +1,8 @@
 import frappe
+from frappe.query_builder.functions import Sum
 from frappe.utils import getdate, nowdate
+
+from churchit.query import Date
 
 
 def execute(filters=None):
@@ -60,15 +63,12 @@ def get_data(filters):
 
 
 def _get_actuals(start, end):
-	rows = frappe.db.sql(
-		"""
-		SELECT e.type AS expense_type, SUM(e.amount) AS total
-		FROM `tabExpense` e
-		WHERE e.docstatus = 1
-		  AND DATE(e.date) BETWEEN %s AND %s
-		GROUP BY e.type
-		""",
-		(start, end),
-		as_dict=True,
+	Expense = frappe.qb.DocType("Expense")
+	rows = (
+		frappe.qb.from_(Expense)
+		.select(Expense.type.as_("expense_type"), Sum(Expense.amount).as_("total"))
+		.where((Expense.docstatus == 1) & Date(Expense.date)[start:end])
+		.groupby(Expense.type)
+		.run(as_dict=True)
 	)
 	return {r.expense_type: float(r.total or 0) for r in rows}

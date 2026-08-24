@@ -45,16 +45,18 @@ class RoomBooking(Document):
 	def check_conflicts(self):
 		if self.status in ("Denied", "Cancelled"):
 			return
-		conflicts = frappe.db.sql(
-			"""
-			SELECT name FROM `tabRoom Booking`
-			WHERE room = %s
-				AND name != %s
-				AND status IN ('Requested', 'Approved')
-				AND start_datetime < %s
-				AND end_datetime > %s
-			""",
-			(self.room, self.name or "", self.end_datetime, self.start_datetime),
+		Booking = frappe.qb.DocType("Room Booking")
+		conflicts = (
+			frappe.qb.from_(Booking)
+			.select(Booking.name)
+			.where(
+				(Booking.room == self.room)
+				& (Booking.name != (self.name or ""))
+				& Booking.status.isin(["Requested", "Approved"])
+				& (Booking.start_datetime < self.end_datetime)
+				& (Booking.end_datetime > self.start_datetime)
+			)
+			.run()
 		)
 		if conflicts:
 			frappe.throw(f"Room is already booked at that time (conflicts with: {', '.join(c[0] for c in conflicts)}).")

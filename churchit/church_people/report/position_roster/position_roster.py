@@ -1,6 +1,7 @@
 import frappe
 
-from churchit.contacts import primary_email_sql, primary_phone_sql
+from churchit.contacts import primary_email_query, primary_phone_query
+from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
 
 
@@ -24,21 +25,28 @@ def get_columns():
 
 def get_data(filters=None):
 	only_active = (filters or {}).get("only_active", 1)
-	return frappe.db.sql(
-		f"""
-		SELECT
-			pos.position,
-			pos.parent AS person,
-			pos.start_date,
-			pos.end_date,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email
-		FROM `tabPosition` pos
-		LEFT JOIN `tabPerson` p ON p.name = pos.parent
-		WHERE pos.parenttype = 'Person'
-			AND (%(only_active)s = 0 OR pos.end_date IS NULL OR pos.end_date >= CURDATE())
-		ORDER BY pos.position, p.full_name
-		""",
-		{"only_active": 1 if only_active else 0},
-		as_dict=True,
+
+	Position = frappe.qb.DocType("Position")
+	Person = frappe.qb.DocType("Person")
+
+	query = (
+		frappe.qb.from_(Position)
+		.left_join(Person)
+		.on(Person.name == Position.parent)
+		.select(
+			Position.position,
+			Position.parent.as_("person"),
+			Position.start_date,
+			Position.end_date,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+		)
+		.where(Position.parenttype == "Person")
+		.orderby(Position.position)
+		.orderby(Person.full_name)
 	)
+
+	if only_active:
+		query = query.where(Position.end_date.isnull() | (Position.end_date >= CurDate()))
+
+	return query.run(as_dict=True)

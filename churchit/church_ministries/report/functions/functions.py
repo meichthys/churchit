@@ -1,4 +1,5 @@
 import frappe
+from pypika import Order
 
 from churchit.utils import set_report_link_titles
 
@@ -19,11 +20,11 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT name, function_name, type
-		FROM `tabFunction`
-		ORDER BY modified DESC
-		""",
-		as_dict=True,
+	Function = frappe.qb.DocType("Function")
+
+	return (
+		frappe.qb.from_(Function)
+		.select(Function.name, Function.function_name, Function.type)
+		.orderby(Function.modified, order=Order.desc)
+		.run(as_dict=True)
 	)

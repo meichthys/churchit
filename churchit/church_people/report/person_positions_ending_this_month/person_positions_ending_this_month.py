@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.query import CurDate, Month, Year
 from churchit.utils import set_report_link_titles
 
 
@@ -21,21 +22,27 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabPerson`.name,
-			`tabPosition`.position,
-			`tabPosition`.start_date,
-			`tabPosition`.end_date,
-			`tabPosition`.notes
-		FROM `tabPosition`
-		INNER JOIN `tabPerson` ON `tabPerson`.name = `tabPosition`.parent
-		WHERE `tabPosition`.parenttype = 'Person'
-			AND `tabPosition`.end_date IS NOT NULL
-			AND MONTH(`tabPosition`.end_date) = MONTH(CURDATE())
-			AND YEAR(`tabPosition`.end_date) = YEAR(CURDATE())
-		ORDER BY `tabPosition`.end_date, `tabPerson`.name
-		""",
-		as_dict=True,
+	Position = frappe.qb.DocType("Position")
+	Person = frappe.qb.DocType("Person")
+
+	return (
+		frappe.qb.from_(Position)
+		.join(Person)
+		.on(Person.name == Position.parent)
+		.select(
+			Person.name,
+			Position.position,
+			Position.start_date,
+			Position.end_date,
+			Position.notes,
+		)
+		.where(
+			(Position.parenttype == "Person")
+			& Position.end_date.isnotnull()
+			& (Month(Position.end_date) == Month(CurDate()))
+			& (Year(Position.end_date) == Year(CurDate()))
+		)
+		.orderby(Position.end_date)
+		.orderby(Person.name)
+		.run(as_dict=True)
 	)

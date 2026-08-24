@@ -6,13 +6,14 @@ now has ``emails``, ``phones`` and ``addresses`` child tables (see
 ``churchit.contacts``).
 
 Frappe leaves removed columns in place rather than dropping them, so the old
-values are still readable here with raw SQL even though the doctypes no longer
-declare the fields. Anything that has already been migrated is skipped, so this
+values are still readable here even though the doctypes no longer declare the
+fields. Anything that has already been migrated is skipped, so this
 is safe to re-run; once every site has migrated the leftover columns can be
 cleared out with ``bench --site <site> trim-tables``.
 """
 
 import frappe
+from pypika import Case
 
 from churchit.contacts import (
 	DEFAULT_ADDRESS_TYPE,
@@ -127,12 +128,11 @@ def _backfill_notification_addresses():
 	save, so the parent's validate hook never runs over them. Setting the column
 	here keeps Notifications aiming at exactly one address per record.
 	"""
-	frappe.db.sql(
-		"""
-		UPDATE `tabEmail Address`
-		SET notification_address = CASE WHEN is_primary = 1 THEN email_address ELSE NULL END
-		"""
-	)
+	Email = frappe.qb.DocType("Email Address")
+	frappe.qb.update(Email).set(
+		Email.notification_address,
+		Case().when(Email.is_primary == 1, Email.email_address).else_(None),
+	).run()
 
 
 # ---------------------------------------------------------------------------
@@ -153,11 +153,10 @@ def _read_legacy(doctype, columns):
 	if not available:
 		return []
 
-	selected = ", ".join(f"`{c}`" for c in available)
-	return frappe.db.sql(
-		f"SELECT `name`, {selected} FROM `tab{doctype}`",  # nosemgrep - column names are literals above
-		as_dict=True,
-	)
+	# The columns are gone from the doctype meta but still present on the table,
+	# so they are addressed positionally rather than through a DocType field.
+	table = frappe.qb.DocType(doctype)
+	return frappe.qb.from_(table).select(table.name, *(table[c] for c in available)).run(as_dict=True)
 
 
 def _add_email(parenttype, parent, email):

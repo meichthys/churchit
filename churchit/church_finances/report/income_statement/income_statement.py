@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Sum
 
 from churchit.utils import set_report_link_titles
 
@@ -23,34 +24,31 @@ def get_data(filters=None):
 	from_date = (filters or {}).get("from_date") or frappe.utils.add_months(frappe.utils.nowdate(), -12)
 	to_date = (filters or {}).get("to_date") or frappe.utils.nowdate()
 
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
+	Expense = frappe.qb.DocType("Expense")
+
 	income = {
 		r["fund"]: r["total"]
-		for r in frappe.db.sql(
-			"""
-			SELECT d.fund, SUM(d.amount) AS total
-			FROM `tabDonation` d
-			JOIN `tabCollection` c ON c.name = d.parent
-			WHERE c.docstatus = 1
-				AND c.date BETWEEN %s AND %s
-			GROUP BY d.fund
-			""",
-			(from_date, to_date),
-			as_dict=True,
+		for r in (
+			frappe.qb.from_(Donation)
+			.join(Collection)
+			.on(Collection.name == Donation.parent)
+			.select(Donation.fund, Sum(Donation.amount).as_("total"))
+			.where((Collection.docstatus == 1) & Collection.date[from_date:to_date])
+			.groupby(Donation.fund)
+			.run(as_dict=True)
 		)
 	}
 
 	expenses = {
 		r["fund"]: r["total"]
-		for r in frappe.db.sql(
-			"""
-			SELECT associated_fund AS fund, SUM(amount) AS total
-			FROM `tabExpense`
-			WHERE docstatus = 1
-				AND date BETWEEN %s AND %s
-			GROUP BY associated_fund
-			""",
-			(from_date, to_date),
-			as_dict=True,
+		for r in (
+			frappe.qb.from_(Expense)
+			.select(Expense.associated_fund.as_("fund"), Sum(Expense.amount).as_("total"))
+			.where((Expense.docstatus == 1) & Expense.date[from_date:to_date])
+			.groupby(Expense.associated_fund)
+			.run(as_dict=True)
 		)
 	}
 

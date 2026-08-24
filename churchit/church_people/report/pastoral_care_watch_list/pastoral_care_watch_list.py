@@ -1,7 +1,13 @@
 import frappe
+from frappe.query_builder.functions import Coalesce, Max
+from frappe.utils import cint
+from pypika import Interval
 
 from churchit.contacts import get_primary_email, get_primary_phone
+from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
+
+CLOSED_PRAYER_STATUSES = ("Answered", "Archived", "Closed")
 
 
 def execute(filters=None):
@@ -22,35 +28,38 @@ def get_columns():
 
 
 def get_data(filters=None):
-	window_days = (filters or {}).get("window_days", 30)
-	rows = []
+	window_days = cint((filters or {}).get("window_days", 30)) or 30
 
-	recent_visits = frappe.db.sql(
-		"""
-		SELECT v.person AS person, MAX(v.visit_date) AS last_event_date
-		FROM `tabVisitation Log` v
-		WHERE v.visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
-			AND v.follow_up_needed = 1
-		GROUP BY v.person
-		""",
-		(window_days,),
-		as_dict=True,
+	Visitation = frappe.qb.DocType("Visitation Log")
+	Prayer = frappe.qb.DocType("Prayer Request")
+
+	recent_visits = (
+		frappe.qb.from_(Visitation)
+		.select(Visitation.person.as_("person"), Max(Visitation.visit_date).as_("last_event_date"))
+		.where(
+			(Visitation.visit_date >= CurDate() - Interval(days=window_days))
+			& (Visitation.follow_up_needed == 1)
+		)
+		.groupby(Visitation.person)
+		.run(as_dict=True)
 	)
+
+	active_prayer_persons = (
+		frappe.qb.from_(Prayer)
+		.select(Prayer.requestor.as_("person"), Max(Prayer.creation).as_("last_event_date"))
+		.where(
+			Coalesce(Prayer.status, "").notin(list(CLOSED_PRAYER_STATUSES))
+			& (Prayer.urgent == 1)
+			& Prayer.requestor.isnotnull()
+		)
+		.groupby(Prayer.requestor)
+		.run(as_dict=True)
+	)
+
+	rows = []
 	for r in recent_visits:
 		r["reason"] = "Visitation follow-up needed"
 		rows.append(r)
-
-	active_prayer_persons = frappe.db.sql(
-		"""
-		SELECT DISTINCT pr.requestor AS person, MAX(pr.creation) AS last_event_date
-		FROM `tabPrayer Request` pr
-		WHERE COALESCE(pr.status, '') NOT IN ('Answered', 'Archived', 'Closed')
-			AND pr.urgent = 1
-			AND pr.requestor IS NOT NULL
-		GROUP BY pr.requestor
-		""",
-		as_dict=True,
-	)
 	for r in active_prayer_persons:
 		r["reason"] = "Urgent prayer request open"
 		rows.append(r)

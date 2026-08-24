@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.query import CurDate, DayOfMonth, Month
 from churchit.utils import set_report_link_titles
 
 
@@ -20,14 +21,17 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT name, anniversary, marriage_years, spouse
-		FROM `tabPerson`
-		WHERE anniversary IS NOT NULL
-			AND MONTH(anniversary) = MONTH(CURDATE())
-			AND is_head_of_household = 1
-		ORDER BY DAYOFMONTH(anniversary), full_name
-		""",
-		as_dict=True,
+	Person = frappe.qb.DocType("Person")
+
+	return (
+		frappe.qb.from_(Person)
+		.select(Person.name, Person.anniversary, Person.marriage_years, Person.spouse)
+		.where(
+			Person.anniversary.isnotnull()
+			& (Month(Person.anniversary) == Month(CurDate()))
+			& (Person.is_head_of_household == 1)
+		)
+		.orderby(DayOfMonth(Person.anniversary))
+		.orderby(Person.full_name)
+		.run(as_dict=True)
 	)
