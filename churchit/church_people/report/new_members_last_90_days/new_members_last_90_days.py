@@ -1,6 +1,9 @@
 import frappe
+from frappe.utils import cint
+from pypika import Field, Interval, Order
 
-from churchit.contacts import primary_email_sql, primary_phone_sql
+from churchit.contacts import primary_email_query, primary_phone_query
+from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
 
 
@@ -23,29 +26,34 @@ def get_columns():
 
 
 def get_data(filters=None):
-	days = (filters or {}).get("days", 90)
-	return frappe.db.sql(
-		f"""
-		SELECT
-			p.name,
-			p.membership_status,
-			p.family,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			(
-				SELECT le.date
-				FROM `tabLife Event` le
-				WHERE le.parent = p.name
-					AND le.event_type = 'Membership'
-				ORDER BY le.date ASC
-				LIMIT 1
-			) AS membership_date
-		FROM `tabPerson` p
-		WHERE p.membership_status = 'Active'
-		HAVING membership_date IS NOT NULL
-			AND membership_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
-		ORDER BY membership_date DESC
-		""",
-		(days,),
-		as_dict=True,
+	days = cint((filters or {}).get("days", 90)) or 90
+
+	Person = frappe.qb.DocType("Person")
+	LifeEvent = frappe.qb.DocType("Life Event")
+
+	membership_date = (
+		frappe.qb.from_(LifeEvent)
+		.select(LifeEvent.date)
+		.where((LifeEvent.parent == Person.name) & (LifeEvent.event_type == "Membership"))
+		.orderby(LifeEvent.date)
+		.limit(1)
+	)
+
+	return (
+		frappe.qb.from_(Person)
+		.select(
+			Person.name,
+			Person.membership_status,
+			Person.family,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			membership_date.as_("membership_date"),
+		)
+		.where(Person.membership_status == "Active")
+		.having(
+			Field("membership_date").isnotnull()
+			& (Field("membership_date") >= CurDate() - Interval(days=days))
+		)
+		.orderby(Field("membership_date"), order=Order.desc)
+		.run(as_dict=True)
 	)

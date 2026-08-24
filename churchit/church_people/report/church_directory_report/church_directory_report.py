@@ -3,9 +3,12 @@
 import calendar
 
 import frappe
+from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
+from pypika import Order
 
-from churchit.contacts import primary_address_sql, primary_email_sql, primary_phone_sql
+from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
+from churchit.query import Day, Month
 from churchit.utils import set_report_link_titles
 
 
@@ -51,55 +54,63 @@ def get_individual_columns():
 def get_individual_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
 
-	return frappe.db.sql(
-		f"""
-		SELECT
-			p.name AS person,
-			p.family,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			COALESCE(a.city, '') AS city,
-			COALESCE(a.state, '') AS state
-		FROM `tabPerson` p
-		LEFT JOIN `tabFamily` f ON f.name = p.family
-		LEFT JOIN `tabAddress` a ON a.name = COALESCE(
-			{primary_address_sql("p")}, {primary_address_sql("f", "Family")}
+	Person = frappe.qb.DocType("Person")
+	Family = frappe.qb.DocType("Family")
+	Address = frappe.qb.DocType("Address")
+
+	query = (
+		frappe.qb.from_(Person)
+		.left_join(Family)
+		.on(Family.name == Person.family)
+		.left_join(Address)
+		.on(Address.name == Coalesce(primary_address_query(Person), primary_address_query(Family, "Family")))
+		.select(
+			Person.name.as_("person"),
+			Person.family,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			Coalesce(Address.city, "").as_("city"),
+			Coalesce(Address.state, "").as_("state"),
 		)
-		WHERE (NOT %(members_only)s OR p.membership_status = 'Active')
-		ORDER BY p.last_name, p.first_name
-		""",
-		{"members_only": members_only},
-		as_dict=True,
+		.orderby(Person.last_name)
+		.orderby(Person.first_name)
 	)
+	if members_only:
+		query = query.where(Person.membership_status == "Active")
+
+	return query.run(as_dict=True)
 
 
 def get_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
 
-	families = frappe.db.sql(
-		f"""
-		SELECT
-			f.name AS family_id,
-			f.family_name,
-			COALESCE(a.city, '') AS city,
-			COALESCE(a.state, '') AS state
-		FROM `tabFamily` f
-		LEFT JOIN `tabAddress` a ON a.name = {primary_address_sql("f", "Family")}
-		ORDER BY f.family_name ASC
-		""",
-		as_dict=True,
+	Family = frappe.qb.DocType("Family")
+	Address = frappe.qb.DocType("Address")
+	Person = frappe.qb.DocType("Person")
+
+	families = (
+		frappe.qb.from_(Family)
+		.left_join(Address)
+		.on(Address.name == primary_address_query(Family, "Family"))
+		.select(
+			Family.name.as_("family_id"),
+			Family.family_name,
+			Coalesce(Address.city, "").as_("city"),
+			Coalesce(Address.state, "").as_("state"),
+		)
+		.orderby(Family.family_name)
+		.run(as_dict=True)
 	)
 
-	all_members = frappe.db.sql(
-		"""
-		SELECT p.name, p.full_name, p.family, p.is_head_of_household
-		FROM `tabPerson` p
-		WHERE p.family IS NOT NULL AND p.family != ''
-			AND (NOT %(members_only)s OR p.membership_status = 'Active')
-		""",
-		{"members_only": members_only},
-		as_dict=True,
+	members_query = (
+		frappe.qb.from_(Person)
+		.select(Person.name, Person.full_name, Person.family, Person.is_head_of_household)
+		.where(Person.family.isnotnull() & (Person.family != ""))
 	)
+	if members_only:
+		members_query = members_query.where(Person.membership_status == "Active")
+
+	all_members = members_query.run(as_dict=True)
 
 	members_by_family = {}
 	for m in all_members:
@@ -153,65 +164,79 @@ def get_directory_html(
 	if church_doc and church_doc.address:
 		church_address = frappe.get_doc("Address", church_doc.address)
 
-	families = frappe.db.sql(
-		f"""
-		SELECT
-			f.name AS family_id,
-			f.family_name,
-			f.photo AS family_photo,
-			COALESCE(a.address_line1, '') AS address_line1,
-			COALESCE(a.address_line2, '') AS address_line2,
-			COALESCE(a.city, '') AS city,
-			COALESCE(a.state, '') AS state,
-			COALESCE(a.pincode, '') AS pincode
-		FROM `tabFamily` f
-		LEFT JOIN `tabAddress` a ON a.name = {primary_address_sql("f", "Family")}
-		ORDER BY f.family_name ASC
-		""",
-		as_dict=True,
+	Family = frappe.qb.DocType("Family")
+	Address = frappe.qb.DocType("Address")
+	Person = frappe.qb.DocType("Person")
+
+	families = (
+		frappe.qb.from_(Family)
+		.left_join(Address)
+		.on(Address.name == primary_address_query(Family, "Family"))
+		.select(
+			Family.name.as_("family_id"),
+			Family.family_name,
+			Family.photo.as_("family_photo"),
+			Coalesce(Address.address_line1, "").as_("address_line1"),
+			Coalesce(Address.address_line2, "").as_("address_line2"),
+			Coalesce(Address.city, "").as_("city"),
+			Coalesce(Address.state, "").as_("state"),
+			Coalesce(Address.pincode, "").as_("pincode"),
+		)
+		.orderby(Family.family_name)
+		.run(as_dict=True)
 	)
 
-	all_members = frappe.db.sql(
-		f"""
-		SELECT
-			p.name AS person_name,
-			p.full_name,
-			p.last_name,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			p.membership_status,
-			p.is_head_of_household,
-			p.gender,
-			p.spouse,
-			p.photo,
-			p.family
-		FROM `tabPerson` p
-		WHERE p.family IS NOT NULL AND p.family != ''
-			AND (NOT %(members_only)s OR p.membership_status = 'Active')
-		ORDER BY p.family, p.is_head_of_household DESC, p.last_name, p.first_name
-		""",
-		{"members_only": members_only},
-		as_dict=True,
+	members_query = (
+		frappe.qb.from_(Person)
+		.select(
+			Person.name.as_("person_name"),
+			Person.full_name,
+			Person.last_name,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			Person.membership_status,
+			Person.is_head_of_household,
+			Person.gender,
+			Person.spouse,
+			Person.photo,
+			Person.family,
+		)
+		.where(Person.family.isnotnull() & (Person.family != ""))
+		.orderby(Person.family)
+		.orderby(Person.is_head_of_household, order=Order.desc)
+		.orderby(Person.last_name)
+		.orderby(Person.first_name)
 	)
+	if members_only:
+		members_query = members_query.where(Person.membership_status == "Active")
+
+	all_members = members_query.run(as_dict=True)
 
 	# Fetch active positions if requested
 	roles_by_person = {}
 	if show_roles:
 		today = frappe_today()
-		active_positions = frappe.db.sql(
-			"""
-			SELECT pos.parent AS person_name, COALESCE(pt.position, pos.position) AS position
-			FROM `tabPosition` pos
-			INNER JOIN `tabPerson` p ON p.name = pos.parent
-			LEFT JOIN `tabPosition Type` pt ON pt.name = pos.position
-			WHERE pos.parenttype = 'Person'
-				AND pos.position IS NOT NULL
-				AND pos.start_date <= %(today)s
-				AND (pos.end_date IS NULL OR pos.end_date >= %(today)s)
-			ORDER BY pos.parent, pos.start_date
-			""",
-			{"today": today},
-			as_dict=True,
+		Position = frappe.qb.DocType("Position")
+		PositionType = frappe.qb.DocType("Position Type")
+		active_positions = (
+			frappe.qb.from_(Position)
+			.join(Person)
+			.on(Person.name == Position.parent)
+			.left_join(PositionType)
+			.on(PositionType.name == Position.position)
+			.select(
+				Position.parent.as_("person_name"),
+				Coalesce(PositionType.position, Position.position).as_("position"),
+			)
+			.where(
+				(Position.parenttype == "Person")
+				& Position.position.isnotnull()
+				& (Position.start_date <= today)
+				& (Position.end_date.isnull() | (Position.end_date >= today))
+			)
+			.orderby(Position.parent)
+			.orderby(Position.start_date)
+			.run(as_dict=True)
 		)
 		for row in active_positions:
 			roles_by_person.setdefault(row.person_name, []).append(row.position)
@@ -235,14 +260,16 @@ def get_directory_html(
 	hoh_names = [h.person_name for h in hoh_by_family.values()]
 	hoh_relations = {}
 	if hoh_names:
-		for row in frappe.db.sql(
-			"""
-			SELECT pr.parent AS hoh, pr.person AS other, pr.type AS relation_type
-			FROM `tabPerson Relation` pr
-			WHERE pr.parenttype = 'Person' AND pr.parent IN %(hoh)s
-			""",
-			{"hoh": tuple(hoh_names)},
-			as_dict=True,
+		Relation = frappe.qb.DocType("Person Relation")
+		for row in (
+			frappe.qb.from_(Relation)
+			.select(
+				Relation.parent.as_("hoh"),
+				Relation.person.as_("other"),
+				Relation.type.as_("relation_type"),
+			)
+			.where((Relation.parenttype == "Person") & Relation.parent.isin(hoh_names))
+			.run(as_dict=True)
 		):
 			hoh_relations[(row.hoh, row.other)] = row.relation_type
 
@@ -261,24 +288,25 @@ def get_directory_html(
 			else:
 				m["relation_to_hoh"] = hoh_relations.get((hoh.person_name, m.person_name), "")
 
-	individuals_raw = frappe.db.sql(
-		f"""
-		SELECT
-			p.name AS person_name,
-			p.full_name,
-			p.last_name,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			p.membership_status,
-			p.photo
-		FROM `tabPerson` p
-		WHERE (p.family IS NULL OR p.family = '')
-			AND (NOT %(members_only)s OR p.membership_status = 'Active')
-		ORDER BY p.last_name, p.first_name
-		""",
-		{"members_only": members_only},
-		as_dict=True,
+	individuals_query = (
+		frappe.qb.from_(Person)
+		.select(
+			Person.name.as_("person_name"),
+			Person.full_name,
+			Person.last_name,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			Person.membership_status,
+			Person.photo,
+		)
+		.where(Person.family.isnull() | (Person.family == ""))
+		.orderby(Person.last_name)
+		.orderby(Person.first_name)
 	)
+	if members_only:
+		individuals_query = individuals_query.where(Person.membership_status == "Active")
+
+	individuals_raw = individuals_query.run(as_dict=True)
 
 	for p in individuals_raw:
 		p["positions"] = roles_by_person.get(p.person_name, [])
@@ -368,25 +396,31 @@ def get_directory_html(
 	# ── Birthdays ────────────────────────────────────────────────
 	birthdays = []
 	if show_birthdays:
-		raw_birthdays = frappe.db.sql(
-			"""
-			SELECT
-				p.full_name,
-				le.date AS birthday,
-				MONTH(le.date) AS birth_month,
-				DAY(le.date)   AS birth_day
-			FROM `tabPerson` p
-			JOIN `tabLife Event` le
-				ON le.parent = p.name
-				AND le.parenttype = 'Person'
-				AND le.event_type = 'Birth'
-			WHERE le.date IS NOT NULL
-				AND (NOT %(members_only)s OR p.membership_status = 'Active')
-			ORDER BY MONTH(le.date), DAY(le.date), p.last_name, p.first_name
-			""",
-			{"members_only": members_only},
-			as_dict=True,
+		LifeEvent = frappe.qb.DocType("Life Event")
+		birthdays_query = (
+			frappe.qb.from_(Person)
+			.join(LifeEvent)
+			.on(
+				(LifeEvent.parent == Person.name)
+				& (LifeEvent.parenttype == "Person")
+				& (LifeEvent.event_type == "Birth")
+			)
+			.select(
+				Person.full_name,
+				LifeEvent.date.as_("birthday"),
+				Month(LifeEvent.date).as_("birth_month"),
+				Day(LifeEvent.date).as_("birth_day"),
+			)
+			.where(LifeEvent.date.isnotnull())
+			.orderby(Month(LifeEvent.date))
+			.orderby(Day(LifeEvent.date))
+			.orderby(Person.last_name)
+			.orderby(Person.first_name)
 		)
+		if members_only:
+			birthdays_query = birthdays_query.where(Person.membership_status == "Active")
+
+		raw_birthdays = birthdays_query.run(as_dict=True)
 		for row in raw_birthdays:
 			row["month_name"] = calendar.month_name[int(row.birth_month)]
 			row["month_day"] = f"{calendar.month_name[int(row.birth_month)]} {int(row.birth_day)}"
@@ -395,29 +429,34 @@ def get_directory_html(
 	# ── Anniversaries ────────────────────────────────────────────
 	anniversaries = []
 	if show_anniversaries:
-		raw_anniversaries = frappe.db.sql(
-			"""
-			SELECT
-				p.name         AS person_name,
-				p.spouse       AS spouse_name,
-				p.first_name   AS person_first,
-				p.full_name    AS person_full,
-				s.first_name   AS spouse_first,
-				COALESCE(f.family_name, '') AS family_name,
-				p.anniversary,
-				MONTH(p.anniversary) AS ann_month,
-				DAY(p.anniversary)   AS ann_day
-			FROM `tabPerson` p
-			LEFT JOIN `tabPerson` s ON s.name = p.spouse
-			LEFT JOIN `tabFamily` f ON f.name = p.family
-			WHERE p.anniversary IS NOT NULL
-				AND p.is_married = 1
-				AND (NOT %(members_only)s OR p.membership_status = 'Active')
-			ORDER BY MONTH(p.anniversary), DAY(p.anniversary), p.last_name, p.first_name
-			""",
-			{"members_only": members_only},
-			as_dict=True,
+		Spouse = frappe.qb.DocType("Person").as_("spouse")
+		anniversaries_query = (
+			frappe.qb.from_(Person)
+			.left_join(Spouse)
+			.on(Spouse.name == Person.spouse)
+			.left_join(Family)
+			.on(Family.name == Person.family)
+			.select(
+				Person.name.as_("person_name"),
+				Person.spouse.as_("spouse_name"),
+				Person.first_name.as_("person_first"),
+				Person.full_name.as_("person_full"),
+				Spouse.first_name.as_("spouse_first"),
+				Coalesce(Family.family_name, "").as_("family_name"),
+				Person.anniversary,
+				Month(Person.anniversary).as_("ann_month"),
+				Day(Person.anniversary).as_("ann_day"),
+			)
+			.where(Person.anniversary.isnotnull() & (Person.is_married == 1))
+			.orderby(Month(Person.anniversary))
+			.orderby(Day(Person.anniversary))
+			.orderby(Person.last_name)
+			.orderby(Person.first_name)
 		)
+		if members_only:
+			anniversaries_query = anniversaries_query.where(Person.membership_status == "Active")
+
+		raw_anniversaries = anniversaries_query.run(as_dict=True)
 		seen_persons = set()
 		for row in raw_anniversaries:
 			if row.person_name in seen_persons:
@@ -438,21 +477,21 @@ def get_directory_html(
 	# ── Missionaries ─────────────────────────────────────────────
 	missionaries = []
 	if show_missionaries:
-		missionaries = frappe.db.sql(
-			f"""
-			SELECT
-				m.title,
-				m.agency,
-				m.country,
-				{primary_email_sql("m", "Missionary")} AS email,
-				m.website,
-				m.photo,
-				m.sensitive,
-				m.mission_statement
-			FROM `tabMissionary` m
-			ORDER BY m.title
-			""",
-			as_dict=True,
+		Missionary = frappe.qb.DocType("Missionary")
+		missionaries = (
+			frappe.qb.from_(Missionary)
+			.select(
+				Missionary.title,
+				Missionary.agency,
+				Missionary.country,
+				primary_email_query(Missionary, "Missionary").as_("email"),
+				Missionary.website,
+				Missionary.photo,
+				Missionary.sensitive,
+				Missionary.mission_statement,
+			)
+			.orderby(Missionary.title)
+			.run(as_dict=True)
 		)
 		# Resolve agency hashes to human-readable agency names
 		agency_names = list({m.agency for m in missionaries if m.agency})

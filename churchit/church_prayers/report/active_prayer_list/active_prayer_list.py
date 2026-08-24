@@ -1,6 +1,11 @@
 import frappe
+from frappe.query_builder.functions import Coalesce
+from pypika import Order
 
+from churchit.query import CurDate, DateDiff
 from churchit.utils import set_report_link_titles
+
+CLOSED_STATUSES = ("Answered", "Archived", "Closed")
 
 
 def execute(filters=None):
@@ -23,14 +28,21 @@ def get_columns():
 
 
 def get_data(filters=None):
-	return frappe.db.sql(
-		"""
-		SELECT
-			pr.name, pr.title, pr.type, pr.urgent, pr.requestor, pr.status,
-			DATEDIFF(CURDATE(), pr.creation) AS days_open
-		FROM `tabPrayer Request` pr
-		WHERE COALESCE(pr.status, '') NOT IN ('Answered', 'Archived', 'Closed')
-		ORDER BY pr.urgent DESC, pr.creation DESC
-		""",
-		as_dict=True,
+	Prayer = frappe.qb.DocType("Prayer Request")
+
+	return (
+		frappe.qb.from_(Prayer)
+		.select(
+			Prayer.name,
+			Prayer.title,
+			Prayer.type,
+			Prayer.urgent,
+			Prayer.requestor,
+			Prayer.status,
+			DateDiff(CurDate(), Prayer.creation).as_("days_open"),
+		)
+		.where(Coalesce(Prayer.status, "").notin(list(CLOSED_STATUSES)))
+		.orderby(Prayer.urgent, order=Order.desc)
+		.orderby(Prayer.creation, order=Order.desc)
+		.run(as_dict=True)
 	)

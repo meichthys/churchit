@@ -1,15 +1,21 @@
 import frappe
+from frappe.query_builder.functions import Count
+
+from churchit.query import CurDate, Month, Week
 
 
 @frappe.whitelist()
 def get_count():
-	return frappe.db.sql(
-		"""
-		SELECT COUNT(*)
-		FROM `tabPerson`
-		WHERE anniversary IS NOT NULL
-			AND WEEK(anniversary, 1) = WEEK(CURDATE(), 1)
-			AND MONTH(anniversary) = MONTH(CURDATE())
-			AND is_head_of_household = 1
-		"""
-	)[0][0]
+	Person = frappe.qb.DocType("Person")
+
+	return (
+		frappe.qb.from_(Person)
+		.select(Count("*"))
+		.where(
+			Person.anniversary.isnotnull()
+			& (Week(Person.anniversary, 1) == Week(CurDate(), 1))
+			& (Month(Person.anniversary) == Month(CurDate()))
+			& (Person.is_head_of_household == 1)
+		)
+		.run()[0][0]
+	)

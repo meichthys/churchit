@@ -12,7 +12,7 @@ Person, Family and Missionary each carry the same three child tables:
 Nothing is copied back onto the parent, so "the" email / phone / address for a
 record is always resolved through this module: from a loaded document
 (:func:`pick`), with a lookup (:func:`get_primary_email` and friends), or
-inside a report query (:func:`primary_email_sql` and friends).
+inside a report query (:func:`primary_email_query` and friends).
 
 The type of a contact row ("Home", "Work", ...) is a link to a user-editable
 lookup doctype, so no code in this app may branch on a specific type name.
@@ -22,6 +22,7 @@ addresses only, ``is_mailing_address`` says where paper mail goes.
 
 import frappe
 from frappe import _
+from pypika import Order
 
 # Parent fieldname -> child doctype
 EMAIL_FIELD = "emails"
@@ -179,54 +180,43 @@ def get_primary_emails(parenttype, parents):
 
 
 # ---------------------------------------------------------------------------
-# SQL fragments for reports
+# Query Builder subqueries for reports
 # ---------------------------------------------------------------------------
 
 
-def _subquery(child_doctype, value_field, parent_alias, parenttype, flag="is_primary"):
-	"""Correlated subquery returning one contact value per parent row.
+def _primary_subquery(child_doctype, value_field, parent, parenttype, flag="is_primary"):
+	"""Correlated Query Builder subquery returning one contact value per parent row.
 
-	*parenttype* is checked against :data:`CONTACT_PARENTS` and *parent_alias*
-	against a strict pattern because both are interpolated into SQL; every
-	caller passes a literal from this app, never user input.
+	*parent* is the ``frappe.qb.DocType`` of the outer query, so the subquery
+	correlates against whatever row that query is on.
 	"""
 	if parenttype not in CONTACT_PARENTS:
 		frappe.throw(_("{0} does not carry contact tables").format(parenttype))
-	if not parent_alias.isidentifier():
-		frappe.throw(_("Invalid SQL alias: {0}").format(parent_alias))
 
+	child = frappe.qb.DocType(child_doctype)
 	return (
-		f"(SELECT c.`{value_field}` FROM `tab{child_doctype}` c "
-		f"WHERE c.parenttype = '{parenttype}' AND c.parent = {parent_alias}.name "
-		f"ORDER BY c.`{flag}` DESC, c.idx ASC LIMIT 1)"
+		frappe.qb.from_(child)
+		.select(child[value_field])
+		.where((child.parenttype == parenttype) & (child.parent == parent.name))
+		.orderby(child[flag], order=Order.desc)
+		.orderby(child.idx)
+		.limit(1)
 	)
 
 
-def primary_email_sql(parent_alias, parenttype="Person"):
-	"""SQL expression for the primary email of the row aliased *parent_alias*."""
-	return _subquery(EMAIL_DOCTYPE, "email_address", parent_alias, parenttype)
+def primary_email_query(parent, parenttype="Person"):
+	"""Subquery for the primary email of the row *parent* is on."""
+	return _primary_subquery(EMAIL_DOCTYPE, "email_address", parent, parenttype)
 
 
-def primary_phone_sql(parent_alias, parenttype="Person"):
-	"""SQL expression for the primary phone of the row aliased *parent_alias*."""
-	return _subquery(PHONE_DOCTYPE, "phone_number", parent_alias, parenttype)
+def primary_phone_query(parent, parenttype="Person"):
+	"""Subquery for the primary phone of the row *parent* is on."""
+	return _primary_subquery(PHONE_DOCTYPE, "phone_number", parent, parenttype)
 
 
-def primary_address_sql(parent_alias, parenttype="Person"):
-	"""SQL expression for the primary Address name of the row aliased *parent_alias*."""
-	return _subquery(ADDRESS_DOCTYPE, "address", parent_alias, parenttype)
-
-
-def mailing_address_sql(parent_alias, parenttype="Person"):
-	"""SQL expression for the mailing Address name of the row aliased *parent_alias*.
-
-	Mirrors :func:`mailing_address`: a record with addresses but none flagged
-	for mail falls back to its primary address.
-	"""
-	mailing = _subquery(
-		ADDRESS_DOCTYPE, "address", parent_alias, parenttype, flag="is_mailing_address"
-	)
-	return f"COALESCE({mailing}, {primary_address_sql(parent_alias, parenttype)})"
+def primary_address_query(parent, parenttype="Person"):
+	"""Subquery for the primary Address name of the row *parent* is on."""
+	return _primary_subquery(ADDRESS_DOCTYPE, "address", parent, parenttype)
 
 
 # ---------------------------------------------------------------------------

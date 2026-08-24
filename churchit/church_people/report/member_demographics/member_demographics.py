@@ -1,4 +1,17 @@
 import frappe
+from frappe.query_builder.functions import Coalesce, Count
+from pypika.terms import LiteralValue
+
+from churchit.query import CurDate, TimestampDiff
+
+AGE_BUCKETS = (
+	("0-12 (Children)", 0, 12),
+	("13-17 (Teens)", 13, 17),
+	("18-29 (Young Adults)", 18, 29),
+	("30-44 (Adults)", 30, 44),
+	("45-64 (Middle Adults)", 45, 64),
+	("65+ (Seniors)", 65, 150),
+)
 
 
 def execute(filters=None):
@@ -15,69 +28,51 @@ def get_columns():
 	]
 
 
-def get_data():
-	rows = []
-	buckets = [
-		("0-12 (Children)", 0, 12),
-		("13-17 (Teens)", 13, 17),
-		("18-29 (Young Adults)", 18, 29),
-		("30-44 (Adults)", 30, 44),
-		("45-64 (Middle Adults)", 45, 64),
-		("65+ (Seniors)", 65, 150),
-	]
-	for label, lo, hi in buckets:
-		row = {"bucket": label, "male": 0, "female": 0, "other": 0, "total": 0}
-		results = frappe.db.sql(
-			"""
-			SELECT COALESCE(p.gender, 'Other') AS gender, COUNT(*) AS cnt
-			FROM `tabPerson` p
-			JOIN `tabLife Event` le
-				ON le.parent = p.name
-				AND le.parenttype = 'Person'
-				AND le.event_type = 'Birth'
-			WHERE p.membership_status = 'Active'
-				AND le.date IS NOT NULL
-				AND TIMESTAMPDIFF(YEAR, le.date, CURDATE()) BETWEEN %s AND %s
-			GROUP BY p.gender
-			""",
-			(lo, hi),
-			as_dict=True,
-		)
-		for r in results:
-			g = (r["gender"] or "").lower()
-			if g == "male":
-				row["male"] = r["cnt"]
-			elif g == "female":
-				row["female"] = r["cnt"]
-			else:
-				row["other"] = r["cnt"]
-			row["total"] += r["cnt"]
-		rows.append(row)
+def _tally(label, counts_by_gender):
+	row = {"bucket": label, "male": 0, "female": 0, "other": 0, "total": 0}
+	for r in counts_by_gender:
+		gender = (r["gender"] or "").lower()
+		key = gender if gender in ("male", "female") else "other"
+		row[key] = r["cnt"]
+		row["total"] += r["cnt"]
+	return row
 
-	unknown = frappe.db.sql(
-		"""
-		SELECT COALESCE(p.gender, 'Other') AS gender, COUNT(*) AS cnt
-		FROM `tabPerson` p
-		LEFT JOIN `tabLife Event` le
-			ON le.parent = p.name
-			AND le.parenttype = 'Person'
-			AND le.event_type = 'Birth'
-		WHERE p.membership_status = 'Active' AND le.date IS NULL
-		GROUP BY p.gender
-		""",
-		as_dict=True,
+
+def get_data():
+	Person = frappe.qb.DocType("Person")
+	LifeEvent = frappe.qb.DocType("Life Event")
+
+	birth_event = (
+		(LifeEvent.parent == Person.name)
+		& (LifeEvent.parenttype == "Person")
+		& (LifeEvent.event_type == "Birth")
+	)
+	age = TimestampDiff(LiteralValue("YEAR"), LifeEvent.date, CurDate())
+	gender_counts = (Coalesce(Person.gender, "Other").as_("gender"), Count("*").as_("cnt"))
+
+	rows = []
+	for label, low, high in AGE_BUCKETS:
+		counts = (
+			frappe.qb.from_(Person)
+			.join(LifeEvent)
+			.on(birth_event)
+			.select(*gender_counts)
+			.where((Person.membership_status == "Active") & LifeEvent.date.isnotnull() & age[low:high])
+			.groupby(Person.gender)
+			.run(as_dict=True)
+		)
+		rows.append(_tally(label, counts))
+
+	unknown = (
+		frappe.qb.from_(Person)
+		.left_join(LifeEvent)
+		.on(birth_event)
+		.select(*gender_counts)
+		.where((Person.membership_status == "Active") & LifeEvent.date.isnull())
+		.groupby(Person.gender)
+		.run(as_dict=True)
 	)
 	if unknown:
-		row = {"bucket": "Unknown Age", "male": 0, "female": 0, "other": 0, "total": 0}
-		for r in unknown:
-			g = (r["gender"] or "").lower()
-			if g == "male":
-				row["male"] = r["cnt"]
-			elif g == "female":
-				row["female"] = r["cnt"]
-			else:
-				row["other"] = r["cnt"]
-			row["total"] += r["cnt"]
-		rows.append(row)
+		rows.append(_tally("Unknown Age", unknown))
 
 	return rows

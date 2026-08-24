@@ -1,5 +1,9 @@
 import frappe
+from frappe.query_builder.functions import Avg, Count, Max, Sum
+from frappe.utils import cint
+from pypika import Order
 
+from churchit.query import Year
 from churchit.utils import set_report_link_titles
 
 
@@ -22,31 +26,39 @@ def get_columns():
 
 
 def get_data(filters=None):
-	year = (filters or {}).get("year") or frappe.utils.now_datetime().year
-	return frappe.db.sql(
-		"""
-		SELECT
-			d.person,
-			COUNT(*) AS gift_count,
-			SUM(d.amount) AS ytd_amount,
-			AVG(d.amount) AS avg_gift,
-			MAX(c.date) AS last_gift_date,
-			(
-				SELECT SUM(d2.amount)
-				FROM `tabDonation` d2
-				JOIN `tabCollection` c2 ON c2.name = d2.parent
-				WHERE d2.person = d.person
-					AND YEAR(c2.date) = %(year)s - 1
-					AND c2.docstatus = 1
-			) AS prior_year_amount
-		FROM `tabDonation` d
-		JOIN `tabCollection` c ON c.name = d.parent
-		WHERE d.person IS NOT NULL
-			AND YEAR(c.date) = %(year)s
-			AND c.docstatus = 1
-		GROUP BY d.person
-		ORDER BY ytd_amount DESC
-		""",
-		{"year": year},
-		as_dict=True,
+	year = cint((filters or {}).get("year")) or frappe.utils.now_datetime().year
+
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
+	PriorDonation = frappe.qb.DocType("Donation").as_("prior_donation")
+	PriorCollection = frappe.qb.DocType("Collection").as_("prior_collection")
+
+	prior_year_amount = (
+		frappe.qb.from_(PriorDonation)
+		.join(PriorCollection)
+		.on(PriorCollection.name == PriorDonation.parent)
+		.select(Sum(PriorDonation.amount))
+		.where(
+			(PriorDonation.person == Donation.person)
+			& (Year(PriorCollection.date) == year - 1)
+			& (PriorCollection.docstatus == 1)
+		)
+	)
+
+	return (
+		frappe.qb.from_(Donation)
+		.join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(
+			Donation.person,
+			Count("*").as_("gift_count"),
+			Sum(Donation.amount).as_("ytd_amount"),
+			Avg(Donation.amount).as_("avg_gift"),
+			Max(Collection.date).as_("last_gift_date"),
+			prior_year_amount.as_("prior_year_amount"),
+		)
+		.where(Donation.person.isnotnull() & (Year(Collection.date) == year) & (Collection.docstatus == 1))
+		.groupby(Donation.person)
+		.orderby(Sum(Donation.amount), order=Order.desc)
+		.run(as_dict=True)
 	)

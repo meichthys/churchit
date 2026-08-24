@@ -1,4 +1,5 @@
 import frappe
+from pypika import Order
 
 from churchit.utils import set_report_link_titles
 
@@ -23,20 +24,23 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabCollection`.name,
-			`tabCollection`.function,
-			`tabDonation`.fund,
-			`tabDonation`.person,
-			`tabDonation`.payment_type,
-			`tabDonation`.check_number,
-			`tabDonation`.amount
-		FROM `tabDonation`
-		INNER JOIN `tabCollection` ON `tabCollection`.name = `tabDonation`.parent
-		WHERE `tabDonation`.parenttype = 'Collection'
-		ORDER BY `tabCollection`.modified DESC
-		""",
-		as_dict=True,
+	Donation = frappe.qb.DocType("Donation")
+	Collection = frappe.qb.DocType("Collection")
+
+	return (
+		frappe.qb.from_(Donation)
+		.join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(
+			Collection.name,
+			Collection.function,
+			Donation.fund,
+			Donation.person,
+			Donation.payment_type,
+			Donation.check_number,
+			Donation.amount,
+		)
+		.where(Donation.parenttype == "Collection")
+		.orderby(Collection.modified, order=Order.desc)
+		.run(as_dict=True)
 	)

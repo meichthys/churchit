@@ -23,20 +23,23 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabLetter`.parent,
-			`tabLetter`.date,
-			`tabLetter`.share_with_church,
-			`tabLetter`.shared_date,
-			`tabLetter`.is_private,
-			`tabLetter`.file,
-			`tabLetter`.content
-		FROM `tabLetter`
-		INNER JOIN `tabPerson` ON `tabPerson`.name = `tabLetter`.parent
-		WHERE `tabLetter`.parenttype = 'Person'
-		ORDER BY `tabLetter`.parent
-		""",
-		as_dict=True,
+	Letter = frappe.qb.DocType("Letter")
+	Person = frappe.qb.DocType("Person")
+
+	return (
+		frappe.qb.from_(Letter)
+		.join(Person)
+		.on(Person.name == Letter.parent)
+		.select(
+			Letter.parent,
+			Letter.date,
+			Letter.share_with_church,
+			Letter.shared_date,
+			Letter.is_private,
+			Letter.file,
+			Letter.content,
+		)
+		.where(Letter.parenttype == "Person")
+		.orderby(Letter.parent)
+		.run(as_dict=True)
 	)

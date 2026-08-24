@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import get_link_to_form
 
 
@@ -91,8 +92,11 @@ class Expense(Document):
 
 
 def _update_ministry_total(ministry_name):
-	total = frappe.db.sql(
-		"SELECT COALESCE(SUM(amount), 0) FROM `tabExpense` WHERE ministry = %s AND docstatus = 1",
-		ministry_name,
-	)[0][0]
+	Expense = frappe.qb.DocType("Expense")
+	total = (
+		frappe.qb.from_(Expense)
+		.select(Coalesce(Sum(Expense.amount), 0))
+		.where((Expense.ministry == ministry_name) & (Expense.docstatus == 1))
+		.run()[0][0]
+	)
 	frappe.db.set_value("Ministry", ministry_name, "total_expenses", total)

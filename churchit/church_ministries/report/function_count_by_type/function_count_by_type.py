@@ -1,5 +1,7 @@
 import frappe
+from frappe.query_builder.functions import Count
 
+from churchit.query import Date
 from churchit.utils import set_report_link_titles
 
 
@@ -19,18 +21,17 @@ def get_columns():
 
 def get_data(filters):
 	filters = filters or {}
-	values = {
-		"start": filters.get("start"),
-		"end": filters.get("end"),
-	}
+	start = filters.get("start")
+	end = filters.get("end")
 
-	return frappe.db.sql(
-		"""
-		SELECT type as type, count(name) as counts
-		FROM `tabFunction`
-		WHERE (start_date IS NULL OR end_date IS NULL OR date(start_date) BETWEEN %(start)s AND %(end)s)
-		GROUP BY type
-		""",
-		values,
-		as_dict=True,
+	Function = frappe.qb.DocType("Function")
+
+	return (
+		frappe.qb.from_(Function)
+		.select(Function.type.as_("type"), Count(Function.name).as_("counts"))
+		.where(
+			Function.start_date.isnull() | Function.end_date.isnull() | Date(Function.start_date)[start:end]
+		)
+		.groupby(Function.type)
+		.run(as_dict=True)
 	)

@@ -1,7 +1,13 @@
 import frappe
+from frappe.query_builder.functions import Coalesce, Max
+from frappe.utils import cint
+from pypika import Field, Order
 
-from churchit.contacts import primary_email_sql, primary_phone_sql
+from churchit.contacts import primary_email_query, primary_phone_query
+from churchit.query import CurDate, DateDiff
 from churchit.utils import set_report_link_titles
+
+ATTENDED_TYPES = ("Confirmed", "Checked-In", "Assumed")
 
 
 def execute(filters=None):
@@ -23,53 +29,43 @@ def get_columns():
 
 
 def get_data(filters=None):
-	threshold_days = (filters or {}).get("threshold_days", 60)
-	return frappe.db.sql(
-		f"""
-		SELECT
-			p.name,
-			{primary_phone_sql("p")} AS primary_phone,
-			{primary_email_sql("p")} AS email,
-			(
-				SELECT le.date
-				FROM `tabLife Event` le
-				WHERE le.parent = p.name
-					AND le.event_type = 'Membership'
-				ORDER BY le.date ASC
-				LIMIT 1
-			) AS membership_date,
-			(
-				SELECT MAX(f.start_date)
-				FROM `tabFunction Attendance` fa
-				JOIN `tabFunction` f ON f.name = fa.parent
-				WHERE fa.person = p.name
-					AND fa.attendance_type IN ('Confirmed', 'Checked-In', 'Assumed')
-			) AS last_attended,
-			DATEDIFF(
-				CURDATE(),
-				COALESCE(
-					(
-						SELECT MAX(f.start_date)
-						FROM `tabFunction Attendance` fa
-						JOIN `tabFunction` f ON f.name = fa.parent
-						WHERE fa.person = p.name
-							AND fa.attendance_type IN ('Confirmed', 'Checked-In', 'Assumed')
-					),
-					(
-						SELECT le.date
-						FROM `tabLife Event` le
-						WHERE le.parent = p.name
-							AND le.event_type = 'Membership'
-						ORDER BY le.date ASC
-						LIMIT 1
-					)
-				)
-			) AS days_absent
-		FROM `tabPerson` p
-		WHERE p.membership_status = 'Active'
-		HAVING days_absent > %s OR last_attended IS NULL
-		ORDER BY days_absent DESC
-		""",
-		(threshold_days,),
-		as_dict=True,
+	threshold_days = cint((filters or {}).get("threshold_days", 60))
+
+	Person = frappe.qb.DocType("Person")
+	LifeEvent = frappe.qb.DocType("Life Event")
+	Attendance = frappe.qb.DocType("Function Attendance")
+	Function = frappe.qb.DocType("Function")
+
+	def last_attended():
+		return (
+			frappe.qb.from_(Attendance)
+			.join(Function)
+			.on(Function.name == Attendance.parent)
+			.select(Max(Function.start_date))
+			.where((Attendance.person == Person.name) & Attendance.attendance_type.isin(list(ATTENDED_TYPES)))
+		)
+
+	def membership_date():
+		return (
+			frappe.qb.from_(LifeEvent)
+			.select(LifeEvent.date)
+			.where((LifeEvent.parent == Person.name) & (LifeEvent.event_type == "Membership"))
+			.orderby(LifeEvent.date)
+			.limit(1)
+		)
+
+	return (
+		frappe.qb.from_(Person)
+		.select(
+			Person.name,
+			primary_phone_query(Person).as_("primary_phone"),
+			primary_email_query(Person).as_("email"),
+			membership_date().as_("membership_date"),
+			last_attended().as_("last_attended"),
+			DateDiff(CurDate(), Coalesce(last_attended(), membership_date())).as_("days_absent"),
+		)
+		.where(Person.membership_status == "Active")
+		.having((Field("days_absent") > threshold_days) | Field("last_attended").isnull())
+		.orderby(Field("days_absent"), order=Order.desc)
+		.run(as_dict=True)
 	)

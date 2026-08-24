@@ -22,24 +22,29 @@ def get_columns():
 
 
 def get_data(filters=None):
-	values = {"today": today()}
+	as_of = today()
 
-	return frappe.db.sql(
-		"""
-		SELECT
-			`tabPerson`.name,
-			`tabPosition`.position,
-			`tabPosition`.start_date,
-			`tabPosition`.end_date,
-			`tabPosition`.notes
-		FROM `tabPosition`
-		INNER JOIN `tabPerson` ON `tabPerson`.name = `tabPosition`.parent
-		WHERE `tabPosition`.parenttype = 'Person'
-			AND `tabPosition`.position IS NOT NULL
-			AND `tabPosition`.start_date <= %(today)s
-			AND (`tabPosition`.end_date IS NULL OR `tabPosition`.end_date >= %(today)s)
-		ORDER BY `tabPerson`.name, `tabPosition`.start_date
-		""",
-		values,
-		as_dict=True,
+	Position = frappe.qb.DocType("Position")
+	Person = frappe.qb.DocType("Person")
+
+	return (
+		frappe.qb.from_(Position)
+		.join(Person)
+		.on(Person.name == Position.parent)
+		.select(
+			Person.name,
+			Position.position,
+			Position.start_date,
+			Position.end_date,
+			Position.notes,
+		)
+		.where(
+			(Position.parenttype == "Person")
+			& Position.position.isnotnull()
+			& (Position.start_date <= as_of)
+			& (Position.end_date.isnull() | (Position.end_date >= as_of))
+		)
+		.orderby(Person.name)
+		.orderby(Position.start_date)
+		.run(as_dict=True)
 	)

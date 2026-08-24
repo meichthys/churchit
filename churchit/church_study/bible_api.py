@@ -209,16 +209,15 @@ def assign_memory(references, users=None, group=None):
 
 	missing_users = []
 	if group and not users:
-		rows = frappe.db.sql(
-			"""
-			SELECT p.name, p.full_name, p.user
-			FROM `tabGroup Member` gm
-			INNER JOIN `tabPerson` p ON p.name = gm.person
-			WHERE gm.parent = %s
-				AND gm.parenttype = 'Group'
-			""",
-			group,
-			as_dict=True,
+		GroupMember = frappe.qb.DocType("Group Member")
+		Person = frappe.qb.DocType("Person")
+		rows = (
+			frappe.qb.from_(GroupMember)
+			.join(Person)
+			.on(Person.name == GroupMember.person)
+			.select(Person.name, Person.full_name, Person.user)
+			.where((GroupMember.parent == group) & (GroupMember.parenttype == "Group"))
+			.run(as_dict=True)
 		)
 		users = [r.user for r in rows if r.user]
 		missing_users = [_person_link(r.name, r.full_name) for r in rows if not r.user]

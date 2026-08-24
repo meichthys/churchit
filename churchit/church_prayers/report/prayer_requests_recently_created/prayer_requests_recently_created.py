@@ -21,15 +21,20 @@ def get_columns():
 
 
 def get_data(filters):
-	filters = filters or {}
-	values = {"request_since": filters.get("request_since")}
+	request_since = (filters or {}).get("request_since")
 
-	return frappe.db.sql(
-		"""
-		SELECT status, type, recipient_type, recipient, details, name
-		FROM `tabPrayer Request`
-		WHERE creation > %(request_since)s
-		""",
-		values,
-		as_dict=True,
+	Prayer = frappe.qb.DocType("Prayer Request")
+
+	return (
+		frappe.qb.from_(Prayer)
+		.select(
+			Prayer.status,
+			Prayer.type,
+			Prayer.recipient_type,
+			Prayer.recipient,
+			Prayer.details,
+			Prayer.name,
+		)
+		.where(Prayer.creation > request_since)
+		.run(as_dict=True)
 	)

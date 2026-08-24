@@ -18,10 +18,5 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT fund, balance
-		FROM `tabFund`
-		""",
-		as_dict=True,
-	)
+	Fund = frappe.qb.DocType("Fund")
+	return frappe.qb.from_(Fund).select(Fund.fund, Fund.balance).run(as_dict=True)

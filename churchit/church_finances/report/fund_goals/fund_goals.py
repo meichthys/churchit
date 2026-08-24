@@ -1,5 +1,7 @@
 import frappe
+from pypika import Field, Order
 
+from churchit.query import Greatest, Round
 from churchit.utils import set_report_link_titles
 
 
@@ -21,17 +23,18 @@ def get_columns():
 
 
 def get_data():
-	return frappe.db.sql(
-		"""
-		SELECT
-			name AS fund,
-			goal_amount,
-			balance,
-			GREATEST(goal_amount - balance, 0) AS remaining,
-			ROUND((balance / goal_amount) * 100, 1) AS goal_progress
-		FROM `tabFund`
-		WHERE goal_amount > 0
-		ORDER BY goal_progress DESC
-		""",
-		as_dict=True,
+	Fund = frappe.qb.DocType("Fund")
+
+	return (
+		frappe.qb.from_(Fund)
+		.select(
+			Fund.name.as_("fund"),
+			Fund.goal_amount,
+			Fund.balance,
+			Greatest(Fund.goal_amount - Fund.balance, 0).as_("remaining"),
+			Round((Fund.balance / Fund.goal_amount) * 100, 1).as_("goal_progress"),
+		)
+		.where(Fund.goal_amount > 0)
+		.orderby(Field("goal_progress"), order=Order.desc)
+		.run(as_dict=True)
 	)
