@@ -20,8 +20,6 @@
   "age",
   "alergies",
   "user",
-  "membership_section",
-  "column_break_lvwv",
   "life_events_section",
   "life_events",
   "section_break_osjz",
@@ -51,7 +49,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "First Name",
    "reqd": 1
   },
@@ -65,6 +63,7 @@
   {
    "fieldname": "full_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "in_preview": 1,
    "label": "Full Name",
    "print_hide": 1,
@@ -146,15 +145,6 @@
    "fieldtype": "Data",
    "label": "Alergies",
    "print_hide": 1
-  },
-  {
-   "fieldname": "membership_section",
-   "fieldtype": "Section Break",
-   "label": "Membership"
-  },
-  {
-   "fieldname": "column_break_lvwv",
-   "fieldtype": "Column Break"
   },
   {
    "allow_in_quick_entry": 1,
@@ -321,11 +311,11 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-08-17 04:00:00.000000",
+ "modified": "2026-08-25 16:26:29.095798",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
