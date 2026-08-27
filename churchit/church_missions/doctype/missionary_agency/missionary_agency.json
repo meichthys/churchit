@@ -9,7 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "agency_name",
-  "image_hhbv",
+  "logo",
   "notes",
   "column_break_qofu",
   "website",
@@ -39,7 +39,7 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "fieldname": "image_hhbv",
+   "fieldname": "logo",
    "fieldtype": "Attach Image",
    "label": "Logo"
   },
@@ -81,6 +81,7 @@
   }
  ],
  "grid_page_length": 50,
+ "image_field": "logo",
  "index_web_pages_for_search": 1,
  "links": [
   {
