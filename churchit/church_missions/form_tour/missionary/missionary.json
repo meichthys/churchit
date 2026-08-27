@@ -26,7 +26,7 @@
       "label": "Link the Person",
       "modal_trigger": 0,
       "next_on_click": 0,
-      "next_step_condition": "eval: doc.person",
+      "next_step_condition": "",
       "offset_x": 0,
       "offset_y": 0,
       "popover_element": 0,

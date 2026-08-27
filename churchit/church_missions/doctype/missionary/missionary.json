@@ -166,12 +166,11 @@
    "options": "Phone Number"
   },
   {
-   "description": "Link an associated `Person` (or primary contact person)",
+   "description": "Link an associated `Person` (or primary contact person). Optional: supported organizations and ministries have no single person to link.",
    "fieldname": "person",
    "fieldtype": "Link",
    "label": "Person",
-   "options": "Person",
-   "reqd": 1
+   "options": "Person"
   },
   {
    "collapsible": 1,
