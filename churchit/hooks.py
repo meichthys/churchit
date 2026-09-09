@@ -140,8 +140,12 @@ after_install = "churchit.patches.after_install.execute"
 after_sync = "churchit.patches.after_install.after_sync"
 
 # Workspaces and Desktop Icons ship as standard records, so migrate re-imports
-# them and resets the visibility flags Church Features set. Re-apply them.
-after_migrate = "churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"
+# them and resets the visibility flags Church Features set. Re-apply them, and
+# re-hide the icons Frappe auto-generates for each module's Manual workspace.
+after_migrate = [
+	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
+	"churchit.church_setup.manual_workspaces.hide_manual_desktop_icons",
+]
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
