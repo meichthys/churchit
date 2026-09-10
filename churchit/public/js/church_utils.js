@@ -57,9 +57,9 @@ church.bible_memory.open_assign_dialog = function(references, mode, on_done) {
 					}, 5);
 					if (missing_users.length) {
 						frappe.msgprint({
-							title: __('Skipped — no App User'),
+							title: __('Skipped — no Portal User'),
 							indicator: 'orange',
-							message: __('The following group members have no linked App User and were not assigned:<br><br>{0}',
+							message: __('The following group members have no linked Portal User and were not assigned:<br><br>{0}',
 								[missing_users.join('<br>')]),
 						});
 					}

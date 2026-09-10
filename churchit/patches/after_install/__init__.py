@@ -874,7 +874,7 @@ def _reorder_default_desktop_icons():
 	"""Push frappe's default desktop icons (Framework, Tools, ...) behind the
 	church icons on the desk grid, ending with Settings, Tools, then Framework.
 
-	Icons sort by idx; churchit ships its icons with idx 1-12 (Welcome first),
+	Icons sort by idx; churchit ships its icons with idx 1-13 (Summary first),
 	but frappe's icons default to idx 0 and would land in front. frappe installs
 	(and creates its icons) before churchit, so they all exist by the time this
 	patch runs. Tools has no app set (it's auto-generated from the workspace,

@@ -65,6 +65,6 @@ class TestChurchFeatures(FrappeTestCase):
 		self.features.enable_setup = 0
 		self.features.save()
 
-		self.assertEqual(frappe.db.get_value("Workspace", "Welcome", "is_hidden"), 1)
+		self.assertEqual(frappe.db.get_value("Workspace", "Summary", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
 		self.assertEqual(frappe.db.get_value("Desktop Icon", "Settings", "hidden"), 0)

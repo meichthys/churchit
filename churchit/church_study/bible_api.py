@@ -190,7 +190,7 @@ def assign_memory(references, users=None, group=None):
 	"""Assign Bible References to users for memorization. Creates a
 	Bible Memory Item for each (reference, user) pair that doesn't
 	already exist. Pass either ``users`` or ``group`` (expands to all
-	members of the group with a linked App User). Restricted to Church
+	members of the group with a linked Portal User). Restricted to Church
 	Manager / System Manager."""
 	import json as _json
 
@@ -225,11 +225,11 @@ def assign_memory(references, users=None, group=None):
 	if not references or not users:
 		if missing_users:
 			frappe.throw(
-				_("No members of this group have linked App Users: {0}").format(
+				_("No members of this group have linked Portal Users: {0}").format(
 					", ".join(missing_users)
 				)
 			)
-		frappe.throw(_("Select at least one reference and one user (or a group with linked App Users)."))
+		frappe.throw(_("Select at least one reference and one user (or a group with linked Portal Users)."))
 
 	if not (set(frappe.get_roles()) & {"Church Manager", "System Manager", "Administrator"}):
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
