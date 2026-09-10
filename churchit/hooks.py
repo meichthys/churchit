@@ -37,10 +37,11 @@ fixtures = [
 		],
 	},
 	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
-	# The module nav shown at the top of every module workspace. App-owned: the
-	# workspace JSONs reference it by name and are re-synced on every migrate,
-	# so the block has to be re-applied alongside them.
-	{"dt": "Custom HTML Block", "filters": [["name", "=", "WorkspaceHeader"]]},
+	# The module nav shown at the top of every module workspace, and the map
+	# block on the Missions workspace. App-owned: the workspace JSONs reference
+	# them by name and are re-synced on every migrate, so these have to be
+	# re-applied alongside them.
+	{"dt": "Custom HTML Block", "filters": [["name", "in", ["WorkspaceHeader", "MissionaryMap"]]]},
 ]
 # Apps
 # ------------------
@@ -74,7 +75,7 @@ app_include_js = [
 # Skins the public website (Web Pages, portal pages) in the same glassy style
 # as the marketing site in docs/.
 web_include_css = ["/assets/churchit/css/website.css"]
-web_include_js = ["/assets/churchit/js/portal_groups.js"]
+web_include_js = ["/assets/churchit/js/portal_groups.js", "/assets/churchit/js/missions_map.js"]
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "church/public/scss/website"

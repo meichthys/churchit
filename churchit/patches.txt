@@ -7,3 +7,4 @@
 [post_model_sync]
 churchit.patches.v1_0.migrate_contact_fields_to_child_tables
 churchit.patches.v1_0.rename_agency_logo_field
+churchit.patches.v1_0.add_missionary_map_to_missions_page

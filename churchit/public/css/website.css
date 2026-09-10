@@ -324,3 +324,55 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   color: var(--ch-brand-ink);
   text-decoration: none;
 }
+
+/* ---- Missions map (missions.html) ----------------------------------------- */
+.missions-map-card {
+  margin-bottom: 2rem;
+  border-radius: var(--ch-radius);
+  overflow: hidden;
+  box-shadow: var(--ch-glass-shdw);
+}
+.missions-map {
+  height: 420px;
+  width: 100%;
+  z-index: 1;
+}
+.missions-map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.missions-map-pin img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: #fff;
+}
+.missions-map-popup {
+  min-width: 140px;
+}
+.missions-map-popup-title {
+  font-weight: 600;
+  color: var(--ch-ink);
+  margin-bottom: 2px;
+}
+.missions-map-popup-country {
+  color: var(--ch-muted);
+  font-size: 0.85em;
+}
+.missions-map-notice {
+  text-align: center;
+  margin-top: 10px;
+}
+.missions-map-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--ch-muted);
+  font-size: 0.8em;
+  font-weight: 600;
+}

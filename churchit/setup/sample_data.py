@@ -8,6 +8,8 @@ when the user opts in to sample data.
 All inserts are idempotent — safe to run more than once on the same site.
 """
 
+import json
+
 import frappe
 from frappe.utils import add_days, add_months, getdate
 
@@ -225,6 +227,18 @@ def _insert_if_missing(doctype, filters, **fields):
 def _resolve_link(doctype, title_field, value):
 	"""Look up the hash name for a record given its display value."""
 	return frappe.db.get_value(doctype, {title_field: value}, "name")
+
+
+def _point_geojson(lat, lon):
+	"""GeoJSON string for a single point, as stored by the Geolocation fieldtype."""
+	return json.dumps(
+		{
+			"type": "FeatureCollection",
+			"features": [
+				{"type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]}, "properties": {}}
+			],
+		}
+	)
 
 
 def _delete_docs(doctype, filters):
@@ -808,6 +822,7 @@ def _create_missionaries(people, agencies):
 			"person": people["Michael Grant"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Brazil",
+			"geolocation": _point_geojson(-18.25, -43.60),
 			"mission_statement": "Planting churches and training local pastors in rural communities across Brazil.",
 			"publish": 1,
 			"sensitive": 0,
@@ -843,6 +858,7 @@ def _create_missionaries(people, agencies):
 			"person": people["Elizabeth Harper"],
 			"agency": agencies["Faithful Servants Mission Board"],
 			"country": "Japan",
+			"geolocation": _point_geojson(35.6762, 139.6503),
 			"mission_statement": "Teaching English and sharing the Gospel at local community centers in Tokyo.",
 			"publish": 1,
 			"sensitive": 0,
@@ -859,8 +875,9 @@ def _create_missionaries(people, agencies):
 			"person": people["Thomas Reed"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Kenya",
+			"geolocation": _point_geojson(3.1167, 35.60),
 			"mission_statement": "Providing clean water and biblical education to remote villages in Kenya.",
-			"publish": 0,
+			"publish": 1,
 			"sensitive": 1,
 			"support_amount": 100,
 			"support_frequency": monthly,

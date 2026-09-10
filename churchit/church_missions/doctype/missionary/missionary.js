@@ -17,4 +17,34 @@ frappe.ui.form.on("Missionary", {
             frm.set_intro('🌐 This missionary is published to the public website', 'blue');
         }
 	},
+
+	// Same nominatim geocoding pattern as Location.address (church_operations/doctype/location/location.js).
+	// Only fills an empty pin, so a manually placed one is never overwritten.
+	country(frm) {
+		if (!frm.doc.country || frm.doc.geolocation) return;
+
+		const query = encodeURIComponent(frm.doc.country);
+		fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+			headers: { "Accept-Language": "en" },
+		})
+			.then((r) => r.json())
+			.then((results) => {
+				if (!results.length || frm.doc.geolocation) return;
+				const { lat, lon } = results[0];
+				const geojson = JSON.stringify({
+					type: "FeatureCollection",
+					features: [
+						{
+							type: "Feature",
+							geometry: {
+								type: "Point",
+								coordinates: [parseFloat(lon), parseFloat(lat)],
+							},
+							properties: {},
+						},
+					],
+				});
+				frm.set_value("geolocation", geojson);
+			});
+	},
 });

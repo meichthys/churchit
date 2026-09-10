@@ -15,6 +15,7 @@
   "mission_statement",
   "column_break_vedu",
   "country",
+  "geolocation",
   "website",
   "photo",
   "publish",
@@ -58,6 +59,13 @@
    "in_standard_filter": 1,
    "label": "Country",
    "options": "Country"
+  },
+  {
+   "description": "Where the missionary serves. Place a pin on the map to show this missionary on the missionary map. Sensitive missionaries are not shown on website missions map.",
+   "fieldname": "geolocation",
+   "fieldtype": "Geolocation",
+   "in_preview": 1,
+   "label": "Location"
   },
   {
    "fieldname": "addresses",
