@@ -47,6 +47,17 @@ class TestMissionary(FrappeTestCase):
 			"Person", {"first_name": TEST_PERSON_NAME}, {"first_name": TEST_PERSON_NAME}
 		)
 
+	def tearDown(self):
+		# A commit() elsewhere in the same test run ends the whole session's rollback
+		# scope, which would otherwise leave this test's Missionary/Expense records
+		# committed for real. Delete and commit explicitly rather than rely on it.
+		for missionary in frappe.get_all(
+			"Missionary", filters={"title": ["like", f"{TEST_MISSIONARY_TITLE}%"]}, pluck="name"
+		):
+			frappe.db.delete("Expense", {"missionary": missionary})
+			frappe.delete_doc("Missionary", missionary, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
 	def _make_missionary(self, **overrides):
 		data = {
 			"doctype": "Missionary",

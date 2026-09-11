@@ -28,6 +28,16 @@ class TestExpense(FrappeTestCase):
 		fund.save(ignore_permissions=True)
 		frappe.db.commit()
 
+	def tearDown(self):
+		# setUp's commit() flushes whatever the previous test left uncommitted, so an
+		# Expense created in a test body can otherwise persist permanently in the site
+		# database. Cancel and delete explicitly rather than rely on rollback.
+		for name in frappe.get_all("Expense", filters={"type": self.expense_type}, pluck="name"):
+			if frappe.db.get_value("Expense", name, "docstatus") == 1:
+				frappe.get_doc("Expense", name).cancel()
+			frappe.db.delete("Expense", {"name": name})
+		frappe.db.commit()
+
 	def _make_expense(self, amount=100, **values):
 		return frappe.get_doc(
 			{
