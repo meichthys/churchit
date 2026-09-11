@@ -9,6 +9,7 @@
  "field_order": [
   "expense_type",
   "budgeted_amount",
+  "actual",
   "notes"
  ],
  "fields": [
@@ -27,6 +28,15 @@
    "in_list_view": 1,
    "label": "Budgeted Amount",
    "reqd": 1
+  },
+  {
+   "description": "Amount spent against this expense type within the budget period (computed).",
+   "fieldname": "actual",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "is_virtual": 1,
+   "label": "Actual",
+   "read_only": 1
   },
   {
    "fieldname": "notes",

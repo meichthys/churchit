@@ -12,7 +12,12 @@ def _ensure(doctype, filters, values):
 	name = frappe.db.exists(doctype, filters)
 	if name:
 		return name
-	return frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True).name
+	doc = frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True)
+	# Expense Type is a tree doctype; inserting one commits internally and drops
+	# the test's rollback savepoint. Only true the first time this fixture is
+	# created, so only commit (and accept the loss of rollback protection) then.
+	frappe.db.commit()
+	return doc.name
 
 
 class TestBudgetVsActual(FrappeTestCase):
@@ -23,10 +28,11 @@ class TestBudgetVsActual(FrappeTestCase):
 			{"type": "_Test Report Expense Type"},
 			{"type": "_Test Report Expense Type", "fund": self.fund},
 		)
-		frappe.db.commit()
-		# Budget names are derived from their dates, so orphan lines left by a raw
-		# delete would re-attach to the budget this test recreates.
-		frappe.db.delete("Budget Line")
+		# execute({}) resolves the current budget with no fixture scoping, so this
+		# test needs a Budget table with only its own row. A savepoint hides real
+		# Budgets for the whole test and restores them in tearDown, instead of
+		# deleting them outright (this site's real Budget data lives here too).
+		frappe.db.savepoint("test_budget_vs_actual")
 		frappe.db.delete("Budget")
 		self.budget = frappe.get_doc(
 			{
@@ -39,12 +45,7 @@ class TestBudgetVsActual(FrappeTestCase):
 		self.budget.insert(ignore_permissions=True)
 
 	def tearDown(self):
-		# Budget's autoname is derived from real dates, so a fixture using
-		# today +/- N days is indistinguishable from genuine data if it ever
-		# outlives the test's rollback. Delete explicitly rather than rely on it.
-		frappe.db.delete("Budget Line")
-		frappe.db.delete("Budget")
-		frappe.db.commit()
+		frappe.db.rollback(save_point="test_budget_vs_actual")
 
 	def test_uses_the_current_budget_when_no_filter_is_given(self):
 		columns, data, message = execute({})

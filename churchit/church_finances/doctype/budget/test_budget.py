@@ -1,6 +1,8 @@
 # Copyright (c) 2025, meichthys and Contributors
 # See license.txt
 
+from contextlib import contextmanager
+
 import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
@@ -17,7 +19,12 @@ def _ensure(doctype, filters, values):
 	name = frappe.db.exists(doctype, filters)
 	if name:
 		return name
-	return frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True).name
+	doc = frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True)
+	# Expense Type is a tree doctype; inserting one commits internally and drops
+	# the test's rollback savepoint. Only true the first time this fixture is
+	# created, so only commit (and accept the loss of rollback protection) then.
+	frappe.db.commit()
+	return doc.name
 
 
 class TestBudget(FrappeTestCase):
@@ -40,30 +47,29 @@ class TestBudget(FrappeTestCase):
 			{"type": "_Test Budget Other"},
 			{"type": "_Test Budget Other", "fund": self.fund},
 		)
-		frappe.db.commit()
-		# Tree inserts commit, which drops the test savepoint, so records can outlive
-		# the per-test rollback. Clear everything these tests read before each one.
 		for expense_type in (self.group_type, self.child_type, self.other_type):
 			frappe.db.delete("Expense", {"type": expense_type})
-		frappe.db.delete("Budget Line")
-		frappe.db.delete("Budget")
 		fund = frappe.get_doc("Fund", self.fund)
 		fund.transactions = []
 		fund.save(ignore_permissions=True)
+		self.budgets = []
 
 	def tearDown(self):
-		# Budget's autoname is derived from real dates, so a fixture using
-		# today +/- N days is indistinguishable from genuine data if it ever
-		# outlives the test's rollback. Delete explicitly rather than rely on it.
-		frappe.db.delete("Budget Line")
-		frappe.db.delete("Budget")
-		frappe.db.commit()
+		# Budgets this test created may have outlived the per-test rollback (see
+		# _ensure), so delete them by name explicitly rather than rely on it.
+		# Never delete unscoped: this site's real Budget data lives in this table too.
+		if self.budgets:
+			frappe.db.delete("Budget Line", {"parent": ("in", self.budgets)})
+			frappe.db.delete("Budget", {"name": ("in", self.budgets)})
+			frappe.db.commit()
 
 	def _make_budget(self, start, end, lines=None):
 		budget = frappe.get_doc({"doctype": "Budget", "start_date": start, "end_date": end})
 		for expense_type, amount in lines or []:
 			budget.append("lines", {"expense_type": expense_type, "budgeted_amount": amount})
-		return budget.insert(ignore_permissions=True)
+		budget = budget.insert(ignore_permissions=True)
+		self.budgets.append(budget.name)
+		return budget
 
 	def _make_expense(self, expense_type, amount, date=None, submit=True):
 		expense = frappe.get_doc(
@@ -139,16 +145,28 @@ class TestBudget(FrappeTestCase):
 		self.assertEqual(row["comparison_budget"], 1000)
 
 	def test_current_budget_prefers_the_budget_covering_today(self):
-		frappe.db.delete("Budget")
-		self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
-		current = self._make_budget(add_days(nowdate(), -1), add_days(nowdate(), 1))
-		self.assertEqual(get_current_budget(), current.name)
+		with self._other_budgets_hidden():
+			self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
+			current = self._make_budget(add_days(nowdate(), -1), add_days(nowdate(), 1))
+			self.assertEqual(get_current_budget(), current.name)
 
 	def test_current_budget_falls_back_to_the_latest_budget(self):
-		frappe.db.delete("Budget")
-		self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
-		latest = self._make_budget(add_years(nowdate(), -2), add_years(nowdate(), -1))
-		self.assertEqual(get_current_budget(), latest.name)
+		with self._other_budgets_hidden():
+			self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
+			latest = self._make_budget(add_years(nowdate(), -2), add_years(nowdate(), -1))
+			self.assertEqual(get_current_budget(), latest.name)
+
+	@contextmanager
+	def _other_budgets_hidden(self):
+		"""get_current_budget() has no fixture scoping, so these tests need a Budget
+		table with only their own rows. A savepoint hides real Budgets for the
+		test body and restores them after, instead of deleting them outright."""
+		frappe.db.savepoint("test_current_budget")
+		try:
+			frappe.db.delete("Budget")
+			yield
+		finally:
+			frappe.db.rollback(save_point="test_current_budget")
 
 	def test_window_scale_prorates_a_short_window_against_a_year(self):
 		start, end = getdate("2026-01-01"), getdate("2026-12-31")

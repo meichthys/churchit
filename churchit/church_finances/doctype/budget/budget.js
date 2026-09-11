@@ -8,7 +8,7 @@ frappe.ui.form.on("Budget", {
 				frappe.route_options = { budget: frm.doc.name };
 				frappe.set_route("query-report", "Budget vs Actual");
 			}, __("View"));
-			render_status(frm);
+			load_progress(frm);
 		}
 
 		frm.fields_dict["lines"].grid.add_custom_button(__("Add All Expense Types"), () => {
@@ -40,65 +40,46 @@ function _update_total(frm) {
 	frm.set_value("budgeted_amount", total);
 }
 
-function render_status(frm) {
+function load_progress(frm) {
 	frm.call("get_progress").then((r) => {
-		const progress = r.message;
-		const wrapper = frm.get_field("status_html").$wrapper;
-		if (!progress || !progress.rows.length) {
-			wrapper.html(
-				`<p class="text-muted">${__("Add expense lines to see spending against this budget.")}</p>`
-			);
-			return;
-		}
-		wrapper.html(_status_html(progress));
+		const rows = (r.message && r.message.rows) || [];
+		populate_actuals(frm, rows);
+		render_status(frm, rows);
 	});
 }
 
-function _status_html(progress) {
-	const rows = progress.rows;
-	const budgeted = rows.reduce((sum, row) => sum + row.budgeted, 0);
-	const actual = rows.reduce((sum, row) => sum + row.actual, 0);
-	const over = rows.filter((row) => row.actual > row.budgeted);
+function populate_actuals(frm, rows) {
+	if (!(frm.doc.lines || []).length) return;
+	const actual_by_type = Object.fromEntries(rows.map((row) => [row.expense_type, row.actual]));
+	(frm.doc.lines || []).forEach((line) => {
+		line.actual = actual_by_type[line.expense_type] || 0;
+	});
+	frm.refresh_field("lines");
+}
 
-	return `
+function render_status(frm, rows) {
+	const wrapper = frm.get_field("status_html").$wrapper;
+	if (!rows.length) {
+		wrapper.html(
+			`<p class="text-muted">${__("Add expense lines to see spending against this budget.")}</p>`
+		);
+		return;
+	}
+	const budgeted = frm.doc.budgeted_amount || 0;
+	const actual = rows.reduce((sum, row) => sum + row.actual, 0);
+	const pct = budgeted ? Math.round((actual / budgeted) * 100) : 0;
+	wrapper.html(`
 		<div class="row" style="margin-bottom: 15px;">
-			${_headline(__("Period Elapsed"), `${Math.round(progress.elapsed_fraction * 100)}%`)}
-			${_headline(__("Budget Used"), budgeted ? `${Math.round((actual / budgeted) * 100)}%` : "-")}
-			${_headline(__("Spent of Budgeted"), `${format_currency(actual)} / ${format_currency(budgeted)}`)}
-			${_headline(__("Lines Over Budget"), over.length)}
-		</div>
-		<table class="table table-bordered" style="margin: 0;">
-			<tbody>${rows.map(_status_row).join("")}</tbody>
-		</table>`;
+			${_headline(__("Total Actual"), format_currency(actual))}
+			${_headline(__("% Budget Used"), `${pct}%`)}
+			${_headline(__("Remaining Amount"), format_currency(budgeted - actual))}
+		</div>`);
 }
 
 function _headline(label, value) {
 	return `
-		<div class="col-sm-3">
+		<div class="col-sm-4">
 			<div class="text-muted small">${label}</div>
 			<div class="bold">${value}</div>
 		</div>`;
-}
-
-function _status_row(row) {
-	const over = row.actual > row.budgeted;
-	return `
-		<tr>
-			<td style="width: 30%;">${frappe.utils.escape_html(row.expense_type || "")}</td>
-			<td class="text-right" style="width: 25%;">
-				${format_currency(row.actual)} / ${format_currency(row.budgeted)}
-			</td>
-			<td>
-				<div class="progress" style="height: 8px; margin: 6px 0;">
-					<div class="progress-bar ${over ? "bg-danger" : "bg-success"}"
-						style="width: ${Math.min(row.pct, 100)}%"></div>
-				</div>
-			</td>
-			<td class="text-right" style="width: 10%;">${Math.round(row.pct)}%</td>
-			<td style="width: 15%;">
-				<span class="indicator-pill ${over ? "red" : "green"}">
-					${frappe.utils.escape_html(row.status)}
-				</span>
-			</td>
-		</tr>`;
 }
