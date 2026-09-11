@@ -1,7 +1,7 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"vGlW7T54B1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Web Site</b></span>\",\"col\":12}},{\"id\":\"IGVEWBT1NL\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Web Site\",\"col\":12}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"nsP8gvq7Aw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Articles\",\"col\":4}},{\"id\":\"S2WNeqIk0R\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Categories\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"ciUonBt9cC\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\",\"col\":12}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"nsP8gvq7Aw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Articles\",\"col\":4}},{\"id\":\"S2WNeqIk0R\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Help Categories\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"8sE6NnzXQq\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
  "creation": "2026-07-08 09:43:37.127745",
  "custom_blocks": [
   {
@@ -236,7 +236,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 00:10:00.000000",
+ "modified": "2026-09-10 17:17:54.749448",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
