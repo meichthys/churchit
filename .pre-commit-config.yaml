@@ -17,6 +17,14 @@ repos:
       - id: check-yaml
       - id: debug-statements
 
+  - repo: local
+    hooks:
+      - id: source-header
+        name: "Apply the freely-given source header"
+        entry: python scripts/apply_source_header.py
+        language: python
+        types_or: [python, javascript]
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.1
     hooks:

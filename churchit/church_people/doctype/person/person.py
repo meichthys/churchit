@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.model.document import Document
@@ -59,8 +59,9 @@ class Person(Document):
 		self.age = max(years, 0)
 
 	def on_trash(self):
-		# Remove person from Family
-		if self.family:
+		# Remove person from Family. A bulk delete takes the Family out first, and
+		# then there is no member row left to remove.
+		if self.family and frappe.db.exists("Family", self.family):
 			family = frappe.get_doc("Family", self.family)
 			for member in family.members:
 				if member.member == self.name:
@@ -152,7 +153,7 @@ class Person(Document):
 		doc = frappe.new_doc("Family")
 		doc.family_name = f"{self.last_name} - {self.first_name}"
 		doc.save()
-		self.set("family", doc)
+		self.set("family", doc.name)
 		self.set("is_head_of_household", True)
 		self.save()
 		self.reload()

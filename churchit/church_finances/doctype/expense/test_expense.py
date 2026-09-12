@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.exceptions import ValidationError
@@ -64,10 +64,18 @@ class TestExpense(FrappeTestCase):
 		expense.cancel()
 		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
 
-	def test_uncancelled_expense_cannot_be_deleted(self):
+	def test_submitted_expense_cannot_be_deleted(self):
 		expense = self._make_expense()
+		expense.submit()
 		with self.assertRaises(ValidationError):
 			expense.delete()
+
+	def test_draft_expense_can_be_deleted(self):
+		# A draft never reduced the fund, and cannot be cancelled, so blocking it
+		# would leave it undeletable for good.
+		expense = self._make_expense()
+		expense.delete()
+		self.assertFalse(frappe.db.exists("Expense", expense.name))
 
 	def test_cancelled_expense_can_be_deleted(self):
 		expense = self._make_expense()

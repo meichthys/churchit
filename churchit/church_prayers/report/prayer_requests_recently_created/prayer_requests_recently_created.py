@@ -32,7 +32,7 @@ def get_data(filters):
 			Prayer.type,
 			Prayer.recipient_type,
 			Prayer.recipient,
-			Prayer.details,
+			Prayer.request.as_("details"),
 			Prayer.name,
 		)
 		.where(Prayer.creation > request_since)

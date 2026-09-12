@@ -1,9 +1,9 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, today
+from frappe.utils import add_days, add_months, today
 
 from churchit.church_missions.doctype.missionary.missionary import (
 	create_missionary_expenses,
@@ -95,9 +95,13 @@ class TestMissionary(FrappeTestCase):
 		self.assertEqual(frappe.db.count("Expense", {"missionary": missionary.name}), 3)
 
 	def test_auto_create_stops_after_support_end_date(self):
-		missionary = self._make_missionary(support_end_date=add_days(today(), -40))
+		# End exactly one period after the start, so the periods on/before it are
+		# the start and +1 month whatever the length of the months in between.
+		start = add_days(today(), -70)
+		missionary = self._make_missionary(
+			support_start_date=start, support_end_date=add_months(start, 1)
+		)
 		create_missionary_expenses()
-		# Only periods on/before the end date (start, +1 month) should exist.
 		self.assertEqual(frappe.db.count("Expense", {"missionary": missionary.name}), 2)
 
 	def test_disabled_missionary_creates_nothing(self):

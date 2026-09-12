@@ -22,7 +22,8 @@ def get_list_context(context):
 		filters.append(["show_in_portal", "=", 1])
 		return frappe.get_list(
 			doctype,
-			fields="distinct *",
+			fields="*",
+			distinct=True,
 			filters=filters,
 			limit_start=limit_start,
 			limit_page_length=limit_page_length,

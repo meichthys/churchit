@@ -26,7 +26,7 @@ def get_data(filters):
 
 	return (
 		frappe.qb.from_(Prayer)
-		.select(Prayer.status, Prayer.type, Prayer.recipient_type, Prayer.recipient, Prayer.details)
+		.select(Prayer.status, Prayer.type, Prayer.recipient_type, Prayer.recipient, Prayer.request.as_("details"))
 		.where((Prayer.creation > request_since) & (Prayer.status == "answered"))
 		.run(as_dict=True)
 	)

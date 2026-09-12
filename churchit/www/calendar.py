@@ -1,8 +1,8 @@
-# Copyright (c) 2026, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
-from frappe.utils import add_months, getdate
+from frappe.utils import add_months, get_time, getdate
 
 
 no_cache = 1
@@ -102,4 +102,5 @@ def _combine(date_value, time_value, all_day):
 		return None
 	if all_day or not time_value:
 		return str(date_value)
-	return f"{date_value}T{time_value}"
+	# Time columns come back as timedelta, whose str() drops the leading zero.
+	return f"{date_value}T{get_time(time_value)}"

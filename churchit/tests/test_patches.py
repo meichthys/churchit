@@ -1,0 +1,128 @@
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
+
+"""Install-time seeding and versioned patches must be safe to run again."""
+
+import frappe
+from frappe.tests.utils import FrappeTestCase
+
+from churchit.patches import after_install
+from churchit.patches.v1_0 import (
+	add_missionary_map_to_missions_page,
+	rename_agency_logo_field,
+)
+from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
+from churchit.tests.helpers import make_address, make_person
+
+
+class TestAfterInstall(FrappeTestCase):
+	def test_execute_is_idempotent(self):
+		after_install.execute()
+		counts = self._lookup_counts()
+		after_install.execute()
+		self.assertEqual(self._lookup_counts(), counts)
+
+		self.assertEqual(frappe.db.count("Church"), 1)
+		self.assertEqual(frappe.db.count("Bible Book"), 66)
+		self.assertTrue(frappe.db.exists("Email Group", "Church Members"))
+		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
+		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
+
+	def _lookup_counts(self):
+		return {
+			doctype: frappe.db.count(doctype)
+			for doctype in (
+				"Church",
+				"Member Status",
+				"Function Type",
+				"Function Attendance Type",
+				"Position Type",
+				"Payment Type",
+				"Person Relation Type",
+				"Prayer Request Status",
+				"Prayer Request Type",
+				"Missionary Support Frequency",
+				"Group Role",
+				"Group Status",
+				"Bible Book",
+				"Bible Translation",
+				"Web Page",
+				"Visit Type",
+				"Life Event Type",
+				"Case Type",
+				"Care Request Type",
+				"Email Type",
+				"Phone Type",
+				"Address Type",
+			)
+		}
+
+	def test_portal_menu_items_are_seeded_once(self):
+		after_install._setup_portal_settings()
+		after_install._setup_portal_settings()
+		menu = frappe.get_doc("Portal Settings").menu
+		self.assertEqual([row.route for row in menu].count("memorize"), 1)
+		self.assertEqual([row.route for row in menu].count("groups"), 1)
+		self.assertEqual(next(row.role for row in menu if row.route == "groups"), "Church User")
+
+
+class TestVersionedPatches(FrappeTestCase):
+	def test_missions_map_is_added_once(self):
+		page = frappe.get_doc("Web Page", "missions")
+		page.main_section_html = "<p>Existing content</p>"
+		page.save(ignore_permissions=True)
+
+		add_missionary_map_to_missions_page.execute()
+		add_missionary_map_to_missions_page.execute()
+
+		html = frappe.db.get_value("Web Page", "missions", "main_section_html")
+		self.assertEqual(html, add_missionary_map_to_missions_page.MAP_MARKUP + "<p>Existing content</p>")
+
+	def test_agency_logo_rename_is_a_no_op_once_applied(self):
+		self.assertFalse(frappe.db.has_column("Missionary Agency", "image_hhbv"))
+		rename_agency_logo_field.execute()
+		self.assertTrue(frappe.db.has_column("Missionary Agency", "logo"))
+
+	def test_contact_migration_reruns_without_legacy_columns(self):
+		self.assertEqual(contact_patch._read_legacy("Person", ["email", "primary_phone"]), [])
+		contact_patch.execute()
+
+	def test_person_address_rows_from_legacy_fields(self):
+		home, box = "ADDR-HOME", "ADDR-BOX"
+		self.assertEqual(
+			contact_patch._person_address_rows(
+				{"home_address": home, "mailing_address": box, "different_mailing_address": 1}
+			),
+			[(home, "Home", 0, 1), (box, "Other", 1, 0)],
+		)
+		self.assertEqual(
+			contact_patch._person_address_rows({"home_address": home, "mailing_address": home, "different_mailing_address": 1}),
+			[(home, "Home", 1, 1)],
+		)
+		self.assertEqual(contact_patch._person_address_rows({"mailing_address": box}), [(box, "Other", 1, 1)])
+		self.assertEqual(contact_patch._person_address_rows({}), [])
+
+	def test_append_only_fills_empty_tables_and_skips_missing_addresses(self):
+		person = make_person("_Test Patch", "Person")
+		address = make_address("_Test Patch Address").name
+
+		contact_patch._add_addresses("Person", person.name, [("ADDR-GONE", "Home", 1, 1), (address, "Home", 1, 1)])
+		contact_patch._add_addresses("Person", person.name, [(address, "Other", 0, 0)])
+
+		rows = frappe.get_all(
+			"Postal Address", filters={"parent": person.name}, fields=["address", "address_type", "is_primary"]
+		)
+		self.assertEqual([(r.address, r.address_type, r.is_primary) for r in rows], [(address, "Home", 1)])
+
+	def test_backfill_sets_notification_address_on_primary_rows_only(self):
+		person = make_person("_Test Patch", "Mailer")
+		contact_patch._add_email("Person", person.name, "patched@example.com")
+		frappe.db.set_value(
+			"Email Address", {"parent": person.name}, "notification_address", None, update_modified=False
+		)
+
+		contact_patch._backfill_notification_addresses()
+		self.assertEqual(
+			frappe.db.get_value("Email Address", {"parent": person.name}, "notification_address"),
+			"patched@example.com",
+		)
