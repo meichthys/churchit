@@ -52,13 +52,10 @@ h1, h2, h3, h4, .page-header h1 {
   font-weight: 800;
 }
 
-/* page titles in the gradient brand ink, like the docs headlines.
-   Web Pages put the title in .page-header; the about page renders a
-   hero block, and give/contact write their own h1. */
+/* page titles in the gradient brand ink, like the docs headlines. Every
+   page (Web Pages, about/contact/give) puts its title in the shared
+   .page-header block, so this one rule covers all of them. */
 .page-header h1,
-.about-content .hero-title,
-.contact-content h1,
-.give-page h1,
 .portal-home h1 {
   background: var(--ch-grad);
   -webkit-background-clip: text;
@@ -78,6 +75,16 @@ h1, h2, h3, h4, .page-header h1 {
 .web-footer {
   background: transparent;
   border-top: 1px solid var(--ch-line);
+}
+
+/* Active page in the top nav — a rounded highlight pill, in the same spirit
+   as the desk's active-workspace highlight. nav_active_state.js adds the
+   "active" class; top_bar_items carries no such state on its own. */
+.navbar-nav .nav-item.active > .nav-link {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--ch-brand-ink);
+  border-radius: 999px;
+  font-weight: 650;
 }
 
 /* ---- Glass cards (skins the templates' Bootstrap cards) ------------------ */
@@ -138,9 +145,10 @@ h1, h2, h3, h4, .page-header h1 {
 
 /* ---- Breadcrumbs ------------------------------------------------------------
    Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
-   Account), but hide them on Web Page documents where the lone "Home" crumb
-   is clutter. */
-.page-content-wrapper:has(.web-page-content) .page-breadcrumbs {
+   Account), but hide them on Web Page documents and the Contact Us page,
+   where the lone "Home" crumb is clutter. */
+.page-content-wrapper:has(.web-page-content) .page-breadcrumbs,
+.page-content-wrapper:has(.contact-content) .page-breadcrumbs {
   display: none;
 }
 
@@ -161,17 +169,12 @@ h1, h2, h3, h4, .page-header h1 {
   border: 1px solid var(--ch-line);
   border-radius: 10px;
 }
-/* the about page is built from frappe web blocks (hero + sections) that carry
-   their own backgrounds/padding; flatten them so the glass panel shows through */
-.about-content .hero,
+/* the about page's Company History/Team Members sections are frappe web
+   blocks that carry their own background/padding; flatten them so the
+   glass panel shows through */
 .about-content .section {
   background: transparent;
-}
-.about-content .section {
   padding: 1rem 0;
-}
-.about-content .hero-subtitle {
-  color: var(--ch-muted);
 }
 
 /* ---- Account menu ---------------------------------------------------------

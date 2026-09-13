@@ -21,3 +21,9 @@ class Church(NestedSet):
 
 	def on_trash(self):
 		frappe.throw(_("The Church record cannot be deleted."))
+
+
+def get_church():
+	"""Return the site's one Church record, or None before setup creates it."""
+	name = frappe.db.get_value("Church", {}, "name")
+	return frappe.get_cached_doc("Church", name) if name else None

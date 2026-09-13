@@ -6,10 +6,17 @@
 import frappe
 from frappe import _
 
+from churchit.church_foundations.doctype.church.church import get_church
+
 PORTAL_URL = "/portal"
 
 
 def update_website_context(context):
+	_add_portal_menu_item(context)
+	_set_brand_html(context)
+
+
+def _add_portal_menu_item(context):
 	"""Put the member portal in the top-right user menu.
 
 	Frappe builds that menu with only My Account and Log out, and its own Portal
@@ -24,3 +31,19 @@ def update_website_context(context):
 		return
 
 	menu.insert(0, {"label": _("Portal"), "url": PORTAL_URL})
+
+
+def _set_brand_html(context):
+	"""Show the church's name in the navbar brand instead of Frappe's "Home" fallback.
+
+	Website Settings.brand_html is the field the navbar actually checks first;
+	leaving it blank lets this fill in the current church name on every request
+	instead of freezing a copy that would drift once the church is renamed. A
+	church that has set its own brand_html (a logo, say) keeps it untouched.
+	"""
+	if context.get("brand_html"):
+		return
+
+	church = get_church()
+	if church:
+		context["brand_html"] = f"<span>{frappe.utils.escape_html(church.church_name)}</span>"

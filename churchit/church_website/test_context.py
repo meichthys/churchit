@@ -7,6 +7,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_website.context import PORTAL_URL, update_website_context
+from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 
 
 def menu():
@@ -46,3 +47,15 @@ class TestPortalMenuLink(FrappeTestCase):
 		update_website_context(context)
 		self.assertIsNone(context.get("post_login"))
 
+
+class TestBrandHtml(FrappeTestCase):
+	def test_church_name_fills_the_navbar_brand(self):
+		context = frappe._dict({})
+		update_website_context(context)
+		self.assertEqual(context.brand_html, f"<span>{DEFAULT_CHURCH_NAME}</span>")
+
+	def test_an_admin_set_brand_html_is_left_alone(self):
+		# a church that configured its own logo/brand keeps it
+		context = frappe._dict({"brand_html": "<img src='/files/logo.png'>"})
+		update_website_context(context)
+		self.assertEqual(context.brand_html, "<img src='/files/logo.png'>")
