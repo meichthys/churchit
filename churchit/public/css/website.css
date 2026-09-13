@@ -67,8 +67,14 @@ h1, h2, h3, h4, .page-header h1 {
   display: inline-block;
 }
 
-/* Frosted navbar + footer */
+/* Frosted navbar + footer.
+   backdrop-filter makes the navbar its own stacking context, and so is every
+   glass card further down the page — so without a z-index the cards paint over
+   the navbar and swallow the account dropdown. 1030 is bootstrap's fixed-navbar
+   layer: above page content, still below modals at 1050. */
 .navbar {
+  position: relative;
+  z-index: 1030;
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   background: rgba(255, 255, 255, 0.6) !important;
