@@ -64,10 +64,28 @@ class TestSampleDataLoader(FrappeTestCase):
 		sample_data.create_sample_data()
 		self.assertEqual(counts(), before)
 
-	def test_church_manager_user_is_linked_to_a_person(self):
-		email = sample_data._CHURCH_MANAGER_EMAIL
-		self.assertTrue(frappe.db.exists("User", email))
-		self.assertTrue(frappe.db.exists("Person", {"user": email}))
+	def test_demo_logins_are_linked_to_their_person(self):
+		for email, person, _role_profile in sample_data._SAMPLE_USERS:
+			self.assertTrue(frappe.db.exists("User", email), f"{email} was not created")
+			linked = frappe.db.get_value("Person", {"user": email}, "full_name")
+			self.assertEqual(linked, person, f"{email} is linked to the wrong Person")
+
+	def test_demo_logins_cover_both_staff_and_a_plain_member(self):
+		"""A member account is the only way to see the portal, since staff are
+		System Users and Frappe hides its /me Portal link from them."""
+		types = {
+			email: frappe.db.get_value("User", email, "user_type")
+			for email, _person, _profile in sample_data._SAMPLE_USERS
+		}
+		self.assertEqual(types[sample_data._CHURCH_MANAGER_EMAIL], "System User")
+		self.assertEqual(types[sample_data._CHURCH_MEMBER_EMAIL], "Website User")
+
+	def test_the_member_has_giving_to_show_on_a_statement(self):
+		person = frappe.db.get_value("Person", {"user": sample_data._CHURCH_MEMBER_EMAIL}, "name")
+		self.assertTrue(
+			frappe.db.exists("Donation", {"person": person, "parenttype": "Collection"}),
+			"the demo member needs gifts, or their statement renders empty",
+		)
 
 	def test_collections_are_submitted_so_funds_carry_a_balance(self):
 		self.assertTrue(frappe.db.exists("Collection", {"docstatus": 1}))

@@ -7,11 +7,13 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.patches import after_install
+from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
 from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	rename_agency_logo_field,
 )
 from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
+from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
 from churchit.tests.helpers import make_address, make_person
 
 
@@ -125,4 +127,31 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Email Address", {"parent": person.name}, "notification_address"),
 			"patched@example.com",
+		)
+
+	def test_giving_statements_portal_item_is_added_once(self):
+		settings = frappe.get_doc("Portal Settings")
+		settings.menu = [row for row in settings.menu if row.route != portal_patch.ROUTE]
+		settings.save(ignore_permissions=True)
+
+		portal_patch.execute()
+		portal_patch.execute()
+
+		rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == portal_patch.ROUTE]
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
+		self.assertTrue(rows[0].enabled)
+
+	def test_statement_acknowledgment_only_fills_a_blank_value(self):
+		frappe.db.set_single_value("Giving Settings", "statement_acknowledgment", "")
+		acknowledgment_patch.execute()
+		seeded = frappe.db.get_single_value("Giving Settings", "statement_acknowledgment")
+		self.assertEqual(seeded, acknowledgment_patch.DEFAULT_TEXT)
+
+		frappe.db.set_single_value("Giving Settings", "statement_acknowledgment", "_Test custom wording.")
+		acknowledgment_patch.execute()
+		self.assertEqual(
+			frappe.db.get_single_value("Giving Settings", "statement_acknowledgment"),
+			"_Test custom wording.",
+			"a church that worded its own keeps it",
 		)

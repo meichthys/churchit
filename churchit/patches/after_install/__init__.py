@@ -709,12 +709,18 @@ def _setup_portal_settings():
 		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
 		("Alms Requests", "alms-request", "Alms Request", "Church User"),
 		("Groups", "groups", "Group", "Church User"),
+		("Giving Statements", "statements", "Giving Statement", "Church User"),
 		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
 		# no role: visible to any logged-in user
 		("Help Articles", "Help Article", "Help Article", None),
 	]
 	doc = frappe.get_doc("Portal Settings")
-	doc.default_portal_home = "/me"
+	# Left blank deliberately. Frappe consults this before Website Settings when a
+	# logged-in user opens "/", and rewrites a value of "me" to "desk" for staff, so
+	# setting it here sent the Desk's own Website link back to the Desk. Blank lets
+	# Website Settings' home_page answer for everyone; members reach the portal from
+	# the navbar Portal link.
+	doc.default_portal_home = ""
 	titles = {title for title, _route, _ref, _role in items}
 	doc.custom_menu = [row for row in doc.custom_menu if row.title not in titles]
 	for title, route, ref, role in items:

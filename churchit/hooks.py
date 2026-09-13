@@ -12,6 +12,8 @@ website_context = {
 	"splash_image": "/assets/churchit/media/church_logo.png",
 }
 
+update_website_context = "churchit.church_website.context.update_website_context"
+
 fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
 	{
@@ -128,11 +130,11 @@ website_redirects = [
 # Jinja
 # ----------
 
-# add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "churchit.utils.jinja_methods",
-# 	"filters": "churchit.utils.jinja_filters"
-# }
+jinja = {
+	"methods": [
+		"churchit.church_finances.doctype.giving_statement.giving_statement.statement_header",
+	]
+}
 
 # Installation
 # ------------

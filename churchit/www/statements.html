@@ -1,0 +1,72 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Giving Statements") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.statement-list { list-style: none; padding: 0; margin: 0; }
+	.statement-list li { display: flex; justify-content: space-between; align-items: baseline;
+		gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.statement-list .amount { font-weight: 600; white-space: nowrap; }
+	.statement { margin-top: 8px; }
+	.statement-head { display: flex; justify-content: space-between; align-items: flex-start;
+		gap: 24px; border-bottom: 2px solid currentColor; padding-bottom: 10px; }
+	.church-name { font-size: 1.25rem; font-weight: 700; }
+	.church-address, .church-tax { color: #6b7280; font-size: 0.85rem; white-space: pre-line; }
+	.statement-label { text-align: right; }
+	.doc-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+	.period { color: #6b7280; font-size: 0.85rem; }
+	.addressed-to { margin: 20px 0; }
+	.donor { font-size: 1.1rem; font-weight: 700; }
+	.muted { color: #6b7280; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+	table.lines { width: 100%; border-collapse: collapse; margin-top: 8px; }
+	table.lines th { text-align: left; font-size: 0.75rem; text-transform: uppercase;
+		letter-spacing: 0.04em; color: #6b7280; border-bottom: 1px solid #d1d5db; padding: 8px 4px; }
+	table.lines td { padding: 7px 4px; border-bottom: 1px solid #f3f4f6; }
+	table.lines .num { text-align: right; }
+	table.lines tfoot td { border-top: 2px solid currentColor; border-bottom: none;
+		font-weight: 700; padding-top: 10px; }
+	.acknowledgment { margin-top: 24px; padding-top: 12px;
+		border-top: 1px solid #e5e7eb; font-size: 0.85rem; color: #4b5563; }
+	@media print { .no-print { display: none !important; } }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+
+	{% if statement %}
+		<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+			<a href="/statements">&larr; {{ _("All statements") }}</a>
+			<button class="btn btn-primary btn-sm" onclick="window.print()">{{ _("Print") }}</button>
+		</div>
+		{% set doc = statement %}
+		{% include "churchit/templates/includes/giving_statement_body.html" %}
+
+	{% else %}
+		<h3 class="my-account-header mb-4">{{ _("Giving Statements") }}</h3>
+
+		{% if not person %}
+			<p class="text-muted">
+				{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+			</p>
+		{% elif not statements %}
+			<p class="text-muted">{{ _("No statements have been issued for you yet.") }}</p>
+		{% else %}
+			<ul class="statement-list">
+				{% for row in statements %}
+				<li>
+					<a href="/statements?name={{ row.name | urlencode }}">
+						{{ frappe.format(row.from_date, {"fieldtype": "Date"}) }}
+						&ndash;
+						{{ frappe.format(row.to_date, {"fieldtype": "Date"}) }}
+					</a>
+					<span class="amount">{{ frappe.format(row.total_amount, {"fieldtype": "Currency"}) }}</span>
+				</li>
+				{% endfor %}
+			</ul>
+		{% endif %}
+	{% endif %}
+
+</div>
+{% endblock %}

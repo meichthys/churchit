@@ -8,3 +8,6 @@
 churchit.patches.v1_0.migrate_contact_fields_to_child_tables
 churchit.patches.v1_0.rename_agency_logo_field
 churchit.patches.v1_0.add_missionary_map_to_missions_page
+churchit.patches.v1_0.set_statement_acknowledgment
+churchit.patches.v1_0.add_giving_statements_to_portal
+churchit.patches.v1_0.clear_default_portal_home

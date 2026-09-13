@@ -106,7 +106,7 @@ def create_sample_data():
 
 	position_refs = _create_positions()
 	people = _create_people(position_refs)
-	_create_church_manager_user(people)
+	_create_sample_users(people)
 
 	families = _create_families()
 	_assign_families(people, families)
@@ -184,7 +184,7 @@ def delete_sample_data():
 
 	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
 
-	_delete_church_manager_user()
+	_delete_sample_users()
 
 
 # ---------------------------------------------------------------------------
@@ -563,38 +563,52 @@ def _create_people(position_refs):
 # ---------------------------------------------------------------------------
 
 _CHURCH_MANAGER_EMAIL = "mary.johnson@example.com"
+_CHURCH_MEMBER_EMAIL = "james.wilson@example.com"
+
+# Demo logins: (email, person, role profile). Each password is set to the account's
+# own email address, so the credentials are self-evident when demonstrating the app.
+# Mary is staff and lands in the Desk; James is a rank-and-file member and lands in
+# the portal, which is the only way to see the member experience.
+_SAMPLE_USERS = (
+	(_CHURCH_MANAGER_EMAIL, "Mary Johnson", "Church Manager"),
+	(_CHURCH_MEMBER_EMAIL, "James Wilson", "Church User"),
+)
 
 
-def _create_church_manager_user(people):
-	"""Create a Church Manager portal user linked to Mary Johnson."""
-	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		return
+def _create_sample_users(people):
+	"""Create the demo login accounts and link each to its Person."""
+	for email, person, role_profile in _SAMPLE_USERS:
+		if not frappe.db.exists("User", email):
+			first_name, _, last_name = person.partition(" ")
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": first_name,
+					"last_name": last_name,
+					"send_welcome_email": 0,
+					"enabled": 1,
+					"role_profiles": [{"role_profile": role_profile}],
+				}
+			)
+			user.insert(ignore_permissions=True)
+			frappe.utils.password.update_password(email, email)
 
-	user = frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": _CHURCH_MANAGER_EMAIL,
-			"first_name": "Mary",
-			"last_name": "Johnson",
-			"send_welcome_email": 0,
-			"enabled": 1,
-			"role_profiles": [{"role_profile": "Church Manager"}],
-		}
-	)
-	user.insert(ignore_permissions=True)
-	frappe.utils.password.update_password(_CHURCH_MANAGER_EMAIL, _CHURCH_MANAGER_EMAIL)
-
-	person_name = people.get("Mary Johnson")
-	if person_name:
-		frappe.db.set_value("Person", person_name, "user", _CHURCH_MANAGER_EMAIL)
+		# Asserted on every run, not just when the User is new: the accounts outlive
+		# a delete/recreate of the sample people, which would otherwise leave the
+		# login with no Person and no portal data behind it.
+		person_name = people.get(person)
+		if person_name:
+			frappe.db.set_value("Person", person_name, "user", email)
 
 
-def _delete_church_manager_user():
-	"""Remove the sample Church Manager user."""
-	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		frappe.delete_doc(
-			"User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True, delete_permanently=True
-		)
+def _delete_sample_users():
+	"""Remove the demo login accounts."""
+	for email, _person, _role_profile in _SAMPLE_USERS:
+		if frappe.db.exists("User", email):
+			frappe.delete_doc(
+				"User", email, force=True, ignore_permissions=True, delete_permanently=True
+			)
 
 
 # ---------------------------------------------------------------------------

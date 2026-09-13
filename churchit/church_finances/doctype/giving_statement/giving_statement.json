@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:GS-{#####}",
+ "creation": "2026-09-11 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "person",
+  "family",
+  "column_break_period",
+  "from_date",
+  "to_date",
+  "section_break_totals",
+  "total_amount",
+  "column_break_contact",
+  "email",
+  "section_break_lines",
+  "lines"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "The person this statement is addressed to.",
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "description": "Set when the statement covers a whole household. Every member's giving is included.",
+   "fieldname": "family",
+   "fieldtype": "Link",
+   "label": "Family",
+   "options": "Family"
+  },
+  {
+   "fieldname": "column_break_period",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_totals",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_contact",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Resolved from the person's primary email address.",
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_lines",
+   "fieldtype": "Section Break",
+   "label": "Contributions"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Contributions",
+   "options": "Giving Statement Line",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Giving Statement",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "to_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

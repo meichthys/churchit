@@ -1,0 +1,60 @@
+{%- set header = statement_header() -%}
+<div class="statement">
+	<div class="statement-head">
+		<div>
+			<div class="church-name">{{ header.name }}</div>
+			{%- if header.address %}<div class="church-address">{{ header.address }}</div>{% endif -%}
+			{%- if header.tax_id %}<div class="church-tax">Tax ID: {{ header.tax_id }}</div>{% endif -%}
+		</div>
+		<div class="statement-label">
+			<div class="doc-title">Contribution Statement</div>
+			<div class="period">{{ frappe.format(doc.from_date, {"fieldtype": "Date"}) }} &ndash;
+				{{ frappe.format(doc.to_date, {"fieldtype": "Date"}) }}</div>
+		</div>
+	</div>
+
+	<div class="addressed-to">
+		<div class="muted">Contributions of</div>
+		<div class="donor">{{ frappe.db.get_value("Person", doc.person, "full_name") or doc.person }}</div>
+		{%- if doc.family %}<div class="muted">Household statement</div>{% endif -%}
+	</div>
+
+	{% if doc.lines %}
+	<table class="lines">
+		<thead>
+			<tr>
+				<th>Date</th>
+				{%- if doc.family %}<th>Given By</th>{% endif -%}
+				<th>Fund</th>
+				<th>Method</th>
+				<th class="num">Amount</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for line in doc.lines %}
+			<tr>
+				<td>{{ frappe.format(line.date, {"fieldtype": "Date"}) }}</td>
+				{%- if doc.family -%}
+				<td>{{ frappe.db.get_value("Person", line.person, "full_name") or "" }}</td>
+				{%- endif -%}
+				<td>{{ frappe.db.get_value("Fund", line.fund, "fund") or line.fund or "" }}</td>
+				<td>{{ line.payment_type or "" }}{% if line.check_number %} #{{ line.check_number }}{% endif %}</td>
+				<td class="num">{{ frappe.format(line.amount, {"fieldtype": "Currency"}) }}</td>
+			</tr>
+			{%- endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="{{ 4 if doc.family else 3 }}">Total contributions</td>
+				<td class="num total">{{ frappe.format(doc.total_amount, {"fieldtype": "Currency"}) }}</td>
+			</tr>
+		</tfoot>
+	</table>
+	{% else %}
+	<p class="muted">No contributions were recorded for this period.</p>
+	{% endif %}
+
+	{%- if header.acknowledgment %}
+	<p class="acknowledgment">{{ header.acknowledgment }}</p>
+	{% endif -%}
+</div>
