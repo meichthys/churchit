@@ -3,7 +3,7 @@
 {% block title %}Calendar{% endblock %}
 
 {% block head_include %}
-<link rel="stylesheet" href="/assets/frappe/js/lib/fullcalendar/fullcalendar.min.css">
+{# FullCalendar 6 injects its own styles, so there is no stylesheet to pull in #}
 <style>
 	#church-calendar { max-width: 1100px; margin: 1.5rem auto; }
 	#church-calendar .fc-event { cursor: pointer; }
@@ -74,9 +74,13 @@
 {% endblock %}
 
 {% block script %}
-<script src="/assets/frappe/js/lib/fullcalendar/fullcalendar.min.js"></script>
+{# frappe ships FullCalendar 6 in this bundle and hangs it off frappe.FullCalendar #}
+{{ include_script("calendar.bundle.js") }}
 <script>
 (function () {
+	var DATE_FORMAT = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+	var TIME_FORMAT = { hour: 'numeric', minute: '2-digit' };
+
 	function escapeHtml(text) {
 		if (text == null) return '';
 		return String(text)
@@ -87,29 +91,29 @@
 			.replace(/'/g, '&#39;');
 	}
 
+	function formatWhen(event) {
+		var when = event.start.toLocaleDateString(undefined, DATE_FORMAT);
+		if (event.allDay) return when + ' (All day)';
+		when += ' ' + event.start.toLocaleTimeString(undefined, TIME_FORMAT);
+		if (event.end) {
+			when += ' – ' + event.end.toLocaleTimeString(undefined, TIME_FORMAT);
+		}
+		return when;
+	}
+
 	function openModal(event) {
-		var body = document.getElementById('event-modal-body');
-		var html = [];
-		var when;
-		if (event.allDay) {
-			when = moment(event.start).format('dddd, MMMM D, YYYY') + ' (All day)';
-		} else {
-			when = moment(event.start).format('dddd, MMMM D, YYYY h:mm A');
-			if (event.end) {
-				when += ' – ' + moment(event.end).format('h:mm A');
-			}
+		var details = event.extendedProps || {};
+		var html = ['<p><span class="label">When:</span> ' + escapeHtml(formatWhen(event)) + '</p>'];
+		if (details.type) {
+			html.push('<p><span class="label">Type:</span> ' + escapeHtml(details.type) + '</p>');
 		}
-		html.push('<p><span class="label">When:</span> ' + escapeHtml(when) + '</p>');
-		if (event.type) {
-			html.push('<p><span class="label">Type:</span> ' + escapeHtml(event.type) + '</p>');
+		if (details.address) {
+			html.push('<p><span class="label">Where:</span> ' + escapeHtml(details.address) + '</p>');
 		}
-		if (event.address) {
-			html.push('<p><span class="label">Where:</span> ' + escapeHtml(event.address) + '</p>');
+		if (details.description) {
+			html.push('<p><span class="label">Details:</span><br>' + escapeHtml(details.description).replace(/\n/g, '<br>') + '</p>');
 		}
-		if (event.description) {
-			html.push('<p><span class="label">Details:</span><br>' + escapeHtml(event.description).replace(/\n/g, '<br>') + '</p>');
-		}
-		body.innerHTML = html.join('');
+		document.getElementById('event-modal-body').innerHTML = html.join('');
 		document.getElementById('event-modal-title').textContent = event.title;
 		document.getElementById('event-modal').classList.add('is-open');
 	}
@@ -118,41 +122,39 @@
 		document.getElementById('event-modal').classList.remove('is-open');
 	}
 
-	$(function () {
-		$('#church-calendar').fullCalendar({
-			header: {
+	frappe.ready(function () {
+		var calendar = new frappe.FullCalendar(document.getElementById('church-calendar'), {
+			plugins: frappe.FullCalendar.Plugins,
+			initialView: 'dayGridMonth',
+			headerToolbar: {
 				left: 'prev,next today',
 				center: 'title',
-				right: 'month,agendaWeek,agendaDay,listMonth'
+				right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
 			},
-			defaultView: 'month',
 			height: 'auto',
 			navLinks: true,
 			nowIndicator: true,
-			eventLimit: true,
-			timezone: 'local',
-			events: function (start, end, timezone, callback) {
+			dayMaxEvents: true,
+			events: function (info, successCallback, failureCallback) {
 				frappe.call({
 					method: 'churchit.www.calendar.get_events',
-					args: {
-						start: start.format('YYYY-MM-DD'),
-						end: end.format('YYYY-MM-DD')
-					}
+					args: { start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10) }
 				}).then(function (r) {
-					callback(r.message || []);
-				});
+					successCallback(r.message || []);
+				}, failureCallback);
 			},
-			eventClick: function (event) {
-				openModal(event);
-				return false;
+			eventClick: function (info) {
+				info.jsEvent.preventDefault();
+				openModal(info.event);
 			}
 		});
+		calendar.render();
 
-		$('#event-modal .event-modal-close').on('click', closeModal);
-		$('#event-modal').on('click', function (e) {
+		document.querySelector('#event-modal .event-modal-close').addEventListener('click', closeModal);
+		document.getElementById('event-modal').addEventListener('click', function (e) {
 			if (e.target === this) closeModal();
 		});
-		$(document).on('keydown', function (e) {
+		document.addEventListener('keydown', function (e) {
 			if (e.key === 'Escape') closeModal();
 		});
 	});

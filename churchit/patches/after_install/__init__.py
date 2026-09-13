@@ -677,7 +677,7 @@ def _setup_website_settings():
 		{"label": "Sermons", "url": "/sermons", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Ministries", "url": "/ministries", "right": 1},
-		{"label": "Locations", "url": "/locations", "right": 1},
+		{"label": "Calendar", "url": "/calendar", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
 		{"label": "Give", "url": "/give", "right": 1},

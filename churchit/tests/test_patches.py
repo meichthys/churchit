@@ -12,6 +12,7 @@ from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	redesign_home_page,
 	rename_agency_logo_field,
+	update_default_navbar,
 )
 from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
 from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
@@ -165,6 +166,36 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Web Page", "home", "main_section_html"), "<p>Our custom homepage</p>"
 		)
+
+	def test_navbar_gains_calendar_after_ministries_and_loses_locations(self):
+		settings = frappe.get_doc("Website Settings")
+		settings.top_bar_items = []
+		for item in [
+			{"label": "Ministries", "url": "/ministries", "right": 1},
+			{"label": "Locations", "url": "/locations", "right": 1},
+			{"label": "Give", "url": "/give", "right": 1},
+		]:
+			settings.append("top_bar_items", item)
+		settings.save(ignore_permissions=True)
+
+		update_default_navbar.execute()
+		update_default_navbar.execute()
+
+		rows = frappe.get_doc("Website Settings").top_bar_items
+		self.assertEqual([row.label for row in rows], ["Ministries", "Calendar", "Give"])
+		self.assertEqual([row.idx for row in rows], [1, 2, 3])
+
+	def test_navbar_leaves_a_repointed_locations_entry_alone(self):
+		settings = frappe.get_doc("Website Settings")
+		settings.top_bar_items = []
+		settings.append("top_bar_items", {"label": "Locations", "url": "/our-campuses", "right": 1})
+		settings.save(ignore_permissions=True)
+
+		update_default_navbar.execute()
+
+		labels = [row.label for row in frappe.get_doc("Website Settings").top_bar_items]
+		self.assertIn("Locations", labels, "a church that re-pointed the link keeps it")
+		self.assertIn("Calendar", labels)
 
 	def test_statement_acknowledgment_only_fills_a_blank_value(self):
 		frappe.db.set_single_value("Giving Settings", "statement_acknowledgment", "")
