@@ -54,9 +54,11 @@ h1, h2, h3, h4, .page-header h1 {
 
 /* page titles in the gradient brand ink, like the docs headlines. Every
    page (Web Pages, about/contact/give) puts its title in the shared
-   .page-header block, so this one rule covers all of them. */
+   .page-header block, so this one rule covers all of them. The home page
+   is a landing page and styles its own headline (.home-title-accent). */
 .page-header h1,
-.portal-home h1 {
+.portal-home h1,
+.home-title-accent {
   background: var(--ch-grad);
   -webkit-background-clip: text;
   background-clip: text;
@@ -199,6 +201,212 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   border-radius: 50%;
   background: var(--ch-grad);
   font-size: 0.95rem;
+}
+
+/* ---- Home landing page ------------------------------------------------------
+   The home Web Page is a landing page rather than a card grid, laid out like
+   the marketing site in docs/: a two-column hero, a stats strip, and panels
+   for the latest sermon and what is coming up. The panels reuse .card, so the
+   glass skin and gradient accent bar come for free. The Web Page record sets
+   text-align: Center on the article, so blocks that read left declare it. */
+#home .home-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ch-brand-ink);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+}
+
+#home .home-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.5rem, 5vw, 3.5rem) 0 clamp(2rem, 5vw, 3.5rem);
+}
+/* the second column only exists when there is a gathering to put in it */
+#home .home-hero:has(.home-aside) {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+#home .home-hero-copy {
+  text-align: left;
+}
+#home .home-title {
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.12;
+  margin: 0.7rem 0 0.6rem;
+}
+#home .home-lead {
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  color: var(--ch-muted);
+  max-width: 46ch;
+  margin-bottom: 0;
+}
+#home .home-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.6rem;
+}
+#home .home-btn-ghost {
+  color: var(--ch-ink);
+  background: var(--ch-glass-2);
+  border: 1px solid var(--ch-glass-brd);
+  border-radius: 999px;
+  font-weight: 650;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+#home .home-btn-ghost:hover {
+  transform: translateY(-2px);
+}
+
+/* hero side panel: the next gathering, or a welcome note when nothing is scheduled */
+#home .home-aside {
+  text-align: left;
+}
+#home .home-aside-label,
+#home .home-schedule-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ch-brand-ink);
+}
+#home .home-aside-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ch-ink);
+  letter-spacing: -0.02em;
+  margin: 0.35rem 0 0.2rem;
+}
+#home .home-aside-when {
+  font-weight: 650;
+  color: var(--ch-body);
+}
+#home .home-aside-text {
+  color: var(--ch-muted);
+  margin: 0.7rem 0 0;
+}
+#home .home-aside-where {
+  color: var(--ch-muted);
+  font-size: 0.92rem;
+  margin-top: 0.7rem;
+}
+#home .home-aside-link {
+  display: inline-block;
+  margin-top: 1rem;
+  font-weight: 700;
+  color: var(--ch-brand-ink);
+  text-decoration: none;
+}
+#home .home-aside-link:hover {
+  text-decoration: underline;
+}
+
+/* stats strip — flex, not grid: the card's ::before accent bar would occupy
+   every auto-fit track and stop the empty ones collapsing */
+#home .home-stats {
+  display: flex;
+  /* .card is itself a column flexbox, so the direction has to be reset */
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+#home .home-stats::before {
+  flex: 0 0 100%;
+}
+#home .home-stat {
+  flex: 1 1 140px;
+  padding: 1.4rem 1rem;
+}
+#home .home-stat + .home-stat {
+  border-left: 1px solid var(--ch-line);
+}
+#home .home-stat-number {
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  font-weight: 800;
+  color: var(--ch-ink);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+#home .home-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ch-muted);
+}
+
+#home .home-section {
+  padding: clamp(2.2rem, 6vw, 4rem) 0 0;
+}
+#home .home-split {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+#home .home-panel {
+  text-align: left;
+}
+#home .home-panel-text {
+  color: var(--ch-muted);
+  margin: 0;
+}
+#home .home-panel-title {
+  font-size: 1.25rem;
+  margin: 0.7rem 0 0.2rem;
+}
+#home .home-panel-meta {
+  color: var(--ch-muted);
+  font-size: 0.92rem;
+}
+#home .home-panel-text {
+  margin-top: 0.7rem;
+}
+
+#home .home-schedule {
+  list-style: none;
+  padding: 0;
+  margin: 0.9rem 0 0;
+}
+#home .home-schedule li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--ch-line);
+}
+#home .home-schedule li:first-child {
+  border-top: none;
+}
+#home .home-schedule-name {
+  font-weight: 650;
+  color: var(--ch-ink);
+}
+#home .home-schedule-time {
+  color: var(--ch-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  #home .home-hero:has(.home-aside) {
+    grid-template-columns: 1fr;
+  }
+  #home .home-schedule li {
+    grid-template-columns: 6.5rem 1fr;
+  }
+  #home .home-schedule-time {
+    grid-column: 2;
+  }
 }
 
 /* ---- Portal landing (/portal) ---------------------------------------------

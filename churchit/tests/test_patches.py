@@ -10,6 +10,7 @@ from churchit.patches import after_install
 from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
 from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
+	redesign_home_page,
 	rename_agency_logo_field,
 )
 from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
@@ -141,6 +142,29 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(len(rows), 1)
 		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
 		self.assertTrue(rows[0].enabled)
+
+	def test_home_page_redesign_only_replaces_the_shipped_default(self):
+		page = frappe.get_doc("Web Page", "home")
+		page.main_section_html = redesign_home_page.SHIPPED_DEFAULT
+		page.save(ignore_permissions=True)
+
+		redesign_home_page.execute()
+		redesign_home_page.execute()
+
+		html = frappe.db.get_value("Web Page", "home", "main_section_html")
+		self.assertIn("get_church()", html)
+		self.assertNotEqual(html, redesign_home_page.SHIPPED_DEFAULT)
+
+	def test_home_page_redesign_leaves_a_customized_page_alone(self):
+		page = frappe.get_doc("Web Page", "home")
+		page.main_section_html = "<p>Our custom homepage</p>"
+		page.save(ignore_permissions=True)
+
+		redesign_home_page.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Web Page", "home", "main_section_html"), "<p>Our custom homepage</p>"
+		)
 
 	def test_statement_acknowledgment_only_fills_a_blank_value(self):
 		frappe.db.set_single_value("Giving Settings", "statement_acknowledgment", "")

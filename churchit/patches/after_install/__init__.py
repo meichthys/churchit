@@ -96,11 +96,12 @@ def _insert_if_missing(doctype, filters, **fields):
 _TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 
-def _read_template(filename):
+def read_template(filename):
 	"""Read an HTML template from the templates/ subdirectory next to this file.
 
-	Called only from this module with hardcoded ``template_file`` literals
-	(home.html, beliefs.html, etc.); no caller passes user input.
+	Called with hardcoded ``template_file`` literals (home.html, beliefs.html,
+	etc.) from this module and from versioned patches that refresh one of
+	these pages on existing sites; no caller passes user input.
 	"""
 	return (_TEMPLATES_DIR / filename).read_text()
 
@@ -610,7 +611,7 @@ def _create_web_pages():
 				"show_title": 1,
 				"text_align": "Center",
 				"css": ".page-header { text-align: center; }",
-				"main_section_html": _read_template(page["template_file"]),
+				"main_section_html": read_template(page["template_file"]),
 			}
 		).insert(ignore_permissions=True)
 
