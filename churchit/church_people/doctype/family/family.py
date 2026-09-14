@@ -35,6 +35,4 @@ class Family(Document):
 		if self.members:
 			for member in self.members:
 				if member.member:
-					frappe.db.set_value(
-						"Person", member.member, "family", self.name, update_modified=False
-					)
+					frappe.db.set_value("Person", member.member, "family", self.name, update_modified=False)

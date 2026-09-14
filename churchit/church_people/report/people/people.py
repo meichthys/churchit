@@ -18,7 +18,13 @@ def get_columns():
 		{"fieldname": "full_name", "fieldtype": "Data", "label": "Name", "width": 200},
 		{"fieldname": "family_name", "fieldtype": "Data", "label": "Family", "width": 150},
 		{"fieldname": "roles", "fieldtype": "Data", "label": "Roles", "width": 250},
-		{"fieldname": "membership_status", "fieldtype": "Link", "label": "Member Status", "options": "Member Status", "width": 120},
+		{
+			"fieldname": "membership_status",
+			"fieldtype": "Link",
+			"label": "Member Status",
+			"options": "Member Status",
+			"width": 120,
+		},
 		{"fieldname": "birthday", "fieldtype": "Date", "label": "Birthday", "width": 120},
 		{"fieldname": "is_baptized", "fieldtype": "Check", "label": "Baptized", "width": 80},
 	]

@@ -13,5 +13,4 @@ frappe.query_reports["Fund Transactions By Date"] = {
 			mandatory: 1,
 		},
 	],
-
 };

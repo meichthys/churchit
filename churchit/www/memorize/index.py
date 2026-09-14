@@ -28,13 +28,13 @@ def get_context(context):
 		order_by="memorized asc, modified desc",
 	)
 	for it in items:
-		it["label"] = frappe.db.get_value(
-			"Bible Reference", it["bible_reference"], "reference"
-		) or it["bible_reference"]
+		it["label"] = (
+			frappe.db.get_value("Bible Reference", it["bible_reference"], "reference")
+			or it["bible_reference"]
+		)
 		if it.get("assigned_by"):
 			it["assigned_by_label"] = (
-				frappe.db.get_value("User", it["assigned_by"], "full_name")
-				or it["assigned_by"]
+				frappe.db.get_value("User", it["assigned_by"], "full_name") or it["assigned_by"]
 			)
 	context.items = items
 

@@ -14,7 +14,13 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "expense_type", "fieldtype": "Link", "options": "Expense Type", "label": "Expense Type", "width": 220},
+		{
+			"fieldname": "expense_type",
+			"fieldtype": "Link",
+			"options": "Expense Type",
+			"label": "Expense Type",
+			"width": 220,
+		},
 		{"fieldname": "budgeted", "fieldtype": "Currency", "label": "Budgeted", "width": 130},
 		{"fieldname": "expected_to_date", "fieldtype": "Currency", "label": "Expected to Date", "width": 150},
 		{"fieldname": "actual", "fieldtype": "Currency", "label": "Actual", "width": 130},
@@ -49,14 +55,16 @@ def get_data(filters):
 		actual = actuals.get(et, 0)
 		variance = budgeted - actual
 		pct = (actual / budgeted * 100) if budgeted else 0
-		rows.append({
-			"expense_type": et,
-			"budgeted": budgeted,
-			"expected_to_date": expected_to_date,
-			"actual": actual,
-			"variance": variance,
-			"pct": pct,
-		})
+		rows.append(
+			{
+				"expense_type": et,
+				"budgeted": budgeted,
+				"expected_to_date": expected_to_date,
+				"actual": actual,
+				"variance": variance,
+				"pct": pct,
+			}
+		)
 
 	rows.sort(key=lambda r: r["expense_type"] or "")
 	return rows

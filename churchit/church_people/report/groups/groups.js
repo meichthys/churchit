@@ -25,5 +25,4 @@ frappe.query_reports["Groups"] = {
 		}
 		return value;
 	},
-
 };

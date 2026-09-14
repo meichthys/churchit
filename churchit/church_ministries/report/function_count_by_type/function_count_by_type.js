@@ -11,5 +11,4 @@ frappe.query_reports["Function Count by Type"] = {
 			fieldtype: "Date",
 		},
 	],
-
 };

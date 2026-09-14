@@ -9,12 +9,16 @@ from frappe.utils import now
 
 class TestFundTransfer(FrappeTestCase):
 	def setUp(self):
-		self.from_fund = frappe.get_doc(
-			{"doctype": "Fund", "fund": "_Test Transfer From"}
-		).insert(ignore_permissions=True).name
-		self.to_fund = frappe.get_doc(
-			{"doctype": "Fund", "fund": "_Test Transfer To"}
-		).insert(ignore_permissions=True).name
+		self.from_fund = (
+			frappe.get_doc({"doctype": "Fund", "fund": "_Test Transfer From"})
+			.insert(ignore_permissions=True)
+			.name
+		)
+		self.to_fund = (
+			frappe.get_doc({"doctype": "Fund", "fund": "_Test Transfer To"})
+			.insert(ignore_permissions=True)
+			.name
+		)
 
 	def _make_transfer(self, amount=50, **values):
 		data = {

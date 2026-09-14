@@ -8,5 +8,4 @@ frappe.query_reports["Collection Bank Reconciliation"] = {
 			mandatory: 1,
 		},
 	],
-
 };

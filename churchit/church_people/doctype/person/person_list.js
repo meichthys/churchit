@@ -1,6 +1,8 @@
 frappe.listview_settings["Person"] = {
 	onload(listview) {
-		listview.page.add_action_item(__("Check In"), () => bulk_check_in(listview));
+		listview.page.add_action_item(__("Check In"), () =>
+			bulk_check_in(listview),
+		);
 	},
 };
 
@@ -33,7 +35,9 @@ function bulk_check_in(listview) {
 				callback(r) {
 					if (!r.exc) {
 						frappe.show_alert({
-							message: __("{0} person(s) checked in.", [selected.length]),
+							message: __("{0} person(s) checked in.", [
+								selected.length,
+							]),
 							indicator: "green",
 						});
 						dialog.hide();

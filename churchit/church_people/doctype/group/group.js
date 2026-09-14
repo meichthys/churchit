@@ -4,12 +4,20 @@
 frappe.ui.form.on("Group", {
 	refresh(frm) {
 		const grid = frm.fields_dict.members.grid;
-		grid.add_custom_button(__("Email Group"), () => email_members(frm, false));
-		grid.add_custom_button(__("Email Selected"), () => email_members(frm, true));
+		grid.add_custom_button(__("Email Group"), () =>
+			email_members(frm, false),
+		);
+		grid.add_custom_button(__("Email Selected"), () =>
+			email_members(frm, true),
+		);
 
 		// Create a reusable Frappe Email Group (newsletter list) from the members
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Create Email Group"), () => create_email_group(frm), __("Actions"));
+			frm.add_custom_button(
+				__("Create Email Group"),
+				() => create_email_group(frm),
+				__("Actions"),
+			);
 		}
 	},
 });
@@ -33,21 +41,39 @@ function create_email_group(frm) {
 				m.total_members,
 			]);
 			if (m.missing && m.missing.length) {
-				msg += "<br><br>" + __("⚠️ Skipped {0} member(s) with no email address:", [m.missing.length])
-					+ "<ul>" + m.missing.map((n) => `<li>${frappe.utils.escape_html(n)}</li>`).join("") + "</ul>";
+				msg +=
+					"<br><br>" +
+					__("⚠️ Skipped {0} member(s) with no email address:", [
+						m.missing.length,
+					]) +
+					"<ul>" +
+					m.missing
+						.map((n) => `<li>${frappe.utils.escape_html(n)}</li>`)
+						.join("") +
+					"</ul>";
 			}
-			frappe.msgprint({ title: __("Email Group Ready"), indicator: "green", message: msg });
+			frappe.msgprint({
+				title: __("Email Group Ready"),
+				indicator: "green",
+				message: msg,
+			});
 		},
 	});
 }
 
 function email_members(frm, selected_only) {
 	const grid = frm.fields_dict.members.grid;
-	const rows = selected_only ? grid.get_selected_children() : frm.doc.members || [];
+	const rows = selected_only
+		? grid.get_selected_children()
+		: frm.doc.members || [];
 	const persons = rows.map((r) => r.person).filter(Boolean);
 
 	if (!persons.length) {
-		frappe.msgprint(selected_only ? __("Please select at least one member.") : __("No members in this group."));
+		frappe.msgprint(
+			selected_only
+				? __("Please select at least one member.")
+				: __("No members in this group."),
+		);
 		return;
 	}
 
@@ -64,8 +90,13 @@ function email_members(frm, selected_only) {
 				frappe.msgprint({
 					title: __("Missing Email Addresses"),
 					indicator: "orange",
-					message: __("⚠️ The following members have no email address and will not be included:")
-						+ "<ul>" + missing.map((n) => `<li>${n}</li>`).join("") + "</ul>",
+					message:
+						__(
+							"⚠️ The following members have no email address and will not be included:",
+						) +
+						"<ul>" +
+						missing.map((n) => `<li>${n}</li>`).join("") +
+						"</ul>",
 				});
 			}
 

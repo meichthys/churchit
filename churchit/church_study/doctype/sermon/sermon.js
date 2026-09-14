@@ -7,7 +7,10 @@ function parse_display_fields(raw) {
 		let parsed = JSON.parse(raw);
 		if (Array.isArray(parsed)) return parsed;
 	} catch (e) {
-		return raw.split(",").map((f) => f.trim()).filter((f) => f)
+		return raw
+			.split(",")
+			.map((f) => f.trim())
+			.filter((f) => f)
 			.map((f) => ({ fieldname: f, show_label: 1, is_title: 0 }));
 	}
 	return [];
@@ -73,35 +76,57 @@ function render_fields_selector(frm, cdt, cdn) {
 	let wrapper = html_field.$wrapper;
 
 	if (!row.slide_type) {
-		wrapper.html('<p class="text-muted">Select a Slide Type to choose display fields.</p>');
+		wrapper.html(
+			'<p class="text-muted">Select a Slide Type to choose display fields.</p>',
+		);
 		return;
 	}
 
 	frappe.model.with_doctype(row.slide_type, function () {
 		let meta = frappe.get_meta(row.slide_type);
 		let displayable_fieldtypes = [
-			"Data", "Text", "Text Editor", "Small Text", "Long Text",
-			"Select", "Link", "Dynamic Link", "Int", "Float", "Currency",
-			"Date", "Datetime", "Check", "Attach", "Attach Image", "HTML",
+			"Data",
+			"Text",
+			"Text Editor",
+			"Small Text",
+			"Long Text",
+			"Select",
+			"Link",
+			"Dynamic Link",
+			"Int",
+			"Float",
+			"Currency",
+			"Date",
+			"Datetime",
+			"Check",
+			"Attach",
+			"Attach Image",
+			"HTML",
 		];
 		let fields_list = meta.fields.filter(
-			(df) => displayable_fieldtypes.includes(df.fieldtype) && !df.hidden
+			(df) => displayable_fieldtypes.includes(df.fieldtype) && !df.hidden,
 		);
 
 		if (!fields_list.length) {
-			wrapper.html(`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`);
+			wrapper.html(
+				`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`,
+			);
 			return;
 		}
 
 		let selected = parse_display_fields(row.display_fields);
 		let selected_map = {};
-		selected.forEach((s) => { selected_map[s.fieldname] = s; });
+		selected.forEach((s) => {
+			selected_map[s.fieldname] = s;
+		});
 
 		// Render selected fields first (in their saved order), then unselected fields
 		let selected_fields = selected
 			.map((s) => fields_list.find((df) => df.fieldname === s.fieldname))
 			.filter(Boolean);
-		let unselected_fields = fields_list.filter((df) => !selected_map[df.fieldname]);
+		let unselected_fields = fields_list.filter(
+			(df) => !selected_map[df.fieldname],
+		);
 		let ordered_fields = [...selected_fields, ...unselected_fields];
 
 		let table_html = `
@@ -145,37 +170,48 @@ function render_fields_selector(frm, cdt, cdn) {
 			save_display_fields(frm, cdt, cdn, wrapper);
 		});
 
-		wrapper.find(".field-label-check, .field-title-check").on("change", function () {
-			save_display_fields(frm, cdt, cdn, wrapper);
-		});
+		wrapper
+			.find(".field-label-check, .field-title-check")
+			.on("change", function () {
+				save_display_fields(frm, cdt, cdn, wrapper);
+			});
 	});
 }
 
 frappe.ui.form.on("Sermon", {
 	onload(frm) {
 		// Filter slide_type to DocTypes in the church app
-		church.set_church_doctype_query(frm, 'slide_type', 'slides');
+		church.set_church_doctype_query(frm, "slide_type", "slides");
 	},
 
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro('🌐 This sermon is published to the public website', 'blue');
+			frm.set_intro(
+				"🌐 This sermon is published to the public website",
+				"blue",
+			);
 		}
 
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Present"), function () {
-				function open_presentation() {
-					window.open(
-						"/sermon_presentation?name=" + encodeURIComponent(frm.doc.name),
-						"_blank"
-					);
-				}
-				if (frm.is_dirty()) {
-					frm.save("Save", open_presentation);
-				} else {
-					open_presentation();
-				}
-			}, null, "primary");
+			frm.add_custom_button(
+				__("Present"),
+				function () {
+					function open_presentation() {
+						window.open(
+							"/sermon_presentation?name=" +
+								encodeURIComponent(frm.doc.name),
+							"_blank",
+						);
+					}
+					if (frm.is_dirty()) {
+						frm.save("Save", open_presentation);
+					} else {
+						open_presentation();
+					}
+				},
+				null,
+				"primary",
+			);
 		}
 	},
 });

@@ -43,5 +43,4 @@ frappe.query_reports["Ministries"] = {
 		}
 		return value;
 	},
-
 };

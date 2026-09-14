@@ -531,12 +531,8 @@ def _create_people(position_refs):
 				"alergies": allergies,
 				"positions": resolved_positions,
 				"life_events": life_events,
-				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}]
-				if phone
-				else [],
-				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}]
-				if email
-				else [],
+				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}] if phone else [],
+				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}] if email else [],
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -814,9 +810,7 @@ def _create_missionaries(people, agencies):
 			"support_amount": 200,
 			"support_frequency": monthly,
 			"support_start_date": "2010-01-01",
-			"emails": [
-				{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}
-			],
+			"emails": [{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}],
 			"letters": [
 				{
 					"date": _near_date(-21),
@@ -865,9 +859,7 @@ def _create_missionaries(people, agencies):
 			"support_amount": 100,
 			"support_frequency": monthly,
 			"support_start_date": "2018-09-01",
-			"emails": [
-				{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}
-			],
+			"emails": [{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}],
 		},
 	]
 	for m in missionaries:
@@ -1185,12 +1177,14 @@ def _create_budget(expense_types):
 		{"expense_type": expense_types["Benevolence"], "budgeted_amount": 1800},
 	]
 
-	doc = frappe.get_doc({
-		"doctype": "Budget",
-		"start_date": start_date,
-		"end_date": end_date,
-		"lines": lines,
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Budget",
+			"start_date": start_date,
+			"end_date": end_date,
+			"lines": lines,
+		}
+	)
 	doc.insert(ignore_permissions=True)
 
 
@@ -1382,7 +1376,9 @@ def _create_care_assignments(people):
 	]
 
 	for assignment in assignments:
-		if frappe.db.exists("Care Assignment", {"person": assignment["person"], "deacon": assignment["deacon"]}):
+		if frappe.db.exists(
+			"Care Assignment", {"person": assignment["person"], "deacon": assignment["deacon"]}
+		):
 			continue
 		frappe.get_doc({"doctype": "Care Assignment", **assignment}).insert(ignore_permissions=True)
 
@@ -1520,9 +1516,7 @@ def _create_counseling_cases(people):
 	]
 
 	for case in cases:
-		if frappe.db.exists(
-			"Counseling Case", {"person": case["person"], "start_date": case["start_date"]}
-		):
+		if frappe.db.exists("Counseling Case", {"person": case["person"], "start_date": case["start_date"]}):
 			continue
 		frappe.get_doc({"doctype": "Counseling Case", **case}).insert(ignore_permissions=True)
 
@@ -1558,7 +1552,9 @@ def _create_member_transfers(people):
 	for transfer in transfers:
 		if not transfer["person"]:
 			continue
-		if frappe.db.exists("Member Transfer", {"person": transfer["person"], "direction": transfer["direction"]}):
+		if frappe.db.exists(
+			"Member Transfer", {"person": transfer["person"], "direction": transfer["direction"]}
+		):
 			continue
 		frappe.get_doc({"doctype": "Member Transfer", **transfer}).insert(ignore_permissions=True)
 
@@ -2175,7 +2171,10 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ul>"
 			),
 			"slides": [
-				{"slide_type": "Bible Reference", "slide": bible_ref("Romans 8:28", "English Standard Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Romans 8:28", "English Standard Version"),
+				},
 				{"slide_type": "Belief", "slide": belief("Salvation")},
 				{
 					"slide_type": "Missionary",
@@ -2183,7 +2182,10 @@ def _create_sermons(people, verses, series_refs=None):
 					"notes": "<p>Elizabeth's story is a living example of stepping out in faith.</p>",
 				},
 				{"slide_type": "Person", "slide": people.get("David Thompson")},
-				{"slide_type": "Bible Reference", "slide": bible_ref("Philippians 4:13", "New King James Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Philippians 4:13", "New King James Version"),
+				},
 			],
 		},
 		{
@@ -2201,7 +2203,10 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ol>"
 			),
 			"slides": [
-				{"slide_type": "Bible Reference", "slide": bible_ref("Jeremiah 29:11", "New International Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Jeremiah 29:11", "New International Version"),
+				},
 				{"slide_type": "Belief", "slide": belief("The Bible")},
 				{
 					"slide_type": "Person",

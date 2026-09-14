@@ -4,7 +4,6 @@
 import frappe
 from frappe.utils import add_months, getdate
 
-
 no_cache = 1
 
 
@@ -60,16 +59,18 @@ def get_events(start, end):
 	for r in rows:
 		start_iso = _combine(r.start_date, r.start_time, r.all_day)
 		end_iso = _combine(r.end_date or r.start_date, r.end_time, r.all_day)
-		events.append({
-			"id": r.name,
-			"title": r.function_name or r.title or r.name,
-			"start": start_iso,
-			"end": end_iso,
-			"allDay": bool(r.all_day),
-			"type": r.type,
-			"address": _format_address(r.address, address_cache),
-			"description": r.description,
-		})
+		events.append(
+			{
+				"id": r.name,
+				"title": r.function_name or r.title or r.name,
+				"start": start_iso,
+				"end": end_iso,
+				"allDay": bool(r.all_day),
+				"type": r.type,
+				"address": _format_address(r.address, address_cache),
+				"description": r.description,
+			}
+		)
 	return events
 
 
@@ -79,12 +80,15 @@ def _format_address(address_name, cache):
 		return None
 	if address_name in cache:
 		return cache[address_name]
-	parts = frappe.db.get_value(
-		"Address",
-		address_name,
-		["address_line1", "address_line2", "city", "state", "pincode", "country"],
-		as_dict=True,
-	) or {}
+	parts = (
+		frappe.db.get_value(
+			"Address",
+			address_name,
+			["address_line1", "address_line2", "city", "state", "pincode", "country"],
+			as_dict=True,
+		)
+		or {}
+	)
 	pieces = [
 		parts.get("address_line1"),
 		parts.get("address_line2"),

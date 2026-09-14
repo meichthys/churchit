@@ -4,13 +4,18 @@
 frappe.ui.form.on("Function Sign-Up", {
 	refresh(frm) {
 		// Customize the items grid: hide Description, show qty_needed, qty_signed_up, my_quantity.
-		const grid = frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
+		const grid =
+			frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
 		if (grid) {
 			grid.update_docfield_property("description", "in_list_view", 0);
 			grid.update_docfield_property("description", "hidden", 1);
 			grid.update_docfield_property("quantity_needed", "in_list_view", 1);
 			grid.update_docfield_property("quantity_needed", "read_only", 1);
-			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
+			grid.update_docfield_property(
+				"quantity_signed_up",
+				"in_list_view",
+				1,
+			);
 			grid.update_docfield_property("my_quantity", "in_list_view", 1);
 			grid.update_docfield_property("my_quantity", "hidden", 0);
 			// Force re-evaluation of which columns are visible — by default the grid
@@ -70,16 +75,25 @@ frappe.ui.form.on("Function Sign-Up Item", {
 		const row = locals[cdt][cdn];
 		if (!row.item || !frm.doc.function) return;
 		frappe.call({
-			method:
-				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_item_status",
+			method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_item_status",
 			args: {
 				function: frm.doc.function,
 				item: row.item,
 			},
 			callback: function (r) {
 				if (!r.message) return;
-				frappe.model.set_value(cdt, cdn, "quantity_needed", r.message.quantity_needed);
-				frappe.model.set_value(cdt, cdn, "quantity_signed_up", r.message.quantity_signed_up);
+				frappe.model.set_value(
+					cdt,
+					cdn,
+					"quantity_needed",
+					r.message.quantity_needed,
+				);
+				frappe.model.set_value(
+					cdt,
+					cdn,
+					"quantity_signed_up",
+					r.message.quantity_signed_up,
+				);
 			},
 		});
 	},
@@ -88,8 +102,7 @@ frappe.ui.form.on("Function Sign-Up Item", {
 function populate_row_totals(frm) {
 	if (!frm.doc.function || !(frm.doc.table_iprj || []).length) return;
 	frappe.call({
-		method:
-			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
 		args: {
 			function: frm.doc.function,
 		},

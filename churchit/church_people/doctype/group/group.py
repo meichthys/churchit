@@ -18,9 +18,7 @@ class Group(Document):
 		person = frappe.db.get_value("Person", {"user": user}, "name")
 		if not person:
 			return False
-		return bool(
-			frappe.db.exists("Group Member", {"parent": self.name, "person": person})
-		)
+		return bool(frappe.db.exists("Group Member", {"parent": self.name, "person": person}))
 
 
 @frappe.whitelist()
@@ -38,9 +36,7 @@ def create_email_group(group):
 
 	created = False
 	if not frappe.db.exists("Email Group", email_group):
-		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(
-			ignore_permissions=True
-		)
+		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(ignore_permissions=True)
 		created = True
 
 	person_ids = [m.person for m in doc.members if m.person]

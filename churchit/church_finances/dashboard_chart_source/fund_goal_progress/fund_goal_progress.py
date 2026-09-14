@@ -20,7 +20,5 @@ def get(chart_name=None, chart=None, no_cache=None, filters=None, **kwargs):
 	)
 	return {
 		"labels": [r["label"] for r in rows],
-		"datasets": [
-			{"name": "Goal Progress (%)", "values": [float(r["progress"] or 0) for r in rows]}
-		],
+		"datasets": [{"name": "Goal Progress (%)", "values": [float(r["progress"] or 0) for r in rows]}],
 	}

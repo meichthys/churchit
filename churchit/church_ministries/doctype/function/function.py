@@ -8,7 +8,6 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, now_datetime
 
-
 WEEKDAY_INDEX = {
 	"Monday": 0,
 	"Tuesday": 1,

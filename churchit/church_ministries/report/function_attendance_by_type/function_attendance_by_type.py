@@ -15,7 +15,13 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
+		{
+			"fieldname": "function",
+			"fieldtype": "Link",
+			"label": "Function",
+			"options": "Function",
+			"width": 200,
+		},
 		{"fieldname": "attendance_count", "fieldtype": "Int", "label": "Attendance Count", "width": 150},
 	]
 
