@@ -1,0 +1,265 @@
+// ==========================================================================
+// churchit — the "Churchit" website theme
+// The docs/ marketing site look: Inter type, indigo→violet accent, frosted
+// glass surfaces. Frappe compiles this into every Website Theme that does
+// not list churchit under Ignored Apps; its prebuilt "Standard" theme skips
+// it and shows frappe's own look. Page layout shared by all themes is in
+// css/website.css, which loads after the theme — so everything below is
+// nested under `body` to outrank the layout rules it restyles.
+// ==========================================================================
+
+// frappe compiles its `@import "frappe/public/css/fonts/inter/inter.css"` into
+// a theme as a relative CSS import, which resolves under /files/website_theme/
+// and 404s — so no custom theme ever loads Inter. Declare the variable faces
+// frappe's --font-stack names first, at the asset URL it actually serves.
+@font-face {
+	font-family: InterVariable;
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("/assets/frappe/css/fonts/inter/InterVariable.woff2") format("woff2");
+}
+@font-face {
+	font-family: InterVariable;
+	font-style: italic;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("/assets/frappe/css/fonts/inter/InterVariable-Italic.woff2") format("woff2");
+}
+
+:root {
+	--ch-brand: #6366f1; // indigo-500
+	--ch-brand-2: #8b5cf6; // violet-500
+	--ch-brand-3: #ec4899; // pink-500
+	--ch-grad: linear-gradient(
+		120deg,
+		var(--ch-brand) 0%,
+		var(--ch-brand-2) 50%,
+		var(--ch-brand-3) 100%
+	);
+
+	--ch-glass: rgba(255, 255, 255, 0.55);
+	--ch-glass-2: rgba(255, 255, 255, 0.72);
+	--ch-glass-brd: rgba(255, 255, 255, 0.6);
+	--ch-glass-shdw: 0 8px 40px -12px rgba(30, 27, 75, 0.28);
+	--ch-radius: 18px;
+
+	// frappe's tokens, which css/website.css reads for the page layouts
+	--primary-color: #4338ca; // indigo-700
+	--heading-color: #0f172a; // slate-900
+	--text-color: #334155; // slate-700
+	--text-muted: #64748b; // slate-500
+	--border-color: rgba(15, 23, 42, 0.08);
+	--bg-color: #eef1fb;
+}
+
+body {
+	color: var(--text-color);
+	background: var(--bg-color);
+
+	// Aurora mesh backdrop — fixed so glass surfaces always have something to blur
+	&::before {
+		content: "";
+		position: fixed;
+		inset: -20vmax;
+		z-index: -1;
+		pointer-events: none;
+		background: radial-gradient(
+				38vmax 38vmax at 12% 8%,
+				rgba(99, 102, 241, 0.7),
+				transparent 60%
+			),
+			radial-gradient(36vmax 36vmax at 88% 4%, rgba(236, 72, 153, 0.55), transparent 60%),
+			radial-gradient(44vmax 44vmax at 78% 82%, rgba(139, 92, 246, 0.65), transparent 62%),
+			radial-gradient(40vmax 40vmax at 8% 92%, rgba(56, 189, 248, 0.55), transparent 60%);
+		filter: saturate(1.3);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		color: var(--heading-color);
+		letter-spacing: -0.02em;
+		font-weight: 800;
+	}
+
+	// page titles in the gradient brand ink, like the docs headlines. Every
+	// page puts its title in the shared .page-header block, so one rule covers
+	// them; the home page is a landing page and styles its own headline.
+	.page-header h1,
+	.portal-home h1,
+	.home-title-accent,
+	.portal-container .portal-section.head .title {
+		background: var(--ch-grad);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		display: inline-block;
+	}
+
+	// Frosted navbar + footer.
+	// backdrop-filter makes the navbar its own stacking context, and so is every
+	// glass card further down the page — so without a z-index the cards paint
+	// over the navbar and swallow the account dropdown. 1030 is bootstrap's
+	// fixed-navbar layer: above page content, still below modals at 1050.
+	.navbar {
+		position: relative;
+		z-index: 1030;
+		backdrop-filter: blur(16px) saturate(180%);
+		-webkit-backdrop-filter: blur(16px) saturate(180%);
+		background: rgba(255, 255, 255, 0.6) !important;
+		border-bottom: 1px solid var(--border-color);
+	}
+	.web-footer {
+		background: transparent;
+		border-top: 1px solid var(--border-color);
+	}
+
+	// Active page in the top nav — a rounded highlight pill, in the same spirit
+	// as the desk's active-workspace highlight. nav_active_state.js adds the
+	// "active" class; top_bar_items carries no such state on its own.
+	.navbar-nav .nav-item.active > .nav-link {
+		background: rgba(99, 102, 241, 0.12);
+		color: var(--primary-color);
+		border-radius: 999px;
+		font-weight: 650;
+	}
+
+	// ---- Glass surfaces ------------------------------------------------------
+	// Cards (the Web Page templates' Bootstrap markup), the about/contact/give
+	// panels, and frappe's portal containers and list pages.
+	.page_content .card,
+	.about-content,
+	.contact-content,
+	.give-page,
+	.portal-container,
+	.page_content .website-list {
+		background: var(--ch-glass);
+		border: 1px solid var(--ch-glass-brd);
+		backdrop-filter: blur(18px) saturate(180%);
+		-webkit-backdrop-filter: blur(18px) saturate(180%);
+		box-shadow: var(--ch-glass-shdw);
+		border-radius: var(--ch-radius);
+	}
+	.about-content,
+	.contact-content,
+	.give-page {
+		padding: 1.5rem 1.75rem;
+	}
+	.page_content .website-list {
+		padding: 1rem 1.5rem;
+	}
+	.page_content .card {
+		overflow: hidden;
+		transition: box-shadow 0.2s ease;
+
+		// gradient accent bar along the top of every card
+		&::before {
+			content: "";
+			display: block;
+			height: 4px;
+			background: var(--ch-grad);
+		}
+		&:hover {
+			box-shadow: 0 14px 44px -16px rgba(67, 56, 202, 0.5);
+		}
+		img {
+			border-radius: 12px;
+		}
+	}
+	.page_content .card-header {
+		background: linear-gradient(120deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
+		border-bottom: 1px solid var(--border-color);
+		color: var(--primary-color);
+		font-size: 1.05rem;
+		padding: 1rem 1.25rem;
+	}
+	.page_content .card-footer {
+		background: rgba(139, 92, 246, 0.06);
+		border-top: 1px solid var(--border-color);
+		border-radius: 0 0 var(--ch-radius) var(--ch-radius);
+	}
+	.page_content .form-control {
+		background: rgba(255, 255, 255, 0.7);
+		border: 1px solid var(--border-color);
+		border-radius: 10px;
+	}
+	// the about page's Company History/Team Members sections are frappe web
+	// blocks that carry their own background/padding; flatten them so the
+	// glass panel shows through
+	.about-content .section {
+		background: transparent;
+		padding: 1rem 0;
+	}
+
+	// ---- Buttons: gradient pills like the docs site ------------------------
+	.page_content .btn-primary {
+		color: #fff;
+		background: var(--ch-grad);
+		border: none;
+		border-radius: 999px;
+		font-weight: 650;
+		box-shadow: 0 10px 30px -8px rgba(99, 102, 241, 0.6);
+		transition: transform 0.15s ease, box-shadow 0.2s ease;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
+		}
+	}
+	#home .home-btn-ghost {
+		background: var(--ch-glass-2);
+		border: 1px solid var(--ch-glass-brd);
+		border-radius: 999px;
+		font-weight: 650;
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+
+		&:hover {
+			transform: translateY(-2px);
+		}
+	}
+
+	// ---- Portal (/me and portal list views) --------------------------------
+	.portal-container .avatar-frame {
+		background: var(--ch-grad);
+		color: #fff;
+	}
+	.portal-items {
+		background: rgba(255, 255, 255, 0.45);
+		border: 1px solid var(--border-color);
+		border-radius: 12px;
+
+		.portal-section {
+			border-bottom: 1px solid var(--border-color);
+			transition: background 0.15s ease;
+
+			&:hover {
+				background: rgba(99, 102, 241, 0.07);
+			}
+		}
+	}
+	.portal-section .item-link-text {
+		color: var(--primary-color);
+		font-weight: 600;
+	}
+	.portal-row {
+		border-bottom: 1px solid var(--border-color);
+		transition: background 0.15s ease;
+
+		&:hover {
+			background: rgba(99, 102, 241, 0.07);
+		}
+	}
+
+	// ---- Sermon series and missions map ------------------------------------
+	.series-tag {
+		background: var(--ch-grad);
+	}
+	.missions-map-card {
+		border-radius: var(--ch-radius);
+		box-shadow: var(--ch-glass-shdw);
+	}
+}

@@ -7,13 +7,14 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.patches import after_install
-from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
 from churchit.patches.v1_0 import (
+	add_churchit_website_theme,
 	add_missionary_map_to_missions_page,
 	redesign_home_page,
 	rename_agency_logo_field,
 	update_default_navbar,
 )
+from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
 from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
 from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
 from churchit.tests.helpers import make_address, make_person
@@ -31,6 +32,7 @@ class TestAfterInstall(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Email Group", "Church Members"))
 		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
 		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
+		self.assertEqual(frappe.get_doc("Website Settings").website_theme, "Churchit")
 
 	def _lookup_counts(self):
 		return {
@@ -100,7 +102,9 @@ class TestVersionedPatches(FrappeTestCase):
 			[(home, "Home", 0, 1), (box, "Other", 1, 0)],
 		)
 		self.assertEqual(
-			contact_patch._person_address_rows({"home_address": home, "mailing_address": home, "different_mailing_address": 1}),
+			contact_patch._person_address_rows(
+				{"home_address": home, "mailing_address": home, "different_mailing_address": 1}
+			),
 			[(home, "Home", 1, 1)],
 		)
 		self.assertEqual(contact_patch._person_address_rows({"mailing_address": box}), [(box, "Other", 1, 1)])
@@ -110,11 +114,15 @@ class TestVersionedPatches(FrappeTestCase):
 		person = make_person("_Test Patch", "Person")
 		address = make_address("_Test Patch Address").name
 
-		contact_patch._add_addresses("Person", person.name, [("ADDR-GONE", "Home", 1, 1), (address, "Home", 1, 1)])
+		contact_patch._add_addresses(
+			"Person", person.name, [("ADDR-GONE", "Home", 1, 1), (address, "Home", 1, 1)]
+		)
 		contact_patch._add_addresses("Person", person.name, [(address, "Other", 0, 0)])
 
 		rows = frappe.get_all(
-			"Postal Address", filters={"parent": person.name}, fields=["address", "address_type", "is_primary"]
+			"Postal Address",
+			filters={"parent": person.name},
+			fields=["address", "address_type", "is_primary"],
 		)
 		self.assertEqual([(r.address, r.address_type, r.is_primary) for r in rows], [(address, "Home", 1)])
 
@@ -196,6 +204,40 @@ class TestVersionedPatches(FrappeTestCase):
 		labels = [row.label for row in frappe.get_doc("Website Settings").top_bar_items]
 		self.assertIn("Locations", labels, "a church that re-pointed the link keeps it")
 		self.assertIn("Calendar", labels)
+
+	def _reset_website_theme(self):
+		frappe.db.set_single_value("Website Settings", "website_theme", "Standard")
+		frappe.delete_doc("Website Theme", "Churchit", force=True)
+
+	def test_website_theme_moves_a_site_on_standard_to_churchit(self):
+		self._reset_website_theme()
+
+		add_churchit_website_theme.execute()
+		add_churchit_website_theme.execute()
+
+		self.assertEqual(frappe.db.get_single_value("Website Settings", "website_theme"), "Churchit")
+		self.assertEqual(frappe.db.count("Website Theme", {"theme": "Churchit"}), 1)
+
+	def test_website_theme_compiles_this_app_into_the_stylesheet(self):
+		self._reset_website_theme()
+
+		add_churchit_website_theme.execute()
+
+		theme = frappe.get_doc("Website Theme", "Churchit")
+		self.assertTrue(theme.custom, "user-owned, so a church can edit it")
+		self.assertIn('@import "churchit/public/scss/website"', theme.theme_scss)
+		stylesheet = frappe.utils.get_site_path("public", theme.theme_url.removeprefix("/"))
+		self.assertIn("--ch-grad", open(stylesheet).read())
+
+	def test_website_theme_leaves_a_church_that_picked_its_own_alone(self):
+		own_theme = frappe.get_doc({"doctype": "Website Theme", "theme": "_Test Church Theme"})
+		own_theme.insert(ignore_permissions=True)
+		frappe.db.set_single_value("Website Settings", "website_theme", own_theme.name)
+
+		add_churchit_website_theme.execute()
+
+		self.assertEqual(frappe.db.get_single_value("Website Settings", "website_theme"), own_theme.name)
+		self.assertTrue(frappe.db.exists("Website Theme", "Churchit"), "the theme is still offered")
 
 	def test_statement_acknowledgment_only_fills_a_blank_value(self):
 		frappe.db.set_single_value("Giving Settings", "statement_acknowledgment", "")

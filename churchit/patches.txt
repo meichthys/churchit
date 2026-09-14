@@ -13,3 +13,4 @@ churchit.patches.v1_0.add_giving_statements_to_portal
 churchit.patches.v1_0.clear_default_portal_home
 churchit.patches.v1_0.redesign_home_page
 churchit.patches.v1_0.update_default_navbar
+churchit.patches.v1_0.add_churchit_website_theme

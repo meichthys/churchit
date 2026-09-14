@@ -1,18 +1,13 @@
 {% extends "templates/web.html" %}
 
-{% block title %}Calendar{% endblock %}
+{% block title %}{{ _("Calendar") }}{% endblock %}
+{% block header %}<h1>{{ _("Calendar") }}</h1>{% endblock %}
 
 {% block head_include %}
 {# FullCalendar 6 injects its own styles, so there is no stylesheet to pull in #}
 <style>
 	#church-calendar { max-width: 1100px; margin: 1.5rem auto; }
 	#church-calendar .fc-event { cursor: pointer; }
-	.calendar-window-note {
-		max-width: 1100px;
-		margin: 1rem auto 0;
-		font-size: 0.875rem;
-		color: #6c757d;
-	}
 	.event-modal-overlay {
 		position: fixed;
 		inset: 0;
@@ -55,8 +50,7 @@
 {% endblock %}
 
 {% block page_content %}
-<h1>Calendar</h1>
-<p class="calendar-window-note">
+<p class="text-muted">
 	Showing events from {{ frappe.utils.formatdate(window_start, "MMMM d, YYYY") }}
 	through {{ frappe.utils.formatdate(window_end, "MMMM d, YYYY") }}.
 </p>

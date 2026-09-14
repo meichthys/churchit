@@ -40,6 +40,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
+- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look — pick one under Website Settings → Website Theme
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking

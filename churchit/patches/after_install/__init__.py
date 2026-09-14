@@ -12,6 +12,7 @@ import frappe
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
+WEBSITE_THEME = "Churchit"
 
 
 def execute():
@@ -48,6 +49,7 @@ def execute():
 
 	# Website content
 	_create_web_pages()
+	create_website_theme()
 	_setup_about_us_settings()
 	_setup_contact_us_settings()
 	_setup_website_settings()
@@ -655,6 +657,18 @@ def _setup_contact_us_settings():
 	doc.save(ignore_permissions=True)
 
 
+def create_website_theme():
+	"""Create the Churchit Website Theme.
+
+	The look itself is churchit/public/scss/website.scss, which frappe compiles
+	into every Website Theme that does not ignore this app. A user-owned record,
+	not a standard one: frappe refuses to save a standard theme outside developer
+	mode, so it could not compile during install-app, and a church may want to
+	customise it anyway.
+	"""
+	_insert_if_missing("Website Theme", WEBSITE_THEME, theme=WEBSITE_THEME, module="Church Website")
+
+
 def _setup_website_settings():
 	"""Configure default website settings for a church site.
 
@@ -669,7 +683,7 @@ def _setup_website_settings():
 	doc.hide_login = 0
 	doc.navbar_search = 0
 	doc.home_page = "home"
-	doc.website_theme = "Standard"
+	doc.website_theme = WEBSITE_THEME
 	doc.top_bar_items = []
 	for item in [
 		{"label": "Home", "url": "/home", "right": 1},

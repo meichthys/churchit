@@ -1,155 +1,11 @@
 /* ==========================================================================
-   churchit — public website skin
-   Mirrors the docs/ marketing site design system (Inter type, indigo→violet
-   accent, frosted glass surfaces) by restyling the Bootstrap card markup the
-   Web Page templates already use. Loaded site-wide via web_include_css.
+   churchit — page layout shared by every website theme
+   Structure for the pages this app renders (home landing page, portal,
+   sermon series, missions map) plus two fixes for frappe's web template.
+   Colours come only from frappe's tokens (--primary-color, --heading-color,
+   --text-muted, --border-color, ...), so a page follows whichever Website
+   Theme is active. The Churchit theme's look lives in scss/website.scss.
    ========================================================================== */
-
-:root {
-  --ch-brand:      #6366f1; /* indigo-500 */
-  --ch-brand-2:    #8b5cf6; /* violet-500 */
-  --ch-brand-3:    #ec4899; /* pink-500   */
-  --ch-brand-ink:  #4338ca;
-
-  --ch-ink:        #0f172a; /* slate-900 */
-  --ch-body:       #334155; /* slate-700 */
-  --ch-muted:      #64748b; /* slate-500 */
-  --ch-line:       rgba(15, 23, 42, 0.08);
-
-  --ch-glass:      rgba(255, 255, 255, 0.55);
-  --ch-glass-2:    rgba(255, 255, 255, 0.72);
-  --ch-glass-brd:  rgba(255, 255, 255, 0.6);
-  --ch-glass-shdw: 0 8px 40px -12px rgba(30, 27, 75, 0.28);
-
-  --ch-radius:     18px;
-  --ch-grad:       linear-gradient(120deg, var(--ch-brand) 0%, var(--ch-brand-2) 50%, var(--ch-brand-3) 100%);
-}
-
-body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--ch-body);
-  background: #eef1fb;
-}
-
-/* Aurora mesh backdrop — fixed so glass surfaces always have something to blur */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20vmax;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38vmax 38vmax at 12% 8%,  rgba(99,102,241,0.7), transparent 60%),
-    radial-gradient(36vmax 36vmax at 88% 4%,  rgba(236,72,153,0.55), transparent 60%),
-    radial-gradient(44vmax 44vmax at 78% 82%, rgba(139,92,246,0.65), transparent 62%),
-    radial-gradient(40vmax 40vmax at 8% 92%,  rgba(56,189,248,0.55), transparent 60%);
-  filter: saturate(1.3);
-}
-
-h1, h2, h3, h4, .page-header h1 {
-  color: var(--ch-ink);
-  letter-spacing: -0.02em;
-  font-weight: 800;
-}
-
-/* page titles in the gradient brand ink, like the docs headlines. Every
-   page (Web Pages, about/contact/give) puts its title in the shared
-   .page-header block, so this one rule covers all of them. The home page
-   is a landing page and styles its own headline (.home-title-accent). */
-.page-header h1,
-.portal-home h1,
-.home-title-accent {
-  background: var(--ch-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  display: inline-block;
-}
-
-/* Frosted navbar + footer.
-   backdrop-filter makes the navbar its own stacking context, and so is every
-   glass card further down the page — so without a z-index the cards paint over
-   the navbar and swallow the account dropdown. 1030 is bootstrap's fixed-navbar
-   layer: above page content, still below modals at 1050. */
-.navbar {
-  position: relative;
-  z-index: 1030;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  background: rgba(255, 255, 255, 0.6) !important;
-  border-bottom: 1px solid var(--ch-line);
-}
-.web-footer {
-  background: transparent;
-  border-top: 1px solid var(--ch-line);
-}
-
-/* Active page in the top nav — a rounded highlight pill, in the same spirit
-   as the desk's active-workspace highlight. nav_active_state.js adds the
-   "active" class; top_bar_items carries no such state on its own. */
-.navbar-nav .nav-item.active > .nav-link {
-  background: rgba(99, 102, 241, 0.12);
-  color: var(--ch-brand-ink);
-  border-radius: 999px;
-  font-weight: 650;
-}
-
-/* ---- Glass cards (skins the templates' Bootstrap cards) ------------------ */
-.page_content .card {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-/* gradient accent bar along the top of every card */
-.page_content .card::before {
-  content: "";
-  display: block;
-  height: 4px;
-  background: var(--ch-grad);
-}
-.page_content .card:hover {
-  box-shadow: 0 14px 44px -16px rgba(67, 56, 202, 0.5);
-}
-.page_content .card-header {
-  background: linear-gradient(120deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
-  border-bottom: 1px solid var(--ch-line);
-  color: var(--ch-brand-ink);
-  font-size: 1.05rem;
-  padding: 1rem 1.25rem;
-}
-.page_content .card-footer {
-  background: rgba(139, 92, 246, 0.06);
-  border-top: 1px solid var(--ch-line);
-  border-radius: 0 0 var(--ch-radius) var(--ch-radius);
-}
-.page_content .card img {
-  max-width: 100%;
-  border-radius: 12px;
-}
-.web-page-content audio {
-  width: 100%;
-}
-
-/* ---- Buttons: gradient pills like the docs site -------------------------- */
-.page_content .btn-primary {
-  color: #fff;
-  background: var(--ch-grad);
-  border: none;
-  border-radius: 999px;
-  font-weight: 650;
-  box-shadow: 0 10px 30px -8px rgba(99, 102, 241, 0.6);
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-}
-.page_content .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
-}
 
 /* ---- Breadcrumbs ------------------------------------------------------------
    Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
@@ -160,29 +16,8 @@ h1, h2, h3, h4, .page-header h1 {
   display: none;
 }
 
-/* ---- Full-page glass panels (frappe about/contact + churchit give) -------- */
-.about-content,
-.contact-content,
-.give-page {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  padding: 1.5rem 1.75rem;
-}
-.page_content .form-control {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--ch-line);
-  border-radius: 10px;
-}
-/* the about page's Company History/Team Members sections are frappe web
-   blocks that carry their own background/padding; flatten them so the
-   glass panel shows through */
-.about-content .section {
-  background: transparent;
-  padding: 1rem 0;
+.web-page-content audio {
+  width: 100%;
 }
 
 /* ---- Account menu ---------------------------------------------------------
@@ -205,16 +40,16 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--ch-grad);
+  background: var(--primary-color);
   font-size: 0.95rem;
 }
 
 /* ---- Home landing page ------------------------------------------------------
-   The home Web Page is a landing page rather than a card grid, laid out like
-   the marketing site in docs/: a two-column hero, a stats strip, and panels
-   for the latest sermon and what is coming up. The panels reuse .card, so the
-   glass skin and gradient accent bar come for free. The Web Page record sets
-   text-align: Center on the article, so blocks that read left declare it. */
+   The home Web Page is a landing page rather than a card grid: a two-column
+   hero, a stats strip, and panels for the latest sermon and what is coming
+   up. The panels reuse .card, so the active theme's card look applies. The
+   Web Page record sets text-align: Center on the article, so blocks that read
+   left declare it. */
 #home .home-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -223,9 +58,9 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ch-brand-ink);
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
   padding: 0.4em 0.9em;
   border-radius: 999px;
 }
@@ -251,7 +86,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 #home .home-lead {
   font-size: clamp(1.02rem, 1.6vw, 1.2rem);
-  color: var(--ch-muted);
+  color: var(--text-muted);
   max-width: 46ch;
   margin-bottom: 0;
 }
@@ -262,16 +97,10 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   margin-top: 1.6rem;
 }
 #home .home-btn-ghost {
-  color: var(--ch-ink);
-  background: var(--ch-glass-2);
-  border: 1px solid var(--ch-glass-brd);
-  border-radius: 999px;
-  font-weight: 650;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-#home .home-btn-ghost:hover {
-  transform: translateY(-2px);
+  color: var(--heading-color);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  font-weight: 600;
 }
 
 /* hero side panel: the next gathering, or a welcome note when nothing is scheduled */
@@ -284,25 +113,25 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
 }
 #home .home-aside-title {
   font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--ch-ink);
+  font-weight: 700;
+  color: var(--heading-color);
   letter-spacing: -0.02em;
   margin: 0.35rem 0 0.2rem;
 }
 #home .home-aside-when {
-  font-weight: 650;
-  color: var(--ch-body);
+  font-weight: 600;
+  color: var(--text-color);
 }
 #home .home-aside-text {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   margin: 0.7rem 0 0;
 }
 #home .home-aside-where {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 0.92rem;
   margin-top: 0.7rem;
 }
@@ -310,15 +139,15 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   display: inline-block;
   margin-top: 1rem;
   font-weight: 700;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   text-decoration: none;
 }
 #home .home-aside-link:hover {
   text-decoration: underline;
 }
 
-/* stats strip — flex, not grid: the card's ::before accent bar would occupy
-   every auto-fit track and stop the empty ones collapsing */
+/* stats strip — flex, not grid: a theme's card ::before accent bar would
+   occupy every auto-fit track and stop the empty ones collapsing */
 #home .home-stats {
   display: flex;
   /* .card is itself a column flexbox, so the direction has to be reset */
@@ -333,12 +162,12 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   padding: 1.4rem 1rem;
 }
 #home .home-stat + .home-stat {
-  border-left: 1px solid var(--ch-line);
+  border-left: 1px solid var(--border-color);
 }
 #home .home-stat-number {
   font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  font-weight: 800;
-  color: var(--ch-ink);
+  font-weight: 700;
+  color: var(--heading-color);
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
@@ -347,7 +176,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ch-muted);
+  color: var(--text-muted);
 }
 
 #home .home-section {
@@ -361,20 +190,17 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 #home .home-panel {
   text-align: left;
 }
-#home .home-panel-text {
-  color: var(--ch-muted);
-  margin: 0;
-}
 #home .home-panel-title {
   font-size: 1.25rem;
   margin: 0.7rem 0 0.2rem;
 }
 #home .home-panel-meta {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 0.92rem;
 }
 #home .home-panel-text {
-  margin-top: 0.7rem;
+  color: var(--text-muted);
+  margin: 0.7rem 0 0;
 }
 
 #home .home-schedule {
@@ -388,17 +214,17 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   gap: 0.6rem;
   align-items: baseline;
   padding: 0.6rem 0;
-  border-top: 1px solid var(--ch-line);
+  border-top: 1px solid var(--border-color);
 }
 #home .home-schedule li:first-child {
   border-top: none;
 }
 #home .home-schedule-name {
-  font-weight: 650;
-  color: var(--ch-ink);
+  font-weight: 600;
+  color: var(--heading-color);
 }
 #home .home-schedule-time {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -415,14 +241,12 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   }
 }
 
-/* ---- Portal landing (/portal) ---------------------------------------------
-   The menu-item cards reuse .card, so the glass skin and gradient accent bar
-   apply automatically. */
+/* ---- Portal landing (/portal) --------------------------------------------- */
 .portal-home {
   padding: 1rem 0 2rem;
 }
 .portal-home .lead {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 1.1rem;
   max-width: 52ch;
 }
@@ -433,7 +257,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   margin-top: 1.5rem;
 }
 .portal-home-grid .card {
-  color: var(--ch-ink);
+  color: var(--heading-color);
   text-decoration: none;
 }
 .portal-home-grid .card:hover {
@@ -444,110 +268,55 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 .portal-card-arrow {
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   transition: transform 0.15s ease;
 }
 .portal-home-grid .card:hover .portal-card-arrow {
   transform: translateX(3px);
 }
 
-/* ---- Portal (/me and portal list views) ----------------------------------- */
-.portal-container {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-}
-.portal-container .portal-section.head .title {
-  background: var(--ch-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-.portal-container .avatar-frame {
-  background: var(--ch-grad);
-  color: #fff;
-}
-.portal-items {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid var(--ch-line);
-  border-radius: 12px;
-}
-.portal-items .portal-section {
-  border-bottom: 1px solid var(--ch-line);
-  transition: background 0.15s ease;
-}
-.portal-items .portal-section:hover {
-  background: rgba(99, 102, 241, 0.07);
-}
-.portal-section .item-link-text {
-  color: var(--ch-brand-ink);
-  font-weight: 600;
-}
-
-/* portal list pages (Prayer Requests, Alms Requests, Function Sign-Ups, ...) */
-.page_content .website-list {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  padding: 1rem 1.5rem;
-}
-.portal-row {
-  border-bottom: 1px solid var(--ch-line);
-  transition: background 0.15s ease;
-}
-.portal-row:hover {
-  background: rgba(99, 102, 241, 0.07);
-}
-
-/* ---- Sermon series cards (moved from the sermons template) --------------- */
+/* ---- Sermon series cards (sermons template) ------------------------------- */
 .series-tag {
   font-size: 0.7em;
   font-weight: 700;
   color: #fff;
-  background: var(--ch-grad);
+  background: var(--primary-color);
   border-radius: 999px;
   padding: 2px 10px;
   white-space: nowrap;
 }
-.series-sermon-list li { border-bottom: 1px solid var(--ch-line); }
+.series-sermon-list li { border-bottom: 1px solid var(--border-color); }
 .series-sermon-list li:last-child { border-bottom: none; }
 .series-sermon-link {
   display: block;
   padding: 8px 6px;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   font-weight: 600;
   text-decoration: none;
   border-radius: 8px;
   transition: background 0.15s ease;
 }
 .series-sermon-link:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--ch-brand-ink);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  color: var(--primary-color);
   text-decoration: none;
 }
 .series-back {
   display: inline-block;
   margin-bottom: 6px;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   text-decoration: none;
 }
 
 /* ---- Missions map (missions.html) ----------------------------------------- */
 .missions-map-card {
   margin-bottom: 2rem;
-  border-radius: var(--ch-radius);
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
-  box-shadow: var(--ch-glass-shdw);
+  box-shadow: var(--card-shadow);
 }
 .missions-map {
   height: 420px;
@@ -573,11 +342,11 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 .missions-map-popup-title {
   font-weight: 600;
-  color: var(--ch-ink);
+  color: var(--heading-color);
   margin-bottom: 2px;
 }
 .missions-map-popup-country {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 0.85em;
 }
 .missions-map-notice {
@@ -588,8 +357,8 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   display: inline-block;
   padding: 4px 14px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  color: var(--ch-muted);
+  background: var(--subtle-fg);
+  color: var(--text-muted);
   font-size: 0.8em;
   font-weight: 600;
 }
