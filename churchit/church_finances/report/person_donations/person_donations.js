@@ -7,5 +7,4 @@ frappe.query_reports["Person Donations"] = {
 			options: "Person",
 		},
 	],
-
 };

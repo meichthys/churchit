@@ -3,5 +3,4 @@
 
 // frappe.ui.form.on("Position", {
 
-
 // });

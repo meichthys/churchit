@@ -16,9 +16,11 @@ def _ensure(doctype, filters, values):
 
 class TestCollection(FrappeTestCase):
 	def setUp(self):
-		self.fund = frappe.get_doc(
-			{"doctype": "Fund", "fund": "_Test Collection Fund"}
-		).insert(ignore_permissions=True).name
+		self.fund = (
+			frappe.get_doc({"doctype": "Fund", "fund": "_Test Collection Fund"})
+			.insert(ignore_permissions=True)
+			.name
+		)
 		self.payment_type = _ensure("Payment Type", {"type": "Cash"}, {"type": "Cash"})
 
 	def _make_collection(self, amount=200, expected_total=None):

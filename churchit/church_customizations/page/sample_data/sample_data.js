@@ -13,8 +13,8 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 			<p style="font-size: var(--text-lg); color: var(--text-muted);">
 				${__(
 					"Sample data lets you explore the Church app with a pre-populated " +
-					"church, people, families, missionaries, funds, collections, expenses, " +
-					"prayer requests, functions, sermons, beliefs, and related Bible study data."
+						"church, people, families, missionaries, funds, collections, expenses, " +
+						"prayer requests, functions, sermons, beliefs, and related Bible study data.",
 				)}
 			</p>
 			<div class="mt-3">
@@ -50,7 +50,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 						});
 					},
 				});
-			}
+			},
 		);
 	});
 
@@ -77,7 +77,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 				{
 					fieldtype: "Data",
 					fieldname: "confirm_phrase",
-					label: __('Type <code>{0}</code> to confirm', [confirm_phrase]),
+					label: __("Type <code>{0}</code> to confirm", [
+						confirm_phrase,
+					]),
 					reqd: 1,
 				},
 			],
@@ -87,7 +89,10 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 					frappe.msgprint({
 						title: __("Confirmation phrase doesn't match"),
 						indicator: "orange",
-						message: __('Please type <code>{0}</code> exactly to confirm.', [confirm_phrase]),
+						message: __(
+							"Please type <code>{0}</code> exactly to confirm.",
+							[confirm_phrase],
+						),
 					});
 					return;
 				}
@@ -106,6 +111,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 			},
 		});
 		dialog.show();
-		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
+		dialog
+			.get_primary_btn()
+			.removeClass("btn-primary")
+			.addClass("btn-danger");
 	});
 };

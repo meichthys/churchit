@@ -13,5 +13,4 @@ frappe.query_reports["Fund Transactions"] = {
 			mandatory: 1,
 		},
 	],
-
 };

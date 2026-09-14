@@ -4,11 +4,13 @@
 frappe.ui.form.on("Location", {
 	parent_location(frm) {
 		if (frm.doc.parent_location && !frm.doc.address) {
-			frappe.db.get_value("Location", frm.doc.parent_location, "address").then(({ message }) => {
-				if (message && message.address) {
-					frm.set_value("address", message.address);
-				}
-			});
+			frappe.db
+				.get_value("Location", frm.doc.parent_location, "address")
+				.then(({ message }) => {
+					if (message && message.address) {
+						frm.set_value("address", message.address);
+					}
+				});
 		}
 	},
 
@@ -28,9 +30,12 @@ frappe.ui.form.on("Location", {
 			if (!parts.length) return;
 
 			const query = encodeURIComponent(parts.join(", "));
-			fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-				headers: { "Accept-Language": "en" },
-			})
+			fetch(
+				`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+				{
+					headers: { "Accept-Language": "en" },
+				},
+			)
 				.then((r) => r.json())
 				.then((results) => {
 					if (!results.length) {
@@ -45,7 +50,10 @@ frappe.ui.form.on("Location", {
 								type: "Feature",
 								geometry: {
 									type: "Point",
-									coordinates: [parseFloat(lon), parseFloat(lat)],
+									coordinates: [
+										parseFloat(lon),
+										parseFloat(lat),
+									],
 								},
 								properties: {},
 							},

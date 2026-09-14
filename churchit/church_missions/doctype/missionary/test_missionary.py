@@ -34,9 +34,7 @@ class TestMissionary(FrappeTestCase):
 		self.expense_type = _ensure(
 			"Expense Type", {"type": TEST_EXPENSE_TYPE}, {"type": TEST_EXPENSE_TYPE, "fund": fund}
 		)
-		self.person = _ensure(
-			"Person", {"first_name": TEST_PERSON_NAME}, {"first_name": TEST_PERSON_NAME}
-		)
+		self.person = _ensure("Person", {"first_name": TEST_PERSON_NAME}, {"first_name": TEST_PERSON_NAME})
 
 	def _make_missionary(self, **overrides):
 		data = {

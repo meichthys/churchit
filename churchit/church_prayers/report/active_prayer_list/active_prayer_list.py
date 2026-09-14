@@ -17,13 +17,37 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "name", "fieldtype": "Link", "label": "Request", "options": "Prayer Request", "width": 180},
+		{
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"label": "Request",
+			"options": "Prayer Request",
+			"width": 180,
+		},
 		{"fieldname": "title", "fieldtype": "Data", "label": "Title", "width": 240},
-		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 130},
+		{
+			"fieldname": "type",
+			"fieldtype": "Link",
+			"label": "Type",
+			"options": "Prayer Request Type",
+			"width": 130,
+		},
 		{"fieldname": "urgent", "fieldtype": "Check", "label": "Urgent", "width": 70},
-		{"fieldname": "requestor", "fieldtype": "Link", "label": "Requestor", "options": "Person", "width": 200},
+		{
+			"fieldname": "requestor",
+			"fieldtype": "Link",
+			"label": "Requestor",
+			"options": "Person",
+			"width": 200,
+		},
 		{"fieldname": "days_open", "fieldtype": "Int", "label": "Days Open", "width": 100},
-		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 140},
+		{
+			"fieldname": "status",
+			"fieldtype": "Link",
+			"label": "Status",
+			"options": "Prayer Request Status",
+			"width": 140,
+		},
 	]
 
 

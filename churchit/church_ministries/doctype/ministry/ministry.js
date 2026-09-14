@@ -4,13 +4,20 @@
 frappe.ui.form.on("Ministry", {
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro('🌐 This ministry is published to the public website', 'blue');
+			frm.set_intro(
+				"🌐 This ministry is published to the public website",
+				"blue",
+			);
 		}
 	},
 
 	create_recurring_function(frm) {
 		if (frm.is_new()) {
-			frappe.msgprint(__("Please save this Ministry before creating a recurring function."));
+			frappe.msgprint(
+				__(
+					"Please save this Ministry before creating a recurring function.",
+				),
+			);
 			return;
 		}
 		frappe.new_doc("Function", {

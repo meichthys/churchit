@@ -7,9 +7,7 @@ from frappe.tests.utils import FrappeTestCase
 
 class TestFamily(FrappeTestCase):
 	def _make_person(self, first_name):
-		return frappe.get_doc(
-			{"doctype": "Person", "first_name": first_name}
-		).insert(ignore_permissions=True)
+		return frappe.get_doc({"doctype": "Person", "first_name": first_name}).insert(ignore_permissions=True)
 
 	def test_adding_member_sets_person_family(self):
 		person = self._make_person("Linked")

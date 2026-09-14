@@ -15,13 +15,9 @@ def _http_get_json(url):
 	try:
 		resp = requests.get(url, timeout=HTTP_TIMEOUT)
 	except requests.RequestException as exc:
-		frappe.throw(
-			_("Could not reach bible.helloao.org. Please try again later. ({0})").format(str(exc))
-		)
+		frappe.throw(_("Could not reach bible.helloao.org. Please try again later. ({0})").format(str(exc)))
 	if not resp.ok:
-		frappe.throw(
-			_("bible.helloao.org returned an error ({0}) for {1}").format(resp.status_code, url)
-		)
+		frappe.throw(_("bible.helloao.org returned an error ({0}) for {1}").format(resp.status_code, url))
 	try:
 		return resp.json()
 	except ValueError:
@@ -42,9 +38,7 @@ def _resolve_translation_id(translation_name):
 		frappe.throw(_("A Bible Translation is required."))
 	abbr = frappe.db.get_value("Bible Translation", translation_name, "abbreviation")
 	if not abbr:
-		frappe.throw(
-			_("Translation '{0}' has no abbreviation set.").format(translation_name)
-		)
+		frappe.throw(_("Translation '{0}' has no abbreviation set.").format(translation_name))
 	data = _http_get_json(f"{HELLOAO_BASE}/available_translations.json")
 	for t in data.get("translations", []):
 		if t.get("shortName") == abbr and t.get("language") == "eng":
@@ -64,9 +58,7 @@ def _resolve_book_id(translation_id, book_abbreviation):
 	for b in data.get("books", []):
 		if b.get("id") == book_abbreviation or b.get("shortName") == book_abbreviation:
 			return b.get("id"), b
-	frappe.throw(
-		_("Book '{0}' not found in translation '{1}'.").format(book_abbreviation, translation_id)
-	)
+	frappe.throw(_("Book '{0}' not found in translation '{1}'.").format(book_abbreviation, translation_id))
 
 
 def _book_abbreviation(book_name):
@@ -225,9 +217,7 @@ def assign_memory(references, users=None, group=None):
 	if not references or not users:
 		if missing_users:
 			frappe.throw(
-				_("No members of this group have linked App Users: {0}").format(
-					", ".join(missing_users)
-				)
+				_("No members of this group have linked App Users: {0}").format(", ".join(missing_users))
 			)
 		frappe.throw(_("Select at least one reference and one user (or a group with linked App Users)."))
 
@@ -243,9 +233,7 @@ def assign_memory(references, users=None, group=None):
 		for user in users:
 			if not frappe.db.exists("User", user):
 				continue
-			if frappe.db.exists(
-				"Bible Memory Item", {"user": user, "bible_reference": ref}
-			):
+			if frappe.db.exists("Bible Memory Item", {"user": user, "bible_reference": ref}):
 				skipped += 1
 				continue
 			frappe.get_doc(

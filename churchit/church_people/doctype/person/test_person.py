@@ -37,9 +37,9 @@ class TestPerson(FrappeTestCase):
 		self.assertIsNone(person.age)
 
 	def test_setting_family_adds_person_to_family_members(self):
-		family = frappe.get_doc(
-			{"doctype": "Family", "family_name": "Smith Household"}
-		).insert(ignore_permissions=True)
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Smith Household"}).insert(
+			ignore_permissions=True
+		)
 		person = self._make_person(first_name="Sam", last_name="Smith", family=family.name)
 
 		family.reload()
@@ -47,9 +47,9 @@ class TestPerson(FrappeTestCase):
 		self.assertIn(person.name, members)
 
 	def test_removing_family_clears_head_of_household(self):
-		family = frappe.get_doc(
-			{"doctype": "Family", "family_name": "Head Household"}
-		).insert(ignore_permissions=True)
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Head Household"}).insert(
+			ignore_permissions=True
+		)
 		person = self._make_person(
 			first_name="Head", last_name="Honcho", family=family.name, is_head_of_household=1
 		)
@@ -60,9 +60,9 @@ class TestPerson(FrappeTestCase):
 		self.assertFalse(person.is_head_of_household)
 
 	def test_deleting_person_removes_them_from_family(self):
-		family = frappe.get_doc(
-			{"doctype": "Family", "family_name": "Departing Household"}
-		).insert(ignore_permissions=True)
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Departing Household"}).insert(
+			ignore_permissions=True
+		)
 		person = self._make_person(first_name="Gone", last_name="Soon", family=family.name)
 		family.reload()
 		self.assertIn(person.name, [m.member for m in family.members])

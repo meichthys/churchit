@@ -14,13 +14,17 @@
 
 	function openPicker() {
 		frappe
-			.call({ method: "churchit.church_people.group_api.joinable_public_groups" })
+			.call({
+				method: "churchit.church_people.group_api.joinable_public_groups",
+			})
 			.then((r) => {
 				const groups = (r && r.message) || [];
 				if (!groups.length) {
 					frappe.msgprint({
 						title: __("Nothing to join"),
-						message: __("There are no public groups available to join right now."),
+						message: __(
+							"There are no public groups available to join right now.",
+						),
 					});
 					return;
 				}
@@ -38,7 +42,9 @@
 					],
 					primary_action_label: __("Join"),
 					primary_action(values) {
-						const chosen = groups.find((g) => g.group_name === values.group);
+						const chosen = groups.find(
+							(g) => g.group_name === values.group,
+						);
 						if (!chosen) return;
 						frappe
 							.call({
@@ -47,9 +53,18 @@
 							})
 							.then((rr) => {
 								if (rr && !rr.exc) {
-									frappe.show_alert({ message: __("Joined!"), indicator: "green" }, 3);
+									frappe.show_alert(
+										{
+											message: __("Joined!"),
+											indicator: "green",
+										},
+										3,
+									);
 									dialog.hide();
-									setTimeout(() => window.location.reload(), 700);
+									setTimeout(
+										() => window.location.reload(),
+										700,
+									);
 								}
 							});
 					},
@@ -60,7 +75,8 @@
 
 	function place() {
 		const actions = document.querySelector(".web-list-actions");
-		if (!actions || actions.querySelector(".group-join-action")) return false;
+		if (!actions || actions.querySelector(".group-join-action"))
+			return false;
 		const btn = document.createElement("button");
 		btn.className = "btn btn-primary btn-sm group-join-action";
 		btn.textContent = "+ Join a public group";

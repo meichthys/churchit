@@ -13,10 +13,7 @@ class Church(NestedSet):
 		existing = frappe.db.get_value("Church", {"name": ("!=", self.name)}, "name")
 		if existing:
 			frappe.throw(
-				_(
-					"Only one Church record is allowed. "
-					"Multi-church support may be added in a future release."
-				)
+				_("Only one Church record is allowed. Multi-church support may be added in a future release.")
 			)
 
 	def on_trash(self):

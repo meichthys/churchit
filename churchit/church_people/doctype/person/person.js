@@ -12,35 +12,38 @@ frappe.ui.form.on("Person", {
 
 			let years = todayDate.getFullYear() - anniversaryDate.getFullYear();
 
-			if (todayDate.getMonth() < anniversaryDate.getMonth() ||
-			    (todayDate.getMonth() === anniversaryDate.getMonth() && todayDate.getDate() < anniversaryDate.getDate())) {
+			if (
+				todayDate.getMonth() < anniversaryDate.getMonth() ||
+				(todayDate.getMonth() === anniversaryDate.getMonth() &&
+					todayDate.getDate() < anniversaryDate.getDate())
+			) {
 				years--;
 			}
 
 			frm.doc.marriage_years = years;
-			frm.refresh_field('marriage_years');
+			frm.refresh_field("marriage_years");
 		}
 
 		// Add 'New Family From Person' button if Last Name is populated and person is not already in a family
 		if (frm.doc.last_name && !frm.doc.family) {
-			frm.add_custom_button(__('New Family From Person'), function () {
-				frm.call("new_family_from_person")
-			})
+			frm.add_custom_button(__("New Family From Person"), function () {
+				frm.call("new_family_from_person");
+			});
 		}
 
 		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
-		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+		const has_email = (frm.doc.emails || []).some(
+			(row) => row.email_address,
+		);
 		if (has_email && !frm.doc.user) {
-			frm.add_custom_button(__('Invite to Portal'), function () {
-				frm.call("invite_to_portal")
+			frm.add_custom_button(__("Invite to Portal"), function () {
+				frm.call("invite_to_portal");
 			});
 		}
 
 		// Add 'Person Tour' button
-		frm.add_custom_button(__('Tutorial'), function () {
+		frm.add_custom_button(__("Tutorial"), function () {
 			frm.tour.init("Person").then(() => frm.tour.start());
 		});
-
-	}
-
+	},
 });

@@ -29,9 +29,7 @@ class Missionary(Document):
 
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
-				frappe.throw(
-					"A positive Support Amount is required to auto-create expenses."
-				)
+				frappe.throw("A positive Support Amount is required to auto-create expenses.")
 			if self.support_frequency not in FREQUENCY_STEP:
 				frappe.throw(
 					f"Support Frequency '{self.support_frequency}' is not supported for "
@@ -100,10 +98,7 @@ def _create_expense(missionary, expense_date):
 			"type": missionary.expense_type,
 			"date": expense_date,
 			"missionary": missionary.name,
-			"notes": (
-				f"Auto-generated {missionary.support_frequency} support for "
-				f"{missionary.title}."
-			),
+			"notes": (f"Auto-generated {missionary.support_frequency} support for {missionary.title}."),
 		}
 	)
 	expense.insert(ignore_permissions=True)

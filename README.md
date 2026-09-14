@@ -217,8 +217,8 @@ Starter data is hand-written directly in `patches/after_install/__init__.py` —
 1. Write a `_create_*()` (or `_setup_*()`) function that inserts the record(s), guarded so it's safe to run more than once. Use the `_insert_if_missing()` helper for simple lookups:
    ```python
    def _create_my_lookup():
-       for value in ("Foo", "Bar"):
-           _insert_if_missing("My Doctype", {"some_field": value}, some_field=value)
+   	for value in ("Foo", "Bar"):
+   		_insert_if_missing("My Doctype", {"some_field": value}, some_field=value)
    ```
    For anything more involved, check `frappe.db.exists(...)` yourself before inserting; see the other `_create_*`/`_setup_*` functions in the file for examples.
 2. Call the function from `execute()`, ordered after anything it depends on (e.g. a parent document before its children).
@@ -238,8 +238,8 @@ import frappe
 
 
 def execute():
-    if not frappe.db.exists("Function Attendance Type", "Livestream"):
-        frappe.get_doc({"doctype": "Function Attendance Type", "type": "Livestream"}).insert()
+	if not frappe.db.exists("Function Attendance Type", "Livestream"):
+		frappe.get_doc({"doctype": "Function Attendance Type", "type": "Livestream"}).insert()
 ```
 
 Then append to `patches.txt` (always append — never insert above existing entries):
@@ -263,8 +263,8 @@ import frappe
 
 
 def execute():
-    if frappe.db.exists("Event Attendance Type", "Old Type"):
-        frappe.delete_doc("Event Attendance Type", "Old Type", force=True)
+	if frappe.db.exists("Event Attendance Type", "Old Type"):
+		frappe.delete_doc("Event Attendance Type", "Old Type", force=True)
 ```
 
 Then append to `patches.txt` (always append — never insert above existing entries):
