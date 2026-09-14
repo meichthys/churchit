@@ -65,13 +65,13 @@ class TestThemeModeScript(FrappeTestCase):
 	def test_the_script_is_put_in_the_head(self):
 		context = frappe._dict({})
 		update_website_context(context)
-		self.assertTrue(context.head_html.startswith("<script>"))
+		self.assertTrue(context.head_html.endswith("</script>"))
 		self.assertIn("churchit-theme-mode", context.head_html)
 
 	def test_a_church_set_head_html_stays_in_front_of_it(self):
 		context = frappe._dict({"head_html": '<meta name="x" content="y">'})
 		update_website_context(context)
-		self.assertTrue(context.head_html.startswith('<meta name="x" content="y"><script>'))
+		self.assertTrue(context.head_html.startswith('<meta name="x" content="y"><link rel="manifest"'))
 
 
 class TestNavbarSwitch(FrappeTestCase):

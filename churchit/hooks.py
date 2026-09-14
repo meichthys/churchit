@@ -81,6 +81,7 @@ web_include_js = [
 	"/assets/churchit/js/portal_groups.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
+	"/assets/churchit/js/pwa.js",
 ]
 
 # include js, css files in header of web form

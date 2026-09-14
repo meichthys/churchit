@@ -20,6 +20,14 @@
   width: 100%;
 }
 
+/* ---- Navbar menu button -----------------------------------------------------
+   frappe's navbar strips the stroke from the toggler icon, a rule from its
+   filled icon set; the lucide menu icon it ships now is stroke-only, so on a
+   phone the button that holds the whole nav painted nothing. */
+.navbar-light .navbar-toggler .icon {
+  stroke: var(--icon-stroke);
+}
+
 /* ---- Light/dark switch and dark mode ----------------------------------------
    theme_mode.js sets data-theme on <html>. frappe's website bundle flips only
    its Espresso surface/ink tokens for that attribute and leaves bootstrap's
@@ -57,6 +65,9 @@
   --dark-border-color: var(--outline-gray-3);
   --bg-light-gray: var(--subtle-fg);
   --primary-color: var(--ink-gray-9);
+  /* the menu button and theme switch icons are stroked; frappe leaves this at
+     its light-mode gray, invisible on the dark navbar */
+  --icon-stroke: var(--ink-gray-8);
 }
 [data-theme="dark"] body {
   color: var(--text-color);

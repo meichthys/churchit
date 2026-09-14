@@ -2,9 +2,13 @@
 // localStorage and applied as data-theme on <html>, the attribute frappe's own
 // dark tokens key off. church_website.context inlines this into <head> so it
 // runs before the first paint; until a choice is made, the system setting wins.
+// The theme-color meta (browser chrome, status bar of the installed app)
+// follows along: pwa.head_tags puts it just ahead of this script with both
+// palettes as data-light/data-dark.
 (function () {
 	const STORAGE_KEY = "churchit-theme-mode";
 	const root = document.documentElement;
+	const theme_color = document.querySelector('meta[name="theme-color"]');
 
 	function saved_mode() {
 		try {
@@ -16,6 +20,7 @@
 
 	function apply(mode) {
 		root.setAttribute("data-theme", mode);
+		if (theme_color) theme_color.content = theme_color.dataset[mode];
 	}
 
 	apply(saved_mode() || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
