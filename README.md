@@ -40,7 +40,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
-- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look — pick one under Website Settings → Website Theme
+- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look — pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
@@ -183,6 +183,7 @@ Contributions are very welcome! If you plan any large contributions, please let 
   - Add fields for the doctype (if necessary add field descriptions).
   - Add permissions to the doctype for `Church User` and `Church Admin` roles. (Not necessary for child tables)
   - Add the doctype to the relevant workspace. (not necessary for child tables)
+  - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
   - If necessary, add an onboarding step & form tour to explain specific fields.
   - If any default records for this doctype should be shipped with the app, see [Managing App Data](#managing-app-data) below.
   - If necessary, update this readme with the new functionality

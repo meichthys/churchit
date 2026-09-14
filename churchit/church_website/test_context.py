@@ -59,3 +59,27 @@ class TestBrandHtml(FrappeTestCase):
 		context = frappe._dict({"brand_html": "<img src='/files/logo.png'>"})
 		update_website_context(context)
 		self.assertEqual(context.brand_html, "<img src='/files/logo.png'>")
+
+
+class TestThemeModeScript(FrappeTestCase):
+	def test_the_script_is_put_in_the_head(self):
+		context = frappe._dict({})
+		update_website_context(context)
+		self.assertTrue(context.head_html.startswith("<script>"))
+		self.assertIn("churchit-theme-mode", context.head_html)
+
+	def test_a_church_set_head_html_stays_in_front_of_it(self):
+		context = frappe._dict({"head_html": '<meta name="x" content="y">'})
+		update_website_context(context)
+		self.assertTrue(context.head_html.startswith('<meta name="x" content="y"><script>'))
+
+
+class TestNavbarSwitch(FrappeTestCase):
+	def test_the_switch_renders_left_of_the_account_menu(self):
+		html = frappe.render_template(
+			"templates/includes/navbar/navbar_login.html", {"post_login": [], "hide_login": False}
+		)
+		self.assertLess(
+			html.index("theme-switch"), html.index("btn-login-area"), "frappe's own block follows"
+		)
+		self.assertIn("#icon-moon", html)

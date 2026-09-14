@@ -20,6 +20,143 @@
   width: 100%;
 }
 
+/* ---- Light/dark switch and dark mode ----------------------------------------
+   theme_mode.js sets data-theme on <html>. frappe's website bundle flips only
+   its Espresso surface/ink tokens for that attribute and leaves bootstrap's
+   compiled colours alone, so this maps the tokens the layouts and frappe's own
+   pages read onto that dark palette and re-skins the bootstrap parts the site
+   uses. Moon means "go dark", sun means "go light". */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.theme-switch-sun,
+[data-theme="dark"] .theme-switch-moon {
+  display: none;
+}
+[data-theme="dark"] .theme-switch-sun {
+  display: inline;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-color: var(--surface-white);
+  --fg-color: var(--surface-cards);
+  --card-bg: var(--surface-cards);
+  --subtle-fg: var(--surface-gray-1);
+  --subtle-accent: var(--surface-gray-2);
+  --control-bg: var(--surface-gray-1);
+  --heading-color: var(--ink-gray-9);
+  --text-color: var(--ink-gray-8);
+  --text-muted: var(--ink-gray-7);
+  --text-light: var(--ink-gray-6);
+  --border-color: var(--outline-gray-2);
+  --dark-border-color: var(--outline-gray-3);
+  --bg-light-gray: var(--subtle-fg);
+  --primary-color: var(--ink-gray-9);
+}
+[data-theme="dark"] body {
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] a,
+[data-theme="dark"] a:hover {
+  color: var(--heading-color);
+}
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+[data-theme="dark"] hr {
+  border-top-color: var(--border-color);
+}
+
+/* navbar and footer */
+[data-theme="dark"] .navbar-light {
+  background: var(--bg-color);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] .navbar-light .navbar-brand,
+[data-theme="dark"] .navbar-light .navbar-brand:hover,
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link:focus,
+[data-theme="dark"] .navbar-light .navbar-nav .active > .nav-link {
+  color: var(--heading-color);
+}
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-light .navbar-toggler,
+[data-theme="dark"] .web-footer,
+[data-theme="dark"] .web-footer a {
+  color: var(--text-muted);
+}
+[data-theme="dark"] .web-footer {
+  border-top-color: var(--border-color);
+}
+
+/* surfaces, menus, controls */
+[data-theme="dark"] .card,
+[data-theme="dark"] .list-group-item,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu {
+  color: var(--text-color);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-footer {
+  background-color: var(--subtle-fg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-color);
+}
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  color: var(--heading-color);
+  background-color: var(--subtle-fg);
+}
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .custom-select,
+[data-theme="dark"] .input-group-text {
+  color: var(--text-color);
+  background-color: var(--control-bg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .form-control:focus {
+  color: var(--heading-color);
+  background-color: var(--subtle-accent);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .btn-primary {
+  color: var(--surface-white);
+  background-color: var(--ink-gray-9);
+  border-color: var(--ink-gray-9);
+}
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-default {
+  color: var(--text-color);
+  background-color: var(--surface-gray-3);
+  border-color: var(--surface-gray-3);
+}
+[data-theme="dark"] .table {
+  color: var(--text-color);
+}
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .portal-row a {
+  color: var(--text-color);
+}
+
 /* ---- Account menu ---------------------------------------------------------
    v16 renders the navbar avatar dropdown (My Account / Log out) with an inline
    display:none and reveals it via client JS after load. Key it off the
@@ -282,7 +419,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 .series-tag {
   font-size: 0.7em;
   font-weight: 700;
-  color: #fff;
+  color: var(--bg-color);
   background: var(--primary-color);
   border-radius: 999px;
   padding: 2px 10px;

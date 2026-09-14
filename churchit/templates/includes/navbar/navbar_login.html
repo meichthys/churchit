@@ -1,0 +1,12 @@
+{#- Shadows frappe's template of the same path (apps are searched in reverse
+    install order) to put the light/dark switch left of the account menu. The
+    rest of the block is frappe's own, included through the app prefix. -#}
+{% if not only_static %}
+<li class="nav-item">
+	<button type="button" class="nav-link theme-switch" title="{{ _("Switch light or dark mode") }}" aria-label="{{ _("Switch light or dark mode") }}">
+		<svg class="icon icon-sm theme-switch-moon"><use href="#icon-moon"></use></svg>
+		<svg class="icon icon-sm theme-switch-sun"><use href="#icon-sun"></use></svg>
+	</button>
+</li>
+{% endif %}
+{% include "frappe/templates/includes/navbar/navbar_login.html" %}

@@ -3,17 +3,23 @@
 
 """Website context additions, wired through the ``update_website_context`` hook."""
 
+from pathlib import Path
+
 import frappe
 from frappe import _
 
 from churchit.church_foundations.doctype.church.church import get_church
 
 PORTAL_URL = "/portal"
+THEME_MODE_SCRIPT = (
+	"<script>" + (Path(__file__).parents[1] / "public/js/theme_mode.js").read_text() + "</script>"
+)
 
 
 def update_website_context(context):
 	_add_portal_menu_item(context)
 	_set_brand_html(context)
+	_add_theme_mode_script(context)
 
 
 def _add_portal_menu_item(context):
@@ -47,3 +53,14 @@ def _set_brand_html(context):
 	church = get_church()
 	if church:
 		context["brand_html"] = f"<span>{frappe.utils.escape_html(church.church_name)}</span>"
+
+
+def _add_theme_mode_script(context):
+	"""Apply the visitor's light/dark choice before the page first paints.
+
+	Website Settings.head_html is the first thing rendered in <head>, ahead of
+	the stylesheets; web_include_js only runs at the end of the body, which
+	would flash the light look on every load. Anything the church put in
+	head_html stays in front of it.
+	"""
+	context["head_html"] = (context.get("head_html") or "") + THEME_MODE_SCRIPT

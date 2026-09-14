@@ -6,8 +6,18 @@
 {% block head_include %}
 {# FullCalendar 6 injects its own styles, so there is no stylesheet to pull in #}
 <style>
-	#church-calendar { max-width: 1100px; margin: 1.5rem auto; }
+	#church-calendar {
+		max-width: 1100px;
+		margin: 1.5rem auto;
+		--fc-border-color: var(--border-color);
+		--fc-page-bg-color: var(--bg-color);
+		--fc-neutral-bg-color: var(--subtle-fg);
+		--fc-today-bg-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
+		--fc-list-event-hover-bg-color: var(--subtle-fg);
+	}
 	#church-calendar .fc-event { cursor: pointer; }
+	/* day numbers and event titles are links; follow the page text, not bootstrap's link colour */
+	#church-calendar .fc a { color: inherit; }
 	.event-modal-overlay {
 		position: fixed;
 		inset: 0;
@@ -20,7 +30,8 @@
 	}
 	.event-modal-overlay.is-open { display: flex; }
 	.event-modal-dialog {
-		background: #fff;
+		background: var(--card-bg);
+		color: var(--text-color);
 		border-radius: 0.5rem;
 		max-width: 500px;
 		width: calc(100% - 2rem);
@@ -32,7 +43,7 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.75rem 1rem;
-		border-bottom: 1px solid #e5e5e5;
+		border-bottom: 1px solid var(--border-color);
 	}
 	.event-modal-header h2 { margin: 0; font-size: 1.125rem; }
 	.event-modal-close {
@@ -41,7 +52,7 @@
 		font-size: 1.5rem;
 		line-height: 1;
 		cursor: pointer;
-		color: #6c757d;
+		color: var(--text-muted);
 	}
 	.event-modal-body { padding: 1rem; }
 	.event-modal-body p { margin-bottom: 0.5rem; }

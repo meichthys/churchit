@@ -53,6 +53,21 @@
 	--bg-color: #eef1fb;
 }
 
+// :root-qualified so these beat css/website.css's dark tokens, which load later
+:root[data-theme="dark"] {
+	--ch-glass: rgba(15, 23, 42, 0.55);
+	--ch-glass-2: rgba(15, 23, 42, 0.72);
+	--ch-glass-brd: rgba(255, 255, 255, 0.1);
+	--ch-glass-shdw: 0 8px 40px -12px rgba(0, 0, 0, 0.6);
+
+	--primary-color: #a5b4fc; // indigo-300
+	--heading-color: #f8fafc; // slate-50
+	--text-color: #cbd5e1; // slate-300
+	--text-muted: #94a3b8; // slate-400
+	--border-color: rgba(255, 255, 255, 0.1);
+	--bg-color: #0b1020;
+}
+
 body {
 	color: var(--text-color);
 	background: var(--bg-color);
@@ -256,10 +271,47 @@ body {
 
 	// ---- Sermon series and missions map ------------------------------------
 	.series-tag {
+		color: #fff;
 		background: var(--ch-grad);
 	}
 	.missions-map-card {
 		border-radius: var(--ch-radius);
 		box-shadow: var(--ch-glass-shdw);
+	}
+}
+
+// ---- Dark mode ------------------------------------------------------------
+// The tokens above do most of it; these are the surfaces that carry their own
+// light tint rather than a token.
+[data-theme="dark"] body {
+	&::before {
+		opacity: 0.45;
+	}
+	.navbar {
+		background: rgba(11, 16, 32, 0.6) !important;
+	}
+	.navbar-nav .nav-item.active > .nav-link {
+		background: rgba(129, 140, 248, 0.18);
+	}
+	.page_content .card:hover {
+		box-shadow: 0 14px 44px -16px rgba(0, 0, 0, 0.7);
+	}
+	.page_content .card-header {
+		background: linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.12));
+	}
+	.page_content .card-footer {
+		background: rgba(139, 92, 246, 0.12);
+	}
+	.page_content .form-control {
+		background: rgba(15, 23, 42, 0.5);
+		color: var(--text-color);
+	}
+	.portal-items {
+		background: rgba(15, 23, 42, 0.45);
+	}
+	.portal-items .portal-section:hover,
+	.portal-row:hover,
+	.series-sermon-link:hover {
+		background: rgba(129, 140, 248, 0.12);
 	}
 }
