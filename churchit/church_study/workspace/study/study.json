@@ -42,7 +42,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Study Documents",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -100,6 +100,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Sermon Handouts",
+   "link_count": 0,
+   "link_to": "Sermon Handout",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Sermon Series",
    "link_count": 0,
    "link_to": "Sermon Series",
@@ -128,7 +138,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 00:10:00.000000",
+ "modified": "2026-09-14 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",

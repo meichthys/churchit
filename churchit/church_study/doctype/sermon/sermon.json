@@ -12,6 +12,7 @@
   "publish",
   "column_break_wnxx",
   "audio_recording",
+  "handout",
   "section_break_zozg",
   "notes",
   "section_break_slides",
@@ -54,6 +55,13 @@
    "label": "Audio Recording"
   },
   {
+   "description": "A fill-in-the-blank outline printed as the sermon notes insert of a Bulletin. Use the Create Handout button to start one from the notes below.",
+   "fieldname": "handout",
+   "fieldtype": "Link",
+   "label": "Handout",
+   "options": "Sermon Handout"
+  },
+  {
    "fieldname": "section_break_slides",
    "fieldtype": "Section Break",
    "label": "Slides"
@@ -92,7 +100,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-22 21:22:06.076238",
+ "modified": "2026-09-14 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",

@@ -162,6 +162,24 @@ frappe.ui.form.on("Sermon", {
 			frm.set_intro('🌐 This sermon is published to the public website', 'blue');
 		}
 
+		if (!frm.is_new() && !frm.doc.handout) {
+			frm.add_custom_button(__("Create Handout"), function () {
+				function create_handout() {
+					frappe
+						.call({
+							method: "churchit.church_study.doctype.sermon_handout.sermon_handout.make_handout",
+							args: { sermon: frm.doc.name },
+						})
+						.then((r) => frappe.set_route("Form", "Sermon Handout", r.message));
+				}
+				if (frm.is_dirty()) {
+					frm.save("Save", create_handout);
+				} else {
+					create_handout();
+				}
+			}, __("Create"));
+		}
+
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Present"), function () {
 				function open_presentation() {

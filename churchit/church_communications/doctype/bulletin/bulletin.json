@@ -1,0 +1,258 @@
+{
+ "actions": [],
+ "autoname": "format:BUL-{####}",
+ "creation": "2026-09-14 00:00:00",
+ "default_print_format": "Bulletin",
+ "description": "A printed bulletin for one function: a folded Letter sheet with a cover, the order of worship, and whichever sections are switched on. Print it double-sided, flipped on the short edge, and fold it in half.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-communications",
+ "engine": "InnoDB",
+ "field_order": [
+  "function",
+  "function_name",
+  "function_date",
+  "title",
+  "column_break_cover",
+  "cover_image",
+  "verse",
+  "publish",
+  "section_break_sections",
+  "show_contact_information",
+  "show_order_of_worship",
+  "show_church_roles",
+  "show_upcoming_functions",
+  "show_ministries",
+  "column_break_sections",
+  "show_missionary",
+  "show_prayer_requests",
+  "show_birthdays",
+  "show_anniversaries",
+  "show_sermon_handout",
+  "section_break_text",
+  "welcome",
+  "column_break_text",
+  "announcements",
+  "section_break_missionary",
+  "missionary",
+  "section_break_prayers",
+  "prayer_requests"
+ ],
+ "fields": [
+  {
+   "fieldname": "function",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Function",
+   "options": "Function",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "function.function_name",
+   "fieldname": "function_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Function Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "function.start_date",
+   "fieldname": "function_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cover",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Printed across the top of the front cover.",
+   "fieldname": "cover_image",
+   "fieldtype": "Attach Image",
+   "label": "Cover Image"
+  },
+  {
+   "description": "Printed at the foot of the front cover.",
+   "fieldname": "verse",
+   "fieldtype": "Link",
+   "label": "Verse of the Week",
+   "options": "Bible Reference"
+  },
+  {
+   "default": "0",
+   "description": "Let signed-in members download this bulletin as a PDF from the portal.",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Show in Portal"
+  },
+  {
+   "collapsible": 1,
+   "description": "Defaults come from Bulletin Settings. A section with nothing to print is left out even when switched on.",
+   "fieldname": "section_break_sections",
+   "fieldtype": "Section Break",
+   "label": "Sections"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_contact_information",
+   "fieldtype": "Check",
+   "label": "Contact Information"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_order_of_worship",
+   "fieldtype": "Check",
+   "label": "Order of Worship"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_church_roles",
+   "fieldtype": "Check",
+   "label": "Church Leadership"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_upcoming_functions",
+   "fieldtype": "Check",
+   "label": "Upcoming Functions"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_ministries",
+   "fieldtype": "Check",
+   "label": "Ministries"
+  },
+  {
+   "fieldname": "column_break_sections",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_missionary",
+   "fieldtype": "Check",
+   "label": "Missionary of the Week"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_prayer_requests",
+   "fieldtype": "Check",
+   "label": "Prayer Requests"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_birthdays",
+   "fieldtype": "Check",
+   "label": "Birthdays"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_anniversaries",
+   "fieldtype": "Check",
+   "label": "Anniversaries"
+  },
+  {
+   "default": "1",
+   "description": "Adds a third sheet with the handout of the sermon on the function's schedule, printed twice to cut into two half-page inserts.",
+   "fieldname": "show_sermon_handout",
+   "fieldtype": "Check",
+   "label": "Sermon Handout Insert"
+  },
+  {
+   "fieldname": "section_break_text",
+   "fieldtype": "Section Break",
+   "label": "Welcome and Announcements"
+  },
+  {
+   "description": "Opens the inside of the bulletin.",
+   "fieldname": "welcome",
+   "fieldtype": "Text Editor",
+   "label": "Welcome Message"
+  },
+  {
+   "fieldname": "column_break_text",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "announcements",
+   "fieldtype": "Text Editor",
+   "label": "Announcements"
+  },
+  {
+   "fieldname": "section_break_missionary",
+   "fieldtype": "Section Break",
+   "label": "Missionary of the Week"
+  },
+  {
+   "description": "Picked automatically in turn from the missionaries currently supported. Change it here for this bulletin only.",
+   "fieldname": "missionary",
+   "fieldtype": "Link",
+   "label": "Missionary",
+   "options": "Missionary"
+  },
+  {
+   "fieldname": "section_break_prayers",
+   "fieldtype": "Section Break",
+   "label": "Prayer Requests"
+  },
+  {
+   "description": "Starts with every open request that is not private. Remove or add rows for this bulletin.",
+   "fieldname": "prayer_requests",
+   "fieldtype": "Table",
+   "label": "Prayer Requests",
+   "options": "Bulletin Prayer Request"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-14 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Bulletin",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "function_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "function_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

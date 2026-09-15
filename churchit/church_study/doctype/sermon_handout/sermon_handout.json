@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "autoname": "format:HAND-{####}",
+ "creation": "2026-09-14 00:00:00",
+ "description": "A fill-in-the-blank outline of a sermon for listeners, printed as the sermon notes insert of a Bulletin. Wrap a word or phrase in square brackets, like [grace], to print it as a blank.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-study",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "description": "Wrap a word or phrase in square brackets, like [grace], to print it as a blank for listeners to fill in.",
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "label": "Content"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Sermon",
+   "link_fieldname": "handout"
+  }
+ ],
+ "modified": "2026-09-14 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Study",
+ "name": "Sermon Handout",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

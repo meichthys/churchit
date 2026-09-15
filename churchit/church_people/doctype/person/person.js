@@ -36,6 +36,10 @@ frappe.ui.form.on("Person", {
 			});
 		}
 
+		if (!frm.is_new()) {
+			show_background_check_status(frm);
+		}
+
 		// Add 'Person Tour' button
 		frm.add_custom_button(__('Tutorial'), function () {
 			frm.tour.init("Person").then(() => frm.tour.start());
@@ -44,3 +48,25 @@ frappe.ui.form.on("Person", {
 	}
 
 });
+
+// Show the most recent background check on the form dashboard so leaders can
+// see at a glance whether this person is cleared to serve.
+function show_background_check_status(frm) {
+	frappe.db
+		.get_list("Background Check", {
+			filters: { person: frm.doc.name },
+			fields: ["check_type", "status", "expires_on"],
+			order_by: "requested_on desc",
+			limit: 1,
+		})
+		.then((rows) => {
+			if (!rows || !rows.length) return;
+			const check = rows[0];
+			const colors = { Cleared: "green", "Not Cleared": "red", Expired: "gray" };
+			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
+			if (check.status === "Cleared" && check.expires_on) {
+				label += ` ${__("until")} ${frappe.datetime.str_to_user(check.expires_on)}`;
+			}
+			frm.dashboard.add_indicator(label, colors[check.status] || "orange");
+		});
+}

@@ -9,9 +9,11 @@ from frappe.tests.utils import FrappeTestCase
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
 	add_churchit_website_theme,
+	add_default_address_template,
 	add_missionary_map_to_missions_page,
 	redesign_home_page,
 	rename_agency_logo_field,
+	setup_bulletins,
 	update_default_navbar,
 )
 from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
@@ -33,6 +35,7 @@ class TestAfterInstall(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
 		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
 		self.assertEqual(frappe.get_doc("Website Settings").website_theme, "Churchit")
+		self.assertTrue(frappe.db.exists("Address Template", {"is_default": 1}))
 
 	def _lookup_counts(self):
 		return {
@@ -60,6 +63,7 @@ class TestAfterInstall(FrappeTestCase):
 				"Email Type",
 				"Phone Type",
 				"Address Type",
+				"Address Template",
 			)
 		}
 
@@ -151,6 +155,33 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(len(rows), 1)
 		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
 		self.assertTrue(rows[0].enabled)
+
+	def test_bulletins_setup_seeds_once_and_retires_the_old_print_format(self):
+		settings = frappe.get_doc("Portal Settings")
+		settings.menu = [row for row in settings.menu if row.route != setup_bulletins.ROUTE]
+		settings.save(ignore_permissions=True)
+		bulletin_settings = frappe.get_doc("Bulletin Settings")
+		bulletin_settings.set("roles", [])
+		bulletin_settings.save(ignore_permissions=True)
+		if not frappe.db.exists("Print Format", "Sunday Bulletin"):
+			frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": "Sunday Bulletin",
+					"doc_type": "Function",
+					"standard": "No",
+				}
+			).insert(ignore_permissions=True)
+
+		setup_bulletins.execute()
+		setup_bulletins.execute()
+
+		self.assertFalse(frappe.db.exists("Print Format", "Sunday Bulletin"))
+		rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == setup_bulletins.ROUTE]
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0].role, "Church User")
+		roles = [row.position_type for row in frappe.get_doc("Bulletin Settings").roles]
+		self.assertEqual(roles, ["Pastor", "Elder", "Deacon"])
 
 	def test_home_page_redesign_only_replaces_the_shipped_default(self):
 		page = frappe.get_doc("Web Page", "home")
@@ -252,3 +283,33 @@ class TestVersionedPatches(FrappeTestCase):
 			"_Test custom wording.",
 			"a church that worded its own keeps it",
 		)
+
+	def test_default_address_template_is_added_when_none_exists(self):
+		frappe.db.delete("Address Template")
+		add_default_address_template.execute()
+		add_default_address_template.execute()
+		self.assertEqual(frappe.db.count("Address Template"), 1)
+		self.assertTrue(frappe.db.exists("Address Template", {"is_default": 1}))
+
+		display = make_address("_Test Template Church", state="IL", pincode="62701").get_display()
+		self.assertIn("Springfield, IL 62701", display)
+
+	def test_default_address_template_leaves_a_church_that_made_its_own_alone(self):
+		frappe.db.delete("Address Template")
+		own = frappe.get_doc(
+			{"doctype": "Address Template", "country": "Canada", "is_default": 1, "template": "{{ city }}"}
+		).insert(ignore_permissions=True)
+		add_default_address_template.execute()
+		self.assertEqual(frappe.db.count("Address Template"), 1)
+		self.assertEqual(frappe.db.get_value("Address Template", own.name, "template"), "{{ city }}")
+
+	def test_default_address_template_promotes_an_existing_one_for_the_country(self):
+		frappe.db.delete("Address Template")
+		country = frappe.db.get_single_value("System Settings", "country") or "United States"
+		frappe.get_doc({"doctype": "Address Template", "country": country, "template": "{{ city }}"}).insert(
+			ignore_permissions=True
+		)
+		frappe.db.set_value("Address Template", country, "is_default", 0)
+		add_default_address_template.execute()
+		self.assertEqual(frappe.db.count("Address Template"), 1)
+		self.assertEqual(frappe.db.get_value("Address Template", country, "is_default"), 1)

@@ -31,11 +31,11 @@ class TestMemorizePages(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 		frappe.set_user(self.user)
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def test_guests_are_sent_to_login(self):
 		frappe.set_user("Guest")
@@ -62,7 +62,7 @@ class TestMemorizePages(FrappeTestCase):
 		self.assertNotIn(self.item.name, [item["name"] for item in context["items"]])
 
 	def test_session_context_carries_the_passage_and_progress(self):
-		frappe.form_dict = frappe._dict(item=self.item.name, mode="BLUR")
+		frappe.local.form_dict = frappe._dict(item=self.item.name, mode="BLUR")
 		context = frappe._dict()
 		session.get_context(context)
 
@@ -75,15 +75,15 @@ class TestMemorizePages(FrappeTestCase):
 		self.assertTrue(context.no_header)
 
 	def test_session_rejects_bad_mode_missing_item_and_other_users(self):
-		frappe.form_dict = frappe._dict(item=self.item.name, mode="listen")
+		frappe.local.form_dict = frappe._dict(item=self.item.name, mode="listen")
 		with self.assertRaises(ValidationError):
 			session.get_context(frappe._dict())
 
-		frappe.form_dict = frappe._dict(mode="type")
+		frappe.local.form_dict = frappe._dict(mode="type")
 		with self.assertRaises(ValidationError):
 			session.get_context(frappe._dict())
 
 		frappe.set_user(self.other)
-		frappe.form_dict = frappe._dict(item=self.item.name)
+		frappe.local.form_dict = frappe._dict(item=self.item.name)
 		with self.assertRaises(PermissionError):
 			session.get_context(frappe._dict())

@@ -14,3 +14,7 @@ churchit.patches.v1_0.clear_default_portal_home
 churchit.patches.v1_0.redesign_home_page
 churchit.patches.v1_0.update_default_navbar
 churchit.patches.v1_0.add_churchit_website_theme
+churchit.patches.v1_0.remove_my_account_footer_link
+churchit.patches.v1_0.add_default_address_template
+churchit.patches.v1_0.add_default_background_check_types
+churchit.patches.v1_0.setup_bulletins

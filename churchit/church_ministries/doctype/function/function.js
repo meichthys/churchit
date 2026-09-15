@@ -90,6 +90,10 @@ frappe.ui.form.on('Function', {
 					end_datetime: end_dt,
 				});
 			}, __('Create'));
+
+			frm.add_custom_button(__('Bulletin'), function() {
+				frappe.new_doc('Bulletin', { function: frm.doc.name });
+			}, __('Create'));
 		}
 
 		// Add Sign Ups buttons if sign-ups are enabled, there are items, or there are linked sign-ups

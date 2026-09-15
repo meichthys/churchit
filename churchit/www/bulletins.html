@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Bulletins") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.bulletin-list { list-style: none; padding: 0; margin: 0; }
+	.bulletin-list li { display: flex; justify-content: space-between; align-items: baseline;
+		gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.bulletin-list .date { color: #6b7280; white-space: nowrap; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-4">{{ _("Bulletins") }}</h3>
+
+	{% if not bulletins %}
+		<p class="text-muted">{{ _("No bulletins have been shared yet.") }}</p>
+	{% else %}
+		<ul class="bulletin-list">
+			{% for bulletin in bulletins %}
+			<li>
+				<a href="/api/method/churchit.church_communications.doctype.bulletin.bulletin.download_pdf?name={{ bulletin.name | urlencode }}">
+					{{ bulletin.function_name }}
+				</a>
+				<span class="date">{{ frappe.format(bulletin.function_date, {"fieldtype": "Date"}) }}</span>
+			</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+</div>
+{% endblock %}

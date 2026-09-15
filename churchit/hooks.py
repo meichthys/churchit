@@ -16,9 +16,23 @@ update_website_context = "churchit.church_website.context.update_website_context
 
 fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
+	{"dt": "Custom Field", "filters": [["dt", "in", ["Contact Us Settings"]]]},
 	{
 		"dt": "Property Setter",
-		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category", "Newsletter"]]],
+		"filters": [
+			[
+				"doc_type",
+				"in",
+				[
+					"About Us Settings",
+					"Contact Us Settings",
+					"Help Article",
+					"Help Category",
+					"Newsletter",
+					"Website Settings",
+				],
+			]
+		],
 	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
@@ -211,6 +225,7 @@ scheduler_events = {
 		"churchit.church_ministries.doctype.function.function.create_scheduled_functions",
 		"churchit.church_communications.newsletter.sync_member_email_group",
 		"churchit.church_missions.doctype.missionary.missionary.create_missionary_expenses",
+		"churchit.church_people.doctype.background_check.background_check.expire_background_checks",
 	],
 }
 

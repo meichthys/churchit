@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 from churchit.utils import resolve_link_titles
 
+CLOSED_STATUSES = ("Answered", "Archived", "Closed")
+
 
 class PrayerRequest(Document):
 	def before_insert(self):

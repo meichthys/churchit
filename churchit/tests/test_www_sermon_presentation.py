@@ -65,11 +65,11 @@ class TestSermonPresentationPage(FrappeTestCase):
 		self.song = frappe.get_doc({"doctype": "Song", "title": "_Test Hymn", "ccli": "12345"}).insert(
 			ignore_permissions=True
 		)
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def _sermon(self, title, **values):
 		sermon = frappe.get_doc({"doctype": "Sermon", "title": title, "prepared_by": self.preacher.name, **values})
@@ -88,7 +88,7 @@ class TestSermonPresentationPage(FrappeTestCase):
 		return sermon.insert(ignore_permissions=True)
 
 	def _context(self, sermon):
-		frappe.form_dict = frappe._dict(name=sermon.name)
+		frappe.local.form_dict = frappe._dict(name=sermon.name)
 		context = frappe._dict()
 		get_context(context)
 		return context

@@ -22,7 +22,7 @@ class TestGivePage(FrappeTestCase):
 			ignore_permissions=True
 		)
 		self._configure(enabled=1, allow_anonymous=1, gateways=[self.gateway, self.other_gateway])
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

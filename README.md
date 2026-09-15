@@ -32,11 +32,12 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with head-of-household relationship tracking
 - Spouse tracking with automatic bidirectional sync
 - Church position tracking
+- Background check tracking: record checks from any screening provider with status, expiry, and the report; cleared checks expire automatically
 - Portal invitations: invite people to a self-service portal
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, alms requests, and function sign-ups
+- Portal pages for personal details, prayer requests, alms requests, function sign-ups, and bulletin PDFs
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
@@ -55,6 +56,12 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Presentation mode with configurable field display per slide
 - Presentation history tracking with date, presenter, and location
 - Audio/video recording support
+- Sermon handouts: fill-in-the-blank outlines started from the sermon notes, printed as bulletin inserts
+
+### Bulletins
+- Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
+- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
+- Published bulletins downloadable as PDFs from the member portal
 
 ### Finances
 - Collection and donation tracking with fund allocation

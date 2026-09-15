@@ -23,10 +23,30 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Communications Documents",
-   "link_count": 1,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bulletins",
+   "link_count": 0,
+   "link_to": "Bulletin",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bulletin Settings",
+   "link_count": 0,
+   "link_to": "Bulletin Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -78,7 +98,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 00:10:00.000000",
+ "modified": "2026-09-14 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",

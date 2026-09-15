@@ -15,13 +15,13 @@ PERIOD = ("2029-01-01", "2029-12-31")
 
 class TestStatementsPage(FrappeTestCase):
 	def setUp(self):
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 		self.email = ensure_user("_test_statement_member@example.com", "Statement")
 		self.person = make_person("_Test Portal", "Giver", user=self.email)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def _statement(self, person, **values):
 		return frappe.get_doc(
@@ -78,7 +78,7 @@ class TestStatementsPage(FrappeTestCase):
 	def test_opening_someone_elses_statement_is_refused(self):
 		theirs = self._statement(make_person("_Test Portal", "Other").name)
 		frappe.set_user(self.email)
-		frappe.form_dict = frappe._dict(name=theirs.name)
+		frappe.local.form_dict = frappe._dict(name=theirs.name)
 
 		with self.assertRaises(PermissionError):
 			self._context()
@@ -86,7 +86,7 @@ class TestStatementsPage(FrappeTestCase):
 	def test_opening_own_statement_loads_it(self):
 		mine = self._statement(self.person.name)
 		frappe.set_user(self.email)
-		frappe.form_dict = frappe._dict(name=mine.name)
+		frappe.local.form_dict = frappe._dict(name=mine.name)
 
 		self.assertEqual(self._context().statement.name, mine.name)
 

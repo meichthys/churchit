@@ -134,6 +134,17 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Sermon Handouts",
+   "link_to": "Sermon Handout",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Sermon Series",
    "link_to": "Sermon Series",
    "link_type": "DocType",
@@ -163,7 +174,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 01:00:00.000000",
+ "modified": "2026-09-14 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "module_onboarding": "Study",

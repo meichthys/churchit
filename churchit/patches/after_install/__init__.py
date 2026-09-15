@@ -18,6 +18,7 @@ WEBSITE_THEME = "Churchit"
 def execute():
 	# Default church — must exist before lookup types that reference it.
 	_create_default_church()
+	create_default_address_template()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -54,6 +55,7 @@ def execute():
 	_setup_contact_us_settings()
 	_setup_website_settings()
 	_setup_portal_settings()
+	setup_bulletin_settings()
 
 	# Visit Type lookups (referenced by Visitation Log)
 	_create_default_visit_types()
@@ -66,6 +68,9 @@ def execute():
 
 	# Care Request Type lookups (referenced by Care Request)
 	_create_default_care_request_types()
+
+	# Background Check Type lookups (referenced by Background Check)
+	create_default_background_check_types()
 
 	# Cleanup
 	_clean_gender_options()
@@ -111,6 +116,34 @@ def read_template(filename):
 # ---------------------------------------------------------------------------
 # Default Church
 # ---------------------------------------------------------------------------
+
+
+ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}{% if state %}, {{ state }}{% endif %}{% if pincode %} {{ pincode }}{% endif %}<br>
+{{ country }}<br>
+{% if phone %}{{ _("Phone") }}: {{ phone }}<br>{% endif -%}
+{% if email_id %}{{ _("Email") }}: {{ email_id }}<br>{% endif -%}
+"""
+
+
+def create_default_address_template():
+	"""Give the site a default Address Template.
+
+	Frappe alone ships none (ERPNext's setup wizard is what normally creates
+	them) and ``Address.get_display()`` throws without one, which broke giving
+	statements as soon as the Church had an address. The template is the
+	church's to edit afterwards.
+	"""
+	if frappe.db.exists("Address Template", {"is_default": 1}):
+		return
+	country = frappe.db.get_single_value("System Settings", "country") or "United States"
+	if frappe.db.exists("Address Template", country):
+		frappe.db.set_value("Address Template", country, "is_default", 1)
+		return
+	frappe.get_doc(
+		{"doctype": "Address Template", "country": country, "is_default": 1, "template": ADDRESS_TEMPLATE}
+	).insert(ignore_permissions=True)
 
 
 def _create_default_church():
@@ -653,7 +686,19 @@ def _setup_contact_us_settings():
 		"<p>We would love to hear from you. Send us a message and someone from"
 		" our church will get back to you soon.</p>"
 	)
-	doc.query_options = "General\nPrayer Request\nPlanning a Visit\nGiving"
+	doc.query_options = "\n".join(
+		[
+			"General",
+			"Planning a Visit",
+			"Prayer Request",
+			"Pastoral Care",
+			"Ministries & Volunteering",
+			"Missions",
+			"Events & Calendar",
+			"Giving",
+			"Website Feedback",
+		]
+	)
 	doc.save(ignore_permissions=True)
 
 
@@ -699,11 +744,7 @@ def _setup_website_settings():
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
 	doc.footer_items = []
-	for item in [
-		{"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"},
-		{"label": "My Account", "url": "/me", "right": 1},
-	]:
-		doc.append("footer_items", item)
+	doc.append("footer_items", {"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"})
 	doc.save(ignore_permissions=True)
 
 
@@ -725,6 +766,7 @@ def _setup_portal_settings():
 		("Alms Requests", "alms-request", "Alms Request", "Church User"),
 		("Groups", "groups", "Group", "Church User"),
 		("Giving Statements", "statements", "Giving Statement", "Church User"),
+		("Bulletins", "bulletins", "Bulletin", "Church User"),
 		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
 		# no role: visible to any logged-in user
 		("Help Articles", "Help Article", "Help Article", None),
@@ -741,6 +783,17 @@ def _setup_portal_settings():
 	for title, route, ref, role in items:
 		doc.add_item({"title": title, "route": route, "reference_doctype": ref, "role": role})
 	doc.save(ignore_permissions=True)
+
+
+def setup_bulletin_settings():
+	"""Print the pastor, elders and deacons in bulletins until the church picks its own roles."""
+	settings = frappe.get_doc("Bulletin Settings")
+	if settings.roles:
+		return
+	for position in ("Pastor", "Elder", "Deacon"):
+		if frappe.db.exists("Position Type", position):
+			settings.append("roles", {"position_type": position})
+	settings.save(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -805,6 +858,26 @@ def _create_default_case_types():
 		return
 	for case_type in ("Marriage", "Premarital", "Grief", "Financial", "Spiritual", "Family", "Other"):
 		_insert_if_missing("Case Type", {"type": case_type}, type=case_type)
+
+
+def create_default_background_check_types():
+	"""Seed the standard Background Check Type lookup values."""
+	if not frappe.db.exists("DocType", "Background Check Type"):
+		return
+	for check_type, valid_for_years in (
+		("Criminal Background", 3),
+		("Sex Offender Registry", 3),
+		("Child Abuse Clearance", 5),
+		("Driving Record", 3),
+	):
+		if not frappe.db.exists("Background Check Type", check_type):
+			frappe.get_doc(
+				{
+					"doctype": "Background Check Type",
+					"type": check_type,
+					"valid_for_years": valid_for_years,
+				}
+			).insert(ignore_permissions=True)
 
 
 def _create_default_care_request_types():

@@ -10,6 +10,7 @@ from frappe import _
 
 from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_website import pwa
+from churchit.church_website.footer import get_footer_church
 
 PORTAL_URL = "/portal"
 THEME_MODE_SCRIPT = (
@@ -20,6 +21,7 @@ THEME_MODE_SCRIPT = (
 def update_website_context(context):
 	_add_portal_menu_item(context)
 	_set_brand_html(context)
+	context["footer_church"] = get_footer_church()
 	_add_pwa_head_tags(context)
 	_add_theme_mode_script(context)
 
