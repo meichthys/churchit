@@ -10,9 +10,11 @@ class TestChurch(FrappeTestCase):
 	def setUp(self):
 		self.church = frappe.db.get_value("Church", {}, "name")
 		if not self.church:
-			self.church = frappe.get_doc(
-				{"doctype": "Church", "church_name": "_Test Church", "abbreviation": "TC"}
-			).insert(ignore_permissions=True).name
+			self.church = (
+				frappe.get_doc({"doctype": "Church", "church_name": "_Test Church", "abbreviation": "TC"})
+				.insert(ignore_permissions=True)
+				.name
+			)
 
 	def test_only_one_church_is_allowed(self):
 		with self.assertRaises(ValidationError):

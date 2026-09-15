@@ -19,8 +19,12 @@ def joinable_public_groups():
 	isn't already a member of."""
 	person = _session_person()
 	mine = (
-		{r.parent for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])}
-		if person else set()
+		{
+			r.parent
+			for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])
+		}
+		if person
+		else set()
 	)
 	rows = frappe.get_all(
 		"Group",
@@ -39,9 +43,7 @@ def join_group(group):
 	if not group:
 		frappe.throw(_("Group is required."))
 
-	row = frappe.db.get_value(
-		"Group", group, ["public", "show_in_portal", "group_name"], as_dict=True
-	)
+	row = frappe.db.get_value("Group", group, ["public", "show_in_portal", "group_name"], as_dict=True)
 	if not row:
 		frappe.throw(_("Group not found."))
 	if not row.show_in_portal:

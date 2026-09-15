@@ -50,14 +50,18 @@ class TestFunctionSignUpWebForm(FrappeTestCase):
 		self.assertTrue(context.has_sign_up_functions)
 
 	def test_newline_separated_options_are_filtered_too(self):
-		field = frappe._dict(fieldname="function", options=f"{self.open_function.name}\n{self.closed_function.name}")
+		field = frappe._dict(
+			fieldname="function", options=f"{self.open_function.name}\n{self.closed_function.name}"
+		)
 		sign_up_form.get_context(frappe._dict(web_form_doc={"web_form_fields": [field]}))
 		self.assertEqual(field.options, self.open_function.name)
 
 	def test_reference_doc_titles_are_resolved_separately(self):
 		context = frappe._dict(reference_doc={"function": self.open_function.name, "person": self.person})
 		sign_up_form.get_context(context)
-		self.assertEqual(context.link_titles, {"function": self.open_function.title, "person": "_Test Form Signer"})
+		self.assertEqual(
+			context.link_titles, {"function": self.open_function.title, "person": "_Test Form Signer"}
+		)
 		# The raw names stay on reference_doc for the client script.
 		self.assertEqual(context.reference_doc["function"], self.open_function.name)
 
@@ -130,6 +134,8 @@ class TestCommunityPrayerRequestsWebForm(FrappeTestCase):
 
 	def test_reference_doc_links_are_resolved_to_titles(self):
 		person = make_person("_Test Community", "Requestor")
-		context = frappe._dict(reference_doc=frappe._dict(requestor=person.name, recipient_type="Person", recipient=person.name))
+		context = frappe._dict(
+			reference_doc=frappe._dict(requestor=person.name, recipient_type="Person", recipient=person.name)
+		)
 		prayer_form.get_context(context)
 		self.assertEqual(context.reference_doc.requestor, "_Test Community Requestor")

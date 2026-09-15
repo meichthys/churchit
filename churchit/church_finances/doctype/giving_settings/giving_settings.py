@@ -25,10 +25,7 @@ class GivingSettings(Document):
 	def get_offered_gateways(self):
 		"""Return the curated gateways as ``[{"name", "label"}]``, default first."""
 		ordered = sorted(self.gateways, key=lambda g: 0 if g.is_default else 1)
-		return [
-			{"name": g.payment_gateway, "label": g.label or g.payment_gateway}
-			for g in ordered
-		]
+		return [{"name": g.payment_gateway, "label": g.label or g.payment_gateway} for g in ordered]
 
 	def get_default_gateway(self):
 		for g in self.gateways:

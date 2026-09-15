@@ -31,9 +31,7 @@ class Missionary(Document):
 
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
-				frappe.throw(
-					"A positive Support Amount is required to auto-create expenses."
-				)
+				frappe.throw("A positive Support Amount is required to auto-create expenses.")
 			if self.support_frequency not in FREQUENCY_STEP:
 				frappe.throw(
 					f"Support Frequency '{self.support_frequency}' is not supported for "
@@ -65,9 +63,7 @@ def get_public_map_markers() -> dict:
 		fields=["title", "photo", "country", "geolocation"],
 		ignore_permissions=True,
 	)
-	hidden_count = frappe.db.count(
-		"Missionary", {"geolocation": ["is", "set"], "publish": 1, "sensitive": 1}
-	)
+	hidden_count = frappe.db.count("Missionary", {"geolocation": ["is", "set"], "publish": 1, "sensitive": 1})
 	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
 
 
@@ -162,10 +158,7 @@ def _create_expense(missionary, expense_date):
 			"type": missionary.expense_type,
 			"date": expense_date,
 			"missionary": missionary.name,
-			"notes": (
-				f"Auto-generated {missionary.support_frequency} support for "
-				f"{missionary.title}."
-			),
+			"notes": (f"Auto-generated {missionary.support_frequency} support for " f"{missionary.title}."),
 		}
 	)
 	expense.insert(ignore_permissions=True)

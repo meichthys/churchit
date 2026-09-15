@@ -4,7 +4,7 @@
 frappe.ui.form.on("Ministry", {
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro('🌐 This ministry is published to the public website', 'blue');
+			frm.set_intro("🌐 This ministry is published to the public website", "blue");
 		}
 	},
 

@@ -12,8 +12,12 @@ def get_list_context(context):
 	person = frappe.db.get_value("Person", {"user": user}, "name") if user != "Guest" else None
 
 	my_groups = (
-		[r.parent for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])]
-		if person else []
+		[
+			r.parent
+			for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])
+		]
+		if person
+		else []
 	)
 
 	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):

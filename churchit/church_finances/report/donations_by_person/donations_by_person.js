@@ -11,5 +11,4 @@ frappe.query_reports["Donations by Person"] = {
 			fieldtype: "Date",
 		},
 	],
-
 };

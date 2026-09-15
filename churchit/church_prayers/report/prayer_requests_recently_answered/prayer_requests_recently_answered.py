@@ -12,9 +12,27 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 120},
-		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 120},
-		{"fieldname": "recipient", "fieldtype": "Dynamic Link", "label": "Recipient", "options": "recipient_type", "width": 150},
+		{
+			"fieldname": "status",
+			"fieldtype": "Link",
+			"label": "Status",
+			"options": "Prayer Request Status",
+			"width": 120,
+		},
+		{
+			"fieldname": "type",
+			"fieldtype": "Link",
+			"label": "Type",
+			"options": "Prayer Request Type",
+			"width": 120,
+		},
+		{
+			"fieldname": "recipient",
+			"fieldtype": "Dynamic Link",
+			"label": "Recipient",
+			"options": "recipient_type",
+			"width": 150,
+		},
 		{"fieldname": "details", "fieldtype": "Data", "label": "Details", "width": 300},
 	]
 
@@ -26,7 +44,9 @@ def get_data(filters):
 
 	return (
 		frappe.qb.from_(Prayer)
-		.select(Prayer.status, Prayer.type, Prayer.recipient_type, Prayer.recipient, Prayer.request.as_("details"))
+		.select(
+			Prayer.status, Prayer.type, Prayer.recipient_type, Prayer.recipient, Prayer.request.as_("details")
+		)
 		.where((Prayer.creation > request_since) & (Prayer.status == "answered"))
 		.run(as_dict=True)
 	)

@@ -45,7 +45,9 @@ class TestBibleApi(FrappeTestCase):
 	def setUp(self):
 		self.book = ensure("Bible Book", {"book": BOOK}, {"book": BOOK, "abbreviation": "TAB"})
 		self.translation = ensure(
-			"Bible Translation", {"translation": TRANSLATION}, {"translation": TRANSLATION, "abbreviation": "TAT"}
+			"Bible Translation",
+			{"translation": TRANSLATION},
+			{"translation": TRANSLATION, "abbreviation": "TAT"},
 		)
 		frappe.db.delete("Bible Reference", {"start_verse": ["like", f"{BOOK}%"]})
 		patcher = patch.object(bible_api, "_http_get_json", side_effect=fake_helloao)
@@ -56,7 +58,9 @@ class TestBibleApi(FrappeTestCase):
 		frappe.set_user("Administrator")
 
 	def test_flatten_verse_content_joins_strings_and_text_nodes(self):
-		self.assertEqual(_flatten_verse_content(["For God ", {"text": "so"}, {"noteId": 1}, " loved"]), "For God so loved")
+		self.assertEqual(
+			_flatten_verse_content(["For God ", {"text": "so"}, {"noteId": 1}, " loved"]), "For God so loved"
+		)
 		self.assertEqual(_flatten_verse_content("  plain text "), "plain text")
 		self.assertEqual(_flatten_verse_content(None), "")
 
@@ -66,7 +70,9 @@ class TestBibleApi(FrappeTestCase):
 
 	def test_unavailable_translation_is_reported(self):
 		missing = ensure(
-			"Bible Translation", {"translation": "_Test Missing"}, {"translation": "_Test Missing", "abbreviation": "NOPE"}
+			"Bible Translation",
+			{"translation": "_Test Missing"},
+			{"translation": "_Test Missing", "abbreviation": "NOPE"},
 		)
 		with self.assertRaises(ValidationError):
 			get_chapters_for_book(self.book, missing)
@@ -86,7 +92,9 @@ class TestBibleApi(FrappeTestCase):
 	def test_get_or_create_reference_collapses_single_verse_ranges(self):
 		name = get_or_create_reference(self.book, 1, 1, 1, self.translation)
 		self.assertIsNone(frappe.db.get_value("Bible Reference", name, "end_verse"))
-		self.assertEqual(frappe.db.get_value("Bible Reference", name, "reference_text"), "1. Chapter 1 verse one")
+		self.assertEqual(
+			frappe.db.get_value("Bible Reference", name, "reference_text"), "1. Chapter 1 verse one"
+		)
 
 	def test_get_or_create_reference_validates_its_input(self):
 		with self.assertRaises(ValidationError):
@@ -98,7 +106,12 @@ class TestBibleApi(FrappeTestCase):
 		start = ensure("Bible Verse", {"name": f"{BOOK} 1:3"}, {"book": self.book, "chapter": 1, "verse": 3})
 		end = ensure("Bible Verse", {"name": f"{BOOK} 2:1"}, {"book": self.book, "chapter": 2, "verse": 1})
 		reference = frappe.get_doc(
-			{"doctype": "Bible Reference", "start_verse": start, "end_verse": end, "translation": self.translation}
+			{
+				"doctype": "Bible Reference",
+				"start_verse": start,
+				"end_verse": end,
+				"translation": self.translation,
+			}
 		).insert(ignore_permissions=True)
 
 		text = fetch_reference_text(reference.name)

@@ -20,7 +20,10 @@ class TestSermonPresentationHelpers(FrappeTestCase):
 	def test_parse_display_fields_accepts_json_and_legacy_csv(self):
 		self.assertEqual(_parse_display_fields(None), [])
 		self.assertEqual(_parse_display_fields('{"fieldname": "x"}'), [])
-		self.assertEqual(_parse_display_fields('[{"fieldname": "title", "is_title": 1}]'), [{"fieldname": "title", "is_title": 1}])
+		self.assertEqual(
+			_parse_display_fields('[{"fieldname": "title", "is_title": 1}]'),
+			[{"fieldname": "title", "is_title": 1}],
+		)
 		self.assertEqual(
 			_parse_display_fields("title, lyrics ,"),
 			[
@@ -31,7 +34,9 @@ class TestSermonPresentationHelpers(FrappeTestCase):
 
 	def test_render_field_by_fieldtype(self):
 		df = frappe._dict(label="Lyrics", fieldtype="Text Editor")
-		self.assertEqual(_render_field("<p>Amazing</p>", df, 1), "<p><strong>Lyrics:</strong></p><p>Amazing</p>")
+		self.assertEqual(
+			_render_field("<p>Amazing</p>", df, 1), "<p><strong>Lyrics:</strong></p><p>Amazing</p>"
+		)
 		self.assertEqual(_render_field("<p>Amazing</p>", df, 0), "<p>Amazing</p>")
 
 		image = frappe._dict(label="Cover", fieldtype="Attach Image")
@@ -39,7 +44,10 @@ class TestSermonPresentationHelpers(FrappeTestCase):
 		self.assertTrue(_render_field("/files/x.png", image, 1).startswith("<p><strong>Cover:</strong></p>"))
 
 		attach = frappe._dict(label="Sheet", fieldtype="Attach")
-		self.assertEqual(_render_field("/files/s.pdf", attach, 0), '<p><a href="/files/s.pdf" target="_blank">/files/s.pdf</a></p>')
+		self.assertEqual(
+			_render_field("/files/s.pdf", attach, 0),
+			'<p><a href="/files/s.pdf" target="_blank">/files/s.pdf</a></p>',
+		)
 
 		check = frappe._dict(label="Chorus", fieldtype="Check")
 		self.assertEqual(_render_field(1, check, 1), "<p><strong>Chorus:</strong> Yes</p>")
@@ -49,11 +57,16 @@ class TestSermonPresentationHelpers(FrappeTestCase):
 
 	def test_build_content_picks_a_title_and_renders_the_rest(self):
 		meta = frappe._dict(
-			fields=[frappe._dict(fieldname="title", label="Title", fieldtype="Data"), frappe._dict(fieldname="body", label="Body", fieldtype="Small Text")]
+			fields=[
+				frappe._dict(fieldname="title", label="Title", fieldtype="Data"),
+				frappe._dict(fieldname="body", label="Body", fieldtype="Small Text"),
+			]
 		)
 		doc = frappe._dict(title="Hymn 1", body="Verse", missing=None)
 		title, content = _build_content_from_selected_fields(
-			doc, meta, [{"fieldname": "title", "is_title": 1}, {"fieldname": "body", "show_label": 0}, "missing"]
+			doc,
+			meta,
+			[{"fieldname": "title", "is_title": 1}, {"fieldname": "body", "show_label": 0}, "missing"],
 		)
 		self.assertEqual(title, "Hymn 1")
 		self.assertEqual(content, "<p>Verse</p>")
@@ -72,13 +85,17 @@ class TestSermonPresentationPage(FrappeTestCase):
 		frappe.local.form_dict = frappe._dict()
 
 	def _sermon(self, title, **values):
-		sermon = frappe.get_doc({"doctype": "Sermon", "title": title, "prepared_by": self.preacher.name, **values})
+		sermon = frappe.get_doc(
+			{"doctype": "Sermon", "title": title, "prepared_by": self.preacher.name, **values}
+		)
 		sermon.append(
 			"slides",
 			{
 				"slide_type": "Song",
 				"slide": self.song.name,
-				"display_fields": json.dumps([{"fieldname": "title", "is_title": 1}, {"fieldname": "ccli", "show_label": 1}]),
+				"display_fields": json.dumps(
+					[{"fieldname": "title", "is_title": 1}, {"fieldname": "ccli", "show_label": 1}]
+				),
 				"notes": "Sing softly",
 			},
 		)

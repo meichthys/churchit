@@ -16,7 +16,7 @@ frappe.ui.form.on("Expense", {
 			return;
 		}
 		frappe.db.get_value("Expense Type", frm.doc.type, "fund").then((r) => {
-			frm.set_value("associated_fund", r && r.message && r.message.fund || null);
+			frm.set_value("associated_fund", (r && r.message && r.message.fund) || null);
 		});
 	},
 });

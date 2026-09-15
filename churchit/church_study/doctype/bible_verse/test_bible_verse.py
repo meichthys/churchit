@@ -10,7 +10,9 @@ from churchit.tests.helpers import ensure
 
 class TestBibleVerse(FrappeTestCase):
 	def setUp(self):
-		self.book = ensure("Bible Book", {"book": "_Test Book"}, {"book": "_Test Book", "abbreviation": "TST"})
+		self.book = ensure(
+			"Bible Book", {"book": "_Test Book"}, {"book": "_Test Book", "abbreviation": "TST"}
+		)
 
 	def _verse(self, chapter, verse):
 		name = f"{self.book} {chapter}:{verse}"

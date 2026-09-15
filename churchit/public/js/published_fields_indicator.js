@@ -35,8 +35,12 @@
 			if (!field || !field.$wrapper) continue;
 
 			const sources = published[fieldname];
-			const titles = sources.map(function (s) { return s.title; });
-			const tooltip = __("When published, this field is shown on public website: {0}", [titles.join(", ")]);
+			const titles = sources.map(function (s) {
+				return s.title;
+			});
+			const tooltip = __("When published, this field is shown on public website: {0}", [
+				titles.join(", "),
+			]);
 			// Link to the first source's route
 			const route = "/" + sources[0].route;
 
@@ -53,9 +57,7 @@
 				);
 
 			// Append to the label area if available
-			const $label = field.$wrapper.find(
-				".clearfix .label-area, .clearfix label"
-			);
+			const $label = field.$wrapper.find(".clearfix .label-area, .clearfix label");
 			if ($label.length) {
 				$label.first().append($badge);
 			}

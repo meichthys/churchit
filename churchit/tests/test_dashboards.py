@@ -24,11 +24,15 @@ class TestWeeklyAttendanceCard(FrappeTestCase):
 
 		recent = make_function("_Test Recent Service", start_date=getdate())
 		for first_name in ("_Test Attendee One", "_Test Attendee Two"):
-			recent.append("attendance", {"person": make_person(first_name).name, "attendance_type": "Confirmed"})
+			recent.append(
+				"attendance", {"person": make_person(first_name).name, "attendance_type": "Confirmed"}
+			)
 		recent.save(ignore_permissions=True)
 
 		stale = make_function("_Test Old Service", start_date=add_days(getdate(), -30))
-		stale.append("attendance", {"person": make_person("_Test Attendee Old").name, "attendance_type": "Confirmed"})
+		stale.append(
+			"attendance", {"person": make_person("_Test Attendee Old").name, "attendance_type": "Confirmed"}
+		)
 		stale.save(ignore_permissions=True)
 
 		result = count_weekly_attendance()
@@ -53,7 +57,9 @@ class TestPeopleNumberCards(FrappeTestCase):
 		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Anniversary Family"}).insert(
 			ignore_permissions=True
 		)
-		make_person("_Test Anniversary Head", anniversary=anniversary, family=family.name, is_head_of_household=1)
+		make_person(
+			"_Test Anniversary Head", anniversary=anniversary, family=family.name, is_head_of_household=1
+		)
 		make_person("_Test Anniversary Spouse", anniversary=anniversary, family=family.name)
 		self.assertEqual(anniversaries_this_week.get_count(), before + 1)
 
@@ -81,7 +87,9 @@ class TestFinanceChartSources(FrappeTestCase):
 		payment_type = ensure("Payment Type", {"type": "Cash"})
 		for amount, submit in ((30, True), (20, True), (500, False)):
 			collection = frappe.get_doc({"doctype": "Collection", "date": now(), "expected_total": amount})
-			collection.append("donations", {"payment_type": payment_type, "fund": fund.name, "amount": amount})
+			collection.append(
+				"donations", {"payment_type": payment_type, "fund": fund.name, "amount": amount}
+			)
 			collection.insert(ignore_permissions=True)
 			if submit:
 				collection.submit()
@@ -92,7 +100,14 @@ class TestFinanceChartSources(FrappeTestCase):
 
 	def test_finance_summary_buckets_and_labels(self):
 		buckets = finance_summary._buckets("Select Date Range", "Monthly", "2030-01-15", "2030-03-10")
-		self.assertEqual(buckets, [(date(2030, 1, 1), date(2030, 1, 31)), (date(2030, 2, 1), date(2030, 2, 28)), (date(2030, 3, 1), date(2030, 3, 31))])
+		self.assertEqual(
+			buckets,
+			[
+				(date(2030, 1, 1), date(2030, 1, 31)),
+				(date(2030, 2, 1), date(2030, 2, 28)),
+				(date(2030, 3, 1), date(2030, 3, 31)),
+			],
+		)
 
 		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
 		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Yearly"), "2030")

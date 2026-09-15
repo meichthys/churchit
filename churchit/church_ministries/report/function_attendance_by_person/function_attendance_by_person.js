@@ -23,5 +23,4 @@ frappe.query_reports["Function Attendance by Person"] = {
 			fieldtype: "Date",
 		},
 	],
-
 };

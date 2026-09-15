@@ -10,7 +10,9 @@ from churchit.tests.helpers import ensure
 
 class TestBibleReference(FrappeTestCase):
 	def setUp(self):
-		self.book = ensure("Bible Book", {"book": "_Test Ref Book"}, {"book": "_Test Ref Book", "abbreviation": "TRB"})
+		self.book = ensure(
+			"Bible Book", {"book": "_Test Ref Book"}, {"book": "_Test Ref Book", "abbreviation": "TRB"}
+		)
 		self.translation = ensure(
 			"Bible Translation",
 			{"translation": "_Test Translation"},

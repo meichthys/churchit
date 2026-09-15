@@ -15,9 +15,9 @@ class TestGivePage(FrappeTestCase):
 	def setUp(self):
 		self.gateway = ensure("Payment Gateway", {"gateway": "_Test Gateway"})
 		self.other_gateway = ensure("Payment Gateway", {"gateway": "_Test Other Gateway"})
-		self.fund = frappe.get_doc({"doctype": "Fund", "fund": "_Test Giving Fund", "allow_giving": 1}).insert(
-			ignore_permissions=True
-		)
+		self.fund = frappe.get_doc(
+			{"doctype": "Fund", "fund": "_Test Giving Fund", "allow_giving": 1}
+		).insert(ignore_permissions=True)
 		self.closed_fund = frappe.get_doc({"doctype": "Fund", "fund": "_Test Closed Fund"}).insert(
 			ignore_permissions=True
 		)
@@ -72,7 +72,9 @@ class TestGivePage(FrappeTestCase):
 		with self.assertRaises(ValidationError):
 			start_donation(10, self.closed_fund.name, donor_name="A", email="a@example.com")
 		with self.assertRaises(ValidationError):
-			start_donation(10, self.fund.name, payment_gateway="Not Offered", donor_name="A", email="a@example.com")
+			start_donation(
+				10, self.fund.name, payment_gateway="Not Offered", donor_name="A", email="a@example.com"
+			)
 
 	def test_start_donation_requires_a_configured_gateway(self):
 		self._configure(gateways=[])
@@ -100,7 +102,11 @@ class TestGivePage(FrappeTestCase):
 		controller.get_payment_url.return_value = "https://pay.example.com/checkout"
 		with patch("payments.utils.get_payment_gateway_controller", return_value=controller) as resolve:
 			url = start_donation(
-				"25.50", self.fund.name, payment_gateway=self.other_gateway, donor_name="Anon", email="anon@example.com"
+				"25.50",
+				self.fund.name,
+				payment_gateway=self.other_gateway,
+				donor_name="Anon",
+				email="anon@example.com",
 			)
 
 		self.assertEqual(url, "https://pay.example.com/checkout")
@@ -127,6 +133,8 @@ class TestGivePage(FrappeTestCase):
 		with patch("payments.utils.get_payment_gateway_controller", return_value=controller):
 			start_donation(10, self.fund.name)
 
-		gift = frappe.get_doc("Online Donation", controller.get_payment_url.call_args.kwargs["reference_docname"])
+		gift = frappe.get_doc(
+			"Online Donation", controller.get_payment_url.call_args.kwargs["reference_docname"]
+		)
 		self.assertEqual(gift.person, person)
 		self.assertEqual(gift.payment_gateway, self.gateway)

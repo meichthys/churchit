@@ -38,9 +38,7 @@ def _add_calendar(settings) -> bool:
 		return False
 
 	item = settings.append("top_bar_items", {**CALENDAR, "right": 1})
-	anchor = next(
-		(i for i, row in enumerate(settings.top_bar_items) if _route(row) == CALENDAR_ANCHOR), None
-	)
+	anchor = next((i for i, row in enumerate(settings.top_bar_items) if _route(row) == CALENDAR_ANCHOR), None)
 	if anchor is not None:
 		settings.top_bar_items.remove(item)
 		settings.top_bar_items.insert(anchor + 1, item)

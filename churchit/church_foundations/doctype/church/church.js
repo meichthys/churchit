@@ -4,7 +4,7 @@
 frappe.ui.form.on("Church", {
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro('🌐 This church is published to the public website', 'blue');
+			frm.set_intro("🌐 This church is published to the public website", "blue");
 		}
 	},
 });

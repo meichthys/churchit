@@ -12,11 +12,35 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "status", "fieldtype": "Link", "label": "Status", "options": "Prayer Request Status", "width": 120},
-		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Prayer Request Type", "width": 120},
-		{"fieldname": "recipient", "fieldtype": "Dynamic Link", "label": "Recipient", "options": "recipient_type", "width": 150},
+		{
+			"fieldname": "status",
+			"fieldtype": "Link",
+			"label": "Status",
+			"options": "Prayer Request Status",
+			"width": 120,
+		},
+		{
+			"fieldname": "type",
+			"fieldtype": "Link",
+			"label": "Type",
+			"options": "Prayer Request Type",
+			"width": 120,
+		},
+		{
+			"fieldname": "recipient",
+			"fieldtype": "Dynamic Link",
+			"label": "Recipient",
+			"options": "recipient_type",
+			"width": 150,
+		},
 		{"fieldname": "details", "fieldtype": "Data", "label": "Details", "width": 300},
-		{"fieldname": "name", "fieldtype": "Link", "label": "Link to Request", "options": "Prayer Request", "width": 150},
+		{
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"label": "Link to Request",
+			"options": "Prayer Request",
+			"width": 150,
+		},
 	]
 
 

@@ -47,7 +47,7 @@ frappe.ui.form.on("Function Sign-Up", {
 					() => {
 						frm._restrict_items = !frm._restrict_items;
 						render_grid_button();
-					},
+					}
 				);
 				const add_row = grid.wrapper.find(".grid-add-row").first();
 				if (btn && add_row.length) btn.insertAfter(add_row);
@@ -70,8 +70,7 @@ frappe.ui.form.on("Function Sign-Up Item", {
 		const row = locals[cdt][cdn];
 		if (!row.item || !frm.doc.function) return;
 		frappe.call({
-			method:
-				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_item_status",
+			method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_item_status",
 			args: {
 				function: frm.doc.function,
 				item: row.item,
@@ -79,7 +78,12 @@ frappe.ui.form.on("Function Sign-Up Item", {
 			callback: function (r) {
 				if (!r.message) return;
 				frappe.model.set_value(cdt, cdn, "quantity_needed", r.message.quantity_needed);
-				frappe.model.set_value(cdt, cdn, "quantity_signed_up", r.message.quantity_signed_up);
+				frappe.model.set_value(
+					cdt,
+					cdn,
+					"quantity_signed_up",
+					r.message.quantity_signed_up
+				);
 			},
 		});
 	},
@@ -88,8 +92,7 @@ frappe.ui.form.on("Function Sign-Up Item", {
 function populate_row_totals(frm) {
 	if (!frm.doc.function || !(frm.doc.table_iprj || []).length) return;
 	frappe.call({
-		method:
-			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
 		args: {
 			function: frm.doc.function,
 		},

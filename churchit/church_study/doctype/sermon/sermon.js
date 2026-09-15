@@ -7,7 +7,10 @@ function parse_display_fields(raw) {
 		let parsed = JSON.parse(raw);
 		if (Array.isArray(parsed)) return parsed;
 	} catch (e) {
-		return raw.split(",").map((f) => f.trim()).filter((f) => f)
+		return raw
+			.split(",")
+			.map((f) => f.trim())
+			.filter((f) => f)
 			.map((f) => ({ fieldname: f, show_label: 1, is_title: 0 }));
 	}
 	return [];
@@ -80,22 +83,40 @@ function render_fields_selector(frm, cdt, cdn) {
 	frappe.model.with_doctype(row.slide_type, function () {
 		let meta = frappe.get_meta(row.slide_type);
 		let displayable_fieldtypes = [
-			"Data", "Text", "Text Editor", "Small Text", "Long Text",
-			"Select", "Link", "Dynamic Link", "Int", "Float", "Currency",
-			"Date", "Datetime", "Check", "Attach", "Attach Image", "HTML",
+			"Data",
+			"Text",
+			"Text Editor",
+			"Small Text",
+			"Long Text",
+			"Select",
+			"Link",
+			"Dynamic Link",
+			"Int",
+			"Float",
+			"Currency",
+			"Date",
+			"Datetime",
+			"Check",
+			"Attach",
+			"Attach Image",
+			"HTML",
 		];
 		let fields_list = meta.fields.filter(
 			(df) => displayable_fieldtypes.includes(df.fieldtype) && !df.hidden
 		);
 
 		if (!fields_list.length) {
-			wrapper.html(`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`);
+			wrapper.html(
+				`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`
+			);
 			return;
 		}
 
 		let selected = parse_display_fields(row.display_fields);
 		let selected_map = {};
-		selected.forEach((s) => { selected_map[s.fieldname] = s; });
+		selected.forEach((s) => {
+			selected_map[s.fieldname] = s;
+		});
 
 		// Render selected fields first (in their saved order), then unselected fields
 		let selected_fields = selected
@@ -154,46 +175,55 @@ function render_fields_selector(frm, cdt, cdn) {
 frappe.ui.form.on("Sermon", {
 	onload(frm) {
 		// Filter slide_type to DocTypes in the church app
-		church.set_church_doctype_query(frm, 'slide_type', 'slides');
+		church.set_church_doctype_query(frm, "slide_type", "slides");
 	},
 
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro('🌐 This sermon is published to the public website', 'blue');
+			frm.set_intro("🌐 This sermon is published to the public website", "blue");
 		}
 
 		if (!frm.is_new() && !frm.doc.handout) {
-			frm.add_custom_button(__("Create Handout"), function () {
-				function create_handout() {
-					frappe
-						.call({
-							method: "churchit.church_study.doctype.sermon_handout.sermon_handout.make_handout",
-							args: { sermon: frm.doc.name },
-						})
-						.then((r) => frappe.set_route("Form", "Sermon Handout", r.message));
-				}
-				if (frm.is_dirty()) {
-					frm.save("Save", create_handout);
-				} else {
-					create_handout();
-				}
-			}, __("Create"));
+			frm.add_custom_button(
+				__("Create Handout"),
+				function () {
+					function create_handout() {
+						frappe
+							.call({
+								method: "churchit.church_study.doctype.sermon_handout.sermon_handout.make_handout",
+								args: { sermon: frm.doc.name },
+							})
+							.then((r) => frappe.set_route("Form", "Sermon Handout", r.message));
+					}
+					if (frm.is_dirty()) {
+						frm.save("Save", create_handout);
+					} else {
+						create_handout();
+					}
+				},
+				__("Create")
+			);
 		}
 
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Present"), function () {
-				function open_presentation() {
-					window.open(
-						"/sermon_presentation?name=" + encodeURIComponent(frm.doc.name),
-						"_blank"
-					);
-				}
-				if (frm.is_dirty()) {
-					frm.save("Save", open_presentation);
-				} else {
-					open_presentation();
-				}
-			}, null, "primary");
+			frm.add_custom_button(
+				__("Present"),
+				function () {
+					function open_presentation() {
+						window.open(
+							"/sermon_presentation?name=" + encodeURIComponent(frm.doc.name),
+							"_blank"
+						);
+					}
+					if (frm.is_dirty()) {
+						frm.save("Save", open_presentation);
+					} else {
+						open_presentation();
+					}
+				},
+				null,
+				"primary"
+			);
 		}
 	},
 });

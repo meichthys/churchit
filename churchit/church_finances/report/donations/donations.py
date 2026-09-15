@@ -13,11 +13,29 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "name", "fieldtype": "Link", "label": "Collection", "options": "Collection", "width": 200},
-		{"fieldname": "function", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
+		{
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"label": "Collection",
+			"options": "Collection",
+			"width": 200,
+		},
+		{
+			"fieldname": "function",
+			"fieldtype": "Link",
+			"label": "Function",
+			"options": "Function",
+			"width": 200,
+		},
 		{"fieldname": "fund", "fieldtype": "Link", "label": "Fund", "options": "Fund", "width": 150},
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 150},
-		{"fieldname": "payment_type", "fieldtype": "Link", "label": "Payment Type", "options": "Payment Type", "width": 120},
+		{
+			"fieldname": "payment_type",
+			"fieldtype": "Link",
+			"label": "Payment Type",
+			"options": "Payment Type",
+			"width": 120,
+		},
 		{"fieldname": "check_number", "fieldtype": "Data", "label": "Check #", "width": 100},
 		{"fieldname": "amount", "fieldtype": "Currency", "label": "Amount", "width": 120},
 	]

@@ -11,7 +11,13 @@ frappe.query_reports["Budget vs Actual"] = {
 			fieldname: "comparison",
 			label: __("Compare With"),
 			fieldtype: "Select",
-			options: ["", "Same Period Last Year", "Last Month", "Last Quarter", "Last 12 Months"].join("\n"),
+			options: [
+				"",
+				"Same Period Last Year",
+				"Last Month",
+				"Last Quarter",
+				"Last 12 Months",
+			].join("\n"),
 		},
 	],
 

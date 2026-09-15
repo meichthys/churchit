@@ -7,7 +7,9 @@ content is already there, published or user-edited.
 
 import frappe
 
-MAP_MARKUP = '<div class="missions-map-card">\n    <div id="missions-map" class="missions-map"></div>\n</div>\n\n'
+MAP_MARKUP = (
+	'<div class="missions-map-card">\n    <div id="missions-map" class="missions-map"></div>\n</div>\n\n'
+)
 
 
 def execute():

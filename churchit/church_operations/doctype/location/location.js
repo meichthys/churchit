@@ -4,11 +4,13 @@
 frappe.ui.form.on("Location", {
 	parent_location(frm) {
 		if (frm.doc.parent_location && !frm.doc.address) {
-			frappe.db.get_value("Location", frm.doc.parent_location, "address").then(({ message }) => {
-				if (message && message.address) {
-					frm.set_value("address", message.address);
-				}
-			});
+			frappe.db
+				.get_value("Location", frm.doc.parent_location, "address")
+				.then(({ message }) => {
+					if (message && message.address) {
+						frm.set_value("address", message.address);
+					}
+				});
 		}
 	},
 

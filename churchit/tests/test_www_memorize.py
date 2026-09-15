@@ -11,7 +11,9 @@ from churchit.www.memorize import index, session
 
 class TestMemorizePages(FrappeTestCase):
 	def setUp(self):
-		book = ensure("Bible Book", {"book": "_Test Page Book"}, {"book": "_Test Page Book", "abbreviation": "TPB"})
+		book = ensure(
+			"Bible Book", {"book": "_Test Page Book"}, {"book": "_Test Page Book", "abbreviation": "TPB"}
+		)
 		verse = ensure("Bible Verse", {"name": f"{book} 1:1"}, {"book": book, "chapter": 1, "verse": 1})
 		self.reference = ensure(
 			"Bible Reference", {"start_verse": verse, "end_verse": ["is", "not set"]}, {"start_verse": verse}

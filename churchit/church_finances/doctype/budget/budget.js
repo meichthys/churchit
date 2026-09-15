@@ -4,10 +4,14 @@
 frappe.ui.form.on("Budget", {
 	refresh(frm) {
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Budget vs Actual"), () => {
-				frappe.route_options = { budget: frm.doc.name };
-				frappe.set_route("query-report", "Budget vs Actual");
-			}, __("View"));
+			frm.add_custom_button(
+				__("Budget vs Actual"),
+				() => {
+					frappe.route_options = { budget: frm.doc.name };
+					frappe.set_route("query-report", "Budget vs Actual");
+				},
+				__("View")
+			);
 			load_progress(frm);
 		}
 
@@ -17,9 +21,15 @@ frappe.ui.form.on("Budget", {
 				if (added > 0) {
 					frm.refresh_field("lines");
 					frm.refresh_field("budgeted_amount");
-					frappe.show_alert({ message: __("{0} expense type(s) added", [added]), indicator: "green" });
+					frappe.show_alert({
+						message: __("{0} expense type(s) added", [added]),
+						indicator: "green",
+					});
 				} else {
-					frappe.show_alert({ message: __("All expense types already added"), indicator: "blue" });
+					frappe.show_alert({
+						message: __("All expense types already added"),
+						indicator: "blue",
+					});
 				}
 			});
 		});
@@ -61,7 +71,9 @@ function render_status(frm, rows) {
 	const wrapper = frm.get_field("status_html").$wrapper;
 	if (!rows.length) {
 		wrapper.html(
-			`<p class="text-muted">${__("Add expense lines to see spending against this budget.")}</p>`
+			`<p class="text-muted">${__(
+				"Add expense lines to see spending against this budget."
+			)}</p>`
 		);
 		return;
 	}

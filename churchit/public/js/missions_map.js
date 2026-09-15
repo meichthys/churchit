@@ -31,7 +31,13 @@
 		el.className = "missions-map-popup";
 		el.innerHTML = `
 			<div class="missions-map-popup-title">${frappe.utils.escape_html(marker.title)}</div>
-			${marker.country ? `<div class="missions-map-popup-country">${frappe.utils.escape_html(marker.country)}</div>` : ""}
+			${
+				marker.country
+					? `<div class="missions-map-popup-country">${frappe.utils.escape_html(
+							marker.country
+					  )}</div>`
+					: ""
+			}
 		`;
 		return el;
 	}

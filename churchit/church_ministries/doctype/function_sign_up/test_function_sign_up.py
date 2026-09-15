@@ -142,7 +142,9 @@ class TestFunctionSignUpItems(FrappeTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		for name in frappe.get_all("Function Sign-Up", filters={"function": self.function.name}, pluck="name"):
+		for name in frappe.get_all(
+			"Function Sign-Up", filters={"function": self.function.name}, pluck="name"
+		):
 			frappe.delete_doc("Function Sign-Up", name, force=True, ignore_permissions=True)
 
 	def _sign_up(self, first_name, quantity):
@@ -167,7 +169,8 @@ class TestFunctionSignUpItems(FrappeTestCase):
 		)
 		# Excluding one sign-up shows what everyone else brings.
 		self.assertEqual(
-			get_item_status(self.function.name, self.item, exclude_sign_up=first.name)["quantity_signed_up"], 3
+			get_item_status(self.function.name, self.item, exclude_sign_up=first.name)["quantity_signed_up"],
+			3,
 		)
 
 	def test_item_totals_cover_every_configured_item(self):
@@ -181,8 +184,6 @@ class TestFunctionSignUpItems(FrappeTestCase):
 		)
 
 	def test_function_items_search_is_scoped_to_the_function(self):
-		rows = get_function_items(
-			"Sign-Up Item", "Dish", "name", 0, 20, {"function": self.function.name}
-		)
+		rows = get_function_items("Sign-Up Item", "Dish", "name", 0, 20, {"function": self.function.name})
 		self.assertEqual([row[0] for row in rows], [self.item])
 		self.assertEqual(get_function_items("Sign-Up Item", "", "name", 0, 20, {}), [])

@@ -112,9 +112,7 @@ def start_donation(amount, fund, payment_gateway=None, donor_name=None, email=No
 		controller.validate_transaction_currency(currency)
 
 	payer_email = email or (None if frappe.session.user == "Guest" else frappe.session.user)
-	payer_name = donor_name or (
-		None if frappe.session.user == "Guest" else get_fullname(frappe.session.user)
-	)
+	payer_name = donor_name or (None if frappe.session.user == "Guest" else get_fullname(frappe.session.user))
 
 	return controller.get_payment_url(
 		**{

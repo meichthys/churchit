@@ -14,7 +14,13 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "position", "fieldtype": "Link", "label": "Position", "options": "Position Type", "width": 160},
+		{
+			"fieldname": "position",
+			"fieldtype": "Link",
+			"label": "Position",
+			"options": "Position Type",
+			"width": 160,
+		},
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 220},
 		{"fieldname": "start_date", "fieldtype": "Date", "label": "Term Start", "width": 110},
 		{"fieldname": "end_date", "fieldtype": "Date", "label": "Term End", "width": 110},

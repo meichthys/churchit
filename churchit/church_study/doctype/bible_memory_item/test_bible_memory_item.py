@@ -17,10 +17,10 @@ from churchit.tests.helpers import ensure, ensure_user
 
 class TestBibleMemoryItem(FrappeTestCase):
 	def setUp(self):
-		book = ensure("Bible Book", {"book": "_Test Memory Book"}, {"book": "_Test Memory Book", "abbreviation": "TMB"})
-		verse = ensure(
-			"Bible Verse", {"name": f"{book} 1:1"}, {"book": book, "chapter": 1, "verse": 1}
+		book = ensure(
+			"Bible Book", {"book": "_Test Memory Book"}, {"book": "_Test Memory Book", "abbreviation": "TMB"}
 		)
+		verse = ensure("Bible Verse", {"name": f"{book} 1:1"}, {"book": book, "chapter": 1, "verse": 1})
 		self.reference = ensure(
 			"Bible Reference", {"start_verse": verse, "end_verse": ["is", "not set"]}, {"start_verse": verse}
 		)
@@ -97,7 +97,9 @@ class TestBibleMemoryItem(FrappeTestCase):
 		item.complete_session("blur")
 
 		sessions = frappe.get_all(
-			"Memory Session", filters={"bible_memory_item": item.name}, fields=["mode", "mistakes", "progress_delta"]
+			"Memory Session",
+			filters={"bible_memory_item": item.name},
+			fields=["mode", "mistakes", "progress_delta"],
 		)
 		self.assertEqual(
 			sorted((s.mode, s.mistakes, s.progress_delta) for s in sessions),
@@ -125,5 +127,5 @@ class TestBibleMemoryItem(FrappeTestCase):
 		self.assertEqual(parse(""), [])
 		self.assertEqual(parse("not json"), [])
 		self.assertEqual(parse('{"a": 1}'), [])
-		self.assertEqual(parse("[1, \"2\", \"x\", null]"), [1, 2])
+		self.assertEqual(parse('[1, "2", "x", null]'), [1, 2])
 		self.assertEqual(parse([3, "4"]), [3, 4])

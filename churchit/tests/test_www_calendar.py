@@ -51,7 +51,9 @@ class TestCalendarPage(FrappeTestCase):
 			address=address.name,
 			description="Bring a friend",
 		)
-		all_day = make_function("_Test All Day", start_date=getdate(), all_day=1, start_time="09:00:00", publish=1)
+		all_day = make_function(
+			"_Test All Day", start_date=getdate(), all_day=1, start_time="09:00:00", publish=1
+		)
 
 		events = self._events()
 		self.assertEqual(events[timed.name]["start"], f"{getdate()}T09:30:00")

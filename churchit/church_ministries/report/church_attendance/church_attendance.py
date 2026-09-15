@@ -18,7 +18,13 @@ def get_columns():
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
 		{"fieldname": "function_name", "fieldtype": "Data", "label": "Function", "width": 200},
 		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Function Type", "width": 180},
-		{"fieldname": "attendance_type", "fieldtype": "Link", "label": "Attendance Type", "options": "Function Attendance Type", "width": 150},
+		{
+			"fieldname": "attendance_type",
+			"fieldtype": "Link",
+			"label": "Attendance Type",
+			"options": "Function Attendance Type",
+			"width": 150,
+		},
 		{"fieldname": "name", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
 	]
 

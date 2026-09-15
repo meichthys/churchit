@@ -142,14 +142,20 @@ class TestFunctionScheduleMath(FrappeTestCase):
 
 	def test_monthly_defaults_to_the_reference_day(self):
 		template = self._template(repeat_frequency="Monthly")
-		self.assertEqual(_compute_next_date(template, date(2030, 1, 15), date(2030, 1, 20)), date(2030, 2, 15))
+		self.assertEqual(
+			_compute_next_date(template, date(2030, 1, 15), date(2030, 1, 20)), date(2030, 2, 15)
+		)
 
 	def test_yearly_advances_one_year(self):
 		template = self._template(repeat_frequency="Yearly")
 		self.assertEqual(_compute_next_date(template, date(2030, 6, 1), date(2030, 6, 2)), date(2031, 6, 1))
 
 	def test_unknown_frequency_returns_none(self):
-		self.assertIsNone(_compute_next_date(self._template(repeat_frequency="Fortnightly"), date(2030, 1, 1), date(2030, 1, 1)))
+		self.assertIsNone(
+			_compute_next_date(
+				self._template(repeat_frequency="Fortnightly"), date(2030, 1, 1), date(2030, 1, 1)
+			)
+		)
 
 	def test_month_day_clamps_to_month_end(self):
 		self.assertEqual(_month_day(date(2030, 2, 10), 31), date(2030, 2, 28))
@@ -162,7 +168,11 @@ class TestFunctionScheduleMath(FrappeTestCase):
 
 	def test_has_ended_uses_end_date_then_end_time(self):
 		today = date(2030, 3, 10)
-		self.assertTrue(_has_ended(frappe._dict(start_date=date(2030, 3, 9), end_date=None, end_time=None), today))
-		self.assertFalse(_has_ended(frappe._dict(start_date=date(2030, 3, 11), end_date=None, end_time=None), today))
+		self.assertTrue(
+			_has_ended(frappe._dict(start_date=date(2030, 3, 9), end_date=None, end_time=None), today)
+		)
+		self.assertFalse(
+			_has_ended(frappe._dict(start_date=date(2030, 3, 11), end_date=None, end_time=None), today)
+		)
 		# Same day with no end time: still running.
 		self.assertFalse(_has_ended(frappe._dict(start_date=today, end_date=None, end_time=None), today))

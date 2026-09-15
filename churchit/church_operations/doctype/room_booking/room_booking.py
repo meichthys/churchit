@@ -59,4 +59,6 @@ class RoomBooking(Document):
 			.run()
 		)
 		if conflicts:
-			frappe.throw(f"Room is already booked at that time (conflicts with: {', '.join(c[0] for c in conflicts)}).")
+			frappe.throw(
+				f"Room is already booked at that time (conflicts with: {', '.join(c[0] for c in conflicts)})."
+			)

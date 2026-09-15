@@ -18,7 +18,12 @@ def get_columns():
 	return [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 240},
 		{"fieldname": "first_gift_date", "fieldtype": "Date", "label": "First Gift", "width": 120},
-		{"fieldname": "first_gift_amount", "fieldtype": "Currency", "label": "First Gift Amount", "width": 160},
+		{
+			"fieldname": "first_gift_amount",
+			"fieldtype": "Currency",
+			"label": "First Gift Amount",
+			"width": 160,
+		},
 	]
 
 

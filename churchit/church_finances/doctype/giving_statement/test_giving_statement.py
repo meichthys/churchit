@@ -70,9 +70,9 @@ class TestGivingStatement(FrappeTestCase):
 		self.assertEqual(statement.total_amount, 75)
 
 	def test_household_statement_covers_every_family_member(self):
-		family = frappe.get_doc(
-			{"doctype": "Family", "family_name": "_Test Statement Household"}
-		).insert(ignore_permissions=True)
+		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Statement Household"}).insert(
+			ignore_permissions=True
+		)
 		self.giver.family = family.name
 		self.giver.save(ignore_permissions=True)
 		spouse = make_person("_Test Statement", "Spouse", family=family.name)
@@ -82,9 +82,7 @@ class TestGivingStatement(FrappeTestCase):
 		statement = self._statement(family=family.name)
 
 		self.assertEqual(statement.total_amount, 100)
-		self.assertCountEqual(
-			[line.person for line in statement.lines], [self.giver.name, spouse.name]
-		)
+		self.assertCountEqual([line.person for line in statement.lines], [self.giver.name, spouse.name])
 
 	def test_rebuilding_replaces_lines_rather_than_appending(self):
 		make_collection("2029-03-01", [(self.giver.name, 100)])

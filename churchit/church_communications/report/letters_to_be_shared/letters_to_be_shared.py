@@ -14,7 +14,13 @@ def execute(filters=None):
 def get_columns():
 	return [
 		{"fieldname": "parenttype", "fieldtype": "Data", "label": "Type", "width": 120},
-		{"fieldname": "parent", "fieldtype": "Dynamic Link", "label": "From", "options": "parenttype", "width": 150},
+		{
+			"fieldname": "parent",
+			"fieldtype": "Dynamic Link",
+			"label": "From",
+			"options": "parenttype",
+			"width": 150,
+		},
 		{"fieldname": "date", "fieldtype": "Date", "label": "Received", "width": 100},
 		{"fieldname": "is_private", "fieldtype": "Check", "label": "Private?", "width": 80},
 		{"fieldname": "file", "fieldtype": "Data", "label": "File", "width": 200},

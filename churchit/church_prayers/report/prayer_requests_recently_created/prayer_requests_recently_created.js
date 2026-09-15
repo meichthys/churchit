@@ -7,5 +7,4 @@ frappe.query_reports["Prayer Requests Recently Created"] = {
 			mandatory: 1,
 		},
 	],
-
 };

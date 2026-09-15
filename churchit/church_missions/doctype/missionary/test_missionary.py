@@ -43,9 +43,7 @@ class TestMissionary(FrappeTestCase):
 		self.expense_type = _ensure(
 			"Expense Type", {"type": TEST_EXPENSE_TYPE}, {"type": TEST_EXPENSE_TYPE, "fund": fund}
 		)
-		self.person = _ensure(
-			"Person", {"first_name": TEST_PERSON_NAME}, {"first_name": TEST_PERSON_NAME}
-		)
+		self.person = _ensure("Person", {"first_name": TEST_PERSON_NAME}, {"first_name": TEST_PERSON_NAME})
 
 	def tearDown(self):
 		# A commit() elsewhere in the same test run ends the whole session's rollback
@@ -98,9 +96,7 @@ class TestMissionary(FrappeTestCase):
 		# End exactly one period after the start, so the periods on/before it are
 		# the start and +1 month whatever the length of the months in between.
 		start = add_days(today(), -70)
-		missionary = self._make_missionary(
-			support_start_date=start, support_end_date=add_months(start, 1)
-		)
+		missionary = self._make_missionary(support_start_date=start, support_end_date=add_months(start, 1))
 		create_missionary_expenses()
 		self.assertEqual(frappe.db.count("Expense", {"missionary": missionary.name}), 2)
 
