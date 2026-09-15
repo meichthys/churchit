@@ -1,5 +1,5 @@
-# Copyright (c) 2026, meichthys and contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -65,6 +65,6 @@ class TestChurchFeatures(FrappeTestCase):
 		self.features.enable_setup = 0
 		self.features.save()
 
-		self.assertEqual(frappe.db.get_value("Workspace", "Welcome", "is_hidden"), 1)
+		self.assertEqual(frappe.db.get_value("Workspace", "Summary", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
 		self.assertEqual(frappe.db.get_value("Desktop Icon", "Settings", "hidden"), 0)

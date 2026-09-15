@@ -12,11 +12,13 @@ import frappe
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
+WEBSITE_THEME = "Churchit"
 
 
 def execute():
 	# Default church — must exist before lookup types that reference it.
 	_create_default_church()
+	create_default_address_template()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -48,10 +50,12 @@ def execute():
 
 	# Website content
 	_create_web_pages()
+	create_website_theme()
 	_setup_about_us_settings()
 	_setup_contact_us_settings()
 	_setup_website_settings()
 	_setup_portal_settings()
+	setup_bulletin_settings()
 
 	# Visit Type lookups (referenced by Visitation Log)
 	_create_default_visit_types()
@@ -64,6 +68,9 @@ def execute():
 
 	# Care Request Type lookups (referenced by Care Request)
 	_create_default_care_request_types()
+
+	# Background Check Type lookups (referenced by Background Check)
+	create_default_background_check_types()
 
 	# Cleanup
 	_clean_gender_options()
@@ -96,11 +103,12 @@ def _insert_if_missing(doctype, filters, **fields):
 _TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 
-def _read_template(filename):
+def read_template(filename):
 	"""Read an HTML template from the templates/ subdirectory next to this file.
 
-	Called only from this module with hardcoded ``template_file`` literals
-	(home.html, beliefs.html, etc.); no caller passes user input.
+	Called with hardcoded ``template_file`` literals (home.html, beliefs.html,
+	etc.) from this module and from versioned patches that refresh one of
+	these pages on existing sites; no caller passes user input.
 	"""
 	return (_TEMPLATES_DIR / filename).read_text()
 
@@ -108,6 +116,34 @@ def _read_template(filename):
 # ---------------------------------------------------------------------------
 # Default Church
 # ---------------------------------------------------------------------------
+
+
+ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}{% if state %}, {{ state }}{% endif %}{% if pincode %} {{ pincode }}{% endif %}<br>
+{{ country }}<br>
+{% if phone %}{{ _("Phone") }}: {{ phone }}<br>{% endif -%}
+{% if email_id %}{{ _("Email") }}: {{ email_id }}<br>{% endif -%}
+"""
+
+
+def create_default_address_template():
+	"""Give the site a default Address Template.
+
+	Frappe alone ships none (ERPNext's setup wizard is what normally creates
+	them) and ``Address.get_display()`` throws without one, which broke giving
+	statements as soon as the Church had an address. The template is the
+	church's to edit afterwards.
+	"""
+	if frappe.db.exists("Address Template", {"is_default": 1}):
+		return
+	country = frappe.db.get_single_value("System Settings", "country") or "United States"
+	if frappe.db.exists("Address Template", country):
+		frappe.db.set_value("Address Template", country, "is_default", 1)
+		return
+	frappe.get_doc(
+		{"doctype": "Address Template", "country": country, "is_default": 1, "template": ADDRESS_TEMPLATE}
+	).insert(ignore_permissions=True)
 
 
 def _create_default_church():
@@ -610,7 +646,7 @@ def _create_web_pages():
 				"show_title": 1,
 				"text_align": "Center",
 				"css": ".page-header { text-align: center; }",
-				"main_section_html": _read_template(page["template_file"]),
+				"main_section_html": read_template(page["template_file"]),
 			}
 		).insert(ignore_permissions=True)
 
@@ -650,8 +686,32 @@ def _setup_contact_us_settings():
 		"<p>We would love to hear from you. Send us a message and someone from"
 		" our church will get back to you soon.</p>"
 	)
-	doc.query_options = "General\nPrayer Request\nPlanning a Visit\nGiving"
+	doc.query_options = "\n".join(
+		[
+			"General",
+			"Planning a Visit",
+			"Prayer Request",
+			"Pastoral Care",
+			"Ministries & Volunteering",
+			"Missions",
+			"Events & Calendar",
+			"Giving",
+			"Website Feedback",
+		]
+	)
 	doc.save(ignore_permissions=True)
+
+
+def create_website_theme():
+	"""Create the Churchit Website Theme.
+
+	The look itself is churchit/public/scss/website.scss, which frappe compiles
+	into every Website Theme that does not ignore this app. A user-owned record,
+	not a standard one: frappe refuses to save a standard theme outside developer
+	mode, so it could not compile during install-app, and a church may want to
+	customise it anyway.
+	"""
+	_insert_if_missing("Website Theme", WEBSITE_THEME, theme=WEBSITE_THEME, module="Church Website")
 
 
 def _setup_website_settings():
@@ -668,7 +728,7 @@ def _setup_website_settings():
 	doc.hide_login = 0
 	doc.navbar_search = 0
 	doc.home_page = "home"
-	doc.website_theme = "Standard"
+	doc.website_theme = WEBSITE_THEME
 	doc.top_bar_items = []
 	for item in [
 		{"label": "Home", "url": "/home", "right": 1},
@@ -676,7 +736,7 @@ def _setup_website_settings():
 		{"label": "Sermons", "url": "/sermons", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Ministries", "url": "/ministries", "right": 1},
-		{"label": "Locations", "url": "/locations", "right": 1},
+		{"label": "Calendar", "url": "/calendar", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
 		{"label": "Give", "url": "/give", "right": 1},
@@ -684,11 +744,7 @@ def _setup_website_settings():
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
 	doc.footer_items = []
-	for item in [
-		{"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"},
-		{"label": "My Account", "url": "/me", "right": 1},
-	]:
-		doc.append("footer_items", item)
+	doc.append("footer_items", {"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"})
 	doc.save(ignore_permissions=True)
 
 
@@ -709,17 +765,35 @@ def _setup_portal_settings():
 		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
 		("Alms Requests", "alms-request", "Alms Request", "Church User"),
 		("Groups", "groups", "Group", "Church User"),
+		("Giving Statements", "statements", "Giving Statement", "Church User"),
+		("Bulletins", "bulletins", "Bulletin", "Church User"),
 		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
 		# no role: visible to any logged-in user
 		("Help Articles", "Help Article", "Help Article", None),
 	]
 	doc = frappe.get_doc("Portal Settings")
-	doc.default_portal_home = "/me"
+	# Left blank deliberately. Frappe consults this before Website Settings when a
+	# logged-in user opens "/", and rewrites a value of "me" to "desk" for staff, so
+	# setting it here sent the Desk's own Website link back to the Desk. Blank lets
+	# Website Settings' home_page answer for everyone; members reach the portal from
+	# the navbar Portal link.
+	doc.default_portal_home = ""
 	titles = {title for title, _route, _ref, _role in items}
 	doc.custom_menu = [row for row in doc.custom_menu if row.title not in titles]
 	for title, route, ref, role in items:
 		doc.add_item({"title": title, "route": route, "reference_doctype": ref, "role": role})
 	doc.save(ignore_permissions=True)
+
+
+def setup_bulletin_settings():
+	"""Print the pastor, elders and deacons in bulletins until the church picks its own roles."""
+	settings = frappe.get_doc("Bulletin Settings")
+	if settings.roles:
+		return
+	for position in ("Pastor", "Elder", "Deacon"):
+		if frappe.db.exists("Position Type", position):
+			settings.append("roles", {"position_type": position})
+	settings.save(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -784,6 +858,26 @@ def _create_default_case_types():
 		return
 	for case_type in ("Marriage", "Premarital", "Grief", "Financial", "Spiritual", "Family", "Other"):
 		_insert_if_missing("Case Type", {"type": case_type}, type=case_type)
+
+
+def create_default_background_check_types():
+	"""Seed the standard Background Check Type lookup values."""
+	if not frappe.db.exists("DocType", "Background Check Type"):
+		return
+	for check_type, valid_for_years in (
+		("Criminal Background", 3),
+		("Sex Offender Registry", 3),
+		("Child Abuse Clearance", 5),
+		("Driving Record", 3),
+	):
+		if not frappe.db.exists("Background Check Type", check_type):
+			frappe.get_doc(
+				{
+					"doctype": "Background Check Type",
+					"type": check_type,
+					"valid_for_years": valid_for_years,
+				}
+			).insert(ignore_permissions=True)
 
 
 def _create_default_care_request_types():
@@ -874,7 +968,7 @@ def _reorder_default_desktop_icons():
 	"""Push frappe's default desktop icons (Framework, Tools, ...) behind the
 	church icons on the desk grid, ending with Settings, Tools, then Framework.
 
-	Icons sort by idx; churchit ships its icons with idx 1-12 (Welcome first),
+	Icons sort by idx; churchit ships its icons with idx 1-13 (Summary first),
 	but frappe's icons default to idx 0 and would land in front. frappe installs
 	(and creates its icons) before churchit, so they all exist by the time this
 	patch runs. Tools has no app set (it's auto-generated from the workspace,

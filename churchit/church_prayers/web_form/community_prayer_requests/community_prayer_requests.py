@@ -23,7 +23,8 @@ def get_list_context(context):
 
 		rows = frappe.get_list(
 			doctype,
-			fields="distinct *",
+			fields="*",
+			distinct=True,
 			filters=filters,
 			limit_start=limit_start,
 			limit_page_length=limit_page_length,

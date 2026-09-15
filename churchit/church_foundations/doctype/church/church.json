@@ -12,6 +12,7 @@
   "church_name",
   "abbreviation",
   "legal_name",
+  "tax_id",
   "is_group",
   "parent_church",
   "column_break_rmsm",
@@ -41,6 +42,12 @@
    "fieldname": "legal_name",
    "fieldtype": "Data",
    "label": "Legal Name"
+  },
+  {
+   "fieldname": "tax_id",
+   "fieldtype": "Data",
+   "label": "Tax ID",
+   "description": "Shown on contribution statements. In the US this is the church's EIN."
   },
   {
    "fieldname": "founding_date",

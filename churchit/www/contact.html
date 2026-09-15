@@ -1,0 +1,77 @@
+{#- Shadows frappe's contact page: the address column also lists the church's
+    own Address (filled in by contact.py) and drops the FontAwesome icons the
+    website bundle no longer ships. -#}
+{% extends "templates/web.html" %}
+
+{% set title = heading or "Contact Us" %}
+{% block header %}<h1>{{ heading or _("Contact Us") }}</h1>{% endblock %}
+
+{% block page_content %}
+<style>
+	.address {
+		line-height: 1.7em;
+	}
+</style>
+<div class="contact-content">
+	{% if introduction %}
+	<div>
+		{{ introduction or "" }}<br>
+	</div>
+	{% endif %}
+	<div class="row">
+		<div class="col-md-8">
+			<p id="contact-alert" class="alert alert-warning"
+				style="display: none;">&nbsp;</p>
+			<div class="form-group">
+				<select name="subject" class="form-control">
+				{% if query_options %}
+					{% for option in query_options %}
+					<option value="{{ option }}">{{ _(option) }}</option>
+					{% endfor %}
+				{% else %}
+					<option value="General">{{ _("General") }}</option>
+				{% endif %}
+				</select>
+			</div>
+			<div class="form-group">
+				<input class="form-control" name="email" type="text"
+				placeholder="{{ _('Your email address') }}" />
+			</div>
+			<div class="form-group">
+				<textarea rows="10" name="message" class="form-control"></textarea>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
+			</div>
+		</div>
+		{% if address_line1 or phone or email_id %}
+		<div class="col-md-3 offset-md-1 address" itemscope itemtype="https://schema.org/PostalAddress">
+			<h4 style="margin-top: 0px;">{{ address_title or _("Address") }}</h4>
+			{% if address_line1 %}
+				<span itemprop="streetAddress">{{ address_line1 }}</span><br>
+			{% endif %}
+			{% if address_line2 %}
+				<span itemprop="streetAddress">{{ address_line2 }}</span><br>
+			{% endif %}
+			{% if city or state or pincode %}
+				<span itemprop="addressLocality">{{ city }}</span>{% if city and state %},{% endif %}
+				<span itemprop="addressRegion">{{ state }}</span>
+				<span itemprop="postalCode">{{ pincode }}</span><br>
+			{% endif %}
+			{% if country %}
+				<span itemprop="addressCountry">{{ country }}</span><br>
+			{% endif %}
+			{% if phone %}
+				<a href="tel:{{ phone | replace(' ', '') }}" itemprop="telephone">{{ phone }}</a><br>
+			{% endif %}
+			{% if email_id %}
+				<a href="mailto:{{ email_id }}" itemprop="email">{{ email_id }}</a><br>
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+</div>
+<script>
+	{% include "templates/includes/contact.js" %}
+</script>
+{% endblock %}

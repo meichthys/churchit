@@ -1,5 +1,5 @@
-// Copyright (c) 2025, meichthys and contributors
-// For license information, please see license.txt
+// This source code is freely given for the sake of the gospel (Matthew 10:8)
+// and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Expense", {
 	vendor(frm) {
@@ -16,7 +16,7 @@ frappe.ui.form.on("Expense", {
 			return;
 		}
 		frappe.db.get_value("Expense Type", frm.doc.type, "fund").then((r) => {
-			frm.set_value("associated_fund", r && r.message && r.message.fund || null);
+			frm.set_value("associated_fund", (r && r.message && r.message.fund) || null);
 		});
 	},
 });

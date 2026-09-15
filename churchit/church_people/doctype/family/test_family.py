@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -7,9 +7,7 @@ from frappe.tests.utils import FrappeTestCase
 
 class TestFamily(FrappeTestCase):
 	def _make_person(self, first_name):
-		return frappe.get_doc(
-			{"doctype": "Person", "first_name": first_name}
-		).insert(ignore_permissions=True)
+		return frappe.get_doc({"doctype": "Person", "first_name": first_name}).insert(ignore_permissions=True)
 
 	def test_adding_member_sets_person_family(self):
 		person = self._make_person("Linked")

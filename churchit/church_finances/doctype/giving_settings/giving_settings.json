@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-06-05 00:00:00",
- "description": "Configuration for the public online giving page (/give).",
+ "description": "Configuration for online giving and contribution statements.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "editable_grid": 1,
@@ -16,7 +16,11 @@
   "default_fund",
   "currency",
   "section_break_message",
-  "thank_you_message"
+  "thank_you_message",
+  "section_break_statements",
+  "statement_grouping",
+  "column_break_statements",
+  "statement_acknowledgment"
  ],
  "fields": [
   {
@@ -78,12 +82,36 @@
   {
    "fieldname": "column_break_uffx",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_statements",
+   "fieldtype": "Section Break",
+   "label": "Contribution Statements"
+  },
+  {
+   "fieldname": "statement_grouping",
+   "fieldtype": "Select",
+   "label": "Group Statements By",
+   "options": "Household\nPerson",
+   "default": "Household",
+   "description": "Household combines the giving of everyone in a Family onto one statement."
+  },
+  {
+   "fieldname": "column_break_statements",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "statement_acknowledgment",
+   "fieldtype": "Small Text",
+   "label": "Acknowledgment Text",
+   "default": "No goods or services were provided in exchange for these contributions.",
+   "description": "Printed at the foot of every statement. US churches need this wording for gifts of $250 or more (IRS Publication 1771)."
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-26 20:06:45.749502",
+ "modified": "2026-09-12 00:40:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",

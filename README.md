@@ -32,14 +32,16 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with head-of-household relationship tracking
 - Spouse tracking with automatic bidirectional sync
 - Church position tracking
+- Background check tracking: record checks from any screening provider with status, expiry, and the report; cleared checks expire automatically
 - Portal invitations: invite people to a self-service portal
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, alms requests, and function sign-ups
+- Portal pages for personal details, prayer requests, alms requests, function sign-ups, and bulletin PDFs
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
+- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look — pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
@@ -54,6 +56,12 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Presentation mode with configurable field display per slide
 - Presentation history tracking with date, presenter, and location
 - Audio/video recording support
+- Sermon handouts: fill-in-the-blank outlines started from the sermon notes, printed as bulletin inserts
+
+### Bulletins
+- Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
+- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
+- Published bulletins downloadable as PDFs from the member portal
 
 ### Finances
 - Collection and donation tracking with fund allocation
@@ -182,6 +190,7 @@ Contributions are very welcome! If you plan any large contributions, please let 
   - Add fields for the doctype (if necessary add field descriptions).
   - Add permissions to the doctype for `Church User` and `Church Admin` roles. (Not necessary for child tables)
   - Add the doctype to the relevant workspace. (not necessary for child tables)
+  - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
   - If necessary, add an onboarding step & form tour to explain specific fields.
   - If any default records for this doctype should be shipped with the app, see [Managing App Data](#managing-app-data) below.
   - If necessary, update this readme with the new functionality

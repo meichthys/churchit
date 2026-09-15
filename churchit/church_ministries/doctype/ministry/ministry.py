@@ -1,12 +1,11 @@
-# Copyright (c) 2026, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.model.document import Document
 
 
 class Ministry(Document):
-
 	def validate(self):
 		if self.end_date and self.start_date and self.end_date < self.start_date:
 			frappe.throw("End Date cannot be before Start Date.")
@@ -29,7 +28,10 @@ class Ministry(Document):
 			order_by="function_name asc",
 		)
 		for tpl in templates:
-			self.append("recurring_functions", {
-				"function": tpl.name,
-				"repeat_frequency": tpl.repeat_frequency,
-			})
+			self.append(
+				"recurring_functions",
+				{
+					"function": tpl.name,
+					"repeat_frequency": tpl.repeat_frequency,
+				},
+			)

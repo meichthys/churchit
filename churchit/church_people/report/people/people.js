@@ -45,5 +45,4 @@ frappe.query_reports["People"] = {
 		}
 		return value;
 	},
-
 };

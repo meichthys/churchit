@@ -8,6 +8,8 @@ when the user opts in to sample data.
 All inserts are idempotent — safe to run more than once on the same site.
 """
 
+import json
+
 import frappe
 from frappe.utils import add_days, add_months, getdate
 
@@ -104,7 +106,7 @@ def create_sample_data():
 
 	position_refs = _create_positions()
 	people = _create_people(position_refs)
-	_create_church_manager_user(people)
+	_create_sample_users(people)
 
 	families = _create_families()
 	_assign_families(people, families)
@@ -182,7 +184,7 @@ def delete_sample_data():
 
 	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
 
-	_delete_church_manager_user()
+	_delete_sample_users()
 
 
 # ---------------------------------------------------------------------------
@@ -225,6 +227,22 @@ def _insert_if_missing(doctype, filters, **fields):
 def _resolve_link(doctype, title_field, value):
 	"""Look up the hash name for a record given its display value."""
 	return frappe.db.get_value(doctype, {title_field: value}, "name")
+
+
+def _point_geojson(lat, lon):
+	"""GeoJSON string for a single point, as stored by the Geolocation fieldtype."""
+	return json.dumps(
+		{
+			"type": "FeatureCollection",
+			"features": [
+				{
+					"type": "Feature",
+					"geometry": {"type": "Point", "coordinates": [lon, lat]},
+					"properties": {},
+				}
+			],
+		}
+	)
 
 
 def _delete_docs(doctype, filters):
@@ -531,12 +549,8 @@ def _create_people(position_refs):
 				"alergies": allergies,
 				"positions": resolved_positions,
 				"life_events": life_events,
-				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}]
-				if phone
-				else [],
-				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}]
-				if email
-				else [],
+				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}] if phone else [],
+				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}] if email else [],
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -549,38 +563,50 @@ def _create_people(position_refs):
 # ---------------------------------------------------------------------------
 
 _CHURCH_MANAGER_EMAIL = "mary.johnson@example.com"
+_CHURCH_MEMBER_EMAIL = "james.wilson@example.com"
+
+# Demo logins: (email, person, role profile). Each password is set to the account's
+# own email address, so the credentials are self-evident when demonstrating the app.
+# Mary is staff and lands in the Desk; James is a rank-and-file member and lands in
+# the portal, which is the only way to see the member experience.
+_SAMPLE_USERS = (
+	(_CHURCH_MANAGER_EMAIL, "Mary Johnson", "Church Manager"),
+	(_CHURCH_MEMBER_EMAIL, "James Wilson", "Church User"),
+)
 
 
-def _create_church_manager_user(people):
-	"""Create a Church Manager portal user linked to Mary Johnson."""
-	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		return
+def _create_sample_users(people):
+	"""Create the demo login accounts and link each to its Person."""
+	for email, person, role_profile in _SAMPLE_USERS:
+		if not frappe.db.exists("User", email):
+			first_name, _, last_name = person.partition(" ")
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": first_name,
+					"last_name": last_name,
+					"send_welcome_email": 0,
+					"enabled": 1,
+					"role_profiles": [{"role_profile": role_profile}],
+				}
+			)
+			user.insert(ignore_permissions=True)
+			frappe.utils.password.update_password(email, email)
 
-	user = frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": _CHURCH_MANAGER_EMAIL,
-			"first_name": "Mary",
-			"last_name": "Johnson",
-			"send_welcome_email": 0,
-			"enabled": 1,
-			"role_profiles": [{"role_profile": "Church Manager"}],
-		}
-	)
-	user.insert(ignore_permissions=True)
-	frappe.utils.password.update_password(_CHURCH_MANAGER_EMAIL, _CHURCH_MANAGER_EMAIL)
-
-	person_name = people.get("Mary Johnson")
-	if person_name:
-		frappe.db.set_value("Person", person_name, "user", _CHURCH_MANAGER_EMAIL)
+		# Asserted on every run, not just when the User is new: the accounts outlive
+		# a delete/recreate of the sample people, which would otherwise leave the
+		# login with no Person and no portal data behind it.
+		person_name = people.get(person)
+		if person_name:
+			frappe.db.set_value("Person", person_name, "user", email)
 
 
-def _delete_church_manager_user():
-	"""Remove the sample Church Manager user."""
-	if frappe.db.exists("User", _CHURCH_MANAGER_EMAIL):
-		frappe.delete_doc(
-			"User", _CHURCH_MANAGER_EMAIL, force=True, ignore_permissions=True, delete_permanently=True
-		)
+def _delete_sample_users():
+	"""Remove the demo login accounts."""
+	for email, _person, _role_profile in _SAMPLE_USERS:
+		if frappe.db.exists("User", email):
+			frappe.delete_doc("User", email, force=True, ignore_permissions=True, delete_permanently=True)
 
 
 # ---------------------------------------------------------------------------
@@ -808,15 +834,14 @@ def _create_missionaries(people, agencies):
 			"person": people["Michael Grant"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Brazil",
+			"geolocation": _point_geojson(-18.25, -43.60),
 			"mission_statement": "Planting churches and training local pastors in rural communities across Brazil.",
 			"publish": 1,
 			"sensitive": 0,
 			"support_amount": 200,
 			"support_frequency": monthly,
 			"support_start_date": "2010-01-01",
-			"emails": [
-				{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}
-			],
+			"emails": [{"email_address": "michael.grant@example.com", "email_type": "Home", "is_primary": 1}],
 			"letters": [
 				{
 					"date": _near_date(-21),
@@ -843,6 +868,7 @@ def _create_missionaries(people, agencies):
 			"person": people["Elizabeth Harper"],
 			"agency": agencies["Faithful Servants Mission Board"],
 			"country": "Japan",
+			"geolocation": _point_geojson(35.6762, 139.6503),
 			"mission_statement": "Teaching English and sharing the Gospel at local community centers in Tokyo.",
 			"publish": 1,
 			"sensitive": 0,
@@ -859,15 +885,14 @@ def _create_missionaries(people, agencies):
 			"person": people["Thomas Reed"],
 			"agency": agencies["Gospel Outreach International"],
 			"country": "Kenya",
+			"geolocation": _point_geojson(3.1167, 35.60),
 			"mission_statement": "Providing clean water and biblical education to remote villages in Kenya.",
-			"publish": 0,
+			"publish": 1,
 			"sensitive": 1,
 			"support_amount": 100,
 			"support_frequency": monthly,
 			"support_start_date": "2018-09-01",
-			"emails": [
-				{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}
-			],
+			"emails": [{"email_address": "thomas.reed@example.com", "email_type": "Home", "is_primary": 1}],
 		},
 	]
 	for m in missionaries:
@@ -1185,12 +1210,14 @@ def _create_budget(expense_types):
 		{"expense_type": expense_types["Benevolence"], "budgeted_amount": 1800},
 	]
 
-	doc = frappe.get_doc({
-		"doctype": "Budget",
-		"start_date": start_date,
-		"end_date": end_date,
-		"lines": lines,
-	})
+	doc = frappe.get_doc(
+		{
+			"doctype": "Budget",
+			"start_date": start_date,
+			"end_date": end_date,
+			"lines": lines,
+		}
+	)
 	doc.insert(ignore_permissions=True)
 
 
@@ -1382,7 +1409,9 @@ def _create_care_assignments(people):
 	]
 
 	for assignment in assignments:
-		if frappe.db.exists("Care Assignment", {"person": assignment["person"], "deacon": assignment["deacon"]}):
+		if frappe.db.exists(
+			"Care Assignment", {"person": assignment["person"], "deacon": assignment["deacon"]}
+		):
 			continue
 		frappe.get_doc({"doctype": "Care Assignment", **assignment}).insert(ignore_permissions=True)
 
@@ -1520,9 +1549,7 @@ def _create_counseling_cases(people):
 	]
 
 	for case in cases:
-		if frappe.db.exists(
-			"Counseling Case", {"person": case["person"], "start_date": case["start_date"]}
-		):
+		if frappe.db.exists("Counseling Case", {"person": case["person"], "start_date": case["start_date"]}):
 			continue
 		frappe.get_doc({"doctype": "Counseling Case", **case}).insert(ignore_permissions=True)
 
@@ -1558,7 +1585,9 @@ def _create_member_transfers(people):
 	for transfer in transfers:
 		if not transfer["person"]:
 			continue
-		if frappe.db.exists("Member Transfer", {"person": transfer["person"], "direction": transfer["direction"]}):
+		if frappe.db.exists(
+			"Member Transfer", {"person": transfer["person"], "direction": transfer["direction"]}
+		):
 			continue
 		frappe.get_doc({"doctype": "Member Transfer", **transfer}).insert(ignore_permissions=True)
 
@@ -2175,7 +2204,10 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ul>"
 			),
 			"slides": [
-				{"slide_type": "Bible Reference", "slide": bible_ref("Romans 8:28", "English Standard Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Romans 8:28", "English Standard Version"),
+				},
 				{"slide_type": "Belief", "slide": belief("Salvation")},
 				{
 					"slide_type": "Missionary",
@@ -2183,7 +2215,10 @@ def _create_sermons(people, verses, series_refs=None):
 					"notes": "<p>Elizabeth's story is a living example of stepping out in faith.</p>",
 				},
 				{"slide_type": "Person", "slide": people.get("David Thompson")},
-				{"slide_type": "Bible Reference", "slide": bible_ref("Philippians 4:13", "New King James Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Philippians 4:13", "New King James Version"),
+				},
 			],
 		},
 		{
@@ -2201,7 +2236,10 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ol>"
 			),
 			"slides": [
-				{"slide_type": "Bible Reference", "slide": bible_ref("Jeremiah 29:11", "New International Version")},
+				{
+					"slide_type": "Bible Reference",
+					"slide": bible_ref("Jeremiah 29:11", "New International Version"),
+				},
 				{"slide_type": "Belief", "slide": belief("The Bible")},
 				{
 					"slide_type": "Person",

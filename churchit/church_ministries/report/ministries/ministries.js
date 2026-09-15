@@ -33,15 +33,18 @@ frappe.query_reports["Ministries"] = {
 	formatter: function (value, row, column, data) {
 		if (!data || !value) return value;
 		if (column.fieldname === "ministry_name") {
-			return `<a href="/app/ministry/${encodeURIComponent(data.name)}">${frappe.utils.escape_html(value)}</a>`;
+			return `<a href="/app/ministry/${encodeURIComponent(
+				data.name
+			)}">${frappe.utils.escape_html(value)}</a>`;
 		}
 		if (column.fieldname === "group") {
-			return `<a href="/app/group/${encodeURIComponent(value)}">${frappe.utils.escape_html(value)}</a>`;
+			return `<a href="/app/group/${encodeURIComponent(value)}">${frappe.utils.escape_html(
+				value
+			)}</a>`;
 		}
 		if (column.fieldname === "publish") {
 			return value ? __("Yes") : __("No");
 		}
 		return value;
 	},
-
 };

@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.model.document import Document
@@ -59,4 +59,6 @@ class RoomBooking(Document):
 			.run()
 		)
 		if conflicts:
-			frappe.throw(f"Room is already booked at that time (conflicts with: {', '.join(c[0] for c in conflicts)}).")
+			frappe.throw(
+				f"Room is already booked at that time (conflicts with: {', '.join(c[0] for c in conflicts)})."
+			)

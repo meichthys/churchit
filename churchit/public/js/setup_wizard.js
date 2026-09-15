@@ -14,8 +14,8 @@ frappe.setup.on("before_load", function () {
 				default: 1,
 				description: __(
 					"Populate the site with a sample church, people, families, " +
-					"donations, prayer requests, and more so you can explore " +
-					"the app right away. You can remove this data later."
+						"donations, prayer requests, and more so you can explore " +
+						"the app right away. You can remove this data later."
 				),
 			},
 		],

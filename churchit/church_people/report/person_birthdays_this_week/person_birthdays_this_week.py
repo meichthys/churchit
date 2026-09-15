@@ -1,6 +1,6 @@
 import frappe
 
-from churchit.query import CurDate, DayOfWeek, Month, Week
+from churchit.query import DayOfWeek, falls_this_week
 from churchit.utils import set_report_link_titles
 
 
@@ -31,11 +31,7 @@ def get_data():
 			& (LifeEvent.event_type == "Birth")
 		)
 		.select(Person.name, LifeEvent.date.as_("birthday"))
-		.where(
-			LifeEvent.date.isnotnull()
-			& (Week(LifeEvent.date, 1) == Week(CurDate(), 1))
-			& (Month(LifeEvent.date) == Month(CurDate()))
-		)
+		.where(LifeEvent.date.isnotnull() & falls_this_week(LifeEvent.date))
 		.orderby(DayOfWeek(LifeEvent.date))
 		.orderby(Person.full_name)
 		.run(as_dict=True)

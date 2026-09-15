@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import contextlib
 
@@ -94,7 +94,9 @@ def set_subscription(subscribed):
 	subscribe = bool(cint(subscribed))
 
 	if not frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
-		frappe.get_doc({"doctype": "Email Group", "title": MEMBER_EMAIL_GROUP}).insert(ignore_permissions=True)
+		frappe.get_doc({"doctype": "Email Group", "title": MEMBER_EMAIL_GROUP}).insert(
+			ignore_permissions=True
+		)
 
 	name = frappe.db.get_value(
 		"Email Group Member", {"email_group": MEMBER_EMAIL_GROUP, "email": email}, "name"

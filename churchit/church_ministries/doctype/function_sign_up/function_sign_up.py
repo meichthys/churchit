@@ -25,6 +25,20 @@ class FunctionSignUp(Document):
 				frappe.throw("No Person record is linked to your account.")
 			self.person = person_name
 
+		self.set_item_quantities_needed()
+
+	def set_item_quantities_needed(self):
+		"""Mirror each item's function-level quantity_needed onto the sign-up row for display."""
+		for row in self.table_iprj:
+			row.quantity_needed = (
+				frappe.db.get_value(
+					"Function Sign-Up Item",
+					{"parent": self.function, "parenttype": "Function", "item": row.item},
+					"quantity_needed",
+				)
+				or 0
+			)
+
 	def before_save(self):
 		function_label = (
 			frappe.db.get_value("Function", self.function, "function_name") if self.function else ""

@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.model.document import Document
@@ -35,6 +35,4 @@ class Family(Document):
 		if self.members:
 			for member in self.members:
 				if member.member:
-					frappe.db.set_value(
-						"Person", member.member, "family", self.name, update_modified=False
-					)
+					frappe.db.set_value("Person", member.member, "family", self.name, update_modified=False)

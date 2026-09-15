@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.exceptions import ValidationError
@@ -16,9 +16,11 @@ def _ensure(doctype, filters, values):
 
 class TestCollection(FrappeTestCase):
 	def setUp(self):
-		self.fund = frappe.get_doc(
-			{"doctype": "Fund", "fund": "_Test Collection Fund"}
-		).insert(ignore_permissions=True).name
+		self.fund = (
+			frappe.get_doc({"doctype": "Fund", "fund": "_Test Collection Fund"})
+			.insert(ignore_permissions=True)
+			.name
+		)
 		self.payment_type = _ensure("Payment Type", {"type": "Cash"}, {"type": "Cash"})
 
 	def _make_collection(self, amount=200, expected_total=None):

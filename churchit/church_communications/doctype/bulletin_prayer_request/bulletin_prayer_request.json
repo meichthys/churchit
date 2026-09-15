@@ -1,0 +1,55 @@
+{
+ "actions": [],
+ "creation": "2026-09-14 00:00:00",
+ "description": "A prayer request chosen for printing in a Bulletin.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "prayer_request",
+  "title",
+  "recipient_name"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "prayer_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Prayer Request",
+   "options": "Prayer Request",
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fetch_from": "prayer_request.title",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "columns": 3,
+   "fetch_from": "prayer_request.recipient_name",
+   "fieldname": "recipient_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "For",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-14 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Bulletin Prayer Request",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,5 +1,5 @@
-# Copyright (c) 2026, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -9,14 +9,10 @@ class TestOnlineDonation(FrappeTestCase):
 	def setUp(self):
 		# "Online" Payment Type is required for the recorded Collection's Donation row.
 		if not frappe.db.exists("Payment Type", "Online"):
-			frappe.get_doc({"doctype": "Payment Type", "type": "Online"}).insert(
-				ignore_permissions=True
-			)
+			frappe.get_doc({"doctype": "Payment Type", "type": "Online"}).insert(ignore_permissions=True)
 
 	def _make_fund(self):
-		return frappe.get_doc(
-			{"doctype": "Fund", "fund": "Test Giving Fund"}
-		).insert(ignore_permissions=True)
+		return frappe.get_doc({"doctype": "Fund", "fund": "Test Giving Fund"}).insert(ignore_permissions=True)
 
 	def _make_gift(self, fund, amount, person=None, email=None, donor_name=None):
 		return frappe.get_doc(

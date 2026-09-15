@@ -1,5 +1,7 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
+
+import json
 
 import frappe
 from frappe.model.document import Document
@@ -29,14 +31,70 @@ class Missionary(Document):
 
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
-				frappe.throw(
-					"A positive Support Amount is required to auto-create expenses."
-				)
+				frappe.throw("A positive Support Amount is required to auto-create expenses.")
 			if self.support_frequency not in FREQUENCY_STEP:
 				frappe.throw(
 					f"Support Frequency '{self.support_frequency}' is not supported for "
 					"auto-creating expenses."
 				)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_map_markers() -> list[dict]:
+	"""Missionaries with a Location set, for the Missionary Map workspace block."""
+	missionaries = frappe.get_list(
+		"Missionary",
+		filters={"geolocation": ["is", "set"]},
+		fields=["name", "title", "photo", "country", "geolocation"],
+	)
+	return _build_markers(missionaries, include_name=True)
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def get_public_map_markers() -> dict:
+	"""Published, non-sensitive missionaries with a Location set, for the public Missions map.
+
+	Also reports how many otherwise-mappable missionaries were hidden for being sensitive,
+	so the page can note that some locations are intentionally not shown.
+	"""
+	missionaries = frappe.get_list(
+		"Missionary",
+		filters={"geolocation": ["is", "set"], "publish": 1, "sensitive": 0},
+		fields=["title", "photo", "country", "geolocation"],
+		ignore_permissions=True,
+	)
+	hidden_count = frappe.db.count("Missionary", {"geolocation": ["is", "set"], "publish": 1, "sensitive": 1})
+	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
+
+
+def _build_markers(missionaries, include_name=False) -> list[dict]:
+	"""Marker dicts (title, photo, country, latitude, longitude) for missionaries with a Point geolocation."""
+	markers = []
+	for missionary in missionaries:
+		coordinates = _get_point_coordinates(missionary.geolocation)
+		if not coordinates:
+			continue
+		longitude, latitude = coordinates
+		marker = {
+			"title": missionary.title,
+			"photo": missionary.photo,
+			"country": missionary.country,
+			"latitude": latitude,
+			"longitude": longitude,
+		}
+		if include_name:
+			marker["name"] = missionary.name
+		markers.append(marker)
+	return markers
+
+
+def _get_point_coordinates(geolocation):
+	"""[longitude, latitude] of the first Point feature in a Geolocation field's GeoJSON, or None."""
+	for feature in json.loads(geolocation).get("features", []):
+		geometry = feature.get("geometry") or {}
+		if geometry.get("type") == "Point":
+			return geometry.get("coordinates")
+	return None
 
 
 def create_missionary_expenses():
@@ -100,10 +158,7 @@ def _create_expense(missionary, expense_date):
 			"type": missionary.expense_type,
 			"date": expense_date,
 			"missionary": missionary.name,
-			"notes": (
-				f"Auto-generated {missionary.support_frequency} support for "
-				f"{missionary.title}."
-			),
+			"notes": (f"Auto-generated {missionary.support_frequency} support for " f"{missionary.title}."),
 		}
 	)
 	expense.insert(ignore_permissions=True)

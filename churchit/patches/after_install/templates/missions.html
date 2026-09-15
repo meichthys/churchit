@@ -1,3 +1,7 @@
+<div class="missions-map-card">
+    <div id="missions-map" class="missions-map"></div>
+</div>
+
 <div class="row justify-content-center">
 {% set missionary_docs = frappe.get_list("Missionary", fields=["name"], filters={"publish": 1}, ignore_permissions=True) %}
 {% if missionary_docs %}

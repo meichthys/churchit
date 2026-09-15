@@ -12,11 +12,27 @@ website_context = {
 	"splash_image": "/assets/churchit/media/church_logo.png",
 }
 
+update_website_context = "churchit.church_website.context.update_website_context"
+
 fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
+	{"dt": "Custom Field", "filters": [["dt", "in", ["Contact Us Settings"]]]},
 	{
 		"dt": "Property Setter",
-		"filters": [["doc_type", "in", ["About Us Settings", "Help Article", "Help Category", "Newsletter"]]],
+		"filters": [
+			[
+				"doc_type",
+				"in",
+				[
+					"About Us Settings",
+					"Contact Us Settings",
+					"Help Article",
+					"Help Category",
+					"Newsletter",
+					"Website Settings",
+				],
+			]
+		],
 	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
@@ -37,10 +53,11 @@ fixtures = [
 		],
 	},
 	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
-	# The module nav shown at the top of every module workspace. App-owned: the
-	# workspace JSONs reference it by name and are re-synced on every migrate,
-	# so the block has to be re-applied alongside them.
-	{"dt": "Custom HTML Block", "filters": [["name", "=", "WorkspaceHeader"]]},
+	# The module nav shown at the top of every module workspace, and the map
+	# block on the Missions workspace. App-owned: the workspace JSONs reference
+	# them by name and are re-synced on every migrate, so these have to be
+	# re-applied alongside them.
+	{"dt": "Custom HTML Block", "filters": [["name", "in", ["WorkspaceHeader", "MissionaryMap"]]]},
 ]
 # Apps
 # ------------------
@@ -71,13 +88,15 @@ app_include_js = [
 ]
 
 # include js, css files in header of web template
-# Skins the public website (Web Pages, portal pages) in the same glassy style
-# as the marketing site in docs/.
+# Page layout shared by every website theme. The Churchit theme's own look is
+# public/scss/website.scss, which frappe compiles into each Website Theme.
 web_include_css = ["/assets/churchit/css/website.css"]
-web_include_js = ["/assets/churchit/js/portal_groups.js"]
-
-# include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "church/public/scss/website"
+web_include_js = [
+	"/assets/churchit/js/portal_groups.js",
+	"/assets/churchit/js/missions_map.js",
+	"/assets/churchit/js/nav_active_state.js",
+	"/assets/churchit/js/pwa.js",
+]
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -127,11 +146,12 @@ website_redirects = [
 # Jinja
 # ----------
 
-# add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "churchit.utils.jinja_methods",
-# 	"filters": "churchit.utils.jinja_filters"
-# }
+jinja = {
+	"methods": [
+		"churchit.church_finances.doctype.giving_statement.giving_statement.statement_header",
+		"churchit.church_foundations.doctype.church.church.get_church",
+	]
+}
 
 # Installation
 # ------------
@@ -140,8 +160,12 @@ after_install = "churchit.patches.after_install.execute"
 after_sync = "churchit.patches.after_install.after_sync"
 
 # Workspaces and Desktop Icons ship as standard records, so migrate re-imports
-# them and resets the visibility flags Church Features set. Re-apply them.
-after_migrate = "churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"
+# them and resets the visibility flags Church Features set. Re-apply them, and
+# re-hide the icons Frappe auto-generates for each module's Manual workspace.
+after_migrate = [
+	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
+	"churchit.church_setup.manual_workspaces.hide_manual_desktop_icons",
+]
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
@@ -201,6 +225,7 @@ scheduler_events = {
 		"churchit.church_ministries.doctype.function.function.create_scheduled_functions",
 		"churchit.church_communications.newsletter.sync_member_email_group",
 		"churchit.church_missions.doctype.missionary.missionary.create_missionary_expenses",
+		"churchit.church_people.doctype.background_check.background_check.expire_background_checks",
 	],
 }
 

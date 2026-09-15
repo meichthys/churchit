@@ -1,7 +1,7 @@
 import frappe
 from frappe.query_builder.functions import Count
 
-from churchit.query import CurDate, Month, Week
+from churchit.query import falls_this_week
 
 
 @frappe.whitelist()
@@ -18,10 +18,6 @@ def get_count():
 			& (LifeEvent.event_type == "Birth")
 		)
 		.select(Count("*"))
-		.where(
-			LifeEvent.date.isnotnull()
-			& (Week(LifeEvent.date, 1) == Week(CurDate(), 1))
-			& (Month(LifeEvent.date) == Month(CurDate()))
-		)
+		.where(LifeEvent.date.isnotnull() & falls_this_week(LifeEvent.date))
 		.run()[0][0]
 	)

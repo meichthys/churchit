@@ -1,14 +1,16 @@
-// Copyright (c) 2026, meichthys and contributors
-// For license information, please see license.txt
+// This source code is freely given for the sake of the gospel (Matthew 10:8)
+// and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Location", {
 	parent_location(frm) {
 		if (frm.doc.parent_location && !frm.doc.address) {
-			frappe.db.get_value("Location", frm.doc.parent_location, "address").then(({ message }) => {
-				if (message && message.address) {
-					frm.set_value("address", message.address);
-				}
-			});
+			frappe.db
+				.get_value("Location", frm.doc.parent_location, "address")
+				.then(({ message }) => {
+					if (message && message.address) {
+						frm.set_value("address", message.address);
+					}
+				});
 		}
 	},
 

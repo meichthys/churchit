@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 from calendar import monthrange
 from datetime import date, datetime, timedelta
@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta
 import frappe
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, now_datetime
-
 
 WEEKDAY_INDEX = {
 	"Monday": 0,

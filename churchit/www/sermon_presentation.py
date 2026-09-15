@@ -101,7 +101,9 @@ def get_context(context):
 				if title:
 					slide_data["title"] = title
 			else:
-				slide_data["title"] = linked_doc.get_title() if hasattr(linked_doc, "get_title") else row.slide
+				slide_data["title"] = (
+					linked_doc.get_title() if hasattr(linked_doc, "get_title") else row.slide
+				)
 				slide_data["content"] = ""
 		except Exception:
 			slide_data["content"] = f"<p>Could not load {row.slide_type}: {row.slide}</p>"

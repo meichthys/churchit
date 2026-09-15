@@ -12,8 +12,8 @@
    "icon": "home",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Welcome",
-   "link_to": "Welcome",
+   "label": "Summary",
+   "link_to": "Summary",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -41,14 +41,26 @@
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "help",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Help",
+   "link_to": "Help",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-08-01 01:00:00.000000",
+ "modified": "2026-09-09 22:12:31.208664",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "module_onboarding": "Church",
- "name": "Welcome",
+ "name": "Summary",
  "owner": "Administrator",
  "standard": 1,
- "title": "Welcome"
+ "title": "Summary"
 }

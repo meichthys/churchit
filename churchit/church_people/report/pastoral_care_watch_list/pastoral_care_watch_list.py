@@ -3,11 +3,10 @@ from frappe.query_builder.functions import Coalesce, Max
 from frappe.utils import cint
 from pypika import Interval
 
+from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
 from churchit.contacts import get_primary_email, get_primary_phone
 from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
-
-CLOSED_PRAYER_STATUSES = ("Answered", "Archived", "Closed")
 
 
 def execute(filters=None):
@@ -48,7 +47,7 @@ def get_data(filters=None):
 		frappe.qb.from_(Prayer)
 		.select(Prayer.requestor.as_("person"), Max(Prayer.creation).as_("last_event_date"))
 		.where(
-			Coalesce(Prayer.status, "").notin(list(CLOSED_PRAYER_STATUSES))
+			Coalesce(Prayer.status, "").notin(list(CLOSED_STATUSES))
 			& (Prayer.urgent == 1)
 			& Prayer.requestor.isnotnull()
 		)

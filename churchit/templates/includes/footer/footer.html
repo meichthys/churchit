@@ -1,0 +1,41 @@
+{#- Shadows frappe's footer (apps are searched in reverse install order).
+    Top row: church name and founding year on the left, copyright in the
+    middle, phone and address on the right. Bottom row, centred: the Website
+    Settings footer links. -#}
+<footer class="web-footer">
+	<div class="container">
+		{% if footer_church or copyright %}
+		<div class="footer-top" itemscope itemtype="https://schema.org/Church">
+			{% if footer_church %}
+			<div class="footer-identity">
+				<div class="footer-church-name" itemprop="name">{{ footer_church.name }}</div>
+				{% if footer_church.established %}
+				<div class="footer-established">{{ footer_church.established }}</div>
+				{% endif %}
+			</div>
+			{% endif %}
+			{% if copyright %}
+			<div class="footer-copyright">&copy; {{ copyright }}</div>
+			{% endif %}
+			{% if footer_church %}
+			<div class="footer-contact">
+				{% if footer_church.phone %}
+				<div><a href="tel:{{ footer_church.phone | replace(' ', '') }}" itemprop="telephone">{{ footer_church.phone }}</a></div>
+				{% endif %}
+				{% if footer_church.address %}
+				<div><a href="{{ footer_church.map_url }}" target="_blank" rel="noreferrer" itemprop="address">{{ footer_church.address }}</a></div>
+				{% endif %}
+			</div>
+			{% endif %}
+		</div>
+		{% endif %}
+		{% set links = footer_items | selectattr("label") | rejectattr("parent_label") | list %}
+		{% if links %}
+		<nav class="footer-links">
+			{% for item in links %}
+			<a href="{{ item.url | abs_url }}" class="footer-link" {% if item.open_in_new_tab %}target="_blank"{% endif %} rel="noreferrer">{{ _(item.label) }}</a>
+			{% endfor %}
+		</nav>
+		{% endif %}
+	</div>
+</footer>

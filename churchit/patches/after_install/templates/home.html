@@ -1,33 +1,123 @@
-{% set root_churches = frappe.get_list("Church", fields=["name"], filters={"parent_church": ""}, ignore_permissions=True, limit=1) %}
-{% if root_churches %}
-{% set church = frappe.get_doc("Church", root_churches[0].name) %}
-<div class="row justify-content-center">
-    <div class="col-lg-12 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <strong>{{ church.legal_name or church.church_name }}</strong>
-                {% if church.founding_date %}
-                    <br>
-                    Established: {{ church.founding_date }}
-                {% endif %}
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    {{ church.about }}
-                </p>
-            </div>
-            <div class="card-footer">
-                <div class="small text-muted">
-                    {% if church.mission_statement %}
-                        <strong>Mission Statement</strong>
-                        <br>
-                        &ldquo;{{ church.mission_statement }}&rdquo;
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+{% set church = get_church() %}
+{% if church %}
+{%- set upcoming = frappe.get_all(
+	"Function",
+	fields=["name", "function_name", "title", "start_date", "start_time", "all_day", "description"],
+	filters={"publish": 1, "start_date": [">=", frappe.utils.nowdate()]},
+	order_by="start_date asc, start_time asc",
+	limit=4,
+) -%}
+{%- set sermons = frappe.get_all(
+	"Sermon",
+	fields=["name", "title", "notes", "audio_recording", "prepared_by"],
+	filters={"publish": 1},
+	order_by="modified desc",
+	limit=1,
+) -%}
+{%- set address_line = "" -%}
+{%- if church.address -%}
+	{%- set addr = frappe.get_doc("Address", church.address) -%}
+	{%- set address_line = [addr.address_line1, addr.city, addr.state] | select | join(", ") -%}
+{%- endif -%}
+{#- a stat with nothing behind it reads worse than no stat, so drop the zeroes -#}
+{%- set stats = [
+	{"number": (frappe.utils.date_diff(frappe.utils.nowdate(), church.founding_date) // 365) if church.founding_date else 0, "label": _("Years serving")},
+	{"number": frappe.db.count("Ministry", {"publish": 1}), "label": _("Ministries")},
+	{"number": frappe.db.count("Missionary", {"publish": 1}), "label": _("Missionaries supported")},
+	{"number": frappe.db.count("Sermon", {"publish": 1}), "label": _("Sermons online")},
+] | selectattr("number") | list -%}
+
+<section class="home-hero">
+	<div class="home-hero-copy">
+		<h1 class="home-title">
+			{{ _("Welcome to") }} <span class="home-title-accent">{{ church.church_name }}</span>
+		</h1>
+		{% if church.mission_statement %}
+		<p class="home-lead">{{ church.mission_statement }}</p>
+		{% endif %}
+		<div class="home-cta-row">
+			<a class="btn btn-primary btn-lg" href="/calendar">{{ _("See the calendar") }} &rarr;</a>
+			<a class="btn btn-lg home-btn-ghost" href="/contact">{{ _("Get in touch") }} &rarr;</a>
+		</div>
+	</div>
+
+	{% if upcoming %}
+	{%- set next_up = upcoming[0] -%}
+	<aside class="card home-aside">
+		<div class="card-body">
+			<div class="home-aside-label">{{ _("Next gathering") }}</div>
+			<div class="home-aside-title">{{ next_up.function_name or next_up.title }}</div>
+			<div class="home-aside-when">
+				{{ frappe.utils.format_date(next_up.start_date, "EEEE, d MMMM") }}
+				{%- if not next_up.all_day and next_up.start_time %} · {{ frappe.utils.format_time(next_up.start_time, "h:mm a") }}{% endif -%}
+			</div>
+			{% if next_up.description %}
+			<p class="home-aside-text">{{ next_up.description }}</p>
+			{% endif %}
+			{% if address_line %}
+			<div class="home-aside-where">📍 {{ address_line }}</div>
+			{% endif %}
+			<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>
+		</div>
+	</aside>
+	{% endif %}
+</section>
+
+{% if stats %}
+<div class="card home-stats">
+	{% for stat in stats %}
+	<div class="home-stat">
+		<div class="home-stat-number">{{ stat.number }}</div>
+		<div class="home-stat-label">{{ stat.label }}</div>
+	</div>
+	{% endfor %}
 </div>
+{% endif %}
+
+{% if sermons or upcoming %}
+<section class="home-section home-split">
+	{% if sermons %}
+	{%- set latest = sermons[0] -%}
+	<div class="card home-panel">
+		<div class="card-body">
+			<span class="home-eyebrow">🎧 {{ _("Latest message") }}</span>
+			<h3 class="home-panel-title">{{ latest.title }}</h3>
+			{% if latest.prepared_by %}
+			<div class="home-panel-meta">{{ frappe.db.get_value("Person", latest.prepared_by, "full_name") }}</div>
+			{% endif %}
+			{% if latest.notes %}
+			{#- the opening paragraph is the summary; the rest is the outline, which glues together badly -#}
+			<p class="home-panel-text">{{ latest.notes.split("</p>")[0] | striptags | truncate(180, False, "…") }}</p>
+			{% endif %}
+			{% if latest.audio_recording %}
+			<audio controls preload="none"><source src="{{ latest.audio_recording }}"></audio>
+			{% endif %}
+			<a class="home-aside-link" href="/sermons">{{ _("Browse all sermons") }} &rarr;</a>
+		</div>
+	</div>
+	{% endif %}
+
+	{% if upcoming %}
+	<div class="card home-panel">
+		<div class="card-body">
+			<span class="home-eyebrow">📅 {{ _("Upcoming") }}</span>
+			<ul class="home-schedule">
+				{% for event in upcoming %}
+				<li>
+					<span class="home-schedule-date">{{ frappe.utils.format_date(event.start_date, "EEE, d MMM") }}</span>
+					<span class="home-schedule-name">{{ event.function_name or event.title }}</span>
+					{% if not event.all_day and event.start_time %}
+					<span class="home-schedule-time">{{ frappe.utils.format_time(event.start_time, "h:mm a") }}</span>
+					{% endif %}
+				</li>
+				{% endfor %}
+			</ul>
+			<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>
+		</div>
+	</div>
+	{% endif %}
+</section>
+{% endif %}
 {% else %}
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">

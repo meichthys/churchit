@@ -1,7 +1,7 @@
 import frappe
 from frappe.query_builder.functions import Count
 
-from churchit.query import CurDate, Month, Week
+from churchit.query import falls_this_week
 
 
 @frappe.whitelist()
@@ -13,8 +13,7 @@ def get_count():
 		.select(Count("*"))
 		.where(
 			Person.anniversary.isnotnull()
-			& (Week(Person.anniversary, 1) == Week(CurDate(), 1))
-			& (Month(Person.anniversary) == Month(CurDate()))
+			& falls_this_week(Person.anniversary)
 			& (Person.is_head_of_household == 1)
 		)
 		.run()[0][0]

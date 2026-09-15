@@ -1,5 +1,5 @@
-// Copyright (c) 2025, meichthys and contributors
-// For license information, please see license.txt
+// This source code is freely given for the sake of the gospel (Matthew 10:8)
+// and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Meeting Minutes", {
 	function(frm) {
@@ -7,7 +7,10 @@ frappe.ui.form.on("Meeting Minutes", {
 		frappe.db.get_doc("Function", frm.doc.function).then((fn) => {
 			const attendance = fn.attendance || [];
 			if (!attendance.length) {
-				frappe.show_alert({ message: __("No attendees found on that function."), indicator: "orange" });
+				frappe.show_alert({
+					message: __("No attendees found on that function."),
+					indicator: "orange",
+				});
 				return;
 			}
 			// Merge: add anyone not already in the attendees table
@@ -22,9 +25,15 @@ frappe.ui.form.on("Meeting Minutes", {
 			});
 			if (added) {
 				frm.refresh_field("attendees");
-				frappe.show_alert({ message: __("{0} attendee(s) added from function.", [added]), indicator: "green" });
+				frappe.show_alert({
+					message: __("{0} attendee(s) added from function.", [added]),
+					indicator: "green",
+				});
 			} else {
-				frappe.show_alert({ message: __("All function attendees are already listed."), indicator: "blue" });
+				frappe.show_alert({
+					message: __("All function attendees are already listed."),
+					indicator: "blue",
+				});
 			}
 		});
 	},

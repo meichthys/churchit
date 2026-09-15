@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 """Hygiene tests for church reports.
 
@@ -10,9 +10,9 @@ Verifies a small set of conventions across all reports:
 - each report has a `<name>.json` describing it
 
 Designed to fail loudly so future report contributors notice when they
-skip the convention; the helper isn't strictly required for HTML-rendered
-reports (those format links themselves), so this test treats reports
-returning HTML fieldtype columns as exempt.
+skip the convention. Two kinds of report are exempt: HTML-rendered reports
+format their own clickable cells, and reports with no Link or Dynamic Link
+columns have nothing for the helper to resolve.
 """
 
 import os
@@ -43,8 +43,11 @@ class TestReportsHygiene(FrappeTestCase):
 			# HTML-rendered reports format their own clickable cells, so are exempt
 			if re.search(r'"fieldtype":\s*"HTML"', body):
 				continue
+			# Nothing to resolve without a Link column
+			if not re.search(r'"fieldtype":\s*"(Dynamic )?Link"', body):
+				continue
 			missing.append(os.path.relpath(path, REPORTS_DIR))
 		assert not missing, (
-			"These script reports neither call churchit.utils.set_report_link_titles "
-			"nor render HTML column types: " + ", ".join(missing)
+			"These script reports have Link columns but do not call "
+			"churchit.utils.set_report_link_titles: " + ", ".join(missing)
 		)

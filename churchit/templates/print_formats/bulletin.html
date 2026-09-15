@@ -1,0 +1,206 @@
+{#- A half-fold bulletin on landscape Letter sheets. Sheet 1 is the outside
+    (back | front), sheet 2 the inside (left | right); print double-sided and
+    flip on the short edge. Each sermon handout adds a sheet printed twice,
+    to cut into two half-page inserts. -#}
+<style>
+  @page { size: Letter landscape; margin: 0; }
+  .print-format { page-size: Letter; orientation: Landscape; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; min-height: 0; padding: 0; }
+  .bulletin { font-family: Georgia, "Times New Roman", serif; font-size: 10pt; line-height: 1.35; color: #222; }
+  .bulletin p { margin: 0 0 6pt; }
+  .bulletin-sheet { position: relative; width: 11in; height: 8.5in; overflow: hidden; background: white; }
+  .bulletin-sheet.turn { page-break-after: always; }
+  .bulletin-panel { position: absolute; top: 0; width: 4.7in; height: 7.6in; padding: 0.45in 0.4in; overflow: hidden; }
+  .bulletin-panel.left { left: 0; }
+  .bulletin-panel.right { left: 5.5in; }
+  .bulletin-cut { position: absolute; top: 0.2in; bottom: 0.2in; left: 5.5in; border-left: 1px dashed #bbb; z-index: 1; }
+  .bulletin h2 { font-size: 11pt; color: #2a4a85; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #c8a96a; padding-bottom: 2pt; margin: 12pt 0 5pt; }
+  .bulletin h2:first-child { margin-top: 0; }
+  .church-name { text-align: center; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.18em; color: #2a4a85; margin-bottom: 0.25in; }
+  .cover-image { max-height: 3.8in; overflow: hidden; margin-bottom: 0.3in; }
+  .cover-image img { width: 100%; display: block; }
+  .cover-title { text-align: center; font-size: 22pt; line-height: 1.15; color: #2a4a85; margin: 0 0 6pt; }
+  .cover-date { text-align: center; font-size: 12pt; font-style: italic; color: #666; }
+  .cover-verse { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-style: italic; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .cover-verse .reference { display: block; font-style: normal; font-size: 9pt; color: #2a4a85; margin-top: 3pt; }
+  .rows { border-collapse: collapse; width: 100%; }
+  .rows td { vertical-align: top; padding: 2pt 4pt 2pt 0 !important; }
+  .rows td.when { white-space: nowrap; color: #666; width: 1.1in; }
+  .rows .entry-detail { color: #666; font-size: 9pt; }
+  .role { margin-bottom: 4pt; }
+  .role .entry-title { font-weight: bold; }
+  .ministry { margin-bottom: 4pt; }
+  .ministry .entry-title { font-weight: bold; }
+  .ministry .entry-detail { color: #666; font-size: 9pt; }
+  .missionary { overflow: hidden; }
+  .missionary img { float: left; width: 1in; margin: 0 8pt 4pt 0; }
+  .missionary .entry-title { font-weight: bold; }
+  .missionary .entry-detail { color: #666; font-size: 9pt; }
+  .contact { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-size: 9pt; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .contact .entry-title { font-weight: bold; font-size: 10pt; color: #2a4a85; }
+  .handout h3 { font-size: 14pt; color: #2a4a85; margin: 0 0 2pt; }
+  .handout .meta { font-style: italic; color: #666; margin-bottom: 10pt; }
+  .handout .content { line-height: 1.7; }
+</style>
+
+{%- macro section(title) -%}
+  <h2>{{ title }}</h2>
+{%- endmacro -%}
+
+{%- macro celebration_rows(rows) -%}
+  <table class="rows">
+    {%- for row in rows %}
+    <tr><td class="when">{{ row.day }}</td><td>{{ row.name | e }}</td></tr>
+    {%- endfor %}
+  </table>
+{%- endmacro -%}
+
+{%- set contact = doc.contact_information -%}
+{%- set order_of_worship = doc.order_of_worship if doc.show_order_of_worship else [] -%}
+{%- set church_roles = doc.church_roles if doc.show_church_roles else [] -%}
+{%- set upcoming = doc.upcoming_functions if doc.show_upcoming_functions else [] -%}
+{%- set ministries = doc.ministries if doc.show_ministries else [] -%}
+{%- set missionary = doc.featured_missionary if doc.show_missionary else None -%}
+{%- set prayer_requests = doc.prayer_requests if doc.show_prayer_requests else [] -%}
+{%- set birthdays = doc.birthdays if doc.show_birthdays else [] -%}
+{%- set anniversaries = doc.anniversaries if doc.show_anniversaries else [] -%}
+{%- set handouts = doc.sermon_handouts if doc.show_sermon_handout else [] -%}
+{%- set verse = doc.verse_of_the_week -%}
+
+<div class="bulletin">
+
+  {#- Sheet 1, the outside: back cover on the left, front cover on the right. -#}
+  <div class="bulletin-sheet turn">
+    <div class="bulletin-panel left">
+      {%- if ministries %}
+      {{ section(_("Ministries")) }}
+      {%- for ministry in ministries %}
+      <div class="ministry">
+        <span class="entry-title">{{ ministry.ministry_name | e }}</span>
+        {%- if ministry.mission_statement %}<div class="entry-detail">{{ ministry.mission_statement | e }}</div>{% endif %}
+      </div>
+      {%- endfor %}
+      {%- endif %}
+
+      {%- if church_roles %}
+      {{ section(_("Church Leadership")) }}
+      {%- for role in church_roles %}
+      <div class="role"><span class="entry-title">{{ role.role | e }}:</span> {{ role.people | join(", ") | e }}</div>
+      {%- endfor %}
+      {%- endif %}
+
+      {%- if doc.show_contact_information %}
+      <div class="contact">
+        <div class="entry-title">{{ contact.name | e }}</div>
+        {%- if contact.address %}<div>{{ contact.address | e }}</div>{% endif %}
+        <div>
+          {%- if contact.phone %}{{ contact.phone | e }}{% endif %}
+          {%- if contact.phone and contact.email %} &middot; {% endif %}
+          {%- if contact.email %}{{ contact.email | e }}{% endif %}
+        </div>
+        {%- if contact.website %}<div>{{ contact.website | e }}</div>{% endif %}
+      </div>
+      {%- endif %}
+    </div>
+
+    <div class="bulletin-panel right">
+      <div class="church-name">{{ contact.name | e }}</div>
+      {%- if doc.cover_image %}
+      <div class="cover-image"><img src="{{ doc.cover_image }}"></div>
+      {%- endif %}
+      <h1 class="cover-title">{{ doc.function_name | e }}</h1>
+      <div class="cover-date">{{ frappe.utils.formatdate(doc.function_date, "EEEE, MMMM d, yyyy") }}</div>
+      {%- if verse %}
+      <div class="cover-verse">
+        {%- if verse.reference_text %}&ldquo;{{ verse.reference_text | e }}&rdquo;{% endif %}
+        <span class="reference">{{ verse.reference | e }}</span>
+      </div>
+      {%- endif %}
+    </div>
+  </div>
+
+  {#- Sheet 2, the inside. -#}
+  <div class="bulletin-sheet{% if handouts %} turn{% endif %}">
+    <div class="bulletin-panel left">
+      {%- if doc.welcome %}
+      {{ section(_("Welcome")) }}
+      {{ doc.welcome }}
+      {%- endif %}
+
+      {%- if order_of_worship %}
+      {{ section(_("Order of Worship")) }}
+      <table class="rows">
+        {%- for item in order_of_worship %}
+        <tr>
+          <td class="when">{{ item.time or "" }}</td>
+          <td>{{ item.title | e }}{% if item.detail %}<div class="entry-detail">{{ item.detail | e }}</div>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </table>
+      {%- endif %}
+
+      {%- if prayer_requests %}
+      {{ section(_("Prayer Requests")) }}
+      <table class="rows">
+        {%- for row in prayer_requests %}
+        <tr><td>{{ row.title | e }}{% if row.recipient_name %} <span class="entry-detail">&mdash; {{ _("for") }} {{ row.recipient_name | e }}</span>{% endif %}</td></tr>
+        {%- endfor %}
+      </table>
+      {%- endif %}
+    </div>
+
+    <div class="bulletin-panel right">
+      {%- if doc.announcements %}
+      {{ section(_("Announcements")) }}
+      {{ doc.announcements }}
+      {%- endif %}
+
+      {%- if upcoming %}
+      {{ section(_("Upcoming")) }}
+      <table class="rows">
+        {%- for function in upcoming %}
+        <tr><td class="when">{{ function.day }}</td><td>{{ function.name | e }}{% if function.time %} <span class="entry-detail">{{ function.time }}</span>{% endif %}</td></tr>
+        {%- endfor %}
+      </table>
+      {%- endif %}
+
+      {%- if birthdays %}
+      {{ section(_("Birthdays")) }}
+      {{ celebration_rows(birthdays) }}
+      {%- endif %}
+
+      {%- if anniversaries %}
+      {{ section(_("Anniversaries")) }}
+      {{ celebration_rows(anniversaries) }}
+      {%- endif %}
+
+      {%- if missionary %}
+      {{ section(_("Missionary of the Week")) }}
+      <div class="missionary">
+        {%- if missionary.photo %}<img src="{{ missionary.photo }}">{% endif %}
+        <div class="entry-title">{{ missionary.title | e }}</div>
+        {%- if missionary.where %}<div class="entry-detail">{{ missionary.where | e }}</div>{% endif %}
+        {%- if missionary.mission_statement %}<p>{{ missionary.mission_statement | e }}</p>{% endif %}
+      </div>
+      {%- endif %}
+    </div>
+  </div>
+
+  {#- One sheet per sermon handout, printed twice to cut into two inserts. -#}
+  {%- for entry in handouts %}
+  <div class="bulletin-sheet{% if not loop.last %} turn{% endif %}">
+    <div class="bulletin-cut"></div>
+    {%- for side in ("left", "right") %}
+    <div class="bulletin-panel {{ side }} handout">
+      {{ section(_("Sermon Notes")) }}
+      <h3>{{ entry.sermon.title | e }}</h3>
+      <div class="meta">
+        {%- if entry.preacher %}{{ entry.preacher | e }} &middot; {% endif -%}
+        {{ frappe.utils.formatdate(doc.function_date, "MMMM d, yyyy") }}
+      </div>
+      <div class="content">{{ entry.handout.rendered_content }}</div>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- endfor %}
+
+</div>

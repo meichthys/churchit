@@ -14,8 +14,20 @@ def get_columns():
 	return [
 		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 220},
 		{"fieldname": "visit_date", "fieldtype": "Date", "label": "Visit Date", "width": 100},
-		{"fieldname": "visit_type", "fieldtype": "Link", "label": "Visit Type", "options": "Visit Type", "width": 130},
-		{"fieldname": "visited_by", "fieldtype": "Link", "label": "Visited By", "options": "Person", "width": 160},
+		{
+			"fieldname": "visit_type",
+			"fieldtype": "Link",
+			"label": "Visit Type",
+			"options": "Visit Type",
+			"width": 130,
+		},
+		{
+			"fieldname": "visited_by",
+			"fieldtype": "Link",
+			"label": "Visited By",
+			"options": "Person",
+			"width": 160,
+		},
 		{"fieldname": "status", "fieldtype": "Data", "label": "Status", "width": 100},
 		{"fieldname": "notes", "fieldtype": "Data", "label": "Notes", "width": 320},
 	]

@@ -19,7 +19,13 @@ def get_columns():
 	return [
 		{"fieldname": "name", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 220},
 		{"fieldname": "creation", "fieldtype": "Date", "label": "First Seen", "width": 120},
-		{"fieldname": "first_visit", "fieldtype": "Link", "label": "First Function", "options": "Function", "width": 200},
+		{
+			"fieldname": "first_visit",
+			"fieldtype": "Link",
+			"label": "First Function",
+			"options": "Function",
+			"width": 200,
+		},
 		{"fieldname": "first_visit_date", "fieldtype": "Date", "label": "First Visit", "width": 110},
 		{"fieldname": "visit_count", "fieldtype": "Int", "label": "Visits", "width": 80},
 		{"fieldname": "primary_phone", "fieldtype": "Data", "label": "Phone", "width": 130},
@@ -44,9 +50,7 @@ def get_data(filters=None):
 
 	first_visit = attended().select(Attendance.parent).orderby(Function.start_date).limit(1)
 	first_visit_date = attended().select(Min(Function.start_date))
-	visit_count = (
-		frappe.qb.from_(Attendance).select(Count("*")).where(Attendance.person == Person.name)
-	)
+	visit_count = frappe.qb.from_(Attendance).select(Count("*")).where(Attendance.person == Person.name)
 
 	return (
 		frappe.qb.from_(Person)

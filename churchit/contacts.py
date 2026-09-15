@@ -1,5 +1,5 @@
-# Copyright (c) 2026, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 """Shared helpers for the multi-value contact tables.
 
@@ -70,9 +70,7 @@ def create_default_contact_types():
 			continue
 		for type_name in defaults:
 			if not frappe.db.exists(doctype, type_name):
-				frappe.get_doc({"doctype": doctype, "type": type_name}).insert(
-					ignore_permissions=True
-				)
+				frappe.get_doc({"doctype": doctype, "type": type_name}).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -291,9 +289,7 @@ def _reject_duplicates(rows, value_field, label):
 		key = value.lower() if isinstance(value, str) else value
 		if key in seen:
 			frappe.throw(
-				_("{0} is listed twice. Please remove the duplicate {1}.").format(
-					frappe.bold(value), label
-				),
+				_("{0} is listed twice. Please remove the duplicate {1}.").format(frappe.bold(value), label),
 				title=_("Duplicate {0}").format(label.title()),
 			)
 		seen.add(key)

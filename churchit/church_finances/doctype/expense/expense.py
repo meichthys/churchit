@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.model.document import Document
@@ -33,9 +33,9 @@ class Expense(Document):
 			)
 
 	def on_trash(self):
-		# Prevent deletion unless the document is cancelled, so an Expense can't be
-		# removed while it is still reducing a Fund balance.
-		if not self.docstatus == 2:  # 2 is Cancelled
+		# A submitted Expense is still reducing its Fund balance, so it has to be
+		# cancelled first. A draft never touched the balance.
+		if self.docstatus == 1:
 			frappe.throw("❌ You must cancel this Expense before deleting it.")
 
 	def on_cancel(self):

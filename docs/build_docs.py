@@ -110,10 +110,10 @@ def build():
 		label = module.replace("Church ", "")
 		sidebar.append(f'<a href="#{slug}"><span aria-hidden="true">{emoji}</span> {label}</a>')
 		sections.append(
-			f'''<article class="glass doc-section reveal" id="{slug}">
+			f"""<article class="glass doc-section reveal" id="{slug}">
           <h2><span aria-hidden="true">{emoji}</span> {label} <span class="doc-badge">Manual</span></h2>
           {render_blocks(blocks)}
-        </article>'''
+        </article>"""
 		)
 
 	html = TEMPLATE.replace("{sidebar}", "\n        ".join(sidebar)).replace(

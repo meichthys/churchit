@@ -47,7 +47,10 @@
 							})
 							.then((rr) => {
 								if (rr && !rr.exc) {
-									frappe.show_alert({ message: __("Joined!"), indicator: "green" }, 3);
+									frappe.show_alert(
+										{ message: __("Joined!"), indicator: "green" },
+										3
+									);
 									dialog.hide();
 									setTimeout(() => window.location.reload(), 700);
 								}

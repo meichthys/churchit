@@ -10,6 +10,8 @@
   "end_date",
   "column_break_1",
   "budgeted_amount",
+  "section_break_status",
+  "status_html",
   "section_break_lines",
   "lines",
   "section_break_notes",
@@ -42,6 +44,17 @@
    "in_preview": 1,
    "label": "Total Budgeted",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "status_html",
+   "fieldtype": "HTML",
+   "label": "Status"
   },
   {
    "fieldname": "section_break_lines",

@@ -1,0 +1,173 @@
+{
+ "actions": [],
+ "autoname": "format:BGC-{####}",
+ "creation": "2026-09-14 00:00:00",
+ "description": "A background check or clearance run on a Person, recorded from whichever screening provider the church uses. Tracks the request, the result, and when it expires.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "person",
+  "person_name",
+  "check_type",
+  "column_break_1",
+  "status",
+  "provider",
+  "reference",
+  "dates_section",
+  "requested_on",
+  "completed_on",
+  "column_break_2",
+  "expires_on",
+  "result_section",
+  "report",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "person.full_name",
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Person Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "check_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Check Type",
+   "options": "Background Check Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Requested",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Requested\nPending\nCleared\nNot Cleared\nExpired",
+   "reqd": 1
+  },
+  {
+   "description": "The screening service that ran the check (e.g. Protect My Ministry, Checkr, a state portal).",
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Provider"
+  },
+  {
+   "description": "The provider's report or order number, so the result can be found on their site.",
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference Number"
+  },
+  {
+   "fieldname": "dates_section",
+   "fieldtype": "Section Break",
+   "label": "Dates"
+  },
+  {
+   "default": "Today",
+   "fieldname": "requested_on",
+   "fieldtype": "Date",
+   "label": "Requested On",
+   "reqd": 1
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "mandatory_depends_on": "eval:['Cleared', 'Not Cleared', 'Expired'].includes(doc.status)"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Filled in from the check type's validity when left blank.",
+   "fieldname": "expires_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Expires On"
+  },
+  {
+   "fieldname": "result_section",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "report",
+   "fieldtype": "Attach",
+   "label": "Report"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-14 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Background Check",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church User",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "person_name,check_type,provider",
+ "show_title_field_in_link": 1,
+ "sort_field": "requested_on",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "person_name",
+ "track_changes": 1
+}

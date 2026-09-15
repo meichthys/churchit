@@ -1,5 +1,5 @@
-# Copyright (c) 2025, meichthys and Contributors
-# See license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe.exceptions import ValidationError
@@ -28,6 +28,16 @@ class TestExpense(FrappeTestCase):
 		fund.save(ignore_permissions=True)
 		frappe.db.commit()
 
+	def tearDown(self):
+		# setUp's commit() flushes whatever the previous test left uncommitted, so an
+		# Expense created in a test body can otherwise persist permanently in the site
+		# database. Cancel and delete explicitly rather than rely on rollback.
+		for name in frappe.get_all("Expense", filters={"type": self.expense_type}, pluck="name"):
+			if frappe.db.get_value("Expense", name, "docstatus") == 1:
+				frappe.get_doc("Expense", name).cancel()
+			frappe.db.delete("Expense", {"name": name})
+		frappe.db.commit()
+
 	def _make_expense(self, amount=100, **values):
 		return frappe.get_doc(
 			{
@@ -54,10 +64,18 @@ class TestExpense(FrappeTestCase):
 		expense.cancel()
 		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
 
-	def test_uncancelled_expense_cannot_be_deleted(self):
+	def test_submitted_expense_cannot_be_deleted(self):
 		expense = self._make_expense()
+		expense.submit()
 		with self.assertRaises(ValidationError):
 			expense.delete()
+
+	def test_draft_expense_can_be_deleted(self):
+		# A draft never reduced the fund, and cannot be cancelled, so blocking it
+		# would leave it undeletable for good.
+		expense = self._make_expense()
+		expense.delete()
+		self.assertFalse(frappe.db.exists("Expense", expense.name))
 
 	def test_cancelled_expense_can_be_deleted(self):
 		expense = self._make_expense()

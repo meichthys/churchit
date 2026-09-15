@@ -1,5 +1,5 @@
-# Copyright (c) 2026, meichthys and contributors
-# For license information, please see license.txt
+# This source code is freely given for the sake of the gospel (Matthew 10:8)
+# and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
 from frappe import _
@@ -112,9 +112,7 @@ def start_donation(amount, fund, payment_gateway=None, donor_name=None, email=No
 		controller.validate_transaction_currency(currency)
 
 	payer_email = email or (None if frappe.session.user == "Guest" else frappe.session.user)
-	payer_name = donor_name or (
-		None if frappe.session.user == "Guest" else get_fullname(frappe.session.user)
-	)
+	payer_name = donor_name or (None if frappe.session.user == "Guest" else get_fullname(frappe.session.user))
 
 	return controller.get_payment_url(
 		**{

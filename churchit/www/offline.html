@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+{#- A whole document rather than a web.html page: the service worker caches
+    this at install, before any stylesheet or bundle is, so it has to stand on
+    its own. head_html brings the theme script, which sets data-theme. -#}
+<html lang="{{ boot.lang }}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>{{ title }}</title>
+	{{ head_html or "" }}
+	<style>
+		:root {
+			--bg: #eef1fb;
+			--fg: #0f172a;
+			--muted: #64748b;
+			--brand: #4338ca;
+		}
+		[data-theme="dark"] {
+			--bg: #0b1020;
+			--fg: #f8fafc;
+			--muted: #94a3b8;
+			--brand: #a5b4fc;
+		}
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 1.5rem;
+			box-sizing: border-box;
+			font-family: InterVariable, Inter, -apple-system, system-ui, sans-serif;
+			background: var(--bg);
+			color: var(--fg);
+			text-align: center;
+		}
+		img {
+			width: 96px;
+			height: 96px;
+			border-radius: 22%;
+		}
+		h1 {
+			font-size: 1.5rem;
+			letter-spacing: -0.02em;
+			margin: 1rem 0 0.5rem;
+		}
+		p {
+			color: var(--muted);
+			margin: 0 0 1.5rem;
+		}
+		button {
+			font: inherit;
+			font-weight: 650;
+			color: #fff;
+			background: var(--brand);
+			border: 0;
+			border-radius: 999px;
+			padding: 0.75rem 1.5rem;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<main>
+		<img src="/assets/churchit/icons/pwa/icon-192.png" alt="">
+		<h1>{{ _("You're offline") }}</h1>
+		<p>{{ _("{0} needs a connection to load this page.").format(title) }}</p>
+		<button type="button" onclick="location.reload()">{{ _("Try again") }}</button>
+	</main>
+</body>
+</html>

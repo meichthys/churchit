@@ -1,177 +1,258 @@
 /* ==========================================================================
-   churchit — public website skin
-   Mirrors the docs/ marketing site design system (Inter type, indigo→violet
-   accent, frosted glass surfaces) by restyling the Bootstrap card markup the
-   Web Page templates already use. Loaded site-wide via web_include_css.
+   churchit — page layout shared by every website theme
+   Structure for the pages this app renders (home landing page, portal,
+   sermon series, missions map) plus two fixes for frappe's web template.
+   Colours come only from frappe's tokens (--primary-color, --heading-color,
+   --text-muted, --border-color, ...), so a page follows whichever Website
+   Theme is active. The Churchit theme's look lives in scss/website.scss.
    ========================================================================== */
 
-:root {
-  --ch-brand:      #6366f1; /* indigo-500 */
-  --ch-brand-2:    #8b5cf6; /* violet-500 */
-  --ch-brand-3:    #ec4899; /* pink-500   */
-  --ch-brand-ink:  #4338ca;
-
-  --ch-ink:        #0f172a; /* slate-900 */
-  --ch-body:       #334155; /* slate-700 */
-  --ch-muted:      #64748b; /* slate-500 */
-  --ch-line:       rgba(15, 23, 42, 0.08);
-
-  --ch-glass:      rgba(255, 255, 255, 0.55);
-  --ch-glass-2:    rgba(255, 255, 255, 0.72);
-  --ch-glass-brd:  rgba(255, 255, 255, 0.6);
-  --ch-glass-shdw: 0 8px 40px -12px rgba(30, 27, 75, 0.28);
-
-  --ch-radius:     18px;
-  --ch-grad:       linear-gradient(120deg, var(--ch-brand) 0%, var(--ch-brand-2) 50%, var(--ch-brand-3) 100%);
+/* ---- Breadcrumbs ------------------------------------------------------------
+   Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
+   Account), but hide them on Web Page documents and the Contact Us page,
+   where the lone "Home" crumb is clutter. */
+.page-content-wrapper:has(.web-page-content) .page-breadcrumbs,
+.page-content-wrapper:has(.contact-content) .page-breadcrumbs {
+  display: none;
 }
 
-body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--ch-body);
-  background: #eef1fb;
-}
-
-/* Aurora mesh backdrop — fixed so glass surfaces always have something to blur */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20vmax;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38vmax 38vmax at 12% 8%,  rgba(99,102,241,0.7), transparent 60%),
-    radial-gradient(36vmax 36vmax at 88% 4%,  rgba(236,72,153,0.55), transparent 60%),
-    radial-gradient(44vmax 44vmax at 78% 82%, rgba(139,92,246,0.65), transparent 62%),
-    radial-gradient(40vmax 40vmax at 8% 92%,  rgba(56,189,248,0.55), transparent 60%);
-  filter: saturate(1.3);
-}
-
-h1, h2, h3, h4, .page-header h1 {
-  color: var(--ch-ink);
-  letter-spacing: -0.02em;
-  font-weight: 800;
-}
-
-/* page titles in the gradient brand ink, like the docs headlines.
-   Web Pages put the title in .page-header; the about page renders a
-   hero block, and give/contact write their own h1. */
-.page-header h1,
-.about-content .hero-title,
-.contact-content h1,
-.give-page h1,
-.portal-home h1 {
-  background: var(--ch-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  display: inline-block;
-}
-
-/* Frosted navbar + footer */
-.navbar {
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  background: rgba(255, 255, 255, 0.6) !important;
-  border-bottom: 1px solid var(--ch-line);
-}
-.web-footer {
-  background: transparent;
-  border-top: 1px solid var(--ch-line);
-}
-
-/* ---- Glass cards (skins the templates' Bootstrap cards) ------------------ */
-.page_content .card {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-/* gradient accent bar along the top of every card */
-.page_content .card::before {
-  content: "";
-  display: block;
-  height: 4px;
-  background: var(--ch-grad);
-}
-.page_content .card:hover {
-  box-shadow: 0 14px 44px -16px rgba(67, 56, 202, 0.5);
-}
-.page_content .card-header {
-  background: linear-gradient(120deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
-  border-bottom: 1px solid var(--ch-line);
-  color: var(--ch-brand-ink);
-  font-size: 1.05rem;
-  padding: 1rem 1.25rem;
-}
-.page_content .card-footer {
-  background: rgba(139, 92, 246, 0.06);
-  border-top: 1px solid var(--ch-line);
-  border-radius: 0 0 var(--ch-radius) var(--ch-radius);
-}
-.page_content .card img {
-  max-width: 100%;
-  border-radius: 12px;
-}
 .web-page-content audio {
   width: 100%;
 }
 
-/* ---- Buttons: gradient pills like the docs site -------------------------- */
-.page_content .btn-primary {
-  color: #fff;
-  background: var(--ch-grad);
-  border: none;
-  border-radius: 999px;
-  font-weight: 650;
-  box-shadow: 0 10px 30px -8px rgba(99, 102, 241, 0.6);
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-}
-.page_content .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
+/* ---- Navbar menu button -----------------------------------------------------
+   frappe's navbar strips the stroke from the toggler icon, a rule from its
+   filled icon set; the lucide menu icon it ships now is stroke-only, so on a
+   phone the button that holds the whole nav painted nothing. */
+.navbar-light .navbar-toggler .icon {
+  stroke: var(--icon-stroke);
 }
 
-/* ---- Breadcrumbs ------------------------------------------------------------
-   Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
-   Account), but hide them on Web Page documents where the lone "Home" crumb
-   is clutter. */
-.page-content-wrapper:has(.web-page-content) .page-breadcrumbs {
+/* ---- Space before the footer ------------------------------------------------
+   frappe's <main> has no bottom spacing, so the gap above the footer was
+   whatever margin the page's last element happened to have: none on the
+   home page. Give every page the same one. */
+.page-content-wrapper > main {
+  padding-bottom: 3rem;
+}
+
+/* ---- Footer ---------------------------------------------------------------
+   templates/includes/footer/footer.html: church name and founding year on
+   the left, copyright in the middle, phone and address on the right, then
+   the footer links centred underneath. Replaces frappe's stacked logo /
+   link / info blocks, which sit in 3rem of padding and a 140px minimum
+   height even when empty. That minimum was also what kept frappe's flex
+   body from squashing the footer under a tall page. */
+.web-footer {
+  padding: 2rem 0 1.5rem;
+  min-height: 0;
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.web-footer .footer-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 1rem 2rem;
+}
+.web-footer .footer-identity {
+  grid-column: 1;
+}
+.web-footer .footer-copyright {
+  grid-column: 2;
+  align-self: center;
+  text-align: center;
+}
+.web-footer .footer-contact {
+  grid-column: 3;
+  text-align: right;
+}
+.web-footer .footer-church-name {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--heading-color);
+}
+.web-footer .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+.web-footer .footer-links:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.web-footer .footer-top a,
+.web-footer .footer-link {
+  color: var(--text-muted);
+}
+.web-footer .footer-link {
+  font-weight: 500;
+}
+.web-footer .footer-top a:hover,
+.web-footer .footer-link:hover {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+@media (max-width: 575.98px) {
+  .web-footer .footer-top {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .web-footer .footer-identity,
+  .web-footer .footer-copyright,
+  .web-footer .footer-contact {
+    grid-column: 1;
+    text-align: center;
+  }
+  .web-footer .footer-copyright {
+    order: 1;
+  }
+}
+/* ---- Light/dark switch and dark mode ----------------------------------------
+   theme_mode.js sets data-theme on <html>. frappe's website bundle flips only
+   its Espresso surface/ink tokens for that attribute and leaves bootstrap's
+   compiled colours alone, so this maps the tokens the layouts and frappe's own
+   pages read onto that dark palette and re-skins the bootstrap parts the site
+   uses. Moon means "go dark", sun means "go light". */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.theme-switch-sun,
+[data-theme="dark"] .theme-switch-moon {
   display: none;
 }
+[data-theme="dark"] .theme-switch-sun {
+  display: inline;
+}
 
-/* ---- Full-page glass panels (frappe about/contact + churchit give) -------- */
-.about-content,
-.contact-content,
-.give-page {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  padding: 1.5rem 1.75rem;
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-color: var(--surface-white);
+  --fg-color: var(--surface-cards);
+  --card-bg: var(--surface-cards);
+  --subtle-fg: var(--surface-gray-1);
+  --subtle-accent: var(--surface-gray-2);
+  --control-bg: var(--surface-gray-1);
+  --heading-color: var(--ink-gray-9);
+  --text-color: var(--ink-gray-8);
+  --text-muted: var(--ink-gray-7);
+  --text-light: var(--ink-gray-6);
+  --border-color: var(--outline-gray-2);
+  --dark-border-color: var(--outline-gray-3);
+  --bg-light-gray: var(--subtle-fg);
+  --primary-color: var(--ink-gray-9);
+  /* the menu button and theme switch icons are stroked; frappe leaves this at
+     its light-mode gray, invisible on the dark navbar */
+  --icon-stroke: var(--ink-gray-8);
 }
-.page_content .form-control {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--ch-line);
-  border-radius: 10px;
+[data-theme="dark"] body {
+  color: var(--text-color);
+  background-color: var(--bg-color);
 }
-/* the about page is built from frappe web blocks (hero + sections) that carry
-   their own backgrounds/padding; flatten them so the glass panel shows through */
-.about-content .hero,
-.about-content .section {
-  background: transparent;
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] a,
+[data-theme="dark"] a:hover {
+  color: var(--heading-color);
 }
-.about-content .section {
-  padding: 1rem 0;
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
 }
-.about-content .hero-subtitle {
-  color: var(--ch-muted);
+[data-theme="dark"] hr {
+  border-top-color: var(--border-color);
+}
+
+/* navbar and footer */
+[data-theme="dark"] .navbar-light {
+  background: var(--bg-color);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] .navbar-light .navbar-brand,
+[data-theme="dark"] .navbar-light .navbar-brand:hover,
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link:focus,
+[data-theme="dark"] .navbar-light .navbar-nav .active > .nav-link {
+  color: var(--heading-color);
+}
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-light .navbar-toggler,
+[data-theme="dark"] .web-footer,
+[data-theme="dark"] .web-footer a {
+  color: var(--text-muted);
+}
+[data-theme="dark"] .web-footer {
+  border-top-color: var(--border-color);
+}
+
+/* surfaces, menus, controls */
+[data-theme="dark"] .card,
+[data-theme="dark"] .list-group-item,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu {
+  color: var(--text-color);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-footer {
+  background-color: var(--subtle-fg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-color);
+}
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  color: var(--heading-color);
+  background-color: var(--subtle-fg);
+}
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .custom-select,
+[data-theme="dark"] .input-group-text {
+  color: var(--text-color);
+  background-color: var(--control-bg);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .form-control:focus {
+  color: var(--heading-color);
+  background-color: var(--subtle-accent);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .btn-primary {
+  color: var(--surface-white);
+  background-color: var(--ink-gray-9);
+  border-color: var(--ink-gray-9);
+}
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-default {
+  color: var(--text-color);
+  background-color: var(--surface-gray-3);
+  border-color: var(--surface-gray-3);
+}
+[data-theme="dark"] .table {
+  color: var(--text-color);
+}
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .portal-row a {
+  color: var(--text-color);
 }
 
 /* ---- Account menu ---------------------------------------------------------
@@ -194,18 +275,213 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--ch-grad);
+  background: var(--primary-color);
   font-size: 0.95rem;
 }
 
-/* ---- Portal landing (/portal) ---------------------------------------------
-   The menu-item cards reuse .card, so the glass skin and gradient accent bar
-   apply automatically. */
+/* ---- Home landing page ------------------------------------------------------
+   The home Web Page is a landing page rather than a card grid: a two-column
+   hero, a stats strip, and panels for the latest sermon and what is coming
+   up. The panels reuse .card, so the active theme's card look applies. The
+   Web Page record sets text-align: Center on the article, so blocks that read
+   left declare it. */
+#home .home-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+}
+
+#home .home-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.5rem, 5vw, 3.5rem) 0 clamp(2rem, 5vw, 3.5rem);
+}
+/* the second column only exists when there is a gathering to put in it */
+#home .home-hero:has(.home-aside) {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+#home .home-hero-copy {
+  text-align: left;
+}
+#home .home-title {
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.12;
+  margin: 0.7rem 0 0.6rem;
+}
+#home .home-lead {
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  color: var(--text-muted);
+  max-width: 46ch;
+  margin-bottom: 0;
+}
+#home .home-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.6rem;
+}
+#home .home-btn-ghost {
+  color: var(--heading-color);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+/* hero side panel: the next gathering, or a welcome note when nothing is scheduled */
+#home .home-aside {
+  text-align: left;
+}
+#home .home-aside-label,
+#home .home-schedule-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+#home .home-aside-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  letter-spacing: -0.02em;
+  margin: 0.35rem 0 0.2rem;
+}
+#home .home-aside-when {
+  font-weight: 600;
+  color: var(--text-color);
+}
+#home .home-aside-text {
+  color: var(--text-muted);
+  margin: 0.7rem 0 0;
+}
+#home .home-aside-where {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-top: 0.7rem;
+}
+#home .home-aside-link {
+  display: inline-block;
+  margin-top: 1rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+#home .home-aside-link:hover {
+  text-decoration: underline;
+}
+
+/* stats strip — flex, not grid: a theme's card ::before accent bar would
+   occupy every auto-fit track and stop the empty ones collapsing */
+#home .home-stats {
+  display: flex;
+  /* .card is itself a column flexbox, so the direction has to be reset */
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+#home .home-stats::before {
+  flex: 0 0 100%;
+}
+#home .home-stat {
+  flex: 1 1 140px;
+  padding: 1.4rem 1rem;
+}
+#home .home-stat + .home-stat {
+  border-left: 1px solid var(--border-color);
+}
+#home .home-stat-number {
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  font-weight: 700;
+  color: var(--heading-color);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+#home .home-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#home .home-section {
+  padding: clamp(2.2rem, 6vw, 4rem) 0 0;
+}
+#home .home-split {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+#home .home-panel {
+  text-align: left;
+}
+#home .home-panel-title {
+  font-size: 1.25rem;
+  margin: 0.7rem 0 0.2rem;
+}
+#home .home-panel-meta {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+#home .home-panel-text {
+  color: var(--text-muted);
+  margin: 0.7rem 0 0;
+}
+
+#home .home-schedule {
+  list-style: none;
+  padding: 0;
+  margin: 0.9rem 0 0;
+}
+#home .home-schedule li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border-color);
+}
+#home .home-schedule li:first-child {
+  border-top: none;
+}
+#home .home-schedule-name {
+  font-weight: 600;
+  color: var(--heading-color);
+}
+#home .home-schedule-time {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  #home .home-hero:has(.home-aside) {
+    grid-template-columns: 1fr;
+  }
+  #home .home-schedule li {
+    grid-template-columns: 6.5rem 1fr;
+  }
+  #home .home-schedule-time {
+    grid-column: 2;
+  }
+}
+
+/* ---- Portal landing (/portal) --------------------------------------------- */
 .portal-home {
   padding: 1rem 0 2rem;
 }
 .portal-home .lead {
-  color: var(--ch-muted);
+  color: var(--text-muted);
   font-size: 1.1rem;
   max-width: 52ch;
 }
@@ -216,7 +492,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   margin-top: 1.5rem;
 }
 .portal-home-grid .card {
-  color: var(--ch-ink);
+  color: var(--heading-color);
   text-decoration: none;
 }
 .portal-home-grid .card:hover {
@@ -227,100 +503,97 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 .portal-card-arrow {
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   transition: transform 0.15s ease;
 }
 .portal-home-grid .card:hover .portal-card-arrow {
   transform: translateX(3px);
 }
 
-/* ---- Portal (/me and portal list views) ----------------------------------- */
-.portal-container {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-}
-.portal-container .portal-section.head .title {
-  background: var(--ch-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-.portal-container .avatar-frame {
-  background: var(--ch-grad);
-  color: #fff;
-}
-.portal-items {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid var(--ch-line);
-  border-radius: 12px;
-}
-.portal-items .portal-section {
-  border-bottom: 1px solid var(--ch-line);
-  transition: background 0.15s ease;
-}
-.portal-items .portal-section:hover {
-  background: rgba(99, 102, 241, 0.07);
-}
-.portal-section .item-link-text {
-  color: var(--ch-brand-ink);
-  font-weight: 600;
-}
-
-/* portal list pages (Prayer Requests, Alms Requests, Function Sign-Ups, ...) */
-.page_content .website-list {
-  background: var(--ch-glass);
-  border: 1px solid var(--ch-glass-brd);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: var(--ch-glass-shdw);
-  border-radius: var(--ch-radius);
-  padding: 1rem 1.5rem;
-}
-.portal-row {
-  border-bottom: 1px solid var(--ch-line);
-  transition: background 0.15s ease;
-}
-.portal-row:hover {
-  background: rgba(99, 102, 241, 0.07);
-}
-
-/* ---- Sermon series cards (moved from the sermons template) --------------- */
+/* ---- Sermon series cards (sermons template) ------------------------------- */
 .series-tag {
   font-size: 0.7em;
   font-weight: 700;
-  color: #fff;
-  background: var(--ch-grad);
+  color: var(--bg-color);
+  background: var(--primary-color);
   border-radius: 999px;
   padding: 2px 10px;
   white-space: nowrap;
 }
-.series-sermon-list li { border-bottom: 1px solid var(--ch-line); }
+.series-sermon-list li { border-bottom: 1px solid var(--border-color); }
 .series-sermon-list li:last-child { border-bottom: none; }
 .series-sermon-link {
   display: block;
   padding: 8px 6px;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   font-weight: 600;
   text-decoration: none;
   border-radius: 8px;
   transition: background 0.15s ease;
 }
 .series-sermon-link:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--ch-brand-ink);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  color: var(--primary-color);
   text-decoration: none;
 }
 .series-back {
   display: inline-block;
   margin-bottom: 6px;
-  color: var(--ch-brand-ink);
+  color: var(--primary-color);
   text-decoration: none;
+}
+
+/* ---- Missions map (missions.html) ----------------------------------------- */
+.missions-map-card {
+  margin-bottom: 2rem;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+.missions-map {
+  height: 420px;
+  width: 100%;
+  z-index: 1;
+}
+.missions-map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.missions-map-pin img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: #fff;
+}
+.missions-map-popup {
+  min-width: 140px;
+}
+.missions-map-popup-title {
+  font-weight: 600;
+  color: var(--heading-color);
+  margin-bottom: 2px;
+}
+.missions-map-popup-country {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+.missions-map-notice {
+  text-align: center;
+  margin-top: 10px;
+}
+.missions-map-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--subtle-fg);
+  color: var(--text-muted);
+  font-size: 0.8em;
+  font-weight: 600;
 }
