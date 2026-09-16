@@ -109,6 +109,8 @@ web_include_js = [
 doctype_js = {
 	# Filters the payments app's unfiltered "Gateway Settings" doctype picker.
 	"Payment Gateway": "public/js/payment_gateway.js",
+	# Offers to un-publish the Web Page behind a removed navbar/footer link.
+	"Website Settings": "public/js/website_settings.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
