@@ -4,8 +4,13 @@
 frappe.ui.form.on("Group", {
 	refresh(frm) {
 		const grid = frm.fields_dict.members.grid;
-		grid.add_custom_button(__("Email Group"), () => email_members(frm, false));
-		grid.add_custom_button(__("Email Selected"), () => email_members(frm, true));
+		// Frappe prepends custom buttons; append so "Add row" stays first.
+		grid.add_custom_button(__("Email Group"), () => email_members(frm, false)).appendTo(
+			grid.grid_buttons
+		);
+		grid.add_custom_button(__("Email Selected"), () => email_members(frm, true)).appendTo(
+			grid.grid_buttons
+		);
 
 		// Create a reusable Frappe Email Group (newsletter list) from the members
 		if (!frm.is_new()) {

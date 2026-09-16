@@ -19,6 +19,7 @@ from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 # Prayer Request comments are handled separately after this list runs.
 _DELETE_STEPS = [
 	# Leaf docs that link to functions / people / rooms — delete first.
+	(False, "Bulletin", {}),
 	(False, "Meeting Minutes", {}),
 	(False, "Room Booking", {}),
 	(False, "Church Task", {}),
@@ -52,10 +53,13 @@ _DELETE_STEPS = [
 	(False, "Vendor", {}),
 	(False, "Budget", {}),
 	(False, "Expense Type", {}),
+	(False, "Giving Statement", {}),
+	(False, "Online Donation", {}),
 	(True, "Collection", {}),
 	(False, "Fund", {}),
 	(False, "Missionary", {}),
 	(False, "Missionary Agency", {}),
+	(False, "Background Check", {}),
 	(False, "Family", {}),
 	(False, "Person", {}),
 	(False, "Help Article", {}),
@@ -183,6 +187,8 @@ def delete_sample_data():
 			_delete_docs(doctype, filters)
 
 	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
+	# Function Types survive; their template links point at deleted Functions.
+	frappe.db.set_value("Function Type", {"template_function": ["is", "set"]}, "template_function", None)
 
 	_delete_sample_users()
 
@@ -2400,6 +2406,8 @@ def _create_groups(people, group_roles):
 		{
 			"group_name": "Men's Bible Study",
 			"description": "A weekly men's group studying through the book of Romans.",
+			"public": 1,
+			"show_in_portal": 1,
 			"members": [
 				{"person": people["Robert Johnson"], "group_role": group_roles["Leader"]},
 				{"person": people["David Thompson"], "group_role": group_roles["Member"]},
