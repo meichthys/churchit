@@ -11,6 +11,12 @@ frappe.ui.form.on("Top Bar Item", {
 });
 
 frappe.ui.form.on("Website Settings", {
+	refresh(frm) {
+		show_theme_palette(frm);
+	},
+	website_theme(frm) {
+		show_theme_palette(frm);
+	},
 	after_save(frm) {
 		const still_linked = [...frm.doc.top_bar_items, ...frm.doc.footer_items].map(
 			(row) => row.url
@@ -70,4 +76,39 @@ function unpublish(page) {
 				indicator: "green",
 			});
 		});
+}
+
+// A row of swatches beside the Website Theme picker, so a church can see a
+// theme's colors without opening it.
+frappe.dom.set_style(`
+	.ch-theme-palette-host { display: flex; flex-wrap: wrap; align-items: center; gap: var(--margin-sm); }
+	.ch-theme-palette-host > .control-input { flex: 1; }
+	.ch-theme-palette-host > .help-box { flex-basis: 100%; }
+	.ch-theme-palette { display: flex; gap: 4px; }
+	.ch-theme-swatch {
+		width: 16px; height: 16px; border-radius: 50%;
+		box-shadow: inset 0 0 0 1px var(--border-color);
+	}
+`);
+
+async function show_theme_palette(frm) {
+	const theme = frm.doc.website_theme;
+	const $host = frm.fields_dict.website_theme.$wrapper.find(".control-input-wrapper");
+	$host.find(".ch-theme-palette").remove();
+	if (!theme) return;
+
+	const swatches = await frappe.xcall(
+		"churchit.church_website.theme_palette.get_website_theme_palette",
+		{ theme }
+	);
+	if (frm.doc.website_theme !== theme) return;
+	$host.find(".ch-theme-palette").remove();
+	const $palette = $('<div class="ch-theme-palette">');
+	for (const { label, color } of swatches) {
+		$('<span class="ch-theme-swatch">')
+			.attr("title", `${label}: ${color}`)
+			.css("background", color)
+			.appendTo($palette);
+	}
+	$host.addClass("ch-theme-palette-host").append($palette);
 }
