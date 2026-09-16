@@ -2,14 +2,14 @@
 # churchit self-host automated installer script.
 #
 #   # Run the following command
-#   curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-16/deploy/setup.sh | bash
 
 set -euo pipefail
 
 REPO="meichthys/churchit"
-# Frappe version branch. When upgrading Frappe, see the "Upgrading Frappe"
+# Frappe version branch. When upgrading Frappe, see the upgrade notes
 # checklist in .github/workflows/build-image.yml.
-REF="${CHURCHIT_REF:-version-15}"
+REF="${CHURCHIT_REF:-version-16}"
 RAW="https://raw.githubusercontent.com/${REPO}/${REF}/deploy"
 DIR="${CHURCHIT_DIR:-$HOME/churchit}"
 

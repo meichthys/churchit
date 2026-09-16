@@ -109,54 +109,63 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ## 📥 Installing Churchit
 
-**To install the Churchit app via the Frappe Marketplace (easiest, requires Frappe Cloud):**
-  1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
-  2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Churchit" from **Marketplace** in the sidebar).
-  3. Click **Install**, then choose the site you want to install it on.
-  4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` icons in the desk.
+There are three ways to run Churchit. Pick the one that fits you:
 
-  Updates released to the marketplace can be applied from the same site page (**Apps** tab → **Update**).
+| | Best for | Cost | Effort |
+|---|---|---|---|
+| [Frappe Cloud](#frappe-cloud) | Anyone who does not want to run a server | A few dollars/month | Click **Install** |
+| [Self-hosted with Docker](#self-hosted-with-docker-recommended) | Running Churchit on your own machine | Free | One command |
+| [Existing Frappe bench (Pilot)](#existing-frappe-bench-pilot) | Admins who already run Frappe, or want other Frappe apps alongside Churchit | Free | A few commands |
 
-**To install the Churchit app on a self-hosted Frappe instance (more involved, but has no cloud costs):**
-If you're the more technical and/or frugal type, you can self-host an instance of the Churchit app on a home pc or server. [Frappe Manager](https://github.com/rtcamp/frappe-manager) can be used to quickly setup a local frappe instance. It's not as easy as a simple app install, but we think you can do it (Please ask us for help if you can't)! The general steps are:
+### Frappe Cloud
 
-1. Find a machine onto which you can install Frappe (A dedicated linux-based machine is best. Windows is possible, but is not recommended as it requires some extra steps and the use of [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).)
-2. Run the [frappe-manager install script](https://github.com/rtCamp/Frappe-Manager/tree/develop/scripts)
-3. Create a new site using frappe-manager: `fm create -e prod <church.your_site.com>`.
-4. (Only required if you want to access the site remotely): Update DNS records to point to your new site. This is a bit outside the scope of this project, but basically you need to either update your hosts file to map your site url (used in the above command) to the ip address of the machine hosting the frappe instance. Alternatively, you can update your DNS server on your router to point to your new site. If you need help with this, you can file an issue and I'd be glad to schedule a call to try to help you set it up. Making a local instance of frappe accessible from outside of your network is currently out of the scope of this project, but with some persistence and some technical expertise, it can be achieved. If you are completely lost or uncomfortable with this, it may be best to use the Frappe Cloud option above, or contact us for help. We'd be glad to help where we can.
+1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
+2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Churchit" from **Marketplace** in the sidebar).
+3. Click **Install**, then choose the site you want to install it on.
+4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` icons in the desk.
 
-5. Activate the frappe bench environment with `fm shell` and then run the following:
+**To update:** open the site page → **Apps** tab → **Update**.
 
-    ```bash
-    # Set the bench command to use your site (Replace `<church.your_site.com>` with your actual site name):
-    bench use <church.your_site.com>
+Frappe Cloud fees go to [Frappe](https://frappe.io/), not to the Churchit maintainers. Churchit itself is free.
 
-    # Download the app:
-    bench get-app https://github.com/meichthys/churchit
-    ## Or if you want to try the latest development version:
-    bench get-app https://github.com/meichthys/churchit --branch develop
+### Self-hosted with Docker (recommended)
 
-    # Install the app:
-    bench install-app churchit
+Runs on any spare Linux machine, VPS, or mini-PC (4 GB+ RAM). Windows (via WSL) and macOS work too with Docker Desktop.
 
-    # Migrate the app for good measure:
-    bench migrate
+```bash
+curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-16/deploy/setup.sh | bash
+```
 
-    # In the future, to update the app to the latest version, log into the host server and run:
-    fm shell
-    bench update
-    bench migrate
-    ```
-6. You should be able to access the web interface using the URL you defined in the `bench create` command above.
+The script installs Docker if it is missing, asks for your domain (press Enter to try it out locally at `http://churchit.localhost`), generates passwords, and starts everything. When it finishes it prints your site address and the `Administrator` password.
 
-Before you start using the app be sure to:
+**To update:**
 
-1. Change the `Administrator` users's password (the default is `admin`). This user should only be used by the site administrator - and should not be used on a daily basis.
-2. Setup a new user in the system by typing `New User` in the searchbar. Under the "Roles & Permissions" tab, Give this user the `Church Manager` Role Profile and `Church` Module Profile.
-   This user will be able to manage all aspects of the church.
-3. If you want more than one user on the system, or if you want to delegate some responsibilities to other people, you can create additional users with the `Church User` Role Profile and `Church` Module Profiles.
-   These types of users will be able to read and update most information, but not certain critical information.
-   - To see a list of permissions you can open the `Role Permissions Manager` and select the `Church Manager` or `Church User` roles to see what permissions these users roles have.
+```bash
+cd ~/churchit && docker compose pull && docker compose up -d
+```
+
+For Windows/macOS steps, making the site reachable from the internet (domain, DNS, HTTPS, port forwarding), password resets, and uninstalling, see the [self-hosting guide](deploy/README.md).
+
+### Existing Frappe bench (Pilot)
+
+[Pilot](https://github.com/frappe/pilot) is Frappe's official tool for running benches on your own Linux server. Use it if you already have a Pilot bench, or want Churchit next to other Frappe apps. Follow Pilot's README to install it and create a bench, then:
+
+```bash
+# Replace "church" with your bench name and church.example.org with your domain.
+pilot -b church get-app https://github.com/meichthys/churchit --install-dependencies
+pilot -b church new-site church.example.org --apps churchit
+pilot -b church setup production
+```
+
+**To update:** `pilot -b church update`.
+
+On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
+
+### First steps after installing
+
+1. Change the `Administrator` password if you have not already (top-right avatar → **My Settings**). Keep this account for site administration only — do not use it day to day.
+2. Create your own user: type `New User` in the search bar. Under **Roles & Permissions**, give the user the `Church Manager` Role Profile and the `Church` Module Profile. This user can manage all aspects of the church.
+3. For additional people, create users with the `Church User` Role Profile and the `Church` Module Profile. They can read and update most information, but not critical settings. Open the `Role Permissions Manager` and select `Church Manager` or `Church User` to see exactly what each role can do.
 
 ## 🗺️ Feature Roadmap
 

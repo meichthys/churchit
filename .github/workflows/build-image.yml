@@ -1,4 +1,4 @@
-# Builds the churchit image (frappe v15, churchit, and dependencies) and pushes it to
+# Builds the churchit image (frappe v16, churchit, and dependencies) and pushes it to
 # GitHub Container Registry.
 #
 # It builds with frappe_docker's official custom Containerfile
@@ -9,27 +9,27 @@
 # frappe_docker is pinned to a specific commit ref so an upstream change can't break the
 # build without warning. To use a newer frappe_docker, we bump the `ref:` SHA below.
 
-## Notes on upgrading to frappe 16
+## Notes on upgrading to a new frappe major version
 # Version knobs are spread across the deploy setup. To move to a new version:
 #   In THIS file:
-#     - `branches: [version-15]` trigger         -> the new app branch
-#     - build-arg `FRAPPE_BRANCH=version-15`     -> the new branch
+#     - `branches: [version-16]` trigger         -> the new app branch
+#     - build-arg `FRAPPE_BRANCH=version-16`     -> the new branch
 #     - re-pin frappe_docker `ref:` to a commit whose images/custom/Containerfile
-#       targets the new version.
-#     - `PYTHON_VERSION` / `NODE_VERSION`: newer Frappe needs newer runtimes. The
-#       Containerfile's own defaults will likely already be correct, so we can
-#       probably DELETE these two overrides. Confirm against the target frappe's
-#       `requires-python` (v15 was `>=3.10,<3.14`, hence our 3.12 pin).
+#       targets the new version. Its PYTHON_VERSION / NODE_VERSION defaults then
+#       match the new frappe; only add overrides if churchit needs something else.
 #   Elsewhere in deploy/:
 #     - apps.json          -> bump the `payments` and `churchit` branches
-#     - setup.sh           -> `REF="version-15"` (drives the raw download URLs)
-#     - docker-compose.yml -> recheck the `mariadb:10.6` / redis minimums for frappe 16
-#     - make sure a matching `version-16` for churchit exists and is up to date
+#     - setup.sh           -> `REF="version-16"` (drives the raw download URLs)
+#     - README.md          -> the curl one-liner URL
+#     - docker-compose.yml -> recheck the mariadb / redis versions against
+#                             frappe_docker's overrides/compose.mariadb.yaml and
+#                             overrides/compose.redis.yaml at the pinned ref
+#     - make sure a matching `version-NN` branch for churchit exists and is up to date
 name: build-image
 
 on:
   push:
-    branches: [version-15]
+    branches: [version-16]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -88,9 +88,4 @@ jobs:
             apps_json=${{ github.workspace }}/deploy/apps.json
           build-args: |
             FRAPPE_PATH=https://github.com/frappe/frappe
-            FRAPPE_BRANCH=version-15
-            # Override the Containerfile's v16 defaults for v15:
-            # frappe v15 requires Python >=3.10,<3.14, and this app is proven on
-            # Python 3.12 / Node 22 in the reference bench.
-            PYTHON_VERSION=3.12
-            NODE_VERSION=22.18.0
+            FRAPPE_BRANCH=version-16
