@@ -33,7 +33,7 @@ frappe.ready(function () {
 		$wrap.css("position", "relative").append($dd);
 
 		var timer;
-		function search(term) {
+		var search = function (term) {
 			var doctype = type_ctrl.get_value();
 			if (!doctype) {
 				$dd.empty().hide();
@@ -72,7 +72,7 @@ frappe.ready(function () {
 					},
 				});
 			}, 250);
-		}
+		};
 
 		$input.on("input", function () {
 			real_name = "";

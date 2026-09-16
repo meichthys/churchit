@@ -194,6 +194,33 @@ Contributions are very welcome! If you plan any large contributions, please let 
 
 - Doctype Naming: I've generally been using a single fieldname for the doctype names when the records in the doctype have low chance of clashing. If there is a higher chance of clashing, I've been using multiple fields in the name along with a `{#}` auto increment. The number of digits in the auto-increment are just sane values that should never be exceeded. I then specify the Title Field in the View Settings, and check the `Show Title in LInk Fields` option. This mostly hides the autonumber name from the user and lets the user only see the not-so-confusing name specified in the `Title Field` (sometimes I create a custom field to concatenate values - since the `Title Field` cannot take multiple fields at once afaik.)
 
+## Before you open a pull request
+
+Every pull request runs the same lint and format checks with [pre-commit.ci](https://pre-commit.ci/). A pull request with a failed check cannot merge. Run the checks locally before you push.
+
+1. Install pre-commit once. From this app directory (`apps/churchit` in your bench):
+
+   ```bash
+   uv tool install pre-commit   # or: pipx install pre-commit
+   pre-commit install
+   ```
+
+   After this, `git commit` runs the checks on the files in the commit. A failed check stops the commit. Some hooks fix the files for you (ruff, prettier). Stage the changed files and commit again.
+
+2. To check the whole repository at any time:
+
+   ```bash
+   pre-commit run --all-files
+   ```
+
+3. Run the tests from the bench root:
+
+   ```bash
+   bench --site churchit.localhost run-tests --app churchit
+   ```
+
+The hooks are listed in `.pre-commit-config.yaml`. Frappe renders web form scripts (`web_form/*/*.js`) through Jinja. If your script uses Jinja tags, add the file to the `exclude` list of the prettier and eslint hooks, or the JavaScript parser fails on it. Global names that churchit defines for the browser, such as `church`, go in the `globals` list of `.eslintrc`.
+
 ## Steps for adding a new doctype:
   - Add a doctype description on the settings tab
   - Add fields for the doctype (if necessary add field descriptions).
