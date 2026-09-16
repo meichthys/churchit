@@ -4,6 +4,7 @@
  "autoname": "SRMN-.####",
  "creation": "2026-02-26 01:02:02.489497",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
   "title",

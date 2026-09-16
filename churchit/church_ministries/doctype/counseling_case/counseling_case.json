@@ -4,6 +4,7 @@
  "creation": "2026-05-29 00:00:00.000000",
  "description": "A confidential counseling case file. Restricted to Church Manager.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
   "person",

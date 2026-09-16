@@ -4,6 +4,7 @@
  "creation": "2026-05-29 00:00:00",
  "description": "A member transfer in or out of this church (letter of recommendation).",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
   "person",

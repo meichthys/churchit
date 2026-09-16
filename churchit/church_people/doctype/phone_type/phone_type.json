@@ -5,6 +5,7 @@
  "creation": "2026-08-17 00:00:00.000000",
  "description": "A category for a phone number (Mobile, Home, Work, Other, etc.)",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": ["type", "description"],
  "fields": [

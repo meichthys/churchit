@@ -5,7 +5,7 @@
  "creation": "2025-10-02 22:14:45.520951",
  "description": "Missionary support entities that aid in the sending of missionaries",
  "doctype": "DocType",
- "documentation": "/app/doctype?module=Church+Missions",
+ "documentation": "/app/manual%3A-missions",
  "engine": "InnoDB",
  "field_order": [
   "agency_name",

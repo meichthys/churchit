@@ -4,7 +4,7 @@
  "creation": "2025-12-20 00:48:57.168497",
  "description": "People who are part of a `Family`",
  "doctype": "DocType",
- "documentation": "/app/manual%3A-people#family",
+ "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -5,7 +5,7 @@
  "creation": "2025-09-18 22:33:05.489158",
  "description": "Missionaries of the church.",
  "doctype": "DocType",
- "documentation": "/app/doctype?module=Church+Missions",
+ "documentation": "/app/manual%3A-missions",
  "engine": "InnoDB",
  "field_order": [
   "section_break_oyuw",

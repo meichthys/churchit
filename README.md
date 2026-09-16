@@ -191,6 +191,7 @@ Contributions are very welcome! If you plan any large contributions, please let 
   - Add permissions to the doctype for `Church User` and `Church Admin` roles. (Not necessary for child tables)
   - Add the doctype to the relevant workspace. (not necessary for child tables)
   - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
+  - Set the doctype's `Documentation Link` (Settings tab) to that manual, e.g. `/app/manual%3A-people`. The form's help icon opens it, and `churchit/tests/test_doctype_documentation.py` fails if it is missing.
   - If necessary, add an onboarding step & form tour to explain specific fields.
   - If any default records for this doctype should be shipped with the app, see [Managing App Data](#managing-app-data) below.
   - If necessary, update this readme with the new functionality

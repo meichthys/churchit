@@ -7,6 +7,7 @@
  "default_view": "List",
  "description": "A church or church branch.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-foundations",
  "engine": "InnoDB",
  "field_order": [
   "church_name",

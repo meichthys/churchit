@@ -4,6 +4,7 @@
  "creation": "2026-02-26 12:00:00.000000",
  "description": "A slide in a Sermon that references a document from the Church App",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-study",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

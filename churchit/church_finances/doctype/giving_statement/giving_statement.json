@@ -4,6 +4,7 @@
  "autoname": "GS-.#####",
  "creation": "2026-09-11 00:00:00.000000",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

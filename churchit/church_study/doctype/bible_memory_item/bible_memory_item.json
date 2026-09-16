@@ -4,6 +4,7 @@
  "creation": "2026-05-18 00:00:00",
  "description": "A passage that a user is memorizing, with progress and per-word mistake history.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
   "user",

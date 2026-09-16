@@ -3,6 +3,7 @@
  "creation": "2026-05-16 00:00:00",
  "description": "Convenience link to a Function template (auto_repeat=1) that produces recurring functions for this Ministry.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -5,6 +5,7 @@
  "creation": "2026-03-20 00:00:00.000000",
  "description": "Roles that members can have within a Group (e.g. Leader, Co-Leader, Member, Secretary, etc.)",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
   "role",

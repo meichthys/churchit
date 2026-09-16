@@ -3,6 +3,7 @@
  "creation": "2026-06-01 00:00:00.000000",
  "description": "A single counseling session within a Counseling Case.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

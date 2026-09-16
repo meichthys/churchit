@@ -3,6 +3,7 @@
  "creation": "2026-08-17 00:00:00.000000",
  "description": "One phone number on a Person, Family or Missionary.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": ["phone_number", "phone_type", "is_primary"],

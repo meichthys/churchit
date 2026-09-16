@@ -5,6 +5,7 @@
  "creation": "2026-05-30 00:00:00.000000",
  "description": "A category for Visitation Log (Home, Hospital, Phone, Care Call, etc.)",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": ["type", "description"],
  "fields": [
