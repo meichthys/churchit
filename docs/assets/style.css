@@ -1,6 +1,6 @@
 /* ==========================================================================
    churchit — glassy marketing site
-   A single design system shared by index / pricing / documentation.
+   A single design system shared by index / pricing / getting-started / documentation.
    Frappe-flavoured: Inter type, indigo→violet accent, frosted glass surfaces.
    ========================================================================== */
 
@@ -275,13 +275,15 @@ section { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
 
 /* ---- Pricing ------------------------------------------------------------- */
 .price-card { max-width: 560px; margin: 0 auto; padding: 2.6rem; text-align: center; position: relative; }
-.price-card .tag { position: absolute; top: 1.4rem; right: 1.4rem; font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--grad); padding: .4em .9em; border-radius: 999px; }
+.tag { position: absolute; top: 1.4rem; right: 1.4rem; font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--grad); padding: .4em .9em; border-radius: 999px; }
 .price-amount { font-size: clamp(4rem, 12vw, 6.5rem); font-weight: 800; line-height: 1; letter-spacing: -.04em; }
 .price-amount small { font-size: 1.4rem; font-weight: 700; color: var(--muted); letter-spacing: 0; }
 .price-list { list-style: none; padding: 0; margin: 1.8rem 0; text-align: left; display: grid; gap: .7rem; }
 .price-list li { display: flex; gap: .7em; align-items: flex-start; }
 .price-list .ck { color: #10b981; font-weight: 900; flex: none; }
 .strike { position: relative; color: var(--muted); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+p code, li code, dd code { color: var(--brand-ink); background: rgba(99,102,241,.1); padding: .1em .4em; border-radius: 6px; overflow-wrap: anywhere; }
 .strike::after { content: ""; position: absolute; left: -4px; right: -4px; top: 52%; height: 3px; background: var(--brand-3); border-radius: 3px; transform: rotate(-4deg); }
 
 /* Comparison */
@@ -304,6 +306,57 @@ section { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
 .faq summary::after { content: "+"; font-size: 1.4rem; color: var(--brand); transition: transform .2s; }
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq details p { margin: .8rem 0 0; color: var(--body); }
+
+/* ---- Getting started ----------------------------------------------------- */
+.install { padding: 2.6rem; position: relative; }
+.install h2 { margin-top: .8rem; }
+.install-foot { margin: 1.2rem 0 0; color: var(--muted); font-size: .9rem; }
+
+/* Dark terminal-style command block. Long lines wrap rather than scroll so the
+   block never widens the card it sits in; the Copy button gives the exact text. */
+.cmd {
+  display: flex; align-items: flex-start; gap: .8rem;
+  margin: 0 0 1rem; padding: .95rem 1rem .95rem 1.2rem;
+  border-radius: 16px; color: #e2e8f0; background: #0f172a;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.cmd code { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; color: inherit; }
+.cmd-hero { margin: 1.4rem 0; }
+.cmd-hero code { font-size: .95rem; }
+.cmd-hero code::before { content: "$ "; color: #a5b4fc; user-select: none; }
+.cmd-copy { flex: none; color: #fff; background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); font-size: .85rem; padding: .6em 1em; }
+.cmd-copy:hover { background: rgba(255,255,255,.2); }
+
+/* Deployment path tabs: one README section shown at a time. */
+.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; width: fit-content; max-width: 100%; margin: 0 auto 1.4rem; padding: .3rem; border-radius: 999px; }
+.tabs [role="tab"] { border: 0; background: transparent; font: inherit; font-weight: 700; font-size: .95rem; color: var(--body); padding: .6em 1.2em; border-radius: 999px; cursor: pointer; transition: background .2s ease, color .2s ease; }
+.tabs [role="tab"]:hover { color: var(--ink); background: rgba(99,102,241,.1); }
+.tabs [aria-selected="true"], .tabs [aria-selected="true"]:hover { color: #fff; background: var(--grad); box-shadow: 0 8px 20px -8px rgba(99,102,241,.7); }
+
+/* Path panel: meta sidebar beside the README body, so its code blocks have room. */
+.path[hidden] { display: none; }
+.path { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 1.2rem 2.4rem; padding: 2rem 2.2rem; }
+@media (max-width: 760px) { .path { grid-template-columns: 1fr; } }
+.path-head { display: flex; flex-direction: column; gap: .9rem; align-items: flex-start; }
+.path-head .tag { position: static; }
+.path-head h3 { margin: 0; }
+.path-meta { display: grid; grid-template-columns: auto 1fr; gap: .3rem .9rem; margin: 0; font-size: .9rem; }
+.path-meta dt { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.path-meta dd { margin: 0; color: var(--ink); font-weight: 600; }
+.path-body p, .path-body ol, .path-body ul { margin: 0 0 .9rem; font-size: .96rem; }
+.path-body ol, .path-body ul { padding-left: 1.2rem; display: grid; gap: .35rem; }
+.path-body > :last-child { margin-bottom: 0; }
+
+/* Numbered post-install checklist (an <ol> from the README) */
+.first-steps { max-width: 760px; margin: 0 auto; padding: 1.8rem 2rem; }
+.first-steps ol { list-style: none; padding: 0; margin: 0; counter-reset: step; display: grid; gap: 1.2rem; }
+/* The number sits in the padding so the item's inline markup keeps flowing as text. */
+.first-steps li { position: relative; padding-left: 3rem; counter-increment: step; }
+.first-steps li::before {
+  content: counter(step); position: absolute; left: 0; top: -.15rem; width: 32px; height: 32px; border-radius: 10px;
+  display: grid; place-items: center; font-weight: 800; font-size: .9rem; color: #fff; background: var(--grad);
+}
+.first-steps strong { color: var(--ink); }
 
 /* ---- Documentation ------------------------------------------------------- */
 .doc-layout { display: grid; grid-template-columns: 250px 1fr; gap: 2.2rem; align-items: start; padding-top: 2.5rem; }
@@ -378,6 +431,7 @@ footer { padding: 3rem 0 2.5rem; border-top: 1px solid var(--line); margin-top: 
 :root[data-theme="dark"] .feature .ico { background: rgba(30, 41, 59, 0.60); }
 :root[data-theme="dark"] .mock-row .ln { background: #334155; }
 :root[data-theme="dark"] .compare .col.them { background: rgba(30, 41, 59, 0.40); }
+:root[data-theme="dark"] .cmd { background: rgba(2, 6, 23, 0.7); border-color: var(--glass-brd); }
 
 /* Accents/callouts whose literal colours need lightening for dark backgrounds. */
 :root[data-theme="dark"] .pill.soft { color: #6ee7b7; background: rgba(16, 185, 129, 0.18); }

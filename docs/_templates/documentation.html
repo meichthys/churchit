@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Set the theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "dark" && t !== "light") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Documentation — churchit</title>
+  <meta name="description" content="The churchit manual: how every module works, straight from the app's built-in guides." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <nav class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="documentation.html" class="active">Documentation</a>
+        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a class="btn btn-primary" href="getting-started.html">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap doc-layout">
+    <!-- Sidebar -->
+    <aside class="glass doc-side reveal">
+      <p class="title">Manual</p>
+      <nav>
+        {sidebar}
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <main class="doc-main">
+      <section class="glass doc-hero reveal" style="padding-top:2.2rem">
+        <span class="eyebrow">📘 The churchit manual</span>
+        <h1 style="font-size:clamp(2rem,4vw,2.8rem); margin-top:.6rem">Documentation</h1>
+        <p class="lead">Every module, explained. This page is generated straight from the in-app manuals, so what you read here is exactly what ships in churchit.</p>
+      </section>
+
+        {sections}
+
+      <div class="center" style="margin:2rem 0 1rem">
+        <a class="btn btn-primary btn-lg" href="pricing.html">See what all this costs →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="wrap foot">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <nav class="foot-links">
+        <a href="index.html#features">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="getting-started.html">Getting started</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
+      </nav>
+    </div>
+    <div class="wrap"><small>Generated from the churchit in-app manuals. Re-run <code>docs/build_docs.py</code> to refresh.</small></div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

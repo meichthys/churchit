@@ -1,0 +1,46 @@
+# Regenerates the churchit.app pages that are built from repo content
+# (docs/build_docs.py) and commits the result, so the website never drifts
+# from README.md, deploy/README.md, or the in-app manuals.
+#
+# Commits made with GITHUB_TOKEN do not trigger other workflows, so this
+# cannot loop or kick off an image build.
+name: build-docs
+
+on:
+  push:
+    branches: [develop, version-16]
+    paths:
+      - README.md
+      - deploy/README.md
+      - "churchit/*/workspace/manual:_*/*.json"
+      - docs/build_docs.py
+      - docs/_templates/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install markdown2
+
+      - run: python docs/build_docs.py
+
+      - name: Commit regenerated pages
+        run: |
+          git add docs/documentation.html docs/getting-started.html
+          if git diff --cached --quiet; then
+            echo "Docs already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate docs site pages"
+          git push

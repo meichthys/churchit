@@ -111,16 +111,16 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 There are three ways to run Churchit. Pick the one that fits you:
 
-| | Best for | Cost | Effort |
-|---|---|---|---|
-| [Frappe Cloud](#frappe-cloud) | Anyone who does not want to run a server | A few dollars/month | Click **Install** |
-| [Self-hosted with Docker](#self-hosted-with-docker-recommended) | Running Churchit on your own machine | Free | One command |
-| [Existing Frappe bench (Pilot)](#existing-frappe-bench-pilot) | Admins who already run Frappe, or want other Frappe apps alongside Churchit | Free | A few commands |
+|                                                                 | Best for                                                                    | Cost                | Effort            |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------- | ----------------- |
+| [Frappe Cloud](#frappe-cloud)                                   | Anyone who does not want to run a server                                    | A few dollars/month | Click **Install** |
+| [Self-hosted with Docker](#self-hosted-with-docker-recommended) | Running Churchit on your own machine                                        | Free                | One command       |
+| [Existing Frappe bench (Pilot)](#existing-frappe-bench-pilot)   | Admins who already run Frappe, or want other Frappe apps alongside Churchit | Free                | A few commands    |
 
 ### Frappe Cloud
 
 1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
-2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/church) (or search for "Churchit" from **Marketplace** in the sidebar).
+2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/churchit) (or search for "Churchit" from **Marketplace** in the sidebar).
 3. Click **Install**, then choose the site you want to install it on.
 4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` icons in the desk.
 
