@@ -48,6 +48,38 @@
 		});
 	}
 
+	// Copy buttons on command blocks (getting-started). Hidden where the
+	// Clipboard API is unavailable (insecure context / very old browsers).
+	document.querySelectorAll(".cmd [data-copy]").forEach(function (btn) {
+		if (!navigator.clipboard) {
+			btn.hidden = true;
+			return;
+		}
+		btn.addEventListener("click", function () {
+			var code = btn.parentNode.querySelector("code");
+			navigator.clipboard.writeText(code.textContent.trim()).then(function () {
+				btn.textContent = "Copied ✓";
+				setTimeout(function () {
+					btn.textContent = "Copy";
+				}, 1600);
+			});
+		});
+	});
+
+	// Tabs (getting-started deployment paths): one panel visible at a time.
+	document.querySelectorAll("[role='tablist']").forEach(function (list) {
+		var tabs = list.querySelectorAll("[role='tab']");
+		tabs.forEach(function (tab) {
+			tab.addEventListener("click", function () {
+				tabs.forEach(function (other) {
+					other.setAttribute("aria-selected", other === tab ? "true" : "false");
+					document.getElementById(other.getAttribute("aria-controls")).hidden =
+						other !== tab;
+				});
+			});
+		});
+	});
+
 	// Reveal-on-scroll
 	var reveals = document.querySelectorAll(".reveal");
 	if ("IntersectionObserver" in window && reveals.length) {

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Set the theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "dark" && t !== "light") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Getting started — churchit</title>
+  <meta name="description" content="Install churchit in one command with Docker, run it on Frappe Cloud, or add it to an existing Frappe bench. Three ways to get started — the software is free on every one of them." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <nav class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a class="btn btn-primary" href="getting-started.html">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" style="padding-bottom:0">
+    <div class="wrap center">
+      <span class="eyebrow">🚀 From zero to church in one command</span>
+      <h1>Getting <span class="grad-text">started</span></h1>
+      <p class="lead center" style="margin-inline:auto">Pick how you want to run churchit. Most churches self-host with Docker: one command on any spare Linux box, VPS, or mini-PC.</p>
+    </div>
+  </section>
+
+  <!-- Featured one-liner (pulled from deploy/README.md) -->
+  <section id="install" style="padding-top:2.5rem">
+    <div class="wrap">
+      <div class="glass install reveal">
+        <span class="tag">Recommended</span>
+        <span class="eyebrow">🐳 Self-host with Docker</span>
+        <h2>One command. That's the whole install.</h2>
+        <p>Run this in a terminal on the machine that will host churchit (Linux, Windows via WSL, or macOS with Docker Desktop). It installs Docker if it's missing, asks for your domain, generates strong passwords, and starts everything.</p>
+
+        <div class="cmd cmd-hero">
+          <code>{one_liner}</code>
+          <button class="btn cmd-copy" type="button" data-copy>Copy</button>
+        </div>
+
+        <div class="callout-warn" role="note">
+          <span class="callout-ico" aria-hidden="true">⚠️</span>
+          <span><strong>Alpha software.</strong> churchit is still in active development and is <strong>not yet ready for official/production use</strong>. Please install it for testing and evaluation only.</span>
+        </div>
+
+        <p class="install-foot">Windows and macOS steps, a real domain with HTTPS, DNS and port forwarding, password resets, and uninstalling are all in the <a href="https://github.com/meichthys/churchit/blob/HEAD/deploy/README.md" target="_blank" rel="noopener">self-hosting guide →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three paths (pulled from README.md "Installing Churchit") -->
+  <section>
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <span class="eyebrow">🗺️ Three ways to run churchit</span>
+        <h2>Pick the path that fits your church</h2>
+        <p class="lead center" style="margin-inline:auto">It's the same churchit on every path. The only thing that changes is who looks after the server.</p>
+      </div>
+
+      <div class="glass tabs reveal" role="tablist" aria-label="Deployment path">
+          {tabs}
+      </div>
+      <div class="paths reveal">
+        {paths}
+      </div>
+    </div>
+  </section>
+
+  <!-- First steps (pulled from README.md) -->
+  <section>
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <span class="eyebrow">✅ After installing</span>
+        <h2>Your first ten minutes</h2>
+        <p class="lead center" style="margin-inline:auto">Whichever path you took, do these before inviting anyone else in.</p>
+      </div>
+      <div class="glass first-steps reveal">
+        {first_steps}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="wrap">
+      <div class="glass cta-band reveal">
+        <span class="eyebrow" style="background:rgba(255,255,255,.2); color:#fff; border-color:rgba(255,255,255,.4)">🧪 Want to look around first?</span>
+        <h2>Try the demo before you install</h2>
+        <p class="lead" style="margin-inline:auto">Poke around a fully loaded church. No sign-up, no sales call, no personal information.</p>
+        <div class="cta-row" style="justify-content:center; margin-top:1.6rem">
+          <a class="btn btn-primary btn-lg" href="https://church.meichthys.com/login" target="_blank" rel="noopener">Try the demo →</a>
+          <a class="btn btn-ghost btn-lg" href="documentation.html">Read the manual</a>
+        </div>
+        <p style="margin:1rem 0 0; font-size:.9rem">👤 <strong>demo@demo.com</strong> &nbsp; 🔑 <strong>Matthew10:8b</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap foot">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <nav class="foot-links">
+        <a href="index.html#features">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="getting-started.html">Getting started</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
+      </nav>
+    </div>
+    <div class="wrap"><small>Generated from the README install guide. Re-run <code>docs/build_docs.py</code> to refresh.</small></div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

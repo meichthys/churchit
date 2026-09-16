@@ -1,21 +1,38 @@
 #!/usr/bin/env python3
-"""Generate documentation.html from the churchit "Manual: *" workspaces.
+"""Generate the churchit.app pages that mirror content shipped in the repo.
 
-The user-facing manuals live as Frappe workspace content blocks in
-`churchit/<module>/workspace/manual:_<name>/manual:_<name>.json`. This script
-reads those blocks and renders them into the glassy marketing-site shell so the
-documentation on the website always mirrors what's shipped in the app.
+- documentation.html comes from the "Manual: *" workspaces in
+  `churchit/<module>/workspace/manual:_<name>/manual:_<name>.json`.
+- getting-started.html comes from README.md ("Installing Churchit") and the
+  setup one-liner in deploy/README.md.
 
-Run from the app root (apps/churchit):  python docs/build_docs.py
+Page shells live in docs/_templates/ (Jekyll skips underscore folders, so
+GitHub Pages does not serve them). Needs markdown2, which the bench env has:
+
+    ../../env/bin/python docs/build_docs.py     # from the app root
 """
 
 import glob
+import html
 import json
 import os
 import re
 
+import markdown2
+
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(APP_ROOT, "docs", "documentation.html")
+DOCS = os.path.join(APP_ROOT, "docs")
+TEMPLATES = os.path.join(DOCS, "_templates")
+README = os.path.join(APP_ROOT, "README.md")
+DEPLOY_README = os.path.join(APP_ROOT, "deploy", "README.md")
+
+# Relative README links are rewritten to the file on GitHub's default branch.
+REPO_BLOB_URL = "https://github.com/meichthys/churchit/blob/HEAD"
+INSTALL_HEADING = "## 📥 Installing Churchit"
+FIRST_STEPS_HEADING = "### First steps after installing"
+DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
+FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
+FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
 
 # Base address of the churchit desk that /app/ links point at — the public demo
 # site, so the documentation's desk links resolve for website visitors.
@@ -101,7 +118,7 @@ def render_blocks(blocks):
 	return "\n          ".join(out)
 
 
-def build():
+def build_documentation():
 	sidebar, sections = [], []
 	for module, slug, emoji in MODULES:
 		blocks = load_manual(module)
@@ -115,102 +132,154 @@ def build():
           {render_blocks(blocks)}
         </article>"""
 		)
-
-	html = TEMPLATE.replace("{sidebar}", "\n        ".join(sidebar)).replace(
-		"{sections}", "\n\n        ".join(sections)
+	write_page(
+		"documentation.html",
+		sidebar="\n        ".join(sidebar),
+		sections="\n\n        ".join(sections),
 	)
-	with open(OUT, "w") as fh:
-		fh.write(html)
-	print(f"Wrote {OUT}  ({len(sections)} modules)")
+	print(f"Wrote documentation.html  ({len(sections)} modules)")
 
 
-TEMPLATE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>
-    /* Set the theme before first paint to avoid a flash of the wrong theme. */
-    (function () {
-      try {
-        var t = localStorage.getItem("theme");
-        if (t !== "dark" && t !== "light") {
-          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
-        document.documentElement.setAttribute("data-theme", t);
-      } catch (e) {}
-    })();
-  </script>
-  <title>Documentation — churchit</title>
-  <meta name="description" content="The churchit manual: how every module works, straight from the app's built-in guides." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/style.css" />
-</head>
-<body>
+def build_getting_started():
+	readme = Readme(README)
+	intro, subsections = split_subsections(readme.section(INSTALL_HEADING))
+	labels, table = parse_paths_table(intro)
+	paths = [(title, body) for title, body in subsections if github_slug(title) in table]
+	if len(paths) != len(table):
+		raise SystemExit("README.md: install table rows do not match the ### sections below it")
+	if DEFAULT_PATH not in table:
+		raise SystemExit(f"README.md: default path {DEFAULT_PATH!r} is not in the install table")
+	write_page(
+		"getting-started.html",
+		one_liner=html.escape(load_one_liner()),
+		tabs="\n          ".join(render_tab(title) for title, _ in paths),
+		paths="\n        ".join(
+			render_path(readme, title, body, labels, table[github_slug(title)]) for title, body in paths
+		),
+		first_steps=readme.render(readme.section(FIRST_STEPS_HEADING)),
+	)
+	print(f"Wrote getting-started.html  ({len(paths)} paths)")
 
-  <header class="nav">
-    <div class="wrap nav-inner">
-      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
-      <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-      <nav class="nav-links">
-        <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
-        <a href="documentation.html" class="active">Documentation</a>
-        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
-        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
-          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-        </button>
-        <a class="btn btn-primary" href="pricing.html">Get started</a>
-      </nav>
-    </div>
-  </header>
 
-  <div class="wrap doc-layout">
-    <!-- Sidebar -->
-    <aside class="glass doc-side reveal">
-      <p class="title">Manual</p>
-      <nav>
-        {sidebar}
-      </nav>
-    </aside>
+class Readme:
+	"""README.md with fenced code masked out, so a `#` comment inside a code
+	block is never mistaken for a heading. Fences are restored by render()."""
 
-    <!-- Content -->
-    <main class="doc-main">
-      <section class="glass doc-hero reveal" style="padding-top:2.2rem">
-        <span class="eyebrow">\U0001f4d8 The churchit manual</span>
-        <h1 style="font-size:clamp(2rem,4vw,2.8rem); margin-top:.6rem">Documentation</h1>
-        <p class="lead">Every module, explained. This page is generated straight from the in-app manuals, so what you read here is exactly what ships in churchit.</p>
-      </section>
+	def __init__(self, path):
+		self.fences = []
+		self.text = FENCE.sub(self.mask_fence, read(path))
 
-        {sections}
+	def mask_fence(self, match):
+		self.fences.append(match.group(1))
+		return f"\x00{len(self.fences) - 1}\x00"
 
-      <div class="center" style="margin:2rem 0 1rem">
-        <a class="btn btn-primary btn-lg" href="pricing.html">See what all this costs →</a>
-      </div>
-    </main>
-  </div>
+	def section(self, heading):
+		"""Body of a markdown section, up to the next heading of the same or higher level."""
+		level = len(heading.split(" ", 1)[0])
+		match = re.search(rf"^{re.escape(heading)}\n(.*?)(?=^#{{1,{level}}} |\Z)", self.text, re.S | re.M)
+		if not match:
+			raise SystemExit(f"README.md: heading not found: {heading!r}")
+		return match.group(1)
 
-  <footer>
-    <div class="wrap foot">
-      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
-      <nav class="foot-links">
-        <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
-        <a href="documentation.html">Documentation</a>
-        <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
-      </nav>
-    </div>
-    <div class="wrap"><small>Generated from the churchit in-app manuals. Re-run <code>docs/build_docs.py</code> to refresh.</small></div>
-  </footer>
+	def render(self, text):
+		"""Section markdown -> page HTML. Fenced code becomes a command block with a copy button."""
+		parts = FENCE_TOKEN.split(text)
+		rendered = "".join(
+			command_block(self.fences[int(part)]) if i % 2 else markdown2.markdown(part)
+			for i, part in enumerate(parts)
+		)
+		return re.sub(r'href="(?!https?:|#|mailto:)', f'href="{REPO_BLOB_URL}/', rendered)
 
-  <script src="assets/app.js"></script>
-</body>
-</html>
-"""
+
+def load_one_liner():
+	"""The curl setup command from deploy/README.md, checked against README.md."""
+	match = re.search(r"```bash\n(curl .+?)\n```", read(DEPLOY_README))
+	if not match:
+		raise SystemExit("deploy/README.md: no curl one-liner found")
+	if match.group(1) not in read(README):
+		raise SystemExit("README.md and deploy/README.md disagree on the setup one-liner")
+	return match.group(1)
+
+
+def render_tab(title):
+	slug = github_slug(title)
+	selected = "true" if slug == DEFAULT_PATH else "false"
+	return (
+		f'<button role="tab" type="button" id="tab-{slug}" aria-controls="path-{slug}" '
+		f'aria-selected="{selected}">{path_name(title)}</button>'
+	)
+
+
+def render_path(readme, title, body, labels, cells):
+	"""One deployment-path tab panel: the table row as a definition list beside the section body."""
+	slug = github_slug(title)
+	hidden = "" if slug == DEFAULT_PATH else " hidden"
+	tag = '<span class="tag">Recommended</span>' if "(recommended)" in title.lower() else ""
+	meta = "".join(
+		f"<dt>{label}</dt><dd>{inline_markdown(cell)}</dd>" for label, cell in zip(labels, cells, strict=True)
+	)
+	return (
+		f'<article class="glass path" id="path-{slug}" role="tabpanel" aria-labelledby="tab-{slug}"{hidden}>'
+		f'<div class="path-head">{tag}<h3>{path_name(title)}</h3><dl class="path-meta">{meta}</dl></div>'
+		f'<div class="path-body">{readme.render(body)}</div></article>'
+	)
+
+
+def path_name(title):
+	return re.sub(r"\s*\(recommended\)", "", title, flags=re.I)
+
+
+def parse_paths_table(intro):
+	"""The install comparison table -> (column labels, {heading slug: cells})."""
+	labels, rows = [], {}
+	for line in intro.splitlines():
+		if not line.startswith("|"):
+			continue
+		cells = [cell.strip() for cell in line.strip("|").split("|")]
+		link = re.match(r"\[.+?\]\(#(.+?)\)", cells[0])
+		if link:
+			rows[link.group(1)] = cells[1:]
+		elif cells[0] == "" and not labels:
+			labels = cells[1:]
+	if not labels or not rows:
+		raise SystemExit("README.md: install comparison table not found")
+	return labels, rows
+
+
+def split_subsections(body):
+	"""(text before the first ### heading, [(title, body), ...])."""
+	parts = re.split(r"^### (.+)\n", body, flags=re.M)
+	return parts[0], list(zip(parts[1::2], parts[2::2], strict=True))
+
+
+def github_slug(heading):
+	return re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-")
+
+
+def inline_markdown(text):
+	return re.sub(r"^<p>|</p>$", "", markdown2.markdown(text).strip())
+
+
+def command_block(code):
+	return (
+		f'<div class="cmd"><code>{html.escape(code.strip())}</code>'
+		'<button class="btn cmd-copy" type="button" data-copy>Copy</button></div>'
+	)
+
+
+def write_page(name, **slots):
+	page = read(os.path.join(TEMPLATES, name.replace("-", "_")))
+	for key, value in slots.items():
+		page = page.replace("{" + key + "}", value)
+	with open(os.path.join(DOCS, name), "w") as fh:
+		fh.write(page)
+
+
+def read(path):
+	with open(path) as fh:
+		return fh.read()
 
 
 if __name__ == "__main__":
-	build()
+	build_documentation()
+	build_getting_started()
