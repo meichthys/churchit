@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:VISIT-{####}",
+ "autoname": "VISIT-.####",
  "creation": "2026-05-29 00:00:00",
  "description": "A pastoral visitation record (hospital, home, phone, or care call).",
  "doctype": "DocType",
@@ -98,11 +98,11 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-07-12 19:12:06.648254",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Visitation Log",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

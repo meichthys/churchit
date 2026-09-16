@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:GS-{#####}",
+ "autoname": "GS-.#####",
  "creation": "2026-09-11 00:00:00.000000",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -102,7 +102,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-11 00:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Statement",

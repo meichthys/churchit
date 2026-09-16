@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:BMEM-{######}",
+ "autoname": "BMEM-.######",
  "creation": "2026-05-18 00:00:00",
  "description": "A passage that a user is memorizing, with progress and per-word mistake history.",
  "doctype": "DocType",
@@ -100,7 +100,7 @@
   }
  ],
  "links": [],
- "modified": "2026-06-27 16:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",

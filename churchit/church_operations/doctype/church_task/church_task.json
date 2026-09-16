@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "format:TASK-{####}",
+ "autoname": "TASK-.####",
  "creation": "2025-12-15 00:41:21.858015",
  "description": "Things that need to get done (Like a checklist or ToDo list)",
  "doctype": "DocType",
@@ -144,7 +144,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-05-16 19:32:38.839549",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",

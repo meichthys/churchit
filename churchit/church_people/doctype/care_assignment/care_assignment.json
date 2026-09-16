@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:CA-{####}",
+ "autoname": "CA-.####",
  "creation": "2026-05-29 00:00:00.000000",
  "description": "Maps a person to their assigned deacon / care team member.",
  "doctype": "DocType",
@@ -25,7 +25,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-05-29 00:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Assignment",

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "format:PREQ-{####}",
+ "autoname": "PREQ-.####",
  "creation": "2025-09-13 00:16:52.698863",
  "description": "A request for prayer from (or for) a `Person`.",
  "doctype": "DocType",
@@ -151,7 +151,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-05-14 17:52:21.715206",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",

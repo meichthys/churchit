@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:EXP-{####}",
+ "autoname": "EXP-.####",
  "creation": "2025-10-09 02:25:29.401455",
  "description": "A financial transaction that reduces the balance of a `Fund`",
  "doctype": "DocType",
@@ -129,11 +129,11 @@
    "link_fieldname": "source"
   }
  ],
- "modified": "2026-07-08 17:53:43.951602",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -8,6 +8,7 @@ import tempfile
 from unittest import mock
 
 import frappe
+from frappe.model.naming import NamingSeries
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.patches import after_install
@@ -17,6 +18,7 @@ from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	redesign_home_page,
 	rename_agency_logo_field,
+	seed_naming_series_counters,
 	setup_bulletins,
 	update_default_navbar,
 )
@@ -81,6 +83,18 @@ class TestAfterInstall(FrappeTestCase):
 
 
 class TestVersionedPatches(FrappeTestCase):
+	def test_naming_counters_seed_from_highest_existing_name(self):
+		series = NamingSeries("PRSN-.####")
+		highest = max(int(n[5:]) for n in frappe.get_all("Person", pluck="name") if n[5:].isdigit())
+		series.update_counter(0)
+
+		seed_naming_series_counters.execute()
+		self.assertEqual(series.get_current_value(), highest)
+
+		series.update_counter(highest + 5)
+		seed_naming_series_counters.execute()
+		self.assertEqual(series.get_current_value(), highest + 5)
+
 	def test_missions_map_is_added_once(self):
 		page = frappe.get_doc("Web Page", "missions")
 		page.main_section_html = "<p>Existing content</p>"

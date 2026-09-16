@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FCHK-{######}",
+ "autoname": "FCHK-.######",
  "creation": "2026-04-19 16:37:15.283115",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
@@ -110,7 +110,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-24 17:39:01.297308",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",

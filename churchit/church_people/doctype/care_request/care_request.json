@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:CR-{####}",
+ "autoname": "CR-.####",
  "creation": "2026-05-29 00:00:00.000000",
  "description": "A 'need help' / care request submission from a member.",
  "doctype": "DocType",
@@ -35,7 +35,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-05-29 00:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",

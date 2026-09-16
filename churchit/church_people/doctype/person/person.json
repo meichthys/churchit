@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:PRSN-{####}",
+ "autoname": "PRSN-.####",
  "creation": "2025-08-21 01:19:39.714186",
  "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
  "doctype": "DocType",
@@ -319,7 +319,7 @@
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

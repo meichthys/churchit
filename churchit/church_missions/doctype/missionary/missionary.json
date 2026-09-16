@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:MISS-{###}",
+ "autoname": "MISS-.###",
  "creation": "2025-09-18 22:33:05.489158",
  "description": "Missionaries of the church.",
  "doctype": "DocType",
@@ -243,11 +243,11 @@
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-26 17:50:04.217894",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

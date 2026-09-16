@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:BGC-{####}",
+ "autoname": "BGC-.####",
  "creation": "2026-09-14 00:00:00",
  "description": "A background check or clearance run on a Person, recorded from whichever screening provider the church uses. Tracks the request, the result, and when it expires.",
  "doctype": "DocType",
@@ -124,7 +124,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-14 00:00:00",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Background Check",

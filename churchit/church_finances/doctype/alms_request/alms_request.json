@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:ALMS-{####}",
+ "autoname": "ALMS-.####",
  "creation": "2025-11-10 22:56:15.677299",
  "description": "A request for financial support for a person or family",
  "doctype": "DocType",
@@ -118,7 +118,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-28 18:47:40.285291",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",

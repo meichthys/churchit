@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:GIVE-{#####}",
+ "autoname": "GIVE-.#####",
  "creation": "2026-06-05 00:00:00.000000",
  "description": "An online gift made through the public /give page and paid via the Payments app. On successful payment it records a submitted Collection so the gift flows through the normal Fund and reporting logic.",
  "doctype": "DocType",
@@ -125,7 +125,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-05 00:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Online Donation",

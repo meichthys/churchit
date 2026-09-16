@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:BMEMS{######}",
+ "autoname": "BMEMS.######",
  "creation": "2026-05-18 00:00:00",
  "description": "Append-only log of completed Bible memory study sessions.",
  "doctype": "DocType",
@@ -72,7 +72,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-24 17:41:30.323929",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Memory Session",

@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:HAND-{####}",
+ "autoname": "HAND-.####",
  "creation": "2026-09-14 00:00:00",
  "description": "A fill-in-the-blank outline of a sermon for listeners, printed as the sermon notes insert of a Bulletin. Wrap a word or phrase in square brackets, like [grace], to print it as a blank.",
  "doctype": "DocType",
@@ -32,7 +32,7 @@
    "link_fieldname": "handout"
   }
  ],
- "modified": "2026-09-14 00:00:00",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Handout",

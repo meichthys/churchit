@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:MA-{###}",
+ "autoname": "MA-.###",
  "creation": "2025-10-02 22:14:45.520951",
  "description": "Missionary support entities that aid in the sending of missionaries",
  "doctype": "DocType",
@@ -89,7 +89,7 @@
    "link_fieldname": "agency"
   }
  ],
- "modified": "2026-08-17 04:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",
