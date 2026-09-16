@@ -224,7 +224,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Family relationships beyond spouse \u2014 children, parents, siblings, etc.",
+   "description": "Family relationships \u2014 children, parents, siblings, etc. The Husband/Wife row follows the Spouse field.",
    "fieldname": "relations",
    "fieldtype": "Table",
    "label": "Relations",
@@ -315,7 +315,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-09-14 00:00:00",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
