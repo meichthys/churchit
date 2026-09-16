@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:MIN-{###}",
+ "autoname": "MIN-.###",
  "creation": "2026-03-27 00:00:00",
  "description": "A ministry of the church (e.g. Nursing Home Outreach, Youth Group, Nursery, Choir, Bible Study).",
  "doctype": "DocType",
@@ -128,7 +128,7 @@
    "link_fieldname": "associated_ministry"
   }
  ],
- "modified": "2026-05-15 21:02:54.702859",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",

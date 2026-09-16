@@ -3,6 +3,7 @@
  "creation": "2026-08-24 00:00:00",
  "description": "Turn churchit modules on or off for this church. Disabled modules are hidden from the desk.",
  "doctype": "DocType",
+ "documentation": "/app/help",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

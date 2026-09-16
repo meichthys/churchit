@@ -108,12 +108,18 @@ async function get_chapter_count(book) {
 	const url = `https://bible-api.com/data/kjv/${book_abbreviation}`;
 	const resp = await fetch(url);
 	if (!resp.ok) {
-		frappe.show_alert(`Failed to fetch chapter count for ${book}`, (indicator = "yellow"));
+		frappe.show_alert({
+			message: `Failed to fetch chapter count for ${book}`,
+			indicator: "yellow",
+		});
 	}
 	const data = await resp.json();
 	const chapters = data.chapters;
 	if (!Array.isArray(chapters)) {
-		frappe.show_alert(`Failed to fetch chapter count for ${book}`, (indicator = "yellow"));
+		frappe.show_alert({
+			message: `Failed to fetch chapter count for ${book}`,
+			indicator: "yellow",
+		});
 	}
 	return chapters.length;
 }

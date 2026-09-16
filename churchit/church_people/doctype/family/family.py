@@ -4,12 +4,30 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_people.doctype.person.person import SPOUSE_RELATION_TYPES, spouse_relation_type
 from churchit.contacts import validate_contact_tables
 
 
 class Family(Document):
 	def validate(self):
 		validate_contact_tables(self)
+		self.label_spouse_of_head_of_household()
+
+	def label_spouse_of_head_of_household(self):
+		"""Set ``relationship_to_head`` to Husband/Wife for the head's linked spouse.
+
+		The Person spouse link owns those two labels, so any other member carrying one is cleared.
+		"""
+		head = self.head_of_household
+		spouse = head and frappe.db.get_value("Person", head, "spouse")
+		if not spouse:
+			return
+		relation = spouse_relation_type(frappe.db.get_value("Person", spouse, "gender"))
+		for member in self.members:
+			if member.member == spouse:
+				member.relationship_to_head = relation
+			elif member.relationship_to_head in SPOUSE_RELATION_TYPES.values():
+				member.relationship_to_head = None
 
 	@property
 	def head_of_household(self):

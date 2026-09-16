@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "format:FAM-{####}",
+ "autoname": "FAM-.####",
  "creation": "2025-08-22 00:15:20.425153",
  "description": "A family of people ('Person's) that are considered to be part of the same household. One 'Person' can be set to be the Head of Household for a family. ",
  "doctype": "DocType",
@@ -97,7 +97,7 @@
    "link_fieldname": "recipient"
   }
  ],
- "modified": "2026-08-17 03:00:00.000000",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",

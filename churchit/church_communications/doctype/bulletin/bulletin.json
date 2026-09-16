@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:BUL-{####}",
+ "autoname": "BUL-.####",
  "creation": "2026-09-14 00:00:00",
  "default_print_format": "Bulletin",
  "description": "A printed bulletin for one function: a folded Letter sheet with a cover, the order of worship, and whichever sections are switched on. Print it double-sided, flipped on the short edge, and fold it in half.",
@@ -214,7 +214,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-14 00:00:00",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin",

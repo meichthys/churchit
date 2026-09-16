@@ -4,6 +4,7 @@
  "creation": "2026-05-29 00:00:00",
  "description": "Annual budget by expense type.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
   "start_date",

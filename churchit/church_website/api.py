@@ -91,6 +91,24 @@ def get_church_doctypes():
 
 
 @frappe.whitelist(allow_guest=False)
+def get_published_web_page(url):
+	"""The published Web Page a navbar/footer link points at, or None.
+
+	Only site-relative links can name a Web Page; www/ pages and external links
+	have nothing to un-publish.
+	"""
+	frappe.only_for(["Church Manager", "System Manager"])
+	if not url or not url.startswith("/"):
+		return None
+	route = url.lstrip("/").split("?")[0].split("#")[0]
+	if not route:
+		return None
+	return frappe.db.get_value(
+		"Web Page", {"route": route, "published": 1}, ["name", "title", "route"], as_dict=True
+	)
+
+
+@frappe.whitelist(allow_guest=False)
 def search_church_recipient(doctype, txt):
 	"""Search records of the given church doctype, returning name and display label."""
 	allowed = frappe.get_all(

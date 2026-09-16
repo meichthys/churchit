@@ -1,9 +1,10 @@
 {
  "actions": [],
- "autoname": "format:LOC-{####}",
+ "autoname": "LOC-.####",
  "creation": "2026-04-15 18:04:25.757295",
  "description": "An area or space (i.e address, building, room, drawer, website, etc)",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
  "field_order": [
   "location_name",
@@ -93,7 +94,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-04-16 19:04:24.341556",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Location",

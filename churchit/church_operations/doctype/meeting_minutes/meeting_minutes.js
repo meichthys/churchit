@@ -2,6 +2,17 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Meeting Minutes", {
+	setup(frm) {
+		frm.set_df_property("audio_recording", "options", {
+			restrictions: { allowed_file_types: ["audio/*"] },
+		});
+	},
+	refresh(frm) {
+		render_audio_player(frm);
+	},
+	audio_recording(frm) {
+		render_audio_player(frm);
+	},
 	function(frm) {
 		if (!frm.doc.function) return;
 		frappe.db.get_doc("Function", frm.doc.function).then((fn) => {
@@ -38,3 +49,13 @@ frappe.ui.form.on("Meeting Minutes", {
 		});
 	},
 });
+
+function render_audio_player(frm) {
+	const wrapper = frm.get_field("audio_player").$wrapper;
+	if (!frm.doc.audio_recording) {
+		wrapper.empty();
+		return;
+	}
+	const src = frappe.utils.escape_html(frm.doc.audio_recording);
+	wrapper.html(`<audio controls preload="none" style="width: 100%" src="${src}"></audio>`);
+}

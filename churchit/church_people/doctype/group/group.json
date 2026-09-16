@@ -1,10 +1,11 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:GRP-{####}",
+ "autoname": "GRP-.####",
  "creation": "2026-03-19 18:42:32.635733",
  "description": "A collection of people with a related purpose (e.g. Sunday School class, ministry, small group, committee, etc.)",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
   "section_break_x4tp",
@@ -81,7 +82,7 @@
    "link_fieldname": "group"
   }
  ],
- "modified": "2026-05-19 20:06:56.120080",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",

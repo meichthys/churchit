@@ -13,6 +13,8 @@ repos:
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
+        # Rendered by Frappe as a Jinja template, not literal JSON.
+        exclude: ^churchit/www/manifest\.json$
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
@@ -43,14 +45,16 @@ repos:
     hooks:
       - id: prettier
         types_or: [javascript, vue, scss]
-        # Ignore any files that might contain jinja / bundles
+        # Ignore any files that might contain jinja / bundles. Frappe renders web
+        # form scripts through Jinja, so list any that use it here.
         exclude: |
             (?x)^(
-                church/public/dist/.*|
+                churchit/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                church/templates/includes/.*|
-                church/public/js/lib/.*
+                churchit/templates/includes/.*|
+                churchit/public/js/lib/.*|
+                churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
             )$
 
 
@@ -60,15 +64,17 @@ repos:
       - id: eslint
         types_or: [javascript]
         args: ['--quiet']
-        # Ignore any files that might contain jinja / bundles
+        # Ignore any files that might contain jinja / bundles. Frappe renders web
+        # form scripts through Jinja, so list any that use it here.
         exclude: |
             (?x)^(
-                church/public/dist/.*|
+                churchit/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                church/templates/includes/.*|
-                church/public/js/lib/.*
+                churchit/templates/includes/.*|
+                churchit/public/js/lib/.*|
+                churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
             )$
 
 ci:

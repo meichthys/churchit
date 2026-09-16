@@ -2,10 +2,25 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from dateutil.relativedelta import relativedelta
 from frappe.model.document import Document
-from frappe.utils import get_link_to_form
+from frappe.utils import cstr, get_link_to_form, getdate, nowdate
 
 from churchit.contacts import primary_email, validate_contact_tables
+
+SPOUSE_RELATION_TYPES = {"Male": "Husband", "Female": "Wife"}
+
+
+def spouse_relation_type(gender):
+	"""Relation Type a person of ``gender`` is to their spouse, or None when unknown."""
+	return SPOUSE_RELATION_TYPES.get(gender)
+
+
+def years_since(date):
+	"""Whole years from ``date`` until today; 0 when ``date`` is empty."""
+	if not date:
+		return 0
+	return max(relativedelta(getdate(nowdate()), getdate(date)).years, 0)
 
 
 class Person(Document):
@@ -38,27 +53,20 @@ class Person(Document):
 		# We set this here since virtual fields do not work with
 		#   View Settings -> Title Field as of 2025-08-26
 		self.full_name = f"{self.first_name}" + ((" " + self.last_name) if self.last_name else "")
+		self.marriage_years = years_since(self.anniversary)
 		self._recompute_age()
 
 	def _recompute_age(self):
 		"""Set age from the Birth row in life_events. Cleared when no Birth event."""
-		from frappe.utils import getdate, nowdate
-
 		birth = next(
 			(le for le in (self.life_events or []) if le.event_type == "Birth" and le.date),
 			None,
 		)
-		if not birth:
-			self.age = None
-			return
-		birth_date = getdate(birth.date)
-		today = getdate(nowdate())
-		years = today.year - birth_date.year
-		if (today.month, today.day) < (birth_date.month, birth_date.day):
-			years -= 1
-		self.age = max(years, 0)
+		self.age = years_since(birth.date) if birth else None
 
 	def on_trash(self):
+		if self.spouse:
+			self.unlink_spouse(self.spouse)
 		# Remove person from Family. A bulk delete takes the Family out first, and
 		# then there is no member row left to remove.
 		if self.family and frappe.db.exists("Family", self.family):
@@ -105,34 +113,72 @@ class Person(Document):
 					family_doc.family_name = f"{family_doc.family_name[: dashes + 1]} {self.first_name}"
 				family_doc.save()
 
-		# Sync spouses
+		self.sync_spouse()
+
+	def sync_spouse(self):
+		"""Mirror the spouse link, anniversary and Husband/Wife relation onto the other person."""
+		before = self.get_doc_before_save()
+		previous = before.spouse if before else None
 		if self.spouse and self.is_married:
-			# Sync spouses
-			spouse = frappe.get_doc("Person", self.spouse)
-			if spouse.spouse != self.name:
-				# Unlink spouse's old spouse if there was one
-				frappe.db.set_value("Person", spouse.spouse, "spouse", None)
-				frappe.db.set_value("Person", spouse.spouse, "anniversary", None)
-				frappe.db.set_value("Person", spouse.spouse, "is_married", False)
-				# Link spouses
-				frappe.db.set_value("Person", spouse.name, "spouse", self.name)
-				frappe.db.set_value("Person", spouse.name, "is_married", True)
-				frappe.db.set_value("Person", spouse.name, "anniversary", self.anniversary)
-				# We hide the messages when setting up sample, data but show it otherwise
-				if not frappe.flags.in_import:
-					frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
-			elif spouse.anniversary != self.anniversary:
-				# Keep anniversary in sync when it changes on either side
-				frappe.db.set_value("Person", spouse.name, "anniversary", self.anniversary)
-		else:
-			if self._doc_before_save and self._doc_before_save.is_married and self._doc_before_save.spouse:
-				spouse = frappe.get_doc("Person", self._doc_before_save.spouse)
-				frappe.db.set_value("Person", spouse.name, "spouse", None)
-				frappe.db.set_value("Person", spouse.name, "is_married", False)
-				self.spouse = None
-				self.anniversary = None
-				self.is_married = False
-				frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")
+			if previous and previous != self.spouse:
+				self.unlink_spouse(previous)
+			self.link_spouse()
+			return
+		if previous:
+			self.unlink_spouse(previous)
+			self.is_married = False
+			self.anniversary = None
+		self.spouse = None
+		self.sync_spouse_relation(None)
+
+	def link_spouse(self):
+		"""Point the spouse back at this person, sharing the anniversary and relation rows."""
+		spouse = frappe.get_doc("Person", self.spouse)
+		self.anniversary = self.anniversary or spouse.anniversary
+		self.sync_spouse_relation(spouse)
+		spouse.sync_spouse_relation(self)
+		spouse.update_child_table("relations")
+		if spouse.spouse != self.name:
+			if spouse.spouse:
+				spouse.unlink_spouse(spouse.spouse)
+			if not frappe.flags.in_import:
+				frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
+		if spouse.spouse != self.name or cstr(spouse.anniversary) != cstr(self.anniversary):
+			frappe.db.set_value(
+				"Person",
+				spouse.name,
+				{
+					"spouse": self.name,
+					"is_married": True,
+					"anniversary": self.anniversary,
+					"marriage_years": years_since(self.anniversary),
+				},
+			)
+
+	def unlink_spouse(self, spouse_name):
+		"""Clear the marriage fields and Husband/Wife relation on the other person, if they still point here."""
+		spouse = frappe.get_doc("Person", spouse_name)
+		if spouse.spouse != self.name:
+			return
+		spouse.sync_spouse_relation(None)
+		spouse.update_child_table("relations")
+		frappe.db.set_value(
+			"Person",
+			spouse.name,
+			{"spouse": None, "is_married": False, "anniversary": None, "marriage_years": 0},
+		)
+		if not frappe.flags.in_import:
+			frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")
+
+	def sync_spouse_relation(self, spouse):
+		"""Keep exactly one Husband/Wife row in ``relations``, pointing at ``spouse`` (a Person or None)."""
+		relation = spouse_relation_type(spouse.gender) if spouse else None
+		for row in list(self.relations):
+			is_wanted = relation and row.person == spouse.name and row.type == relation
+			if row.type in SPOUSE_RELATION_TYPES.values() and not is_wanted:
+				self.remove(row)
+		if relation and not any(row.type == relation and row.person == spouse.name for row in self.relations):
+			self.append("relations", {"type": relation, "person": spouse.name})
 
 	@frappe.whitelist()
 	def new_family_from_person(self):

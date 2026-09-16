@@ -19,7 +19,9 @@
 			root.setAttribute("data-theme", next);
 			try {
 				localStorage.setItem("theme", next);
-			} catch (e) {}
+			} catch (e) {
+				// localStorage may be unavailable (private mode).
+			}
 			syncPressed();
 		});
 		// Follow the OS theme as long as the visitor hasn't picked one explicitly.
@@ -29,7 +31,9 @@
 				root.setAttribute("data-theme", e.matches ? "dark" : "light");
 				syncPressed();
 			});
-		} catch (e) {}
+		} catch (e) {
+			// matchMedia may be unavailable.
+		}
 	}
 
 	// Mobile nav toggle

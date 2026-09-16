@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2026-02-27 00:00:00",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-study",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

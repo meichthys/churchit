@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:PRAY-{####}",
+ "autoname": "PRAY-.####",
  "creation": "2025-10-08 22:02:44.303677",
  "description": "A recorded prayer, written or spoken",
  "doctype": "DocType",
@@ -76,7 +76,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2025-11-15 22:56:20.377317",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer",

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FUND-{####}",
+ "autoname": "FUND-.####",
  "creation": "2025-09-02 01:11:30.383380",
  "description": "Financial funds of the church (i.e. General, Trust, etc).",
  "doctype": "DocType",
@@ -109,7 +109,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-06-26 19:44:57.616949",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",

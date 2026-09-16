@@ -1,16 +1,12 @@
-# Hosting Churchit on Frappe Cloud (Coming Soon)
+# Self-hosting Churchit
 
-The easiest (but not free) way to get a working Frappe environment is to use [Frappe Cloud](https://frappe.io/cloud). For a few dollars per month you can run an instance in the cloud. You get your choice of support options and shouldn't need to worry about data loss yourself.
+Self-hosting is the free way to run Churchit on your own hardware. It runs
+anywhere Docker runs (Linux, Windows via WSL, or macOS).
 
-Note: With this option, the money you pay to FrappeCloud is not received by maintainers of this 'Church' app. - We offer the 'Church' software for free, but you pay the cloud hosting costs to [Frappe](https://frappe.io/).
-
-Additional details on this hosting method will become available in the near future.
-
-# Self-hosting churchit
-
-Self-hosting Churchit is the free way to run Churchit on your own hardware, but does require some technical expertise.
-
-It runs anywhere Docker runs (which includes Linux, Windows, or macOS).
+If you would rather not manage a server, [Frappe Cloud](https://frappe.io/cloud)
+hosts Churchit for a few dollars a month — see the
+[main README](../README.md#-installing-churchit). Frappe Cloud fees go to Frappe,
+not to the Churchit maintainers.
 
 Disclaimer: If you plan to make Churchit accessible from the internet, you will
             need some additional 'IT knowledge'. Make sure that
@@ -36,7 +32,7 @@ to pre-configure Churchit with default settings.
 ### Linux (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-15/deploy/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-16/deploy/setup.sh | bash
 ```
 
 The script installs Docker if it's missing, downloads the churchit compose files,
@@ -62,15 +58,15 @@ On Windows, Churchit runs inside **WSL** (Windows Subsystem for Linux):
    prompts for. If WSL is already present on your system, use `wsl --install -d Ubuntu`.
 3. In Docker Desktop → Settings → Resources → WSL Integration, confirm Ubuntu
    is enabled (it should be enabled by default).
-4. Open **Ubuntu** from the Start menu and run the 'curl' command form the `Linux` section above.
+4. Open **Ubuntu** from the Start menu and run the `curl` command from the **Linux** section above.
 
 The downloaded files, `docker compose` commands, and
 the `~/churchit/.env` that holds your password all live inside WSL (Ubuntu).
 
 ### macOS
 
-Install '[Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)',
-then in Terminal run the 'curl' command in the 'Linux' section above.
+Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/),
+then in Terminal run the `curl` command from the **Linux** section above.
 
 
 ## Logging in
@@ -116,7 +112,7 @@ By default Churchit runs locally (`http://churchit.localhost`). To let people
 reach it from anywhere with a real web address and a trusted HTTPS certificate,
 you need three things: a **domain name**, **DNS** pointing at your internet
 connection, and your **router forwarding** web traffic to the host machine.
-Caddy can then fetches a free HTTPS certificate automatically.
+Caddy then fetches a free HTTPS certificate automatically.
 
 > ⚠️ Exposing anything to the internet has security implications (see the
 > disclaimer at the top). Use a strong `Administrator` password, keep the host
@@ -203,7 +199,7 @@ docker compose down -v     # stop & remove containers, network, and ALL data
 cd ~ && rm -rf churchit    # remove the config folder (.env, compose files)
 ```
 
-Be sure to run ` docker compose down -v` **before** deleting the folder.
+Be sure to run `docker compose down -v` **before** deleting the folder.
 To also remove the downloaded docker images, you can run `docker image prune -a`
 
 ## What's in this folder
@@ -214,4 +210,4 @@ To also remove the downloaded docker images, you can run `docker image prune -a`
 | `docker-compose.yml` | The full docker stack: app, workers, MariaDB, Redis, Caddy. |
 | `Caddyfile` | Reverse proxy + automatic HTTPS. |
 | `.env.example` | Settings template (domain, passwords, image tag). |
-| `apps.json` | App list baked into the image (frappe churchit, and dependencies). |
+| `apps.json` | App list baked into the image (churchit and its dependencies). |

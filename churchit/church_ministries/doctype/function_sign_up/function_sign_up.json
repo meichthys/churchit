@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FSU-{######}",
+ "autoname": "FSU-.######",
  "creation": "2026-03-23 00:00:00",
  "description": "A sign-up record indicating a person's intent to attend a church function.",
  "doctype": "DocType",
@@ -93,7 +93,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-14 17:22:16.850635",
+ "modified": "2026-09-15 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up",

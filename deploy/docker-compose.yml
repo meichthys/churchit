@@ -18,20 +18,23 @@ services:
   db:
     container_name: churchit-db
     # The database stores all site data (records, users, settings).
-    # MariaDB 10.6 is the floor for frappe v15. Recheck this minimum when
-    # upgrading Frappe (see the checklist in .github/workflows/build-image.yml).
-    image: mariadb:10.6
+    # Version matches frappe_docker's overrides/compose.mariadb.yaml for frappe v16.
+    # Recheck it when upgrading Frappe (see .github/workflows/build-image.yml).
+    image: mariadb:11.8
     restart: unless-stopped
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
-      - --skip-innodb-read-only-compressed
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      # Upgrades the data files in place when the image moves to a newer MariaDB.
+      MARIADB_AUTO_UPGRADE: 1
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 5s
       interval: 5s
+      timeout: 5s
       retries: 20
     volumes:
       - db-data:/var/lib/mysql
@@ -39,7 +42,7 @@ services:
   redis-cache:
     container_name: churchit-redis-cache
     # Redis for the framework cache (sessions, rate limits, cached documents).
-    image: redis:6.2-alpine
+    image: redis:8.6-alpine
     restart: unless-stopped
     volumes:
       - redis-cache-data:/data
@@ -47,7 +50,7 @@ services:
   redis-queue:
     container_name: churchit-redis-queue
     # Redis backing the background-job queue and websocket pub/sub.
-    image: redis:6.2-alpine
+    image: redis:8.6-alpine
     restart: unless-stopped
     volumes:
       - redis-queue-data:/data

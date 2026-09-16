@@ -3,6 +3,7 @@
  "creation": "2026-09-14 00:00:00",
  "description": "A church position printed in the leadership section of Bulletins.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-communications",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

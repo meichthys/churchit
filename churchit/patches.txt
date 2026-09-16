@@ -18,3 +18,4 @@ churchit.patches.v1_0.remove_my_account_footer_link
 churchit.patches.v1_0.add_default_address_template
 churchit.patches.v1_0.add_default_background_check_types
 churchit.patches.v1_0.setup_bulletins
+churchit.patches.v1_0.seed_naming_series_counters

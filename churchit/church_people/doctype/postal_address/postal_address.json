@@ -3,6 +3,7 @@
  "creation": "2026-08-17 00:00:00.000000",
  "description": "One address on a Person, Family or Missionary. The type says what kind of address it is; \"Is Mailing Address\" says whether the church sends mail there.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": ["address", "address_type", "is_mailing_address", "is_primary"],

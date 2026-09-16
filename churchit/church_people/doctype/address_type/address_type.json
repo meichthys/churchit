@@ -5,6 +5,7 @@
  "creation": "2026-08-17 00:00:00.000000",
  "description": "A category for an address (Home, Work, Other, etc.). Whether an address receives mail is tracked separately by the \"Is Mailing Address\" flag on the address row.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": ["type", "description"],
  "fields": [

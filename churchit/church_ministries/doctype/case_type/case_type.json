@@ -5,6 +5,7 @@
  "creation": "2026-06-01 00:00:00.000000",
  "description": "A category of counseling case (e.g. Marriage, Grief, Financial).",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
   "type",

@@ -3,6 +3,7 @@
  "creation": "2026-08-17 00:00:00.000000",
  "description": "One email address on a Person, Family or Missionary.",
  "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": ["email_address", "email_type", "is_primary", "notification_address"],

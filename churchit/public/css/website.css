@@ -513,6 +513,34 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   transform: translateX(3px);
 }
 
+/* ---- Recipient search (prayer-request web form) -----------------------------
+   The form's client script builds this list itself; colours come from the
+   same tokens as frappe's Link-field dropdown so it follows the theme. */
+.recipient-search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  margin: 0;
+  padding: var(--padding-xs);
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}
+.recipient-search-results li {
+  padding: var(--padding-sm);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+.recipient-search-results li:hover {
+  background-color: var(--awesomplete-hover-bg);
+}
+
 /* ---- Sermon series cards (sermons template) ------------------------------- */
 .series-tag {
   font-size: 0.7em;

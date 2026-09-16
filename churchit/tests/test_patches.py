@@ -3,7 +3,12 @@
 
 """Install-time seeding and versioned patches must be safe to run again."""
 
+import os
+import tempfile
+from unittest import mock
+
 import frappe
+from frappe.model.naming import NamingSeries
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.patches import after_install
@@ -13,6 +18,7 @@ from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	redesign_home_page,
 	rename_agency_logo_field,
+	seed_naming_series_counters,
 	setup_bulletins,
 	update_default_navbar,
 )
@@ -77,6 +83,18 @@ class TestAfterInstall(FrappeTestCase):
 
 
 class TestVersionedPatches(FrappeTestCase):
+	def test_naming_counters_seed_from_highest_existing_name(self):
+		series = NamingSeries("PRSN-.####")
+		highest = max(int(n[5:]) for n in frappe.get_all("Person", pluck="name") if n[5:].isdigit())
+		series.update_counter(0)
+
+		seed_naming_series_counters.execute()
+		self.assertEqual(series.get_current_value(), highest)
+
+		series.update_counter(highest + 5)
+		seed_naming_series_counters.execute()
+		self.assertEqual(series.get_current_value(), highest + 5)
+
 	def test_missions_map_is_added_once(self):
 		page = frappe.get_doc("Web Page", "missions")
 		page.main_section_html = "<p>Existing content</p>"
@@ -236,9 +254,19 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertIn("Locations", labels, "a church that re-pointed the link keeps it")
 		self.assertIn("Calendar", labels)
 
+	def _compile_themes_into_temporary_folder(self):
+		"""Compiled stylesheets are files, which the test transaction cannot roll
+		back; frappe keeps only the two newest per theme, so compiling into the
+		site's files folder would delete the stylesheet the live theme points at."""
+		folder = self.enterContext(tempfile.TemporaryDirectory())
+		self.enterContext(mock.patch("frappe.utils.get_files_path", return_value=folder))
+		return folder
+
 	def _reset_website_theme(self):
+		folder = self._compile_themes_into_temporary_folder()
 		frappe.db.set_single_value("Website Settings", "website_theme", "Standard")
 		frappe.delete_doc("Website Theme", "Churchit", force=True)
+		return folder
 
 	def test_website_theme_moves_a_site_on_standard_to_churchit(self):
 		self._reset_website_theme()
@@ -250,17 +278,19 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(frappe.db.count("Website Theme", {"theme": "Churchit"}), 1)
 
 	def test_website_theme_compiles_this_app_into_the_stylesheet(self):
-		self._reset_website_theme()
+		folder = self._reset_website_theme()
 
 		add_churchit_website_theme.execute()
 
 		theme = frappe.get_doc("Website Theme", "Churchit")
 		self.assertTrue(theme.custom, "user-owned, so a church can edit it")
 		self.assertIn('@import "churchit/public/scss/website"', theme.theme_scss)
-		stylesheet = frappe.utils.get_site_path("public", theme.theme_url.removeprefix("/"))
+		self.assertTrue(theme.theme_url.startswith("/files/website_theme/"))
+		stylesheet = os.path.join(folder, os.path.basename(theme.theme_url))
 		self.assertIn("--ch-grad", open(stylesheet).read())
 
 	def test_website_theme_leaves_a_church_that_picked_its_own_alone(self):
+		self._compile_themes_into_temporary_folder()
 		own_theme = frappe.get_doc({"doctype": "Website Theme", "theme": "_Test Church Theme"})
 		own_theme.insert(ignore_permissions=True)
 		frappe.db.set_single_value("Website Settings", "website_theme", own_theme.name)

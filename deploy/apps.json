@@ -1,10 +1,10 @@
 [
   {
     "url": "https://github.com/frappe/payments",
-    "branch": "version-15"
+    "branch": "version-16"
   },
   {
     "url": "https://github.com/meichthys/churchit",
-    "branch": "version-15"
+    "branch": "version-16"
   }
 ]

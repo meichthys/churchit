@@ -24,7 +24,7 @@ REPORTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def _walk_report_python_files():
-	for root, dirs, files in os.walk(REPORTS_DIR):
+	for root, _dirs, files in os.walk(REPORTS_DIR):
 		if not root.endswith("/report") and "/report/" not in root:
 			continue
 		for f in files:
