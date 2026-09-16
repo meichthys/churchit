@@ -7,6 +7,7 @@ import json
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_ministries.web_form.function_sign_up import function_sign_up as sign_up_form
 from churchit.church_people.web_form.groups import groups as groups_form
@@ -131,6 +132,24 @@ class TestCommunityPrayerRequestsWebForm(FrappeTestCase):
 	def test_asking_for_private_requests_yields_nothing(self):
 		context = prayer_form.get_list_context(frappe._dict())
 		self.assertEqual(context.get_list("Prayer Request", "", {"is_private": 1}, 0, 500), [])
+
+	def test_portal_submission_keeps_the_chosen_recipient(self):
+		"""The form's script picks a recipient by search; the id only survives
+		``accept`` when ``recipient`` is a (hidden) field of the web form."""
+		person = make_person("_Test Community", "Recipient")
+		data = json.dumps(
+			{
+				"title": "_Test Community Submitted",
+				"type": self.public.type,
+				"request": "Please pray.",
+				"requestor": person.name,
+				"recipient_type": "Person",
+				"recipient": person.name,
+			}
+		)
+		saved = accept("prayer-request", data)
+		self.assertEqual(saved.recipient, person.name)
+		self.assertEqual(saved.recipient_name, "_Test Community Recipient")
 
 	def test_reference_doc_links_are_resolved_to_titles(self):
 		person = make_person("_Test Community", "Requestor")

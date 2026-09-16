@@ -9,35 +9,21 @@ frappe.ready(function () {
 	}
 
 	var $type_select = type_ctrl.$input;
-	var $input = name_ctrl.$input;
-	var $wrap = name_ctrl.$wrapper;
 
-	// Make recipient_name editable so the user can search
+	// Make recipient_name editable so the user can search. A read-only control
+	// has no $input until it is refreshed as editable, so capture it afterwards.
 	name_ctrl.df.read_only = 0;
 	name_ctrl.refresh();
+	var $input = name_ctrl.$input;
+	var $wrap = name_ctrl.$wrapper;
 
 	// Initialise the input with the already-resolved display name
 	if (frappe.web_form.doc && frappe.web_form.doc.recipient_name) {
 		$input.val(frappe.web_form.doc.recipient_name);
 	}
 
-	// Custom dropdown for searching recipients by label
-	var $dd = $("<ul>").css({
-		position: "absolute",
-		background: "#fff",
-		border: "1px solid #d1d8dd",
-		borderRadius: "0 0 4px 4px",
-		boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-		listStyle: "none",
-		padding: 0,
-		margin: 0,
-		maxHeight: "180px",
-		overflowY: "auto",
-		zIndex: 9999,
-		display: "none",
-		left: 0,
-		right: 0,
-	});
+	// Custom dropdown for searching recipients by label; styled in website.css
+	var $dd = $('<ul class="recipient-search-results">').hide();
 	$wrap.css("position", "relative").append($dd);
 
 	var timer;
@@ -59,15 +45,6 @@ frappe.ready(function () {
 					results.forEach(function (d) {
 						$("<li>")
 							.text(d.label)
-							.css({ padding: "6px 12px", cursor: "pointer" })
-							.hover(
-								function () {
-									$(this).css("background", "#f4f5f7");
-								},
-								function () {
-									$(this).css("background", "#fff");
-								}
-							)
 							.on("mousedown", function (e) {
 								e.preventDefault();
 								$input.val(d.label);

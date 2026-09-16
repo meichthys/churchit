@@ -5,6 +5,7 @@
 		const current = window.location.pathname.replace(/\/$/, "") || "/";
 
 		document.querySelectorAll(".navbar-nav > .nav-item > .nav-link").forEach(function (link) {
+			if (!link.pathname) return;
 			const href = link.pathname.replace(/\/$/, "") || "/";
 			if (href === current) {
 				link.closest(".nav-item").classList.add("active");
