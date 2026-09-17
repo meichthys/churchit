@@ -45,6 +45,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
+- Check-In Station: search by name or phone number, check whole families in with a tap, add first-time visitors on the spot, undo and reprint from the live list
+- Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag. Both label layouts are Print Formats a church can copy and customize
 - Recurring functions: Functions are automatically created based on a given frequency.
 - Calendar view (Private & Public)
 - Attendance types (Confirmed, Assumed, Absent, etc.)
