@@ -16,13 +16,14 @@
   "tax_id",
   "is_group",
   "parent_church",
+  "publish",
   "column_break_rmsm",
   "founding_date",
   "address",
-  "default_bible_translation",
-  "publish",
   "mission_statement",
   "church_verse",
+  "default_bible_translation",
+  "image",
   "section_break_nxne",
   "about",
   "hidden_fields_section",
@@ -46,10 +47,10 @@
    "label": "Legal Name"
   },
   {
+   "description": "Shown on contribution statements. In the US this is the church's EIN.",
    "fieldname": "tax_id",
    "fieldtype": "Data",
-   "label": "Tax ID",
-   "description": "Shown on contribution statements. In the US this is the church's EIN."
+   "label": "Tax ID"
   },
   {
    "fieldname": "founding_date",
@@ -145,18 +146,25 @@
    "reqd": 1
   },
   {
-   "description": "A key verse for the church, printed in bulletins that switch on the Church Verse section.",
+   "description": "A key verse for the church",
    "fieldname": "church_verse",
    "fieldtype": "Link",
    "label": "Church Verse",
    "options": "Bible Reference"
+  },
+  {
+   "description": "A logo or photo of the church. Can be shown in church bulletin or website.",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
   }
  ],
  "grid_page_length": 50,
+ "image_field": "image",
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-17 00:00:00",
+ "modified": "2026-09-17 18:29:01.894900",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
@@ -187,9 +195,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "church_name",
  "track_changes": 1

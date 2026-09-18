@@ -169,6 +169,16 @@ On a plain `bench` (without Pilot), the equivalent is `bench get-app https://git
 2. Create your own user: type `New User` in the search bar. Under **Roles & Permissions**, give the user the `Church Manager` Role Profile and the `Church` Module Profile. This user can manage all aspects of the church.
 3. For additional people, create users with the `Church User` Role Profile and the `Church` Module Profile. They can read and update most information, but not critical settings. Open the `Role Permissions Manager` and select `Church Manager` or `Church User` to see exactly what each role can do.
 
+### Customising the website pages
+
+The public pages (Home, Beliefs, Sermons, Missions, Ministries, Locations) are `Web Page` records, created once when the app is installed. They belong to your church: edit them freely, and upgrades will not overwrite them.
+
+- Open **Website → Web Page** and pick a page. The content is in **Main Section (HTML)**. Content Type is `HTML` with **Dynamic Template** checked, so the HTML is a Jinja template that can read published records, e.g. `{% set sermons = frappe.get_all("Sermon", filters={"publish": 1}) %}` or `{% set church = get_church() %}`. The page then updates itself as you publish records.
+- For a page you would rather write by hand, switch Content Type to `Rich Text` or `Markdown` and use the editor instead.
+- Per-page styles go in the **Custom CSS** tab (tick *Insert Style*). The site-wide look is the Website Theme, chosen in Website Settings.
+- To get a shipped page back to its original look, copy the template from [`churchit/patches/after_install/templates/`](churchit/patches/after_install/templates/) into **Main Section (HTML)**. Those files are also a good starting point for a new page.
+- Menu entries live in **Website Settings → Top Bar**; removing one offers to un-publish the page it pointed at.
+
 ## 🗺️ Feature Roadmap
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.

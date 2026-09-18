@@ -120,6 +120,12 @@ class BulletinSections:
 		return frappe.get_cached_doc("Bible Reference", church.church_verse)
 
 	@property
+	def church_image(self):
+		"""The Church record's logo or photo, printed on the front cover."""
+		church = get_church()
+		return church.image if church else None
+
+	@property
 	def birthdays(self):
 		members_only = self.settings.birthday_scope == "Active Members"
 		return celebrations.birthdays(*self.celebration_window, members_only=members_only)

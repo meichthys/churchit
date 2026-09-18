@@ -15,6 +15,8 @@
   .bulletin-cut { position: absolute; top: 0.2in; bottom: 0.2in; left: 5.5in; border-left: 1px dashed #bbb; z-index: 1; }
   .bulletin h2 { font-size: 11pt; color: #2a4a85; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #c8a96a; padding-bottom: 2pt; margin: 12pt 0 5pt; }
   .bulletin h2:first-child { margin-top: 0; }
+  .church-image { text-align: center; margin-bottom: 8pt; }
+  .church-image img { max-height: 0.9in; max-width: 2.5in; }
   .church-name { text-align: center; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.18em; color: #2a4a85; margin-bottom: 0.25in; }
   .cover-image { max-height: 3.8in; overflow: hidden; margin-bottom: 0.3in; }
   .cover-image img { width: 100%; display: block; }
@@ -68,6 +70,7 @@
 {%- set handouts = doc.sermon_handouts if doc.show_sermon_handout else [] -%}
 {%- set verse = doc.verse_of_the_week -%}
 {%- set church_verse = doc.church_verse if doc.show_church_verse else None -%}
+{%- set church_image = doc.church_image if doc.show_church_image else None -%}
 
 <div class="bulletin">
 
@@ -116,6 +119,9 @@
     </div>
 
     <div class="bulletin-panel right">
+      {%- if church_image %}
+      <div class="church-image"><img src="{{ church_image }}"></div>
+      {%- endif %}
       <div class="church-name">{{ contact.name | e }}</div>
       {%- if doc.cover_image %}
       <div class="cover-image"><img src="{{ doc.cover_image }}"></div>

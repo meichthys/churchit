@@ -228,6 +228,24 @@ class TestBulletin(FrappeTestCase):
 		bulletin.save(ignore_permissions=True)
 		self.assertNotIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
+	def test_church_image_comes_from_the_church_record(self):
+		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
+		church.image = "/files/_test_church_logo.png"
+		church.save(ignore_permissions=True)
+		self.addCleanup(frappe.db.set_value, "Church", church.name, "image", None)
+		self.settings.show_church_image = 1
+		self.settings.save(ignore_permissions=True)
+
+		bulletin = self.make_bulletin()
+
+		self.assertEqual(bulletin.show_church_image, 1)
+		self.assertEqual(bulletin.church_image, "/files/_test_church_logo.png")
+		self.assertIn('class="church-image"', frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
+
+		bulletin.show_church_image = 0
+		bulletin.save(ignore_permissions=True)
+		self.assertNotIn('class="church-image"', frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
+
 	def make_bible_reference(self, reference_text):
 		book = ensure(
 			"Bible Book",

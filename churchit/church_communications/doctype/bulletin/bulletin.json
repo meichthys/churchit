@@ -23,6 +23,7 @@
   "show_upcoming_functions",
   "show_ministries",
   "show_church_verse",
+  "show_church_image",
   "column_break_sections",
   "show_missionary",
   "show_prayer_requests",
@@ -138,6 +139,12 @@
    "fieldname": "show_church_verse",
    "fieldtype": "Check",
    "label": "Church Verse"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_church_image",
+   "fieldtype": "Check",
+   "label": "Church Image"
   },
   {
    "fieldname": "column_break_sections",
