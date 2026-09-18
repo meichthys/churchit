@@ -112,6 +112,14 @@ class BulletinSections:
 		return frappe.get_cached_doc("Bible Reference", self.verse) if self.verse else None
 
 	@property
+	def church_verse(self):
+		"""The Church record's key verse, printed on the back cover."""
+		church = get_church()
+		if not church or not church.church_verse:
+			return None
+		return frappe.get_cached_doc("Bible Reference", church.church_verse)
+
+	@property
 	def birthdays(self):
 		members_only = self.settings.birthday_scope == "Active Members"
 		return celebrations.birthdays(*self.celebration_window, members_only=members_only)

@@ -22,6 +22,7 @@
   "show_church_roles",
   "show_upcoming_functions",
   "show_ministries",
+  "show_church_verse",
   "column_break_sections",
   "show_missionary",
   "show_prayer_requests",
@@ -133,6 +134,12 @@
    "label": "Ministries"
   },
   {
+   "default": "1",
+   "fieldname": "show_church_verse",
+   "fieldtype": "Check",
+   "label": "Church Verse"
+  },
+  {
    "fieldname": "column_break_sections",
    "fieldtype": "Column Break"
   },
@@ -214,7 +221,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-17 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin",

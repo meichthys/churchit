@@ -62,7 +62,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Bulletins
 - Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
-- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
+- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, church verse, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
 - Published bulletins downloadable as PDFs from the member portal
 
 ### Finances

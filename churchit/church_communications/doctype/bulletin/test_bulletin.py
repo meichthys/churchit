@@ -210,6 +210,35 @@ class TestBulletin(FrappeTestCase):
 		self.assertEqual(handouts[0].preacher, "Paul _Test Preacher")
 		self.assertIn('class="blank"', handouts[0].handout.rendered_content)
 
+	def test_church_verse_comes_from_the_church_record(self):
+		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
+		church.church_verse = self.make_bible_reference("Whoever believes in him shall not perish.")
+		church.save(ignore_permissions=True)
+		self.addCleanup(frappe.db.set_value, "Church", church.name, "church_verse", None)
+		self.settings.show_church_verse = 1
+		self.settings.save(ignore_permissions=True)
+
+		bulletin = self.make_bulletin()
+
+		self.assertEqual(bulletin.show_church_verse, 1)
+		self.assertEqual(bulletin.church_verse.name, church.church_verse)
+		self.assertIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
+
+		bulletin.show_church_verse = 0
+		bulletin.save(ignore_permissions=True)
+		self.assertNotIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
+
+	def make_bible_reference(self, reference_text):
+		book = ensure(
+			"Bible Book",
+			{"book": "_Test Bulletin Book"},
+			{"book": "_Test Bulletin Book", "abbreviation": "TBB"},
+		)
+		verse = ensure("Bible Verse", {"name": f"{book} 3:16"}, {"book": book, "chapter": 3, "verse": 16})
+		name = ensure("Bible Reference", {"start_verse": verse}, {"start_verse": verse})
+		frappe.db.set_value("Bible Reference", name, "reference_text", reference_text)
+		return name
+
 	def test_print_format_renders_every_section(self):
 		self.settings.set("roles", [{"position_type": ensure("Position Type", {"position": "_Test Pastor"})}])
 		self.settings.save(ignore_permissions=True)

@@ -22,6 +22,7 @@
   "default_bible_translation",
   "publish",
   "mission_statement",
+  "church_verse",
   "section_break_nxne",
   "about",
   "hidden_fields_section",
@@ -142,13 +143,20 @@
    "fieldtype": "Data",
    "label": "Abbreviation",
    "reqd": 1
+  },
+  {
+   "description": "A key verse for the church, printed in bulletins that switch on the Church Verse section.",
+   "fieldname": "church_verse",
+   "fieldtype": "Link",
+   "label": "Church Verse",
+   "options": "Bible Reference"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-17 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

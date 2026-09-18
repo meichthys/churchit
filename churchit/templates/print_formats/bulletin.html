@@ -35,7 +35,9 @@
   .missionary img { float: left; width: 1in; margin: 0 8pt 4pt 0; }
   .missionary .entry-title { font-weight: bold; }
   .missionary .entry-detail { color: #666; font-size: 9pt; }
-  .contact { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-size: 9pt; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .back-footer { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-size: 9pt; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .church-verse { font-style: italic; margin-bottom: 8pt; }
+  .church-verse .reference { display: block; font-style: normal; color: #2a4a85; margin-top: 3pt; }
   .contact .entry-title { font-weight: bold; font-size: 10pt; color: #2a4a85; }
   .handout h3 { font-size: 14pt; color: #2a4a85; margin: 0 0 2pt; }
   .handout .meta { font-style: italic; color: #666; margin-bottom: 10pt; }
@@ -65,6 +67,7 @@
 {%- set anniversaries = doc.anniversaries if doc.show_anniversaries else [] -%}
 {%- set handouts = doc.sermon_handouts if doc.show_sermon_handout else [] -%}
 {%- set verse = doc.verse_of_the_week -%}
+{%- set church_verse = doc.church_verse if doc.show_church_verse else None -%}
 
 <div class="bulletin">
 
@@ -88,16 +91,26 @@
       {%- endfor %}
       {%- endif %}
 
-      {%- if doc.show_contact_information %}
-      <div class="contact">
-        <div class="entry-title">{{ contact.name | e }}</div>
-        {%- if contact.address %}<div>{{ contact.address | e }}</div>{% endif %}
-        <div>
-          {%- if contact.phone %}{{ contact.phone | e }}{% endif %}
-          {%- if contact.phone and contact.email %} &middot; {% endif %}
-          {%- if contact.email %}{{ contact.email | e }}{% endif %}
+      {%- if church_verse or doc.show_contact_information %}
+      <div class="back-footer">
+        {%- if church_verse %}
+        <div class="church-verse">
+          {%- if church_verse.reference_text %}&ldquo;{{ church_verse.reference_text | e }}&rdquo;{% endif %}
+          <span class="reference">{{ church_verse.reference | e }}</span>
         </div>
-        {%- if contact.website %}<div>{{ contact.website | e }}</div>{% endif %}
+        {%- endif %}
+        {%- if doc.show_contact_information %}
+        <div class="contact">
+          <div class="entry-title">{{ contact.name | e }}</div>
+          {%- if contact.address %}<div>{{ contact.address | e }}</div>{% endif %}
+          <div>
+            {%- if contact.phone %}{{ contact.phone | e }}{% endif %}
+            {%- if contact.phone and contact.email %} &middot; {% endif %}
+            {%- if contact.email %}{{ contact.email | e }}{% endif %}
+          </div>
+          {%- if contact.website %}<div>{{ contact.website | e }}</div>{% endif %}
+        </div>
+        {%- endif %}
       </div>
       {%- endif %}
     </div>
