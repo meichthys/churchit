@@ -18,6 +18,8 @@ SECTION_FIELDS = (
 	"show_church_roles",
 	"show_upcoming_functions",
 	"show_ministries",
+	"show_church_verse",
+	"show_church_image",
 	"show_missionary",
 	"show_prayer_requests",
 	"show_birthdays",

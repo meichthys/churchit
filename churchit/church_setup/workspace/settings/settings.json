@@ -149,7 +149,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Printing",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -180,6 +180,16 @@
    "label": "Print Format",
    "link_count": 0,
    "link_to": "Print Format",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Check-In Settings",
+   "link_count": 0,
+   "link_to": "Check-In Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -321,7 +331,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-10 17:18:04.277990",
+ "modified": "2026-09-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",

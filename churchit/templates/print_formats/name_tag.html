@@ -1,0 +1,41 @@
+{#- Name tag for a Function Check-In. Check-In Settings renders it once per tag and passes
+    itself as `settings`; the standard Print view passes only `doc`. With `pickup_names` set it
+    renders the family's pickup tag instead. -#}
+{%- set settings = settings or frappe.get_doc("Check-In Settings") -%}
+{%- set width = settings.label_width or 4 -%}
+{%- set height = settings.label_height or 2 -%}
+{%- set person = frappe.db.get_value("Person", doc.person, ["first_name", "last_name"], as_dict=True) if doc.person else None -%}
+{%- set function = frappe.db.get_value("Function", doc.function, ["function_name", "start_date"], as_dict=True) if doc.function else None -%}
+{%- set first_name = (person.first_name if person else "") or "" -%}
+{%- set last_name = (person.last_name if person else "") or "" -%}
+{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date, "MMM d, yyyy") if function and function.start_date else ""]|select|join(" · ") -%}
+{%- set first_size = (height * 0.32) if first_name|length <= 9 else (height * 0.32 * 9 / first_name|length) -%}
+<style>
+  .print-format { page-width: {{ width }}in; page-height: {{ height }}in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
+  @page { size: {{ width }}in {{ height }}in; margin: 0; }
+  .name-tag { width: {{ width }}in; height: {{ height }}in; box-sizing: border-box; padding: {{ height * 0.08 }}in {{ width * 0.05 }}in; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden; page-break-before: always; break-before: page; page-break-inside: avoid; break-inside: avoid; font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; }
+  .name-tag .first-name { font-weight: 700; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; }
+  .name-tag .last-name { font-size: {{ height * 0.14 }}in; line-height: 1.3; white-space: nowrap; }
+  .name-tag .footer { margin-top: auto; width: 100%; display: flex; justify-content: space-between; align-items: flex-end; font-size: {{ height * 0.08 }}in; color: #333; }
+  .name-tag .code { font-size: {{ height * 0.16 }}in; font-weight: 700; letter-spacing: 0.05em; color: #000; }
+  .name-tag.pickup .pickup-title { font-size: {{ height * 0.1 }}in; letter-spacing: 0.15em; text-transform: uppercase; }
+  .name-tag.pickup .code { font-size: {{ height * 0.3 }}in; line-height: 1.1; }
+  .name-tag.pickup .names { font-size: {{ height * 0.1 }}in; line-height: 1.3; }
+</style>
+{%- if pickup_names %}
+<div class="name-tag pickup">
+  <div class="pickup-title">Pickup</div>
+  <div class="code">{{ doc.security_code or "" }}</div>
+  <div class="names">{{ pickup_names|join(", ") }}</div>
+  <div class="footer"><span>{{ footer }}</span></div>
+</div>
+{%- else %}
+<div class="name-tag">
+  <div class="first-name" style="font-size: {{ first_size|round(2) }}in">{{ first_name }}</div>
+  <div class="last-name">{{ last_name }}</div>
+  <div class="footer">
+    <span>{{ footer }}</span>
+    {% if doc.security_code %}<span class="code">{{ doc.security_code }}</span>{% endif %}
+  </div>
+</div>
+{%- endif %}

@@ -45,6 +45,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "square-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Check-In Station",
+   "link_to": "check-in",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Ministries",
@@ -136,6 +148,17 @@
    "keep_closed": 0,
    "label": "Function Check-Ins",
    "link_to": "Function Check-In",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Check-In Settings",
+   "link_to": "Check-In Settings",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -299,7 +322,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 01:00:00.000000",
+ "modified": "2026-09-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "module_onboarding": "Ministries",

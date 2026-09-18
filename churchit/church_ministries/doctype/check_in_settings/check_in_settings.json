@@ -1,0 +1,159 @@
+{
+ "actions": [],
+ "creation": "2026-09-16 00:00:00",
+ "description": "How the Check-In Station prints name tags: which printer path to use, the label size, and whether tags carry a pickup code.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "printing_section",
+  "name_tag_printing",
+  "printer_host",
+  "printer_port",
+  "printer_name",
+  "column_break_printing",
+  "label_width",
+  "label_height",
+  "label_dpi",
+  "tags_section",
+  "security_codes",
+  "column_break_tags",
+  "name_tag_format",
+  "zpl_format"
+ ],
+ "fields": [
+  {
+   "fieldname": "printing_section",
+   "fieldtype": "Section Break",
+   "label": "Printing"
+  },
+  {
+   "default": "Browser",
+   "description": "<b>Browser</b>: opens the browser's print dialog (any printer with a driver).<br><b>Zebra Browser Print</b>: silent ZPL printing through Zebra's free Browser Print app installed on the station computer.<br><b>QZ Tray</b>: silent ZPL printing through the QZ Tray app installed on the station computer.<br><b>Network Printer</b>: the server sends ZPL straight to a Zebra printer on the church network.",
+   "fieldname": "name_tag_printing",
+   "fieldtype": "Select",
+   "label": "Name Tag Printing",
+   "options": "Browser\nZebra Browser Print\nQZ Tray\nNetwork Printer",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.name_tag_printing == 'Network Printer'",
+   "description": "IP address or hostname of the Zebra printer (see the printer's network configuration label).",
+   "fieldname": "printer_host",
+   "fieldtype": "Data",
+   "label": "Printer Host",
+   "mandatory_depends_on": "eval:doc.name_tag_printing == 'Network Printer'"
+  },
+  {
+   "default": "9100",
+   "depends_on": "eval:doc.name_tag_printing == 'Network Printer'",
+   "fieldname": "printer_port",
+   "fieldtype": "Int",
+   "label": "Printer Port"
+  },
+  {
+   "depends_on": "eval:doc.name_tag_printing == 'QZ Tray'",
+   "description": "Printer name as listed by QZ Tray. Leave blank to use the computer's default printer.",
+   "fieldname": "printer_name",
+   "fieldtype": "Data",
+   "label": "Printer Name"
+  },
+  {
+   "fieldname": "column_break_printing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "4",
+   "description": "Label width in inches. Common name tag labels are 4 x 2 in (Zebra) and 2.25 x 1.25 in (Dymo).",
+   "fieldname": "label_width",
+   "fieldtype": "Float",
+   "label": "Label Width (in)",
+   "reqd": 1
+  },
+  {
+   "default": "2",
+   "fieldname": "label_height",
+   "fieldtype": "Float",
+   "label": "Label Height (in)",
+   "reqd": 1
+  },
+  {
+   "default": "203",
+   "depends_on": "eval:doc.name_tag_printing != 'Browser'",
+   "description": "Print resolution of the Zebra printer. The ZD421 ships as 203 or 300 dpi.",
+   "fieldname": "label_dpi",
+   "fieldtype": "Select",
+   "label": "Printer DPI",
+   "options": "203\n300"
+  },
+  {
+   "fieldname": "tags_section",
+   "fieldtype": "Section Break",
+   "label": "Name Tags"
+  },
+  {
+   "default": "0",
+   "description": "Print a random pickup code on every name tag, and one extra pickup tag per family listing the names and code. Used to match children with the adult collecting them.",
+   "fieldname": "security_codes",
+   "fieldtype": "Check",
+   "label": "Print Security Codes"
+  },
+  {
+   "fieldname": "column_break_tags",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Name Tag",
+   "depends_on": "eval:doc.name_tag_printing == 'Browser'",
+   "description": "Print Format used for Browser printing. Duplicate the standard <i>Name Tag</i> format to customize it.",
+   "fieldname": "name_tag_format",
+   "fieldtype": "Link",
+   "label": "Name Tag Format",
+   "options": "Print Format"
+  },
+  {
+   "default": "Zebra Name Tag",
+   "depends_on": "eval:doc.name_tag_printing != 'Browser'",
+   "description": "Raw ZPL Print Format used for Zebra printing. Duplicate the standard <i>Zebra Name Tag</i> format to customize it.",
+   "fieldname": "zpl_format",
+   "fieldtype": "Link",
+   "label": "ZPL Format",
+   "options": "Print Format"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-16 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Check-In Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

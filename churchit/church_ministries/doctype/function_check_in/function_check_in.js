@@ -1,8 +1,11 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-// frappe.ui.form.on("Function Check-In", {
-// 	refresh(frm) {
-
-// 	},
-// });
+frappe.ui.form.on("Function Check-In", {
+	refresh(frm) {
+		if (frm.is_new()) return;
+		frm.add_custom_button(__("Print Name Tag"), () => {
+			church.name_tags.print_for({ check_ins: [frm.doc.name] });
+		});
+	},
+});

@@ -45,6 +45,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
+- Check-In Station: search by name or phone number, check whole families in with a tap, add first-time visitors on the spot, undo and reprint from the live list
+- Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag. Both label layouts are Print Formats a church can copy and customize
 - Recurring functions: Functions are automatically created based on a given frequency.
 - Calendar view (Private & Public)
 - Attendance types (Confirmed, Assumed, Absent, etc.)
@@ -60,7 +62,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Bulletins
 - Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
-- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
+- Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, church verse, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
 - Published bulletins downloadable as PDFs from the member portal
 
 ### Finances
@@ -166,6 +168,16 @@ On a plain `bench` (without Pilot), the equivalent is `bench get-app https://git
 1. Change the `Administrator` password if you have not already (top-right avatar → **My Settings**). Keep this account for site administration only — do not use it day to day.
 2. Create your own user: type `New User` in the search bar. Under **Roles & Permissions**, give the user the `Church Manager` Role Profile and the `Church` Module Profile. This user can manage all aspects of the church.
 3. For additional people, create users with the `Church User` Role Profile and the `Church` Module Profile. They can read and update most information, but not critical settings. Open the `Role Permissions Manager` and select `Church Manager` or `Church User` to see exactly what each role can do.
+
+### Customising the website pages
+
+The public pages (Home, Beliefs, Sermons, Missions, Ministries, Locations) are `Web Page` records, created once when the app is installed. They belong to your church: edit them freely, and upgrades will not overwrite them.
+
+- Open **Website → Web Page** and pick a page. The content is in **Main Section (HTML)**. Content Type is `HTML` with **Dynamic Template** checked, so the HTML is a Jinja template that can read published records, e.g. `{% set sermons = frappe.get_all("Sermon", filters={"publish": 1}) %}` or `{% set church = get_church() %}`. The page then updates itself as you publish records.
+- For a page you would rather write by hand, switch Content Type to `Rich Text` or `Markdown` and use the editor instead.
+- Per-page styles go in the **Custom CSS** tab (tick *Insert Style*). The site-wide look is the Website Theme, chosen in Website Settings.
+- To get a shipped page back to its original look, copy the template from [`churchit/patches/after_install/templates/`](churchit/patches/after_install/templates/) into **Main Section (HTML)**. Those files are also a good starting point for a new page.
+- Menu entries live in **Website Settings → Top Bar**; removing one offers to un-publish the page it pointed at.
 
 ## 🗺️ Feature Roadmap
 

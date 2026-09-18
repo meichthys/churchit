@@ -72,6 +72,13 @@ frappe.ui.form.on("Function", {
 			});
 		}
 
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Check-In Station"), function () {
+				frappe.route_options = { function: frm.doc.name };
+				frappe.set_route("check-in");
+			});
+		}
+
 		// Allow booking a room for this saved function (the Room Booking links back to it)
 		if (!frm.is_new()) {
 			frm.add_custom_button(

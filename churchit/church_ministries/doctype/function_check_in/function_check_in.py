@@ -1,10 +1,14 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
+import secrets
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+
+# Letters and digits that are hard to confuse on a printed tag.
+SECURITY_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
 class FunctionCheckIn(Document):
@@ -51,22 +55,54 @@ class FunctionCheckIn(Document):
 			if row.person == self.person and row.attendance_type == "Checked-In":
 				function_doc.remove(row)
 				function_doc.save(ignore_permissions=True)
-				frappe.msgprint("The associated attendance record has been removed.")
+				frappe.msgprint(_("The associated attendance record has been removed."), alert=True)
 				return
+
+
+def new_security_code():
+	return "".join(secrets.choice(SECURITY_CODE_ALPHABET) for _ in range(4))
 
 
 @frappe.whitelist()
 def check_in_persons(function_name, persons):
-	if isinstance(persons, str):
-		persons = json.loads(persons)
+	"""Check *persons* in to a function. New check-ins made in one call share a security code."""
+	frappe.has_permission("Function Check-In", "create", throw=True)
+	persons = frappe.parse_json(persons)
 
+	code = None
+	if frappe.db.get_single_value("Check-In Settings", "security_codes"):
+		code = new_security_code()
+
+	names = []
 	for person in persons:
 		existing = frappe.db.get_value(
 			"Function Check-In", {"function": function_name, "person": person}, "name"
 		)
 		if existing:
 			frappe.get_doc("Function Check-In", existing)._add_attendance_record()
-		else:
-			frappe.get_doc(
-				{"doctype": "Function Check-In", "function": function_name, "person": person}
-			).insert(ignore_permissions=True)
+			names.append(existing)
+			continue
+		check_in = frappe.get_doc(
+			{
+				"doctype": "Function Check-In",
+				"function": function_name,
+				"person": person,
+				"security_code": code,
+			}
+		).insert(ignore_permissions=True)
+		names.append(check_in.name)
+	return names
+
+
+@frappe.whitelist()
+def print_name_tags(check_ins=None, persons=None):
+	"""Name tags for saved check-ins, or plain tags for people who are not checked in."""
+	docs = [frappe.get_doc("Function Check-In", name) for name in frappe.parse_json(check_ins) or []]
+	for doc in docs:
+		doc.check_permission("read")
+	for person in frappe.parse_json(persons) or []:
+		frappe.has_permission("Person", doc=person, throw=True)
+		docs.append(frappe.get_doc({"doctype": "Function Check-In", "person": person}))
+	if not docs:
+		frappe.throw(_("Nothing to print."))
+	return frappe.get_single("Check-In Settings").print_name_tags(docs)

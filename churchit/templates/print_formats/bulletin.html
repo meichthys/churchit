@@ -15,6 +15,8 @@
   .bulletin-cut { position: absolute; top: 0.2in; bottom: 0.2in; left: 5.5in; border-left: 1px dashed #bbb; z-index: 1; }
   .bulletin h2 { font-size: 11pt; color: #2a4a85; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #c8a96a; padding-bottom: 2pt; margin: 12pt 0 5pt; }
   .bulletin h2:first-child { margin-top: 0; }
+  .church-image { text-align: center; margin-bottom: 8pt; }
+  .church-image img { max-height: 0.9in; max-width: 2.5in; }
   .church-name { text-align: center; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.18em; color: #2a4a85; margin-bottom: 0.25in; }
   .cover-image { max-height: 3.8in; overflow: hidden; margin-bottom: 0.3in; }
   .cover-image img { width: 100%; display: block; }
@@ -35,7 +37,9 @@
   .missionary img { float: left; width: 1in; margin: 0 8pt 4pt 0; }
   .missionary .entry-title { font-weight: bold; }
   .missionary .entry-detail { color: #666; font-size: 9pt; }
-  .contact { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-size: 9pt; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .back-footer { position: absolute; left: 0.4in; right: 0.4in; bottom: 0.5in; text-align: center; font-size: 9pt; color: #444; border-top: 1px solid #c8a96a; padding-top: 8pt; }
+  .church-verse { font-style: italic; margin-bottom: 8pt; }
+  .church-verse .reference { display: block; font-style: normal; color: #2a4a85; margin-top: 3pt; }
   .contact .entry-title { font-weight: bold; font-size: 10pt; color: #2a4a85; }
   .handout h3 { font-size: 14pt; color: #2a4a85; margin: 0 0 2pt; }
   .handout .meta { font-style: italic; color: #666; margin-bottom: 10pt; }
@@ -65,6 +69,8 @@
 {%- set anniversaries = doc.anniversaries if doc.show_anniversaries else [] -%}
 {%- set handouts = doc.sermon_handouts if doc.show_sermon_handout else [] -%}
 {%- set verse = doc.verse_of_the_week -%}
+{%- set church_verse = doc.church_verse if doc.show_church_verse else None -%}
+{%- set church_image = doc.church_image if doc.show_church_image else None -%}
 
 <div class="bulletin">
 
@@ -88,21 +94,34 @@
       {%- endfor %}
       {%- endif %}
 
-      {%- if doc.show_contact_information %}
-      <div class="contact">
-        <div class="entry-title">{{ contact.name | e }}</div>
-        {%- if contact.address %}<div>{{ contact.address | e }}</div>{% endif %}
-        <div>
-          {%- if contact.phone %}{{ contact.phone | e }}{% endif %}
-          {%- if contact.phone and contact.email %} &middot; {% endif %}
-          {%- if contact.email %}{{ contact.email | e }}{% endif %}
+      {%- if church_verse or doc.show_contact_information %}
+      <div class="back-footer">
+        {%- if church_verse %}
+        <div class="church-verse">
+          {%- if church_verse.reference_text %}&ldquo;{{ church_verse.reference_text | e }}&rdquo;{% endif %}
+          <span class="reference">{{ church_verse.reference | e }}</span>
         </div>
-        {%- if contact.website %}<div>{{ contact.website | e }}</div>{% endif %}
+        {%- endif %}
+        {%- if doc.show_contact_information %}
+        <div class="contact">
+          <div class="entry-title">{{ contact.name | e }}</div>
+          {%- if contact.address %}<div>{{ contact.address | e }}</div>{% endif %}
+          <div>
+            {%- if contact.phone %}{{ contact.phone | e }}{% endif %}
+            {%- if contact.phone and contact.email %} &middot; {% endif %}
+            {%- if contact.email %}{{ contact.email | e }}{% endif %}
+          </div>
+          {%- if contact.website %}<div>{{ contact.website | e }}</div>{% endif %}
+        </div>
+        {%- endif %}
       </div>
       {%- endif %}
     </div>
 
     <div class="bulletin-panel right">
+      {%- if church_image %}
+      <div class="church-image"><img src="{{ church_image }}"></div>
+      {%- endif %}
       <div class="church-name">{{ contact.name | e }}</div>
       {%- if doc.cover_image %}
       <div class="cover-image"><img src="{{ doc.cover_image }}"></div>
