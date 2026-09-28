@@ -20,8 +20,12 @@ frappe.query_reports["Church Directory Report"] = {
 			show_membership: report.get_filter_value("show_membership") ? 1 : 0,
 			show_hoh: report.get_filter_value("show_hoh") ? 1 : 0,
 			show_birthdays: report.get_filter_value("show_birthdays") ? 1 : 0,
-			show_anniversaries: report.get_filter_value("show_anniversaries") ? 1 : 0,
-			show_missionaries: report.get_filter_value("show_missionaries") ? 1 : 0,
+			show_anniversaries: report.get_filter_value("show_anniversaries")
+				? 1
+				: 0,
+			show_missionaries: report.get_filter_value("show_missionaries")
+				? 1
+				: 0,
 		};
 
 		frappe.call({
@@ -31,7 +35,7 @@ frappe.query_reports["Church Directory Report"] = {
 				if (!r.message) return;
 				if (!report._$preview) {
 					report._$preview = $(
-						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>'
+						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>',
 					).insertAfter($(".report-wrapper"));
 				}
 				report._$preview[0].srcdoc = r.message;

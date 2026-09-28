@@ -4,13 +4,18 @@
 frappe.ui.form.on("Function Sign-Up", {
 	refresh(frm) {
 		// Customize the items grid: hide Description, show qty_needed, qty_signed_up, my_quantity.
-		const grid = frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
+		const grid =
+			frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
 		if (grid) {
 			grid.update_docfield_property("description", "in_list_view", 0);
 			grid.update_docfield_property("description", "hidden", 1);
 			grid.update_docfield_property("quantity_needed", "in_list_view", 1);
 			grid.update_docfield_property("quantity_needed", "read_only", 1);
-			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
+			grid.update_docfield_property(
+				"quantity_signed_up",
+				"in_list_view",
+				1,
+			);
 			grid.update_docfield_property("my_quantity", "in_list_view", 1);
 			grid.update_docfield_property("my_quantity", "hidden", 0);
 			// Force re-evaluation of which columns are visible — by default the grid
@@ -47,7 +52,7 @@ frappe.ui.form.on("Function Sign-Up", {
 					() => {
 						frm._restrict_items = !frm._restrict_items;
 						render_grid_button();
-					}
+					},
 				);
 				const add_row = grid.wrapper.find(".grid-add-row").first();
 				if (btn && add_row.length) btn.insertAfter(add_row);
@@ -77,12 +82,17 @@ frappe.ui.form.on("Function Sign-Up Item", {
 			},
 			callback: function (r) {
 				if (!r.message) return;
-				frappe.model.set_value(cdt, cdn, "quantity_needed", r.message.quantity_needed);
+				frappe.model.set_value(
+					cdt,
+					cdn,
+					"quantity_needed",
+					r.message.quantity_needed,
+				);
 				frappe.model.set_value(
 					cdt,
 					cdn,
 					"quantity_signed_up",
-					r.message.quantity_signed_up
+					r.message.quantity_signed_up,
 				);
 			},
 		});

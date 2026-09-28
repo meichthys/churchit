@@ -34,8 +34,8 @@
 			${
 				marker.country
 					? `<div class="missions-map-popup-country">${frappe.utils.escape_html(
-							marker.country
-					  )}</div>`
+							marker.country,
+						)}</div>`
 					: ""
 			}
 		`;
@@ -54,7 +54,10 @@
 		mapEl.insertAdjacentElement("afterend", notice);
 	}
 
-	const map = L.map(mapEl, { scrollWheelZoom: false, worldCopyJump: true }).setView([20, 0], 2);
+	const map = L.map(mapEl, {
+		scrollWheelZoom: false,
+		worldCopyJump: true,
+	}).setView([20, 0], 2);
 	const { url, options } = frappe.utils.map_defaults.tiles.default_tile;
 	L.tileLayer(url, options).addTo(map);
 
@@ -64,12 +67,15 @@
 			type: "GET",
 		})
 		.then((r) => {
-			const { markers = [], hidden_count: hiddenCount = 0 } = r.message || {};
+			const { markers = [], hidden_count: hiddenCount = 0 } =
+				r.message || {};
 			showHiddenNotice(hiddenCount);
 			if (!markers.length) return;
 
 			const points = markers.map((marker) => {
-				L.marker([marker.latitude, marker.longitude], { icon: markerIcon(marker.photo) })
+				L.marker([marker.latitude, marker.longitude], {
+					icon: markerIcon(marker.photo),
+				})
 					.addTo(map)
 					.bindPopup(popupContent(marker));
 				return [marker.latitude, marker.longitude];

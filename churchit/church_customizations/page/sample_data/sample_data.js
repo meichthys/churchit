@@ -14,7 +14,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 				${__(
 					"Sample data lets you explore the Church app with a pre-populated " +
 						"church, people, families, missionaries, funds, collections, expenses, " +
-						"prayer requests, functions, sermons, beliefs, and related Bible study data."
+						"prayer requests, functions, sermons, beliefs, and related Bible study data.",
 				)}
 			</p>
 			<div class="mt-3">
@@ -36,19 +36,22 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 	$(page.body).html($container);
 
 	$container.find(".btn-create-sample-data").on("click", function () {
-		frappe.confirm(__("This will create sample records. Continue?"), function () {
-			frappe.call({
-				method: "churchit.setup.sample_data.create",
-				freeze: true,
-				freeze_message: __("Creating sample data..."),
-				callback: function () {
-					frappe.show_alert({
-						message: __("Sample data has been created."),
-						indicator: "green",
-					});
-				},
-			});
-		});
+		frappe.confirm(
+			__("This will create sample records. Continue?"),
+			function () {
+				frappe.call({
+					method: "churchit.setup.sample_data.create",
+					freeze: true,
+					freeze_message: __("Creating sample data..."),
+					callback: function () {
+						frappe.show_alert({
+							message: __("Sample data has been created."),
+							indicator: "green",
+						});
+					},
+				});
+			},
+		);
 	});
 
 	$container.find(".btn-delete-sample-data").on("click", function () {
@@ -74,7 +77,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 				{
 					fieldtype: "Data",
 					fieldname: "confirm_phrase",
-					label: __("Type <code>{0}</code> to confirm", [confirm_phrase]),
+					label: __("Type <code>{0}</code> to confirm", [
+						confirm_phrase,
+					]),
 					reqd: 1,
 				},
 			],
@@ -84,9 +89,10 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 					frappe.msgprint({
 						title: __("Confirmation phrase doesn't match"),
 						indicator: "orange",
-						message: __("Please type <code>{0}</code> exactly to confirm.", [
-							confirm_phrase,
-						]),
+						message: __(
+							"Please type <code>{0}</code> exactly to confirm.",
+							[confirm_phrase],
+						),
 					});
 					return;
 				}
@@ -105,6 +111,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 			},
 		});
 		dialog.show();
-		dialog.get_primary_btn().removeClass("btn-primary").addClass("btn-danger");
+		dialog
+			.get_primary_btn()
+			.removeClass("btn-primary")
+			.addClass("btn-danger");
 	});
 };

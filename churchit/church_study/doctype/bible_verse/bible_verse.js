@@ -15,39 +15,55 @@ frappe.ui.form.on("Bible Verse", {
 		if (frm.doc.book) {
 			try {
 				let chapters = await get_chapter_count(frm.doc.book);
-				let options = Array.from({ length: chapters }, (_, i) => i + 1).join("\n");
+				let options = Array.from(
+					{ length: chapters },
+					(_, i) => i + 1,
+				).join("\n");
 				frm.set_df_property("chapter", "options", options);
 			} catch (e) {
 				frm.set_df_property(
 					"chapter",
 					"options",
-					Array.from({ length: 150 }, (_, i) => i + 1).join("\n")
+					Array.from({ length: 150 }, (_, i) => i + 1).join("\n"),
 				);
 			}
 		}
 		// Set verse options when form loads
 		if (frm.doc.book && frm.doc.chapter) {
 			try {
-				let verses = await get_verse_count(frm.doc.book, frm.doc.chapter);
-				let options = Array.from({ length: verses }, (_, i) => i + 1).join("\n");
+				let verses = await get_verse_count(
+					frm.doc.book,
+					frm.doc.chapter,
+				);
+				let options = Array.from(
+					{ length: verses },
+					(_, i) => i + 1,
+				).join("\n");
 				frm.set_df_property("verse", "options", options);
 			} catch (e) {
 				frm.set_df_property(
 					"verse",
 					"options",
-					Array.from({ length: 176 }, (_, i) => i + 1).join("\n")
+					Array.from({ length: 176 }, (_, i) => i + 1).join("\n"),
 				);
 			}
 		}
 		frm.add_custom_button("Open in AndBible", async function () {
 			if (!frm.doc.book || !frm.doc.chapter || !frm.doc.verse) {
-				frappe.msgprint(__("Please make sure Book, Chapter, and Verse are filled in."));
+				frappe.msgprint(
+					__(
+						"Please make sure Book, Chapter, and Verse are filled in.",
+					),
+				);
 				return;
 			}
 
 			try {
 				// Fetch abbreviation from linked Bible Book record
-				const bookData = await frappe.db.get_doc("Bible Book", frm.doc.book);
+				const bookData = await frappe.db.get_doc(
+					"Bible Book",
+					frm.doc.book,
+				);
 				const abbreviation = bookData.abbreviation;
 
 				if (!abbreviation) {
@@ -74,13 +90,16 @@ frappe.ui.form.on("Bible Verse", {
 		// Set options for chapter field when book changes
 		try {
 			let chapters = await get_chapter_count(frm.doc.book);
-			let options = Array.from({ length: chapters }, (_, i) => i + 1).join("\n");
+			let options = Array.from(
+				{ length: chapters },
+				(_, i) => i + 1,
+			).join("\n");
 			frm.set_df_property("chapter", "options", options);
 		} catch (e) {
 			frm.set_df_property(
 				"chapter",
 				"options",
-				Array.from({ length: 150 }, (_, i) => i + 1).join("\n")
+				Array.from({ length: 150 }, (_, i) => i + 1).join("\n"),
 			);
 		}
 	},
@@ -89,13 +108,15 @@ frappe.ui.form.on("Bible Verse", {
 		// Set options for verse field when chapter changes
 		try {
 			let verses = await get_verse_count(frm.doc.book, frm.doc.chapter);
-			let options = Array.from({ length: verses }, (_, i) => i + 1).join("\n");
+			let options = Array.from({ length: verses }, (_, i) => i + 1).join(
+				"\n",
+			);
 			frm.set_df_property("verse", "options", options);
 		} catch (e) {
 			frm.set_df_property(
 				"verse",
 				"options",
-				Array.from({ length: 176 }, (_, i) => i + 1).join("\n")
+				Array.from({ length: 176 }, (_, i) => i + 1).join("\n"),
 			);
 		}
 	},
@@ -132,8 +153,11 @@ async function get_verse_count(book, chapter) {
 	const resp = await fetch(url);
 	if (!resp.ok) {
 		frappe.show_alert(
-			{ message: `Failed to fetch verse count for ${book}`, indicator: "yellow" },
-			5
+			{
+				message: `Failed to fetch verse count for ${book}`,
+				indicator: "yellow",
+			},
+			5,
 		);
 		throw new Error("Failed to fetch verse count");
 	}
@@ -141,8 +165,11 @@ async function get_verse_count(book, chapter) {
 	const verses = data.verses;
 	if (!Array.isArray(verses)) {
 		frappe.show_alert(
-			{ message: `Failed to fetch verse count for ${book}`, indicator: "yellow" },
-			5
+			{
+				message: `Failed to fetch verse count for ${book}`,
+				indicator: "yellow",
+			},
+			5,
 		);
 	}
 	return verses.length;

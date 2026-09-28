@@ -8,7 +8,7 @@ frappe.ui.form.on("Alms Request", {
 			frm.set_df_property(
 				"recipient",
 				"description",
-				`Alms are requested for this ${frm.doc.recipient_type}.`
+				`Alms are requested for this ${frm.doc.recipient_type}.`,
 			);
 		}
 	},
@@ -18,20 +18,27 @@ frappe.ui.form.on("Alms Request", {
 			frm.add_custom_button(__("Create Expense"), function () {
 				if (frm.doc.associated_expense) {
 					frappe.db
-						.get_value("Expense", frm.doc.associated_expense, "title")
+						.get_value(
+							"Expense",
+							frm.doc.associated_expense,
+							"title",
+						)
 						.then((r) => {
-							const title = r.message.title || frm.doc.associated_expense;
+							const title =
+								r.message.title || frm.doc.associated_expense;
 							frappe.confirm(
 								`An expense (<a href="/app/expense/${frm.doc.associated_expense}" target="_blank">${title}</a>) already exists for this alms request. Create another?`,
 								function () {
 									frappe.call({
 										method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-										args: { alms_request_name: frm.doc.name },
+										args: {
+											alms_request_name: frm.doc.name,
+										},
 										callback: function () {
 											frm.reload_doc();
 										},
 									});
-								}
+								},
 							);
 						});
 				} else {
@@ -49,27 +56,32 @@ frappe.ui.form.on("Alms Request", {
 	onload: function (frm) {
 		// Pre-populate the requestor field with the current user's name
 		if (frm.is_new()) {
-			frappe.db.get_value("Person", { user: frappe.session.user }, "name").then((r) => {
-				if (r && r.message) {
-					frm.set_value("requestor", r.message.name);
-				}
-			});
+			frappe.db
+				.get_value("Person", { user: frappe.session.user }, "name")
+				.then((r) => {
+					if (r && r.message) {
+						frm.set_value("requestor", r.message.name);
+					}
+				});
 		}
 	},
 	after_save: function (frm) {
 		// Prompt user to create an expense when status is set to "Distributed"
 		if (frm.doc.status === "Distributed" && !frm.doc.associated_expense) {
-			frappe.confirm("Would you like to create an associated expense?", function () {
-				frappe.call({
-					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-					args: {
-						alms_request_name: frm.doc.name,
-					},
-					callback: function () {
-						frm.reload_doc();
-					},
-				});
-			});
+			frappe.confirm(
+				"Would you like to create an associated expense?",
+				function () {
+					frappe.call({
+						method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
+						args: {
+							alms_request_name: frm.doc.name,
+						},
+						callback: function () {
+							frm.reload_doc();
+						},
+					});
+				},
+			);
 		}
 	},
 });

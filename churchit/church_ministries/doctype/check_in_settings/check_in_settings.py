@@ -63,7 +63,7 @@ class CheckInSettings(Document):
 			return "\n".join(labels)
 		return (
 			'<!doctype html><html><head><meta charset="utf-8"><style>body { margin: 0; }</style></head>'
-			f'<body>{"".join(labels)}</body></html>'
+			f"<body>{''.join(labels)}</body></html>"
 		)
 
 	def pickup_groups(self, check_ins):

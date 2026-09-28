@@ -5,7 +5,7 @@ frappe.query_reports["Visitation Followups Needed"] = {
 		if (!data || !value) return value;
 		if (column.fieldname === "person") {
 			return `<a href="/app/person/${encodeURIComponent(
-				data.person
+				data.person,
 			)}">${frappe.utils.escape_html(value)}</a>`;
 		}
 		return value;

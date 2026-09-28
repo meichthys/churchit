@@ -34,12 +34,12 @@ frappe.query_reports["Ministries"] = {
 		if (!data || !value) return value;
 		if (column.fieldname === "ministry_name") {
 			return `<a href="/app/ministry/${encodeURIComponent(
-				data.name
+				data.name,
 			)}">${frappe.utils.escape_html(value)}</a>`;
 		}
 		if (column.fieldname === "group") {
 			return `<a href="/app/group/${encodeURIComponent(value)}">${frappe.utils.escape_html(
-				value
+				value,
 			)}</a>`;
 		}
 		if (column.fieldname === "publish") {
