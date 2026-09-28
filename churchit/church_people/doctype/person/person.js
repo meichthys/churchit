@@ -32,7 +32,9 @@ frappe.ui.form.on("Person", {
 		}
 
 		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
-		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+		const has_email = (frm.doc.emails || []).some(
+			(row) => row.email_address,
+		);
 		if (has_email && !frm.doc.user) {
 			frm.add_custom_button(__("Invite to Portal"), function () {
 				frm.call("invite_to_portal");
@@ -63,11 +65,18 @@ function show_background_check_status(frm) {
 		.then((rows) => {
 			if (!rows || !rows.length) return;
 			const check = rows[0];
-			const colors = { Cleared: "green", "Not Cleared": "red", Expired: "gray" };
+			const colors = {
+				Cleared: "green",
+				"Not Cleared": "red",
+				Expired: "gray",
+			};
 			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
 			if (check.status === "Cleared" && check.expires_on) {
 				label += ` ${__("until")} ${frappe.datetime.str_to_user(check.expires_on)}`;
 			}
-			frm.dashboard.add_indicator(label, colors[check.status] || "orange");
+			frm.dashboard.add_indicator(
+				label,
+				colors[check.status] || "orange",
+			);
 		});
 }

@@ -25,7 +25,9 @@ frappe.ui.form.on("Meeting Minutes", {
 				return;
 			}
 			// Merge: add anyone not already in the attendees table
-			const existing = new Set((frm.doc.attendees || []).map((r) => r.person));
+			const existing = new Set(
+				(frm.doc.attendees || []).map((r) => r.person),
+			);
 			let added = 0;
 			attendance.forEach((row) => {
 				if (row.person && !existing.has(row.person)) {
@@ -37,7 +39,9 @@ frappe.ui.form.on("Meeting Minutes", {
 			if (added) {
 				frm.refresh_field("attendees");
 				frappe.show_alert({
-					message: __("{0} attendee(s) added from function.", [added]),
+					message: __("{0} attendee(s) added from function.", [
+						added,
+					]),
 					indicator: "green",
 				});
 			} else {
@@ -57,5 +61,7 @@ function render_audio_player(frm) {
 		return;
 	}
 	const src = frappe.utils.escape_html(frm.doc.audio_recording);
-	wrapper.html(`<audio controls preload="none" style="width: 100%" src="${src}"></audio>`);
+	wrapper.html(
+		`<audio controls preload="none" style="width: 100%" src="${src}"></audio>`,
+	);
 }

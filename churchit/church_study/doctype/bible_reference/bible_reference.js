@@ -2,7 +2,9 @@ frappe.ui.form.on("Bible Reference", {
 	import_reference_text: function (frm) {
 		if (!frm.doc.translation) {
 			frappe.msgprint(
-				__("Please select a Bible Translation before importing reference text.")
+				__(
+					"Please select a Bible Translation before importing reference text.",
+				),
 			);
 			return;
 		}
@@ -16,7 +18,10 @@ frappe.ui.form.on("Bible Reference", {
 			.then((r) => {
 				if (r && !r.exc) {
 					frm.reload_doc();
-					frappe.show_alert({ message: __("Passage fetched."), indicator: "green" }, 3);
+					frappe.show_alert(
+						{ message: __("Passage fetched."), indicator: "green" },
+						3,
+					);
 				}
 			});
 	},
@@ -25,26 +30,46 @@ frappe.ui.form.on("Bible Reference", {
 			frm.add_custom_button(__("Assign to User for Memorization"), () => {
 				church.bible_memory.open_assign_dialog([frm.doc.name], "user");
 			});
-			frm.add_custom_button(__("Assign to Group for Memorization"), () => {
-				church.bible_memory.open_assign_dialog([frm.doc.name], "group");
-			});
+			frm.add_custom_button(
+				__("Assign to Group for Memorization"),
+				() => {
+					church.bible_memory.open_assign_dialog(
+						[frm.doc.name],
+						"group",
+					);
+				},
+			);
 		}
 
 		frm.add_custom_button("Open in AndBible", async function () {
-			const start_verse = await frappe.get_doc("Bible Verse", frm.doc.start_verse);
-			if (!start_verse.book || !start_verse.chapter || !start_verse.verse) {
+			const start_verse = await frappe.get_doc(
+				"Bible Verse",
+				frm.doc.start_verse,
+			);
+			if (
+				!start_verse.book ||
+				!start_verse.chapter ||
+				!start_verse.verse
+			) {
 				frappe.msgprint(
-					__("Please make sure reference Start Verse has a Chapter and Verse.")
+					__(
+						"Please make sure reference Start Verse has a Chapter and Verse.",
+					),
 				);
 				return;
 			}
 
 			try {
-				const book = await frappe.db.get_doc("Bible Book", start_verse.book);
+				const book = await frappe.db.get_doc(
+					"Bible Book",
+					start_verse.book,
+				);
 				const abbreviation = book.abbreviation;
 
 				if (!abbreviation) {
-					frappe.msgprint(__(`No abbreviation found for Book: ${book}.`));
+					frappe.msgprint(
+						__(`No abbreviation found for Book: ${book}.`),
+					);
 					return;
 				}
 
@@ -59,9 +84,15 @@ frappe.ui.form.on("Bible Reference", {
 
 		if (!frm.doc.translation) {
 			frappe.db
-				.get_list("Church", { fields: ["default_bible_translation"], limit: 1 })
+				.get_list("Church", {
+					fields: ["default_bible_translation"],
+					limit: 1,
+				})
 				.then((data) => {
-					const value = data && data.length > 0 && data[0].default_bible_translation;
+					const value =
+						data &&
+						data.length > 0 &&
+						data[0].default_bible_translation;
 					if (value) frm.set_value("translation", value);
 				});
 		}

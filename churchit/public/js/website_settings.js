@@ -18,11 +18,12 @@ frappe.ui.form.on("Website Settings", {
 		show_theme_palette(frm);
 	},
 	after_save(frm) {
-		const still_linked = [...frm.doc.top_bar_items, ...frm.doc.footer_items].map(
-			(row) => row.url
-		);
+		const still_linked = [
+			...frm.doc.top_bar_items,
+			...frm.doc.footer_items,
+		].map((row) => row.url);
 		const urls = [...(frm.removed_link_urls || [])].filter(
-			(url) => !still_linked.includes(url)
+			(url) => !still_linked.includes(url),
 		);
 		frm.removed_link_urls = new Set();
 		offer_to_unpublish(urls);
@@ -38,9 +39,12 @@ function remember_removed_link(frm, cdt, cdn) {
 
 async function offer_to_unpublish(urls) {
 	for (const url of urls) {
-		const page = await frappe.xcall("churchit.church_website.api.get_published_web_page", {
-			url,
-		});
+		const page = await frappe.xcall(
+			"churchit.church_website.api.get_published_web_page",
+			{
+				url,
+			},
+		);
 		if (page) await confirm_unpublish(page);
 	}
 }
@@ -50,10 +54,13 @@ function confirm_unpublish(page) {
 		frappe.confirm(
 			__(
 				"The page <b>{0}</b> is no longer linked from the website menu, but it is still published and reachable at <code>/{1}</code>. Un-publish it?",
-				[frappe.utils.escape_html(page.title), frappe.utils.escape_html(page.route)]
+				[
+					frappe.utils.escape_html(page.title),
+					frappe.utils.escape_html(page.route),
+				],
 			),
 			() => unpublish(page).then(resolve),
-			resolve
+			resolve,
 		);
 	});
 }
@@ -70,7 +77,7 @@ function unpublish(page) {
 			frappe.show_alert({
 				message: __("Un-published {0}", [
 					`<a href="/app/web-page/${encodeURIComponent(
-						page.name
+						page.name,
 					)}">${frappe.utils.escape_html(page.title)}</a>`,
 				]),
 				indicator: "green",
@@ -93,13 +100,15 @@ frappe.dom.set_style(`
 
 async function show_theme_palette(frm) {
 	const theme = frm.doc.website_theme;
-	const $host = frm.fields_dict.website_theme.$wrapper.find(".control-input-wrapper");
+	const $host = frm.fields_dict.website_theme.$wrapper.find(
+		".control-input-wrapper",
+	);
 	$host.find(".ch-theme-palette").remove();
 	if (!theme) return;
 
 	const swatches = await frappe.xcall(
 		"churchit.church_website.theme_palette.get_website_theme_palette",
-		{ theme }
+		{ theme },
 	);
 	if (frm.doc.website_theme !== theme) return;
 	$host.find(".ch-theme-palette").remove();

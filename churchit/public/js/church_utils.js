@@ -28,7 +28,7 @@ church.bible_memory.open_assign_dialog = function (references, mode, on_done) {
 						label: __("Group"),
 						options: "Group",
 						reqd: 1,
-				  }
+					}
 				: {
 						fieldtype: "Link",
 						fieldname: "user",
@@ -36,7 +36,7 @@ church.bible_memory.open_assign_dialog = function (references, mode, on_done) {
 						options: "User",
 						reqd: 1,
 						get_query: () => ({ filters: { enabled: 1 } }),
-				  },
+					},
 		],
 		primary_action_label: __("Assign"),
 		primary_action(values) {
@@ -52,16 +52,20 @@ church.bible_memory.open_assign_dialog = function (references, mode, on_done) {
 				})
 				.then((r) => {
 					if (r && !r.exc) {
-						const { created = 0, skipped = 0, missing_users = [] } = r.message || {};
+						const {
+							created = 0,
+							skipped = 0,
+							missing_users = [],
+						} = r.message || {};
 						frappe.show_alert(
 							{
-								message: __("{0} new item(s) created, {1} already existed.", [
-									created,
-									skipped,
-								]),
+								message: __(
+									"{0} new item(s) created, {1} already existed.",
+									[created, skipped],
+								),
 								indicator: "green",
 							},
-							5
+							5,
 						);
 						if (missing_users.length) {
 							frappe.msgprint({
@@ -69,7 +73,7 @@ church.bible_memory.open_assign_dialog = function (references, mode, on_done) {
 								indicator: "orange",
 								message: __(
 									"The following group members have no linked Portal User and were not assigned:<br><br>{0}",
-									[missing_users.join("<br>")]
+									[missing_users.join("<br>")],
 								),
 							});
 						}
@@ -122,7 +126,12 @@ church.set_church_doctype_query = function (frm, fieldname, child_table) {
 		if (doc && docfield && docfield.fieldname && value) {
 			const title = doc[`_${docfield.fieldname}_link_title`];
 			const doctype = docfield._options || docfield.options;
-			if (title && doctype && frappe.utils && frappe.utils.add_link_title) {
+			if (
+				title &&
+				doctype &&
+				frappe.utils &&
+				frappe.utils.add_link_title
+			) {
 				frappe.utils.add_link_title(doctype, value, title);
 			}
 		}

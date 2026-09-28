@@ -45,7 +45,7 @@ const STATION_HTML = `
 		<input class="form-control station-search" type="search" autocomplete="off"
 			placeholder="${__("Search by name or phone number…")}">
 		<div class="station-hint">${__(
-			"Tap the people who have arrived, then Check In. Press Enter to check in a single match."
+			"Tap the people who have arrived, then Check In. Press Enter to check in a single match.",
 		)}</div>
 		<div class="station-results"></div>
 		<div class="station-actions">
@@ -87,13 +87,15 @@ class CheckInStation {
 		this.page.set_primary_action(
 			__("New Visitor"),
 			() => this.new_visitor(this.$search.val().trim()),
-			"add"
+			"add",
 		);
 		this.page.add_menu_item(__("Check-In Settings"), () =>
-			frappe.set_route("Form", "Check-In Settings")
+			frappe.set_route("Form", "Check-In Settings"),
 		);
 		this.page.add_menu_item(__("Function Check-Ins"), () =>
-			frappe.set_route("List", "Function Check-In", { function: this.function })
+			frappe.set_route("List", "Function Check-In", {
+				function: this.function,
+			}),
 		);
 
 		this.$body = $(STATION_HTML).appendTo(this.page.body);
@@ -143,19 +145,23 @@ class CheckInStation {
 			$(event.currentTarget)
 				.closest(".family-card")
 				.find(".member:not(.checked-in)")
-				.each((_, element) => this.selected.add($(element).data("person")));
+				.each((_, element) =>
+					this.selected.add($(element).data("person")),
+				);
 			this.render_results();
 		});
 		this.$check_in.on("click", () => this.check_in([...this.selected]));
 		this.$body.find(".btn-clear").on("click", () => this.clear());
 		this.$results.on("click", ".add-visitor", () =>
-			this.new_visitor(this.$search.val().trim())
+			this.new_visitor(this.$search.val().trim()),
 		);
 		this.$roster.on("click", ".btn-reprint", (event) => {
-			church.name_tags.print_for({ check_ins: [$(event.currentTarget).data("name")] });
+			church.name_tags.print_for({
+				check_ins: [$(event.currentTarget).data("name")],
+			});
 		});
 		this.$roster.on("click", ".btn-undo", (event) =>
-			this.undo($(event.currentTarget).data("name"))
+			this.undo($(event.currentTarget).data("name")),
 		);
 	}
 
@@ -172,16 +178,19 @@ class CheckInStation {
 		const wanted = frappe.route_options && frappe.route_options.function;
 		frappe.route_options = null;
 		const choice = wanted || (!this.function && this.default_function());
-		if (choice && choice !== this.function) this.function_field.set_value(choice);
+		if (choice && choice !== this.function)
+			this.function_field.set_value(choice);
 	}
 
 	// The function last used on this computer, else the next one on the calendar.
 	default_function() {
 		const remembered = localStorage.getItem(LAST_FUNCTION_KEY);
-		if (this.context.functions.some((f) => f.name === remembered)) return remembered;
+		if (this.context.functions.some((f) => f.name === remembered))
+			return remembered;
 		const next =
-			this.context.functions.find((f) => f.start_date >= this.context.today) ||
-			this.context.functions[0];
+			this.context.functions.find(
+				(f) => f.start_date >= this.context.today,
+			) || this.context.functions[0];
 		return next && next.name;
 	}
 
@@ -189,20 +198,23 @@ class CheckInStation {
 		this.function = name;
 		if (!name) return;
 		localStorage.setItem(LAST_FUNCTION_KEY, name);
-		frappe.db.get_value("Function", name, ["function_name", "start_date"]).then((r) => {
-			const doc = r.message || {};
-			this.$body
-				.find(".roster-function")
-				.attr("href", frappe.utils.get_form_link("Function", name))
-				.text(
-					[
-						doc.function_name,
-						doc.start_date && frappe.datetime.str_to_user(doc.start_date),
-					]
-						.filter(Boolean)
-						.join(" · ")
-				);
-		});
+		frappe.db
+			.get_value("Function", name, ["function_name", "start_date"])
+			.then((r) => {
+				const doc = r.message || {};
+				this.$body
+					.find(".roster-function")
+					.attr("href", frappe.utils.get_form_link("Function", name))
+					.text(
+						[
+							doc.function_name,
+							doc.start_date &&
+								frappe.datetime.str_to_user(doc.start_date),
+						]
+							.filter(Boolean)
+							.join(" · "),
+					);
+			});
 		this.clear();
 		this.refresh_roster();
 	}
@@ -218,11 +230,13 @@ class CheckInStation {
 			this.render_results();
 			return;
 		}
-		frappe.call({ method: `${API}.search_people`, args: { query } }).then((r) => {
-			if (this.$search.val().trim() !== query) return;
-			this.groups = r.message || [];
-			this.render_results();
-		});
+		frappe
+			.call({ method: `${API}.search_people`, args: { query } })
+			.then((r) => {
+				if (this.$search.val().trim() !== query) return;
+				this.groups = r.message || [];
+				this.render_results();
+			});
 	}
 
 	render_results() {
@@ -231,20 +245,24 @@ class CheckInStation {
 			this.$results.html(
 				query.length >= 2
 					? `<div class="empty">${__("No one found.")} <a class="add-visitor">${__(
-							"Add them as a new visitor."
-					  )}</a></div>`
-					: ""
+							"Add them as a new visitor.",
+						)}</a></div>`
+					: "",
 			);
 			this.update_button();
 			return;
 		}
-		this.$results.html(this.groups.map((group) => this.family_card(group)).join(""));
+		this.$results.html(
+			this.groups.map((group) => this.family_card(group)).join(""),
+		);
 		this.update_button();
 	}
 
 	family_card(group) {
 		const title = frappe.utils.escape_html(group.family_name || "");
-		const members = group.members.map((member) => this.member_chip(member)).join("");
+		const members = group.members
+			.map((member) => this.member_chip(member))
+			.join("");
 		const select_all =
 			group.members.length > 1
 				? `<button class="btn btn-link btn-sm select-family">${__("Select all")}</button>`
@@ -263,8 +281,8 @@ class CheckInStation {
 		const detail = checked_in
 			? __("Checked in")
 			: member.age
-			? __("Age {0}", [member.age])
-			: "";
+				? __("Age {0}", [member.age])
+				: "";
 		return `<button type="button" class="${classes.join(" ")}" data-person="${member.name}">
 			${frappe.get_avatar("avatar-medium", member.full_name, member.photo)}
 			<span>
@@ -292,7 +310,9 @@ class CheckInStation {
 		if (this.selected.size) return this.check_in([...this.selected]);
 		const matches = this.groups
 			.flatMap((group) => group.members)
-			.filter((member) => member.matched && !this.checked_in.has(member.name));
+			.filter(
+				(member) => member.matched && !this.checked_in.has(member.name),
+			);
 		if (matches.length === 1) this.check_in([matches[0].name]);
 	}
 
@@ -316,7 +336,8 @@ class CheckInStation {
 				});
 				this.clear();
 				this.refresh_roster();
-				if (r.message.print) return church.name_tags.print(r.message.print);
+				if (r.message.print)
+					return church.name_tags.print(r.message.print);
 			});
 	}
 
@@ -331,7 +352,10 @@ class CheckInStation {
 	refresh_roster() {
 		if (!this.function) return;
 		frappe
-			.call({ method: `${API}.get_check_ins`, args: { function: this.function } })
+			.call({
+				method: `${API}.get_check_ins`,
+				args: { function: this.function },
+			})
 			.then((r) => {
 				const rows = r.message || [];
 				this.checked_in = new Set(rows.map((row) => row.person));
@@ -339,7 +363,7 @@ class CheckInStation {
 				this.$roster.html(
 					rows.length
 						? rows.map((row) => this.roster_row(row)).join("")
-						: `<div class="empty">${__("No one is checked in yet.")}</div>`
+						: `<div class="empty">${__("No one is checked in yet.")}</div>`,
 				);
 				this.render_results();
 			});
@@ -351,13 +375,13 @@ class CheckInStation {
 			${row.security_code ? `<span class="code">${row.security_code}</span>` : ""}
 			<span class="time">${frappe.datetime.comment_when(row.creation, true)}</span>
 			<button class="btn btn-default btn-xs btn-reprint" data-name="${row.name}" title="${__(
-			"Reprint name tag"
-		)}">
+				"Reprint name tag",
+			)}">
 				${frappe.utils.icon("printer", "sm")}
 			</button>
 			<button class="btn btn-default btn-xs btn-undo" data-name="${row.name}" title="${__(
-			"Undo check-in"
-		)}">
+				"Undo check-in",
+			)}">
 				${frappe.utils.icon("close", "sm")}
 			</button>
 		</div>`;
@@ -374,7 +398,9 @@ class CheckInStation {
 	// The search text seeds the dialog: words become the name, digits become the phone.
 	new_visitor(query = "") {
 		const is_phone = /^[\d\s()+.-]+$/.test(query);
-		const [first_name, ...rest] = is_phone ? [] : query.split(/\s+/).filter(Boolean);
+		const [first_name, ...rest] = is_phone
+			? []
+			: query.split(/\s+/).filter(Boolean);
 		const dialog = new frappe.ui.Dialog({
 			title: __("New Visitor"),
 			fields: [
@@ -404,15 +430,19 @@ class CheckInStation {
 					fieldname: "family",
 					label: __("Family"),
 					options: "Family",
-					description: __("Leave blank for a new visitor with no family record yet."),
+					description: __(
+						"Leave blank for a new visitor with no family record yet.",
+					),
 				},
 			],
 			primary_action_label: __("Add & Check In"),
 			primary_action: (values) => {
-				frappe.call({ method: `${API}.add_visitor`, args: values }).then((r) => {
-					dialog.hide();
-					this.check_in([r.message.name]);
-				});
+				frappe
+					.call({ method: `${API}.add_visitor`, args: values })
+					.then((r) => {
+						dialog.hide();
+						this.check_in([r.message.name]);
+					});
 			},
 		});
 		dialog.show();

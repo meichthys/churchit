@@ -38,9 +38,10 @@
 			const titles = sources.map(function (s) {
 				return s.title;
 			});
-			const tooltip = __("When published, this field is shown on public website: {0}", [
-				titles.join(", "),
-			]);
+			const tooltip = __(
+				"When published, this field is shown on public website: {0}",
+				[titles.join(", ")],
+			);
 			// Link to the first source's route
 			const route = "/" + sources[0].route;
 
@@ -53,11 +54,13 @@
 				.html(
 					'<svg class="icon icon-sm" aria-hidden="true">' +
 						'<use href="#icon-external-link"></use>' +
-						"</svg>"
+						"</svg>",
 				);
 
 			// Append to the label area if available
-			const $label = field.$wrapper.find(".clearfix .label-area, .clearfix label");
+			const $label = field.$wrapper.find(
+				".clearfix .label-area, .clearfix label",
+			);
 			if ($label.length) {
 				$label.first().append($badge);
 			}

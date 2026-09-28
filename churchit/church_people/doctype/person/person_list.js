@@ -1,9 +1,12 @@
 frappe.listview_settings["Person"] = {
 	onload(listview) {
-		listview.page.add_action_item(__("Check In"), () => bulk_check_in(listview));
+		listview.page.add_action_item(__("Check In"), () =>
+			bulk_check_in(listview),
+		);
 		listview.page.add_action_item(__("Print Name Tags"), () => {
 			const persons = listview.get_checked_items().map((p) => p.name);
-			if (!persons.length) return frappe.msgprint(__("Select at least one person."));
+			if (!persons.length)
+				return frappe.msgprint(__("Select at least one person."));
 			church.name_tags.print_for({ persons });
 		});
 	},
@@ -38,7 +41,9 @@ function bulk_check_in(listview) {
 				callback(r) {
 					if (!r.exc) {
 						frappe.show_alert({
-							message: __("{0} person(s) checked in.", [selected.length]),
+							message: __("{0} person(s) checked in.", [
+								selected.length,
+							]),
 							indicator: "green",
 						});
 						dialog.hide();

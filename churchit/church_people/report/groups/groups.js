@@ -22,7 +22,7 @@ frappe.query_reports["Groups"] = {
 		if (!data || !value) return value;
 		if (column.fieldname === "group_name") {
 			return `<a href="/app/group/${encodeURIComponent(
-				data.name
+				data.name,
 			)}">${frappe.utils.escape_html(value)}</a>`;
 		}
 		return value;
