@@ -5,7 +5,7 @@ from pypika import Order
 from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
-COUNTED_TYPES = ("Confirmed", "Assumed")
+COUNTED_TYPES = ("Confirmed", "Assumed", "Checked-In")
 
 
 def execute(filters=None):

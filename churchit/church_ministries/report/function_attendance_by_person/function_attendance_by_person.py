@@ -51,7 +51,7 @@ def get_data(filters=None):
 	counted_types = (
 		frappe.qb.from_(AttendanceType)
 		.select(AttendanceType.name)
-		.where(AttendanceType.type.isin(["Assumed", "Confirmed"]))
+		.where(AttendanceType.type.isin(["Assumed", "Confirmed", "Checked-In"]))
 	)
 
 	query = (

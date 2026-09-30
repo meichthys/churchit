@@ -5,7 +5,7 @@ from frappe.query_builder.functions import Count
 from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
-COUNTED_TYPES = ("Assumed", "Confirmed")
+COUNTED_TYPES = ("Assumed", "Confirmed", "Checked-In")
 
 
 def execute(filters=None):
