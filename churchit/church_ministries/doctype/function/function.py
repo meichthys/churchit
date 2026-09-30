@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_months, add_years, getdate, now_datetime
+from frappe.utils import add_days, add_months, add_years, date_diff, getdate, now_datetime
 
 WEEKDAY_INDEX = {
 	"Monday": 0,
@@ -155,7 +155,10 @@ def _create_next_occurrence(template_name, today):
 	new_doc_data["function_name"] = template.function_name
 	new_doc_data["type"] = template.type
 	new_doc_data["start_date"] = next_date
-	new_doc_data["end_date"] = next_date if template.end_date else None
+	# A multi-day function, such as a weekend retreat, keeps its length.
+	new_doc_data["end_date"] = (
+		add_days(next_date, date_diff(template.end_date, template.start_date)) if template.end_date else None
+	)
 	if not template.all_day:
 		new_doc_data["start_time"] = template.start_time
 		new_doc_data["end_time"] = template.end_time
