@@ -4,8 +4,13 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
+
+from churchit.church_foundations import church_access
+from churchit.church_scope import root_church
+from churchit.church_setup import multi_church
 
 # Check fieldname on Church Features -> the churchit module it switches.
 MODULE_FIELDS = {
@@ -29,8 +34,21 @@ PROTECTED = ("Settings",)
 
 
 class ChurchFeatures(Document):
+	def validate(self):
+		if cint(self.enable_multi_church) and not root_church():
+			frappe.throw(_("Create the Church record before enabling Multi-Church."))
+		if self.multi_church_changed_to(False) and frappe.db.count("Church") > 1:
+			frappe.throw(_("Multi-Church cannot be turned off while branch churches exist."))
+
 	def on_update(self):
 		self.apply()
+		if self.multi_church_changed_to(True):
+			self.start_multi_church()
+
+	def multi_church_changed_to(self, enabled):
+		before = self.get_doc_before_save()
+		was_enabled = bool(cint(before and before.enable_multi_church))
+		return bool(cint(self.enable_multi_church)) == enabled and was_enabled != enabled
 
 	def apply(self):
 		"""Hide the desk surfaces of every disabled module, restore the enabled ones.
@@ -44,9 +62,21 @@ class ChurchFeatures(Document):
 		managed["workspaces"] = self.sync_workspaces(disabled, managed.get("workspaces") or [])
 		managed["desktop_icons"] = self.sync_desktop_icons(disabled, managed.get("desktop_icons") or [])
 		self.sync_blocked_modules(disabled)
+		multi_church.apply_field_visibility(cint(self.enable_multi_church))
+		multi_church.apply_people_privacy(cint(self.private_people))
 
 		self.db_set("managed_records", json.dumps(managed, indent=1), update_modified=False)
 		frappe.clear_cache()
+
+	def start_multi_church(self):
+		"""One-time move to multi-church: stamp the root on every record, scope every user to it.
+
+		Runs only on the off-to-on transition, never on migrate, so a Church
+		permission an administrator deleted afterwards stays deleted.
+		"""
+		root = root_church()
+		multi_church.backfill_root_church(root)
+		church_access.grant_root_permission_to_users(root)
 
 	def get_disabled_modules(self):
 		"""Return the modules whose box is explicitly unchecked.

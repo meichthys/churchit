@@ -1,29 +1,35 @@
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Coalesce, Sum
 
+from churchit.church_people.member_access import is_portal_member
+from churchit.church_scope import church_filters, session_church, session_person
 from churchit.utils import resolve_link_titles
 
 
 class FunctionSignUp(Document):
 	def validate(self):
 		if not frappe.db.get_value("Function", self.function, "allow_sign_ups"):
-			frappe.throw("Sign ups are not enabled for this function.")
+			frappe.throw(_("Sign ups are not enabled for this function."))
 
 		# Prevent duplicate sign-ups for the same function and person
 		if frappe.db.exists(
 			"Function Sign-Up", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
 		):
-			frappe.throw("This person has already signed up for this function.")
+			frappe.throw(_("This person has already signed up for this function."))
 
-		user_roles = frappe.get_roles(frappe.session.user)
-		is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
-		if not is_manager:
+		if is_portal_member():
+			if not is_open_for_sign_up(self.function):
+				frappe.throw(_("This function is not open for you to sign up."), frappe.PermissionError)
 			# Force person from the linked Person record to prevent tampering
-			person_name = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
+			person_name = session_person()
 			if not person_name:
-				frappe.throw("No Person record is linked to your account.")
+				frappe.throw(_("No Person record is linked to your account."))
 			self.person = person_name
+		else:
+			# `person` is a plain Link, which user permissions never measure against its church.
+			frappe.has_permission("Person", doc=self.person, throw=True)
 
 		self.set_item_quantities_needed()
 
@@ -78,17 +84,20 @@ class FunctionSignUp(Document):
 			if row.person == self.person and row.attendance_type == "Signed-Up":
 				function_doc.remove(row)
 				function_doc.save(ignore_permissions=True)
-				frappe.msgprint("The associated attendance record has been removed.")
+				frappe.msgprint(_("The associated attendance record has been removed."))
 				return
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_function_items(doctype, txt, searchfield, start, page_len, filters):
+def get_function_items(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | None
+):
 	"""Search query: only Sign-Up Items configured on the given Function."""
 	function = (filters or {}).get("function")
 	if not function:
 		return []
+	frappe.has_permission("Function", doc=function, throw=True)
 	Item = frappe.qb.DocType("Function Sign-Up Item")
 	return (
 		frappe.qb.from_(Item)
@@ -102,7 +111,7 @@ def get_function_items(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def get_item_status(function, item, exclude_sign_up=None):
+def get_item_status(function: str, item: str, exclude_sign_up: str | None = None):
 	"""Return live quantity_needed (from the Function) and quantity_signed_up
 	(summed across all Function Sign-Ups for the same function/item).
 
@@ -112,6 +121,7 @@ def get_item_status(function, item, exclude_sign_up=None):
 		exclude_sign_up: Optional Function Sign-Up name to exclude from totals
 			(used when editing an existing sign-up to show others' contributions).
 	"""
+	frappe.has_permission("Function", doc=function, throw=True)
 	qty_needed = frappe.db.get_value(
 		"Function Sign-Up Item",
 		{"parent": function, "parenttype": "Function", "item": item},
@@ -119,6 +129,7 @@ def get_item_status(function, item, exclude_sign_up=None):
 	)
 
 	Item = frappe.qb.DocType("Function Sign-Up Item")
+	# church-scope: keyed to one function, which the caller has been checked against
 	SignUp = frappe.qb.DocType("Function Sign-Up")
 
 	query = (
@@ -141,11 +152,24 @@ def get_item_status(function, item, exclude_sign_up=None):
 
 
 @frappe.whitelist()
-def get_function_item_totals(function, exclude_sign_up=None):
+def get_function_item_totals(function: str, exclude_sign_up: str | None = None):
 	"""Return live quantity_signed_up totals for every item configured on a Function.
 
 	Returns a dict mapping item -> {quantity_needed, quantity_signed_up}.
 	"""
+	frappe.has_permission("Function", doc=function, throw=True)
+	return get_item_totals(function, exclude_sign_up)
+
+
+def is_open_for_sign_up(function):
+	"""True when a portal member may sign up: sign-ups are on, and it is their church's or shared."""
+	return bool(
+		frappe.db.exists("Function", church_filters(session_church(), name=function, allow_sign_ups=1))
+	)
+
+
+def get_item_totals(function, exclude_sign_up=None):
+	"""Totals for get_function_item_totals. Callers check first that the reader may see *function*."""
 	function_items = frappe.db.get_all(
 		"Function Sign-Up Item",
 		filters={"parent": function, "parenttype": "Function"},
@@ -153,6 +177,7 @@ def get_function_item_totals(function, exclude_sign_up=None):
 	)
 
 	Item = frappe.qb.DocType("Function Sign-Up Item")
+	# church-scope: keyed to one function, which the caller has been checked against
 	SignUp = frappe.qb.DocType("Function Sign-Up")
 
 	query = (

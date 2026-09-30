@@ -2,13 +2,14 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
 class Ministry(Document):
 	def validate(self):
 		if self.end_date and self.start_date and self.end_date < self.start_date:
-			frappe.throw("End Date cannot be before Start Date.")
+			frappe.throw(_("End Date cannot be before Start Date."))
 		self._refresh_recurring_functions()
 
 	def onload(self):
@@ -21,6 +22,7 @@ class Ministry(Document):
 		if not self.name or self.is_new():
 			return
 
+		# church-scope: the recurring functions of this one ministry
 		templates = frappe.get_all(
 			"Function",
 			filters={"associated_ministry": self.name, "auto_repeat": 1},

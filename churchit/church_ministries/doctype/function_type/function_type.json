@@ -35,7 +35,8 @@
    "fieldname": "template_function",
    "fieldtype": "Link",
    "label": "Template Function",
-   "options": "Function"
+   "options": "Function",
+   "ignore_user_permissions": 1
   },
   {
    "fieldname": "section_break_pepr",

@@ -6,6 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import fmt_money, formatdate, now, nowdate
 
+from churchit.church_scope import refuse_another_churches_record
 from churchit.contacts import get_primary_email
 
 # Statuses reported by Payments-app gateway controllers that mean the
@@ -17,6 +18,9 @@ ONLINE_PAYMENT_TYPE = "Online"
 
 
 class OnlineDonation(Document):
+	def validate(self):
+		refuse_another_churches_record(self, "Fund", self.fund)
+
 	def on_payment_authorized(self, status=None):
 		"""Callback invoked by the Payments-app gateway controller once the
 		donor finishes paying. Records the gift in the Finance module on
@@ -40,6 +44,9 @@ class OnlineDonation(Document):
 		record Paid and email a receipt."""
 		collection = frappe.new_doc("Collection")
 		collection.date = now()
+		# The gift settles the church, not the session: a gateway calls back with
+		# whatever session finished the payment, and a shared fund names no church.
+		collection.church = self.church
 		collection.append(
 			"donations",
 			{

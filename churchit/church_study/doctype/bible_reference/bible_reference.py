@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -16,7 +17,7 @@ class BibleReference(Document):
 		elif self.start_verse:
 			ref = f"{self.start_verse}"
 		else:
-			frappe.throw("A start verse is required to name the reference")
+			frappe.throw(_("A start verse is required to name the reference"))
 		if self.translation:
 			abbr = frappe.db.get_value("Bible Translation", self.translation, "abbreviation")
 			return f"{ref} ({abbr})"

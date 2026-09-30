@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "function",
+  "church",
   "person",
   "attending",
   "column_break_abcd",
@@ -40,6 +41,17 @@
    "options": "Function",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "function.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_abcd",

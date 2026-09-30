@@ -79,7 +79,7 @@ required_apps = ["payments"]
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/churchit/css/church.css"
+app_include_css = ["/assets/churchit/css/desk.css"]
 app_include_js = [
 	"/assets/churchit/js/help_icon_on_form.js",
 	"/assets/churchit/js/church_utils.js",
@@ -130,7 +130,7 @@ app_include_icons = ["/assets/churchit/icons/church.svg"]
 
 website_redirects = [
 	{"source": "/index", "target": "/home"},
-	# Newsletters are member-only — managed via the portal (/newsletter-subscription)
+	# Newsletters are member-only, managed via the portal (/newsletter-subscription)
 	# and delivered by email. Keep the public Frappe newsletter web view off the site.
 	{"source": r"/newsletters.*", "target": "/home"},
 ]
@@ -152,7 +152,11 @@ website_redirects = [
 jinja = {
 	"methods": [
 		"churchit.church_finances.doctype.giving_statement.giving_statement.statement_header",
+		"churchit.church_foundations.doctype.church.church.church_name",
 		"churchit.church_foundations.doctype.church.church.get_church",
+		"churchit.church_foundations.doctype.church.church.get_letterhead_church",
+		"churchit.church_scope.church_filters",
+		"churchit.church_scope.selected_church_filters",
 	]
 }
 
@@ -219,6 +223,51 @@ setup_wizard_complete = [
 # Document Events
 # ---------------
 # Hook on document methods and events
+
+has_permission = {
+	"Person": [
+		"churchit.church_scope.refuse_changing_another_churches_people",
+		"churchit.church_people.member_access.refuse_other_people_to_members",
+	],
+	"Family": "churchit.church_scope.refuse_changing_another_churches_people",
+}
+
+# A portal member lists only their own Person. Church scoping never uses this.
+permission_query_conditions = {
+	"Person": "churchit.church_people.member_access.person_query_conditions",
+}
+
+# Every doctype with a `church` Link gets it defaulted (or refused) on save, and a
+# new login is scoped to the church it was created in rather than seeing them all.
+doc_events = {
+	"*": {
+		"validate": "churchit.church_scope.ensure_church",
+		"on_trash": "churchit.church_scope.refuse_deleting_another_churches_record",
+	},
+	"User": {"after_insert": "churchit.church_foundations.church_access.scope_new_user"},
+}
+
+# Desk: whether multi-church is on and whether the user may include branches.
+extend_bootinfo = ["churchit.church_scope.extend_bootinfo"]
+
+# User menu switch for parent-church users; hidden for everyone else. One
+# item per state, since a Navbar Item's label is fixed.
+standard_navbar_items = [
+	{
+		"item_label": "Include Branch Churches",
+		"item_type": "Action",
+		"action": "church.toggle_branch_churches()",
+		"condition": "frappe.boot.churchit && frappe.boot.churchit.include_branches === false",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Hide Branch Churches",
+		"item_type": "Action",
+		"action": "church.toggle_branch_churches()",
+		"condition": "frappe.boot.churchit && frappe.boot.churchit.include_branches === true",
+		"is_standard": 1,
+	},
+]
 
 # Scheduled Tasks
 # ---------------

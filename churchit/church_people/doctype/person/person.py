@@ -3,9 +3,13 @@
 
 import frappe
 from dateutil.relativedelta import relativedelta
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cstr, get_link_to_form, getdate, nowdate
 
+from churchit.church_foundations import church_access
+from churchit.church_people.member_access import refuse_member_edits_beyond_personal_details
+from churchit.church_scope import is_multi_church
 from churchit.contacts import primary_email, validate_contact_tables
 
 SPOUSE_RELATION_TYPES = {"Male": "Husband", "Female": "Wife"}
@@ -25,7 +29,11 @@ def years_since(date):
 
 class Person(Document):
 	def on_update(self):
-		# Update Family Member list in Family
+		self.sync_church_permission()
+		self.sync_family_church()
+
+		# Update Family Member list in Family. The roster follows the person, so the
+		# right to edit this person is the one that counts, not a right to the Family.
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
 			found = False
@@ -35,7 +43,7 @@ class Person(Document):
 					break
 			if not found:
 				family.append("members", {"member": self.name})
-			family.save()
+			family.save(ignore_permissions=True)
 
 		# Return if this is a new person
 		if not self.get_doc_before_save():
@@ -47,7 +55,27 @@ class Person(Document):
 				if member.member == self.name:
 					family.remove(member)
 					break
-			family.save()
+			family.save(ignore_permissions=True)
+
+	def sync_church_permission(self):
+		"""Keep the linked user's Church permission pointed at this person's church.
+
+		Only a change of user or church re-points it, so an administrator's
+		edits to the permission survive unrelated saves.
+		"""
+		if not is_multi_church() or not self.user or not self.church:
+			return
+		before = self.get_doc_before_save()
+		if before and before.user == self.user and before.church == self.church:
+			return
+		church_access.set_user_church(self.user, self.church)
+
+	def sync_family_church(self):
+		"""Move the family with its head of household when the head changes church."""
+		if not is_multi_church() or not self.family or not self.is_head_of_household:
+			return
+		if frappe.db.get_value("Family", self.family, "church") != self.church:
+			frappe.db.set_value("Family", self.family, "church", self.church)
 
 	def before_save(self):
 		# We set this here since virtual fields do not work with
@@ -75,9 +103,10 @@ class Person(Document):
 				if member.member == self.name:
 					family.remove(member)
 					break
-			family.save()
+			family.save(ignore_permissions=True)
 
 	def validate(self):
+		refuse_member_edits_beyond_personal_details(self)
 		# Normalise the emails / phones / addresses tables before anything else
 		# reads a primary value off them.
 		validate_contact_tables(self)
@@ -111,7 +140,7 @@ class Person(Document):
 					family_doc.family_name = f"{self.family} - {self.first_name}"
 				else:
 					family_doc.family_name = f"{family_doc.family_name[: dashes + 1]} {self.first_name}"
-				family_doc.save()
+				family_doc.save(ignore_permissions=True)
 
 		self.sync_spouse()
 
@@ -211,17 +240,19 @@ class Person(Document):
 		# Block invitation if outgoing email is not configured
 		if not frappe.db.exists("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}):
 			frappe.throw(
-				"Outgoing email is not configured. Please set up a default "
-				"<a href='/app/email-account'>Email Account</a> before inviting portal users.",
-				title="Email Not Configured",
+				_(
+					"Outgoing email is not configured. Please set up a default "
+					"<a href='/app/email-account'>Email Account</a> before inviting portal users."
+				),
+				title=_("Email Not Configured"),
 			)
 
 		# The invitation goes to the address marked primary in the Emails table.
 		email = primary_email(self)
 		if not email:
 			frappe.throw(
-				"Add an email address on the Contact tab before inviting this person to the portal.",
-				title="No Email Address",
+				_("Add an email address on the Contact tab before inviting this person to the portal."),
+				title=_("No Email Address"),
 			)
 
 		# Check if user already exists with this email

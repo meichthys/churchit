@@ -1,4 +1,4 @@
-// Setup wizard slide for Church app — asks the user whether to populate the
+// Setup wizard slide for Church app. Asks the user whether to populate the
 // site with sample data so they can explore the app right away.
 
 frappe.setup.on("before_load", function () {
@@ -13,9 +13,7 @@ frappe.setup.on("before_load", function () {
 				fieldtype: "Check",
 				default: 1,
 				description: __(
-					"Populate the site with a sample church, people, families, " +
-						"donations, prayer requests, and more so you can explore " +
-						"the app right away. You can remove this data later."
+					"Populate the site with a sample church, people, families, donations, prayer requests, and more so you can explore the app right away. You can remove this data later."
 				),
 			},
 		],

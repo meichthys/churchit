@@ -78,3 +78,87 @@ def make_address(title, **values):
 			**values,
 		}
 	).insert(ignore_permissions=True)
+
+
+def ensure_root_church():
+	"""Return the root Church, inserting a test one when the site has none."""
+	from churchit.church_scope import root_church
+
+	return root_church() or ensure(
+		"Church", {"church_name": "_Test Church"}, {"church_name": "_Test Church", "abbreviation": "TC"}
+	)
+
+
+def set_multi_church(enabled):
+	"""Flip the Church Features switch through a real save so its hooks run.
+
+	Saving clears every cache, so a switch already in place is left unsaved.
+	"""
+	features = frappe.get_single("Church Features")
+	if frappe.utils.cint(features.enable_multi_church) == int(bool(enabled)):
+		return
+	features.enable_multi_church = int(bool(enabled))
+	features.save()
+	frappe.clear_cache()
+
+
+def set_private_people(private):
+	"""Flip Keep People and Families Private through a real save so its setters follow."""
+	features = frappe.get_single("Church Features")
+	if frappe.utils.cint(features.private_people) == int(bool(private)):
+		return
+	features.private_people = int(bool(private))
+	features.save()
+	frappe.clear_cache()
+
+
+def force_single_church():
+	"""Switch multi-church off for a test whatever the site holds; rolled back with the transaction."""
+	features = frappe.get_single("Church Features")
+	if not frappe.utils.cint(features.enable_multi_church):
+		return
+	features.enable_multi_church = 0
+	features.flags.ignore_validate = True
+	features.save()
+	frappe.clear_cache()
+
+
+def make_branch(church_name, abbreviation, parent=None, **values):
+	"""Return a branch Church under *parent* (the root by default), marking the parent a group."""
+	parent = parent or ensure_root_church()
+	if not frappe.db.get_value("Church", parent, "is_group"):
+		frappe.db.set_value("Church", parent, "is_group", 1)
+	return ensure(
+		"Church",
+		{"church_name": church_name},
+		{"church_name": church_name, "abbreviation": abbreviation, "parent_church": parent, **values},
+	)
+
+
+def make_two_churches():
+	"""Turn multi-church on and return (root, branch_a, branch_b) for a scoping test."""
+	root = ensure_root_church()
+	set_multi_church(True)
+	return root, make_branch("_Test Scope A", "TSA"), make_branch("_Test Scope B", "TSB")
+
+
+def assert_scoped(case, doctype, reader, mine, theirs, **list_args):
+	"""Assert *reader* sees the record *mine* and never *theirs*, in lists and one by one.
+
+	The one-line way to prove a new church-scoped doctype really is scoped::
+
+	    root, a, b = make_two_churches()
+	    assert_scoped(self, "Prayer Request", user_in_a, request_in_a, request_in_b)
+	"""
+	frappe.set_user(reader)
+	try:
+		visible = frappe.get_list(doctype, pluck="name", **list_args)
+		case.assertIn(mine, visible, f"{reader} cannot see their own {doctype}")
+		case.assertNotIn(theirs, visible, f"{doctype} from another church is listed for {reader}")
+		case.assertTrue(frappe.has_permission(doctype, "read", doc=mine))
+		case.assertFalse(
+			frappe.has_permission(doctype, "read", doc=theirs),
+			f"{reader} can open another church's {doctype}",
+		)
+	finally:
+		frappe.set_user("Administrator")

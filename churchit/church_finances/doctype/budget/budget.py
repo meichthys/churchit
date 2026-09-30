@@ -2,8 +2,10 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Sum
-from frappe.utils import add_months, add_years, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils import add_months, add_years, cint, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils.nestedset import get_descendants_of
 
+from churchit.church_scope import church_query_filters
 from churchit.query import Date
 
 COMPARISON_WINDOWS = ("Same Period Last Year", "Last Month", "Last Quarter", "Last 12 Months")
@@ -47,12 +49,18 @@ class Budget(Document):
 				)
 
 	def warn_on_overlapping_budgets(self):
+		"""Warn about a budget covering the same dates, within the churches the saver can see.
+
+		Another church's budget neither overlaps this one nor may be named to
+		whoever is saving, so the scope is part of the question, not a guard.
+		"""
 		overlapping = frappe.get_all(
 			"Budget",
 			filters={
 				"name": ("!=", self.name or ""),
 				"start_date": ("<=", self.end_date),
 				"end_date": (">=", self.start_date),
+				**church_query_filters({}),
 			},
 			pluck="name",
 		)
@@ -66,15 +74,18 @@ class Budget(Document):
 			)
 
 	@frappe.whitelist()
-	def get_progress(self, comparison=None):
+	def get_progress(self, comparison: str | None = None):
 		"""Per-line spending against this budget, optionally beside a comparison window."""
 		start, end = getdate(self.start_date), getdate(self.end_date)
 		elapsed = get_elapsed_fraction(start, end)
 		bounds = get_expense_type_bounds()
-		actuals = get_expense_totals(start, end)
-		pending = get_expense_totals(start, end, docstatus=0)
+		branches = bool(cint(self.include_branches))
+		actuals = get_expense_totals(start, end, church=self.church, include_branches=branches)
+		pending = get_expense_totals(start, end, docstatus=0, church=self.church, include_branches=branches)
 		window = get_comparison_window(start, end, comparison)
-		window_actuals = get_expense_totals(*window) if window else {}
+		window_actuals = (
+			get_expense_totals(*window, church=self.church, include_branches=branches) if window else {}
+		)
 		scale = get_window_scale(window, start, end)
 
 		rows = []
@@ -121,19 +132,20 @@ class Budget(Document):
 
 
 @frappe.whitelist()
-def get_current_budget():
-	"""The budget covering today, else the most recently started one."""
+def get_current_budget(filters: str | list | dict | None = None):
+	"""The budget covering today, else the most recently started one, within the church scope."""
 	today = nowdate()
+	scope = church_query_filters(filters)
 	covering = frappe.get_all(
 		"Budget",
-		filters={"start_date": ("<=", today), "end_date": (">=", today)},
+		filters={"start_date": ("<=", today), "end_date": (">=", today), **scope},
 		order_by="start_date desc",
 		limit=1,
 		pluck="name",
 	)
 	if covering:
 		return covering[0]
-	latest = frappe.get_all("Budget", order_by="start_date desc", limit=1, pluck="name")
+	latest = frappe.get_all("Budget", filters=scope, order_by="start_date desc", limit=1, pluck="name")
 	return latest[0] if latest else None
 
 
@@ -146,17 +158,26 @@ def get_expense_type_bounds():
 	}
 
 
-def get_expense_totals(start, end, docstatus=1):
-	"""Expense amount per exact expense type within a date range."""
+def get_expense_totals(start, end, docstatus=1, church=None, include_branches=False):
+	"""Expense amount per exact expense type within a date range.
+
+	A budget tracks its own church. Tick *include_branches* to count what the
+	churches beneath it spend as well, which is how a main church budgets for the
+	whole organisation.
+	"""
+	# church-scope: anchored to the budget's own church, which every caller passes in
 	Expense = frappe.qb.DocType("Expense")
-	rows = (
+	query = (
 		frappe.qb.from_(Expense)
 		.select(Expense.type.as_("expense_type"), Sum(Expense.amount).as_("total"))
 		.where((Expense.docstatus == docstatus) & Date(Expense.date)[str(start) : str(end)])
 		.groupby(Expense.type)
-		.run(as_dict=True)
 	)
-	return {row.expense_type: float(row.total or 0) for row in rows}
+	if church and include_branches:
+		query = query.where(Expense.church.isin([church, *get_descendants_of("Church", church)]))
+	elif church:
+		query = query.where(Expense.church == church)
+	return {row.expense_type: float(row.total or 0) for row in query.run(as_dict=True)}
 
 
 def roll_up(totals, expense_type, bounds):

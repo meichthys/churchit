@@ -6,6 +6,9 @@ import secrets
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
+
+from churchit.church_scope import default_church
 
 # Letters and digits that are hard to confuse on a printed tag.
 SECURITY_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -17,7 +20,7 @@ class FunctionCheckIn(Document):
 		if frappe.db.exists(
 			"Function Check-In", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
 		):
-			frappe.throw("This person has already been checked in to this function.")
+			frappe.throw(_("This person has already been checked in to this function."))
 
 	def before_save(self):
 		function_label = (
@@ -59,15 +62,26 @@ class FunctionCheckIn(Document):
 				return
 
 
+def is_shared_function(function_name):
+	"""True when the function is shared with every church."""
+	return bool(cint(frappe.db.get_value("Function", function_name, "is_shared")))
+
+
 def new_security_code():
 	return "".join(secrets.choice(SECURITY_CODE_ALPHABET) for _ in range(4))
 
 
 @frappe.whitelist()
-def check_in_persons(function_name, persons):
+def check_in_persons(function_name: str, persons: str | list[str]):
 	"""Check *persons* in to a function. New check-ins made in one call share a security code."""
 	frappe.has_permission("Function Check-In", "create", throw=True)
+	# The inserts below ignore permissions, so the function and every person are checked here.
+	frappe.has_permission("Function", doc=function_name, throw=True)
 	persons = frappe.parse_json(persons)
+	# A shared function is a joint service: any church's people may come.
+	if not is_shared_function(function_name):
+		for person in persons:
+			frappe.has_permission("Person", doc=person, throw=True)
 
 	code = None
 	if frappe.db.get_single_value("Check-In Settings", "security_codes"):
@@ -95,7 +109,7 @@ def check_in_persons(function_name, persons):
 
 
 @frappe.whitelist()
-def print_name_tags(check_ins=None, persons=None):
+def print_name_tags(check_ins: str | list[str] | None = None, persons: str | list[str] | None = None):
 	"""Name tags for saved check-ins, or plain tags for people who are not checked in."""
 	docs = [frappe.get_doc("Function Check-In", name) for name in frappe.parse_json(check_ins) or []]
 	for doc in docs:
@@ -105,4 +119,6 @@ def print_name_tags(check_ins=None, persons=None):
 		docs.append(frappe.get_doc({"doctype": "Function Check-In", "person": person}))
 	if not docs:
 		frappe.throw(_("Nothing to print."))
-	return frappe.get_single("Check-In Settings").print_name_tags(docs)
+	# The operator prints at their own campus, so their church's printer is the one.
+	settings = frappe.get_single("Check-In Settings").for_church(default_church())
+	return settings.print_name_tags(docs)

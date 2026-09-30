@@ -4,10 +4,15 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_scope import refuse_another_churches_record
 from churchit.contacts import get_primary_emails
 
 
 class Collection(Document):
+	def validate(self):
+		for donation in self.donations:
+			refuse_another_churches_record(self, "Fund", donation.fund)
+
 	def before_save(self):
 		parts = [self.function or "", str(self.date or "")]
 		self.title = " - ".join(p for p in parts if p)
@@ -86,8 +91,6 @@ class Collection(Document):
 					for txn in fund_doc.transactions
 					if not (txn.source_type == "Collection" and txn.source == self.name)
 				]
-				fund_doc.balance = (fund_doc.balance or 0) - fund_total
-				fund_doc.save(ignore_permissions=True)
 				messages.append(f"💸 {fund_doc.fund} fund decreased by ${fund_total}")
 			else:
 				fund_doc.append(
@@ -99,11 +102,12 @@ class Collection(Document):
 						"date": frappe.utils.now(),
 					},
 				)
-				fund_doc.balance = (fund_doc.balance or 0) + fund_total
-				fund_doc.save(ignore_permissions=True)
 				messages.append(f"💰 {fund_doc.fund} fund increased by ${fund_total}")
+
+			# Fund.before_save adds the ledger up, so the balance is settled by saving.
+			fund_doc.save(ignore_permissions=True)
+			if fund_doc.balance < 0:
+				messages.append(f"⚠️ {fund_doc.fund} fund balance is negative: {fund_doc.balance}")
+
 		if messages:
 			frappe.msgprint("<br>".join(messages))
-		# Warn if funds are now negative
-		if fund_doc.balance < 0:
-			frappe.msgprint(f"⚠️ {fund_doc.fund} fund balance is negative: {fund_doc.balance}")

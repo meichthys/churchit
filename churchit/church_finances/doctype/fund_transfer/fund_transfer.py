@@ -1,6 +1,9 @@
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_link_to_form, nowdate
+
+from churchit.church_scope import refuse_another_churches_record
 
 
 class FundTransfer(Document):
@@ -11,9 +14,13 @@ class FundTransfer(Document):
 
 	def validate(self):
 		if self.from_fund == self.to_fund:
-			frappe.throw("Source and destination funds must be different.")
+			frappe.throw(_("Source and destination funds must be different."))
 		if self.amount <= 0:
-			frappe.throw("Transfer amount must be greater than zero.")
+			frappe.throw(_("Transfer amount must be greater than zero."))
+		# Money moves between funds, never between churches: both ends belong to
+		# this church or are shared with every church.
+		refuse_another_churches_record(self, "Fund", self.from_fund)
+		refuse_another_churches_record(self, "Fund", self.to_fund)
 
 	def on_submit(self):
 		self.transfer_funds()
@@ -29,8 +36,8 @@ class FundTransfer(Document):
 		from_note = f"Transfer to {self.to_fund}"
 		to_note = f"Transfer from {self.from_fund}"
 		if transfer_note:
-			from_note += f" — {transfer_note}"
-			to_note += f" — {transfer_note}"
+			from_note += f": {transfer_note}"
+			to_note += f": {transfer_note}"
 
 		# Add transactions (no manual balance updates needed)
 		from_fund.append(

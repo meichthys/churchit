@@ -32,6 +32,7 @@ class BackgroundCheck(Document):
 
 def expire_background_checks():
 	"""Daily scheduler: mark cleared checks whose expiry date has passed as Expired."""
+	# church-scope: scheduled daily job: flips a status, shows nobody anything
 	expired = frappe.get_all(
 		"Background Check",
 		filters={"status": "Cleared", "expires_on": ["<", nowdate()]},

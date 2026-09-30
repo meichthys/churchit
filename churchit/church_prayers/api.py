@@ -4,12 +4,12 @@ from frappe.utils import now_datetime
 
 
 @frappe.whitelist()
-def create_prayer(prayer_request, content=None):
+def create_prayer(prayer_request: str, content: str | None = None):
 	"""Record a Prayer for a Prayer Request on behalf of the current user.
 
 	Any logged-in user who can see the target request (public or owner) may pray
 	for it. Prayer records are created with ignore_permissions since Church Users
-	don't have DocPerm to create Prayers directly — they go through this endpoint.
+	don't have DocPerm to create Prayers directly, so they go through this endpoint.
 	"""
 	if frappe.session.user == "Guest":
 		frappe.throw(_("Please log in to pray."), frappe.PermissionError)

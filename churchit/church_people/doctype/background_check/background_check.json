@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "person",
+  "church",
   "person_name",
   "check_type",
   "column_break_1",
@@ -32,6 +33,17 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "person.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
   },
   {
    "fetch_from": "person.full_name",

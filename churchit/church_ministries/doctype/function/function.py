@@ -5,6 +5,7 @@ from calendar import monthrange
 from datetime import date, datetime, timedelta
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, now_datetime
 
@@ -38,11 +39,17 @@ class Function(Document):
 
 
 @frappe.whitelist()
-def apply_template(source_name):
-	# Get template document
-	template = frappe.get_doc("Function", source_name)
-	template.check_permission("read")
-	template_dict = template.as_dict()
+def apply_template(source_name: str):
+	"""The shape of a template function, to start a new one from.
+
+	Templates are shared configuration: a branch may apply the main church's, so
+	the source is not measured against the reader's church. It does have to be a
+	template, though, or naming any function would hand over its plan and the
+	people in it.
+	"""
+	frappe.has_permission("Function", "read", throw=True)
+	refuse_a_source_that_is_not_a_template(source_name)
+	template_dict = frappe.get_doc("Function", source_name).as_dict()
 
 	copied_doc = {}
 
@@ -64,13 +71,40 @@ def apply_template(source_name):
 				for child_field in child_row:
 					new_row[child_field] = child_row[child_field]
 				copied_doc[child_table].append(new_row)
+	copied_doc["attendance"] = readable_attendance(copied_doc.get("attendance"))
 	return copied_doc
+
+
+def refuse_a_source_that_is_not_a_template(source_name):
+	"""Allow a function the reader may see, or one a Function Type names as its template."""
+	if frappe.has_permission("Function", doc=source_name):
+		return
+	if frappe.db.exists("Function Type", {"template_function": source_name}):
+		return
+	frappe.throw(_("{0} is not a function template.").format(source_name), frappe.PermissionError)
+
+
+def readable_attendance(rows):
+	"""The attendance rows whose person the reader may see.
+
+	A template carries the regulars of the function it came from, which is the
+	point of copying them onto the next one. A template shared by another church
+	carries that church's people, who are none of this reader's business.
+	"""
+	if not rows:
+		return []
+	people = [row.get("person") for row in rows if row.get("person")]
+	if not people:
+		return rows
+	readable = set(frappe.get_list("Person", filters={"name": ("in", people)}, pluck="name"))
+	return [row for row in rows if row.get("person") in readable]
 
 
 def create_scheduled_functions():
 	"""Daily scheduler: for every Function template with auto_repeat=1, create the
 	next occurrence once the most recent occurrence has ended."""
 	today = getdate()
+	# church-scope: scheduled daily job, site-wide by design; each copy takes its template's church
 	templates = frappe.get_all(
 		"Function",
 		filters={"auto_repeat": 1},
@@ -90,6 +124,7 @@ def create_scheduled_functions():
 
 def _create_next_occurrence(template_name, today):
 	# Find the most recent occurrence already created from this template
+	# church-scope: scheduled daily job, site-wide by design; each copy takes its template's church
 	latest = frappe.get_all(
 		"Function",
 		filters={"source_template": template_name},
@@ -126,6 +161,7 @@ def _create_next_occurrence(template_name, today):
 		new_doc_data["end_time"] = template.end_time
 	new_doc_data["source_template"] = template_name
 	new_doc_data["auto_repeat"] = 0
+	new_doc_data["church"] = template.church
 
 	new_function = frappe.get_doc(new_doc_data)
 	new_function.insert(ignore_permissions=True)

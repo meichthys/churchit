@@ -5,7 +5,7 @@
  "doctype": "Page",
  "icon": "fa fa-check-square-o",
  "idx": 0,
- "modified": "2026-09-16 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "check-in",
@@ -17,6 +17,9 @@
   },
   {
    "role": "Church Manager"
+  },
+  {
+   "role": "Church Check-In"
   }
  ],
  "standard": "Yes",

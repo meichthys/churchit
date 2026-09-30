@@ -10,6 +10,7 @@
  "field_order": [
   "section_break_fgnk",
   "title",
+  "church",
   "status",
   "due_date",
   "column_break_yrnx",
@@ -69,6 +70,15 @@
    "in_preview": 1,
    "label": "Title",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
   },
   {
    "allow_in_quick_entry": 1,

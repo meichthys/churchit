@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
 from churchit.utils import resolve_link_titles
 
 CLOSED_STATUSES = ("Answered", "Archived", "Closed")
@@ -15,6 +16,9 @@ class PrayerRequest(Document):
 			self.status = frappe.db.get_value("Prayer Request Status", {"status": "Requested"}, "name")
 
 	def validate(self):
+		self.validate_public_church()
+		pin_to_members_own_person(self, "requestor")
+		validate_members_recipient(self)
 		# Resolve the display name for the dynamic recipient link using the linked
 		# doctype's title_field (e.g. full_name for Person). Stored so it can be
 		# shown in web form list views, which cannot resolve Dynamic Link titles.
@@ -27,6 +31,17 @@ class PrayerRequest(Document):
 			)
 		else:
 			self.recipient_name = None
+
+	def validate_public_church(self):
+		"""Keep a website request to a church the site actually offers.
+
+		The anonymous web form carries the church of the page that took it, which
+		is the only signal a guest gives; cleared here, `ensure_church` settles it.
+		"""
+		if frappe.session.user != "Guest" or not self.church:
+			return
+		if not frappe.db.get_value("Church", self.church, "publish"):
+			self.church = None
 
 	def has_webform_permission(self):
 		# Invoked by web forms with apply_document_permissions=0

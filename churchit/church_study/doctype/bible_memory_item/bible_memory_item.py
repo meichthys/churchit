@@ -35,7 +35,7 @@ class BibleMemoryItem(Document):
 		frappe.db.delete("Memory Session", {"bible_memory_item": self.name})
 
 	@frappe.whitelist()
-	def record_mistake(self, word_index):
+	def record_mistake(self, word_index: int):
 		self._require_self()
 		mistakes = self._load_word_mistakes()
 		key = str(int(word_index))
@@ -46,7 +46,9 @@ class BibleMemoryItem(Document):
 		return {"progress": self.progress, "word_mistakes": mistakes}
 
 	@frappe.whitelist()
-	def complete_session(self, mode, mistakes=0, correct_word_indices=None):
+	def complete_session(
+		self, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
+	):
 		self._require_self()
 		if mode not in ("type", "blur"):
 			frappe.throw(_("Invalid mode for completion"))
@@ -136,14 +138,16 @@ class BibleMemoryItem(Document):
 
 
 @frappe.whitelist()
-def record_mistake(name, word_index):
+def record_mistake(name: str, word_index: int):
 	"""Module-level wrapper for BibleMemoryItem.record_mistake"""
 	doc = frappe.get_doc("Bible Memory Item", name)
 	return doc.record_mistake(word_index)
 
 
 @frappe.whitelist()
-def complete_session(name, mode, mistakes=0, correct_word_indices=None):
+def complete_session(
+	name: str, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
+):
 	"""Module-level wrapper for BibleMemoryItem.complete_session"""
 	doc = frappe.get_doc("Bible Memory Item", name)
 	return doc.complete_session(mode, mistakes, correct_word_indices)

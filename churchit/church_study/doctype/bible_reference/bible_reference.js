@@ -30,7 +30,7 @@ frappe.ui.form.on("Bible Reference", {
 			});
 		}
 
-		frm.add_custom_button("Open in AndBible", async function () {
+		frm.add_custom_button(__("Open in AndBible"), async function () {
 			const start_verse = await frappe.get_doc("Bible Verse", frm.doc.start_verse);
 			if (!start_verse.book || !start_verse.chapter || !start_verse.verse) {
 				frappe.msgprint(
@@ -44,7 +44,7 @@ frappe.ui.form.on("Bible Reference", {
 				const abbreviation = book.abbreviation;
 
 				if (!abbreviation) {
-					frappe.msgprint(__(`No abbreviation found for Book: ${book}.`));
+					frappe.msgprint(__("No abbreviation found for Book: {0}.", [book.name]));
 					return;
 				}
 
@@ -58,10 +58,11 @@ frappe.ui.form.on("Bible Reference", {
 		});
 
 		if (!frm.doc.translation) {
-			frappe.db
-				.get_list("Church", { fields: ["default_bible_translation"], limit: 1 })
-				.then((data) => {
-					const value = data && data.length > 0 && data[0].default_bible_translation;
+			frappe
+				.xcall(
+					"churchit.church_foundations.doctype.church.church.get_default_bible_translation"
+				)
+				.then((value) => {
 					if (value) frm.set_value("translation", value);
 				});
 		}

@@ -1,0 +1,33 @@
+/* Desk-side styles for churchit; the public site has its own website.css. */
+
+/* One church in scope: its list filter would only ever hold that church. */
+body.churchit-one-church .standard-filter-section [data-fieldname="church"] {
+	display: none;
+}
+
+/* Note shown while a parent-church user includes branch churches. */
+.churchit-branches-banner {
+	padding: 8px 10px;
+	margin: 0;
+	border-radius: 0;
+}
+.churchit-branches-banner a {
+	font-weight: 600;
+	white-space: nowrap;
+	margin-left: 16px;
+}
+.churchit-banner-actions {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	white-space: nowrap;
+}
+.churchit-expand-filters {
+	margin: 0;
+	font-weight: normal;
+	cursor: pointer;
+}
+.churchit-expand-filters input {
+	margin-right: 6px;
+	vertical-align: middle;
+}

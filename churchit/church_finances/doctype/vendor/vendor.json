@@ -9,6 +9,9 @@
  "engine": "InnoDB",
  "field_order": [
   "vendor_name",
+  "church",
+  "is_shared",
+  "shared_by_church",
   "default_expense_type",
   "column_break_1",
   "email",
@@ -20,20 +23,98 @@
   "notes"
  ],
  "fields": [
-  {"fieldname": "vendor_name", "fieldtype": "Data", "label": "Vendor Name", "reqd": 1, "unique": 1, "in_list_view": 1},
-  {"fieldname": "default_expense_type", "fieldtype": "Link", "label": "Default Expense Type", "options": "Expense Type"},
-  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
-  {"fieldname": "email", "fieldtype": "Data", "label": "Email", "options": "Email", "in_list_view": 1},
-  {"fieldname": "phone", "fieldtype": "Phone", "label": "Phone"},
-  {"fieldname": "is_active", "fieldtype": "Check", "label": "Active", "default": "1", "in_standard_filter": 1},
-  {"fieldname": "section_break_1", "fieldtype": "Section Break"},
-  {"fieldname": "address", "fieldtype": "Link", "label": "Address", "options": "Address"},
-  {"fieldname": "section_break_2", "fieldtype": "Section Break"},
-  {"fieldname": "notes", "fieldtype": "Text", "label": "Notes"}
+  {
+   "fieldname": "vendor_name",
+   "fieldtype": "Data",
+   "label": "Vendor Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "depends_on": "eval:!doc.is_shared && !(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "0",
+   "description": "Every church can see and use this record. Leave off to keep it to this church.",
+   "fieldname": "is_shared",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shared with All Churches"
+  },
+  {
+   "description": "The church that shared this record. It returns here if sharing is switched off.",
+   "fieldname": "shared_by_church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Shared By",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fieldname": "default_expense_type",
+   "fieldtype": "Link",
+   "label": "Default Expense Type",
+   "options": "Expense Type"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Phone",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  }
  ],
  "grid_page_length": 50,
  "links": [
-  {"link_doctype": "Expense", "link_fieldname": "vendor"}
+  {
+   "link_doctype": "Expense",
+   "link_fieldname": "vendor"
+  }
  ],
  "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",

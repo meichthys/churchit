@@ -39,7 +39,7 @@ frappe.ui.form.on("Bible Verse", {
 				);
 			}
 		}
-		frm.add_custom_button("Open in AndBible", async function () {
+		frm.add_custom_button(__("Open in AndBible"), async function () {
 			if (!frm.doc.book || !frm.doc.chapter || !frm.doc.verse) {
 				frappe.msgprint(__("Please make sure Book, Chapter, and Verse are filled in."));
 				return;

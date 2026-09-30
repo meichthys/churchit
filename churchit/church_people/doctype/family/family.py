@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 
 from churchit.church_people.doctype.person.person import SPOUSE_RELATION_TYPES, spouse_relation_type
+from churchit.church_scope import is_multi_church
 from churchit.contacts import validate_contact_tables
 
 
@@ -12,6 +13,14 @@ class Family(Document):
 	def validate(self):
 		validate_contact_tables(self)
 		self.label_spouse_of_head_of_household()
+		self.follow_head_of_households_church()
+
+	def follow_head_of_households_church(self):
+		"""A family belongs to the church of its head of household."""
+		head = is_multi_church() and self.head_of_household
+		church = head and frappe.db.get_value("Person", head, "church")
+		if church:
+			self.church = church
 
 	def label_spouse_of_head_of_household(self):
 		"""Set ``relationship_to_head`` to Husband/Wife for the head's linked spouse.

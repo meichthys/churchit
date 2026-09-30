@@ -10,6 +10,7 @@
  "field_order": [
   "title",
   "person",
+  "church",
   "date",
   "file",
   "column_break_hfvl",
@@ -33,6 +34,17 @@
    "options": "Person",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "person.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
   },
   {
    "default": "Now",

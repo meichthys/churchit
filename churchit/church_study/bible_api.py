@@ -103,7 +103,7 @@ def _get_or_create_bible_verse(book, chapter, verse):
 
 
 @frappe.whitelist()
-def get_chapters_for_book(book, translation):
+def get_chapters_for_book(book: str, translation: str):
 	"""Return [1..N] chapter numbers available for `book` in `translation`."""
 	translation_id = _resolve_translation_id(translation)
 	book_abbr = _book_abbreviation(book)
@@ -115,7 +115,7 @@ def get_chapters_for_book(book, translation):
 
 
 @frappe.whitelist()
-def get_verses_for_chapter(book, chapter, translation):
+def get_verses_for_chapter(book: str, chapter: int | str, translation: str):
 	"""Return verse numbers present in (book, chapter) for `translation`."""
 	translation_id = _resolve_translation_id(translation)
 	book_abbr = _book_abbreviation(book)
@@ -133,7 +133,13 @@ def get_verses_for_chapter(book, chapter, translation):
 
 
 @frappe.whitelist()
-def get_or_create_reference(book, chapter, start_verse_num, end_verse_num, translation):
+def get_or_create_reference(
+	book: str | None,
+	chapter: int | str | None,
+	start_verse_num: int | str | None,
+	end_verse_num: int | str | None,
+	translation: str | None,
+):
 	"""Resolve or create a Bible Reference for the given coordinates and
 	populate reference_text from helloao.org if missing."""
 	if not (book and chapter and start_verse_num and translation):
@@ -178,7 +184,9 @@ def get_or_create_reference(book, chapter, start_verse_num, end_verse_num, trans
 
 
 @frappe.whitelist()
-def assign_memory(references, users=None, group=None):
+def assign_memory(
+	references: str | list[str], users: str | list[str] | None = None, group: str | None = None
+):
 	"""Assign Bible References to users for memorization. Creates a
 	Bible Memory Item for each (reference, user) pair that doesn't
 	already exist. Pass either ``users`` or ``group`` (expands to all
@@ -202,6 +210,7 @@ def assign_memory(references, users=None, group=None):
 	missing_users = []
 	if group and not users:
 		GroupMember = frappe.qb.DocType("Group Member")
+		# church-scope: Bible data, and the people the caller named
 		Person = frappe.qb.DocType("Person")
 		rows = (
 			frappe.qb.from_(GroupMember)
@@ -249,7 +258,7 @@ def assign_memory(references, users=None, group=None):
 
 
 @frappe.whitelist()
-def fetch_reference_text(bible_reference):
+def fetch_reference_text(bible_reference: str):
 	"""Fetch the verses for a Bible Reference from bible.helloao.org and
 	cache them on `reference_text`. Returns the fetched text."""
 	ref = frappe.get_doc("Bible Reference", bible_reference)
