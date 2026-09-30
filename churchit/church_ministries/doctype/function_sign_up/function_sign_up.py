@@ -13,12 +13,6 @@ class FunctionSignUp(Document):
 		if not frappe.db.get_value("Function", self.function, "allow_sign_ups"):
 			frappe.throw(_("Sign ups are not enabled for this function."))
 
-		# Prevent duplicate sign-ups for the same function and person
-		if frappe.db.exists(
-			"Function Sign-Up", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
-		):
-			frappe.throw(_("This person has already signed up for this function."))
-
 		if is_portal_member():
 			if not is_open_for_sign_up(self.function):
 				frappe.throw(_("This function is not open for you to sign up."), frappe.PermissionError)
@@ -30,6 +24,12 @@ class FunctionSignUp(Document):
 		else:
 			# `person` is a plain Link, which user permissions never measure against its church.
 			frappe.has_permission("Person", doc=self.person, throw=True)
+
+		# Checked once `person` is settled: the portal form sends none of its own.
+		if frappe.db.exists(
+			"Function Sign-Up", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
+		):
+			frappe.throw(_("This person has already signed up for this function."))
 
 		self.set_item_quantities_needed()
 
