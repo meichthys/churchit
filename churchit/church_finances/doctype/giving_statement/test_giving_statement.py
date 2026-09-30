@@ -9,7 +9,7 @@ from churchit.church_finances.doctype.giving_statement.giving_statement import (
 	get_statement_recipients,
 	statement_header,
 )
-from churchit.tests.helpers import ensure, make_person
+from churchit.tests.helpers import ensure, ensure_root_church, make_branch, make_person, set_multi_church
 
 PERIOD = ("2029-01-01", "2029-12-31")
 
@@ -164,3 +164,32 @@ class TestStatementHeader(FrappeTestCase):
 		self.assertEqual(header["name"], "_Test Legal Name")
 		self.assertEqual(header["tax_id"], "12-3456789")
 		self.assertEqual(header["acknowledgment"], "_Test wording.")
+
+
+class TestBranchStatementHeader(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root = ensure_root_church()
+		set_multi_church(True)
+		cls.branch = make_branch("_Test Statement Branch", "TSB")
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def test_a_branch_without_a_tax_id_prints_the_parents(self):
+		frappe.db.set_value("Church", self.root, {"legal_name": "_Test Parent Legal", "tax_id": "98-7654321"})
+		frappe.db.set_value("Church", self.branch, {"legal_name": None, "tax_id": None})
+
+		header = statement_header(self.branch)
+
+		self.assertEqual(header["name"], "_Test Parent Legal")
+		self.assertEqual(header["tax_id"], "98-7654321")
+
+	def test_a_branch_with_its_own_identity_prints_that(self):
+		frappe.db.set_value(
+			"Church", self.branch, {"legal_name": "_Test Branch Legal", "tax_id": "11-1111111"}
+		)
+
+		header = statement_header(self.branch)
+
+		self.assertEqual(header["name"], "_Test Branch Legal")
+		self.assertEqual(header["tax_id"], "11-1111111")

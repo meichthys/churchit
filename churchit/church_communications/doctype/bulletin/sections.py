@@ -6,9 +6,9 @@
 import frappe
 from frappe.utils import add_days, format_datetime, format_time, formatdate, getdate
 
-from churchit.church_foundations.doctype.church.church import get_church, get_church_address
+from churchit.church_foundations.doctype.church.church import ADDRESS_FIELDS, address_line, get_church
 from churchit.church_people import celebrations
-from churchit.church_website.footer import address_line
+from churchit.church_scope import church_filters
 
 TIME_FORMAT = "h:mm a"
 
@@ -22,16 +22,25 @@ class BulletinSections:
 
 	@property
 	def settings(self):
-		return frappe.get_cached_doc("Bulletin Settings")
+		"""Bulletin Settings as this bulletin's church has them."""
+		return frappe.get_cached_doc("Bulletin Settings").for_church(self.church)
+
+	@property
+	def church_doc(self):
+		"""The Church this bulletin is for, falling back to the site's church."""
+		return frappe.get_cached_doc("Church", self.church) if self.church else get_church()
 
 	@property
 	def contact_information(self):
 		"""The church's name, address, phone, email and website."""
-		church = get_church()
+		church = self.church_doc
 		contact = frappe.get_cached_doc("Contact Us Settings")
+		address = None
+		if church and church.address:
+			address = frappe.db.get_value("Address", church.address, ADDRESS_FIELDS, as_dict=True)
 		return frappe._dict(
 			name=church.church_name if church else None,
-			address=address_line(get_church_address()),
+			address=address_line(address),
 			phone=contact.phone,
 			email=contact.email_id,
 			website=frappe.utils.get_url().split("://", 1)[-1],
@@ -57,7 +66,7 @@ class BulletinSections:
 		"""The configured positions with the people holding them on the function date."""
 		roles = []
 		for row in self.settings.roles:
-			people = position_holders(row.position_type, self.function_date)
+			people = position_holders(row.position_type, self.function_date, self.church)
 			if people:
 				roles.append(frappe._dict(role=row.position_type, people=people))
 		return roles
@@ -69,7 +78,9 @@ class BulletinSections:
 		end = add_days(self.function_date, self.settings.upcoming_functions_days)
 		functions = frappe.get_all(
 			"Function",
-			filters={"start_date": ("between", [start, end]), "name": ("!=", self.function)},
+			filters=church_filters(
+				self.church, start_date=("between", [start, end]), name=("!=", self.function)
+			),
 			fields=["function_name", "start_date", "start_time", "all_day"],
 			order_by="start_date asc, start_time asc",
 		)
@@ -88,7 +99,7 @@ class BulletinSections:
 	def ministries(self):
 		return frappe.get_all(
 			"Ministry",
-			filters={"status": "Active"},
+			filters=church_filters(self.church, status="Active"),
 			fields=["ministry_name", "mission_statement"],
 			order_by="ministry_name asc",
 		)
@@ -114,7 +125,7 @@ class BulletinSections:
 	@property
 	def church_verse(self):
 		"""The Church record's key verse, printed on the back cover."""
-		church = get_church()
+		church = self.church_doc
 		if not church or not church.church_verse:
 			return None
 		return frappe.get_cached_doc("Bible Reference", church.church_verse)
@@ -122,18 +133,20 @@ class BulletinSections:
 	@property
 	def church_image(self):
 		"""The Church record's logo or photo, printed on the front cover."""
-		church = get_church()
+		church = self.church_doc
 		return church.image if church else None
 
 	@property
 	def birthdays(self):
 		members_only = self.settings.birthday_scope == "Active Members"
-		return celebrations.birthdays(*self.celebration_window, members_only=members_only)
+		return celebrations.birthdays(*self.celebration_window, members_only=members_only, church=self.church)
 
 	@property
 	def anniversaries(self):
 		members_only = self.settings.anniversary_scope == "Active Members"
-		return celebrations.anniversaries(*self.celebration_window, members_only=members_only)
+		return celebrations.anniversaries(
+			*self.celebration_window, members_only=members_only, church=self.church
+		)
 
 	@property
 	def celebration_window(self):
@@ -164,11 +177,12 @@ class BulletinSections:
 		return frappe.get_doc("Function", self.function)
 
 
-def position_holders(position_type, on_date):
+def position_holders(position_type, on_date, church=None):
 	"""Full names of the people holding *position_type* on *on_date*, alphabetically."""
+	# church-scope: scoped by the church the bulletin passes in
 	Position = frappe.qb.DocType("Position")
 	Person = frappe.qb.DocType("Person")
-	return (
+	query = (
 		frappe.qb.from_(Position)
 		.join(Person)
 		.on(Position.parent == Person.name)
@@ -177,8 +191,10 @@ def position_holders(position_type, on_date):
 		.where(Position.start_date.isnull() | (Position.start_date <= on_date))
 		.where(Position.end_date.isnull() | (Position.end_date >= on_date))
 		.orderby(Person.full_name)
-		.run(pluck=True)
 	)
+	if church:
+		query = query.where(Person.church == church)
+	return query.run(pluck=True)
 
 
 def link_title(doctype, name):

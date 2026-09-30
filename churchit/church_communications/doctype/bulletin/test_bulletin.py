@@ -11,6 +11,7 @@ from churchit.church_communications.doctype.bulletin.bulletin import (
 	missionary_of_the_week,
 	supported_missionaries,
 )
+from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
 from churchit.tests.helpers import ensure, make_function, make_person
 
@@ -211,7 +212,7 @@ class TestBulletin(FrappeTestCase):
 		self.assertIn('class="blank"', handouts[0].handout.rendered_content)
 
 	def test_church_verse_comes_from_the_church_record(self):
-		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
+		church = frappe.get_doc("Church", get_church().name)
 		church.church_verse = self.make_bible_reference("Whoever believes in him shall not perish.")
 		church.save(ignore_permissions=True)
 		self.addCleanup(frappe.db.set_value, "Church", church.name, "church_verse", None)
@@ -229,7 +230,7 @@ class TestBulletin(FrappeTestCase):
 		self.assertNotIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
 	def test_church_image_comes_from_the_church_record(self):
-		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
+		church = frappe.get_doc("Church", get_church().name)
 		church.image = "/files/_test_church_logo.png"
 		church.save(ignore_permissions=True)
 		self.addCleanup(frappe.db.set_value, "Church", church.name, "image", None)

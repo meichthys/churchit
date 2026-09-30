@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-26 11:30:00.000000",
+ "description": "One church's name tag printer, standing in for the settings above.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "name_tag_printing",
+  "printer_name",
+  "printer_host",
+  "printer_port",
+  "column_break_label",
+  "label_width",
+  "label_height",
+  "label_dpi"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
+  {
+   "description": "Leave blank to use the method set above.",
+   "fieldname": "name_tag_printing",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Name Tag Printing",
+   "options": "\nBrowser\nZebra Browser Print\nQZ Tray\nNetwork Printer"
+  },
+  {
+   "fieldname": "printer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Printer Name"
+  },
+  {
+   "fieldname": "printer_host",
+   "fieldtype": "Data",
+   "label": "Printer Host"
+  },
+  {
+   "fieldname": "printer_port",
+   "fieldtype": "Int",
+   "label": "Printer Port"
+  },
+  {
+   "fieldname": "column_break_label",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "label_width",
+   "fieldtype": "Float",
+   "label": "Label Width (in)"
+  },
+  {
+   "fieldname": "label_height",
+   "fieldtype": "Float",
+   "label": "Label Height (in)"
+  },
+  {
+   "fieldname": "label_dpi",
+   "fieldtype": "Select",
+   "label": "Printer DPI",
+   "options": "\n203\n300"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-26 11:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Church Check In Printer",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

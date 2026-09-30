@@ -1,0 +1,158 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-26 12:30:00.000000",
+ "description": "One church's bulletin sections, used instead of the settings above.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-communications",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "show_contact_information",
+  "show_order_of_worship",
+  "show_church_roles",
+  "show_upcoming_functions",
+  "show_ministries",
+  "show_church_verse",
+  "show_church_image",
+  "show_missionary",
+  "show_prayer_requests",
+  "show_birthdays",
+  "show_anniversaries",
+  "show_sermon_handout",
+  "upcoming_functions_days",
+  "include_sensitive_missionaries",
+  "birthday_scope",
+  "anniversary_scope",
+  "celebration_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "show_contact_information",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Contact Information"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_order_of_worship",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Order of Worship"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_church_roles",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Church Leadership"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_upcoming_functions",
+   "fieldtype": "Check",
+   "label": "Upcoming Functions"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_ministries",
+   "fieldtype": "Check",
+   "label": "Ministries"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_church_verse",
+   "fieldtype": "Check",
+   "label": "Church Verse"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_church_image",
+   "fieldtype": "Check",
+   "label": "Church Image"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_missionary",
+   "fieldtype": "Check",
+   "label": "Missionary of the Week"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_prayer_requests",
+   "fieldtype": "Check",
+   "label": "Prayer Requests"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_birthdays",
+   "fieldtype": "Check",
+   "label": "Birthdays"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_anniversaries",
+   "fieldtype": "Check",
+   "label": "Anniversaries"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_sermon_handout",
+   "fieldtype": "Check",
+   "label": "Sermon Handout Insert"
+  },
+  {
+   "default": "14",
+   "fieldname": "upcoming_functions_days",
+   "fieldtype": "Int",
+   "label": "Upcoming Functions (Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_sensitive_missionaries",
+   "fieldtype": "Check",
+   "label": "Include Sensitive Missionaries"
+  },
+  {
+   "default": "Active Members",
+   "fieldname": "birthday_scope",
+   "fieldtype": "Select",
+   "label": "Birthdays For",
+   "options": "Active Members\nEveryone"
+  },
+  {
+   "default": "Active Members",
+   "fieldname": "anniversary_scope",
+   "fieldtype": "Select",
+   "label": "Anniversaries For",
+   "options": "Active Members\nEveryone"
+  },
+  {
+   "default": "7",
+   "fieldname": "celebration_days",
+   "fieldtype": "Int",
+   "label": "Days From Function Date"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-26 12:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Church Bulletin Sections",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

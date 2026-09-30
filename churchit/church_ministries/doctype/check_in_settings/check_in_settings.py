@@ -8,6 +8,17 @@ from frappe import _
 from frappe.model.document import Document
 
 ZPL_METHODS = ("Zebra Browser Print", "QZ Tray", "Network Printer")
+# What a per-church row may override. The print formats stay site-wide: they are
+# the tag's design, not the hardware it comes out of.
+PRINTER_FIELDS = (
+	"name_tag_printing",
+	"printer_name",
+	"printer_host",
+	"printer_port",
+	"label_width",
+	"label_height",
+	"label_dpi",
+)
 
 
 class CheckInSettings(Document):
@@ -18,6 +29,22 @@ class CheckInSettings(Document):
 			frappe.throw(_("Label width and height must be greater than zero."))
 		self.validate_print_format(self.name_tag_format, raw=False)
 		self.validate_print_format(self.zpl_format, raw=True)
+
+	def for_church(self, church=None):
+		"""These settings with *church*'s printer row applied, or unchanged when it has none.
+
+		Each campus has its own label printer, so one host and one printer name
+		cannot serve them all. Resolved into a copy rather than threaded through
+		every caller, so the print format template and the network path read one
+		consistent set.
+		"""
+		row = next((row for row in self.printers if row.church == church), None) if church else None
+		if not row:
+			return self
+
+		settings = frappe.get_doc({"doctype": self.doctype, **self.as_dict()})
+		settings.update({field: row.get(field) for field in PRINTER_FIELDS if row.get(field)})
+		return settings
 
 	def validate_print_format(self, name, raw):
 		if not name:
@@ -56,8 +83,11 @@ class CheckInSettings(Document):
 	def render_name_tags(self, check_ins):
 		template = self.template
 		context = {"settings": self}
+		# The template is a Print Format, rendered in Frappe's sandbox as Frappe renders print formats.
+		# nosemgrep: frappe-ssti
 		labels = [frappe.render_template(template, {**context, "doc": doc}) for doc in check_ins]
 		for doc, names in self.pickup_groups(check_ins):
+			# nosemgrep: frappe-ssti
 			labels.append(frappe.render_template(template, {**context, "doc": doc, "pickup_names": names}))
 		if self.is_zpl:
 			return "\n".join(labels)
@@ -85,4 +115,4 @@ class CheckInSettings(Document):
 			with socket.create_connection((host, port), timeout=5) as connection:
 				connection.sendall(zpl.encode("utf-8"))
 		except OSError as error:
-			frappe.throw(_("Could not reach printer {0}:{1} ({2}).").format(host, port, error))
+			frappe.throw(_("Could not reach printer {0}:{1} ({2}).").format(host, port, str(error)))

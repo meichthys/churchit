@@ -22,13 +22,40 @@ class GivingSettings(Document):
 		if not defaults:
 			self.gateways[0].is_default = 1
 
-	def get_offered_gateways(self):
-		"""Return the curated gateways as ``[{"name", "label"}]``, default first."""
-		ordered = sorted(self.gateways, key=lambda g: 0 if g.is_default else 1)
-		return [{"name": g.payment_gateway, "label": g.label or g.payment_gateway} for g in ordered]
+	def gateways_for(self, church=None):
+		"""The gateway rows serving *church*, default first.
 
-	def get_default_gateway(self):
-		for g in self.gateways:
-			if g.is_default:
-				return g.payment_gateway
-		return self.gateways[0].payment_gateway if self.gateways else None
+		A row naming a church serves only that church, so each congregation's
+		gifts reach its own merchant account. A row leaving it blank serves every
+		church, which is what a single-church site has and what an organisation
+		with one account keeps.
+		"""
+		rows = [row for row in self.gateways if not row.church or row.church == church]
+		# A church with its own gateways uses only those; otherwise the shared ones stand in.
+		own = [row for row in rows if row.church]
+		return sorted(own or rows, key=lambda row: 0 if row.is_default else 1)
+
+	def get_offered_gateways(self, church=None):
+		"""Return the gateways offered to *church* as ``[{"name", "label"}]``, default first."""
+		return [
+			{"name": row.payment_gateway, "label": row.label or row.payment_gateway}
+			for row in self.gateways_for(church)
+		]
+
+	def get_default_gateway(self, church=None):
+		offered = self.gateways_for(church)
+		return offered[0].payment_gateway if offered else None
+
+	def get_thank_you_message(self, church=None):
+		"""This church's thank-you wording, else the site-wide text."""
+		return self.wording_for(church).get("thank_you_message") or self.thank_you_message
+
+	def get_statement_acknowledgment(self, church=None):
+		"""This church's acknowledgment wording, else the site-wide text."""
+		return self.wording_for(church).get("statement_acknowledgment") or self.statement_acknowledgment
+
+	def wording_for(self, church=None):
+		"""The wording row for *church*, or an empty row when it has none."""
+		if not church:
+			return frappe._dict()
+		return next((row for row in self.church_wording if row.church == church), frappe._dict())

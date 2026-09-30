@@ -8,14 +8,26 @@ from frappe.tests.utils import FrappeTestCase
 from churchit.church_communications.newsletter import (
 	MEMBER_EMAIL_GROUP,
 	get_subscription_status,
+	member_email_group,
 	set_subscription,
 	sync_member_email_group,
 )
-from churchit.tests.helpers import ensure, ensure_user, make_person
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_root_church,
+	ensure_user,
+	force_single_church,
+	make_branch,
+	make_person,
+	set_multi_church,
+)
 
 
-class TestNewsletter(FrappeTestCase):
+class TestNewsletter(RollbackEachTest):
 	def setUp(self):
+		super().setUp()
+		force_single_church()
 		ensure("Email Group", {"title": MEMBER_EMAIL_GROUP})
 		self.user = ensure_user("_test_subscriber@example.com", "_Test Subscriber")
 		self.person = make_person("_Test Newsletter", "Member", user=self.user)
@@ -23,9 +35,6 @@ class TestNewsletter(FrappeTestCase):
 		self.person.append("emails", {"email_address": "_test_home@example.com", "is_primary": 1})
 		self.person.save(ignore_permissions=True)
 		frappe.db.delete("Email Group Member", {"email": ["like", "_test_%@example.com"]})
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
 
 	def _member(self, email):
 		return frappe.db.get_value(
@@ -78,3 +87,36 @@ class TestNewsletter(FrappeTestCase):
 		frappe.set_user("Guest")
 		with self.assertRaises(ValidationError):
 			set_subscription(1)
+
+
+class TestNewsletterPerChurch(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		ensure_root_church()
+		set_multi_church(True)
+		cls.branch = make_branch("_Test Newsletter Branch", "TNB")
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_each_church_gets_its_own_group(self):
+		user = ensure_user("_test_branch_subscriber@example.com", "Branch")
+		person = make_person("_Test Branch", "Subscriber", church=self.branch, user=user)
+		person.append("emails", {"email_address": "_test_branch_home@example.com", "is_primary": 1})
+		person.save(ignore_permissions=True)
+
+		sync_member_email_group()
+
+		group = member_email_group(self.branch)
+		self.assertEqual(group, "Church Members - _Test Newsletter Branch")
+		member = {"email_group": group, "email": "_test_branch_home@example.com"}
+		self.assertTrue(frappe.db.exists("Email Group Member", member))
+		self.assertFalse(
+			frappe.db.exists("Email Group Member", {**member, "email_group": MEMBER_EMAIL_GROUP})
+		)
+
+		frappe.set_user(user)
+		self.assertEqual(get_subscription_status()["newsletter"], group)
+		self.assertTrue(get_subscription_status()["subscribed"])

@@ -216,9 +216,10 @@ setup_wizard_complete = [
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+# Role-based notification recipients stay inside the document's church.
+override_doctype_class = {
+	"Notification": "churchit.church_communications.scoped_notification.ScopedNotification",
+}
 
 # Document Events
 # ---------------

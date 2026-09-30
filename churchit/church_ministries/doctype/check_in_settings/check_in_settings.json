@@ -20,7 +20,9 @@
   "security_codes",
   "column_break_tags",
   "name_tag_format",
-  "zpl_format"
+  "zpl_format",
+  "church_printers_section",
+  "printers"
  ],
  "fields": [
   {
@@ -120,6 +122,19 @@
    "fieldtype": "Link",
    "label": "ZPL Format",
    "options": "Print Format"
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church_printers_section",
+   "fieldtype": "Section Break",
+   "label": "Printers Per Church"
+  },
+  {
+   "description": "Add a row for a church whose station prints somewhere else. Fields left blank in a row use the settings above.",
+   "fieldname": "printers",
+   "fieldtype": "Table",
+   "label": "Printers Per Church",
+   "options": "Church Check In Printer"
   }
  ],
  "index_web_pages_for_search": 1,

@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-26 11:00:00.000000",
+ "description": "Wording one church uses on its giving page and statements, instead of the site-wide text.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "church",
+  "thank_you_message",
+  "statement_acknowledgment"
+ ],
+ "fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Church",
+   "options": "Church",
+   "reqd": 1
+  },
+  {
+   "description": "Shown after a gift on this church's Give page.",
+   "fieldname": "thank_you_message",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Thank You Message"
+  },
+  {
+   "description": "Printed on this church's giving statements.",
+   "fieldname": "statement_acknowledgment",
+   "fieldtype": "Small Text",
+   "label": "Acknowledgment Text"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-26 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Church Giving Wording",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
