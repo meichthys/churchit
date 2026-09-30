@@ -57,6 +57,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "book-user",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Rolodex",
+   "link_to": "rolodex",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Person Documents",
@@ -451,7 +463,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-28 14:30:00.000000",
+ "modified": "2026-09-28 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "module_onboarding": "People",
