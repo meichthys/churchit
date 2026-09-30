@@ -5,8 +5,8 @@
 
 The portal menu is seeded by after_install, which only ever runs when the app is
 first installed, so a site that predates the Giving Statement doctype has no way
-to reach /statements. Adds just that one row and leaves the rest of the menu — and
-default_portal_home — as the site admin left it.
+to reach /statements. Adds just that one row and leaves the rest of the menu, and
+default_portal_home, as the site admin left it.
 """
 
 import frappe

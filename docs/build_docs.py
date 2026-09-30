@@ -34,7 +34,7 @@ DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
 FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
 FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
 
-# Base address of the churchit desk that /app/ links point at — the public demo
+# Base address of the churchit desk that /app/ links point at. The public demo
 # site, so the documentation's desk links resolve for website visitors.
 DESK_URL = "https://church.meichthys.com"
 
@@ -107,7 +107,7 @@ def render_blocks(blocks):
 
 		# Paragraphs carry the manual's headings as styled spans (h1/h2 classes).
 		if 'class="h1"' in raw:
-			continue  # the manual title — we render our own section header
+			continue  # the manual title; we render our own section header
 		if 'class="h2"' in raw:
 			out.append(f"<h3>{strip_tags(raw)}</h3>")
 			continue

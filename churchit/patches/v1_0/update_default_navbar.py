@@ -12,7 +12,7 @@ existing sites keep whatever was current when they were created:
   a church with more than one meeting place can link to it again.
 
 Both steps only touch rows this app shipped, leaving a renamed or re-pointed
-entry — and the rest of the menu — as the admin left it.
+entry, and the rest of the menu, as the admin left it.
 """
 
 import frappe

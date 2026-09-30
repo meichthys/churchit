@@ -32,7 +32,7 @@ def _ensure(doctype, filters, values):
 class TestMissionary(FrappeTestCase):
 	def setUp(self):
 		# Tree-doctype (Expense Type) inserts commit, so rollback can't fully isolate
-		# these tests — clear any leftover missionary/expenses up front instead.
+		# these tests, so clear any leftover missionary/expenses up front instead.
 		for missionary in frappe.get_all(
 			"Missionary", filters={"title": ["like", f"{TEST_MISSIONARY_TITLE}%"]}, pluck="name"
 		):

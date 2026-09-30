@@ -8,7 +8,7 @@ def hide_manual_desktop_icons():
 
 	Frappe auto-creates a Desktop Icon for every public Workspace on install and
 	migrate (frappe.desk.doctype.desktop_icon.create_desktop_icons_from_workspace),
-	with no flag to opt a workspace out — it ignores parent_page entirely. Manual
+	with no flag to opt a workspace out, and it ignores parent_page entirely. Manual
 	workspaces are meant to open only from the "Manual" link inside their own
 	module's sidebar, so re-hide whatever Frappe (re)generated for them on every
 	migrate instead of relying on a shipped-hidden fixture, which Frappe's own

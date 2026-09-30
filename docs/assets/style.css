@@ -1,5 +1,5 @@
 /* ==========================================================================
-   churchit — glassy marketing site
+   churchit: glassy marketing site
    A single design system shared by index / pricing / getting-started / documentation.
    Frappe-flavoured: Inter type, indigo→violet accent, frosted glass surfaces.
    ========================================================================== */
@@ -43,7 +43,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Aurora mesh backdrop — fixed so glass surfaces always have something to blur */
+/* Aurora mesh backdrop, fixed so glass surfaces always have something to blur */
 body::before {
   content: "";
   position: fixed;
@@ -150,7 +150,7 @@ a:hover { text-decoration: underline; }
 }
 .nav-links a:hover { color: var(--ink); background: rgba(99,102,241,.08); text-decoration: none; }
 .nav-links a.active { color: var(--brand-ink); }
-/* The primary CTA in the nav is a button, not a link — keep its button colors
+/* The primary CTA in the nav is a button, not a link, so keep its button colors
    (the generic `.nav-links a` rule above is more specific than `.btn-primary`). */
 .nav-links a.btn-primary,
 .nav-links a.btn-primary:hover { color: #fff; background: var(--grad); background-origin: border-box; }
@@ -404,7 +404,7 @@ footer { padding: 3rem 0 2.5rem; border-top: 1px solid var(--line); margin-top: 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --brand-ink:  #a5b4fc; /* indigo-300 — accents/links legible on dark */
+  --brand-ink:  #a5b4fc; /* indigo-300, accents/links legible on dark */
 
   --ink:        #f1f5f9; /* slate-100 */
   --body:       #cbd5e1; /* slate-300 */

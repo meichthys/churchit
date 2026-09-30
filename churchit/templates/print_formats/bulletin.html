@@ -161,7 +161,7 @@
       {{ section(_("Prayer Requests")) }}
       <table class="rows">
         {%- for row in prayer_requests %}
-        <tr><td>{{ row.title | e }}{% if row.recipient_name %} <span class="entry-detail">&mdash; {{ _("for") }} {{ row.recipient_name | e }}</span>{% endif %}</td></tr>
+        <tr><td>{{ row.title | e }}{% if row.recipient_name %} <span class="entry-detail">{{ _("for") }} {{ row.recipient_name | e }}</span>{% endif %}</td></tr>
         {%- endfor %}
       </table>
       {%- endif %}

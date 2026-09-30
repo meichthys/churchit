@@ -1,4 +1,4 @@
-// churchit marketing site — tiny progressive-enhancement helpers.
+// churchit marketing site: tiny progressive-enhancement helpers.
 (function () {
 	"use strict";
 
@@ -103,7 +103,7 @@
 		});
 	}
 
-	// Documentation scrollspy — highlight sidebar link for the section in view
+	// Documentation scrollspy: highlight sidebar link for the section in view
 	var sections = document.querySelectorAll(".doc-section[id]");
 	var navLinks = document.querySelectorAll(".doc-side a[href^='#']");
 	if (sections.length && navLinks.length && "IntersectionObserver" in window) {

@@ -13,7 +13,7 @@ frappe.ui.form.on("Function Sign-Up", {
 			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
 			grid.update_docfield_property("my_quantity", "in_list_view", 1);
 			grid.update_docfield_property("my_quantity", "hidden", 0);
-			// Force re-evaluation of which columns are visible — by default the grid
+			// Force re-evaluation of which columns are visible. By default the grid
 			// caches `visible_columns` and won't pick up our docfield property changes.
 			//grid.reset_grid();
 		}

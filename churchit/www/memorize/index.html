@@ -38,13 +38,13 @@
             <div class="form-group col-md-4">
                 <label>Chapter</label>
                 <select class="form-control" id="add-chapter" disabled>
-                    <option value="">—</option>
+                    <option value="">Select</option>
                 </select>
             </div>
             <div class="form-group col-md-4">
                 <label>Start verse</label>
                 <select class="form-control" id="add-start-verse" disabled>
-                    <option value="">—</option>
+                    <option value="">Select</option>
                 </select>
             </div>
             <div class="form-group col-md-4">
@@ -147,9 +147,9 @@
         const book = $('#add-book').value;
         const translation = $('#add-translation').value;
         const chapterSel = $('#add-chapter');
-        chapterSel.innerHTML = '<option value="">—</option>';
+        chapterSel.innerHTML = '<option value="">Select</option>';
         chapterSel.disabled = true;
-        $('#add-start-verse').innerHTML = '<option value="">—</option>';
+        $('#add-start-verse').innerHTML = '<option value="">Select</option>';
         $('#add-start-verse').disabled = true;
         $('#add-end-verse').innerHTML = '<option value="">(same as start)</option>';
         $('#add-end-verse').disabled = true;
@@ -162,7 +162,7 @@
         }).then(r => {
             setStatus('');
             const chapters = (r && r.message) || [];
-            chapterSel.innerHTML = '<option value="">—</option>' +
+            chapterSel.innerHTML = '<option value="">Select</option>' +
                 chapters.map(c => `<option value="${c}">${c}</option>`).join('');
             chapterSel.disabled = chapters.length === 0;
         }).catch(() => setStatus('Could not load chapters.', true));
@@ -174,7 +174,7 @@
         const chapter = $('#add-chapter').value;
         const startSel = $('#add-start-verse');
         const endSel = $('#add-end-verse');
-        startSel.innerHTML = '<option value="">—</option>';
+        startSel.innerHTML = '<option value="">Select</option>';
         startSel.disabled = true;
         endSel.innerHTML = '<option value="">(same as start)</option>';
         endSel.disabled = true;
@@ -188,7 +188,7 @@
             setStatus('');
             const verses = (r && r.message) || [];
             const opts = verses.map(v => `<option value="${v}">${v}</option>`).join('');
-            startSel.innerHTML = '<option value="">—</option>' + opts;
+            startSel.innerHTML = '<option value="">Select</option>' + opts;
             endSel.innerHTML = '<option value="">(same as start)</option>' + opts;
             startSel.disabled = verses.length === 0;
             endSel.disabled = verses.length === 0;

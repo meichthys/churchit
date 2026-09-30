@@ -58,7 +58,7 @@
 				<li>
 					<a href="/statements?name={{ row.name | urlencode }}">
 						{{ frappe.format(row.from_date, {"fieldtype": "Date"}) }}
-						&ndash;
+						to
 						{{ frappe.format(row.to_date, {"fieldtype": "Date"}) }}
 					</a>
 					<span class="amount">{{ frappe.format(row.total_amount, {"fieldtype": "Currency"}) }}</span>

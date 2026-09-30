@@ -7,7 +7,7 @@ from frappe.model.document import Document
 
 class CareRequest(Document):
 	def before_insert(self):
-		# Portal submissions don't capture Person — default it to the
+		# Portal submissions don't capture Person, so default it to the
 		# logged-in user's linked Person record.
 		if not self.person and frappe.session.user != "Guest":
 			person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")

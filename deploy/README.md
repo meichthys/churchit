@@ -4,7 +4,7 @@ Self-hosting is the free way to run Churchit on your own hardware. It runs
 anywhere Docker runs (Linux, Windows via WSL, or macOS).
 
 If you would rather not manage a server, [Frappe Cloud](https://frappe.io/cloud)
-hosts Churchit for a few dollars a month — see the
+hosts Churchit for a few dollars a month. See the
 [main README](../README.md#-installing-churchit). Frappe Cloud fees go to Frappe,
 not to the Churchit maintainers.
 
@@ -21,7 +21,7 @@ Common requirements:
 - Ports **80** and **443** should be free on the machine.
 - If using a real domain: a DNS **A record** pointing at the machine's public
   IP (needed for the automatic HTTPS certificate). For a local test you don't
-  need a domain — the setup defaults to `http://churchit.localhost`.
+  need a domain, because the setup defaults to `http://churchit.localhost`.
 
 ---
 ## One-Liner setup scripts
@@ -39,9 +39,9 @@ The script installs Docker if it's missing, downloads the churchit compose files
 asks for your domain (press Enter to use `churchit.localhost` on your local machine),
 generates strong passwords, and starts everything.
 
-The first run will download ~1–2 GB of data.
+The first run will download about 1 to 2 GB of data.
 
-When it finishes it prints your site address. Log in as `Administrator`. Your initial password is saved in `~/churchit/.env` — see [Logging in](#logging-in) below. It is HIGHLY recommended to change the Administrator password after first logging in.
+When it finishes it prints your site address. Log in as `Administrator`. Your initial password is saved in `~/churchit/.env`. See [Logging in](#logging-in) below. It is HIGHLY recommended to change the Administrator password after first logging in.
 
 > **For a real, always-on church server**, a cheap Linux mini-PC or VPS are
 > good options. Windows/macOS with Docker Desktop is good for trying it out, but
@@ -80,7 +80,7 @@ then in Terminal run the `curl` command from the **Linux** section above.
 
 After your first login, change it to something memorable from the web UI
 (top-right avatar → **My Settings** → set a new password). Editing `ADMIN_PASSWORD`
-in `.env` afterward has **no effect** — that value is only used when the site is
+in `.env` afterward has **no effect**, because that value is only used when the site is
 first created.
 
 **Forgot the password?** Reset it any time (replace `<your-site>` with the
@@ -122,7 +122,7 @@ Caddy then fetches a free HTTPS certificate automatically.
 **1. Get a domain name.** Register one (e.g. `yourchurchname.org`) with a domain
 registrar, or use a subdomain you already control (e.g. `churchit.yourchurchname.org`).
 
-**2. Run setup with that domain — and keep ports 80/443.** At the setup prompts,
+**2. Run setup with that domain, and keep ports 80/443.** At the setup prompts,
 enter your domain (not `churchit.localhost`) and press Enter for the default
 ports. Public HTTPS **requires ports 80 and 443**: Let's Encrypt validates over
 port 80, and browsers expect 443. (The custom-port option is only for local or
@@ -168,7 +168,7 @@ Some connections (many residential/mobile/fibre plans) put you behind **CGNAT**,
 forwarding can't work because you don't have your own public IP. Two options that
 need **no open ports**:
 
-- **A tunnel** — e.g. **Cloudflare Tunnel** (`cloudflared`) or **Tailscale
+- **A tunnel**, for example **Cloudflare Tunnel** (`cloudflared`) or **Tailscale
   Funnel**. These connect *out* from the host and expose it publicly, handling
   HTTPS for you. Run Churchit locally (keep the `churchit.localhost` / `http://`
   address) and let the tunnel front it. Setting this up is outside the scope of this tutorial.
