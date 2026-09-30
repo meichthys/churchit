@@ -247,6 +247,16 @@ class TestBulletin(FrappeTestCase):
 		bulletin.save(ignore_permissions=True)
 		self.assertNotIn('class="church-image"', frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
+	def test_contact_information_prefers_the_churchs_own_phone_and_email(self):
+		church = frappe.get_doc("Church", get_church().name)
+		church.phone = "555-0199"
+		church.email = "office@branch.example.com"
+		church.save(ignore_permissions=True)
+
+		contact = self.make_bulletin().contact_information
+
+		self.assertEqual((contact.phone, contact.email), ("555-0199", "office@branch.example.com"))
+
 	def make_bible_reference(self, reference_text):
 		book = ensure(
 			"Bible Book",

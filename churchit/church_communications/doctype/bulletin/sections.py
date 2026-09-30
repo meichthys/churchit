@@ -6,7 +6,12 @@
 import frappe
 from frappe.utils import add_days, format_datetime, format_time, formatdate, getdate
 
-from churchit.church_foundations.doctype.church.church import ADDRESS_FIELDS, address_line, get_church
+from churchit.church_foundations.doctype.church.church import (
+	ADDRESS_FIELDS,
+	address_line,
+	church_contact_details,
+	get_church,
+)
 from churchit.church_people import celebrations
 from churchit.church_scope import church_filters
 
@@ -34,7 +39,7 @@ class BulletinSections:
 	def contact_information(self):
 		"""The church's name, address, phone, email and website."""
 		church = self.church_doc
-		contact = frappe.get_cached_doc("Contact Us Settings")
+		contact = church_contact_details(church)
 		address = None
 		if church and church.address:
 			address = frappe.db.get_value("Address", church.address, ADDRESS_FIELDS, as_dict=True)
@@ -42,7 +47,7 @@ class BulletinSections:
 			name=church.church_name if church else None,
 			address=address_line(address),
 			phone=contact.phone,
-			email=contact.email_id,
+			email=contact.email,
 			website=frappe.utils.get_url().split("://", 1)[-1],
 		)
 

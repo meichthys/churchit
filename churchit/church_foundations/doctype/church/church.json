@@ -88,14 +88,14 @@
    "options": "Address"
   },
   {
-   "description": "Shown on the website footer, the Contact Us page and printed letterheads.",
+   "description": "Shown on the website footer, the Contact Us page, printed letterheads and bulletins.",
    "fieldname": "phone",
    "fieldtype": "Data",
    "label": "Phone",
    "options": "Phone"
   },
   {
-   "description": "Shown on the website footer, the Contact Us page and printed letterheads.",
+   "description": "Shown on the website footer, the Contact Us page, printed letterheads and bulletins.",
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email",
@@ -185,7 +185,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-09-28 14:00:00",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
