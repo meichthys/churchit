@@ -32,30 +32,29 @@ class Person(Document):
 		self.sync_church_permission()
 		self.sync_family_church()
 
-		# Update Family Member list in Family. The roster follows the person, so the
-		# right to edit this person is the one that counts, not a right to the Family.
+		# The rosters follow the person, so the right to edit this person is the one
+		# that counts, not a right to the Family. Leave the old family first: saving
+		# it clears `family` on everyone it no longer lists, and saving the new one
+		# sets it back.
+		before = self.get_doc_before_save()
+		if before and before.family and before.family != self.family:
+			self.remove_from_family(before.family)
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
-			found = False
-			for member in family.members:
-				if member.member == self.name:
-					found = True
-					break
-			if not found:
+			if not any(member.member == self.name for member in family.members):
 				family.append("members", {"member": self.name})
 			family.save(ignore_permissions=True)
 
-		# Return if this is a new person
-		if not self.get_doc_before_save():
+	def remove_from_family(self, family_name):
+		"""Drop this person from *family_name*'s members, when that family still exists."""
+		if not frappe.db.exists("Family", family_name):
 			return
-		# Remove person from Family if family is removed
-		if not self.family and self.get_doc_before_save().family is not None:
-			family = frappe.get_doc("Family", self.get_doc_before_save().family)
-			for member in family.members:
-				if member.member == self.name:
-					family.remove(member)
-					break
-			family.save(ignore_permissions=True)
+		family = frappe.get_doc("Family", family_name)
+		for member in family.members:
+			if member.member == self.name:
+				family.remove(member)
+				break
+		family.save(ignore_permissions=True)
 
 	def sync_church_permission(self):
 		"""Keep the linked user's Church permission pointed at this person's church.
@@ -95,15 +94,9 @@ class Person(Document):
 	def on_trash(self):
 		if self.spouse:
 			self.unlink_spouse(self.spouse)
-		# Remove person from Family. A bulk delete takes the Family out first, and
-		# then there is no member row left to remove.
-		if self.family and frappe.db.exists("Family", self.family):
-			family = frappe.get_doc("Family", self.family)
-			for member in family.members:
-				if member.member == self.name:
-					family.remove(member)
-					break
-			family.save(ignore_permissions=True)
+		# A bulk delete takes the Family out first, and then there is no member row left to remove.
+		if self.family:
+			self.remove_from_family(self.family)
 
 	def validate(self):
 		refuse_member_edits_beyond_personal_details(self)
@@ -137,7 +130,7 @@ class Person(Document):
 				family_doc = frappe.get_doc("Family", self.family)
 				dashes = family_doc.family_name.rfind("-")
 				if dashes == -1:  # If no dashes found, add one
-					family_doc.family_name = f"{self.family} - {self.first_name}"
+					family_doc.family_name = f"{family_doc.family_name} - {self.first_name}"
 				else:
 					family_doc.family_name = f"{family_doc.family_name[: dashes + 1]} {self.first_name}"
 				family_doc.save(ignore_permissions=True)
@@ -219,8 +212,9 @@ class Person(Document):
 			self.family = existing_family
 			self.is_head_of_household = False  # Not head of household in an existing family
 			self.save()
+			family_link = get_link_to_form("Family", existing_family, f"{self.last_name} - {self.first_name}")
 			frappe.msgprint(
-				f"⚠️ The <a href='/app/church-family/{existing_family}'>{self.last_name} - {self.first_name}</a> family already exists. This person has been added to that family."
+				f"⚠️ The {family_link} family already exists. This person has been added to that family."
 			)
 
 			return  # Don't create a new family

@@ -59,6 +59,24 @@ class TestPerson(FrappeTestCase):
 		person.save(ignore_permissions=True)
 		self.assertFalse(person.is_head_of_household)
 
+	def test_moving_to_another_family_leaves_the_old_one(self):
+		old = frappe.get_doc({"doctype": "Family", "family_name": "Left Household"}).insert(
+			ignore_permissions=True
+		)
+		new = frappe.get_doc({"doctype": "Family", "family_name": "Joined Household"}).insert(
+			ignore_permissions=True
+		)
+		person = self._make_person(first_name="Mover", last_name="Along", family=old.name)
+
+		person.family = new.name
+		person.save(ignore_permissions=True)
+		# Saving the old family used to pull the person back into it.
+		old.reload()
+		old.save(ignore_permissions=True)
+
+		self.assertNotIn(person.name, [m.member for m in old.members])
+		self.assertEqual(frappe.db.get_value("Person", person.name, "family"), new.name)
+
 	def test_deleting_person_removes_them_from_family(self):
 		family = frappe.get_doc({"doctype": "Family", "family_name": "Departing Household"}).insert(
 			ignore_permissions=True
@@ -163,6 +181,15 @@ class TestPerson(FrappeTestCase):
 		self.assertFalse(frappe.db.get_value("Person", old_head.name, "is_head_of_household"))
 		self.assertEqual(frappe.db.get_value("Family", family.name, "family_name"), "Swap - New")
 
+	def test_new_head_of_household_renames_a_family_without_a_dash(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Plainname"}).insert(
+			ignore_permissions=True
+		)
+		self._make_person(first_name="Old", family=family.name, is_head_of_household=1)
+		self._make_person(first_name="New", family=family.name, is_head_of_household=1)
+
+		self.assertEqual(frappe.db.get_value("Family", family.name, "family_name"), "Plainname - New")
+
 	def test_new_family_from_person_creates_and_heads_a_family(self):
 		person = self._make_person(first_name="Founder", last_name="Fam")
 		person.new_family_from_person()
@@ -177,11 +204,14 @@ class TestPerson(FrappeTestCase):
 			ignore_permissions=True
 		)
 		person = self._make_person(first_name="Joiner", last_name="Twin")
+		frappe.local.message_log = []
 		person.new_family_from_person()
 
 		person.reload()
 		self.assertEqual(person.family, existing.name)
 		self.assertFalse(person.is_head_of_household)
+		messages = " ".join(str(message) for message in frappe.local.message_log)
+		self.assertIn(f"/family/{existing.name}", messages)
 
 	def test_invite_to_portal_requires_an_email_address(self):
 		person = self._make_person(first_name="Unreachable")
