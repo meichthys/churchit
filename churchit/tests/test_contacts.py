@@ -21,7 +21,7 @@ from churchit.contacts import (
 	primary_phone,
 	primary_phone_query,
 )
-from churchit.tests.helpers import ensure_user, make_address, make_person
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address, make_person
 
 
 class TestPick(FrappeTestCase):
@@ -61,10 +61,11 @@ class TestPick(FrappeTestCase):
 		self.assertIsNone(mailing_address(self._person()))
 
 
-class TestContactLookups(FrappeTestCase):
+class TestContactLookups(RollbackEachTest):
 	"""Lookups and report subqueries against saved records."""
 
 	def setUp(self):
+		super().setUp()
 		self.home = make_address("_Test Home").name
 		self.box = make_address("_Test PO Box").name
 		self.person = make_person("_Test Lookup", "Person")
@@ -75,9 +76,6 @@ class TestContactLookups(FrappeTestCase):
 		self.person.append("addresses", {"address": self.box, "is_mailing_address": 1})
 		self.person.save(ignore_permissions=True)
 		self.emailless = make_person("_Test Lookup", "Emailless")
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
 
 	def test_single_record_lookups(self):
 		self.assertEqual(get_primary_email("Person", self.person.name), "home@example.com")
@@ -130,7 +128,7 @@ class TestContactLookups(FrappeTestCase):
 			get_emails_for("User", ["Administrator"])
 
 
-class TestValidateContactTables(FrappeTestCase):
+class TestValidateContactTables(RollbackEachTest):
 	"""The normalisation every contact-carrying doctype runs in validate()."""
 
 	def _person(self, name, emails=(), addresses=()):
@@ -196,6 +194,53 @@ class TestValidateContactTables(FrappeTestCase):
 			emails=[{"email_address": "a@example.com"}, {"email_address": "b@example.com", "is_primary": 1}],
 		)
 		self.assertEqual([row.notification_address for row in person.emails], [None, "b@example.com"])
+
+
+class TestContactDetailsBelongToOneRecord(RollbackEachTest):
+	"""An unshared email or phone may sit on one record of each doctype only."""
+
+	def setUp(self):
+		super().setUp()
+		self.holder = make_person("_Test Unique", "Holder")
+		self.holder.append("emails", {"email_address": "unique.holder@example.com"})
+		self.holder.append("phones", {"phone_number": "+1 (202) 555-0147"})
+		self.holder.save(ignore_permissions=True)
+
+	def _person_with(self, name, **row):
+		fieldname = "emails" if "email_address" in row else "phones"
+		person = frappe.new_doc("Person")
+		person.update({"first_name": "_Test Unique", "last_name": name})
+		person.append(fieldname, row)
+		return person.insert(ignore_permissions=True)
+
+	def test_an_email_already_on_another_person_is_refused(self):
+		with self.assertRaises(ValidationError) as caught:
+			self._person_with("Copy", email_address="UNIQUE.HOLDER@example.com")
+		self.assertIn(self.holder.full_name, str(caught.exception))
+
+	def test_a_phone_matches_however_it_is_formatted(self):
+		with self.assertRaises(ValidationError):
+			self._person_with("Copy", phone_number="12025550147")
+
+	def test_a_phone_with_extra_digits_is_a_different_number(self):
+		self._person_with("Extension", phone_number="+1 (202) 555-01470")
+
+	def test_a_shared_row_may_repeat_it(self):
+		person = self._person_with("Spouse", email_address="unique.holder@example.com", is_shared=1)
+		self.holder.save(ignore_permissions=True)
+		self.assertEqual(person.emails[0].is_shared, 1)
+
+	def test_a_family_may_hold_a_members_email(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Unique"})
+		family.append("emails", {"email_address": "unique.holder@example.com"})
+		family.insert(ignore_permissions=True)
+
+	def test_the_holder_is_not_named_to_someone_who_may_not_read_it(self):
+		frappe.set_user(ensure_user("_test_contact_nobody@example.com", "_Test Nobody", roles=()))
+		with self.assertRaises(ValidationError) as caught:
+			self._person_with("Copy", email_address="unique.holder@example.com")
+		self.assertNotIn(self.holder.full_name, str(caught.exception))
+		self.assertIn("another Person record", str(caught.exception))
 
 
 class TestDefaultContactTypes(FrappeTestCase):

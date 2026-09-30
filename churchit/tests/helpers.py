@@ -5,10 +5,24 @@
 
 Tests run inside one transaction per test class, so records made by one test
 are visible to the next. Helpers here either look up an existing record first
-(``ensure``) or take names the caller keeps unique (``make_person``).
+(``ensure``) or take names the caller keeps unique (``make_person``). A setUp
+that saves the same email or phone every time needs ``RollbackEachTest``, since
+an email or phone may be on one Person only.
 """
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
+
+
+class RollbackEachTest(FrappeTestCase):
+	"""Undoes each test's writes, so the next setUp starts from the same state."""
+
+	def setUp(self):
+		frappe.db.savepoint("rollback_each_test")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback(save_point="rollback_each_test")
 
 
 def ensure(doctype, filters, values=None):
