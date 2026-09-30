@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add a Vendor",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Vendor is anyone you pay regularly: a utility, a supplier, a contractor. Recording them once keeps Expenses spelled consistently and categorized the same way each time.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Vendor",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Vendor",
+ "owner": "Administrator",
+ "reference_document": "Vendor",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Vendors",
+ "validate_action": 1
+}

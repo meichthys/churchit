@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Open a Case",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Counseling Case is a confidential file: who is being counselled, by whom, and the notes from each session. Read access is restricted to Church Manager, so ordinary members and volunteers never see one.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Counseling Case",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Counseling Case",
+ "owner": "Administrator",
+ "reference_document": "Counseling Case",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Counseling Cases",
+ "validate_action": 1
+}

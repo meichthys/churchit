@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-09-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",
@@ -26,13 +26,19 @@
    "step": "Collection"
   },
   {
+   "step": "Vendor"
+  },
+  {
    "step": "Expense"
+  },
+  {
+   "step": "Budget"
   },
   {
    "step": "Giving Settings"
   }
  ],
- "subtitle": "Funds, collections, expenses, and online giving.",
+ "subtitle": "Funds, collections, vendors, expenses, budgets, and online giving.",
  "success_message": "Your finances are wired up. Gifts and spending now flow into Fund balances and reports.",
- "title": "💰 Setting Up Church Finances"
+ "title": "\ud83d\udcb0 Setting Up Church Finances"
 }

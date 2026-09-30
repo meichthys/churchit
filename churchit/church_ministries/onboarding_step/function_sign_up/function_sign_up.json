@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Record a Sign-Up",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Function Sign-Up is one person committing to a function, and optionally to bringing items from its sign-up list. Members create their own from the portal; tick Allow Sign-Ups on the Function first.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Function Sign-Up",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Function Sign-Up",
+ "owner": "Administrator",
+ "reference_document": "Function Sign-Up",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Sign-Ups",
+ "validate_action": 1
+}

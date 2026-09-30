@@ -1,0 +1,22 @@
+{
+ "action": "Show Form Tour",
+ "action_label": "Configure Check-In",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "Check-In Settings drive the Check-In Station: how name tags are printed, what size the labels are, and whether children get security codes for pickup. Configure it before the first Sunday you use the station.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Check-In Settings",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-09-25 21:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Check-In Settings",
+ "owner": "Administrator",
+ "reference_document": "Check-In Settings",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Check-In",
+ "validate_action": 1
+}

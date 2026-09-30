@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-06-27 00:00:00.000000",
+ "modified": "2026-09-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",
@@ -26,13 +26,19 @@
    "step": "Room"
   },
   {
+   "step": "Room Booking"
+  },
+  {
    "step": "Church Asset"
   },
   {
    "step": "Church Task"
+  },
+  {
+   "step": "Meeting Minutes"
   }
  ],
- "subtitle": "Locations, rooms, assets, and tasks.",
+ "subtitle": "Locations, rooms and bookings, assets, tasks, and minutes.",
  "success_message": "Your facilities and tasks are organized.",
  "title": "\ud83d\udee0\ufe0f Running Church Operations"
 }

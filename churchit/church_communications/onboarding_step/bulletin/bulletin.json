@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create a Bulletin",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Bulletin is the printed sheet for one service. Pick its Function and most of it assembles itself from records you already keep: the order of worship, leadership, upcoming events, prayer requests, birthdays and the sermon handout.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Bulletin",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Bulletin",
+ "owner": "Administrator",
+ "reference_document": "Bulletin",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Bulletins",
+ "validate_action": 1
+}
