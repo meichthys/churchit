@@ -101,7 +101,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",
@@ -139,6 +139,18 @@
    "if_owner": 1,
    "read": 1,
    "role": "Church User",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
    "select": 1,
    "write": 1
   }

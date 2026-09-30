@@ -11,11 +11,21 @@
  "label": "Communications",
  "link_to": "Communications",
  "link_type": "Workspace Sidebar",
- "modified": "2026-07-11 19:30:26.456972",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "Communications",
  "owner": "Administrator",
  "restrict_removal": 0,
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
  "standard": 1
 }

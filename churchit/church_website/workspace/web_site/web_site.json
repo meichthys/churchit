@@ -236,7 +236,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-12 19:08:23.238162",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
@@ -259,7 +259,17 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Website Manager"
+  }
+ ],
  "sequence_id": 21.0,
  "shortcuts": [
   {

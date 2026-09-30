@@ -38,7 +38,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-03-04 21:42:32.839660",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Payment Type",
@@ -68,6 +68,17 @@
    "role": "Church Manager",
    "select": 1,
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
    "write": 1
   }
  ],

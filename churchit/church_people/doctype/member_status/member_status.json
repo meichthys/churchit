@@ -36,7 +36,7 @@
    "link_fieldname": "membership_status"
   }
  ],
- "modified": "2026-03-21 17:19:17.437673",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Status",
@@ -67,6 +67,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "quick_entry": 1,

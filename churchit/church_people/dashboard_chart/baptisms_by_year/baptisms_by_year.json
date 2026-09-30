@@ -1,19 +1,17 @@
 {
- "based_on": "date",
  "chart_name": "Baptisms by Year",
- "chart_type": "Count",
+ "chart_type": "Custom",
  "color": "#1f3c88",
  "creation": "2026-05-29 00:00:00.000000",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
- "document_type": "Life Event",
  "dynamic_filters_json": "[]",
  "filters_json": "[[\"Life Event\",\"event_type\",\"=\",\"Baptism\",false]]",
  "group_by_type": "Count",
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2026-05-30 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Baptisms by Year",
@@ -26,5 +24,7 @@
  "timespan": "Last 5 Years",
  "type": "Bar",
  "use_report_chart": 0,
- "y_axis": []
+ "y_axis": [],
+ "source": "Life Events",
+ "document_type": "Person"
 }

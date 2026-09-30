@@ -40,15 +40,15 @@
   "report_name": "Function Sign-Up Items",
   "report_type": "Script Report",
   "roles": [
-    {
-      "role": "System Manager"
-    },
-    {
-      "role": "Church Manager"
-    },
-    {
-      "role": "Church User"
-    }
-  ],
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
   "timeout": 0
 }

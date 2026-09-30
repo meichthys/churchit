@@ -98,7 +98,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-14 22:00:00.000000",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",
@@ -116,7 +116,17 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
  "sequence_id": 3.0,
  "shortcuts": [],
  "title": "Communications",

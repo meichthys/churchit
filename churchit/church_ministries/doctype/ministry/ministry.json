@@ -128,7 +128,7 @@
    "link_fieldname": "associated_ministry"
   }
  ],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
@@ -159,6 +159,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

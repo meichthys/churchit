@@ -42,7 +42,7 @@
    "link_fieldname": "book"
   }
  ],
- "modified": "2026-05-19 00:00:00.000000",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Book",
@@ -78,6 +78,14 @@
   {
    "read": 1,
    "role": "Church User",
+   "select": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
    "select": 1
   }
  ],
