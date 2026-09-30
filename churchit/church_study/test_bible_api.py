@@ -180,3 +180,12 @@ class TestAssignMemory(FrappeTestCase):
 		frappe.set_user(self.learner)
 		with self.assertRaises(PermissionError):
 			assign_memory([self.reference], users=[self.learner])
+
+	def test_non_manager_cannot_list_a_groups_members(self):
+		group = frappe.get_doc({"doctype": "Group", "group_name": "_Test Private Memory Group"})
+		group.append("members", {"person": self.unlinked})
+		group.insert(ignore_permissions=True)
+		frappe.set_user(self.learner)
+		# The unlinked-members error names everyone in the group.
+		with self.assertRaises(PermissionError):
+			assign_memory([self.reference], group=group.name)

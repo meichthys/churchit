@@ -194,6 +194,10 @@ def assign_memory(
 	Manager / System Manager."""
 	import json as _json
 
+	# Before the group is read: its members' names come back in the error below.
+	if not (set(frappe.get_roles()) & {"Church Manager", "System Manager", "Administrator"}):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+
 	def _coerce(val):
 		if isinstance(val, list):
 			return val
@@ -229,9 +233,6 @@ def assign_memory(
 				_("No members of this group have linked Portal Users: {0}").format(", ".join(missing_users))
 			)
 		frappe.throw(_("Select at least one reference and one user (or a group with linked Portal Users)."))
-
-	if not (set(frappe.get_roles()) & {"Church Manager", "System Manager", "Administrator"}):
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
 
 	assigner = frappe.session.user
 	created = 0
