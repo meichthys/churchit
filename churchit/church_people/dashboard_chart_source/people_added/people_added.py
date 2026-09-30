@@ -1,5 +1,4 @@
 import frappe
-from frappe.utils import add_days
 
 from churchit.church_scope import church_query_filters
 from churchit.dashboard import bucket_label, time_buckets
@@ -27,7 +26,8 @@ def get(
 	scope = church_query_filters({})
 	buckets = time_buckets(timespan or "Last Year", time_interval, from_date, to_date)
 	values = [
-		frappe.db.count("Person", {"creation": ["between", [start, add_days(end, 1)]], **scope})
+		# Frappe already reads a date range as reaching the end of its last day.
+		frappe.db.count("Person", {"creation": ["between", [start, end]], **scope})
 		for start, end in buckets
 	]
 	return {
