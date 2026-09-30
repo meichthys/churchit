@@ -9,7 +9,12 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 
-from churchit.church_foundations.doctype.church.church import get_church, get_church_address
+from churchit.church_foundations.doctype.church.church import (
+	address_line,
+	church_contact_details,
+	get_church,
+	get_church_address,
+)
 
 
 def get_footer_church():
@@ -22,19 +27,11 @@ def get_footer_church():
 		name=church.church_name,
 		address=address,
 		map_url=map_url(address),
-		phone=frappe.db.get_single_value("Contact Us Settings", "phone"),
+		phone=church_contact_details(church).phone,
 		established=_("Established {0}").format(getdate(church.founding_date).year)
 		if church.founding_date
 		else None,
 	)
-
-
-def address_line(address):
-	"""Join the street, city, state and postal code into one comma-separated line."""
-	if not address:
-		return None
-	region = " ".join(filter(None, [address.state, address.pincode]))
-	return ", ".join(filter(None, [address.address_line1, address.address_line2, address.city, region]))
 
 
 def map_url(address):

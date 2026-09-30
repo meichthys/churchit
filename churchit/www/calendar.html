@@ -101,7 +101,7 @@
 		if (event.allDay) return when + ' (All day)';
 		when += ' ' + event.start.toLocaleTimeString(undefined, TIME_FORMAT);
 		if (event.end) {
-			when += ' – ' + event.end.toLocaleTimeString(undefined, TIME_FORMAT);
+			when += ' to ' + event.end.toLocaleTimeString(undefined, TIME_FORMAT);
 		}
 		return when;
 	}
@@ -143,7 +143,7 @@
 			events: function (info, successCallback, failureCallback) {
 				frappe.call({
 					method: 'churchit.www.calendar.get_events',
-					args: { start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10) }
+					args: churchit.with_church({ start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10) })
 				}).then(function (r) {
 					successCallback(r.message || []);
 				}, failureCallback);

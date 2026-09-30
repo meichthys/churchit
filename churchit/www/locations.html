@@ -1,0 +1,50 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Locations") }}{% endblock %}
+{% block header %}<h1>{{ _("Locations") }}</h1>{% endblock %}
+
+{% block page_content %}
+{% if churches %}
+<div class="row justify-content-center">
+{% for church in churches %}
+	<div class="col-md-4 mb-4">
+		<div class="card h-100">
+			{% if church.image %}
+			<img class="card-img-top" src="{{ church.image }}" alt="{{ church.church_name }}">
+			{% endif %}
+			<div class="card-header">
+				<strong>{{ church.church_name }}</strong>
+				{% if church.founding_date %}
+				<div class="small text-muted">{{ _("Established {0}").format(church.founding_date.year) }}</div>
+				{% endif %}
+			</div>
+			<div class="card-body">
+				{% if church.mission_statement %}
+				<p class="card-text"><em>&ldquo;{{ church.mission_statement }}&rdquo;</em></p>
+				{% endif %}
+				{% if church.about %}
+				<div class="card-text">{{ church.about }}</div>
+				{% endif %}
+				<a class="btn btn-sm btn-primary mt-2" href="/home?church={{ church.name }}">{{ _("Visit this location") }}</a>
+			</div>
+			{% if church.address_fields %}
+			{% set addr = church.address_fields %}
+			<div class="card-footer">
+				<div class="small text-muted">
+					{{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %}<br>
+					{{ addr.city }}{% if addr.state %}, {{ addr.state }}{% endif %} {{ addr.pincode or "" }}
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="row justify-content-center">
+	<div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+		<p class="text-muted" style="font-size: 1.1em;">{{ _("Our location information is being updated. Please check back soon.") }}</p>
+	</div>
+</div>
+{% endif %}
+{% endblock %}

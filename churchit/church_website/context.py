@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 
 from churchit.church_foundations.doctype.church.church import get_church
+from churchit.church_scope import is_multi_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
 
@@ -21,16 +22,28 @@ THEME_MODE_SCRIPT = (
 def update_website_context(context):
 	_add_portal_menu_item(context)
 	_set_brand_html(context)
+	_add_locations_menu(context)
 	context["footer_church"] = get_footer_church()
 	_add_pwa_head_tags(context)
 	_add_theme_mode_script(context)
+
+
+def before_request():
+	"""Keep signed-in visitors off the shared page cache once branches exist.
+
+	Frappe caches a rendered page by path alone. A member's pages show their
+	own church, so serving them the cached guest copy (or caching theirs for
+	guests) would show the wrong church.
+	"""
+	if is_multi_church() and frappe.session.user != "Guest":
+		frappe.local.no_cache = 1
 
 
 def _add_portal_menu_item(context):
 	"""Put the member portal in the top-right user menu.
 
 	Frappe builds that menu with only My Account and Log out, and its own Portal
-	link on /me is shown to Website Users alone — so staff, who are System Users,
+	link on /me is shown to Website Users alone, so staff, who are System Users,
 	had no route into the portal at all.
 	"""
 	if frappe.session.user == "Guest":
@@ -57,6 +70,25 @@ def _set_brand_html(context):
 	church = get_church()
 	if church:
 		context["brand_html"] = f"<span>{frappe.utils.escape_html(church.church_name)}</span>"
+
+
+def _add_locations_menu(context):
+	"""A Locations dropdown of the published churches, once there is more than one."""
+	if not is_multi_church():
+		return
+	churches = frappe.get_all(
+		"Church", filters={"publish": 1}, fields=["name", "church_name"], order_by="lft asc"
+	)
+	if len(churches) < 2:
+		return
+	path = frappe.local.request.path if getattr(frappe.local, "request", None) else "/"
+	items = [
+		frappe._dict(label=church.church_name, url=f"{path}?church={church.name}") for church in churches
+	]
+	items.append(frappe._dict(label=_("All locations"), url="/locations"))
+	context.setdefault("top_bar_items", []).append(
+		frappe._dict(label=_("Locations"), right=1, child_items=items)
+	)
 
 
 def _add_pwa_head_tags(context):

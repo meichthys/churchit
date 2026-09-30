@@ -13,6 +13,7 @@ website_context = {
 }
 
 update_website_context = "churchit.church_website.context.update_website_context"
+before_request = ["churchit.church_website.context.before_request"]
 
 fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
@@ -93,6 +94,7 @@ app_include_js = [
 # public/scss/website.scss, which frappe compiles into each Website Theme.
 web_include_css = ["/assets/churchit/css/website.css"]
 web_include_js = [
+	"/assets/churchit/js/site_church.js",
 	"/assets/churchit/js/portal_groups.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",

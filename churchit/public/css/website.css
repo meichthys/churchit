@@ -1,5 +1,5 @@
 /* ==========================================================================
-   churchit — page layout shared by every website theme
+   churchit: page layout shared by every website theme
    Structure for the pages this app renders (home landing page, portal,
    sermon series, missions map) plus two fixes for frappe's web template.
    Colours come only from frappe's tokens (--primary-color, --heading-color,
@@ -80,13 +80,9 @@
   justify-content: center;
   gap: 0.25rem 1.5rem;
   margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
 }
 .web-footer .footer-links:first-child {
   margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
 }
 .web-footer .footer-top a,
 .web-footer .footer-link {
@@ -381,7 +377,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   text-decoration: underline;
 }
 
-/* stats strip — flex, not grid: a theme's card ::before accent bar would
+/* stats strip, flex not grid: a theme's card ::before accent bar would
    occupy every auto-fit track and stop the empty ones collapsing */
 #home .home-stats {
   display: flex;
@@ -416,6 +412,12 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 
 #home .home-section {
   padding: clamp(2.2rem, 6vw, 4rem) 0 0;
+}
+#home .home-about-text {
+  max-width: 68ch;
+  margin: 1rem auto 0;
+  text-align: left;
+  font-size: 1.05rem;
 }
 #home .home-split {
   display: grid;

@@ -5,6 +5,8 @@ import frappe
 from frappe import _
 from frappe.utils import flt, get_fullname, get_url
 
+from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_scope import church_filters
 from churchit.contacts import get_primary_email
 
 no_cache = 1
@@ -12,11 +14,12 @@ no_cache = 1
 
 def get_context(context):
 	settings = frappe.get_cached_doc("Giving Settings")
+	church = selected_church_name()
 	context.no_cache = 1
 	context.title = _("Give")
 	context.enabled = bool(settings.enabled)
 	context.currency = settings.currency or "USD"
-	context.thank_you_message = settings.thank_you_message
+	context.thank_you_message = settings.get_thank_you_message(church)
 	context.success = frappe.form_dict.get("success")
 
 	# When anonymous giving is off, the giver must log in so the gift links to a Person.
@@ -27,14 +30,18 @@ def get_context(context):
 	# Funds the giver can choose from (name = link value, fund = display label).
 	# Only funds explicitly opted in via "Allow giving to this fund" are offered.
 	context.funds = frappe.get_all(
-		"Fund", filters={"allow_giving": 1}, fields=["name", "fund"], order_by="fund"
+		"Fund",
+		filters=church_filters(church, allow_giving=1),
+		fields=["name", "fund"],
+		order_by="fund",
 	)
-	context.default_fund = settings.default_fund
+	fund_names = {fund.name for fund in context.funds}
+	context.default_fund = settings.default_fund if settings.default_fund in fund_names else None
 
 	# Gateways the donor may choose from. With one gateway the page hides the
 	# picker and uses it silently; with several the donor selects one.
-	context.gateways = settings.get_offered_gateways()
-	context.default_gateway = settings.get_default_gateway()
+	context.gateways = settings.get_offered_gateways(church)
+	context.default_gateway = settings.get_default_gateway(church)
 
 	# Prefill the giver's details from their linked Person when logged in.
 	context.is_logged_in = frappe.session.user != "Guest"
@@ -54,7 +61,14 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def start_donation(amount, fund, payment_gateway=None, donor_name=None, email=None, notes=None):
+def start_donation(
+	amount: str | float,
+	fund: str,
+	payment_gateway: str | None = None,
+	donor_name: str | None = None,
+	email: str | None = None,
+	notes: str | None = None,
+):
 	"""Create a pending Online Donation and return the payment-gateway URL the
 	browser should redirect to. The gateway calls back into
 	``OnlineDonation.on_payment_authorized`` once the donor pays."""
@@ -66,19 +80,23 @@ def start_donation(amount, fund, payment_gateway=None, donor_name=None, email=No
 	if amount <= 0:
 		frappe.throw(_("Please enter an amount greater than zero."))
 
-	if not fund or not frappe.db.get_value("Fund", fund, "allow_giving"):
+	# The fund settles which church the gift belongs to, and Online Donation fetches
+	# its church from it, so an offered gateway is one that church offers.
+	fund_row = frappe.db.get_value("Fund", fund, ["allow_giving", "church"], as_dict=True) if fund else None
+	if not fund_row or not fund_row.allow_giving:
 		frappe.throw(_("Please choose a valid fund."))
+	church = fund_row.church or selected_church_name()
 
 	# Resolve the gateway from the donor's choice, but only honour values that
-	# are actually offered — never trust a client-supplied gateway blindly.
-	offered = {g["name"] for g in settings.get_offered_gateways()}
+	# are actually offered. Never trust a client-supplied gateway blindly.
+	offered = {g["name"] for g in settings.get_offered_gateways(church)}
 	if not offered:
 		frappe.throw(_("No payment gateway is configured. Please contact the church office."))
 	if payment_gateway and payment_gateway not in offered:
 		frappe.throw(_("Please choose a valid payment method."))
-	payment_gateway = payment_gateway or settings.get_default_gateway()
+	payment_gateway = payment_gateway or settings.get_default_gateway(church)
 
-	# Resolve the giver's Person from the session — never trust a client-supplied person.
+	# Resolve the giver's Person from the session; never trust a client-supplied person.
 	person = None
 	if frappe.session.user != "Guest":
 		person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")

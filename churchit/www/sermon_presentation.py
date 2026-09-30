@@ -3,6 +3,7 @@
 import json
 
 import frappe
+from frappe import _
 
 # Disable caching for sermon presentation page to ensure users always see up-to-date content
 no_cache = 1
@@ -72,11 +73,11 @@ def _build_content_from_selected_fields(linked_doc, meta, field_configs):
 def get_context(context):
 	name = frappe.form_dict.get("name")
 	if not name:
-		frappe.throw("Please specify a sermon name", frappe.exceptions.ValidationError)
+		frappe.throw(_("Please specify a sermon name"), frappe.exceptions.ValidationError)
 
 	sermon = frappe.get_doc("Sermon", name)
 	if not sermon.publish and not frappe.has_permission("Sermon", doc=sermon):
-		frappe.throw("This sermon is not available.", frappe.PermissionError)
+		frappe.throw(_("This sermon is not available."), frappe.PermissionError)
 
 	slides = []
 	for row in sermon.get("slides", []):

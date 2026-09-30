@@ -3,6 +3,8 @@
 
 import frappe
 
+from churchit.church_foundations.doctype.church.church import get_default_bible_translation
+
 no_cache = 1
 
 
@@ -51,11 +53,4 @@ def get_context(context):
 		order_by="name asc",
 		ignore_permissions=True,
 	)
-	context.default_translation = (
-		frappe.db.get_value(
-			"Church",
-			{"default_bible_translation": ("is", "set")},
-			"default_bible_translation",
-		)
-		or ""
-	)
+	context.default_translation = get_default_bible_translation() or ""
