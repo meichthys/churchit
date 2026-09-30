@@ -105,6 +105,9 @@ def open_prayer_requests(church=None):
 def get_defaults(function: str | None = None):
 	"""A new bulletin's sections, missionary and prayer requests, for the form to fill in before the first save."""
 	frappe.has_permission("Bulletin", "write", throw=True)
+	if function:
+		# The defaults are read from the function's church, so the caller must be able to see it.
+		frappe.has_permission("Function", doc=function, throw=True)
 	bulletin = frappe.new_doc("Bulletin")
 	bulletin.function = function
 	bulletin.apply_defaults()

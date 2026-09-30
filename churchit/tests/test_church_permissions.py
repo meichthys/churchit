@@ -444,6 +444,12 @@ class TestChurchPermissions(FrappeTestCase):
 		self.assertIn(self.request_a.title, titles)
 		self.assertNotIn(self.request_b.title, titles)
 
+	def test_bulletin_defaults_refuse_another_churchs_function(self):
+		"""Naming a function reads its church's prayer requests and missionaries."""
+		frappe.set_user(self.manager_b)
+		with self.assertRaises(frappe.PermissionError):
+			bulletin_defaults(self.function_a.name)
+
 	def test_the_shared_helper_proves_a_doctype_is_scoped(self):
 		"""The one-liner new features should use; see AGENTS.md."""
 		assert_scoped(self, "Prayer Request", self.manager_a, self.request_a.name, self.request_b.name)
