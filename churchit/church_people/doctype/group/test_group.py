@@ -3,7 +3,7 @@
 
 import frappe
 
-from churchit.church_people.doctype.group.group import create_email_group
+from churchit.church_people.doctype.group.group import add_people, create_email_group
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person
 
 
@@ -60,3 +60,22 @@ class TestGroup(RollbackEachTest):
 		result = create_email_group(group.name)
 		self.assertFalse(result["created"])
 		self.assertEqual(result["total_members"], 1)
+
+	def test_add_people_adds_new_members_and_skips_existing_ones(self):
+		group = self._make_group("_Test Add People", members=[self.member.name])
+
+		result = add_people(group.name, [self.member.name, self.outsider.name, self.outsider.name])
+
+		self.assertEqual(result, {"added": 1, "already_members": 1})
+		group.reload()
+		self.assertEqual(
+			sorted(row.person for row in group.members), sorted([self.member.name, self.outsider.name])
+		)
+
+	def test_add_people_needs_the_right_to_edit_the_group(self):
+		group = self._make_group("_Test Locked Group")
+		frappe.set_user(
+			ensure_user("_test_group_staff@example.com", "_Test Group Staff", roles=("Church Staff",))
+		)
+		with self.assertRaises(frappe.PermissionError):
+			add_people(group.name, [self.outsider.name])

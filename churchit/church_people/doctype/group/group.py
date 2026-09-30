@@ -71,3 +71,20 @@ def create_email_group(group: str):
 		"missing": missing,
 		"total_members": frappe.db.count("Email Group Member", {"email_group": email_group}),
 	}
+
+
+@frappe.whitelist()
+def add_people(group: str, people: str | list[str], group_role: str | None = None):
+	"""Add *people* to a Group, skipping anyone already in it."""
+	doc = frappe.get_doc("Group", group)
+	doc.check_permission("write")
+	people = list(dict.fromkeys(frappe.parse_json(people)))
+	existing = {member.person for member in doc.members}
+	added = [person for person in people if person not in existing]
+	for person in added:
+		# `person` is a plain Link, which user permissions never measure against its church.
+		frappe.has_permission("Person", doc=person, throw=True)
+		doc.append("members", {"person": person, "group_role": group_role})
+	if added:
+		doc.save()
+	return {"added": len(added), "already_members": len(people) - len(added)}

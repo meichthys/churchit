@@ -171,21 +171,26 @@ def get_mailing_address(parenttype, parent):
 
 
 def get_primary_emails(parenttype, parents):
-	"""Map ``{parent: primary email}`` for many records in one query.
+	"""Map ``{parent: primary email}`` for many records in one query."""
+	return get_primary_values(EMAIL_DOCTYPE, "email_address", parenttype, parents)
 
-	Records with no email on file are absent from the map. Rows are ordered so
+
+def get_primary_values(child_doctype, value_field, parenttype, parents):
+	"""Map ``{parent: primary value}`` of one contact table for many records in one query.
+
+	Records with nothing on file are absent from the map. Rows are ordered so
 	the primary one is written last and therefore wins.
 	"""
 	parents = [p for p in (parents or []) if p]
 	if not parents:
 		return {}
 	rows = frappe.get_all(
-		EMAIL_DOCTYPE,
+		child_doctype,
 		filters={"parenttype": parenttype, "parent": ("in", parents)},
-		fields=["parent", "email_address"],
+		fields=["parent", value_field],
 		order_by="is_primary asc, idx desc",
 	)
-	return {r.parent: r.email_address for r in rows if r.email_address}
+	return {row.parent: row[value_field] for row in rows if row[value_field]}
 
 
 # ---------------------------------------------------------------------------
