@@ -1,5 +1,7 @@
 import frappe
+from frappe import _
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -12,13 +14,13 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "ministry_name", "fieldtype": "Data", "label": "Ministry", "width": 200},
-		{"fieldname": "status", "fieldtype": "Data", "label": "Status", "width": 100},
-		{"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date", "width": 120},
-		{"fieldname": "end_date", "fieldtype": "Date", "label": "End Date", "width": 120},
-		{"fieldname": "group", "fieldtype": "Link", "label": "Group", "options": "Group", "width": 150},
-		{"fieldname": "publish", "fieldtype": "Check", "label": "Published", "width": 100},
-		{"fieldname": "description", "fieldtype": "Data", "label": "Description", "width": 300},
+		{"fieldname": "ministry_name", "fieldtype": "Data", "label": _("Ministry"), "width": 200},
+		{"fieldname": "status", "fieldtype": "Data", "label": _("Status"), "width": 100},
+		{"fieldname": "start_date", "fieldtype": "Date", "label": _("Start Date"), "width": 120},
+		{"fieldname": "end_date", "fieldtype": "Date", "label": _("End Date"), "width": 120},
+		{"fieldname": "group", "fieldtype": "Link", "label": _("Group"), "options": "Group", "width": 150},
+		{"fieldname": "publish", "fieldtype": "Check", "label": _("Published"), "width": 100},
+		{"fieldname": "description", "fieldtype": "Data", "label": _("Description"), "width": 300},
 	]
 
 
@@ -53,4 +55,4 @@ def get_data(filters=None):
 	elif filters.get("publish") == "No":
 		query = query.where(Ministry.publish == 0)
 
-	return query.run(as_dict=True)
+	return scoped(query, Ministry, filters).run(as_dict=True)

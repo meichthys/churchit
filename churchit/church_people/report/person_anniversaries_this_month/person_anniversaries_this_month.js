@@ -1,3 +1,3 @@
 frappe.query_reports["Person Anniversaries This Month"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

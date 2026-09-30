@@ -1,3 +1,3 @@
 frappe.query_reports["Letters To Be Shared"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

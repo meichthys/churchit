@@ -10,7 +10,7 @@ from churchit.utils import set_report_link_titles
 
 def execute(filters=None):
 	filters = filters or {}
-	budget_name = filters.get("budget") or get_current_budget()
+	budget_name = filters.get("budget") or get_current_budget(filters)
 	if not budget_name:
 		return get_columns(None), [], _("No budget found. Create a budget to track spending against it.")
 

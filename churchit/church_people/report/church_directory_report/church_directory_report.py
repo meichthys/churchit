@@ -3,10 +3,12 @@
 import calendar
 
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
 from pypika import Order
 
+from churchit.church_scope import church_filter, root_church, scoped
 from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
 from churchit.query import Day, Month
 from churchit.utils import set_report_link_titles
@@ -26,28 +28,28 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "family", "fieldtype": "Link", "label": "Family", "options": "Family", "width": 200},
+		{"fieldname": "family", "fieldtype": "Link", "label": _("Family"), "options": "Family", "width": 200},
 		{
 			"fieldname": "head_of_household",
 			"fieldtype": "Link",
-			"label": "Head of Household",
+			"label": _("Head of Household"),
 			"options": "Person",
 			"width": 180,
 		},
-		{"fieldname": "city", "fieldtype": "Data", "label": "City", "width": 140},
-		{"fieldname": "state", "fieldtype": "Data", "label": "State", "width": 100},
-		{"fieldname": "member_count", "fieldtype": "Int", "label": "Members", "width": 80},
+		{"fieldname": "city", "fieldtype": "Data", "label": _("City"), "width": 140},
+		{"fieldname": "state", "fieldtype": "Data", "label": _("State"), "width": 100},
+		{"fieldname": "member_count", "fieldtype": "Int", "label": _("Members"), "width": 80},
 	]
 
 
 def get_individual_columns():
 	return [
-		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
-		{"fieldname": "family", "fieldtype": "Link", "label": "Family", "options": "Family", "width": 160},
-		{"fieldname": "primary_phone", "fieldtype": "Data", "label": "Phone", "width": 130},
-		{"fieldname": "email", "fieldtype": "Data", "label": "Email", "width": 180},
-		{"fieldname": "city", "fieldtype": "Data", "label": "City", "width": 120},
-		{"fieldname": "state", "fieldtype": "Data", "label": "State", "width": 100},
+		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 200},
+		{"fieldname": "family", "fieldtype": "Link", "label": _("Family"), "options": "Family", "width": 160},
+		{"fieldname": "primary_phone", "fieldtype": "Data", "label": _("Phone"), "width": 130},
+		{"fieldname": "email", "fieldtype": "Data", "label": _("Email"), "width": 180},
+		{"fieldname": "city", "fieldtype": "Data", "label": _("City"), "width": 120},
+		{"fieldname": "state", "fieldtype": "Data", "label": _("State"), "width": 100},
 	]
 
 
@@ -78,7 +80,7 @@ def get_individual_data(filters):
 	if members_only:
 		query = query.where(Person.membership_status == "Active")
 
-	return query.run(as_dict=True)
+	return scoped(query, Person, filters).run(as_dict=True)
 
 
 def get_data(filters):
@@ -88,7 +90,7 @@ def get_data(filters):
 	Address = frappe.qb.DocType("Address")
 	Person = frappe.qb.DocType("Person")
 
-	families = (
+	families_query = (
 		frappe.qb.from_(Family)
 		.left_join(Address)
 		.on(Address.name == primary_address_query(Family, "Family"))
@@ -99,8 +101,8 @@ def get_data(filters):
 			Coalesce(Address.state, "").as_("state"),
 		)
 		.orderby(Family.family_name)
-		.run(as_dict=True)
 	)
+	families = scoped_families(families_query, Family, Person, filters).run(as_dict=True)
 
 	members_query = (
 		frappe.qb.from_(Person)
@@ -110,7 +112,7 @@ def get_data(filters):
 	if members_only:
 		members_query = members_query.where(Person.membership_status == "Active")
 
-	all_members = members_query.run(as_dict=True)
+	all_members = scoped(members_query, Person, filters).run(as_dict=True)
 
 	members_by_family = {}
 	for m in all_members:
@@ -137,17 +139,19 @@ def get_data(filters):
 
 @frappe.whitelist()
 def get_directory_html(
-	members_only=0,
-	group_by_family=1,
-	show_photos=0,
-	show_roles=0,
-	show_membership=1,
-	show_hoh=1,
-	show_birthdays=0,
-	show_anniversaries=0,
-	show_missionaries=0,
+	members_only: bool = 0,
+	group_by_family: bool = 1,
+	show_photos: bool = 0,
+	show_roles: bool = 0,
+	show_membership: bool = 1,
+	show_hoh: bool = 1,
+	show_birthdays: bool = 0,
+	show_anniversaries: bool = 0,
+	show_missionaries: bool = 0,
+	church: str | None = None,
 ):
 	"""Generate the full HTML for the church directory, ready to print."""
+	filters = {"church": church}
 	members_only = frappe.utils.cint(members_only)
 	group_by_family = frappe.utils.cint(group_by_family)
 	show_photos = frappe.utils.cint(show_photos)
@@ -158,7 +162,7 @@ def get_directory_html(
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
 	show_missionaries = frappe.utils.cint(show_missionaries)
 
-	church_name = frappe.db.get_value("Church", {}, "name")
+	church_name = header_church(filters)
 	church_doc = frappe.get_doc("Church", church_name) if church_name else None
 	church_address = None
 	if church_doc and church_doc.address:
@@ -168,7 +172,7 @@ def get_directory_html(
 	Address = frappe.qb.DocType("Address")
 	Person = frappe.qb.DocType("Person")
 
-	families = (
+	families_query = (
 		frappe.qb.from_(Family)
 		.left_join(Address)
 		.on(Address.name == primary_address_query(Family, "Family"))
@@ -183,8 +187,8 @@ def get_directory_html(
 			Coalesce(Address.pincode, "").as_("pincode"),
 		)
 		.orderby(Family.family_name)
-		.run(as_dict=True)
 	)
+	families = scoped_families(families_query, Family, Person, filters).run(as_dict=True)
 
 	members_query = (
 		frappe.qb.from_(Person)
@@ -210,7 +214,7 @@ def get_directory_html(
 	if members_only:
 		members_query = members_query.where(Person.membership_status == "Active")
 
-	all_members = members_query.run(as_dict=True)
+	all_members = scoped(members_query, Person, filters).run(as_dict=True)
 
 	# Fetch active positions if requested
 	roles_by_person = {}
@@ -306,7 +310,7 @@ def get_directory_html(
 	if members_only:
 		individuals_query = individuals_query.where(Person.membership_status == "Active")
 
-	individuals_raw = individuals_query.run(as_dict=True)
+	individuals_raw = scoped(individuals_query, Person, filters).run(as_dict=True)
 
 	for p in individuals_raw:
 		p["positions"] = roles_by_person.get(p.person_name, [])
@@ -420,7 +424,7 @@ def get_directory_html(
 		if members_only:
 			birthdays_query = birthdays_query.where(Person.membership_status == "Active")
 
-		raw_birthdays = birthdays_query.run(as_dict=True)
+		raw_birthdays = scoped(birthdays_query, Person, filters).run(as_dict=True)
 		for row in raw_birthdays:
 			row["month_name"] = calendar.month_name[int(row.birth_month)]
 			row["month_day"] = f"{calendar.month_name[int(row.birth_month)]} {int(row.birth_day)}"
@@ -456,7 +460,7 @@ def get_directory_html(
 		if members_only:
 			anniversaries_query = anniversaries_query.where(Person.membership_status == "Active")
 
-		raw_anniversaries = anniversaries_query.run(as_dict=True)
+		raw_anniversaries = scoped(anniversaries_query, Person, filters).run(as_dict=True)
 		seen_persons = set()
 		for row in raw_anniversaries:
 			if row.person_name in seen_persons:
@@ -478,7 +482,7 @@ def get_directory_html(
 	missionaries = []
 	if show_missionaries:
 		Missionary = frappe.qb.DocType("Missionary")
-		missionaries = (
+		missionaries_query = (
 			frappe.qb.from_(Missionary)
 			.select(
 				Missionary.title,
@@ -491,8 +495,8 @@ def get_directory_html(
 				Missionary.mission_statement,
 			)
 			.orderby(Missionary.title)
-			.run(as_dict=True)
 		)
+		missionaries = scoped(missionaries_query, Missionary, filters).run(as_dict=True)
 		# Resolve agency hashes to human-readable agency names
 		agency_names = list({m.agency for m in missionaries if m.agency})
 		if agency_names:
@@ -531,3 +535,22 @@ def get_directory_html(
 	return frappe.get_template(
 		"churchit/church_people/report/church_directory_report/church_directory.html"
 	).render(context)
+
+
+def header_church(filters):
+	"""The church named in the directory header: the one selected or allowed, else the root."""
+	churches = church_filter(filters)
+	return churches[0] if churches and len(churches) == 1 else root_church()
+
+
+def scoped_families(query, Family, Person, filters):
+	"""Families with at least one member the user may see.
+
+	A family belongs to its head of household's church, so a member who moved
+	to a branch would otherwise vanish from that branch's directory.
+	"""
+	churches = church_filter(filters)
+	if churches is None:
+		return query
+	members = frappe.qb.from_(Person).select(Person.family).where(Person.church.isin(churches))
+	return query.where(Family.name.isin(members))

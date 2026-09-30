@@ -1,3 +1,3 @@
 frappe.query_reports["Person Letters"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

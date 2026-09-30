@@ -1,3 +1,3 @@
 frappe.query_reports["Missionary Letters"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

@@ -1,3 +1,12 @@
+frappe.query_reports["Function Sign-Up Items"] = {
+	filters: [
+		...church.report_filters(),
+		{ fieldname: "function", label: __("Function"), fieldtype: "Link", options: "Function" },
+		{ fieldname: "item", label: __("Item"), fieldtype: "Link", options: "Sign-Up Item" },
+		{ fieldname: "person", label: __("Person"), fieldtype: "Link", options: "Person" },
+	],
+};
+
 // Auto-apply function filter when report loads
 frappe.after_ajax(() => {
 	setTimeout(() => {

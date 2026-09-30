@@ -1,5 +1,6 @@
 frappe.query_reports["Ministries"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "status",
 			label: __("Status"),

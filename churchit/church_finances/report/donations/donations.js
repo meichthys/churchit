@@ -1,3 +1,3 @@
 frappe.query_reports["Donations"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

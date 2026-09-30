@@ -14,7 +14,7 @@ from churchit.church_finances.dashboard_chart_source.fund_goal_progress import f
 from churchit.church_finances.dashboard_chart_source.giving_by_fund import giving_by_fund
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
-from churchit.dashboard import count_weekly_attendance
+from churchit.dashboard import bucket_label, count_weekly_attendance, time_buckets
 from churchit.tests.helpers import ensure, make_function, make_person
 
 
@@ -99,7 +99,7 @@ class TestFinanceChartSources(FrappeTestCase):
 		self.assertEqual(totals.get("_Test Giving Chart Fund"), 50.0)
 
 	def test_finance_summary_buckets_and_labels(self):
-		buckets = finance_summary._buckets("Select Date Range", "Monthly", "2030-01-15", "2030-03-10")
+		buckets = time_buckets("Select Date Range", "Monthly", "2030-01-15", "2030-03-10")
 		self.assertEqual(
 			buckets,
 			[
@@ -109,9 +109,9 @@ class TestFinanceChartSources(FrappeTestCase):
 			],
 		)
 
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Yearly"), "2030")
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Monthly"), "Apr 2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Yearly"), "2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Monthly"), "Apr 2030")
 
 	def test_finance_summary_returns_aligned_series(self):
 		chart = finance_summary.get(timespan="Last Quarter", time_interval="Monthly")

@@ -1,5 +1,6 @@
 frappe.query_reports["Fund Transactions By Date"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "from_date",
 			label: __("From Date"),

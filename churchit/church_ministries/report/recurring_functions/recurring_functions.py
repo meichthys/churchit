@@ -1,5 +1,7 @@
 import frappe
+from frappe import _
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -12,19 +14,31 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "name", "fieldtype": "Link", "label": "Function", "options": "Function", "width": 200},
-		{"fieldname": "function_name", "fieldtype": "Data", "label": "Name", "width": 200},
-		{"fieldname": "type", "fieldtype": "Link", "label": "Type", "options": "Function Type", "width": 180},
+		{
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"label": _("Function"),
+			"options": "Function",
+			"width": 200,
+		},
+		{"fieldname": "function_name", "fieldtype": "Data", "label": _("Name"), "width": 200},
+		{
+			"fieldname": "type",
+			"fieldtype": "Link",
+			"label": _("Type"),
+			"options": "Function Type",
+			"width": 180,
+		},
 		{
 			"fieldname": "associated_ministry",
 			"fieldtype": "Link",
-			"label": "Ministry",
+			"label": _("Ministry"),
 			"options": "Ministry",
 			"width": 180,
 		},
-		{"fieldname": "repeat_frequency", "fieldtype": "Data", "label": "Frequency", "width": 110},
-		{"fieldname": "repeat_schedule", "fieldtype": "Data", "label": "Repeats On", "width": 140},
-		{"fieldname": "repeat_until", "fieldtype": "Date", "label": "Repeat Until", "width": 120},
+		{"fieldname": "repeat_frequency", "fieldtype": "Data", "label": _("Frequency"), "width": 110},
+		{"fieldname": "repeat_schedule", "fieldtype": "Data", "label": _("Repeats On"), "width": 140},
+		{"fieldname": "repeat_until", "fieldtype": "Date", "label": _("Repeat Until"), "width": 120},
 	]
 
 
@@ -53,7 +67,7 @@ def get_data(filters):
 	if filters.get("repeat_frequency"):
 		query = query.where(Function.repeat_frequency == filters["repeat_frequency"])
 
-	rows = query.run(as_dict=True)
+	rows = scoped(query, Function, filters).run(as_dict=True)
 
 	for row in rows:
 		if row["repeat_frequency"] == "Weekly":

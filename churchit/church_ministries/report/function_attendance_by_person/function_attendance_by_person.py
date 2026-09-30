@@ -1,6 +1,8 @@
 import frappe
+from frappe import _
 from pypika import Order
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -13,26 +15,26 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 200},
+		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 200},
 		{
 			"fieldname": "function",
 			"fieldtype": "Link",
-			"label": "Function",
+			"label": _("Function"),
 			"options": "Function",
 			"width": 200,
 		},
 		{
 			"fieldname": "type",
 			"fieldtype": "Link",
-			"label": "Function Type",
+			"label": _("Function Type"),
 			"options": "Function Type",
 			"width": 150,
 		},
-		{"fieldname": "start_date", "fieldtype": "Date", "label": "Date", "width": 120},
+		{"fieldname": "start_date", "fieldtype": "Date", "label": _("Date"), "width": 120},
 		{
 			"fieldname": "attendance_type",
 			"fieldtype": "Link",
-			"label": "Attendance Type",
+			"label": _("Attendance Type"),
 			"options": "Function Attendance Type",
 			"width": 150,
 		},
@@ -77,4 +79,4 @@ def get_data(filters=None):
 	if filters.get("end"):
 		query = query.where(Function.start_date <= filters["end"])
 
-	return query.run(as_dict=True)
+	return scoped(query, Function, filters).run(as_dict=True)

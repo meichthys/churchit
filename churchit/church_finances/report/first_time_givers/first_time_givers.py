@@ -1,8 +1,10 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Min
 from frappe.utils import cint
 from pypika import Field, Interval, Order
 
+from churchit.church_scope import scoped
 from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
 
@@ -16,12 +18,12 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 240},
-		{"fieldname": "first_gift_date", "fieldtype": "Date", "label": "First Gift", "width": 120},
+		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 240},
+		{"fieldname": "first_gift_date", "fieldtype": "Date", "label": _("First Gift"), "width": 120},
 		{
 			"fieldname": "first_gift_amount",
 			"fieldtype": "Currency",
-			"label": "First Gift Amount",
+			"label": _("First Gift Amount"),
 			"width": 160,
 		},
 	]
@@ -45,7 +47,7 @@ def get_data(filters=None):
 		.limit(1)
 	)
 
-	return (
+	query = (
 		frappe.qb.from_(Donation)
 		.join(Collection)
 		.on(Collection.name == Donation.parent)
@@ -58,5 +60,5 @@ def get_data(filters=None):
 		.groupby(Donation.person)
 		.having(Field("first_gift_date") >= CurDate() - Interval(days=window_days))
 		.orderby(Field("first_gift_date"), order=Order.desc)
-		.run(as_dict=True)
 	)
+	return scoped(query, Collection, filters).run(as_dict=True)

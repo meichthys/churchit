@@ -1,8 +1,10 @@
 import frappe
+from frappe import _
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import GroupConcat, Max
 from frappe.utils import nowdate
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -15,18 +17,18 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "full_name", "fieldtype": "Data", "label": "Name", "width": 200},
-		{"fieldname": "family_name", "fieldtype": "Data", "label": "Family", "width": 150},
-		{"fieldname": "roles", "fieldtype": "Data", "label": "Roles", "width": 250},
+		{"fieldname": "full_name", "fieldtype": "Data", "label": _("Name"), "width": 200},
+		{"fieldname": "family_name", "fieldtype": "Data", "label": _("Family"), "width": 150},
+		{"fieldname": "roles", "fieldtype": "Data", "label": _("Roles"), "width": 250},
 		{
 			"fieldname": "membership_status",
 			"fieldtype": "Link",
-			"label": "Member Status",
+			"label": _("Member Status"),
 			"options": "Member Status",
 			"width": 120,
 		},
-		{"fieldname": "birthday", "fieldtype": "Date", "label": "Birthday", "width": 120},
-		{"fieldname": "is_baptized", "fieldtype": "Check", "label": "Baptized", "width": 80},
+		{"fieldname": "birthday", "fieldtype": "Date", "label": _("Birthday"), "width": 120},
+		{"fieldname": "is_baptized", "fieldtype": "Check", "label": _("Baptized"), "width": 80},
 	]
 
 
@@ -101,4 +103,4 @@ def get_data(filters=None):
 		)
 		query = query.where(Person.name.isin(role_subquery))
 
-	return query.run(as_dict=True)
+	return scoped(query, Person, filters).run(as_dict=True)

@@ -2,14 +2,23 @@ import frappe
 from frappe.query_builder.functions import Coalesce, Sum
 from pypika import Order
 
+from churchit.church_scope import scoped
+
 
 @frappe.whitelist()
-def get(chart_name=None, chart=None, no_cache=None, filters=None, **kwargs):
+def get(
+	chart_name: str | None = None,
+	chart: str | dict | None = None,
+	no_cache: bool | int | None = None,
+	filters: str | list | dict | None = None,
+	**kwargs,
+):
+	frappe.has_permission("Collection", "report", throw=True)
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")
 	Fund = frappe.qb.DocType("Fund")
 
-	rows = (
+	query = (
 		frappe.qb.from_(Donation)
 		.join(Collection)
 		.on(Collection.name == Donation.parent)
@@ -23,8 +32,8 @@ def get(chart_name=None, chart=None, no_cache=None, filters=None, **kwargs):
 		.groupby(Donation.fund)
 		.orderby(Sum(Donation.amount), order=Order.desc)
 		.limit(10)
-		.run(as_dict=True)
 	)
+	rows = scoped(query, Collection, {}).run(as_dict=True)
 	return {
 		"labels": [r["label"] for r in rows],
 		"datasets": [{"name": "Giving by Fund", "values": [float(r["total"] or 0) for r in rows]}],
