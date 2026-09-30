@@ -1,11 +1,12 @@
 """
-after_install patch — runs once when the Church app is installed on a new site.
+after_install patch, run once when the Church app is installed on a new site.
 
 Creates all default reference data, configuration, and website content so the
 app is usable out of the box.  Existing sites are not affected (this hook only
 fires on ``bench install-app churchit``).
 """
 
+import json
 from pathlib import Path
 
 import frappe
@@ -16,9 +17,10 @@ WEBSITE_THEME = "Churchit"
 
 
 def execute():
-	# Default church — must exist before lookup types that reference it.
+	# Default church, which must exist before lookup types that reference it.
 	_create_default_church()
 	create_default_address_template()
+	create_unsynced_records()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -76,7 +78,7 @@ def execute():
 	_clean_gender_options()
 	_hide_default_workspaces()
 
-	# Newsletter recipients — Email Group seeded from Person emails
+	# Newsletter recipients: Email Group seeded from Person emails
 	_create_member_email_group()
 
 
@@ -84,7 +86,7 @@ def after_sync():
 	"""Runs after frappe's ``after_app_install`` hook, which auto-generates the
 	"Tools" desktop icon from the Tools workspace. That icon does not exist yet
 	when ``execute()`` (``after_install``) runs, so reordering has to happen
-	here instead — otherwise Tools keeps its default idx of 0 and lands first.
+	here instead. Otherwise Tools keeps its default idx of 0 and lands first.
 	"""
 	_reorder_default_desktop_icons()
 
@@ -127,6 +129,34 @@ ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
 """
 
 
+# Doctypes Frappe's standard-record sync skips: frappe.model.sync.IMPORTABLE_DOCTYPES
+# lists neither, so JSON shipped beside their module never reaches a site.
+UNSYNCED_RECORD_FOLDERS = {
+	"Letter Head": "church_customizations/letter_head",
+	"Email Template": "church_communications/email_template",
+}
+
+
+def create_unsynced_records():
+	"""Insert the default letterhead and the starter email templates.
+
+	Both ship as JSON beside their module, which for these two doctypes nothing
+	imports, so without this the app's letterhead and email templates reach no
+	site at all. They are the church's to edit afterwards, so a record that is
+	already there is left alone.
+	"""
+	app_path = Path(frappe.get_app_path("churchit"))
+	for doctype, folder in UNSYNCED_RECORD_FOLDERS.items():
+		for source in sorted((app_path / folder).glob("*/*.json")):
+			values = json.loads(source.read_text())
+			if frappe.db.exists(doctype, values["name"]):
+				continue
+			# A church that has already chosen its own default keeps it.
+			if values.get("is_default") and frappe.db.exists(doctype, {"is_default": 1}):
+				values["is_default"] = 0
+			frappe.get_doc(values).insert(ignore_permissions=True)
+
+
 def create_default_address_template():
 	"""Give the site a default Address Template.
 
@@ -161,9 +191,7 @@ def _create_default_church():
 			"church_name": DEFAULT_CHURCH_NAME,
 			"abbreviation": "MC",
 			"legal_name": "My Church",
-			"founding_date": "1990-03-15",
 			"publish": 1,
-			"mission_statement": "To glorify God by making disciples, and serving our neighbors with the love of Christ.",
 			"about": "<p>Welcome to My Church. We are a community of believers committed to worship, fellowship, and service. We are a congregation rooted in Scripture and passionate about sharing the grace of God with all people.</p><p>Founded in 1990, we have grown from a small gathering into a vibrant church family. Whether you are a lifelong believer or simply curious about faith, you are welcome here.</p>",
 		}
 	).insert(ignore_permissions=True)
@@ -452,7 +480,7 @@ def _create_bible_translations():
 
 
 # ---------------------------------------------------------------------------
-# Module Profile — controls which Frappe modules Church users can see
+# Module Profile: controls which Frappe modules Church users can see
 # ---------------------------------------------------------------------------
 
 
@@ -581,12 +609,12 @@ def _create_custom_html_blocks():
 
 
 # ---------------------------------------------------------------------------
-# Web Pages — dynamic Jinja templates stored in templates/*.html
+# Web Pages: dynamic Jinja templates stored in templates/*.html
 # ---------------------------------------------------------------------------
 
 
 def _create_web_pages():
-	"""Create the four default church website pages.
+	"""Create the default church website pages.
 
 	HTML content is stored in separate template files under templates/ so it
 	can be edited without touching this Python script.
@@ -622,12 +650,6 @@ def _create_web_pages():
 			"route": "ministries",
 			"template_file": "ministries.html",
 		},
-		{
-			"name": "locations",
-			"title": "Locations",
-			"route": "locations",
-			"template_file": "locations.html",
-		},
 	]
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
@@ -659,18 +681,11 @@ def _create_web_pages():
 
 
 def _setup_about_us_settings():
-	"""Populate the About Us page with default church-oriented content."""
+	"""Enable the About Us page with church wording; the text itself is the church's to write."""
 	doc = frappe.get_doc("About Us Settings")
 	# frappe ships the /about page disabled; the navbar links to it, so enable it
 	doc.is_disabled = 0
 	doc.page_title = "About Our Church"
-	doc.company_introduction = (
-		"<p>We are a congregation of believers committed to worshipping God, growing"
-		" in His Word, and serving one another and our community in love.</p>"
-		'<p>To learn more about what we believe, visit our <a href="/beliefs">Beliefs</a>'
-		" page. To see how we support missionaries around the world, visit our"
-		' <a href="/missions">Missions</a> page.</p>'
-	)
 	doc.company_history_heading = "Church History"
 	doc.team_members_heading = "Our Team"
 	doc.save(ignore_permissions=True)
@@ -744,14 +759,13 @@ def _setup_website_settings():
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
 	doc.footer_items = []
-	doc.append("footer_items", {"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"})
 	doc.save(ignore_permissions=True)
 
 
 def _setup_portal_settings():
 	"""Seed the member portal menu (Portal Settings) with Church defaults.
 
-	Seeds frappe's standard menu table — the one get_portal_roles() reads, so
+	Seeds frappe's standard menu table, the one get_portal_roles() reads, so
 	the "Church User" role on the items is what makes members portal users and
 	shows the Portal link on /me. Runs once at install; from then on the menu
 	belongs to the site admin (Desk > Portal Settings). reference_doctype must
@@ -972,7 +986,7 @@ def _reorder_default_desktop_icons():
 	but frappe's icons default to idx 0 and would land in front. frappe installs
 	(and creates its icons) before churchit, so they all exist by the time this
 	patch runs. Tools has no app set (it's auto-generated from the workspace,
-	not a fixture), so app must be checked in Python — an "app != churchit"
+	not a fixture), so app must be checked in Python, because an "app != churchit"
 	filter in SQL silently drops NULL rows instead of matching them.
 	"""
 	pinned_last = ["Settings", "Tools", "Framework"]

@@ -10,14 +10,17 @@ from unittest import mock
 import frappe
 from frappe.model.naming import NamingSeries
 from frappe.tests.utils import FrappeTestCase
+from frappe.website.doctype.website_theme.website_theme import WebsiteTheme
 
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
 	add_churchit_website_theme,
 	add_default_address_template,
 	add_missionary_map_to_missions_page,
+	add_unsynced_default_records,
 	redesign_home_page,
 	rename_agency_logo_field,
+	scope_website_pages_to_church,
 	seed_naming_series_counters,
 	setup_bulletins,
 	update_default_navbar,
@@ -28,6 +31,47 @@ from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment
 from churchit.tests.helpers import make_address, make_person
 
 
+class TestUnsyncedDefaultRecords(FrappeTestCase):
+	"""Letter Head and Email Template ship as JSON that Frappe's sync never imports."""
+
+	TEMPLATES = ("Donation Acknowledgment", "Birthday Greeting", "New Member Welcome", "Visitor Follow-Up")
+
+	def test_the_patch_seeds_the_letterhead_and_the_email_templates(self):
+		frappe.db.delete("Letter Head", {"name": "Church Letter Head"})
+		frappe.db.delete("Email Template", {"name": ("in", self.TEMPLATES)})
+
+		add_unsynced_default_records.execute()
+
+		self.assertTrue(frappe.db.exists("Letter Head", "Church Letter Head"))
+		for template in self.TEMPLATES:
+			self.assertTrue(frappe.db.exists("Email Template", template), template)
+
+	def test_running_it_again_leaves_a_church_s_edits_alone(self):
+		add_unsynced_default_records.execute()
+		frappe.db.set_value("Letter Head", "Church Letter Head", "content", "<p>Ours</p>")
+
+		add_unsynced_default_records.execute()
+
+		self.assertEqual(frappe.db.get_value("Letter Head", "Church Letter Head", "content"), "<p>Ours</p>")
+
+	def test_it_never_demotes_a_letterhead_the_church_already_made_default(self):
+		frappe.db.delete("Letter Head", {"name": "Church Letter Head"})
+		theirs = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "_Test Church Own Letterhead",
+				"source": "HTML",
+				"content": "<p>Theirs</p>",
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		add_unsynced_default_records.execute()
+
+		self.assertTrue(frappe.db.get_value("Letter Head", theirs.name, "is_default"))
+		self.assertFalse(frappe.db.get_value("Letter Head", "Church Letter Head", "is_default"))
+
+
 class TestAfterInstall(FrappeTestCase):
 	def test_execute_is_idempotent(self):
 		after_install.execute()
@@ -35,13 +79,14 @@ class TestAfterInstall(FrappeTestCase):
 		after_install.execute()
 		self.assertEqual(self._lookup_counts(), counts)
 
-		self.assertEqual(frappe.db.count("Church"), 1)
+		self.assertEqual(frappe.db.count("Church", {"parent_church": ("is", "not set")}), 1)
 		self.assertEqual(frappe.db.count("Bible Book"), 66)
 		self.assertTrue(frappe.db.exists("Email Group", "Church Members"))
 		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
 		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
 		self.assertEqual(frappe.get_doc("Website Settings").website_theme, "Churchit")
 		self.assertTrue(frappe.db.exists("Address Template", {"is_default": 1}))
+		self.assertTrue(frappe.db.exists("Letter Head", "Church Letter Head"))
 
 	def _lookup_counts(self):
 		return {
@@ -224,6 +269,61 @@ class TestVersionedPatches(FrappeTestCase):
 			frappe.db.get_value("Web Page", "home", "main_section_html"), "<p>Our custom homepage</p>"
 		)
 
+	def test_website_pages_gain_church_scoping_and_keep_their_edits(self):
+		page = frappe.get_doc("Web Page", "home")
+		page.main_section_html = (
+			"<p>Our own hero</p>\n"
+			'{%- set sermons = frappe.get_all("Sermon", filters={"publish": 1}) -%}\n'
+			'{{ frappe.db.count("Ministry", {"publish": 1}) }}'
+		)
+		page.save(ignore_permissions=True)
+
+		scope_website_pages_to_church.execute()
+		scope_website_pages_to_church.execute()
+
+		html = frappe.db.get_value("Web Page", "home", "main_section_html")
+		self.assertIn("<p>Our own hero</p>", html)
+		self.assertIn("filters=selected_church_filters(publish=1)", html)
+		self.assertIn('frappe.db.count("Ministry", selected_church_filters(publish=1))', html)
+		self.assertNotIn('{"publish": 1}', html)
+
+	def test_website_pages_keep_a_query_the_church_rewrote(self):
+		page = frappe.get_doc("Web Page", "sermons")
+		page.main_section_html = '{%- set all = frappe.get_all("Sermon", filters={"publish": 0}) -%}'
+		page.save(ignore_permissions=True)
+
+		scope_website_pages_to_church.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Web Page", "sermons", "main_section_html"),
+			'{%- set all = frappe.get_all("Sermon", filters={"publish": 0}) -%}',
+		)
+
+	def _locations_page(self, html):
+		"""The retired Locations Web Page as a site installed before it moved still has it."""
+		name = frappe.db.get_value("Web Page", {"route": "locations"})
+		page = (
+			frappe.get_doc("Web Page", name)
+			if name
+			else frappe.new_doc("Web Page").update({"title": "Locations", "route": "locations"})
+		)
+		page.update({"published": 1, "content_type": "HTML", "main_section_html": html})
+		return page.save(ignore_permissions=True)
+
+	def test_the_retired_locations_page_stops_shadowing_the_app_page(self):
+		page = self._locations_page(scope_website_pages_to_church.SHIPPED_LOCATIONS)
+
+		scope_website_pages_to_church.execute()
+
+		self.assertEqual(frappe.db.get_value("Web Page", page.name, "published"), 0)
+
+	def test_a_church_s_own_locations_page_stays_published(self):
+		page = self._locations_page("<p>Two campuses, one church.</p>")
+
+		scope_website_pages_to_church.execute()
+
+		self.assertEqual(frappe.db.get_value("Web Page", page.name, "published"), 1)
+
 	def test_navbar_gains_calendar_after_ministries_and_loses_locations(self):
 		settings = frappe.get_doc("Website Settings")
 		settings.top_bar_items = []
@@ -262,6 +362,10 @@ class TestVersionedPatches(FrappeTestCase):
 		self.enterContext(mock.patch("frappe.utils.get_files_path", return_value=folder))
 		return folder
 
+	def _skip_theme_compile(self):
+		"""Compiling a theme runs sass for about a second; only the stylesheet test needs it."""
+		self.enterContext(mock.patch.object(WebsiteTheme, "generate_bootstrap_theme"))
+
 	def _reset_website_theme(self):
 		folder = self._compile_themes_into_temporary_folder()
 		frappe.db.set_single_value("Website Settings", "website_theme", "Standard")
@@ -269,6 +373,7 @@ class TestVersionedPatches(FrappeTestCase):
 		return folder
 
 	def test_website_theme_moves_a_site_on_standard_to_churchit(self):
+		self._skip_theme_compile()
 		self._reset_website_theme()
 
 		add_churchit_website_theme.execute()
@@ -290,7 +395,7 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertIn("--ch-grad", open(stylesheet).read())
 
 	def test_website_theme_leaves_a_church_that_picked_its_own_alone(self):
-		self._compile_themes_into_temporary_folder()
+		self._skip_theme_compile()
 		own_theme = frappe.get_doc({"doctype": "Website Theme", "theme": "_Test Church Theme"})
 		own_theme.insert(ignore_permissions=True)
 		frappe.db.set_single_value("Website Settings", "website_theme", own_theme.name)

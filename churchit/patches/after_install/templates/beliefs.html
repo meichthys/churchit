@@ -1,5 +1,5 @@
 <div class="row justify-content-center">
-{% set belief_docs = frappe.get_list("Belief", fields=["name"], filters={"publish": 1}, ignore_permissions=True) %}
+{% set belief_docs = frappe.get_list("Belief", fields=["name"], filters=selected_church_filters(publish=1), ignore_permissions=True) %}
 {% if belief_docs %}
 {% for doc in belief_docs %}
     {% set belief = frappe.get_doc("Belief", doc.name) %}

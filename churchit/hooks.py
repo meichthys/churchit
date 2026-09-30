@@ -43,17 +43,6 @@ fixtures = [
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In"]]],
 	},
 	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
-	{
-		"dt": "Email Template",
-		"filters": [
-			[
-				"name",
-				"in",
-				["Donation Acknowledgment", "Birthday Greeting", "New Member Welcome", "Visitor Follow-Up"],
-			]
-		],
-	},
-	{"dt": "Letter Head", "filters": [["name", "=", "Church Letter Head"]]},
 	# The module nav shown at the top of every module workspace, and the map
 	# block on the Missions workspace. App-owned: the workspace JSONs reference
 	# them by name and are re-synced on every migrate, so these have to be

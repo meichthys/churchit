@@ -3,7 +3,7 @@
 </div>
 
 <div class="row justify-content-center">
-{% set missionary_docs = frappe.get_list("Missionary", fields=["name"], filters={"publish": 1}, ignore_permissions=True) %}
+{% set missionary_docs = frappe.get_list("Missionary", fields=["name"], filters=selected_church_filters(publish=1), ignore_permissions=True) %}
 {% if missionary_docs %}
 {% for doc in missionary_docs if not frappe.get_doc("Missionary", doc.name).sensitive %}
     {% set missionary = frappe.get_doc("Missionary", doc.name) %}
