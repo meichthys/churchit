@@ -46,7 +46,7 @@
   "list_title": "Your Prayer Requests",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-09-15 18:30:00.000000",
+  "modified": "2026-09-28 11:30:00.000000",
   "modified_by": "Administrator",
   "module": "Church Prayers",
   "name": "prayer-request",
@@ -183,22 +183,6 @@
       "precision": "",
       "read_only": 0,
       "reqd": 0,
-      "show_in_filter": 0
-    },
-    {
-      "allow_read_on_all_link_options": 1,
-      "default": "",
-      "description": "The person making the request.",
-      "fieldname": "requestor",
-      "fieldtype": "Link",
-      "hidden": 0,
-      "label": "Requestor",
-      "max_length": 0,
-      "max_value": 0,
-      "options": "Person",
-      "precision": "",
-      "read_only": 0,
-      "reqd": 1,
       "show_in_filter": 0
     },
     {

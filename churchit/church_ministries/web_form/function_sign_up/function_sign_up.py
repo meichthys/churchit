@@ -1,7 +1,14 @@
 import json
 
 import frappe
+from frappe import _
 
+from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
+	get_item_totals,
+	is_open_for_sign_up,
+)
+from churchit.church_people.member_access import is_portal_member
+from churchit.church_scope import church_filters, session_church, session_person
 from churchit.utils import resolve_link_titles
 
 
@@ -17,7 +24,9 @@ def get_context(context):
 			"function": display_doc.function,
 			"person": display_doc.person,
 		}
-	sign_up_functions = set(frappe.get_all("Function", filters={"allow_sign_ups": 1}, pluck="name"))
+	sign_up_functions = set(
+		frappe.get_all("Function", filters=church_filters(session_church(), allow_sign_ups=1), pluck="name")
+	)
 	context.has_sign_up_functions = bool(sign_up_functions)
 
 	# Filter the Function autocomplete options to only show functions with sign-ups enabled.
@@ -43,25 +52,22 @@ def get_user_context():
 	if frappe.session.user == "Guest":
 		return None
 
-	user_roles = frappe.get_roles(frappe.session.user)
-	is_manager = "Church Manager" in user_roles or "System Manager" in user_roles
-
-	person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
-
+	# The form script reads is_manager as "may sign up someone else", which only staff may.
 	return {
-		"person": person,
-		"is_manager": is_manager,
+		"person": session_person(),
+		"is_manager": not is_portal_member(),
 	}
 
 
 @frappe.whitelist()
-def get_function_sign_up_items(function):
-	"""Return the sign-up items configured on a Function, with live signed-up totals."""
-	from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
-		get_function_item_totals,
-	)
+def get_function_sign_up_items(function: str):
+	"""Return the sign-up items configured on a Function, with live signed-up totals.
 
-	totals = get_function_item_totals(function)
+	Members hold no Function DocPerm, so the check is the one the form lists functions by.
+	"""
+	if not is_open_for_sign_up(function):
+		frappe.throw(_("This function is not open for you to sign up."), frappe.PermissionError)
+	totals = get_item_totals(function)
 	return [
 		{
 			"item": item,

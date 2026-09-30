@@ -1,5 +1,6 @@
 import frappe
 
+from churchit.church_scope import church_filters, default_church, session_church
 from churchit.utils import resolve_link_titles
 
 
@@ -20,6 +21,11 @@ def get_list_context(context):
 		filters = list(filters or [])
 		# Force is_private = 0 so private requests never leak, regardless of client input.
 		filters.append(["is_private", "=", 0])
+		# This list ignores permissions, so the member's own church is applied by hand.
+		# church_filters rather than an equality: it admits shared records, which a
+		# hand-written `church == x` would drop the day a request can be shared.
+		scope = church_filters(session_church() or default_church())
+		filters += [[field, *condition] for field, condition in scope.items()]
 
 		rows = frappe.get_list(
 			doctype,
