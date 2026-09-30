@@ -54,7 +54,8 @@ def get_data(filters=None):
 			Donation.check_number,
 			Donation.amount,
 		)
-		.where(Donation.parenttype == "Collection")
+		# A cancelled collection took its gifts back.
+		.where((Donation.parenttype == "Collection") & (Collection.docstatus < 2))
 		.orderby(Collection.date, order=Order.desc)
 	)
 

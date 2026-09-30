@@ -33,7 +33,10 @@ def get_data(filters=None):
 		.inner_join(Collection)
 		.on(Collection.name == Donation.parent)
 		.select(Donation.person, total_amount)
-		.where((Donation.parenttype == "Collection") & Donation.person.isnotnull())
+		# A cancelled collection took its gifts back.
+		.where(
+			(Donation.parenttype == "Collection") & Donation.person.isnotnull() & (Collection.docstatus < 2)
+		)
 		.groupby(Donation.person)
 		.orderby(Sum(Donation.amount), order=Order.desc)
 	)
