@@ -64,6 +64,21 @@ class TestExpense(FrappeTestCase):
 		expense.cancel()
 		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
 
+	def test_cancel_restores_the_fund_charged_even_after_the_type_moves(self):
+		expense = self._make_expense(amount=100)
+		expense.submit()
+		later_fund = frappe.get_doc({"doctype": "Fund", "fund": "_Test Later Fund"}).insert(
+			ignore_permissions=True
+		)
+		frappe.db.set_value("Expense Type", self.expense_type, "fund", later_fund.name)
+		try:
+			expense.cancel()
+			self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
+		finally:
+			# setUp commits, so the type has to point back before the next test starts.
+			frappe.db.set_value("Expense Type", self.expense_type, "fund", self.fund)
+			frappe.delete_doc("Fund", later_fund.name, ignore_permissions=True, force=True)
+
 	def test_submitted_expense_cannot_be_deleted(self):
 		expense = self._make_expense()
 		expense.submit()

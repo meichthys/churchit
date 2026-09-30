@@ -44,7 +44,8 @@ class Expense(Document):
 			frappe.throw(_("❌ You must cancel this Expense before deleting it."))
 
 	def on_cancel(self):
-		fund_name = frappe.db.get_value("Expense Type", self.type, "fund")
+		# The fund this expense debited, even if its type names another one by now.
+		fund_name = self.associated_fund or frappe.db.get_value("Expense Type", self.type, "fund")
 		if not fund_name:
 			frappe.throw(_("⚠️ No fund linked to the selected Expense Type."))
 
@@ -57,7 +58,7 @@ class Expense(Document):
 				updated_transactions.append(transaction)
 			else:
 				frappe.msgprint(
-					f"💰 Associated {get_link_to_form('Fund', fund.fund)} fund has been increased by ${-transaction.amount}"
+					f"💰 Associated {get_link_to_form('Fund', fund.name, fund.fund)} fund has been increased by ${-transaction.amount}"
 				)
 		fund.transactions = updated_transactions
 		fund.save(ignore_permissions=True)
@@ -67,8 +68,7 @@ class Expense(Document):
 			_update_ministry_total(self.ministry)
 
 	def on_submit(self):
-		# Get related Fund via Expense Type
-		fund_name = frappe.db.get_value("Expense Type", self.type, "fund")
+		fund_name = self.associated_fund
 
 		if not fund_name:
 			frappe.throw(_("⚠️ No fund linked to the selected Expense Type."))
@@ -89,7 +89,7 @@ class Expense(Document):
 		fund.save(ignore_permissions=True)
 		fund.reload()
 		frappe.msgprint(
-			f"💸 Associated {get_link_to_form('Fund', fund.fund)} fund has been reduced by ${self.amount}"
+			f"💸 Associated {get_link_to_form('Fund', fund.name, fund.fund)} fund has been reduced by ${self.amount}"
 		)
 
 		if self.ministry:
