@@ -105,7 +105,7 @@
 					}
 				});
 			},
-			{ threshold: 0.12 }
+			{ rootMargin: "0px 0px -10% 0px" }
 		);
 		reveals.forEach(function (el) {
 			io.observe(el);
