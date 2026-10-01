@@ -22,6 +22,9 @@ class Church(NestedSet):
 	allow_root_deletion = False
 
 	def validate(self):
+		from churchit.scripture import format_reference  # scripture reads the church tree from here
+
+		self.church_verse = format_reference(self.church_verse)
 		if not is_multi_church():
 			self.validate_single_church()
 			return
@@ -158,10 +161,3 @@ def inherited_value(church, fieldname):
 		if value:
 			return value
 	return None
-
-
-@frappe.whitelist()
-def get_default_bible_translation():
-	"""The default Bible translation of the caller's church, inherited from its ancestors."""
-	church = get_church()
-	return inherited_value(church.name, "default_bible_translation") if church else None

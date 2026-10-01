@@ -4,6 +4,9 @@ import json
 
 import frappe
 from frappe import _
+from frappe.utils import escape_html
+
+from churchit.scripture import get_default_translation, get_passage, is_readable
 
 # Disable caching for sermon presentation page to ensure users always see up-to-date content
 no_cache = 1
@@ -70,6 +73,22 @@ def _build_content_from_selected_fields(linked_doc, meta, field_configs):
 	return title, "\n".join(parts)
 
 
+def scripture_slide(reference, translation):
+	"""A Scripture slide's title and verses, or its reference alone when the viewer may not read the text."""
+	translation = translation or get_default_translation()
+	if not is_readable(translation):
+		return {"title": reference, "content": ""}
+	verses = []
+	for section in get_passage(reference, translation):
+		for verse in section["verses"]:
+			lines = escape_html(verse["text"]).replace("\n", "<br>")
+			verses.append(f"<sup>{verse['number']}</sup> {lines}")
+	return {
+		"title": f"{reference} ({translation})",
+		"content": f'<p class="slide-scripture">{" ".join(verses)}</p>',
+	}
+
+
 def get_context(context):
 	name = frappe.form_dict.get("name")
 	if not name:
@@ -89,6 +108,9 @@ def get_context(context):
 			"content": "",
 			"title": row.slide,
 		}
+		if row.scripture:
+			slides.append({**slide_data, **scripture_slide(row.scripture, row.translation)})
+			continue
 
 		try:
 			linked_doc = frappe.get_doc(row.slide_type, row.slide)

@@ -27,8 +27,10 @@ from churchit.patches.v1_0 import (
 )
 from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
 from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as contact_patch
+from churchit.patches.v1_0 import number_repeated_bible_translation_abbreviations as abbreviation_patch
+from churchit.patches.v1_0 import replace_bible_records_with_references as bible_patch
 from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
-from churchit.tests.helpers import make_address, make_person
+from churchit.tests.helpers import make_address, make_function, make_person
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):
@@ -80,7 +82,7 @@ class TestAfterInstall(FrappeTestCase):
 		self.assertEqual(self._lookup_counts(), counts)
 
 		self.assertEqual(frappe.db.count("Church", {"parent_church": ("is", "not set")}), 1)
-		self.assertEqual(frappe.db.count("Bible Book"), 66)
+		self.assertTrue(frappe.db.exists("Bible Translation", {"source": "Free Use Bible API"}))
 		self.assertTrue(frappe.db.exists("Email Group", "Church Members"))
 		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
 		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
@@ -104,7 +106,6 @@ class TestAfterInstall(FrappeTestCase):
 				"Missionary Support Frequency",
 				"Group Role",
 				"Group Status",
-				"Bible Book",
 				"Bible Translation",
 				"Web Page",
 				"Visit Type",
@@ -125,6 +126,12 @@ class TestAfterInstall(FrappeTestCase):
 		self.assertEqual([row.route for row in menu].count("memorize"), 1)
 		self.assertEqual([row.route for row in menu].count("groups"), 1)
 		self.assertEqual(next(row.role for row in menu if row.route == "groups"), "Church User")
+
+	def test_only_the_default_translation_downloads_up_front(self):
+		"""The BSB downloads at install; every other free translation waits to be opened."""
+		self.assertFalse(after_install.should_skip_download("BSB", "BSB"))
+		self.assertTrue(after_install.should_skip_download("KJV", "eng_kjv"))
+		self.assertFalse(after_install.should_skip_download("NIV", None))
 
 
 class TestVersionedPatches(FrappeTestCase):
@@ -448,3 +455,101 @@ class TestVersionedPatches(FrappeTestCase):
 		add_default_address_template.execute()
 		self.assertEqual(frappe.db.count("Address Template"), 1)
 		self.assertEqual(frappe.db.get_value("Address Template", country, "is_default"), 1)
+
+
+class TestBibleReferencePatch(FrappeTestCase):
+	"""Bible Book, Verse and Reference records give way to references written as text."""
+
+	def test_repeated_abbreviations_are_numbered_oldest_first(self):
+		rows = [("King James Version", "KJV"), ("KJV Cambridge", "kjv"), ("Other", "KJV"), ("Blank", None)]
+		self.assertEqual(
+			abbreviation_patch.get_renumbered(rows),
+			[("KJV Cambridge", "kjv 2"), ("Other", "KJV 3"), ("Blank", "Blank")],
+		)
+
+	def test_a_reference_is_written_out_from_its_verses(self):
+		psalm = frappe._dict(
+			book="Psalms", chapter="23", verse="1", end_book="Psalms", end_chapter="23", end_verse="6"
+		)
+		self.assertEqual(bible_patch.tidy(bible_patch.passage_text(psalm)), "Psalms 23:1-6")
+		john = frappe._dict(book="John", chapter="3", verse="16", end_book=None)
+		self.assertEqual(bible_patch.passage_text(john), "John 3:16")
+
+	def test_a_link_becomes_its_reference_text(self):
+		references = {"Psalms 23:1 - Psalms 23:6 (KJV)": ("Psalms 23:1-6", "KJV")}
+		self.assertEqual(
+			bible_patch.resolve(references, "Psalms 23:1 - Psalms 23:6 (KJV)"), ("Psalms 23:1-6", "KJV")
+		)
+		# A link to a record that no longer exists is read from its name.
+		self.assertEqual(bible_patch.resolve(references, "John 3:16 (KJV)"), ("John 3:16", None))
+		# Text pythonbible cannot read is kept as written.
+		self.assertEqual(bible_patch.resolve(references, "Hezekiah 1:1"), ("Hezekiah 1:1", None))
+
+	def test_a_slide_showing_a_retired_record_becomes_a_scripture_slide(self):
+		sermon = frappe.get_doc(
+			{"doctype": "Sermon", "title": "_Test Patched Sermon", "slides": [{"scripture": "John 3:16"}]}
+		).insert(ignore_permissions=True)
+		row = sermon.slides[0].name
+		frappe.db.set_value(
+			"Sermon Slide",
+			row,
+			{"scripture": None, "slide_type": "Bible Reference", "slide": "Romans 8:28 (ESV)"},
+		)
+		bible_patch.convert_slides({"Romans 8:28 (ESV)": ("Romans 8:28", "ESV")})
+		self.assertEqual(
+			frappe.db.get_value("Sermon Slide", row, ["slide_type", "slide", "scripture", "translation"]),
+			(None, None, "Romans 8:28", "ESV"),
+		)
+
+	def test_an_order_of_worship_item_keeps_the_passage_in_its_description(self):
+		function = make_function("_Test Patched Service", schedule=[{"description": "Scripture reading"}])
+		row = function.schedule[0].name
+		frappe.db.set_value(
+			"Function Schedule", row, {"item_type": "Bible Reference", "item": "Psalms 23:1 (KJV)"}
+		)
+		bible_patch.convert_schedules({})
+		self.assertEqual(
+			frappe.db.get_value("Function Schedule", row, ["item_type", "item", "description"]),
+			(None, None, "Scripture reading\nPsalms 23:1"),
+		)
+
+	def test_a_link_that_cannot_be_empty_is_removed_and_noted_on_its_parent(self):
+		person = make_person("_Test Patch", "Prayer").name
+		prayer = frappe.get_doc(
+			{
+				"doctype": "Prayer",
+				"person": person,
+				"date": frappe.utils.now_datetime(),
+				"topics": [{"topic_type": "Person", "topic": person, "prayer": "For strength"}],
+			}
+		).insert(ignore_permissions=True)
+		row = prayer.topics[0].name
+		frappe.db.set_value("Prayer Topic", row, {"topic_type": "Bible Verse", "topic": "John 3:16"})
+
+		bible_patch.remove_required_links({})
+
+		self.assertFalse(frappe.db.exists("Prayer Topic", row))
+		note = frappe.db.get_value(
+			"Comment", {"reference_doctype": "Prayer", "reference_name": prayer.name}, "content"
+		)
+		self.assertIn("John 3:16", note)
+		self.assertIn("For strength", note)
+
+	def test_the_shipped_beliefs_page_shows_the_new_field(self):
+		page = frappe.get_doc("Web Page", "beliefs")
+		page.main_section_html = f"<div>\n{bible_patch.SHIPPED_BELIEF_REFERENCES}\n</div>"
+		page.save(ignore_permissions=True)
+
+		bible_patch.rewrite_beliefs_page()
+
+		html = frappe.db.get_value("Web Page", "beliefs", "main_section_html")
+		self.assertIn(bible_patch.BELIEF_REFERENCES, html)
+		self.assertNotIn("Bible Reference", html)
+
+	def test_running_again_changes_nothing_and_downloads_nothing(self):
+		fields = ["name", "bible_reference", "translation"]
+		before = frappe.get_all("Bible Memory Item", fields=fields, order_by="name")
+		with mock.patch("frappe.enqueue_doc") as enqueue:
+			bible_patch.execute()
+		self.assertEqual(frappe.get_all("Bible Memory Item", fields=fields, order_by="name"), before)
+		enqueue.assert_not_called()

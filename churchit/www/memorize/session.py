@@ -6,6 +6,8 @@ import json
 import frappe
 from frappe import _
 
+from churchit.scripture import get_passage_text, is_readable
+
 no_cache = 1
 
 
@@ -25,12 +27,8 @@ def get_context(context):
 	if item.user != frappe.session.user:
 		frappe.throw(_("Not allowed"), frappe.PermissionError)
 
-	ref = frappe.get_doc("Bible Reference", item.bible_reference)
-	if not ref.reference_text:
-		from churchit.church_study.bible_api import fetch_reference_text
-
-		fetch_reference_text(ref.name)
-		ref.reload()
+	if not is_readable(item.translation):
+		frappe.throw(_("{0} has no text to memorize from yet.").format(item.translation))
 
 	word_mistakes_raw = item.word_mistakes
 	if isinstance(word_mistakes_raw, dict):
@@ -45,7 +43,7 @@ def get_context(context):
 	context.item_name = item.name
 	context.progress = item.progress or 0
 	context.memorized = int(item.memorized or 0)
-	context.reference_label = ref.reference or ref.name
-	context.reference_text = ref.reference_text or ""
+	context.reference_label = f"{item.bible_reference} ({item.translation})"
+	context.reference_text = get_passage_text(item.bible_reference, item.translation)
 	context.word_mistakes_json = word_mistakes_raw
 	context.mode = mode

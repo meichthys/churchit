@@ -10,6 +10,7 @@ from frappe.utils.print_format import download_pdf as download_print_pdf
 from churchit.church_communications.doctype.bulletin.sections import BulletinSections
 from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
 from churchit.church_scope import church_filters
+from churchit.scripture import format_reference
 
 PRINT_FORMAT = "Bulletin"
 
@@ -32,6 +33,7 @@ SECTION_FIELDS = (
 class Bulletin(BulletinSections, Document):
 	def validate(self):
 		self.title = f"{self.function_name} ({formatdate(self.function_date)})"
+		self.verse = format_reference(self.verse)
 		self.validate_missionary_is_printable()
 		self.validate_prayer_requests_are_printable()
 

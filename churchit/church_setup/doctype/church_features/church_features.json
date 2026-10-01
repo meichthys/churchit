@@ -74,7 +74,7 @@
   },
   {
    "default": "1",
-   "description": "Sermons, sermon series, presentations, Bible references and memory work.",
+   "description": "The Bible reader and translations, sermons, sermon series, presentations and memory work.",
    "fieldname": "enable_study",
    "fieldtype": "Check",
    "label": "Study"
@@ -169,7 +169,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-28 09:00:00",
+ "modified": "2026-09-30 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

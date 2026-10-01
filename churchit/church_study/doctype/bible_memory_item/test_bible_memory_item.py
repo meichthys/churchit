@@ -9,24 +9,21 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_study.doctype.bible_memory_item.bible_memory_item import (
 	BibleMemoryItem,
+	assign_memory,
 	complete_session,
 	record_mistake,
 )
-from churchit.tests.helpers import ensure, ensure_user
+from churchit.tests.helpers import ensure_user, make_person, make_translation
+
+REFERENCE = "John 1:1"
 
 
 class TestBibleMemoryItem(FrappeTestCase):
 	def setUp(self):
-		book = ensure(
-			"Bible Book", {"book": "_Test Memory Book"}, {"book": "_Test Memory Book", "abbreviation": "TMB"}
-		)
-		verse = ensure("Bible Verse", {"name": f"{book} 1:1"}, {"book": book, "chapter": 1, "verse": 1})
-		self.reference = ensure(
-			"Bible Reference", {"start_verse": verse, "end_verse": ["is", "not set"]}, {"start_verse": verse}
-		)
+		self.translation = make_translation(self, "_TMB", [("JHN", 1, 1, "In the beginning was the Word.")])
 		self.user = ensure_user("_test_memorizer@example.com", "_Test Memorizer")
 		self.other_user = ensure_user("_test_other_memorizer@example.com", "_Test Other Memorizer")
-		frappe.db.delete("Bible Memory Item", {"bible_reference": self.reference})
+		frappe.db.delete("Bible Memory Item", {"bible_reference": REFERENCE})
 		frappe.set_user(self.user)
 
 	def tearDown(self):
@@ -34,16 +31,24 @@ class TestBibleMemoryItem(FrappeTestCase):
 
 	def _item(self, **values):
 		return frappe.get_doc(
-			{"doctype": "Bible Memory Item", "bible_reference": self.reference, **values}
+			{
+				"doctype": "Bible Memory Item",
+				"bible_reference": REFERENCE,
+				"translation": self.translation,
+				**values,
+			}
 		).insert(ignore_permissions=True)
 
 	def test_user_defaults_to_the_session_user(self):
 		self.assertEqual(self._item().user, self.user)
 
+	def test_the_reference_is_stored_tidied(self):
+		self.assertEqual(self._item(bible_reference="jn 1:1").bible_reference, REFERENCE)
+
 	def test_same_passage_cannot_be_added_twice_for_one_user(self):
 		self._item()
 		with self.assertRaises(ValidationError):
-			self._item()
+			self._item(bible_reference="jn 1:1")
 
 	def test_memorized_flag_is_dropped_when_progress_falls(self):
 		item = self._item(progress=100, memorized=1, memorized_on="2030-01-01")
@@ -129,3 +134,70 @@ class TestBibleMemoryItem(FrappeTestCase):
 		self.assertEqual(parse('{"a": 1}'), [])
 		self.assertEqual(parse('[1, "2", "x", null]'), [1, 2])
 		self.assertEqual(parse([3, "4"]), [3, 4])
+
+
+class TestAssignMemory(FrappeTestCase):
+	def setUp(self):
+		self.translation = make_translation(self, "_TAM", [("PSA", 23, 1, "The LORD is my shepherd.")])
+		self.learner = ensure_user("_test_learner@example.com", "_Test Learner")
+		self.linked = make_person("_Test Assign", "Linked", user=self.learner).name
+		self.unlinked = make_person("_Test Assign", "Unlinked").name
+		frappe.db.delete("Bible Memory Item", {"translation": self.translation})
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def _items(self):
+		return frappe.get_all(
+			"Bible Memory Item",
+			filters={"translation": self.translation},
+			fields=["user", "bible_reference", "assigned_by"],
+		)
+
+	def _group(self, name, *people):
+		group = frappe.get_doc({"doctype": "Group", "group_name": name})
+		for person in people:
+			group.append("members", {"person": person})
+		return group.insert(ignore_permissions=True).name
+
+	def test_assigns_the_tidied_passage_to_each_user_once(self):
+		result = assign_memory("ps 23:1", self.translation, users=self.learner)
+		self.assertEqual(result, {"created": 1, "skipped": 0, "missing_users": []})
+		self.assertEqual(
+			[(i.user, i.bible_reference, i.assigned_by) for i in self._items()],
+			[(self.learner, "Psalms 23:1", "Administrator")],
+		)
+		self.assertEqual(assign_memory("Psalms 23:1", self.translation, users=[self.learner])["skipped"], 1)
+
+	def test_group_expands_to_members_with_portal_users(self):
+		group = self._group("_Test Memory Group", self.linked, self.unlinked)
+		result = assign_memory("Psalms 23:1", self.translation, group=group)
+		self.assertEqual(result["created"], 1)
+		self.assertEqual(len(result["missing_users"]), 1)
+		self.assertIn(self.unlinked, result["missing_users"][0])
+
+	def test_a_user_named_twice_is_assigned_once(self):
+		group = self._group("_Test Overlap Group", self.linked)
+		result = assign_memory("Psalms 23:1", self.translation, users=json.dumps([self.learner]), group=group)
+		self.assertEqual((result["created"], result["skipped"]), (1, 0))
+
+	def test_group_without_portal_users_is_reported(self):
+		group = self._group("_Test Unlinked Group", self.unlinked)
+		with self.assertRaises(ValidationError):
+			assign_memory("Psalms 23:1", self.translation, group=group)
+
+	def test_requires_someone_to_assign_to(self):
+		with self.assertRaises(ValidationError):
+			assign_memory("Psalms 23:1", self.translation)
+
+	def test_only_managers_can_assign(self):
+		frappe.set_user(self.learner)
+		with self.assertRaises(PermissionError):
+			assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+
+	def test_non_manager_cannot_list_a_groups_members(self):
+		group = self._group("_Test Private Memory Group", self.unlinked)
+		frappe.set_user(self.learner)
+		# The unlinked-members error names everyone in the group.
+		with self.assertRaises(PermissionError):
+			assign_memory("Psalms 23:1", self.translation, group=group)

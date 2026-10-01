@@ -18,39 +18,17 @@
         <h5 class="mb-3">Add a passage</h5>
         <div class="row">
             <div class="form-group col-md-6">
-                <label>Book</label>
-                <select class="form-control" id="add-book">
-                    <option value="">Select…</option>
-                    {% for b in books %}
-                    <option value="{{ b.name }}">{{ b.name }}</option>
-                    {% endfor %}
-                </select>
+                <label for="add-reference">Passage</label>
+                <input class="form-control" id="add-reference" placeholder="John 3:16-18">
             </div>
             <div class="form-group col-md-6">
-                <label>Translation</label>
+                <label for="add-translation">Translation</label>
                 <select class="form-control" id="add-translation">
-                    <option value="">Select…</option>
                     {% for t in translations %}
-                    <option value="{{ t.name }}" {% if t.name == default_translation %}selected{% endif %}>{{ t.name }}</option>
+                    <option value="{{ t.name }}">{{ t.translation }} ({{ t.name }})</option>
+                    {% else %}
+                    <option value="">No translation is ready yet</option>
                     {% endfor %}
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                <label>Chapter</label>
-                <select class="form-control" id="add-chapter" disabled>
-                    <option value="">Select</option>
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                <label>Start verse</label>
-                <select class="form-control" id="add-start-verse" disabled>
-                    <option value="">Select</option>
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                <label>End verse</label>
-                <select class="form-control" id="add-end-verse" disabled>
-                    <option value="">(same as start)</option>
                 </select>
             </div>
         </div>
@@ -143,85 +121,19 @@
     $('#add-passage-toggle').addEventListener('click', () => togglePanel(true));
     $('#add-passage-cancel').addEventListener('click', () => { togglePanel(false); setStatus(''); });
 
-    function populateChapters() {
-        const book = $('#add-book').value;
-        const translation = $('#add-translation').value;
-        const chapterSel = $('#add-chapter');
-        chapterSel.innerHTML = '<option value="">Select</option>';
-        chapterSel.disabled = true;
-        $('#add-start-verse').innerHTML = '<option value="">Select</option>';
-        $('#add-start-verse').disabled = true;
-        $('#add-end-verse').innerHTML = '<option value="">(same as start)</option>';
-        $('#add-end-verse').disabled = true;
-        if (!book || !translation) return;
-
-        setStatus('Loading chapters…');
-        frappe.call({
-            method: 'churchit.church_study.bible_api.get_chapters_for_book',
-            args: { book, translation },
-        }).then(r => {
-            setStatus('');
-            const chapters = (r && r.message) || [];
-            chapterSel.innerHTML = '<option value="">Select</option>' +
-                chapters.map(c => `<option value="${c}">${c}</option>`).join('');
-            chapterSel.disabled = chapters.length === 0;
-        }).catch(() => setStatus('Could not load chapters.', true));
-    }
-
-    function populateVerses() {
-        const book = $('#add-book').value;
-        const translation = $('#add-translation').value;
-        const chapter = $('#add-chapter').value;
-        const startSel = $('#add-start-verse');
-        const endSel = $('#add-end-verse');
-        startSel.innerHTML = '<option value="">Select</option>';
-        startSel.disabled = true;
-        endSel.innerHTML = '<option value="">(same as start)</option>';
-        endSel.disabled = true;
-        if (!book || !translation || !chapter) return;
-
-        setStatus('Loading verses…');
-        frappe.call({
-            method: 'churchit.church_study.bible_api.get_verses_for_chapter',
-            args: { book, chapter, translation },
-        }).then(r => {
-            setStatus('');
-            const verses = (r && r.message) || [];
-            const opts = verses.map(v => `<option value="${v}">${v}</option>`).join('');
-            startSel.innerHTML = '<option value="">Select</option>' + opts;
-            endSel.innerHTML = '<option value="">(same as start)</option>' + opts;
-            startSel.disabled = verses.length === 0;
-            endSel.disabled = verses.length === 0;
-        }).catch(() => setStatus('Could not load verses.', true));
-    }
-
-    $('#add-book').addEventListener('change', populateChapters);
-    $('#add-translation').addEventListener('change', populateChapters);
-    $('#add-chapter').addEventListener('change', populateVerses);
-
     $('#add-passage-submit').addEventListener('click', () => {
-        const book = $('#add-book').value;
+        const reference = $('#add-reference').value.trim();
         const translation = $('#add-translation').value;
-        const chapter = $('#add-chapter').value;
-        const start = $('#add-start-verse').value;
-        const end = $('#add-end-verse').value || null;
-        if (!book || !translation || !chapter || !start) {
-            setStatus('Please choose book, translation, chapter, and start verse.', true);
+        if (!reference || !translation) {
+            setStatus('Type a passage and choose a translation.', true);
             return;
         }
-        setStatus('Fetching passage…');
+        setStatus('Adding…');
         frappe.call({
-            method: 'churchit.church_study.bible_api.get_or_create_reference',
-            args: { book, chapter, start_verse_num: start, end_verse_num: end, translation },
-        }).then(r => {
-            const ref = r && r.message;
-            if (!ref) throw new Error('No reference returned');
-            return frappe.call({
-                method: 'frappe.client.insert',
-                args: { doc: { doctype: 'Bible Memory Item', bible_reference: ref } },
-            });
+            method: 'frappe.client.insert',
+            args: { doc: { doctype: 'Bible Memory Item', bible_reference: reference, translation } },
         }).then(() => { setStatus('Added.'); window.location.reload(); })
-          .catch(err => setStatus((err && err.message) || 'Could not add the passage.', true));
+          .catch(() => setStatus('Could not add the passage.', true));
     });
 
     document.querySelectorAll('.memorize-remove-btn').forEach(btn => {

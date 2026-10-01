@@ -37,8 +37,6 @@ _DELETE_STEPS = [
 	(False, "Sermon Series", {}),
 	(False, "Memory Session", {}),
 	(False, "Bible Memory Item", {}),
-	(False, "Bible Reference", {}),
-	(False, "Bible Verse", {}),
 	(False, "Function Sign-Up", {}),
 	(False, "Function Check-In", {}),
 	(False, "Function", {}),
@@ -146,14 +144,12 @@ def create_sample_data():
 	_create_function_check_ins(people)
 	_create_meeting_minutes(people)
 
-	verses = _create_bible_verses()
-	_create_bible_references(verses)
-	_create_bible_memory_items(verses)
+	_create_bible_memory_items()
 
-	_create_beliefs(verses)
+	_create_beliefs()
 
 	sermon_series = _create_sermon_series(people)
-	_create_sermons(people, verses, sermon_series)
+	_create_sermons(people, sermon_series)
 
 	groups = _create_groups(people, group_roles)
 
@@ -180,11 +176,6 @@ def delete_sample_data():
 	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
-
-	# The Church outlives the sample data but links into it. Clear those links
-	# first: a Church left pointing at a deleted Bible Reference cannot be saved
-	# again, which strands the record the whole app reads.
-	frappe.db.set_value("Church", {"church_verse": ["is", "set"]}, "church_verse", None)
 
 	for submittable, doctype, filters in _DELETE_STEPS:
 		if submittable:
@@ -1865,35 +1856,6 @@ def _create_function_sign_ups(people, sign_up_items):
 		doc.insert(ignore_permissions=True)
 
 
-# ---------------------------------------------------------------------------
-# Bible Verses
-# ---------------------------------------------------------------------------
-
-_VERSES = [
-	("John", "3", "16"),
-	("Psalms", "23", "1"),
-	("Psalms", "23", "2"),
-	("Psalms", "23", "3"),
-	("Psalms", "23", "4"),
-	("Psalms", "23", "5"),
-	("Psalms", "23", "6"),
-	("Romans", "8", "28"),
-	("Philippians", "4", "13"),
-	("Jeremiah", "29", "11"),
-	("2 Timothy", "3", "16"),
-	("Hebrews", "11", "1"),
-	# Belief-related verses
-	("Genesis", "1", "1"),
-	("John", "1", "1"),
-	("Matthew", "28", "19"),
-	("Romans", "3", "23"),
-	("Ephesians", "2", "8"),
-	("Acts", "2", "38"),
-	("1 Corinthians", "11", "26"),
-	("1 Thessalonians", "4", "16"),
-]
-
-
 def _create_function_check_ins(people):
 	"""Create sample check-in records against the Sunday Worship function."""
 	function = frappe.db.get_value("Function", {"function_name": "Sunday Worship"}, "name")
@@ -1926,156 +1888,24 @@ def _create_function_check_ins(people):
 		).insert(ignore_permissions=True)
 
 
-def _create_bible_verses():
-	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
-	# Build lookup for Bible Book display name → hash name
-	book_refs = {}
-	for book_name in {verse[0] for verse in _VERSES}:
-		book_refs[book_name] = frappe.db.get_value("Bible Book", {"book": book_name}, "name")
-
-	refs = {}
-	for book, chapter, verse in _VERSES:
-		key = f"{book} {chapter}:{verse}"
-		existing = frappe.db.get_value(
-			"Bible Verse",
-			{"book": book_refs[book], "chapter": chapter, "verse": verse},
-			"name",
-		)
-		if existing:
-			refs[key] = existing
-			continue
-		doc = frappe.get_doc(
-			{
-				"doctype": "Bible Verse",
-				"book": book_refs[book],
-				"chapter": chapter,
-				"verse": verse,
-			}
-		)
-		doc.insert(ignore_permissions=True)
-		refs[key] = doc.name
-	return refs
-
-
-# ---------------------------------------------------------------------------
-# Bible References
-# ---------------------------------------------------------------------------
-
-
-def _create_bible_references(verses):
-	"""Create sample Bible references."""
-	_tr = {
-		t: _resolve_link("Bible Translation", "translation", t)
-		for t in (
-			"King James Version",
-			"English Standard Version",
-			"New International Version",
-			"New King James Version",
-		)
-	}
-	references = [
-		{
-			"start_verse": verses["John 3:16"],
-			"translation": _tr["King James Version"],
-			"reference_text": (
-				"For God so loved the world, that he gave his only begotten Son, "
-				"that whosoever believeth in him should not perish, but have "
-				"everlasting life."
-			),
-		},
-		{
-			"start_verse": verses["Romans 8:28"],
-			"translation": _tr["English Standard Version"],
-			"reference_text": (
-				"And we know that for those who love God all things work together "
-				"for good, for those who are called according to his purpose."
-			),
-		},
-		{
-			"start_verse": verses["Psalms 23:1"],
-			"end_verse": verses["Psalms 23:6"],
-			"translation": _tr["King James Version"],
-			"reference_text": (
-				"The LORD is my shepherd; I shall not want. He maketh me to lie "
-				"down in green pastures: he leadeth me beside the still waters. "
-				"He restoreth my soul: he leadeth me in the paths of righteousness "
-				"for his name's sake. Yea, though I walk through the valley of the "
-				"shadow of death, I will fear no evil: for thou art with me; thy rod "
-				"and thy staff they comfort me. Thou preparest a table before me in "
-				"the presence of mine enemies: thou anointest my head with oil; my "
-				"cup runneth over. Surely goodness and mercy shall follow me all the "
-				"days of my life: and I will dwell in the house of the LORD for ever."
-			),
-		},
-		{
-			"start_verse": verses["Jeremiah 29:11"],
-			"translation": _tr["New International Version"],
-			"reference_text": (
-				"For I know the plans I have for you, declares the LORD, plans to "
-				"prosper you and not to harm you, plans to give you hope and a future."
-			),
-		},
-		{
-			"start_verse": verses["Philippians 4:13"],
-			"translation": _tr["New King James Version"],
-			"reference_text": ("I can do all things through Christ who strengthens me."),
-		},
-	]
-	# Belief-supporting references (no text, just verse pointers)
-	belief_refs = [
-		{"start_verse": verses["Genesis 1:1"]},
-		{"start_verse": verses["John 1:1"]},
-		{"start_verse": verses["2 Timothy 3:16"]},
-		{"start_verse": verses["Matthew 28:19"]},
-		{"start_verse": verses["Romans 3:23"]},
-		{"start_verse": verses["Ephesians 2:8"]},
-		{"start_verse": verses["Acts 2:38"]},
-		{"start_verse": verses["1 Corinthians 11:26"]},
-		{"start_verse": verses["1 Thessalonians 4:16"]},
-	]
-	references += belief_refs
-
-	for ref in references:
-		# Bible Reference names are auto-generated by script
-		existing = frappe.db.exists(
-			"Bible Reference",
-			{
-				"start_verse": ref["start_verse"],
-				"translation": ref.get("translation"),
-			},
-		)
-		if existing:
-			continue
-		doc = frappe.get_doc({"doctype": "Bible Reference", **ref})
-		doc.insert(ignore_permissions=True)
-
-
 # ---------------------------------------------------------------------------
 # Bible Memory
 # ---------------------------------------------------------------------------
 
 
-def _create_bible_memory_items(verses):
+def _create_bible_memory_items():
 	"""Create sample Bible Memory Items + Memory Sessions for the sample
-	Church Manager user (Mary Johnson). Skipped if the user is missing."""
+	Church Manager user (Mary Johnson). Skipped if the user is missing.
+
+	References are written as they are stored, so a second run finds them."""
 	user = _CHURCH_MANAGER_EMAIL
 	if not frappe.db.exists("User", user):
 		return
 
-	def find_ref(verse_key, translation_name):
-		start = verses.get(verse_key)
-		translation = _resolve_link("Bible Translation", "translation", translation_name)
-		if not (start and translation):
-			return None
-		return frappe.db.get_value(
-			"Bible Reference",
-			{"start_verse": start, "translation": translation},
-			"name",
-		)
-
 	specs = [
 		{
-			"ref": find_ref("John 3:16", "King James Version"),
+			"reference": "John 3:16",
+			"translation": "KJV",
 			"progress": 100,
 			"memorized": 1,
 			"memorized_on": _near_date(-14),
@@ -2088,7 +1918,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Psalms 23:1", "King James Version"),
+			"reference": "Psalms 23:1-6",
+			"translation": "KJV",
 			"progress": 60,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2100,7 +1931,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Romans 8:28", "English Standard Version"),
+			"reference": "Romans 8:28",
+			"translation": "BSB",
 			"progress": 25,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2110,7 +1942,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Philippians 4:13", "New King James Version"),
+			"reference": "Philippians 4:13",
+			"translation": "BSB",
 			"progress": 0,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2119,15 +1952,16 @@ def _create_bible_memory_items(verses):
 	]
 
 	for spec in specs:
-		if not spec["ref"]:
+		passage = {"bible_reference": spec["reference"], "translation": spec["translation"]}
+		if not frappe.db.exists("Bible Translation", spec["translation"]):
 			continue
-		if frappe.db.exists("Bible Memory Item", {"user": user, "bible_reference": spec["ref"]}):
+		if frappe.db.exists("Bible Memory Item", {"user": user, **passage}):
 			continue
 		item = frappe.get_doc(
 			{
 				"doctype": "Bible Memory Item",
 				"user": user,
-				"bible_reference": spec["ref"],
+				**passage,
 				"progress": spec["progress"],
 				"memorized": spec["memorized"],
 				"memorized_on": spec.get("memorized_on"),
@@ -2155,20 +1989,9 @@ def _create_bible_memory_items(verses):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(people, verses, series_refs=None):
-	"""Create sample sermons with slides referencing bible references, people,
+def _create_sermons(people, series_refs=None):
+	"""Create sample sermons with Scripture slides, and slides showing people,
 	missionaries, and beliefs."""
-
-	def bible_ref(verse_key, translation_name):
-		verse = verses.get(verse_key)
-		translation = _resolve_link("Bible Translation", "translation", translation_name)
-		if not (verse and translation):
-			return None
-		return frappe.db.get_value(
-			"Bible Reference",
-			{"start_verse": verse, "translation": translation},
-			"name",
-		)
 
 	def belief(title):
 		return frappe.db.get_value("Belief", {"title": title}, "name")
@@ -2193,8 +2016,8 @@ def _create_sermons(people, verses, series_refs=None):
 			),
 			"slides": [
 				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Psalms 23:1", "King James Version"),
+					"scripture": "Psalms 23:1-6",
+					"translation": "KJV",
 					"notes": "<p>Read the full Psalm slowly before beginning the exposition.</p>",
 				},
 				{"slide_type": "Belief", "slide": belief("God")},
@@ -2208,7 +2031,7 @@ def _create_sermons(people, verses, series_refs=None):
 					"slide": missionary("Michael & Anna Grant"),
 					"notes": "<p>Remind the congregation that the Shepherd cares for sheep across the world.</p>",
 				},
-				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+				{"scripture": "John 3:16", "translation": "KJV"},
 			],
 		},
 		{
@@ -2226,10 +2049,7 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ul>"
 			),
 			"slides": [
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Romans 8:28", "English Standard Version"),
-				},
+				{"scripture": "Romans 8:28"},
 				{"slide_type": "Belief", "slide": belief("Salvation")},
 				{
 					"slide_type": "Missionary",
@@ -2237,10 +2057,7 @@ def _create_sermons(people, verses, series_refs=None):
 					"notes": "<p>Elizabeth's story is a living example of stepping out in faith.</p>",
 				},
 				{"slide_type": "Person", "slide": people.get("David Thompson")},
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Philippians 4:13", "New King James Version"),
-				},
+				{"scripture": "Philippians 4:13"},
 			],
 		},
 		{
@@ -2258,10 +2075,7 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ol>"
 			),
 			"slides": [
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Jeremiah 29:11", "New International Version"),
-				},
+				{"scripture": "Jeremiah 29:11"},
 				{"slide_type": "Belief", "slide": belief("The Bible")},
 				{
 					"slide_type": "Person",
@@ -2273,7 +2087,7 @@ def _create_sermons(people, verses, series_refs=None):
 					"slide": missionary("Thomas Reed"),
 					"notes": "<p>Sensitive: share only the prayer points, not the field.</p>",
 				},
-				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+				{"scripture": "John 3:16", "translation": "KJV"},
 			],
 		},
 	]
@@ -2289,7 +2103,7 @@ def _create_sermons(people, verses, series_refs=None):
 		existing = frappe.db.exists("Sermon", {"title": sermon["title"]})
 		if existing:
 			continue
-		sermon["slides"] = [s for s in sermon.get("slides", []) if s.get("slide")]
+		sermon["slides"] = [s for s in sermon.get("slides", []) if s.get("slide") or s.get("scripture")]
 		doc = frappe.get_doc({"doctype": "Sermon", **sermon})
 		doc.insert(ignore_permissions=True)
 
@@ -2299,7 +2113,7 @@ def _create_sermons(people, verses, series_refs=None):
 # ---------------------------------------------------------------------------
 
 
-def _create_beliefs(verses):
+def _create_beliefs():
 	"""Create sample belief statements for the church website."""
 	beliefs = [
 		{
@@ -2310,7 +2124,7 @@ def _create_beliefs(verses):
 				"and is the final authority for the life of the believer.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["2 Timothy 3:16"],
+			"bible_references": "2 Timothy 3:16",
 		},
 		{
 			"title": "God",
@@ -2320,7 +2134,7 @@ def _create_beliefs(verses):
 				"infinite in power, wisdom, and love.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Genesis 1:1", "John 1:1", "Matthew 28:19"],
+			"bible_references": "Genesis 1:1; Matthew 28:19; John 1:1",
 		},
 		{
 			"title": "Salvation",
@@ -2330,7 +2144,7 @@ def _create_beliefs(verses):
 				"Christ alone, and not by works.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Romans 3:23", "Ephesians 2:8", "John 3:16"],
+			"bible_references": "John 3:16; Romans 3:23; Ephesians 2:8",
 		},
 		{
 			"title": "Baptism",
@@ -2340,7 +2154,7 @@ def _create_beliefs(verses):
 				"burial, and resurrection.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Acts 2:38"],
+			"bible_references": "Acts 2:38",
 		},
 		{
 			"title": "The Lord's Supper",
@@ -2350,7 +2164,7 @@ def _create_beliefs(verses):
 				"regularly until He comes again.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["1 Corinthians 11:26"],
+			"bible_references": "1 Corinthians 11:26",
 		},
 		{
 			"title": "The Return of Christ",
@@ -2360,36 +2174,14 @@ def _create_beliefs(verses):
 				"the life of the believer.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["1 Thessalonians 4:16"],
+			"bible_references": "1 Thessalonians 4:16",
 		},
 	]
 
 	for belief in beliefs:
 		if frappe.db.exists("Belief", {"title": belief["title"]}):
 			continue
-
-		# Resolve Bible Reference names from start_verse display key
-		ref_rows = []
-		for verse_key in belief.pop("bible_references", []):
-			verse_hash = verses.get(verse_key)
-			if not verse_hash:
-				continue
-			ref_name = frappe.db.get_value(
-				"Bible Reference",
-				{"start_verse": verse_hash},
-				"name",
-			)
-			if ref_name:
-				ref_rows.append({"reference": ref_name})
-
-		doc = frappe.get_doc(
-			{
-				"doctype": "Belief",
-				"bible_references": ref_rows,
-				**belief,
-			}
-		)
-		doc.insert(ignore_permissions=True)
+		frappe.get_doc({"doctype": "Belief", **belief}).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

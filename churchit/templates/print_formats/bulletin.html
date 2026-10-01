@@ -98,7 +98,7 @@
       <div class="back-footer">
         {%- if church_verse %}
         <div class="church-verse">
-          {%- if church_verse.reference_text %}&ldquo;{{ church_verse.reference_text | e }}&rdquo;{% endif %}
+          {%- if church_verse.text %}&ldquo;{{ church_verse.text | e }}&rdquo;{% endif %}
           <span class="reference">{{ church_verse.reference | e }}</span>
         </div>
         {%- endif %}
@@ -130,7 +130,7 @@
       <div class="cover-date">{{ frappe.utils.formatdate(doc.function_date, "EEEE, MMMM d, yyyy") }}</div>
       {%- if verse %}
       <div class="cover-verse">
-        {%- if verse.reference_text %}&ldquo;{{ verse.reference_text | e }}&rdquo;{% endif %}
+        {%- if verse.text %}&ldquo;{{ verse.text | e }}&rdquo;{% endif %}
         <span class="reference">{{ verse.reference | e }}</span>
       </div>
       {%- endif %}

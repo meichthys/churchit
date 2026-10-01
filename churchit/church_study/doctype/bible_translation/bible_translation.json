@@ -2,42 +2,132 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:translation",
+ "autoname": "field:abbreviation",
  "creation": "2025-09-17 23:06:44.746941",
+ "description": "A translation of the Bible and its text. A free translation downloads its own text from the Free Use Bible API; any other needs its text imported from a copy the church is licensed to use.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
+  "abbreviation",
   "translation",
-  "abbreviation"
+  "language",
+  "text_direction",
+  "column_break_source",
+  "source",
+  "source_id",
+  "status",
+  "verse_count",
+  "text_section",
+  "text_file",
+  "column_break_text",
+  "website",
+  "license_url"
  ],
  "fields": [
   {
-   "fieldname": "translation",
+   "description": "A short name such as BSB or ESV. It names the translation throughout the app.",
+   "fieldname": "abbreviation",
    "fieldtype": "Data",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Translation",
+   "label": "Abbreviation",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "abbreviation",
+   "fieldname": "translation",
    "fieldtype": "Data",
-   "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Abbreviation",
+   "label": "Translation",
    "reqd": 1
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language"
+  },
+  {
+   "default": "ltr",
+   "description": "rtl for a right to left script such as Hebrew or Arabic.",
+   "fieldname": "text_direction",
+   "fieldtype": "Select",
+   "label": "Text Direction",
+   "options": "ltr\nrtl"
+  },
+  {
+   "fieldname": "column_break_source",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Free Use Bible API",
+   "description": "Free Use Bible API downloads a free text for you. Choose User Import for a translation whose text is not free, such as the NIV, and attach a copy your church is licensed to use.",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Text Source",
+   "options": "Free Use Bible API\nUser Import",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.source==\"Free Use Bible API\"",
+   "description": "The translation's id in the <a href=\"https://bible.helloao.org/api/available_translations.json\" target=\"_blank\">Free Use Bible API list</a>, such as BSB or eng_kjv.",
+   "fieldname": "source_id",
+   "fieldtype": "Data",
+   "label": "Free Use Bible API ID",
+   "mandatory_depends_on": "eval:doc.source==\"Free Use Bible API\""
+  },
+  {
+   "default": "No Text",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "No Text\nDownloading\nReady\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "verse_count",
+   "fieldtype": "Int",
+   "label": "Verses",
+   "read_only": 1
+  },
+  {
+   "fieldname": "text_section",
+   "fieldtype": "Section Break",
+   "label": "Text"
+  },
+  {
+   "description": "A CSV file with the columns book, chapter, verse and text, one verse to a row, or a Free Use Bible API complete.simple.json file. Attach it as a private file: an imported text is only shown to signed-in users.",
+   "fieldname": "text_file",
+   "fieldtype": "Attach",
+   "label": "Text File",
+   "mandatory_depends_on": "eval:doc.source==\"User Import\"",
+   "read_only_depends_on": "eval:doc.source==\"Free Use Bible API\""
+  },
+  {
+   "fieldname": "column_break_text",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "options": "URL"
+  },
+  {
+   "description": "Where the translation's terms of use are published.",
+   "fieldname": "license_url",
+   "fieldtype": "Data",
+   "label": "License",
+   "options": "URL"
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-09-30 01:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Translation",
@@ -61,6 +151,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -84,9 +175,10 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "search_fields": "translation",
  "show_title_field_in_link": 1,
+ "sort_field": "translation",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "translation"
 }

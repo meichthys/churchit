@@ -15,12 +15,13 @@ def execute(filters=None):
 def get_columns():
 	return [
 		{"fieldname": "user", "fieldtype": "Link", "label": _("User"), "options": "User", "width": 200},
+		{"fieldname": "bible_reference", "fieldtype": "Data", "label": _("Reference"), "width": 200},
 		{
-			"fieldname": "bible_reference",
+			"fieldname": "translation",
 			"fieldtype": "Link",
-			"label": _("Reference"),
-			"options": "Bible Reference",
-			"width": 240,
+			"label": _("Translation"),
+			"options": "Bible Translation",
+			"width": 160,
 		},
 		{"fieldname": "progress", "fieldtype": "Percent", "label": _("Progress"), "width": 100},
 		{"fieldname": "memorized", "fieldtype": "Check", "label": _("Memorized"), "width": 100},
@@ -51,6 +52,7 @@ def get_data(filters):
 			"name",
 			"user",
 			"bible_reference",
+			"translation",
 			"progress",
 			"memorized",
 			"memorized_on",

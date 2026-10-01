@@ -148,6 +148,7 @@ jinja = {
 		"churchit.church_foundations.doctype.church.church.get_letterhead_church",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		"churchit.scripture.get_passage_text",
 	]
 }
 

@@ -2,11 +2,20 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 
+from churchit.scripture import format_reference
+
 
 class Sermon(Document):
+	def validate(self):
+		for slide in self.slides:
+			slide.scripture = format_reference(slide.scripture)
+			if not (slide.scripture or (slide.slide_type and slide.slide)):
+				frappe.throw(_("Slide {0} needs a record to show or a Scripture passage.").format(slide.idx))
+
 	def before_save(self):
 		if not self.is_new() and self.has_value_changed("title") and self.title != self.name:
 			rename_doc(self.doctype, self.name, self.title, merge=False)

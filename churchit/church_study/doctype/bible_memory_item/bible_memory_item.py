@@ -2,11 +2,16 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import json
+from urllib.parse import quote
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import today
+from frappe.utils import escape_html, today
+
+from churchit.scripture import format_reference
+
+ASSIGNING_ROLES = {"Church Manager", "System Manager", "Administrator"}
 
 
 class BibleMemoryItem(Document):
@@ -15,11 +20,13 @@ class BibleMemoryItem(Document):
 			self.user = frappe.session.user
 
 	def validate(self):
+		self.bible_reference = format_reference(self.bible_reference)
 		duplicate = frappe.db.exists(
 			"Bible Memory Item",
 			{
 				"user": self.user,
 				"bible_reference": self.bible_reference,
+				"translation": self.translation,
 				"name": ("!=", self.name or ""),
 			},
 		)
@@ -135,6 +142,76 @@ class BibleMemoryItem(Document):
 			except (TypeError, ValueError):
 				continue
 		return out
+
+
+@frappe.whitelist()
+def assign_memory(
+	reference: str, translation: str, users: str | list[str] | None = None, group: str | None = None
+):
+	"""Add a passage to the memory list of each user, and of each group member with a portal login.
+
+	Only managers may assign, and a user who already has the passage is skipped.
+	"""
+	# Before the group is read: its members' names come back in the result.
+	if not set(frappe.get_roles()) & ASSIGNING_ROLES:
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	users = as_list(users)
+	missing_users = []
+	if group:
+		group_users, missing_users = get_group_users(group)
+		users += group_users
+	if not users:
+		frappe.throw(_("Choose a user, or a group with members who have a portal login."))
+
+	reference = format_reference(reference)
+	created = skipped = 0
+	for user in dict.fromkeys(users):
+		if frappe.db.exists(
+			"Bible Memory Item", {"user": user, "bible_reference": reference, "translation": translation}
+		):
+			skipped += 1
+			continue
+		assigned_by = frappe.session.user if frappe.session.user != user else None
+		frappe.get_doc(
+			{
+				"doctype": "Bible Memory Item",
+				"user": user,
+				"bible_reference": reference,
+				"translation": translation,
+				"assigned_by": assigned_by,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	return {"created": created, "skipped": skipped, "missing_users": missing_users}
+
+
+def get_group_users(group):
+	"""The portal logins of a group's members, and a link to each member who has none."""
+	frappe.has_permission("Group", doc=group, throw=True)
+	GroupMember = frappe.qb.DocType("Group Member")
+	# church-scope: the members of one group the caller may read
+	Person = frappe.qb.DocType("Person")
+	members = (
+		frappe.qb.from_(GroupMember)
+		.join(Person)
+		.on(Person.name == GroupMember.person)
+		.select(Person.name, Person.full_name, Person.user)
+		.where((GroupMember.parent == group) & (GroupMember.parenttype == "Group"))
+		.run(as_dict=True)
+	)
+	missing = [
+		f'<a href="/app/person/{quote(member.name)}">{escape_html(member.full_name or member.name)}</a>'
+		for member in members
+		if not member.user
+	]
+	return [member.user for member in members if member.user], missing
+
+
+def as_list(value):
+	"""A JSON list, one value or nothing, as a list."""
+	if isinstance(value, str):
+		return frappe.parse_json(value) if value.startswith("[") else [value]
+	return list(value or [])
 
 
 @frappe.whitelist()

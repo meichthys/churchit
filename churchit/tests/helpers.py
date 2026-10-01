@@ -10,6 +10,9 @@ that saves the same email or phone every time needs ``RollbackEachTest``, since
 an email or phone may be on one Person only.
 """
 
+import csv
+import io
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -64,6 +67,45 @@ def make_function(function_name, **values):
 			**values,
 		}
 	).insert(ignore_permissions=True)
+
+
+def make_translation(case, abbreviation, rows, free=False):
+	"""A Bible Translation ready to read, whose text is *rows* of (book, chapter, verse, text).
+
+	The text is a real private CSV file, read by the same code as a church's own import. A free
+	one is marked free straight in the database, so no download is queued. The file on disk and
+	the cached text are removed when *case* finishes.
+	"""
+	from churchit import scripture
+
+	content = io.StringIO()
+	csv.writer(content).writerows([scripture.CSV_COLUMNS, *rows])
+	file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"{frappe.scrub(abbreviation)}.csv",
+			"content": content.getvalue(),
+			"is_private": 1,
+		}
+	).insert(ignore_permissions=True)
+	case.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+	case.addCleanup(scripture.clear_cache, abbreviation)
+	if frappe.db.exists("Bible Translation", abbreviation):
+		frappe.delete_doc("Bible Translation", abbreviation, force=True, ignore_permissions=True)
+	frappe.get_doc(
+		{
+			"doctype": "Bible Translation",
+			"abbreviation": abbreviation,
+			"translation": f"{abbreviation} Test Version",
+			"source": "User Import",
+			"text_file": file.file_url,
+		}
+	).insert(ignore_permissions=True)
+	if free:
+		frappe.db.set_value(
+			"Bible Translation", abbreviation, {"source": scripture.FREE_USE_BIBLE_API, "source_id": "_TEST"}
+		)
+	return abbreviation
 
 
 def make_address(title, **values):

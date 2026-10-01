@@ -38,7 +38,7 @@ SEEDED_DOCTYPES = (
 	"Ministry",
 	"Prayer Request",
 	"Prayer",
-	"Bible Verse",
+	"Bible Memory Item",
 	"Sermon",
 	"Belief",
 	"Location",
@@ -176,10 +176,8 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		self.assertFalse(frappe.db.exists("User", sample_data._CHURCH_MANAGER_EMAIL))
 
 	def test_delete_leaves_the_church_saveable(self):
-		"""The Church survives the wipe but links into it; a dangling link would strand it."""
-		church = frappe.get_doc("Church", ensure_root_church())
-		church.save(ignore_permissions=True)
-		self.assertFalse(church.church_verse)
+		"""The Church survives the wipe; a link left pointing into it would strand the record."""
+		frappe.get_doc("Church", ensure_root_church()).save(ignore_permissions=True)
 
 	def test_delete_removes_statements_issued_from_sample_giving(self):
 		"""Statements are generated, not seeded, but link to sample people, families

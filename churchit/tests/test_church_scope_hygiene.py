@@ -53,10 +53,7 @@ GLOBAL_DOCTYPES = {
 		"Visit Type",
 	},
 	"reference data that reads the same in every church": {
-		"Bible Book",
-		"Bible Reference",
 		"Bible Translation",
-		"Bible Verse",
 		"Missionary Agency",
 	},
 	"belongs to one person rather than one church": {

@@ -1,0 +1,43 @@
+.bible-reader-text {
+	max-width: 42rem;
+	margin: var(--margin-xl, 2rem) auto;
+	padding: 0 var(--padding-md, 1rem);
+	font-size: var(--text-lg, 1.125rem);
+	line-height: 1.8;
+	color: var(--text-color);
+}
+
+.bible-reader-text h2 {
+	font-size: var(--text-2xl, 1.5rem);
+	font-weight: var(--weight-semibold, 600);
+	margin-bottom: var(--margin-md, 1rem);
+}
+
+.bible-reader-text h3 {
+	font-size: var(--text-lg, 1.125rem);
+	font-weight: var(--weight-semibold, 600);
+	margin: var(--margin-lg, 1.5rem) 0 var(--margin-sm, 0.5rem);
+}
+
+.bible-reader-text p {
+	margin: 0 0 var(--margin-sm, 0.75rem);
+}
+
+/* A heading or a second line break in a row leaves an empty paragraph behind. */
+.bible-reader-text p:empty {
+	display: none;
+}
+
+.bible-reader-text .bible-subtitle {
+	font-style: italic;
+}
+
+/* Poetry keeps its line breaks inside a verse. */
+.bible-reader-text .bible-verse {
+	white-space: pre-line;
+}
+
+.bible-reader-text sup {
+	color: var(--text-muted);
+	margin-right: 0.25em;
+}

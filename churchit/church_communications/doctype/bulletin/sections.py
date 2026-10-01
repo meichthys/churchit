@@ -14,6 +14,7 @@ from churchit.church_foundations.doctype.church.church import (
 )
 from churchit.church_people import celebrations
 from churchit.church_scope import church_filters
+from churchit.scripture import get_default_translation, get_passage_text, is_readable
 
 TIME_FORMAT = "h:mm a"
 
@@ -125,15 +126,24 @@ class BulletinSections:
 
 	@property
 	def verse_of_the_week(self):
-		return frappe.get_cached_doc("Bible Reference", self.verse) if self.verse else None
+		return self.get_passage(self.verse)
 
 	@property
 	def church_verse(self):
 		"""The Church record's key verse, printed on the back cover."""
 		church = self.church_doc
-		if not church or not church.church_verse:
+		return self.get_passage(church.church_verse) if church else None
+
+	def get_passage(self, reference):
+		"""A reference, with its text in the church's translation when the reader may see that text."""
+		if not reference:
 			return None
-		return frappe.get_cached_doc("Bible Reference", church.church_verse)
+		translation = get_default_translation(self.church_doc.name if self.church_doc else None)
+		if not is_readable(translation):
+			return frappe._dict(reference=reference, text=None)
+		return frappe._dict(
+			reference=f"{reference} ({translation})", text=get_passage_text(reference, translation)
+		)
 
 	@property
 	def church_image(self):

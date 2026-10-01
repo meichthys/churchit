@@ -148,7 +148,7 @@ drift: add `"fetch_from": "<link_field>.church"` and `"read_only": 1`. A sign-up
 function's church; a care request takes its person's.
 
 Global doctype: add it to `GLOBAL_DOCTYPES` in the hygiene test with its reason. The existing
-entries are lookup and type tables, shared reference data such as the Bible doctypes, and records
+entries are lookup and type tables, shared reference data such as Bible Translation, and records
 that belong to a person rather than a church.
 
 ### Records a church can share

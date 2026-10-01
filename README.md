@@ -14,9 +14,9 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/meichthys/churchit)
 ![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/churchit)
 <br />
-[![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://church.meichthys.com)
+[![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://demo.churchit.app)
 
-[Demo](#-demo) · [Features](#-features) · [Roadmap](#-feature-roadmap) · [Install](#-installing-churchit) · [Get help](https://discord.gg/YxpdU6qM5w)
+[Demo](#-demo) · [Features](#-features) · [Screenshots](https://churchit.app/screenshots.html) · [Roadmap](#-feature-roadmap) · [Install](#-installing-churchit) · [Get help](https://discord.gg/YxpdU6qM5w)
 
 <img width="900" height="504" alt="churchit-tour" src="https://github.com/user-attachments/assets/a636d7d1-6224-4df6-b148-4c3d5818b86e" />
 
@@ -29,7 +29,7 @@
 
 If you would like to test out the current state of the application, you can try our Demo instance. Please keep in mind that this project is under active development and that there will likely be rough edges, bugs, and incomplete features. If you come across any of these, feel free to report them on our [issue tracker](https://github.com/meichthys/churchit/issues).
 
-[![Demo](./churchit/public/media/demo_button.png)](https://church.meichthys.com/login)
+[![Demo](./churchit/public/media/demo_button.png)](https://demo.churchit.app/login)
 
 > When logging in, use the following credentials:
 > ```
@@ -100,12 +100,13 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Prayer request management with status tracking and types
 - Authenticated and anonymous web-form submissions
 - Privacy options (private vs. shared with congregation)
-- Prayer recording with topics referencing requests, people, and verses
+- Prayer recording with topics referencing requests, people, and other records
 
 ### Bible & Study
-- Full Bible book, verse, and reference structure
-- Multiple translation support
-- Bible text fetching
+- A Bible reader in the desk and on the website, one chapter at a time
+- Bible translations that keep their own text: the default one downloads at install, each other free translation downloads itself the first time someone opens it, and a translation that is not free takes an import of a licensed copy that only signed-in users can read
+- Bible references typed as plain text (such as `Romans 8:28-30; Psalm 23`) on churches, bulletins, beliefs, sermon slides and Bible Memory, kept as typed rather than reordered or expanded into verses, with their text from the church's default translation
+- Bible Memory practice in the portal, with passages managers can assign to people and groups
 
 ### Operations
 - Task tracking with document references
@@ -368,6 +369,25 @@ Then append to `patches.txt` (always append, never insert above existing entries
 ```
 churchit.patches.v2_0.remove_old_attendance_type
 ```
+
+## Updating the website screenshots
+
+The [screenshots page](https://churchit.app/screenshots.html) shows real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). Take new pictures when a page in them changes.
+
+1. Use a site that has only the sample data. The script logs in as two sample users: `mary.johnson@example.com` for the desk and `james.wilson@example.com` for the portal. Each password is the email address.
+2. From this app directory, install the browser once, then take the pictures:
+
+   ```bash
+   uvx --from playwright==1.63.0 playwright install chromium
+   uv run docs/screenshots.py                     # every shot
+   uv run docs/screenshots.py rolodex check-in    # only these shots
+   ```
+
+   The script uses `http://churchit.localhost:8000`. Add `--url` to use a different site.
+3. Look at each new image in `docs/assets/screenshots/` before you commit it. Take it again if it shows test records.
+4. If you added, removed or renamed a shot, run `../../env/bin/python docs/build_docs.py`. The `build-docs` workflow also does this after a push.
+
+To add a feature to the page, add a `Shot` to `SHOTS` and take its pictures. A shot can have a desktop picture, a phone picture, or both.
 
 
 # 🔑 License: MIT-0

@@ -1,0 +1,77 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Bible") }}{% endblock %}
+
+{% block page_content %}
+<div class="bible-reader">
+{% if not translations %}
+	<p class="text-muted">{{ _("No Bible translation is ready to read yet.") }}</p>
+{% else %}
+	<form class="bible-picker" method="get" action="/bible">
+		{% if church %}<input type="hidden" name="church" value="{{ church | e }}">{% endif %}
+		<select class="form-control" name="translation" aria-label="{{ _('Translation') }}">
+			{% for option in translations %}
+			<option value="{{ option.name }}" {% if option.name == translation.name %}selected{% endif %}>{{ option.translation | e }}</option>
+			{% endfor %}
+		</select>
+		<select class="form-control" name="book" aria-label="{{ _('Book') }}">
+			{% for option in books %}
+			<option value="{{ option.id }}" {% if option.id == book.id %}selected{% endif %}>{{ option.name | e }}</option>
+			{% endfor %}
+		</select>
+		<select class="form-control" name="chapter" aria-label="{{ _('Chapter') }}">
+			{% for number in range(1, book.chapters + 1) %}
+			<option value="{{ number }}" {% if number == chapter %}selected{% endif %}>{{ number }}</option>
+			{% endfor %}
+		</select>
+		<noscript><button class="btn btn-primary btn-sm">{{ _("Read") }}</button></noscript>
+	</form>
+
+	<h1 class="bible-title">{{ book.name | e }} {{ chapter }}</h1>
+	{#- A line break ends a paragraph; headings and subtitles stand between paragraphs. #}
+	<div class="bible-text" dir="{{ translation.text_direction or 'ltr' }}"><p>
+		{%- for item in content %}
+		{%- if item.type == "heading" %}</p><h3>{{ item.text | e }}</h3><p>
+		{%- elif item.type == "hebrew_subtitle" %}</p><p class="bible-subtitle">{{ item.text | e }}</p><p>
+		{%- elif item.type == "line_break" %}</p><p>
+		{%- elif item.type == "verse" %}<span class="bible-verse"><sup>{{ item.number }}</sup>{{ item.text | e }} </span>
+		{%- endif %}
+		{%- endfor %}
+	</p></div>
+
+	<nav class="bible-pager">
+		{% if previous_url %}<a class="btn btn-default btn-sm" href="{{ previous_url }}">&larr; {{ _("Previous") }}</a>{% endif %}
+		{% if next_url %}<a class="btn btn-default btn-sm ml-auto" href="{{ next_url }}">{{ _("Next") }} &rarr;</a>{% endif %}
+	</nav>
+	<p class="small text-muted">{{ translation.translation | e }}</p>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+	.bible-reader { max-width: 42rem; margin: 0 auto; }
+	.bible-picker { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
+	.bible-picker select { flex: 1 1 8rem; width: auto; }
+	.bible-title { font-size: 2rem; margin-bottom: 1rem; }
+	.bible-text { font-size: 1.125rem; line-height: 1.8; }
+	.bible-text h3 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+	.bible-text p { margin: 0 0 0.75rem; }
+	.bible-text p:empty { display: none; }
+	.bible-text .bible-subtitle { font-style: italic; }
+	.bible-text .bible-verse { white-space: pre-line; }
+	.bible-text sup { opacity: 0.6; margin-right: 0.25em; }
+	.bible-pager { display: flex; margin: 2rem 0 1rem; }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+	document.querySelectorAll(".bible-picker select").forEach((select) => {
+		select.addEventListener("change", () => {
+			if (select.name === "book") select.form.chapter.value = "1";
+			select.form.submit();
+		});
+	});
+</script>
+{% endblock %}

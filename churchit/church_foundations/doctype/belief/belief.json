@@ -66,10 +66,10 @@
    "reqd": 1
   },
   {
+   "description": "The passages this belief rests on, such as Romans 3:23; Ephesians 2:8-9. Separate passages with a semicolon.",
    "fieldname": "bible_references",
-   "fieldtype": "Table",
-   "label": "Bible References",
-   "options": "Belief Bible References"
+   "fieldtype": "Small Text",
+   "label": "Bible References"
   },
   {
    "default": "0",
@@ -82,7 +82,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-09-30 00:00:00",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Belief",

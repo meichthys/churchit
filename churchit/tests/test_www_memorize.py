@@ -5,27 +5,21 @@ import frappe
 from frappe.exceptions import PermissionError, ValidationError
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.tests.helpers import ensure, ensure_user
+from churchit.tests.helpers import ensure_user, make_translation
 from churchit.www.memorize import index, session
 
 
 class TestMemorizePages(FrappeTestCase):
 	def setUp(self):
-		book = ensure(
-			"Bible Book", {"book": "_Test Page Book"}, {"book": "_Test Page Book", "abbreviation": "TPB"}
-		)
-		verse = ensure("Bible Verse", {"name": f"{book} 1:1"}, {"book": book, "chapter": 1, "verse": 1})
-		self.reference = ensure(
-			"Bible Reference", {"start_verse": verse, "end_verse": ["is", "not set"]}, {"start_verse": verse}
-		)
-		frappe.db.set_value("Bible Reference", self.reference, "reference_text", "1. In the beginning")
+		self.translation = make_translation(self, "_TPG", [("GEN", 1, 1, "In the beginning God created.")])
 		self.user = ensure_user("_test_page_learner@example.com", "_Test Page Learner")
 		self.other = ensure_user("_test_page_other@example.com", "_Test Page Other")
-		frappe.db.delete("Bible Memory Item", {"bible_reference": self.reference})
+		frappe.db.delete("Bible Memory Item", {"translation": self.translation})
 		self.item = frappe.get_doc(
 			{
 				"doctype": "Bible Memory Item",
-				"bible_reference": self.reference,
+				"bible_reference": "Genesis 1:1",
+				"translation": self.translation,
 				"user": self.user,
 				"assigned_by": self.other,
 				"progress": 40,
@@ -52,10 +46,9 @@ class TestMemorizePages(FrappeTestCase):
 
 		items = {item["name"]: item for item in context["items"]}
 		self.assertIn(self.item.name, items)
-		self.assertEqual(items[self.item.name]["label"], "_Test Page Book 1:1")
+		self.assertEqual(items[self.item.name]["label"], "Genesis 1:1 (_TPG)")
 		self.assertEqual(items[self.item.name]["assigned_by_label"], "_Test Page Other")
-		self.assertTrue(context["books"])
-		self.assertTrue(context["translations"])
+		self.assertIn(self.translation, [translation.name for translation in context["translations"]])
 
 	def test_index_hides_other_users_items(self):
 		frappe.set_user(self.other)
@@ -71,10 +64,16 @@ class TestMemorizePages(FrappeTestCase):
 		self.assertEqual(context.item_name, self.item.name)
 		self.assertEqual(context.mode, "blur")
 		self.assertEqual(context.progress, 40)
-		self.assertEqual(context.reference_label, "_Test Page Book 1:1")
-		self.assertEqual(context.reference_text, "1. In the beginning")
+		self.assertEqual(context.reference_label, "Genesis 1:1 (_TPG)")
+		self.assertEqual(context.reference_text, "1 In the beginning God created.")
 		self.assertEqual(frappe.parse_json(context.word_mistakes_json), {"2": 1})
 		self.assertTrue(context.no_header)
+
+	def test_session_explains_a_translation_without_text(self):
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Downloading")
+		frappe.local.form_dict = frappe._dict(item=self.item.name)
+		with self.assertRaisesRegex(ValidationError, "no text"):
+			session.get_context(frappe._dict())
 
 	def test_session_rejects_bad_mode_missing_item_and_other_users(self):
 		frappe.local.form_dict = frappe._dict(item=self.item.name, mode="listen")

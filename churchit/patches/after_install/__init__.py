@@ -37,9 +37,9 @@ def execute():
 	_create_group_statuses()
 	_create_default_ministry()
 
-	# Bible reference data
-	_create_bible_books()
+	# Bible translations, and the one the main church reads by default
 	_create_bible_translations()
+	set_default_bible_translation()
 
 	# Module access control
 	_create_module_profile()
@@ -347,97 +347,35 @@ def _create_default_ministry():
 
 
 # ---------------------------------------------------------------------------
-# Bible reference data
+# Bible translations
 # ---------------------------------------------------------------------------
 
+# Translations the Free Use Bible API publishes free to use: abbreviation -> its id there.
+FREE_USE_TRANSLATIONS = {
+	"ASV": "eng_asv",
+	"BBE": "eng_bbe",
+	"BSB": "BSB",
+	"DRB": "eng_dra",
+	"KJV": "eng_kjv",
+	"WEB": "ENGWEBP",
+}
+DEFAULT_BIBLE_TRANSLATION = "BSB"
 
-def _create_bible_books():
-	"""Insert all 66 canonical Bible books with their standard abbreviations.
 
-	The record ``name`` is the full book name (e.g. "Genesis") and
-	``abbreviation`` is the short code used by bible-api.com (e.g. "GEN").
-	"""
-	books = [
-		# Old Testament
-		("Genesis", "GEN"),
-		("Exodus", "EXO"),
-		("Leviticus", "LEV"),
-		("Numbers", "NUM"),
-		("Deuteronomy", "DEU"),
-		("Joshua", "JOS"),
-		("Judges", "JDG"),
-		("Ruth", "RUT"),
-		("1 Samuel", "1SA"),
-		("2 Samuel", "2SA"),
-		("1 Kings", "1KI"),
-		("2 Kings", "2KI"),
-		("1 Chronicles", "1CH"),
-		("2 Chronicles", "2CH"),
-		("Ezra", "EZR"),
-		("Nehemiah", "NEH"),
-		("Esther", "EST"),
-		("Job", "JOB"),
-		("Psalms", "PSA"),
-		("Proverbs", "PRO"),
-		("Ecclesiastes", "ECC"),
-		("Song of Solomon", "SNG"),
-		("Isaiah", "ISA"),
-		("Jeremiah", "JER"),
-		("Lamentations", "LAM"),
-		("Ezekiel", "EZK"),
-		("Daniel", "DAN"),
-		("Hosea", "HOS"),
-		("Joel", "JOL"),
-		("Amos", "AMO"),
-		("Obadiah", "OBA"),
-		("Jonah", "JON"),
-		("Micah", "MIC"),
-		("Nahum", "NAM"),
-		("Habakkuk", "HAB"),
-		("Zephaniah", "ZEP"),
-		("Haggai", "HAG"),
-		("Zechariah", "ZEC"),
-		("Malachi", "MAL"),
-		# New Testament
-		("Matthew", "MAT"),
-		("Mark", "MRK"),
-		("Luke", "LUK"),
-		("John", "JHN"),
-		("Acts", "ACT"),
-		("Romans", "ROM"),
-		("1 Corinthians", "1CO"),
-		("2 Corinthians", "2CO"),
-		("Galatians", "GAL"),
-		("Ephesians", "EPH"),
-		("Philippians", "PHP"),
-		("Colossians", "COL"),
-		("1 Thessalonians", "1TH"),
-		("2 Thessalonians", "2TH"),
-		("1 Timothy", "1TI"),
-		("2 Timothy", "2TI"),
-		("Titus", "TIT"),
-		("Philemon", "PHM"),
-		("Hebrews", "HEB"),
-		("James", "JAS"),
-		("1 Peter", "1PE"),
-		("2 Peter", "2PE"),
-		("1 John", "1JN"),
-		("2 John", "2JN"),
-		("3 John", "3JN"),
-		("Jude", "JUD"),
-		("Revelation", "REV"),
-	]
-	for book_name, abbreviation in books:
-		_insert_if_missing(
-			"Bible Book",
-			{"book": book_name},
-			book=book_name,
-			abbreviation=abbreviation,
-		)
+def should_skip_download(abbreviation, source_id):
+	"""True for every free translation but the site's default, which waits to download its text
+	until a church first opens it (see churchit.scripture.is_readable)."""
+	return bool(source_id) and abbreviation != DEFAULT_BIBLE_TRANSLATION
 
 
 def _create_bible_translations():
-	"""Insert common English Bible translations used by bible-api.com."""
+	"""Seed common English translations.
+
+	The default one (the BSB) downloads its text now. The other free ones download the first
+	time a church opens them (see churchit.scripture.is_readable), so installing the app does
+	not fetch every translation's text up front. The rest wait for a church to import a copy
+	it is licensed to use.
+	"""
 	translations = [
 		("King James Version", "KJV"),
 		("New International Version", "NIV"),
@@ -470,13 +408,30 @@ def _create_bible_translations():
 		("Berean Standard Bible", "BSB"),
 		("Bible in Basic English", "BBE"),
 	]
-	for translation_name, abbreviation in translations:
-		_insert_if_missing(
-			"Bible Translation",
-			{"translation": translation_name},
-			translation=translation_name,
-			abbreviation=abbreviation,
+	for title, abbreviation in translations:
+		if frappe.db.exists("Bible Translation", abbreviation):
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "Bible Translation",
+				"abbreviation": abbreviation,
+				"translation": title,
+				"language": "English",
+				"source": "Free Use Bible API" if abbreviation in FREE_USE_TRANSLATIONS else "User Import",
+				"source_id": FREE_USE_TRANSLATIONS.get(abbreviation),
+			}
 		)
+		doc.flags.skip_download = should_skip_download(abbreviation, FREE_USE_TRANSLATIONS.get(abbreviation))
+		doc.insert(ignore_permissions=True)
+
+
+def set_default_bible_translation():
+	"""Give the main church a default translation, unless it has one."""
+	church = frappe.db.get_value("Church", {"parent_church": ("is", "not set")}, "name")
+	if not church or not frappe.db.exists("Bible Translation", DEFAULT_BIBLE_TRANSLATION):
+		return
+	if not frappe.db.get_value("Church", church, "default_bible_translation"):
+		frappe.db.set_value("Church", church, "default_bible_translation", DEFAULT_BIBLE_TRANSLATION)
 
 
 # ---------------------------------------------------------------------------
@@ -774,6 +729,7 @@ def _setup_portal_settings():
 	"""
 	items = [
 		("Function Sign-Ups", "function-sign-up", "Function Sign-Up", "Church User"),
+		("Bible", "bible", "Bible Translation", "Church User"),
 		("Bible Memory", "memorize", "Bible Memory Item", "Church User"),
 		("Prayer Requests", "prayer-request", "Prayer Request", "Church User"),
 		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
