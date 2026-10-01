@@ -80,6 +80,19 @@
 		});
 	});
 
+	// Feature ribbons: a second copy of each list lets the track loop without a gap.
+	// The copy stays clickable but is hidden from screen readers and the tab order.
+	document.querySelectorAll(".ribbon-track").forEach(function (track) {
+		var copy = track.firstElementChild.cloneNode(true);
+		copy.setAttribute("aria-hidden", "true");
+		copy.removeAttribute("aria-label");
+		copy.querySelectorAll("a").forEach(function (a) {
+			a.tabIndex = -1;
+		});
+		track.appendChild(copy);
+		track.classList.add("is-looping");
+	});
+
 	// Reveal-on-scroll
 	var reveals = document.querySelectorAll(".reveal");
 	if ("IntersectionObserver" in window && reveals.length) {
@@ -103,9 +116,29 @@
 		});
 	}
 
-	// Documentation scrollspy: highlight sidebar link for the section in view
-	var sections = document.querySelectorAll(".doc-section[id]");
-	var navLinks = document.querySelectorAll(".doc-side a[href^='#']");
+	// Screenshots: open a picture full size. Any click or Escape closes it.
+	var zoom = document.querySelector(".shot-zoom");
+	if (zoom && zoom.showModal) {
+		var zoomImage = zoom.querySelector("img");
+		document.querySelectorAll("[data-zoom]").forEach(function (link) {
+			link.addEventListener("click", function (e) {
+				e.preventDefault();
+				var shown = Array.from(link.querySelectorAll("img")).find(function (img) {
+					return img.offsetParent;
+				});
+				zoomImage.src = shown.src;
+				zoomImage.alt = shown.alt;
+				zoom.showModal();
+			});
+		});
+		zoom.addEventListener("click", function () {
+			zoom.close();
+		});
+	}
+
+	// Scrollspy: highlight the documentation sidebar or screenshots tab for the section in view
+	var sections = document.querySelectorAll(".doc-section[id], .shot[id]");
+	var navLinks = document.querySelectorAll(".doc-side a[href^='#'], .shots-nav a[href^='#']");
 	if (sections.length && navLinks.length && "IntersectionObserver" in window) {
 		var map = {};
 		navLinks.forEach(function (a) {

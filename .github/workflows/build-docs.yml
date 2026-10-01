@@ -1,6 +1,6 @@
 # Regenerates the churchit.app pages that are built from repo content
 # (docs/build_docs.py) and commits the result, so the website never drifts
-# from README.md, deploy/README.md, or the in-app manuals.
+# from README.md, deploy/README.md, the in-app manuals, or the screenshot list.
 #
 # Commits made with GITHUB_TOKEN do not trigger other workflows, so this
 # cannot loop or kick off an image build.
@@ -14,7 +14,10 @@ on:
       - deploy/README.md
       - "churchit/*/workspace/manual:_*/*.json"
       - docs/build_docs.py
+      - docs/screenshots.py
+      - docs/assets/screenshots/**
       - docs/_templates/**
+      - docs/index.html # its feature ribbons link to manual anchors the build checks
   workflow_dispatch:
 
 jobs:
@@ -35,7 +38,7 @@ jobs:
 
       - name: Commit regenerated pages
         run: |
-          git add docs/documentation.html docs/getting-started.html
+          git add docs/documentation.html docs/getting-started.html docs/screenshots.html
           if git diff --cached --quiet; then
             echo "Docs already up to date."
             exit 0
