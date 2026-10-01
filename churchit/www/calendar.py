@@ -1,8 +1,13 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from datetime import date
+
 import frappe
 from frappe.utils import add_months, get_time, getdate
+
+from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_scope import church_filters
 
 no_cache = 1
 
@@ -17,7 +22,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_events(start, end):
+def get_events(start: str | date, end: str | date):
 	"""Return published Functions whose start_date falls within [start, end]."""
 	start_date = getdate(start)
 	end_date = getdate(end)
@@ -33,10 +38,9 @@ def get_events(start, end):
 
 	rows = frappe.get_all(
 		"Function",
-		filters={
-			"publish": 1,
-			"start_date": ["between", [start_date, end_date]],
-		},
+		filters=church_filters(
+			selected_church_name(), publish=1, start_date=["between", [start_date, end_date]]
+		),
 		fields=[
 			"name",
 			"function_name",

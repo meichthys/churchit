@@ -1,5 +1,7 @@
 import frappe
+from frappe import _
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -15,25 +17,25 @@ def get_columns():
 		{
 			"fieldname": "status",
 			"fieldtype": "Link",
-			"label": "Status",
+			"label": _("Status"),
 			"options": "Prayer Request Status",
 			"width": 120,
 		},
 		{
 			"fieldname": "type",
 			"fieldtype": "Link",
-			"label": "Type",
+			"label": _("Type"),
 			"options": "Prayer Request Type",
 			"width": 120,
 		},
 		{
 			"fieldname": "recipient",
 			"fieldtype": "Dynamic Link",
-			"label": "Recipient",
+			"label": _("Recipient"),
 			"options": "recipient_type",
 			"width": 150,
 		},
-		{"fieldname": "details", "fieldtype": "Data", "label": "Details", "width": 300},
+		{"fieldname": "details", "fieldtype": "Data", "label": _("Details"), "width": 300},
 	]
 
 
@@ -42,11 +44,11 @@ def get_data(filters):
 
 	Prayer = frappe.qb.DocType("Prayer Request")
 
-	return (
+	query = (
 		frappe.qb.from_(Prayer)
 		.select(
 			Prayer.status, Prayer.type, Prayer.recipient_type, Prayer.recipient, Prayer.request.as_("details")
 		)
 		.where((Prayer.creation > request_since) & (Prayer.status == "answered"))
-		.run(as_dict=True)
 	)
+	return scoped(query, Prayer, filters).run(as_dict=True)

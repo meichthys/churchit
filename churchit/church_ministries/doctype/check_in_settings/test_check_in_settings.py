@@ -115,3 +115,51 @@ class TestCheckInSettings(FrappeTestCase):
 		html = frappe.get_print("Function Check-In", check_in.name, "Name Tag")
 		self.assertIn("Bartholomew-Alexander", html)
 		self.assertIn("page-width: 4.0in; page-height: 2.0in", html)
+
+
+class TestPrinterPerChurch(FrappeTestCase):
+	"""Each campus has its own label printer, so one host cannot serve them all."""
+
+	def setUp(self):
+		self.settings = frappe.get_single("Check-In Settings")
+		self.settings.update(
+			{
+				"name_tag_printing": "Network Printer",
+				"printer_host": "10.0.0.5",
+				"printer_port": 9100,
+				"printer_name": "Main Desk",
+				"label_width": 4,
+				"label_height": 2,
+			}
+		)
+		self.settings.set("printers", [])
+
+	def test_a_church_without_a_row_keeps_the_site_wide_printer(self):
+		resolved = self.settings.for_church("CHR-BRANCH")
+		self.assertEqual(resolved.printer_host, "10.0.0.5")
+		self.assertIs(resolved, self.settings, "no row means no copy is needed")
+
+	def test_a_church_with_a_row_prints_to_its_own_printer(self):
+		self.settings.append(
+			"printers",
+			{"church": "CHR-BRANCH", "printer_host": "10.9.9.9", "printer_name": "Hall Printer"},
+		)
+
+		resolved = self.settings.for_church("CHR-BRANCH")
+		self.assertEqual(resolved.printer_host, "10.9.9.9")
+		self.assertEqual(resolved.printer_name, "Hall Printer")
+		# Fields the row leaves blank still come from the settings above it.
+		self.assertEqual(resolved.printer_port, 9100)
+		self.assertEqual(resolved.name_tag_printing, "Network Printer")
+		self.assertEqual(resolved.label_width, 4)
+
+	def test_resolving_leaves_the_stored_settings_alone(self):
+		self.settings.append("printers", {"church": "CHR-BRANCH", "printer_host": "10.9.9.9"})
+
+		self.settings.for_church("CHR-BRANCH")
+
+		self.assertEqual(self.settings.printer_host, "10.0.0.5")
+
+	def test_another_church_is_unaffected(self):
+		self.settings.append("printers", {"church": "CHR-BRANCH", "printer_host": "10.9.9.9"})
+		self.assertEqual(self.settings.for_church("CHR-OTHER").printer_host, "10.0.0.5")

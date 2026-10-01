@@ -1,4 +1,4 @@
-{%- set header = statement_header() -%}
+{%- set header = statement_header(doc.church) -%}
 <div class="statement">
 	<div class="statement-head">
 		<div>
@@ -8,7 +8,7 @@
 		</div>
 		<div class="statement-label">
 			<div class="doc-title">Contribution Statement</div>
-			<div class="period">{{ frappe.format(doc.from_date, {"fieldtype": "Date"}) }} &ndash;
+			<div class="period">{{ frappe.format(doc.from_date, {"fieldtype": "Date"}) }} to
 				{{ frappe.format(doc.to_date, {"fieldtype": "Date"}) }}</div>
 		</div>
 	</div>

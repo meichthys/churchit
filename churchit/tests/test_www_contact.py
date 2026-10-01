@@ -9,6 +9,15 @@ from churchit.tests.helpers import make_address
 from churchit.www.contact import get_context
 
 
+def fresh_church():
+	"""The Church loaded outside the document cache, which get_church() shares process-wide.
+
+	Saving the cached copy leaves it holding a timestamp the rolled-back row no
+	longer has, and the next save fails as a stale document.
+	"""
+	return frappe.get_doc("Church", get_church().name)
+
+
 def contact_settings(**values):
 	settings = frappe.get_doc("Contact Us Settings")
 	settings.update({"is_disabled": 0, **values})
@@ -17,7 +26,7 @@ def contact_settings(**values):
 
 class TestContactPage(FrappeTestCase):
 	def setUp(self):
-		church = get_church()
+		church = fresh_church()
 		church.address = make_address("_Test Church Contact", address_line1="12 Chapel Rd").name
 		church.save(ignore_permissions=True)
 		contact_settings(
@@ -38,7 +47,7 @@ class TestContactPage(FrappeTestCase):
 		self.assertEqual(context["city"], "Elsewhere")
 
 	def test_leaves_stale_contact_fields_out_when_the_church_has_no_address(self):
-		church = get_church()
+		church = fresh_church()
 		church.address = None
 		church.save(ignore_permissions=True)
 		context = get_context(frappe._dict())

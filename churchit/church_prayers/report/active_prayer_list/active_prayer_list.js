@@ -1,3 +1,3 @@
 frappe.query_reports["Active Prayer List"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 };

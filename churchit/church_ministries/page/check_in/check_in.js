@@ -218,11 +218,16 @@ class CheckInStation {
 			this.render_results();
 			return;
 		}
-		frappe.call({ method: `${API}.search_people`, args: { query } }).then((r) => {
-			if (this.$search.val().trim() !== query) return;
-			this.groups = r.message || [];
-			this.render_results();
-		});
+		frappe
+			.call({
+				method: `${API}.search_people`,
+				args: { query, function: this.function },
+			})
+			.then((r) => {
+				if (this.$search.val().trim() !== query) return;
+				this.groups = r.message || [];
+				this.render_results();
+			});
 	}
 
 	render_results() {

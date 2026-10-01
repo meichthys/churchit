@@ -1,6 +1,8 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Sum
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -13,10 +15,10 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "fund", "fieldtype": "Link", "label": "Fund", "options": "Fund", "width": 220},
-		{"fieldname": "income", "fieldtype": "Currency", "label": "Income", "width": 140},
-		{"fieldname": "expense", "fieldtype": "Currency", "label": "Expense", "width": 140},
-		{"fieldname": "net", "fieldtype": "Currency", "label": "Net", "width": 140},
+		{"fieldname": "fund", "fieldtype": "Link", "label": _("Fund"), "options": "Fund", "width": 220},
+		{"fieldname": "income", "fieldtype": "Currency", "label": _("Income"), "width": 140},
+		{"fieldname": "expense", "fieldtype": "Currency", "label": _("Expense"), "width": 140},
+		{"fieldname": "net", "fieldtype": "Currency", "label": _("Net"), "width": 140},
 	]
 
 
@@ -28,29 +30,23 @@ def get_data(filters=None):
 	Collection = frappe.qb.DocType("Collection")
 	Expense = frappe.qb.DocType("Expense")
 
-	income = {
-		r["fund"]: r["total"]
-		for r in (
-			frappe.qb.from_(Donation)
-			.join(Collection)
-			.on(Collection.name == Donation.parent)
-			.select(Donation.fund, Sum(Donation.amount).as_("total"))
-			.where((Collection.docstatus == 1) & Collection.date[from_date:to_date])
-			.groupby(Donation.fund)
-			.run(as_dict=True)
-		)
-	}
+	income_query = (
+		frappe.qb.from_(Donation)
+		.join(Collection)
+		.on(Collection.name == Donation.parent)
+		.select(Donation.fund, Sum(Donation.amount).as_("total"))
+		.where((Collection.docstatus == 1) & Collection.date[from_date:to_date])
+		.groupby(Donation.fund)
+	)
+	income = {r["fund"]: r["total"] for r in scoped(income_query, Collection, filters).run(as_dict=True)}
 
-	expenses = {
-		r["fund"]: r["total"]
-		for r in (
-			frappe.qb.from_(Expense)
-			.select(Expense.associated_fund.as_("fund"), Sum(Expense.amount).as_("total"))
-			.where((Expense.docstatus == 1) & Expense.date[from_date:to_date])
-			.groupby(Expense.associated_fund)
-			.run(as_dict=True)
-		)
-	}
+	expense_query = (
+		frappe.qb.from_(Expense)
+		.select(Expense.associated_fund.as_("fund"), Sum(Expense.amount).as_("total"))
+		.where((Expense.docstatus == 1) & Expense.date[from_date:to_date])
+		.groupby(Expense.associated_fund)
+	)
+	expenses = {r["fund"]: r["total"] for r in scoped(expense_query, Expense, filters).run(as_dict=True)}
 
 	funds = sorted(set(income) | set(expenses))
 	rows = []

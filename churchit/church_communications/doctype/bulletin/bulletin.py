@@ -9,6 +9,8 @@ from frappe.utils.print_format import download_pdf as download_print_pdf
 
 from churchit.church_communications.doctype.bulletin.sections import BulletinSections
 from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
+from churchit.church_scope import church_filters
+from churchit.scripture import format_reference
 
 PRINT_FORMAT = "Bulletin"
 
@@ -31,6 +33,7 @@ SECTION_FIELDS = (
 class Bulletin(BulletinSections, Document):
 	def validate(self):
 		self.title = f"{self.function_name} ({formatdate(self.function_date)})"
+		self.verse = format_reference(self.verse)
 		self.validate_missionary_is_printable()
 		self.validate_prayer_requests_are_printable()
 
@@ -62,37 +65,38 @@ class Bulletin(BulletinSections, Document):
 			self.set(field, self.settings.get(field))
 		if not self.function:
 			return
-		self.function_date = frappe.db.get_value("Function", self.function, "start_date")
+		self.function_date, church = frappe.db.get_value("Function", self.function, ["start_date", "church"])
 		self.missionary = missionary_of_the_week(
-			self.function_date, self.settings.include_sensitive_missionaries
+			self.function_date, self.settings.include_sensitive_missionaries, church
 		)
-		self.set("prayer_requests", open_prayer_requests())
+		self.set("prayer_requests", open_prayer_requests(church))
 
 
-def missionary_of_the_week(on_date, include_sensitive=False):
+def missionary_of_the_week(on_date, include_sensitive=False, church=None):
 	"""Rotate week by week, in title order, through the missionaries supported on *on_date*."""
-	supported = supported_missionaries(on_date, include_sensitive)
+	supported = supported_missionaries(on_date, include_sensitive, church)
 	if not supported:
 		return None
 	return supported[getdate(on_date).toordinal() // 7 % len(supported)]
 
 
-def supported_missionaries(on_date, include_sensitive=False):
+def supported_missionaries(on_date, include_sensitive=False, church=None):
 	"""Names of the missionaries whose support has not ended by *on_date*, in title order."""
+	filters = church_filters(church) if include_sensitive else church_filters(church, sensitive=0)
 	return frappe.get_all(
 		"Missionary",
-		filters={} if include_sensitive else {"sensitive": 0},
+		filters=filters,
 		or_filters=[["support_end_date", "is", "not set"], ["support_end_date", ">=", on_date]],
 		order_by="title asc",
 		pluck="name",
 	)
 
 
-def open_prayer_requests():
+def open_prayer_requests(church=None):
 	"""Rows for every request that is neither private, closed, nor past its end date, urgent ones first."""
 	return frappe.get_all(
 		"Prayer Request",
-		filters={"is_private": 0, "status": ("not in", CLOSED_STATUSES)},
+		filters=church_filters(church, is_private=0, status=("not in", CLOSED_STATUSES)),
 		or_filters=[["end_date", "is", "not set"], ["end_date", ">=", now_datetime()]],
 		fields=["name as prayer_request", "title", "recipient_name"],
 		order_by="urgent desc, creation desc",
@@ -100,9 +104,12 @@ def open_prayer_requests():
 
 
 @frappe.whitelist()
-def get_defaults(function=None):
+def get_defaults(function: str | None = None):
 	"""A new bulletin's sections, missionary and prayer requests, for the form to fill in before the first save."""
 	frappe.has_permission("Bulletin", "write", throw=True)
+	if function:
+		# The defaults are read from the function's church, so the caller must be able to see it.
+		frappe.has_permission("Function", doc=function, throw=True)
 	bulletin = frappe.new_doc("Bulletin")
 	bulletin.function = function
 	bulletin.apply_defaults()
@@ -115,7 +122,7 @@ def get_defaults(function=None):
 
 
 @frappe.whitelist()
-def download_pdf(name):
+def download_pdf(name: str):
 	"""The bulletin as a PDF named after its date, for the portal."""
 	download_print_pdf("Bulletin", name, format=PRINT_FORMAT, no_letterhead=1)
 	function_date = frappe.db.get_value("Bulletin", name, "function_date")

@@ -35,7 +35,8 @@
    "fieldname": "template_function",
    "fieldtype": "Link",
    "label": "Template Function",
-   "options": "Function"
+   "options": "Function",
+   "ignore_user_permissions": 1
   },
   {
    "fieldname": "section_break_pepr",
@@ -50,7 +51,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-04-19 18:17:01.090420",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",
@@ -81,6 +82,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "quick_entry": 1,

@@ -18,10 +18,18 @@ The type of a contact row ("Home", "Work", ...) is a link to a user-editable
 lookup doctype, so no code in this app may branch on a specific type name.
 Which row the church actually uses is carried by the ``is_primary`` flag. For
 addresses only, ``is_mailing_address`` says where paper mail goes.
+
+An email address or phone number identifies one person, so it may sit on one
+record of each doctype only. Anyone else using it, such as a spouse on a
+shared email, carries it on a row ticked ``is_shared`` (see
+:func:`get_other_holder`).
 """
+
+import re
 
 import frappe
 from frappe import _
+from frappe.utils import get_link_to_form
 from pypika import Order
 
 # Parent fieldname -> child doctype
@@ -43,6 +51,9 @@ CONTACT_TABLES = (
 	(PHONE_FIELD, PHONE_DOCTYPE, "phone_number", "phone number"),
 	(ADDRESS_FIELD, ADDRESS_DOCTYPE, "address", "address"),
 )
+
+# Tables whose values identify one person. A household shares its address, so it is not here.
+UNIQUE_CONTACT_FIELDS = (EMAIL_FIELD, PHONE_FIELD)
 
 
 # Sane starting points for the three type lookups. Churches are free to rename,
@@ -160,21 +171,26 @@ def get_mailing_address(parenttype, parent):
 
 
 def get_primary_emails(parenttype, parents):
-	"""Map ``{parent: primary email}`` for many records in one query.
+	"""Map ``{parent: primary email}`` for many records in one query."""
+	return get_primary_values(EMAIL_DOCTYPE, "email_address", parenttype, parents)
 
-	Records with no email on file are absent from the map. Rows are ordered so
+
+def get_primary_values(child_doctype, value_field, parenttype, parents):
+	"""Map ``{parent: primary value}`` of one contact table for many records in one query.
+
+	Records with nothing on file are absent from the map. Rows are ordered so
 	the primary one is written last and therefore wins.
 	"""
 	parents = [p for p in (parents or []) if p]
 	if not parents:
 		return {}
 	rows = frappe.get_all(
-		EMAIL_DOCTYPE,
+		child_doctype,
 		filters={"parenttype": parenttype, "parent": ("in", parents)},
-		fields=["parent", "email_address"],
+		fields=["parent", value_field],
 		order_by="is_primary asc, idx desc",
 	)
-	return {r.parent: r.email_address for r in rows if r.email_address}
+	return {row.parent: row[value_field] for row in rows if row[value_field]}
 
 
 # ---------------------------------------------------------------------------
@@ -232,10 +248,12 @@ def validate_contact_tables(doc):
 	"""
 	before = doc.get_doc_before_save()
 
-	for fieldname, _child_doctype, value_field, label in CONTACT_TABLES:
+	for fieldname, child_doctype, value_field, label in CONTACT_TABLES:
 		rows = doc.get(fieldname) or []
 		_trim_values(rows, value_field)
-		_reject_duplicates(rows, value_field, label)
+		_reject_duplicates(rows, child_doctype, value_field, label)
+		if fieldname in UNIQUE_CONTACT_FIELDS:
+			_reject_values_held_elsewhere(doc, rows, child_doctype, value_field, label)
 		_ensure_single_flag(
 			rows,
 			"is_primary",
@@ -280,19 +298,77 @@ def _trim_values(rows, value_field):
 			row.set(value_field, value.strip())
 
 
-def _reject_duplicates(rows, value_field, label):
+def contact_key(child_doctype, value):
+	"""Comparison key for a contact value: a phone number by its digits, anything else case-insensitively."""
+	if child_doctype == PHONE_DOCTYPE:
+		digits = re.sub(r"\D", "", value)
+		if digits:
+			return digits
+	return value.lower()
+
+
+def _reject_duplicates(rows, child_doctype, value_field, label):
 	seen = set()
 	for row in rows:
 		value = row.get(value_field)
 		if not value:
 			continue
-		key = value.lower() if isinstance(value, str) else value
+		key = contact_key(child_doctype, value)
 		if key in seen:
 			frappe.throw(
 				_("{0} is listed twice. Please remove the duplicate {1}.").format(frappe.bold(value), label),
 				title=_("Duplicate {0}").format(label.title()),
 			)
 		seen.add(key)
+
+
+def _reject_values_held_elsewhere(doc, rows, child_doctype, value_field, label):
+	"""Refuse an unshared email or phone that another record of the same doctype already holds."""
+	for row in rows:
+		value = row.get(value_field)
+		if not value or row.get("is_shared"):
+			continue
+		holder = get_other_holder(doc, child_doctype, value_field, value)
+		if holder:
+			frappe.throw(
+				_(
+					"{0} is already on {1}. If this is the same person, update that record instead. "
+					"If they share it, tick Shared on this row."
+				).format(frappe.bold(value), _describe_holder(doc.doctype, holder)),
+				title=_("{0} Already in Use").format(label.title()),
+			)
+
+
+def get_other_holder(doc, child_doctype, value_field, value):
+	"""Name of another record of *doc*'s doctype holding *value* on an unshared row, or ``None``.
+
+	Phone numbers match however they are formatted, the way check-in search does:
+	the query finds every number with the same digits in order, and the key
+	comparison then drops the ones with extra digits.
+	"""
+	key = contact_key(child_doctype, value)
+	candidate = ("like", "%" + "%".join(key) + "%") if key.isdigit() else value
+	# church-scope: one person must not be entered twice, whichever church entered them first
+	rows = frappe.get_all(
+		child_doctype,
+		filters={
+			"parenttype": doc.doctype,
+			"parent": ("!=", doc.name or ""),
+			"is_shared": 0,
+			value_field: candidate,
+		},
+		fields=["parent", value_field],
+		order_by="creation asc",
+	)
+	return next((row.parent for row in rows if contact_key(child_doctype, row[value_field]) == key), None)
+
+
+def _describe_holder(doctype, name):
+	"""A link to *name* when the user may read it, otherwise words that reveal nothing about it."""
+	if not frappe.has_permission(doctype, doc=name):
+		return _("another {0} record").format(_(doctype))
+	title = frappe.db.get_value(doctype, name, frappe.get_meta(doctype).get_title_field())
+	return get_link_to_form(doctype, name, title)
 
 
 def _ensure_single_flag(rows, flag, flagged_before, default_to_first):
@@ -329,7 +405,7 @@ def _ensure_single_flag(rows, flag, flagged_before, default_to_first):
 
 
 @frappe.whitelist()
-def get_emails_for(parenttype, parents):
+def get_emails_for(parenttype: str, parents: str | list[str]):
 	"""Return ``{"emails": [...], "missing": [...]}`` for a set of records.
 
 	Used by the Group form's "Email Members" action, which needs a mailto list

@@ -78,9 +78,9 @@ frappe.ready(function () {
 		$dd.empty().hide();
 	});
 
-	// Populate recipient_type with church app doctypes, then handle defaults
+	// Populate recipient_type with the doctypes a request may name, then handle defaults
 	frappe.call({
-		method: "churchit.church_website.api.get_church_doctypes",
+		method: "churchit.church_website.api.get_recipient_doctypes",
 		args: {},
 		callback: function (r) {
 			// CHECK: If the input doesn't exist (read-only mode), just stop here.

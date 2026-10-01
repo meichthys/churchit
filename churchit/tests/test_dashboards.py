@@ -12,9 +12,10 @@ from frappe.utils import add_days, add_years, getdate, now
 from churchit.church_finances.dashboard_chart_source.finance_summary import finance_summary
 from churchit.church_finances.dashboard_chart_source.fund_goal_progress import fund_goal_progress
 from churchit.church_finances.dashboard_chart_source.giving_by_fund import giving_by_fund
+from churchit.church_people.dashboard_chart_source.people_added import people_added
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
-from churchit.dashboard import count_weekly_attendance
+from churchit.dashboard import bucket_label, count_weekly_attendance, time_buckets
 from churchit.tests.helpers import ensure, make_function, make_person
 
 
@@ -99,7 +100,7 @@ class TestFinanceChartSources(FrappeTestCase):
 		self.assertEqual(totals.get("_Test Giving Chart Fund"), 50.0)
 
 	def test_finance_summary_buckets_and_labels(self):
-		buckets = finance_summary._buckets("Select Date Range", "Monthly", "2030-01-15", "2030-03-10")
+		buckets = time_buckets("Select Date Range", "Monthly", "2030-01-15", "2030-03-10")
 		self.assertEqual(
 			buckets,
 			[
@@ -109,12 +110,27 @@ class TestFinanceChartSources(FrappeTestCase):
 			],
 		)
 
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Yearly"), "2030")
-		self.assertEqual(finance_summary._label(date(2030, 4, 1), "Monthly"), "Apr 2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Yearly"), "2030")
+		self.assertEqual(bucket_label(date(2030, 4, 1), "Monthly"), "Apr 2030")
 
 	def test_finance_summary_returns_aligned_series(self):
 		chart = finance_summary.get(timespan="Last Quarter", time_interval="Monthly")
 		self.assertEqual([d["name"] for d in chart["datasets"]], ["Collections", "Expenses"])
 		for dataset in chart["datasets"]:
 			self.assertEqual(len(dataset["values"]), len(chart["labels"]))
+
+
+class TestPeopleAddedChart(FrappeTestCase):
+	def test_a_person_added_on_the_first_of_a_month_is_counted_once(self):
+		person = make_person("_Test Added On The First")
+		frappe.db.set_value("Person", person.name, "creation", "2011-02-01 09:00:00", update_modified=False)
+
+		chart = people_added.get(
+			timespan="Select Date Range",
+			time_interval="Monthly",
+			from_date="2011-01-01",
+			to_date="2011-02-28",
+		)
+
+		self.assertEqual(chart["datasets"][0]["values"], [0, 1])

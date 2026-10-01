@@ -1,5 +1,6 @@
 frappe.query_reports["Income Statement"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "from_date",
 			label: __("From Date"),

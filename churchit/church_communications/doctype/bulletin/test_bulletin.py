@@ -11,8 +11,9 @@ from churchit.church_communications.doctype.bulletin.bulletin import (
 	missionary_of_the_week,
 	supported_missionaries,
 )
+from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
-from churchit.tests.helpers import ensure, make_function, make_person
+from churchit.tests.helpers import ensure, make_function, make_person, make_translation
 
 FUNCTION_DATE = "2031-05-04"
 
@@ -211,17 +212,19 @@ class TestBulletin(FrappeTestCase):
 		self.assertIn('class="blank"', handouts[0].handout.rendered_content)
 
 	def test_church_verse_comes_from_the_church_record(self):
-		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
-		church.church_verse = self.make_bible_reference("Whoever believes in him shall not perish.")
+		translation = self.use_translation([("JHN", 3, 16, "Whoever believes in him shall not perish.")])
+		church = frappe.get_doc("Church", get_church().name)
+		church.church_verse = "jn 3:16"
 		church.save(ignore_permissions=True)
 		self.addCleanup(frappe.db.set_value, "Church", church.name, "church_verse", None)
+		self.assertEqual(church.church_verse, "John 3:16")
 		self.settings.show_church_verse = 1
 		self.settings.save(ignore_permissions=True)
 
 		bulletin = self.make_bulletin()
 
 		self.assertEqual(bulletin.show_church_verse, 1)
-		self.assertEqual(bulletin.church_verse.name, church.church_verse)
+		self.assertEqual(bulletin.church_verse.reference, f"John 3:16 ({translation})")
 		self.assertIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
 		bulletin.show_church_verse = 0
@@ -229,7 +232,7 @@ class TestBulletin(FrappeTestCase):
 		self.assertNotIn("Whoever believes", frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
 	def test_church_image_comes_from_the_church_record(self):
-		church = frappe.get_doc("Church", frappe.db.get_value("Church", {}, "name"))
+		church = frappe.get_doc("Church", get_church().name)
 		church.image = "/files/_test_church_logo.png"
 		church.save(ignore_permissions=True)
 		self.addCleanup(frappe.db.set_value, "Church", church.name, "image", None)
@@ -246,16 +249,36 @@ class TestBulletin(FrappeTestCase):
 		bulletin.save(ignore_permissions=True)
 		self.assertNotIn('class="church-image"', frappe.get_print("Bulletin", bulletin.name, "Bulletin"))
 
-	def make_bible_reference(self, reference_text):
-		book = ensure(
-			"Bible Book",
-			{"book": "_Test Bulletin Book"},
-			{"book": "_Test Bulletin Book", "abbreviation": "TBB"},
+	def test_contact_information_prefers_the_churchs_own_phone_and_email(self):
+		church = frappe.get_doc("Church", get_church().name)
+		church.phone = "555-0199"
+		church.email = "office@branch.example.com"
+		church.save(ignore_permissions=True)
+
+		contact = self.make_bulletin().contact_information
+
+		self.assertEqual((contact.phone, contact.email), ("555-0199", "office@branch.example.com"))
+
+	def test_verse_of_the_week_is_printed_with_its_text_when_there_is_one(self):
+		translation = self.use_translation([("JHN", 3, 16, "For God so loved the world.")])
+		bulletin = self.make_bulletin(verse="jn 3:16")
+
+		self.assertEqual(bulletin.verse, "John 3:16")
+		self.assertEqual(
+			bulletin.verse_of_the_week,
+			{"reference": f"John 3:16 ({translation})", "text": "16 For God so loved the world."},
 		)
-		verse = ensure("Bible Verse", {"name": f"{book} 3:16"}, {"book": book, "chapter": 3, "verse": 16})
-		name = ensure("Bible Reference", {"start_verse": verse}, {"start_verse": verse})
-		frappe.db.set_value("Bible Reference", name, "reference_text", reference_text)
-		return name
+		frappe.db.set_value("Bible Translation", translation, "status", "No Text")
+		self.assertEqual(bulletin.verse_of_the_week, {"reference": "John 3:16", "text": None})
+
+	def use_translation(self, rows):
+		"""Make the bulletin church read a test translation holding *rows*."""
+		translation = make_translation(self, "_TBV", rows)
+		church = get_church().name
+		original = frappe.db.get_value("Church", church, "default_bible_translation")
+		frappe.db.set_value("Church", church, "default_bible_translation", translation)
+		self.addCleanup(frappe.db.set_value, "Church", church, "default_bible_translation", original)
+		return translation
 
 	def test_print_format_renders_every_section(self):
 		self.settings.set("roles", [{"position_type": ensure("Position Type", {"position": "_Test Pastor"})}])

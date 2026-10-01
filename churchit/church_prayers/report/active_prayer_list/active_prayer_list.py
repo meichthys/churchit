@@ -1,8 +1,10 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Coalesce
 from pypika import Order
 
 from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
+from churchit.church_scope import scoped
 from churchit.query import CurDate, DateDiff
 from churchit.utils import set_report_link_titles
 
@@ -19,31 +21,31 @@ def get_columns():
 		{
 			"fieldname": "name",
 			"fieldtype": "Link",
-			"label": "Request",
+			"label": _("Request"),
 			"options": "Prayer Request",
 			"width": 180,
 		},
-		{"fieldname": "title", "fieldtype": "Data", "label": "Title", "width": 240},
+		{"fieldname": "title", "fieldtype": "Data", "label": _("Title"), "width": 240},
 		{
 			"fieldname": "type",
 			"fieldtype": "Link",
-			"label": "Type",
+			"label": _("Type"),
 			"options": "Prayer Request Type",
 			"width": 130,
 		},
-		{"fieldname": "urgent", "fieldtype": "Check", "label": "Urgent", "width": 70},
+		{"fieldname": "urgent", "fieldtype": "Check", "label": _("Urgent"), "width": 70},
 		{
 			"fieldname": "requestor",
 			"fieldtype": "Link",
-			"label": "Requestor",
+			"label": _("Requestor"),
 			"options": "Person",
 			"width": 200,
 		},
-		{"fieldname": "days_open", "fieldtype": "Int", "label": "Days Open", "width": 100},
+		{"fieldname": "days_open", "fieldtype": "Int", "label": _("Days Open"), "width": 100},
 		{
 			"fieldname": "status",
 			"fieldtype": "Link",
-			"label": "Status",
+			"label": _("Status"),
 			"options": "Prayer Request Status",
 			"width": 140,
 		},
@@ -53,7 +55,7 @@ def get_columns():
 def get_data(filters=None):
 	Prayer = frappe.qb.DocType("Prayer Request")
 
-	return (
+	query = (
 		frappe.qb.from_(Prayer)
 		.select(
 			Prayer.name,
@@ -67,5 +69,5 @@ def get_data(filters=None):
 		.where(Coalesce(Prayer.status, "").notin(list(CLOSED_STATUSES)))
 		.orderby(Prayer.urgent, order=Order.desc)
 		.orderby(Prayer.creation, order=Order.desc)
-		.run(as_dict=True)
 	)
+	return scoped(query, Prayer, filters).run(as_dict=True)

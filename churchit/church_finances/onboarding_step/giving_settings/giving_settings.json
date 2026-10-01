@@ -1,5 +1,5 @@
 {
- "action": "Go to Page",
+ "action": "Show Form Tour",
  "action_label": "Configure Online Giving",
  "creation": "2026-06-27 00:00:00.000000",
  "description": "Giving Settings powers the public /give webpage, controlling gateways, funds, and messaging. It also sets how contribution statements are grouped and worded.",
@@ -10,7 +10,7 @@
  "is_complete": 0,
  "is_single": 1,
  "is_skipped": 0,
- "modified": "2026-09-12 00:40:00.000000",
+ "modified": "2026-09-25 21:00:00.000000",
  "modified_by": "Administrator",
  "name": "Giving Settings",
  "owner": "Administrator",
@@ -18,6 +18,5 @@
  "show_form_tour": 1,
  "show_full_form": 1,
  "title": "Giving",
- "validate_action": 1,
- "path": "/app/giving-settings/Giving Settings"
+ "validate_action": 1
 }

@@ -7,7 +7,7 @@ frappe.ui.form.on("Collection", {
 		// Add 'Bank Reconciliation Report' button
 		frm.add_custom_button(__("Bank Reconciliation Report"), function () {
 			if (frm.is_new()) {
-				frappe.show_alert("Save the Collection first!");
+				frappe.show_alert(__("Save the Collection first!"));
 				return;
 			}
 			frappe.set_route("query-report", "Collection Bank Reconciliation", {

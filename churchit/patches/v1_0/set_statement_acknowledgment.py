@@ -7,7 +7,7 @@ A DocType default only fills a new record, and Giving Settings is a Single that
 already exists everywhere, so upgrading sites would print statements with the
 acknowledgment missing. US churches need that sentence for gifts of $250 or more
 (IRS Publication 1771), so an empty value is a compliance problem rather than a
-cosmetic one. Only fills a blank value — a church that has worded its own keeps it.
+cosmetic one. Only fills a blank value, so a church that has worded its own keeps it.
 """
 
 import frappe

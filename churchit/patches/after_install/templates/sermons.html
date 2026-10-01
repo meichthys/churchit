@@ -1,16 +1,15 @@
 <div class="row justify-content-center">
-
 {%- set published_sermons = frappe.get_all(
     "Sermon",
     fields=["name", "title", "notes", "audio_recording", "prepared_by", "series"],
-    filters={"publish": 1},
+    filters=selected_church_filters(publish=1),
     ignore_permissions=True,
     order_by="modified desc"
 ) -%}
 {%- set published_series = frappe.get_all(
     "Sermon Series",
     fields=["name", "series_name", "description"],
-    filters={"publish": 1},
+    filters=selected_church_filters(publish=1),
     ignore_permissions=True,
     order_by="start_date desc"
 ) -%}

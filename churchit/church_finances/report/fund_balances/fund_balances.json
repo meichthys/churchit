@@ -24,7 +24,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2026-03-24 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund Balances",
@@ -35,10 +35,13 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Church User"
+   "role": "System Manager"
   },
   {
    "role": "Church Manager"
+  },
+  {
+   "role": "Church Finance"
   }
  ],
  "timeout": 0

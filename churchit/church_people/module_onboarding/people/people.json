@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-06-27 00:00:00.000000",
+ "modified": "2026-09-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
@@ -30,6 +30,15 @@
   },
   {
    "step": "Visitation Log"
+  },
+  {
+   "step": "Care Assignment"
+  },
+  {
+   "step": "Care Request"
+  },
+  {
+   "step": "Background Check"
   }
  ],
  "subtitle": "People, families, groups, and pastoral care.",

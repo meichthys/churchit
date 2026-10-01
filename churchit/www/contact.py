@@ -3,7 +3,11 @@
 
 from frappe.www import contact
 
-from churchit.church_foundations.doctype.church.church import ADDRESS_FIELDS, get_church_address
+from churchit.church_foundations.doctype.church.church import (
+	ADDRESS_FIELDS,
+	church_contact_details,
+	get_church_address,
+)
 
 sitemap = 1
 
@@ -14,4 +18,6 @@ def get_context(context):
 	if not out.get("contact_address_differs"):
 		out.update({field: None for field in ADDRESS_FIELDS})
 		out.update(get_church_address() or {})
+	details = church_contact_details()
+	out.update({"phone": details.phone, "email_id": details.email})
 	return out

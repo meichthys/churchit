@@ -1,19 +1,35 @@
-[![Discord](https://img.shields.io/discord/1513373810685116466?logo=discord&label=Discord)](https://discord.gg/AJHKHQXp) [![Matrix](https://img.shields.io/matrix/the-church-app%3Amatrix.org?label=Matrix%20Chat)](https://matrix.to/#/#the-church-app:matrix.org) [![Static Badge](https://img.shields.io/badge/YouTube%20-%20red?style=flat)](https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg) [![GitHub License](https://img.shields.io/github/license/meichthys/churchit)](https://github.com/meichthys/churchit?tab=readme-ov-file#-license-mit) ![GitHub contributors](https://img.shields.io/github/contributors/meichthys/churchit) ![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/churchit) [![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://church.meichthys.com)
+<div align="center">
 
-> [!NOTE]
-> **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/AJHKHQXp)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/churchit/issues/new).
+<img src="./churchit/public/media/church_logo.png" alt="Churchit logo" width="128" height="128" />
 
-# ⛪ Churchit
+# Churchit
 
-A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).
+**A fully open-source church management system built on the [Frappe Framework](https://frappe.io/framework).**
+
+[![Discord](https://img.shields.io/discord/1513373810685116466?logo=discord&label=Discord)](https://discord.gg/YxpdU6qM5w)
+[![Matrix](https://img.shields.io/matrix/the-church-app%3Amatrix.org?label=Matrix%20Chat)](https://matrix.to/#/#the-church-app:matrix.org)
+[![Static Badge](https://img.shields.io/badge/YouTube%20-%20red?style=flat)](https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg)
+<br />
+[![GitHub License](https://img.shields.io/github/license/meichthys/churchit)](https://github.com/meichthys/churchit?tab=readme-ov-file#-license-mit)
+![GitHub contributors](https://img.shields.io/github/contributors/meichthys/churchit)
+![GitHub last commit](https://img.shields.io/github/last-commit/meichthys/churchit)
+<br />
+[![Static Badge](https://img.shields.io/badge/Demo%20-%20User%3A%20demo%40demo.com%20%7C%20Pass%3A%20Matthew10%3A8b%20-%20black?style=flat)](https://demo.churchit.app)
+
+[Demo](#-demo) · [Features](#-features) · [Screenshots](https://churchit.app/screenshots.html) · [Roadmap](#-feature-roadmap) · [Install](#-installing-churchit) · [Get help](https://discord.gg/YxpdU6qM5w)
 
 <img width="900" height="504" alt="churchit-tour" src="https://github.com/user-attachments/assets/a636d7d1-6224-4df6-b148-4c3d5818b86e" />
+
+</div>
+
+> [!NOTE]
+> **This project is looking for additional developers!** If you are interested in contributing, please reach out on the [Discord](https://discord.gg/YxpdU6qM5w)/[Matrix](https://matrix.to/#/#the-church-app:matrix.org) chat, or [open an issue on GitHub](https://github.com/meichthys/churchit/issues/new).
 
 ## 🧪 Demo
 
 If you would like to test out the current state of the application, you can try our Demo instance. Please keep in mind that this project is under active development and that there will likely be rough edges, bugs, and incomplete features. If you come across any of these, feel free to report them on our [issue tracker](https://github.com/meichthys/churchit/issues).
 
-[![Demo](./churchit/public/media/demo_button.png)](https://church.meichthys.com/login)
+[![Demo](./churchit/public/media/demo_button.png)](https://demo.churchit.app/login)
 
 > When logging in, use the following credentials:
 > ```
@@ -41,7 +57,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
-- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look — pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
@@ -84,12 +100,13 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Prayer request management with status tracking and types
 - Authenticated and anonymous web-form submissions
 - Privacy options (private vs. shared with congregation)
-- Prayer recording with topics referencing requests, people, and verses
+- Prayer recording with topics referencing requests, people, and other records
 
 ### Bible & Study
-- Full Bible book, verse, and reference structure
-- Multiple translation support
-- Bible text fetching
+- A Bible reader in the desk and on the website, one chapter at a time
+- Bible translations that keep their own text: the default one downloads at install, each other free translation downloads itself the first time someone opens it, and a translation that is not free takes an import of a licensed copy that only signed-in users can read
+- Bible references typed as plain text (such as `Romans 8:28-30; Psalm 23`) on churches, bulletins, beliefs, sermon slides and Bible Memory, kept as typed rather than reordered or expanded into verses, with their text from the church's default translation
+- Bible Memory practice in the portal, with passages managers can assign to people and groups
 
 ### Operations
 - Task tracking with document references
@@ -105,7 +122,10 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Person letters, birthdays, current positions, and more
 
 ### Administration
-- Role-based access: System Manager, Church Manager, Church User
+- Role-based access: a Church Manager, desk roles for staff (Staff, People Editor, Pastoral Care, Finance, Check-In) bundled into role profiles, and Church User for portal members
+- Optional multi-church mode: branch or satellite churches under one main church, with every record and user scoped to a church (parent-church users can include branches), per-church newsletters and notifications, and a Locations switcher on the public website
+- A people directory shared by every church: any church can look up a person or family, only their own church can change them, and a Church Features option keeps each church's people private instead
+- Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
 - Built-in documentation for each module
 - Guided setup/onboarding
 
@@ -165,13 +185,24 @@ On a plain `bench` (without Pilot), the equivalent is `bench get-app https://git
 
 ### First steps after installing
 
-1. Change the `Administrator` password if you have not already (top-right avatar → **My Settings**). Keep this account for site administration only — do not use it day to day.
+1. Change the `Administrator` password if you have not already (top-right avatar → **My Settings**). Keep this account for site administration only. Do not use it day to day.
 2. Create your own user: type `New User` in the search bar. Under **Roles & Permissions**, give the user the `Church Manager` Role Profile and the `Church` Module Profile. This user can manage all aspects of the church.
-3. For additional people, create users with the `Church User` Role Profile and the `Church` Module Profile. They can read and update most information, but not critical settings. Open the `Role Permissions Manager` and select `Church Manager` or `Church User` to see exactly what each role can do.
+3. For other staff and volunteers, create users with the Role Profile that matches their job, and the `Church` Module Profile:
+
+   | Role Profile | For | Can change |
+   |---|---|---|
+   | `Church Staff` | Staff who look things up | Their own prayer requests, sign-ups, care requests and room bookings. Reads people, events, groups and ministries. |
+   | `Church Office` | Office administrators | People, families, groups and member transfers |
+   | `Church Care Team` | Pastors, deacons, care team | Care, counseling, visitation, background checks, prayer and alms requests |
+   | `Church Treasurer` | Treasurer, bookkeeper | Collections, expenses, funds, budgets and giving statements |
+   | `Church Check-In Volunteer` | Check-in desk | The Check-In Station only |
+
+   Combine profiles when one person has several jobs. Open the `Role Permissions Manager` to see exactly what each role can do.
+4. Members do not need a desk login. Use **Invite to Portal** on their Person. It gives them the `Church User` role, which reaches the portal and their own records only.
 
 ### Customising the website pages
 
-The public pages (Home, Beliefs, Sermons, Missions, Ministries, Locations) are `Web Page` records, created once when the app is installed. They belong to your church: edit them freely, and upgrades will not overwrite them.
+The public pages (Home, Beliefs, Sermons, Missions, Ministries) are `Web Page` records, created once when the app is installed. They belong to your church: edit them freely, and upgrades will not overwrite them.
 
 - Open **Website → Web Page** and pick a page. The content is in **Main Section (HTML)**. Content Type is `HTML` with **Dynamic Template** checked, so the HTML is a Jinja template that can read published records, e.g. `{% set sermons = frappe.get_all("Sermon", filters={"publish": 1}) %}` or `{% set church = get_church() %}`. The page then updates itself as you publish records.
 - For a page you would rather write by hand, switch Content Type to `Rich Text` or `Markdown` and use the editor instead.
@@ -191,7 +222,7 @@ Hopefully this roadmap will help avoid too much scope creep and provide a sense 
     - Allow updating attendance status(?)
 
 # 🆘 Support
-If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/AJHKHQXp) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
+If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/YxpdU6qM5w) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
 
 
 # 🤖 AI Policy
@@ -233,14 +264,20 @@ Every pull request runs the same lint and format checks with [pre-commit.ci](htt
 
 The hooks are listed in `.pre-commit-config.yaml`. Frappe renders web form scripts (`web_form/*/*.js`) through Jinja. If your script uses Jinja tags, add the file to the `exclude` list of the prettier and eslint hooks, or the JavaScript parser fails on it. Global names that churchit defines for the browser, such as `church`, go in the `globals` list of `.eslintrc`.
 
+See `AGENTS.md` for the cross-cutting rules that are easy to miss, especially church scoping.
+
 ## Steps for adding a new doctype:
   - Add a doctype description on the settings tab
   - Add fields for the doctype (if necessary add field descriptions).
-  - Add permissions to the doctype for `Church User` and `Church Admin` roles. (Not necessary for child tables)
+  - Add permissions to the doctype for `Church Manager` and for the desk role that owns its area, and read for `Church Staff` if staff look it up. Give `Church User` only `if_owner` rights, for records a member makes on the portal. See "Roles" in `AGENTS.md`. (Not necessary for child tables)
+  - If the records belong to one church, add a `church` Link to `Church` (`hidden: 1`, `in_standard_filter: 0`; `fetch_from` the parent link with `read_only: 1` when the record hangs off another church-scoped record). `Church Features` reveals it in multi-church mode and `churchit.church_scope.ensure_church` fills it. Reports over the doctype must go through `churchit.church_scope` and spread `church.report_filters()` into their filters.
+  - Read church-scoped records with `frappe.get_list`, which applies the reader's church for you. `frappe.qb`, `frappe.get_all` and `frappe.db.count` carry no permission filter, so scope those yourself with `churchit.church_scope` (`scoped()` for query builder, `church_query_filters()` for the reader's churches, `church_filters()` for one known church). `tests/test_reports_hygiene.py` fails on an unscoped one until it is either scoped or listed in `SCOPE_EXEMPT_MODULES` with the reason it is safe.
   - Add the doctype to the relevant workspace. (not necessary for child tables)
   - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
   - Set the doctype's `Documentation Link` (Settings tab) to that manual, e.g. `/app/manual%3A-people`. The form's help icon opens it, and `churchit/tests/test_doctype_documentation.py` fails if it is missing.
-  - If necessary, add an onboarding step & form tour to explain specific fields.
+  - Add an onboarding step and form tour if the doctype needs setting up or has fields that need
+    explaining, and list the step in the module's `Module Onboarding`. `AGENTS.md` covers the four
+    ways this fails without an error; `churchit/tests/test_onboarding_hygiene.py` enforces them.
   - If any default records for this doctype should be shipped with the app, see [Managing App Data](#managing-app-data) below.
   - If necessary, update this readme with the new functionality
 
@@ -257,6 +294,8 @@ We use fixtures to load data/configurations that the user should not change. If 
 - `Role Profile`: church-specific user role profiles
 - `Property Setter`: customizations to built-in Frappe doctypes
 
+The Property Setters that reveal the `church` field once multi-church is enabled are deliberately not fixtures: `Church Features` creates and removes them on the site, so a single-church site never carries them.
+
 To add a new fixture, add an entry to the `fixtures` list in `hooks.py` and run:
 ```bash
 bench export-fixtures --app churchit
@@ -270,7 +309,7 @@ This data is loaded by the `after_install` hook (`churchit.patches.after_install
 
 #### Process for adding new starter data
 
-Starter data is hand-written directly in `patches/after_install/__init__.py` — there's no Desk-export step or generated data files.
+Starter data is hand-written directly in `patches/after_install/__init__.py`. There is no Desk-export step or generated data files.
 
 1. Write a `_create_*()` (or `_setup_*()`) function that inserts the record(s), guarded so it's safe to run more than once. Use the `_insert_if_missing()` helper for simple lookups:
    ```python
@@ -281,11 +320,11 @@ Starter data is hand-written directly in `patches/after_install/__init__.py` —
    For anything more involved, check `frappe.db.exists(...)` yourself before inserting; see the other `_create_*`/`_setup_*` functions in the file for examples.
 2. Call the function from `execute()`, ordered after anything it depends on (e.g. a parent document before its children).
 
-Demo/sample content (fake people, families, funds, etc. used to try out the app) is a separate concern — it lives in `churchit/setup/sample_data.py` and runs from the `setup_wizard_complete` hook, not `after_install`.
+Demo/sample content (fake people, families, funds, etc. used to try out the app) is a separate concern. It lives in `churchit/setup/sample_data.py` and runs from the `setup_wizard_complete` hook, not `after_install`.
 
 #### Pushing new starter data to existing sites
 
-The `after_install` hook does not run on existing installations. If we need to push new records to **all** sites (new and existing), write a versioned patch instead — same mechanism as [Removing data from existing sites](#removing-data-from-existing-sites) below, just inserting instead of deleting:
+The `after_install` hook does not run on existing installations. If we need to push new records to **all** sites (new and existing), write a versioned patch instead, the same mechanism as [Removing data from existing sites](#removing-data-from-existing-sites) below, just inserting instead of deleting:
 
 ```
 churchit/patches/v2_0/add_livestream_attendance_type.py
@@ -300,7 +339,7 @@ def execute():
         frappe.get_doc({"doctype": "Function Attendance Type", "type": "Livestream"}).insert()
 ```
 
-Then append to `patches.txt` (always append — never insert above existing entries):
+Then append to `patches.txt` (always append, never insert above existing entries):
 
 ```
 churchit.patches.v2_0.add_livestream_attendance_type
@@ -308,7 +347,7 @@ churchit.patches.v2_0.add_livestream_attendance_type
 
 #### Removing data from existing sites
 
-Removal always requires a hand-written patch — there is no automated utility script for this. Be cautious: check whether the record still exists and whether other records might be linking to it before deleting.
+Removal always requires a hand-written patch. There is no automated utility script for this. Be cautious: check whether the record still exists and whether other records might be linking to it before deleting.
 
 Create a descriptively named patch file alongside the other patches in the relevant version directory:
 
@@ -325,11 +364,30 @@ def execute():
         frappe.delete_doc("Event Attendance Type", "Old Type", force=True)
 ```
 
-Then append to `patches.txt` (always append — never insert above existing entries):
+Then append to `patches.txt` (always append, never insert above existing entries):
 
 ```
 churchit.patches.v2_0.remove_old_attendance_type
 ```
+
+## Updating the website screenshots
+
+The [screenshots page](https://churchit.app/screenshots.html) shows real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). Take new pictures when a page in them changes.
+
+1. Use a site that has only the sample data. The script logs in as two sample users: `mary.johnson@example.com` for the desk and `james.wilson@example.com` for the portal. Each password is the email address.
+2. From this app directory, install the browser once, then take the pictures:
+
+   ```bash
+   uvx --from playwright==1.63.0 playwright install chromium
+   uv run docs/screenshots.py                     # every shot
+   uv run docs/screenshots.py rolodex check-in    # only these shots
+   ```
+
+   The script uses `http://churchit.localhost:8000`. Add `--url` to use a different site.
+3. Look at each new image in `docs/assets/screenshots/` before you commit it. Take it again if it shows test records.
+4. If you added, removed or renamed a shot, run `../../env/bin/python docs/build_docs.py`. The `build-docs` workflow also does this after a push.
+
+To add a feature to the page, add a `Shot` to `SHOTS` and take its pictures. A shot can have a desktop picture, a phone picture, or both.
 
 
 # 🔑 License: MIT-0

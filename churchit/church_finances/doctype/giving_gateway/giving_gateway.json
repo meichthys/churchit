@@ -10,7 +10,8 @@
  "field_order": [
   "payment_gateway",
   "label",
-  "is_default"
+  "is_default",
+  "church"
  ],
  "fields": [
   {
@@ -35,12 +36,21 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Default"
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "description": "Leave blank to offer this gateway to every church.",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Church",
+   "options": "Church"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-27 00:00:00.000000",
+ "modified": "2026-09-26 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Gateway",

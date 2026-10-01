@@ -39,7 +39,7 @@
  "is_standard": "Yes",
  "json": "{}",
  "letterhead": null,
- "modified": "2026-03-24 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Requests Recently Answered",
@@ -50,10 +50,13 @@
  "report_type": "Script Report",
  "roles": [
   {
+   "role": "System Manager"
+  },
+  {
    "role": "Church Manager"
   },
   {
-   "role": "Church User"
+   "role": "Church Pastoral Care"
   }
  ],
  "timeout": 0

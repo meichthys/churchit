@@ -102,6 +102,19 @@ class TestFunctionSignUp(FrappeTestCase):
 		# Submitting someone else's Person must be overridden with the caller's own.
 		self.assertEqual(self._sign_up(person=self.other_person).person, self.person)
 
+	def test_member_cannot_sign_up_twice_from_the_portal(self):
+		email = _ensure_church_user("_test_signup_user@example.com", "_Test Signup User")
+		frappe.db.set_value("Person", self.person, "user", email)
+		frappe.set_user(email)
+		# The portal form sends no person, so the check has to use the member's own.
+		frappe.get_doc({"doctype": "Function Sign-Up", "function": self.function}).insert(
+			ignore_permissions=True
+		)
+		with self.assertRaises(ValidationError):
+			frappe.get_doc({"doctype": "Function Sign-Up", "function": self.function}).insert(
+				ignore_permissions=True
+			)
+
 	def test_non_manager_without_a_person_record_is_rejected(self):
 		frappe.set_user(_ensure_church_user("_test_orphan_user@example.com", "_Test Orphan"))
 		with self.assertRaises(ValidationError):

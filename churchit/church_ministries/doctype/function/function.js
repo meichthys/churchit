@@ -18,7 +18,7 @@ frappe.ui.form.on("Function", {
 			grid.update_docfield_property("description", "in_list_view", 0);
 			grid.set_column_disp("my_quantity", false);
 			grid.set_column_disp("description", false);
-			// Force re-evaluation of which columns are visible — by default the grid
+			// Force re-evaluation of which columns are visible. By default the grid
 			// caches `visible_columns` and won't pick up our docfield property changes.
 			grid.reset_grid();
 		}

@@ -2,9 +2,24 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import now
 
-from churchit.church_setup.doctype.church_features.church_features import MODULE_FIELDS
+from churchit.church_setup.doctype.church_features.church_features import (
+	MODULE_FIELDS,
+	apply_on_migrate,
+)
+from churchit.tests.helpers import (
+	ensure,
+	ensure_root_church,
+	ensure_user,
+	force_single_church,
+	make_branch,
+	make_person,
+	set_multi_church,
+)
 
 
 class TestChurchFeatures(FrappeTestCase):
@@ -68,3 +83,116 @@ class TestChurchFeatures(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Workspace", "Summary", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
 		self.assertEqual(frappe.db.get_value("Desktop Icon", "Settings", "hidden"), 0)
+
+
+class TestMultiChurchSwitch(FrappeTestCase):
+	def setUp(self):
+		force_single_church()
+		self.root = ensure_root_church()
+		self.user = ensure_user("_test_scope_user@example.com", "Scope")
+		self.person = make_person("_Test Scoped", "Person")
+		self.collection = self.make_submitted_collection()
+
+	def tearDown(self):
+		# Deepest first: a nested set refuses to delete a church that still has branches.
+		for name in frappe.get_all(
+			"Church", filters={"parent_church": ("is", "set")}, pluck="name", order_by="lft desc"
+		):
+			frappe.delete_doc("Church", name, ignore_permissions=True, force=True)
+		set_multi_church(False)
+
+	def make_submitted_collection(self):
+		fund = ensure("Fund", {"fund": "_Test Switch Fund"})
+		payment_type = ensure("Payment Type", {"type": "Cash"})
+		collection = frappe.get_doc({"doctype": "Collection", "date": now(), "expected_total": 10})
+		collection.append("donations", {"payment_type": payment_type, "fund": fund, "amount": 10})
+		collection.insert(ignore_permissions=True)
+		collection.submit()
+		return collection
+
+	def field_setter(self, doctype, fieldname, prop):
+		return frappe.db.get_value(
+			"Property Setter",
+			{"doc_type": doctype, "field_name": fieldname, "property": prop},
+			"value",
+		)
+
+	def church_setter(self, doctype, prop):
+		return self.field_setter(doctype, "church", prop)
+
+	def user_permission(self, user):
+		return frappe.db.get_value(
+			"User Permission",
+			{"user": user, "allow": "Church"},
+			["name", "for_value", "hide_descendants", "is_default"],
+			as_dict=True,
+		)
+
+	def test_enabling_reveals_the_field_and_backfills_records(self):
+		self.assertFalse(frappe.db.get_value("Person", self.person.name, "church"))
+
+		set_multi_church(True)
+
+		self.assertEqual(self.church_setter("Person", "hidden"), "0")
+		self.assertEqual(self.church_setter("Function", "in_standard_filter"), "1")
+		self.assertEqual(frappe.db.get_value("Person", self.person.name, "church"), self.root)
+		self.assertEqual(frappe.db.get_value("Collection", self.collection.name, "church"), self.root)
+
+	def test_enabling_scopes_every_user_to_the_root(self):
+		set_multi_church(True)
+
+		permission = self.user_permission(self.user)
+		self.assertEqual(permission.for_value, self.root)
+		self.assertEqual(permission.hide_descendants, 1)
+		self.assertEqual(permission.is_default, 1)
+		self.assertIsNone(self.user_permission("Administrator"))
+
+	def test_a_deleted_permission_is_not_recreated(self):
+		set_multi_church(True)
+		frappe.delete_doc("User Permission", self.user_permission(self.user).name, ignore_permissions=True)
+
+		frappe.get_single("Church Features").save()
+		apply_on_migrate()
+
+		self.assertIsNone(self.user_permission(self.user))
+
+	def test_new_records_default_to_the_root_church(self):
+		set_multi_church(True)
+		person = make_person("_Test Defaulted", "Person")
+		self.assertEqual(person.church, self.root)
+
+	def test_enabling_reveals_who_shared_a_record(self):
+		"""Without Shared By, a record the main church shared looked like the branch's own."""
+		set_multi_church(True)
+
+		self.assertEqual(self.field_setter("Song", "is_shared", "hidden"), "0")
+		self.assertEqual(self.field_setter("Song", "shared_by_church", "hidden"), "0")
+		self.assertEqual(self.field_setter("Song", "shared_by_church", "in_standard_filter"), "1")
+
+	def test_the_sharing_fields_are_only_revealed_where_sharing_is_offered(self):
+		set_multi_church(True)
+
+		self.assertIsNone(self.field_setter("Person", "is_shared", "hidden"))
+		self.assertIsNone(self.field_setter("Person", "shared_by_church", "hidden"))
+
+	def test_disabling_is_blocked_while_branches_exist(self):
+		set_multi_church(True)
+		make_branch("_Test Switch Branch", "SB")
+		with self.assertRaises(ValidationError):
+			set_multi_church(False)
+
+	def test_disabling_removes_the_property_setters(self):
+		set_multi_church(True)
+		set_multi_church(False)
+		self.assertIsNone(self.church_setter("Person", "hidden"))
+		self.assertIsNone(self.field_setter("Song", "is_shared", "hidden"))
+		self.assertIsNone(self.field_setter("Song", "shared_by_church", "hidden"))
+
+	def test_enabling_replaces_a_setter_that_hides_the_field(self):
+		make_property_setter("Person", "church", "hidden", "1", "Check", validate_fields_for_doctype=False)
+
+		set_multi_church(True)
+
+		self.assertEqual(self.church_setter("Person", "hidden"), "0")
+		self.assertEqual(frappe.db.count("Property Setter", {"name": "Person-church-hidden"}), 1)
+		self.assertFalse(frappe.get_meta("Person").get_field("church").hidden)

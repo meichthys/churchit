@@ -1,7 +1,7 @@
 {
  "based_on": "creation",
  "chart_name": "People",
- "chart_type": "Count",
+ "chart_type": "Custom",
  "creation": "2026-03-13 08:12:33.138757",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
@@ -12,7 +12,7 @@
  "idx": 0,
  "is_public": 0,
  "is_standard": 1,
- "modified": "2026-03-13 08:12:33.138757",
+ "modified": "2026-09-28 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",
@@ -25,5 +25,6 @@
  "timespan": "Last Year",
  "type": "Line",
  "use_report_chart": 0,
- "y_axis": []
+ "y_axis": [],
+ "source": "People Added"
 }

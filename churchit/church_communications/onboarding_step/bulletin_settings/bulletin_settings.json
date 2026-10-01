@@ -1,0 +1,22 @@
+{
+ "action": "Show Form Tour",
+ "action_label": "Configure Bulletins",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "Bulletin Settings decide what a bulletin contains before you write a word of one: which sections are on, which leadership positions are listed, how far ahead events reach, and who appears in the birthday and anniversary lists.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Bulletin Settings",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-09-25 21:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Bulletin Settings",
+ "owner": "Administrator",
+ "reference_document": "Bulletin Settings",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Bulletin Defaults",
+ "validate_action": 1
+}

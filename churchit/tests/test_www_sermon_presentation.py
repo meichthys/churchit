@@ -7,7 +7,7 @@ import frappe
 from frappe.exceptions import PermissionError, ValidationError
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.tests.helpers import ensure_user, make_person
+from churchit.tests.helpers import ensure_user, make_person, make_translation
 from churchit.www.sermon_presentation import (
 	_build_content_from_selected_fields,
 	_parse_display_fields,
@@ -134,3 +134,27 @@ class TestSermonPresentationPage(FrappeTestCase):
 		self.assertEqual(first["content"], "<p><strong>CCLI #:</strong> 12345</p>")
 		self.assertEqual(first["notes"], "Sing softly")
 		self.assertIn("Could not load Song: SONG-DOES-NOT-EXIST", broken["content"])
+
+	def test_a_scripture_slide_shows_its_verses_or_only_its_reference(self):
+		free = make_translation(
+			self, "_TSP", [("PSA", 23, 1, "The LORD is my shepherd;\nI shall not want.")], free=True
+		)
+		imported = make_translation(self, "_TSQ", [("PSA", 23, 1, "The LORD is my shepherd.")])
+		sermon = frappe.get_doc(
+			{
+				"doctype": "Sermon",
+				"title": "_Test Scripture Sermon",
+				"publish": 1,
+				"slides": [
+					{"scripture": "ps 23:1", "translation": free},
+					{"scripture": "Psalms 23:1", "translation": imported},
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.assertEqual(sermon.slides[0].scripture, "Psalms 23:1")
+
+		frappe.set_user("Guest")
+		readable, withheld = self._context(sermon).slides
+		self.assertEqual(readable["title"], f"Psalms 23:1 ({free})")
+		self.assertIn("<sup>1</sup> The LORD is my shepherd;<br>I shall not want.", readable["content"])
+		self.assertEqual((withheld["title"], withheld["content"]), ("Psalms 23:1", ""))

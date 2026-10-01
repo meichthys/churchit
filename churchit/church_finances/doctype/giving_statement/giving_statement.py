@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
+from churchit.church_foundations.doctype.church.church import inherited_value
+from churchit.church_scope import root_church, scoped
 from churchit.contacts import primary_email
 
 
@@ -56,7 +58,7 @@ def get_donations(people, from_date, to_date):
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")
 
-	return (
+	query = (
 		frappe.qb.from_(Donation)
 		.inner_join(Collection)
 		.on(Collection.name == Donation.parent)
@@ -76,42 +78,48 @@ def get_donations(people, from_date, to_date):
 			& (Collection.date <= to_date)
 		)
 		.orderby(Collection.date)
-		.run(as_dict=True)
 	)
+	return scoped(query, Collection, {}).run(as_dict=True)
 
 
-def statement_header():
+def statement_header(church=None):
 	"""Church identity and acknowledgment wording printed on every statement.
 
 	Exposed to templates through the ``jinja`` hook so the statement markup can
-	stay free of lookups.
+	stay free of lookups. A branch without its own legal name or tax id prints
+	its parent's, since the parent is then the legal entity issuing the receipt.
 	"""
-	church = frappe.get_all(
-		"Church",
-		fields=["church_name", "legal_name", "tax_id", "address"],
-		order_by="lft asc",
-		limit=1,
-	)
-	church = church[0] if church else {}
+	church = church or root_church()
+	if not church:
+		return {"name": "", "tax_id": "", "address": "", "acknowledgment": acknowledgment()}
 
-	address = ""
-	if church.get("address"):
-		address = frappe.get_doc("Address", church["address"]).get_display()
-
+	address = frappe.db.get_value("Church", church, "address")
 	return {
-		"name": church.get("legal_name") or church.get("church_name") or "",
-		"tax_id": church.get("tax_id") or "",
-		"address": address,
-		"acknowledgment": frappe.db.get_single_value("Giving Settings", "statement_acknowledgment") or "",
+		"name": inherited_value(church, "legal_name")
+		or frappe.db.get_value("Church", church, "church_name")
+		or "",
+		"tax_id": inherited_value(church, "tax_id") or "",
+		"address": frappe.get_doc("Address", address).get_display() if address else "",
+		"acknowledgment": acknowledgment(church),
 	}
 
 
+def acknowledgment(church=None):
+	"""The acknowledgment wording for *church*, else the site-wide text."""
+	return frappe.get_cached_doc("Giving Settings").get_statement_acknowledgment(church) or ""
+
+
 def get_givers(from_date, to_date):
-	"""Everyone with a submitted donation in the period."""
+	"""Everyone with a submitted donation in the period, within the issuer's churches.
+
+	Unscoped, a branch issuing statements also issued them for other churches,
+	and each landed in the branch's own church: a statement takes its church
+	from its person, which a branch cannot read, so it fell back to the issuer's.
+	"""
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")
 
-	return (
+	query = (
 		frappe.qb.from_(Donation)
 		.inner_join(Collection)
 		.on(Collection.name == Donation.parent)
@@ -124,14 +132,14 @@ def get_givers(from_date, to_date):
 			& (Collection.date >= from_date)
 			& (Collection.date <= to_date)
 		)
-		.run(pluck=True)
 	)
+	return scoped(query, Collection, {}).run(pluck=True)
 
 
 def get_statement_recipients(from_date, to_date):
 	"""Map every giver in the period onto the record their statement belongs to.
 
-	Returns ``[{"person", "family"}]`` — one entry per statement to issue. When
+	Returns ``[{"person", "family"}]``, one entry per statement to issue. When
 	Giving Settings groups by household, everyone in a Family collapses onto the
 	head of household, or the first member when no head is marked.
 	"""
@@ -156,6 +164,7 @@ def get_statement_recipients(from_date, to_date):
 
 def household_recipient(family, fallback):
 	"""The person a household statement is addressed to."""
+	# church-scope: the head of one family, and the families come from get_givers
 	head = frappe.get_all(
 		"Person", filters={"family": family, "is_head_of_household": 1}, pluck="name", limit=1
 	)
@@ -163,13 +172,13 @@ def household_recipient(family, fallback):
 
 
 @frappe.whitelist()
-def generate_statements(from_date, to_date):
+def generate_statements(from_date: str, to_date: str):
 	"""Create a statement for every giver in the period. Returns how many were made.
 
 	Re-running is safe: a statement already covering the same period for the same
 	recipient is rebuilt rather than duplicated.
 	"""
-	frappe.only_for(("Church Manager", "System Manager"))
+	frappe.only_for(("Church Manager", "Church Finance", "System Manager"))
 
 	created = updated = 0
 	for recipient in get_statement_recipients(from_date, to_date):

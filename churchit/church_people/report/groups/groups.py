@@ -1,6 +1,8 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Count
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -13,10 +15,10 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "group_name", "fieldtype": "Data", "label": "Group", "width": 250},
-		{"fieldname": "status", "fieldtype": "Data", "label": "Status", "width": 100},
-		{"fieldname": "members", "fieldtype": "Int", "label": "Members", "width": 100},
-		{"fieldname": "description", "fieldtype": "Data", "label": "Description", "width": 300},
+		{"fieldname": "group_name", "fieldtype": "Data", "label": _("Group"), "width": 250},
+		{"fieldname": "status", "fieldtype": "Data", "label": _("Status"), "width": 100},
+		{"fieldname": "members", "fieldtype": "Int", "label": _("Members"), "width": 100},
+		{"fieldname": "description", "fieldtype": "Data", "label": _("Description"), "width": 300},
 	]
 
 
@@ -48,4 +50,4 @@ def get_data(filters=None):
 	if filters.get("to_date"):
 		query = query.where(Group.creation <= filters["to_date"])
 
-	return query.run(as_dict=True)
+	return scoped(query, Group, filters).run(as_dict=True)

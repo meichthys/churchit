@@ -1,5 +1,5 @@
 frappe.query_reports["Visitation Followups Needed"] = {
-	filters: [],
+	filters: [...church.report_filters()],
 
 	formatter: function (value, row, column, data) {
 		if (!data || !value) return value;

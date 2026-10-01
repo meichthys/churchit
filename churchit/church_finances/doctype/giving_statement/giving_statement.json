@@ -10,6 +10,7 @@
  "field_order": [
   "title",
   "person",
+  "church",
   "family",
   "column_break_period",
   "from_date",
@@ -39,6 +40,18 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "person.church",
+   "fetch_if_empty": 1,
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
   },
   {
    "description": "Set when the statement covers a whole household. Every member's giving is included.",
@@ -103,7 +116,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Statement",
@@ -133,6 +146,17 @@
    "role": "Church Manager",
    "select": 1,
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
    "write": 1
   }
  ],

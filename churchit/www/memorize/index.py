@@ -3,6 +3,8 @@
 
 import frappe
 
+from churchit.scripture import get_readable_translations
+
 no_cache = 1
 
 
@@ -20,6 +22,7 @@ def get_context(context):
 		fields=[
 			"name",
 			"bible_reference",
+			"translation",
 			"progress",
 			"memorized",
 			"memorized_on",
@@ -29,33 +32,10 @@ def get_context(context):
 		order_by="memorized asc, modified desc",
 	)
 	for it in items:
-		it["label"] = (
-			frappe.db.get_value("Bible Reference", it["bible_reference"], "reference")
-			or it["bible_reference"]
-		)
+		it["label"] = f"{it['bible_reference']} ({it['translation']})"
 		if it.get("assigned_by"):
 			it["assigned_by_label"] = (
 				frappe.db.get_value("User", it["assigned_by"], "full_name") or it["assigned_by"]
 			)
 	context.items = items
-
-	context.books = frappe.get_all(
-		"Bible Book",
-		fields=["name", "abbreviation"],
-		order_by="creation asc",
-		ignore_permissions=True,
-	)
-	context.translations = frappe.get_all(
-		"Bible Translation",
-		fields=["name", "abbreviation"],
-		order_by="name asc",
-		ignore_permissions=True,
-	)
-	context.default_translation = (
-		frappe.db.get_value(
-			"Church",
-			{"default_bible_translation": ("is", "set")},
-			"default_bible_translation",
-		)
-		or ""
-	)
+	context.translations = get_readable_translations()

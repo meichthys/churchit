@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "person",
+  "church",
   "deacon",
   "start_date",
   "column_break_1",
@@ -16,25 +17,106 @@
   "notes"
  ],
  "fields": [
-  {"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
-  {"fieldname": "deacon", "fieldtype": "Link", "label": "Deacon", "options": "Person", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
-  {"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date", "reqd": 1, "default": "Today"},
-  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
-  {"fieldname": "end_date", "fieldtype": "Date", "label": "End Date"},
-  {"fieldname": "section_break_1", "fieldtype": "Section Break"},
-  {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "person.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deacon",
+   "fieldtype": "Link",
+   "label": "Deacon",
+   "options": "Person",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date",
+   "reqd": 1,
+   "default": "Today"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Assignment",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
-  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
-  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Church Manager", "select": 1, "share": 1, "write": 1}
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care",
+   "select": 1,
+   "write": 1
+  }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",

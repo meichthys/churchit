@@ -6,10 +6,15 @@
  "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
  "engine": "InnoDB",
- "field_order": ["phone_number", "phone_type", "is_primary"],
+ "field_order": [
+  "phone_number",
+  "phone_type",
+  "is_primary",
+  "is_shared"
+ ],
  "fields": [
   {
-   "columns": 5,
+   "columns": 4,
    "fieldname": "phone_number",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -18,7 +23,7 @@
    "reqd": 1
   },
   {
-   "columns": 3,
+   "columns": 2,
    "default": "Mobile",
    "fieldname": "phone_type",
    "fieldtype": "Link",
@@ -35,12 +40,21 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Primary"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "description": "Tick when someone else on file uses this number too, such as a child using a parent's phone. An unshared number may be on one record only.",
+   "fieldname": "is_shared",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Shared"
   }
  ],
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-08-17 00:00:00.000000",
+ "modified": "2026-09-27 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Phone Number",

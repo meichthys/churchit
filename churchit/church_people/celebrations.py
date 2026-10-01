@@ -9,8 +9,9 @@ from frappe.utils import formatdate, getdate
 ACTIVE_MEMBER_STATUS = "Active"
 
 
-def birthdays(start, end, members_only=True):
+def birthdays(start, end, members_only=True, church=None):
 	"""People born on a day between *start* and *end* inclusive, as (day, name), earliest first."""
+	# church-scope: scoped by the church the caller passes in
 	Person = frappe.qb.DocType("Person")
 	LifeEvent = frappe.qb.DocType("Life Event")
 	query = (
@@ -22,6 +23,8 @@ def birthdays(start, end, members_only=True):
 	)
 	if members_only:
 		query = query.where(Person.membership_status == ACTIVE_MEMBER_STATUS)
+	if church:
+		query = query.where(Person.church == church)
 	rows = [
 		(occurrence, row.full_name)
 		for row in query.run(as_dict=True)
@@ -30,11 +33,14 @@ def birthdays(start, end, members_only=True):
 	return [frappe._dict(day=formatdate(day, "MMM d"), name=name) for day, name in sorted(rows)]
 
 
-def anniversaries(start, end, members_only=True):
+def anniversaries(start, end, members_only=True, church=None):
 	"""Couples whose wedding anniversary falls between *start* and *end*, as (day, name), one row per couple."""
 	filters = {"is_married": 1, "anniversary": ("is", "set")}
 	if members_only:
 		filters["membership_status"] = ACTIVE_MEMBER_STATUS
+	if church:
+		filters["church"] = church
+	# church-scope: scoped by the church the caller passes in
 	people = frappe.get_all(
 		"Person",
 		filters=filters,

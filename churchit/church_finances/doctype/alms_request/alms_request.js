@@ -13,8 +13,8 @@ frappe.ui.form.on("Alms Request", {
 		}
 	},
 	refresh(frm) {
-		// Add a custom button that creates an Expense from the Alms Request
-		if (!frm.is_new()) {
+		// Add a custom button that creates an Expense from the Alms Request, for whoever keeps the books
+		if (!frm.is_new() && frappe.model.can_create("Expense")) {
 			frm.add_custom_button(__("Create Expense"), function () {
 				if (frm.doc.associated_expense) {
 					frappe.db
@@ -58,7 +58,11 @@ frappe.ui.form.on("Alms Request", {
 	},
 	after_save: function (frm) {
 		// Prompt user to create an expense when status is set to "Distributed"
-		if (frm.doc.status === "Distributed" && !frm.doc.associated_expense) {
+		if (
+			frm.doc.status === "Distributed" &&
+			!frm.doc.associated_expense &&
+			frappe.model.can_create("Expense")
+		) {
 			frappe.confirm("Would you like to create an associated expense?", function () {
 				frappe.call({
 					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",

@@ -14,6 +14,7 @@
   "recipient",
   "column_break_ixvv",
   "requestor",
+  "church",
   "amount",
   "expense_type",
   "associated_expense",
@@ -113,12 +114,23 @@
    "label": "Requestor",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "requestor.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",
@@ -162,6 +174,26 @@
    "role": "Church User",
    "select": 1,
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
    "write": 1
   }
  ],

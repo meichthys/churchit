@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Record a Check",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "Background Checks record the screening behind your child- and vulnerable-adult safety policy: what was checked, by whom, the result, and when it needs doing again.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Background Check",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Background Check",
+ "owner": "Administrator",
+ "reference_document": "Background Check",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Background Checks",
+ "validate_action": 1
+}

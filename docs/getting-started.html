@@ -15,8 +15,8 @@
       } catch (e) {}
     })();
   </script>
-  <title>Getting started — churchit</title>
-  <meta name="description" content="Install churchit in one command with Docker, run it on Frappe Cloud, or add it to an existing Frappe bench. Three ways to get started — the software is free on every one of them." />
+  <title>Getting started · churchit</title>
+  <meta name="description" content="Install churchit in one command with Docker, run it on Frappe Cloud, or add it to an existing Frappe bench. Three ways to get started: the software is free on every one of them." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -30,7 +30,8 @@
       <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
       <nav class="nav-links">
         <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="pricing.html">(Un)Pricing</a>
         <a href="documentation.html">Documentation</a>
         <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
         <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
@@ -129,9 +130,20 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
       </div>
       <div class="glass first-steps reveal">
         <ol>
-<li>Change the <code>Administrator</code> password if you have not already (top-right avatar → <strong>My Settings</strong>). Keep this account for site administration only — do not use it day to day.</li>
+<li>Change the <code>Administrator</code> password if you have not already (top-right avatar → <strong>My Settings</strong>). Keep this account for site administration only. Do not use it day to day.</li>
 <li>Create your own user: type <code>New User</code> in the search bar. Under <strong>Roles &amp; Permissions</strong>, give the user the <code>Church Manager</code> Role Profile and the <code>Church</code> Module Profile. This user can manage all aspects of the church.</li>
-<li>For additional people, create users with the <code>Church User</code> Role Profile and the <code>Church</code> Module Profile. They can read and update most information, but not critical settings. Open the <code>Role Permissions Manager</code> and select <code>Church Manager</code> or <code>Church User</code> to see exactly what each role can do.</li>
+<li><p>For other staff and volunteers, create users with the Role Profile that matches their job, and the <code>Church</code> Module Profile:</p>
+
+<p>| Role Profile | For | Can change |
+|---|---|---|
+| <code>Church Staff</code> | Staff who look things up | Their own prayer requests, sign-ups, care requests and room bookings. Reads people, events, groups and ministries. |
+| <code>Church Office</code> | Office administrators | People, families, groups and member transfers |
+| <code>Church Care Team</code> | Pastors, deacons, care team | Care, counseling, visitation, background checks, prayer and alms requests |
+| <code>Church Treasurer</code> | Treasurer, bookkeeper | Collections, expenses, funds, budgets and giving statements |
+| <code>Church Check-In Volunteer</code> | Check-in desk | The Check-In Station only |</p>
+
+<p>Combine profiles when one person has several jobs. Open the <code>Role Permissions Manager</code> to see exactly what each role can do.</p></li>
+<li>Members do not need a desk login. Use <strong>Invite to Portal</strong> on their Person. It gives them the <code>Church User</code> role, which reaches the portal and their own records only.</li>
 </ol>
 
       </div>
@@ -146,7 +158,7 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
         <h2>Try the demo before you install</h2>
         <p class="lead" style="margin-inline:auto">Poke around a fully loaded church. No sign-up, no sales call, no personal information.</p>
         <div class="cta-row" style="justify-content:center; margin-top:1.6rem">
-          <a class="btn btn-primary btn-lg" href="https://church.meichthys.com/login" target="_blank" rel="noopener">Try the demo →</a>
+          <a class="btn btn-primary btn-lg" href="https://demo.churchit.app/login" target="_blank" rel="noopener">Try the demo →</a>
           <a class="btn btn-ghost btn-lg" href="documentation.html">Read the manual</a>
         </div>
         <p style="margin:1rem 0 0; font-size:.9rem">👤 <strong>demo@demo.com</strong> &nbsp; 🔑 <strong>Matthew10:8b</strong></p>
@@ -159,7 +171,8 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
       <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
       <nav class="foot-links">
         <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="pricing.html">(Un)Pricing</a>
         <a href="getting-started.html">Getting started</a>
         <a href="documentation.html">Documentation</a>
         <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>

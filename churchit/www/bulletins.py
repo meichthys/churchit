@@ -4,6 +4,9 @@
 import frappe
 from frappe import _
 
+from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_scope import church_filters
+
 no_cache = 1
 
 
@@ -21,7 +24,7 @@ def get_published_bulletins():
 	"""Bulletins marked for the portal, newest function first."""
 	return frappe.get_all(
 		"Bulletin",
-		filters={"publish": 1},
+		filters=church_filters(selected_church_name(), publish=1),
 		fields=["name", "function_name", "function_date"],
 		order_by="function_date desc",
 	)

@@ -88,6 +88,23 @@ class TestFunction(FrappeTestCase):
 		self.assertFalse(occurrence.auto_repeat)
 		self.assertEqual(frappe.db.get_value("Function", occurrence.name, "description"), "Sunday service")
 
+	def test_scheduler_keeps_a_multi_day_functions_length(self):
+		start = add_days(getdate(), -10)
+		template = make_function(
+			"_Test Retreat",
+			start_date=start,
+			end_date=add_days(start, 2),
+			auto_repeat=1,
+			repeat_frequency="Weekly",
+			repeat_day_of_week="Friday",
+		)
+		create_scheduled_functions()
+
+		occurrence = frappe.db.get_value(
+			"Function", {"source_template": template.name}, ["start_date", "end_date"], as_dict=True
+		)
+		self.assertEqual(getdate(occurrence.end_date), getdate(add_days(occurrence.start_date, 2)))
+
 	def test_scheduler_waits_while_a_future_occurrence_exists(self):
 		template = make_function(
 			"_Test Queued",

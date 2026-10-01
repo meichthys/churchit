@@ -1,5 +1,5 @@
 <div class="row justify-content-center">
-{% set belief_docs = frappe.get_list("Belief", fields=["name"], filters={"publish": 1}, ignore_permissions=True) %}
+{% set belief_docs = frappe.get_list("Belief", fields=["name"], filters=selected_church_filters(publish=1), ignore_permissions=True) %}
 {% if belief_docs %}
 {% for doc in belief_docs %}
     {% set belief = frappe.get_doc("Belief", doc.name) %}
@@ -10,9 +10,7 @@
                 <p class="card-text">{{ belief.belief_statement }}</p>
             </div>
             <div class="card-footer">
-                {% for row in belief.bible_references %}
-                    <div class="small text-muted">{{ frappe.db.get_value("Bible Reference", row.reference, "reference") }}</div>
-                {% endfor %}
+                <div class="small text-muted">{{ belief.bible_references or "" }}</div>
             </div>
         </div>
     </div>

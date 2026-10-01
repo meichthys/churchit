@@ -12,7 +12,7 @@ class TestFund(FrappeTestCase):
 			"transactions",
 			{"amount": 250, "source_type": "Donation", "source": "TEST-DONATION"},
 		)
-		# Skip Dynamic Link existence check — the math under test only needs the amount.
+		# Skip Dynamic Link existence check: the math under test only needs the amount.
 		fund.flags.ignore_links = True
 		return fund.insert(ignore_permissions=True)
 

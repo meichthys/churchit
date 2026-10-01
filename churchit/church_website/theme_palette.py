@@ -18,7 +18,7 @@ DARK_MEDIA = re.compile(r"@media[^{]*prefers-color-scheme\s*:\s*dark[^{]*\{")
 
 
 @frappe.whitelist()
-def get_website_theme_palette(theme):
+def get_website_theme_palette(theme: str):
 	"""Return ``[{"label", "color"}, …]`` for the swatches shown beside a theme picker."""
 	frappe.has_permission("Website Settings", throw=True)
 	tokens = get_root_tokens(read_stylesheet(theme))

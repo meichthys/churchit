@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Set the theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "dark" && t !== "light") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Screenshots · churchit</title>
+  <meta name="description" content="Screenshots of churchit on a computer and on a phone: the Rolodex, the Check-In Station, sermon slides, Bible memory, the church directory and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <nav class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="screenshots.html" class="active">Screenshots</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a class="btn btn-primary" href="getting-started.html">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap shots-page">
+    <nav class="shots-nav" aria-label="Features">
+      <a href="#desk">The desk</a>
+      <a href="#rolodex">Rolodex</a>
+      <a href="#check-in">Check-In Station</a>
+      <a href="#sermon">Sermon slides</a>
+      <a href="#bible-memory">Bible memory</a>
+      <a href="#directory">Church directory</a>
+      <a href="#bible">Bible reader</a>
+      <a href="#portal">Member portal</a>
+    </nav>
+
+    <section class="shot" id="desk">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #6366f1">Desk</p>
+        <h2>The desk</h2>
+        <p>Every part of churchit is an app on the home screen: people, finances, ministries, missions and the rest. Open one to see its workspace, or search for anything from the bar at the top.</p>
+      </div>
+      <div class="shot-media has-desktop has-mobile"><a class="shot-frame shot-desktop" href="assets/screenshots/desk-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/desk-desktop-light.webp" alt="The desk on a computer" width="1280" height="600" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/desk-desktop-dark.webp" alt="The desk on a computer" width="1280" height="600" loading="lazy" decoding="async" /></a><a class="shot-frame shot-mobile" href="assets/screenshots/desk-mobile-light.webp" data-zoom><img class="img-light" src="assets/screenshots/desk-mobile-light.webp" alt="The desk on a phone" width="390" height="844" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/desk-mobile-dark.webp" alt="The desk on a phone" width="390" height="844" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="rolodex">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #14b8a6">People</p>
+        <h2>Rolodex</h2>
+        <p>Every person is a card, sorted by last name. Search by name, family, phone or email, call or text from the card, and save cards to the tray to email or print them together.</p>
+        <a href="documentation.html#people-rolodex">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop has-mobile"><a class="shot-frame shot-desktop" href="assets/screenshots/rolodex-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/rolodex-desktop-light.webp" alt="Rolodex on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/rolodex-desktop-dark.webp" alt="Rolodex on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a><a class="shot-frame shot-mobile" href="assets/screenshots/rolodex-mobile-light.webp" data-zoom><img class="img-light" src="assets/screenshots/rolodex-mobile-light.webp" alt="Rolodex on a phone" width="390" height="844" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/rolodex-mobile-dark.webp" alt="Rolodex on a phone" width="390" height="844" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="check-in">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #ec4899">Ministries</p>
+        <h2>Check-In Station</h2>
+        <p>Type part of a name or a phone number and the whole family comes up together. Tap the people who have arrived, and a name tag prints for each of them.</p>
+        <a href="documentation.html#ministries-function-check-ins">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop has-mobile"><a class="shot-frame shot-desktop" href="assets/screenshots/check-in-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/check-in-desktop-light.webp" alt="Check-In Station on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/check-in-desktop-dark.webp" alt="Check-In Station on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a><a class="shot-frame shot-mobile" href="assets/screenshots/check-in-mobile-light.webp" data-zoom><img class="img-light" src="assets/screenshots/check-in-mobile-light.webp" alt="Check-In Station on a phone" width="390" height="844" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/check-in-mobile-dark.webp" alt="Check-In Station on a phone" width="390" height="844" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="sermon">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #f59e0b">Study</p>
+        <h2>Sermon slides</h2>
+        <p>A sermon is a list of slides: passages of Scripture, beliefs, songs, missionaries and people to pray for. Click Present on the sermon and move through it with the arrow keys.</p>
+        <a href="documentation.html#study-sermons">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop"><a class="shot-frame shot-desktop" href="assets/screenshots/sermon-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/sermon-desktop-light.webp" alt="Sermon slides on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/sermon-desktop-dark.webp" alt="Sermon slides on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="bible-memory">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #f59e0b">Study</p>
+        <h2>Bible memory</h2>
+        <p>Members keep a list of passages to learn in the portal. Blur hides a few more words each round, and Type checks the first letter of every word and records the progress.</p>
+        <a href="documentation.html#study-bible-memory">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop"><a class="shot-frame shot-desktop" href="assets/screenshots/bible-memory-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/bible-memory-desktop-light.webp" alt="Bible memory on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/bible-memory-desktop-dark.webp" alt="Bible memory on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="directory">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #14b8a6">People</p>
+        <h2>Church directory</h2>
+        <p>Choose what goes in, watch the preview change, and print a directory of your families with photos, positions, phone numbers and email addresses.</p>
+        <a href="documentation.html#people-church-directory">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop"><a class="shot-frame shot-desktop" href="assets/screenshots/directory-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/directory-desktop-light.webp" alt="Church directory on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/directory-desktop-dark.webp" alt="Church directory on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="bible">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #f59e0b">Study</p>
+        <h2>Bible reader</h2>
+        <p>Read one chapter at a time in the desk or on the church website. Every chapter has its own address, so you can bookmark it or send it to someone.</p>
+        <a href="documentation.html#study-bible-reader">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop has-mobile"><a class="shot-frame shot-desktop" href="assets/screenshots/bible-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/bible-desktop-light.webp" alt="Bible reader on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/bible-desktop-dark.webp" alt="Bible reader on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a><a class="shot-frame shot-mobile" href="assets/screenshots/bible-mobile-light.webp" data-zoom><img class="img-light" src="assets/screenshots/bible-mobile-light.webp" alt="Bible reader on a phone" width="390" height="844" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/bible-mobile-dark.webp" alt="Bible reader on a phone" width="390" height="844" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <section class="shot" id="portal">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: #06b6d4">Website</p>
+        <h2>Member portal</h2>
+        <p>Members sign in on the church website to sign up for events, share prayer requests, download giving statements and bulletins, and practise their memory verses.</p>
+        <a href="documentation.html#website-user-portal">Read the manual →</a>
+      </div>
+      <div class="shot-media has-desktop has-mobile"><a class="shot-frame shot-desktop" href="assets/screenshots/portal-desktop-light.webp" data-zoom><img class="img-light" src="assets/screenshots/portal-desktop-light.webp" alt="Member portal on a computer" width="1280" height="800" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/portal-desktop-dark.webp" alt="Member portal on a computer" width="1280" height="800" loading="lazy" decoding="async" /></a><a class="shot-frame shot-mobile" href="assets/screenshots/portal-mobile-light.webp" data-zoom><img class="img-light" src="assets/screenshots/portal-mobile-light.webp" alt="Member portal on a phone" width="390" height="844" loading="lazy" decoding="async" /><img class="img-dark" src="assets/screenshots/portal-mobile-dark.webp" alt="Member portal on a phone" width="390" height="844" loading="lazy" decoding="async" /></a></div>
+    </section>
+
+    <div class="shots-end">
+      <a class="btn btn-primary" href="getting-started.html">Get started →</a>
+      <a class="btn btn-ghost" href="documentation.html">Read the manual</a>
+    </div>
+  </main>
+
+  <dialog class="shot-zoom" aria-label="Screenshot"><img alt="" /></dialog>
+
+  <footer>
+    <div class="wrap foot">
+      <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
+      <nav class="foot-links">
+        <a href="index.html#features">Features</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="getting-started.html">Getting started</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
+      </nav>
+    </div>
+    <div class="wrap"><small>Taken with <code>docs/screenshots.py</code>. Re-run it, then <code>docs/build_docs.py</code>, to refresh.</small></div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

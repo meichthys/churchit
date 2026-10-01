@@ -8,6 +8,8 @@
  "engine": "InnoDB",
  "field_order": [
   "start_date",
+  "church",
+  "include_branches",
   "end_date",
   "column_break_1",
   "budgeted_amount",
@@ -26,6 +28,23 @@
    "in_standard_filter": 1,
    "label": "Start Date",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.multi_church",
+   "description": "Count what this church's branches spend as well as its own, for an organisation-wide budget.",
+   "fieldname": "include_branches",
+   "fieldtype": "Check",
+   "label": "Include Branch Churches"
   },
   {
    "fieldname": "end_date",
@@ -80,7 +99,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-05-31 17:34:37.095543",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Budget",
@@ -110,6 +129,17 @@
    "role": "Church Manager",
    "select": 1,
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
    "write": 1
   }
  ],

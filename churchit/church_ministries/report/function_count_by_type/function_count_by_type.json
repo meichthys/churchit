@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "json": "{\"columns\":[{\"label\":\"Type\",\"fieldname\":\"type\",\"id\":\"type\",\"name\":\"Type\",\"width\":null,\"editable\":false,\"compareValue\":null},{\"label\":\"Count\",\"fieldname\":\"count\",\"id\":\"count\",\"name\":\"Count\",\"width\":null,\"editable\":false,\"compareValue\":null}],\"filters\":{\"start\":\"2025-06-01\",\"end\":\"2025-09-04\"}}",
  "letterhead": null,
- "modified": "2026-03-24 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Count by Type",
@@ -29,7 +29,7 @@
    "role": "Church Manager"
   },
   {
-   "role": "Church User"
+   "role": "Church Staff"
   }
  ],
  "timeout": 0

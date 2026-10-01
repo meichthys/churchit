@@ -1,5 +1,6 @@
 frappe.query_reports["Recurring Functions"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "associated_ministry",
 			label: __("Ministry"),

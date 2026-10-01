@@ -1,5 +1,6 @@
 frappe.query_reports["First-Time Givers"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "window_days",
 			label: __("Window (Days)"),

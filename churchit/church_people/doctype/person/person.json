@@ -13,6 +13,7 @@
   "first_name",
   "last_name",
   "full_name",
+  "church",
   "gender",
   "membership_status",
   "column_break_agva",
@@ -68,6 +69,17 @@
    "label": "Full Name",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church) || !!(frappe.boot.churchit && frappe.boot.churchit.shared_people)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_gwhd",
@@ -224,7 +236,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Family relationships \u2014 children, parents, siblings, etc. The Husband/Wife row follows the Spouse field.",
+   "description": "Family relationships: children, parents, siblings and so on. The Husband/Wife row follows the Spouse field.",
    "fieldname": "relations",
    "fieldtype": "Table",
    "label": "Relations",
@@ -315,7 +327,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
@@ -353,6 +365,32 @@
    "role": "Church User",
    "select": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Check-In",
+   "select": 1
   }
  ],
  "route": "church-personz",

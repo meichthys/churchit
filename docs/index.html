@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,16 +13,18 @@
           t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         document.documentElement.setAttribute("data-theme", t);
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
-  <title>churchit — the open-source church management platform</title>
-  <meta name="description" content="churchit is a free, open-source, self-hosted platform to run every corner of church life: people, families, finances, ministries, missions, prayers, sermons and more." />
+  <title>churchit, the open-source church management platform</title>
+  <meta name="description"
+    content="churchit is a free, open-source, self-hosted platform to run every corner of church life: people, families, finances, ministries, missions, prayers, sermons and more." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
+
 <body>
 
   <!-- Nav -->
@@ -31,12 +34,22 @@
       <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
       <nav class="nav-links">
         <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="pricing.html">(Un)Pricing</a>
         <a href="documentation.html">Documentation</a>
         <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
-        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
-          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"
+          title="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
         </button>
         <a class="btn btn-primary" href="getting-started.html">Get started</a>
       </nav>
@@ -47,73 +60,125 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow">✨ Open source · Self-hosted · $0</span>
         <h1>Manage your church - <span class="grad-text">not a subscription</span></h1>
-        <p class="lead">Churchit is a ministry to churches. We accept no payment and collect no data. Churchit was developed for the edification of churches, not for profiting from them!</p>
+        <p class="lead">Churchit is a ministry to churches. We accept no payment and collect no data. Churchit was
+          developed for the edification of churches, not for profiting from them!</p>
         <div class="cta-row">
-          <a class="btn btn-primary btn-lg" href="documentation.html">📖 Read the manual →</a>
-          <a class="btn btn-ghost btn-lg" href="https://church.meichthys.com/login" target="_blank" rel="noopener">🧪 Try the Demo →</a>
+          <a class="btn btn-ghost btn-lg" href="screenshots.html">✨ Screenshots →</a>
+          <a class="btn btn-primary btn-lg" href="https://demo.churchit.app/login" target="_blank" rel="noopener">🧪 Try
+            the Demo →</a>
         </div>
-        <p style="margin-top:.9rem; color:var(--muted); font-size:.9rem">👤Demo User: <strong>demo@demo.com</strong> 🔑Demo Password:  <strong>Matthew10:8b</strong></p>
+        <p style="margin-top:.9rem; color:var(--muted); font-size:.9rem">👤Demo User: <strong>demo@demo.com</strong>
+          🔑Demo Password: <strong>Matthew10:8b</strong></p>
+        <p class="social-links">
+          <a href="https://discord.gg/YxpdU6qM5w" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"
+              fill="currentColor" aria-hidden="true">
+              <path
+                d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.2.5a18 18 0 0 0-6.4 0L8.6 3a19.8 19.8 0 0 0-4.9 1.4C.6 9 -.2 13.5.2 18a19.9 19.9 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12 0l.5.4c-.6.4-1.300.7-2 1l1.300 2.100a19.900 19.900 0 0 0 6-3c.5-5.200-.8-9.700-3.500-13.600zM8.500 15.300c-1.200 0-2.100-1.100-2.100-2.400s.9-2.400 2.100-2.400 2.100 1.100 2.100 2.400-.9 2.400-2.100 2.400zm7 0c-1.200 0-2.100-1.100-2.100-2.400s.9-2.400 2.100-2.400 2.100 1.100 2.100 2.400-.9 2.400-2.100 2.400z" />
+            </svg> Discord</a>
+          <a href="https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg" target="_blank" rel="noopener"><svg
+              viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M23 7.200a3 3 0 0 0-2.100-2.100C19 4.600 12 4.600 12 4.600s-7 0-8.900.5A3 3 0 0 0 1 7.200C.5 9.100.5 12 .5 12s0 2.900.5 4.800a3 3 0 0 0 2.100 2.100c1.900.5 8.900.5 8.900.5s7 0 8.900-.5a3 3 0 0 0 2.100-2.100c.5-1.900.5-4.800.5-4.800s0-2.900-.5-4.800zM9.800 15.500v-7l6 3.500-6 3.500z" />
+            </svg> YouTube</a>
+          <a href="https://liberapay.com/meichthys" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.350l-1.450-1.320C5.400 15.360 2 12.280 2 8.500 2 5.420 4.420 3 7.500 3c1.740 0 3.410.81 4.500 2.090C13.090 3.810 14.760 3 16.500 3 19.580 3 22 5.420 22 8.500c0 3.780-3.400 6.860-8.550 11.540L12 21.350z"/></svg> Donate</a>
+        </p>
+        <a class="contribute-banner" href="https://discord.gg/YxpdU6qM5w" target="_blank" rel="noopener">🤝 <strong>Help build churchit</strong> – Ask how you can help →</a>
       </div>
 
-      <!-- Floating glass app mockup -->
-      <div class="glass mock floaty" role="img"
-           aria-label="Preview of the churchit dashboard: attendance, giving and recent people for a church.">
-        <div class="mock-bar">
-          <i></i><i></i><i></i>
-          <span class="mock-url">grace.church</span>
-        </div>
-        <div class="mock-screen">
-          <div class="mock-main">
-              <div class="mock-head">
-                <div>
-                  <div class="mock-title">Grace Community</div>
-                  <div class="mock-sub">Sunday · 312 in attendance</div>
-                </div>
-                <span class="pill">This week</span>
-              </div>
-
-              <!-- KPI tiles -->
-              <div class="mock-kpis">
-                <div class="mock-kpi"><div class="k-num">1,204</div><div class="k-lbl">People</div></div>
-                <div class="mock-kpi"><div class="k-num">$8.6k</div><div class="k-lbl">Giving · Jul</div></div>
-                <div class="mock-kpi"><div class="k-num">37</div><div class="k-lbl">Prayers</div></div>
-              </div>
-
-              <!-- Giving trend -->
-              <div class="mock-card">
-                <div class="mock-card-head">
-                  <span class="mock-lbl">Giving · last 7 weeks</span>
-                  <span class="pill soft">▲ 12%</span>
-                </div>
-                <div class="mock-bars" aria-hidden="true">
-                  <span style="--h:42%"></span><span style="--h:66%"></span>
-                  <span style="--h:53%"></span><span style="--h:79%"></span>
-                  <span style="--h:61%"></span><span style="--h:90%"></span>
-                  <span style="--h:73%"></span>
-                </div>
-              </div>
-
-              <!-- Recent activity -->
-              <div class="mock-list">
-                <div class="mock-row"><span class="dot">JM</span><span class="txt">New family added</span><span class="pill">Family</span></div>
-                <div class="mock-row"><span class="dot alt">AK</span><span class="txt">July giving reconciled</span><span class="pill">Giving</span></div>
-                <div class="mock-row"><span class="dot alt2">RP</span><span class="txt">Prayer request shared</span><span class="pill">Prayer</span></div>
-              </div>
-            </div>
-        </div>
+      <!-- Phone screenshots: hover one to bring it forward. Each has a light and a dark picture, and the hidden one is never fetched (lazy). -->
+      <div class="fan" role="group" aria-label="Screenshots of churchit on a phone">
+        <a class="fan-phone" href="screenshots.html#check-in" style="--i: -2; --z: 1">
+          <img class="img-light" src="assets/screenshots/check-in-mobile-light.webp" alt="Check-In Station on a phone" width="390" height="844" loading="lazy" decoding="async" />
+          <img class="img-dark" src="assets/screenshots/check-in-mobile-dark.webp" alt="Check-In Station on a phone" width="390" height="844" loading="lazy" decoding="async" />
+        </a>
+        <a class="fan-phone" href="screenshots.html#rolodex" style="--i: -1; --z: 2">
+          <img class="img-light" src="assets/screenshots/rolodex-mobile-light.webp" alt="Rolodex on a phone" width="390" height="844" loading="lazy" decoding="async" />
+          <img class="img-dark" src="assets/screenshots/rolodex-mobile-dark.webp" alt="Rolodex on a phone" width="390" height="844" loading="lazy" decoding="async" />
+        </a>
+        <a class="fan-phone" href="screenshots.html#desk" style="--i: 0; --z: 3">
+          <img class="img-light" src="assets/screenshots/desk-mobile-light.webp" alt="The desk on a phone" width="390" height="844" loading="lazy" decoding="async" />
+          <img class="img-dark" src="assets/screenshots/desk-mobile-dark.webp" alt="The desk on a phone" width="390" height="844" loading="lazy" decoding="async" />
+        </a>
+        <a class="fan-phone" href="screenshots.html#portal" style="--i: 1; --z: 2">
+          <img class="img-light" src="assets/screenshots/portal-mobile-light.webp" alt="Member portal on a phone" width="390" height="844" loading="lazy" decoding="async" />
+          <img class="img-dark" src="assets/screenshots/portal-mobile-dark.webp" alt="Member portal on a phone" width="390" height="844" loading="lazy" decoding="async" />
+        </a>
+        <a class="fan-phone" href="screenshots.html#bible" style="--i: 2; --z: 1">
+          <img class="img-light" src="assets/screenshots/bible-mobile-light.webp" alt="Bible reader on a phone" width="390" height="844" loading="lazy" decoding="async" />
+          <img class="img-dark" src="assets/screenshots/bible-mobile-dark.webp" alt="Bible reader on a phone" width="390" height="844" loading="lazy" decoding="async" />
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Stats -->
-  <div class="wrap">
-    <div class="glass stats reveal">
-      <div><div class="num">10+</div><div class="lbl">Modules</div></div>
-      <div><div class="num">40+</div><div class="lbl">Record types</div></div>
-      <div><div class="num">100%</div><div class="lbl">Your data</div></div>
-      <div><div class="num">$0</div><div class="lbl">Forever</div></div>
+  <!-- Feature ribbons: each pill opens that feature in the manual. -->
+  <div class="ribbons">
+    <div class="ribbon">
+      <div class="ribbon-track">
+        <ul class="ribbon-list" aria-label="People and gatherings">
+          <li><a class="ribbon-pill" href="documentation.html#people-rolodex"><span aria-hidden="true">📇</span>
+              Rolodex</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#ministries-function-check-ins"><span
+                aria-hidden="true">✅</span> Check-ins</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#people-care-requests"><span aria-hidden="true">🤝</span>
+              Care requests</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#people-church-directory"><span
+                aria-hidden="true">📔</span> Church directory</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#ministries-recurring-functions"><span
+                aria-hidden="true">🔁</span> Recurring events</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#prayers-prayer-request"><span aria-hidden="true">🙇</span>
+              Prayer requests</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#people-background-checks"><span
+                aria-hidden="true">🛡️</span> Background checks</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#ministries-function-sign-ups"><span
+                aria-hidden="true">📝</span> Event sign-ups</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#people-member-transfers"><span
+                aria-hidden="true">📨</span> Member transfers</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#ministries-counseling-cases"><span
+                aria-hidden="true">🗂️</span> Counseling cases</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#people-visitations"><span aria-hidden="true">🚪</span>
+              Visitations</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#website-user-portal"><span aria-hidden="true">👤</span>
+              Member portal</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#foundations-churches"><span aria-hidden="true">⛪</span>
+              Multi-church</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ribbon ribbon-alt">
+      <div class="ribbon-track">
+        <ul class="ribbon-list" aria-label="Giving, teaching and running the church">
+          <li><a class="ribbon-pill" href="documentation.html#finances-collections"><span aria-hidden="true">💵</span>
+              Collections</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#study-bible-memory"><span aria-hidden="true">🧠</span>
+              Bible memory</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#communications-bulletins"><span
+                aria-hidden="true">📰</span> Printed bulletins</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#finances-budgets"><span aria-hidden="true">📊</span>
+              Budgets</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#missions-missionaries"><span aria-hidden="true">📣</span>
+              Missionaries</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#study-sermon-handouts"><span aria-hidden="true">✍️</span>
+              Sermon handouts</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#finances-alms"><span aria-hidden="true">🫴</span> Alms</a>
+          </li>
+          <li><a class="ribbon-pill" href="documentation.html#communications-email-groups"><span
+                aria-hidden="true">✉️</span> Email groups</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#study-translations"><span aria-hidden="true">🈚</span>
+              Bible translations</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#operations-meeting-minutes"><span
+                aria-hidden="true">🗒️</span> Meeting minutes</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#finances-expenses"><span aria-hidden="true">💸</span>
+              Expenses</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#study-sermons"><span aria-hidden="true">🖥️</span> Sermon
+              slides</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#operations-assets"><span aria-hidden="true">📦</span>
+              Asset tracking</a></li>
+          <li><a class="ribbon-pill" href="documentation.html#website-website"><span aria-hidden="true">🌎</span> Church
+              website</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -121,9 +186,8 @@
   <section id="features">
     <div class="wrap">
       <div class="section-head center reveal">
-        <span class="eyebrow">🧩 One App, Unlimited Ministries</span>
-        <h2>Everything church, in one place</h2>
-        <p class="lead">Each module is purpose-built for improving church efficiency and documentation.</p>
+        <h2>All your church information in one place</h2>
+        <p class="lead">Easily exportable - No vendor lock-in</p>
       </div>
 
       <div class="features">
@@ -189,8 +253,8 @@
   <section>
     <div class="wrap">
       <div class="section-head center reveal">
-        <span class="eyebrow">💜 Built as a Ministry for Ministries</span>
         <h2>Software that serves the Church, not shareholders</h2>
+        <p class="subheading">💜 Built as a Ministry for Ministries</p>
       </div>
       <div class="split">
         <div class="glass pillar reveal">
@@ -201,12 +265,14 @@
         <div class="glass pillar reveal">
           <span class="ico">🏠</span>
           <h3>Self-hosted</h3>
-          <p>Run it on your own server or in the cloud. Your directory, your giving records, and your people's data stay under your control.</p>
+          <p>Run it on your own server or in the cloud. Your directory, your giving records, and your people's data stay
+            under your control.</p>
         </div>
         <div class="glass pillar reveal">
           <span class="ico">🧮</span>
           <h3>No per-member fees</h3>
-          <p>Grow from twelve to twelve thousand without watching a meter. The cost is the same every single month: $0.</p>
+          <p>Grow from twelve to twelve thousand without watching a meter. The cost is the same every single month: $0.
+          </p>
         </div>
       </div>
     </div>
@@ -216,9 +282,11 @@
   <section>
     <div class="wrap">
       <div class="glass cta-band reveal">
-        <span class="eyebrow" style="background:rgba(255,255,255,.2); color:#fff; border-color:rgba(255,255,255,.4)">🚀 Ready when you are</span>
+        <span class="eyebrow" style="background:rgba(255,255,255,.2); color:#fff; border-color:rgba(255,255,255,.4)">🚀
+          Ready when you are</span>
         <h2>Engage your whole church.</h2>
-        <p class="lead" style="margin-inline:auto">Read the manual, spin it up, and never pay for another church management subscription again.</p>
+        <p class="lead" style="margin-inline:auto">Read the manual, spin it up, and never pay for another church
+          management subscription again.</p>
         <div class="cta-row" style="justify-content:center; margin-top:1.6rem">
           <a class="btn btn-primary btn-lg" href="getting-started.html">Get started →</a>
           <a class="btn btn-ghost btn-lg" href="pricing.html">Why it's free</a>
@@ -232,10 +300,10 @@
     <div class="wrap foot">
       <a class="brand" href="index.html"><span class="mark">⛪</span> churchit</a>
       <nav class="foot-links">
-        <a href="index.html#features">Features</a>
-        <a href="pricing.html">Pricing</a>
-        <a href="getting-started.html">Getting started</a>
-        <a href="documentation.html">Documentation</a>
+        <a href="https://discord.gg/YxpdU6qM5w" target="_blank" rel="noopener">Discord</a>
+        <a href="https://youtube.com/channel/UCnz8vdrDuI-msXF479NSerg" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://matrix.to/#/#the-church-app:matrix.org" target="_blank" rel="noopener">Matrix</a>
+        <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
         <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
       </nav>
     </div>
@@ -244,4 +312,5 @@
 
   <script src="assets/app.js"></script>
 </body>
+
 </html>

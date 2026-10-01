@@ -14,7 +14,7 @@
  "docstatus": 0,
  "doctype": "Web Form",
  "idx": 0,
- "introduction_text": "<p>\"Bear one another's burdens, and so fulfill the law of Christ.\" — Galatians 6:2</p><p>Let us know how we can come alongside you. A deacon or pastor will follow up shortly.</p>",
+ "introduction_text": "<p>\"Bear one another's burdens, and so fulfill the law of Christ.\" (Galatians 6:2)</p><p>Let us know how we can come alongside you. A deacon or pastor will follow up shortly.</p>",
  "is_standard": 1,
  "list_columns": [
   {"fieldname": "category", "fieldtype": "Link", "label": "Category"},
@@ -24,7 +24,7 @@
  "list_title": "Your Care Requests",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-05-29 00:00:00.000000",
+ "modified": "2026-09-28 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "care-request-form",
@@ -38,7 +38,7 @@
  "success_title": "Submitted",
  "title": "Care Request",
  "web_form_fields": [
-  {"fieldname": "category", "fieldtype": "Link", "label": "Category", "options": "Care Request Type", "reqd": 1},
+  {"fieldname": "category", "fieldtype": "Link", "label": "Category", "options": "Care Request Type", "reqd": 1, "allow_read_on_all_link_options": 1},
   {"fieldname": "urgency", "fieldtype": "Select", "label": "Urgency", "options": "Low\nMedium\nHigh\nUrgent"},
   {"fieldname": "description", "fieldtype": "Text", "label": "How can we help?", "reqd": 1},
   {"fieldname": "preferred_contact", "fieldtype": "Select", "label": "Preferred Contact", "options": "Phone\nEmail\nIn Person\nText"}

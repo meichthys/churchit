@@ -1,18 +1,18 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-03-15 18:51:58.373093",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
- "document_type": "Comment",
+ "document_type": "Prayer Request",
  "dynamic_filters_json": "[]",
- "filters_json": "[[\"Comment\",\"reference_doctype\",\"=\",\"Prayer Request\",false]]",
+ "filters_json": "[]",
  "function": "Count",
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
  "label": "Prayer Request Comments",
- "modified": "2026-03-15 18:51:58.373093",
+ "method": "churchit.church_prayers.number_card.prayer_request_comments.prayer_request_comments.get_count",
+ "modified": "2026-09-28 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request Comments",
@@ -21,5 +21,5 @@
  "report_function": "Sum",
  "show_percentage_stats": 1,
  "stats_time_interval": "Monthly",
- "type": "Document Type"
+ "type": "Custom"
 }

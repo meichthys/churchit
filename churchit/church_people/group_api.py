@@ -4,13 +4,12 @@
 import frappe
 from frappe import _
 
+from churchit.church_scope import church_filters, session_church, session_person
+
 
 def _session_person():
 	"""Return the Person doc-name linked to the current session user, or None."""
-	user = frappe.session.user
-	if not user or user == "Guest":
-		return None
-	return frappe.db.get_value("Person", {"user": user}, "name")
+	return session_person()
 
 
 @frappe.whitelist()
@@ -28,7 +27,7 @@ def joinable_public_groups():
 	)
 	rows = frappe.get_all(
 		"Group",
-		filters={"public": 1, "show_in_portal": 1},
+		filters=church_filters(session_church(), public=1, show_in_portal=1),
 		fields=["name", "group_name", "description"],
 		order_by="group_name",
 	)
@@ -36,20 +35,26 @@ def joinable_public_groups():
 
 
 @frappe.whitelist()
-def join_group(group):
+def join_group(group: str | None):
 	"""Add the current session user's linked Person to a public group.
 	The group must have ``public = 1`` and ``show_in_portal = 1``; the
 	user must already have a linked Person record."""
 	if not group:
 		frappe.throw(_("Group is required."))
 
-	row = frappe.db.get_value("Group", group, ["public", "show_in_portal", "group_name"], as_dict=True)
+	# Only the groups joinable_public_groups offers: another church's group reads as missing.
+	row = frappe.db.get_value(
+		"Group",
+		church_filters(session_church(), name=group),
+		["public", "show_in_portal", "group_name"],
+		as_dict=True,
+	)
 	if not row:
 		frappe.throw(_("Group not found."))
 	if not row.show_in_portal:
 		frappe.throw(_("This group is not available on the portal."))
 	if not row.public:
-		frappe.throw(_("This group is not public — ask the group leader to add you."))
+		frappe.throw(_("This group is not public. Ask the group leader to add you."))
 
 	person = _session_person()
 	if not person:

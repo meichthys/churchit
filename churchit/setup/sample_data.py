@@ -5,20 +5,21 @@ Creates a realistic set of sample records so new users can explore the app
 immediately after installation.  Intended to be called from the setup wizard
 when the user opts in to sample data.
 
-All inserts are idempotent — safe to run more than once on the same site.
+All inserts are idempotent, so they are safe to run more than once on the same site.
 """
 
 import json
 
 import frappe
-from frappe.utils import add_days, add_months, getdate
+from frappe import _
+from frappe.utils import add_days, get_last_day, getdate
 
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 
 # Ordered deletion steps: (is_submittable, doctype, filters).
 # Prayer Request comments are handled separately after this list runs.
 _DELETE_STEPS = [
-	# Leaf docs that link to functions / people / rooms — delete first.
+	# Leaf docs that link to functions / people / rooms. Delete these first.
 	(False, "Bulletin", {}),
 	(False, "Meeting Minutes", {}),
 	(False, "Room Booking", {}),
@@ -36,8 +37,6 @@ _DELETE_STEPS = [
 	(False, "Sermon Series", {}),
 	(False, "Memory Session", {}),
 	(False, "Bible Memory Item", {}),
-	(False, "Bible Reference", {}),
-	(False, "Bible Verse", {}),
 	(False, "Function Sign-Up", {}),
 	(False, "Function Check-In", {}),
 	(False, "Function", {}),
@@ -88,7 +87,7 @@ def create():
 	"""
 	frappe.only_for("System Manager")
 	create_sample_data()
-	frappe.msgprint("Sample data has been created.", indicator="green", alert=True)
+	frappe.msgprint(_("Sample data has been created."), indicator="green", alert=True)
 
 
 @frappe.whitelist()
@@ -99,7 +98,7 @@ def delete():
 	"""
 	frappe.only_for("System Manager")
 	delete_sample_data()
-	frappe.msgprint("Sample data has been removed.", indicator="green", alert=True)
+	frappe.msgprint(_("Sample data has been removed."), indicator="green", alert=True)
 
 
 def create_sample_data():
@@ -145,14 +144,12 @@ def create_sample_data():
 	_create_function_check_ins(people)
 	_create_meeting_minutes(people)
 
-	verses = _create_bible_verses()
-	_create_bible_references(verses)
-	_create_bible_memory_items(verses)
+	_create_bible_memory_items()
 
-	_create_beliefs(verses)
+	_create_beliefs()
 
 	sermon_series = _create_sermon_series(people)
-	_create_sermons(people, verses, sermon_series)
+	_create_sermons(people, sermon_series)
 
 	groups = _create_groups(people, group_roles)
 
@@ -198,12 +195,13 @@ def delete_sample_data():
 # ---------------------------------------------------------------------------
 
 
-def _birthday_this_week(day_offset, birth_year):
-	"""Return a birthday (as string) whose month/day falls *day_offset* days
-	from today, but in *birth_year*.  This guarantees the person shows up in
-	the 'Birthdays This Week' report when sample data is created."""
+def _this_week_in(day_offset, year):
+	"""Return the date (as string) *day_offset* days from today, moved to *year*.
+
+	A birthday or anniversary made this way shows up in the "this week" cards
+	and reports whenever sample data is created."""
 	target = add_days(getdate(), day_offset)
-	return str(target.replace(year=birth_year))
+	return str(target.replace(year=year))
 
 
 def _near_date(day_offset):
@@ -281,7 +279,7 @@ def _delete_submittable_docs(doctype, filters):
 #
 # Birthdays and position dates are computed dynamically so that reports like
 # "Birthdays This Week" always have data regardless of when sample data is
-# created.  The helper ``_birthday_this_week(offset, year)`` places the
+# created.  The helper ``_this_week_in(offset, year)`` places the
 # birthday *offset* days from today but in the given birth year.
 
 
@@ -310,7 +308,7 @@ def _build_people():
 			"1991-01-20",
 			1,
 			"1989-04-10",
-			_birthday_this_week(0, 1964),  # birthday today
+			_this_week_in(0, 1964),  # birthday today
 			"+1 202-555-0102",
 			"sarah.wilson@example.com",
 			[],
@@ -352,11 +350,12 @@ def _build_people():
 			"2005-05-20",
 			1,
 			"2004-09-15",
-			_birthday_this_week(2, 1980),  # birthday in 2 days
+			_this_week_in(2, 1980),  # birthday in 2 days
 			"+1 202-555-0301",
 			"david.thompson@example.com",
 			[
-				{"position": "Deacon", "start_date": "2010-01-01", "end_date": str(add_months(getdate(), 1))},
+				# Ends this month, so "Person Positions Ending This Month" always has a row.
+				{"position": "Deacon", "start_date": "2010-01-01", "end_date": str(get_last_day(getdate()))},
 			],
 			None,
 		),
@@ -441,7 +440,7 @@ def _build_people():
 			"2008-08-18",
 			1,
 			"2007-12-25",
-			_birthday_this_week(3, 1985),  # birthday in 3 days
+			_this_week_in(3, 1985),  # birthday in 3 days
 			"+1 202-555-0801",
 			"elizabeth.harper@example.com",
 			[],
@@ -572,11 +571,17 @@ _CHURCH_MANAGER_EMAIL = "mary.johnson@example.com"
 _CHURCH_MEMBER_EMAIL = "james.wilson@example.com"
 
 # Demo logins: (email, person, role profile). Each password is set to the account's
-# own email address, so the credentials are self-evident when demonstrating the app.
-# Mary is staff and lands in the Desk; James is a rank-and-file member and lands in
-# the portal, which is the only way to see the member experience.
+# own email address on every run, so the credentials are self-evident when
+# demonstrating the app and survive whatever else touched the account.
+# Mary manages everything; the next four each hold one staff role profile, so each
+# desk role can be tried as its own login. James is a rank-and-file member and lands
+# in the portal, which is the only way to see the member experience.
 _SAMPLE_USERS = (
 	(_CHURCH_MANAGER_EMAIL, "Mary Johnson", "Church Manager"),
+	("sarah.wilson@example.com", "Sarah Wilson", "Church Office"),
+	("robert.johnson@example.com", "Robert Johnson", "Church Treasurer"),
+	("david.thompson@example.com", "David Thompson", "Church Care Team"),
+	("lisa.thompson@example.com", "Lisa Thompson", "Church Check-In Volunteer"),
 	(_CHURCH_MEMBER_EMAIL, "James Wilson", "Church User"),
 )
 
@@ -598,11 +603,12 @@ def _create_sample_users(people):
 				}
 			)
 			user.insert(ignore_permissions=True)
-			frappe.utils.password.update_password(email, email)
 
 		# Asserted on every run, not just when the User is new: the accounts outlive
 		# a delete/recreate of the sample people, which would otherwise leave the
-		# login with no Person and no portal data behind it.
+		# login with no Person and no portal data behind it, and the password must
+		# always be the email address.
+		frappe.utils.password.update_password(email, email)
 		person_name = people.get(person)
 		if person_name:
 			frappe.db.set_value("Person", person_name, "user", email)
@@ -635,14 +641,15 @@ _HEADS = {
 _SPOUSES = [
 	("James Wilson", "Sarah Wilson", "1986-06-14"),
 	("Robert Johnson", "Mary Johnson", "1995-10-07"),
-	("David Thompson", "Lisa Thompson", "2004-08-21"),
+	# Today's date, so an anniversary always shows up this week and this month.
+	("David Thompson", "Lisa Thompson", _this_week_in(0, 2004)),
 ]
 
 
 def _create_families():
 	"""Create sample families and return dict mapping family_name → name."""
 	refs = {}
-	for family_name, _ in _FAMILIES:
+	for family_name, _members in _FAMILIES:
 		existing = frappe.db.get_value("Family", {"family_name": family_name}, "name")
 		if existing:
 			refs[family_name] = existing
@@ -857,7 +864,7 @@ def _create_missionaries(people, agencies):
 						"<p>Dear brothers and sisters,</p>"
 						"<p>Greetings from Brazil! It is hard to believe another month has "
 						"passed. The Lord has been faithful in opening doors in the rural "
-						"villages we visited — we held our first Sunday gatherings in two "
+						"villages we visited. We held our first Sunday gatherings in two "
 						"new communities, and three families have asked to study Scripture "
 						"with us each week.</p>"
 						"<p>Please continue to pray for the local pastors as they shepherd "
@@ -944,7 +951,7 @@ def _create_funds():
 
 def _set_sample_fund_goal(funds):
 	"""Give one fund with a positive balance a fundraising goal, sized so the
-	current balance is ~40% of the goal — a realistic in-progress example for the
+	current balance is about 40% of the goal, a realistic in-progress example for the
 	Fund Goals dashboard and report. Run after balances are populated."""
 	for fund_name in ("Building", "Missions", "General", "Benevolence"):
 		name = funds.get(fund_name)
@@ -1006,7 +1013,7 @@ def _create_expense_types(funds):
 
 
 # ---------------------------------------------------------------------------
-# Collections (submittable — saved as Draft)
+# Collections (submittable, saved as Draft)
 # ---------------------------------------------------------------------------
 
 
@@ -1067,7 +1074,7 @@ def _create_collections(people, funds):
 		},
 		{
 			"date": _near_datetime(0, "10:30:00"),
-			"notes": "Sunday offering — missions emphasis week.",
+			"notes": "Sunday offering, missions emphasis week.",
 			"expected_total": 365,
 			"submit": False,
 			"donations": [
@@ -1129,7 +1136,7 @@ def _create_collections(people, funds):
 
 
 # ---------------------------------------------------------------------------
-# Expenses (submittable — saved as Draft)
+# Expenses (submittable, saved as Draft)
 # ---------------------------------------------------------------------------
 
 
@@ -1268,7 +1275,7 @@ def _create_prayer_requests(people):
 			"status": _status["Answered"],
 			"type": _type["Praise"],
 			"requestor": people["Mary Johnson"],
-			"request": "Praise the Lord! Our grandson was born healthy — 7 lbs 8 oz. Mom and baby are doing great. We are so grateful for God's faithfulness and protection through the pregnancy and delivery.",
+			"request": "Praise the Lord! Our grandson was born healthy, 7 lbs 8 oz. Mom and baby are doing great. We are so grateful for God's faithfulness and protection through the pregnancy and delivery.",
 		},
 		{
 			"title": "Unspoken Request",
@@ -1333,7 +1340,7 @@ def _create_visitations(people):
 			"duration_minutes": 60,
 			"status": "Completed",
 			"follow_up_needed": 0,
-			"notes": "Stopped by to congratulate Mary on her grandson's birth. Shared cookies and coffee. Mary radiant with joy — wanted to share photos. No prayer concerns at this time.",
+			"notes": "Stopped by to congratulate Mary on her grandson's birth. Shared cookies and coffee. Mary radiant with joy and wanting to share photos. No prayer concerns at this time.",
 		},
 		{
 			"person": people["Lisa Thompson"],
@@ -1397,7 +1404,7 @@ def _create_care_assignments(people):
 			"person": people["Samuel Brooks"],
 			"deacon": people["Robert Johnson"],
 			"start_date": _near_date(-180),
-			"notes": "New attendee — assigned for follow-up and integration.",
+			"notes": "New attendee, assigned for follow-up and integration.",
 		},
 		{
 			"person": people["Lisa Thompson"],
@@ -1410,7 +1417,7 @@ def _create_care_assignments(people):
 			"deacon": people["David Thompson"],
 			"start_date": _near_date(-365),
 			"end_date": _near_date(-30),
-			"notes": "Care season concluded — doing well.",
+			"notes": "Care season concluded. Doing well.",
 		},
 	]
 
@@ -1665,7 +1672,7 @@ def _create_functions(sign_up_items):
 			"start_date": _near_date(3),
 			"start_time": "19:00:00",
 			"end_time": "20:00:00",
-			"description": "Weekly prayer meeting — a time to bring our requests before the Lord together.",
+			"description": "Weekly prayer meeting, a time to bring our requests before the Lord together.",
 			"allow_sign_ups": 0,
 			"publish": 1,
 		},
@@ -1849,35 +1856,6 @@ def _create_function_sign_ups(people, sign_up_items):
 		doc.insert(ignore_permissions=True)
 
 
-# ---------------------------------------------------------------------------
-# Bible Verses
-# ---------------------------------------------------------------------------
-
-_VERSES = [
-	("John", "3", "16"),
-	("Psalms", "23", "1"),
-	("Psalms", "23", "2"),
-	("Psalms", "23", "3"),
-	("Psalms", "23", "4"),
-	("Psalms", "23", "5"),
-	("Psalms", "23", "6"),
-	("Romans", "8", "28"),
-	("Philippians", "4", "13"),
-	("Jeremiah", "29", "11"),
-	("2 Timothy", "3", "16"),
-	("Hebrews", "11", "1"),
-	# Belief-related verses
-	("Genesis", "1", "1"),
-	("John", "1", "1"),
-	("Matthew", "28", "19"),
-	("Romans", "3", "23"),
-	("Ephesians", "2", "8"),
-	("Acts", "2", "38"),
-	("1 Corinthians", "11", "26"),
-	("1 Thessalonians", "4", "16"),
-]
-
-
 def _create_function_check_ins(people):
 	"""Create sample check-in records against the Sunday Worship function."""
 	function = frappe.db.get_value("Function", {"function_name": "Sunday Worship"}, "name")
@@ -1910,156 +1888,24 @@ def _create_function_check_ins(people):
 		).insert(ignore_permissions=True)
 
 
-def _create_bible_verses():
-	"""Create sample Bible verses and return dict mapping 'Book C:V' → name."""
-	# Build lookup for Bible Book display name → hash name
-	book_refs = {}
-	for book_name in {b for b, _, _ in _VERSES}:
-		book_refs[book_name] = frappe.db.get_value("Bible Book", {"book": book_name}, "name")
-
-	refs = {}
-	for book, chapter, verse in _VERSES:
-		key = f"{book} {chapter}:{verse}"
-		existing = frappe.db.get_value(
-			"Bible Verse",
-			{"book": book_refs[book], "chapter": chapter, "verse": verse},
-			"name",
-		)
-		if existing:
-			refs[key] = existing
-			continue
-		doc = frappe.get_doc(
-			{
-				"doctype": "Bible Verse",
-				"book": book_refs[book],
-				"chapter": chapter,
-				"verse": verse,
-			}
-		)
-		doc.insert(ignore_permissions=True)
-		refs[key] = doc.name
-	return refs
-
-
-# ---------------------------------------------------------------------------
-# Bible References
-# ---------------------------------------------------------------------------
-
-
-def _create_bible_references(verses):
-	"""Create sample Bible references."""
-	_tr = {
-		t: _resolve_link("Bible Translation", "translation", t)
-		for t in (
-			"King James Version",
-			"English Standard Version",
-			"New International Version",
-			"New King James Version",
-		)
-	}
-	references = [
-		{
-			"start_verse": verses["John 3:16"],
-			"translation": _tr["King James Version"],
-			"reference_text": (
-				"For God so loved the world, that he gave his only begotten Son, "
-				"that whosoever believeth in him should not perish, but have "
-				"everlasting life."
-			),
-		},
-		{
-			"start_verse": verses["Romans 8:28"],
-			"translation": _tr["English Standard Version"],
-			"reference_text": (
-				"And we know that for those who love God all things work together "
-				"for good, for those who are called according to his purpose."
-			),
-		},
-		{
-			"start_verse": verses["Psalms 23:1"],
-			"end_verse": verses["Psalms 23:6"],
-			"translation": _tr["King James Version"],
-			"reference_text": (
-				"The LORD is my shepherd; I shall not want. He maketh me to lie "
-				"down in green pastures: he leadeth me beside the still waters. "
-				"He restoreth my soul: he leadeth me in the paths of righteousness "
-				"for his name's sake. Yea, though I walk through the valley of the "
-				"shadow of death, I will fear no evil: for thou art with me; thy rod "
-				"and thy staff they comfort me. Thou preparest a table before me in "
-				"the presence of mine enemies: thou anointest my head with oil; my "
-				"cup runneth over. Surely goodness and mercy shall follow me all the "
-				"days of my life: and I will dwell in the house of the LORD for ever."
-			),
-		},
-		{
-			"start_verse": verses["Jeremiah 29:11"],
-			"translation": _tr["New International Version"],
-			"reference_text": (
-				"For I know the plans I have for you, declares the LORD, plans to "
-				"prosper you and not to harm you, plans to give you hope and a future."
-			),
-		},
-		{
-			"start_verse": verses["Philippians 4:13"],
-			"translation": _tr["New King James Version"],
-			"reference_text": ("I can do all things through Christ who strengthens me."),
-		},
-	]
-	# Belief-supporting references (no text — just verse pointers)
-	belief_refs = [
-		{"start_verse": verses["Genesis 1:1"]},
-		{"start_verse": verses["John 1:1"]},
-		{"start_verse": verses["2 Timothy 3:16"]},
-		{"start_verse": verses["Matthew 28:19"]},
-		{"start_verse": verses["Romans 3:23"]},
-		{"start_verse": verses["Ephesians 2:8"]},
-		{"start_verse": verses["Acts 2:38"]},
-		{"start_verse": verses["1 Corinthians 11:26"]},
-		{"start_verse": verses["1 Thessalonians 4:16"]},
-	]
-	references += belief_refs
-
-	for ref in references:
-		# Bible Reference names are auto-generated by script
-		existing = frappe.db.exists(
-			"Bible Reference",
-			{
-				"start_verse": ref["start_verse"],
-				"translation": ref.get("translation"),
-			},
-		)
-		if existing:
-			continue
-		doc = frappe.get_doc({"doctype": "Bible Reference", **ref})
-		doc.insert(ignore_permissions=True)
-
-
 # ---------------------------------------------------------------------------
 # Bible Memory
 # ---------------------------------------------------------------------------
 
 
-def _create_bible_memory_items(verses):
+def _create_bible_memory_items():
 	"""Create sample Bible Memory Items + Memory Sessions for the sample
-	Church Manager user (Mary Johnson). Skipped if the user is missing."""
+	Church Manager user (Mary Johnson). Skipped if the user is missing.
+
+	References are written as they are stored, so a second run finds them."""
 	user = _CHURCH_MANAGER_EMAIL
 	if not frappe.db.exists("User", user):
 		return
 
-	def find_ref(verse_key, translation_name):
-		start = verses.get(verse_key)
-		translation = _resolve_link("Bible Translation", "translation", translation_name)
-		if not (start and translation):
-			return None
-		return frappe.db.get_value(
-			"Bible Reference",
-			{"start_verse": start, "translation": translation},
-			"name",
-		)
-
 	specs = [
 		{
-			"ref": find_ref("John 3:16", "King James Version"),
+			"reference": "John 3:16",
+			"translation": "KJV",
 			"progress": 100,
 			"memorized": 1,
 			"memorized_on": _near_date(-14),
@@ -2072,7 +1918,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Psalms 23:1", "King James Version"),
+			"reference": "Psalms 23:1-6",
+			"translation": "KJV",
 			"progress": 60,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2084,7 +1931,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Romans 8:28", "English Standard Version"),
+			"reference": "Romans 8:28",
+			"translation": "BSB",
 			"progress": 25,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2094,7 +1942,8 @@ def _create_bible_memory_items(verses):
 			],
 		},
 		{
-			"ref": find_ref("Philippians 4:13", "New King James Version"),
+			"reference": "Philippians 4:13",
+			"translation": "BSB",
 			"progress": 0,
 			"memorized": 0,
 			"times_memorized": 0,
@@ -2103,15 +1952,16 @@ def _create_bible_memory_items(verses):
 	]
 
 	for spec in specs:
-		if not spec["ref"]:
+		passage = {"bible_reference": spec["reference"], "translation": spec["translation"]}
+		if not frappe.db.exists("Bible Translation", spec["translation"]):
 			continue
-		if frappe.db.exists("Bible Memory Item", {"user": user, "bible_reference": spec["ref"]}):
+		if frappe.db.exists("Bible Memory Item", {"user": user, **passage}):
 			continue
 		item = frappe.get_doc(
 			{
 				"doctype": "Bible Memory Item",
 				"user": user,
-				"bible_reference": spec["ref"],
+				**passage,
 				"progress": spec["progress"],
 				"memorized": spec["memorized"],
 				"memorized_on": spec.get("memorized_on"),
@@ -2139,20 +1989,9 @@ def _create_bible_memory_items(verses):
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(people, verses, series_refs=None):
-	"""Create sample sermons with slides referencing bible references, people,
+def _create_sermons(people, series_refs=None):
+	"""Create sample sermons with Scripture slides, and slides showing people,
 	missionaries, and beliefs."""
-
-	def bible_ref(verse_key, translation_name):
-		verse = verses.get(verse_key)
-		translation = _resolve_link("Bible Translation", "translation", translation_name)
-		if not (verse and translation):
-			return None
-		return frappe.db.get_value(
-			"Bible Reference",
-			{"start_verse": verse, "translation": translation},
-			"name",
-		)
 
 	def belief(title):
 		return frappe.db.get_value("Belief", {"title": title}, "name")
@@ -2177,8 +2016,8 @@ def _create_sermons(people, verses, series_refs=None):
 			),
 			"slides": [
 				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Psalms 23:1", "King James Version"),
+					"scripture": "Psalms 23:1-6",
+					"translation": "KJV",
 					"notes": "<p>Read the full Psalm slowly before beginning the exposition.</p>",
 				},
 				{"slide_type": "Belief", "slide": belief("God")},
@@ -2192,7 +2031,7 @@ def _create_sermons(people, verses, series_refs=None):
 					"slide": missionary("Michael & Anna Grant"),
 					"notes": "<p>Remind the congregation that the Shepherd cares for sheep across the world.</p>",
 				},
-				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+				{"scripture": "John 3:16", "translation": "KJV"},
 			],
 		},
 		{
@@ -2210,10 +2049,7 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ul>"
 			),
 			"slides": [
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Romans 8:28", "English Standard Version"),
-				},
+				{"scripture": "Romans 8:28"},
 				{"slide_type": "Belief", "slide": belief("Salvation")},
 				{
 					"slide_type": "Missionary",
@@ -2221,10 +2057,7 @@ def _create_sermons(people, verses, series_refs=None):
 					"notes": "<p>Elizabeth's story is a living example of stepping out in faith.</p>",
 				},
 				{"slide_type": "Person", "slide": people.get("David Thompson")},
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Philippians 4:13", "New King James Version"),
-				},
+				{"scripture": "Philippians 4:13"},
 			],
 		},
 		{
@@ -2242,10 +2075,7 @@ def _create_sermons(people, verses, series_refs=None):
 				"</ol>"
 			),
 			"slides": [
-				{
-					"slide_type": "Bible Reference",
-					"slide": bible_ref("Jeremiah 29:11", "New International Version"),
-				},
+				{"scripture": "Jeremiah 29:11"},
 				{"slide_type": "Belief", "slide": belief("The Bible")},
 				{
 					"slide_type": "Person",
@@ -2255,9 +2085,9 @@ def _create_sermons(people, verses, series_refs=None):
 				{
 					"slide_type": "Missionary",
 					"slide": missionary("Thomas Reed"),
-					"notes": "<p>Sensitive — share only the prayer points, not the field.</p>",
+					"notes": "<p>Sensitive: share only the prayer points, not the field.</p>",
 				},
-				{"slide_type": "Bible Reference", "slide": bible_ref("John 3:16", "King James Version")},
+				{"scripture": "John 3:16", "translation": "KJV"},
 			],
 		},
 	]
@@ -2273,7 +2103,7 @@ def _create_sermons(people, verses, series_refs=None):
 		existing = frappe.db.exists("Sermon", {"title": sermon["title"]})
 		if existing:
 			continue
-		sermon["slides"] = [s for s in sermon.get("slides", []) if s.get("slide")]
+		sermon["slides"] = [s for s in sermon.get("slides", []) if s.get("slide") or s.get("scripture")]
 		doc = frappe.get_doc({"doctype": "Sermon", **sermon})
 		doc.insert(ignore_permissions=True)
 
@@ -2283,7 +2113,7 @@ def _create_sermons(people, verses, series_refs=None):
 # ---------------------------------------------------------------------------
 
 
-def _create_beliefs(verses):
+def _create_beliefs():
 	"""Create sample belief statements for the church website."""
 	beliefs = [
 		{
@@ -2294,7 +2124,7 @@ def _create_beliefs(verses):
 				"and is the final authority for the life of the believer.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["2 Timothy 3:16"],
+			"bible_references": "2 Timothy 3:16",
 		},
 		{
 			"title": "God",
@@ -2304,7 +2134,7 @@ def _create_beliefs(verses):
 				"infinite in power, wisdom, and love.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Genesis 1:1", "John 1:1", "Matthew 28:19"],
+			"bible_references": "Genesis 1:1; Matthew 28:19; John 1:1",
 		},
 		{
 			"title": "Salvation",
@@ -2314,7 +2144,7 @@ def _create_beliefs(verses):
 				"Christ alone, and not by works.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Romans 3:23", "Ephesians 2:8", "John 3:16"],
+			"bible_references": "John 3:16; Romans 3:23; Ephesians 2:8",
 		},
 		{
 			"title": "Baptism",
@@ -2324,7 +2154,7 @@ def _create_beliefs(verses):
 				"burial, and resurrection.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["Acts 2:38"],
+			"bible_references": "Acts 2:38",
 		},
 		{
 			"title": "The Lord's Supper",
@@ -2334,7 +2164,7 @@ def _create_beliefs(verses):
 				"regularly until He comes again.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["1 Corinthians 11:26"],
+			"bible_references": "1 Corinthians 11:26",
 		},
 		{
 			"title": "The Return of Christ",
@@ -2344,36 +2174,14 @@ def _create_beliefs(verses):
 				"the life of the believer.</p>"
 			),
 			"publish": 1,
-			"bible_references": ["1 Thessalonians 4:16"],
+			"bible_references": "1 Thessalonians 4:16",
 		},
 	]
 
 	for belief in beliefs:
 		if frappe.db.exists("Belief", {"title": belief["title"]}):
 			continue
-
-		# Resolve Bible Reference names from start_verse display key
-		ref_rows = []
-		for verse_key in belief.pop("bible_references", []):
-			verse_hash = verses.get(verse_key)
-			if not verse_hash:
-				continue
-			ref_name = frappe.db.get_value(
-				"Bible Reference",
-				{"start_verse": verse_hash},
-				"name",
-			)
-			if ref_name:
-				ref_rows.append({"reference": ref_name})
-
-		doc = frappe.get_doc(
-			{
-				"doctype": "Belief",
-				"bible_references": ref_rows,
-				**belief,
-			}
-		)
-		doc.insert(ignore_permissions=True)
+		frappe.get_doc({"doctype": "Belief", **belief}).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -2477,7 +2285,7 @@ def _create_ministries(groups):
 
 
 # ---------------------------------------------------------------------------
-# Fund Transfers (submittable — saved as Draft)
+# Fund Transfers (submittable, saved as Draft)
 # ---------------------------------------------------------------------------
 
 
@@ -2545,7 +2353,7 @@ def _create_prayers(people):
 			"person": people["James Wilson"],
 			"content": (
 				"Heavenly Father, we come before You this Lord's Day morning with "
-				"grateful hearts. We lift up those among us who are hurting — those "
+				"grateful hearts. We lift up those among us who are hurting, those "
 				"facing illness, loss, and uncertainty. Grant them Your peace and "
 				"healing. We pray for Samuel, that You would draw him to Yourself. "
 				"In Jesus' name, Amen."
@@ -2567,7 +2375,7 @@ def _create_prayers(people):
 			"person": people["Robert Johnson"],
 			"content": (
 				"Lord, we gather midweek to seek Your face. We thank You for "
-				"answered prayers — for the safe arrival of the Johnsons' grandson. "
+				"answered prayers, for the safe arrival of the Johnsons' grandson. "
 				"We ask for Your guidance as our church considers the building "
 				"expansion project. Give wisdom to the committee and provide the "
 				"resources according to Your will. Amen."
@@ -2576,7 +2384,7 @@ def _create_prayers(people):
 				{
 					"topic_type": "Prayer Request",
 					"topic": pr_praise,
-					"prayer": "Gave thanks for the answered prayer — healthy grandson.",
+					"prayer": "Gave thanks for the answered prayer of a healthy grandson.",
 				},
 			],
 		},
@@ -2905,7 +2713,7 @@ def _create_sermon_series(people):
 			"end_date": _near_date(14),
 			"publish": 1,
 			"description": (
-				"<p>A journey through the bedrock truths of the Christian life — "
+				"<p>A journey through the bedrock truths of the Christian life: "
 				"who God is, how He shepherds us, and how we walk by faith in "
 				"response.</p>"
 			),

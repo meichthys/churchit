@@ -38,7 +38,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-14 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Background Check Type",
@@ -73,6 +73,14 @@
   {
    "read": 1,
    "role": "Church User",
+   "select": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care",
    "select": 1
   }
  ],

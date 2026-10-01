@@ -1,4 +1,7 @@
 import frappe
+from frappe import _
+
+from churchit.church_scope import scoped
 
 
 def execute(filters=None):
@@ -12,23 +15,29 @@ def get_columns():
 		{
 			"fieldname": "sign_up_display",
 			"fieldtype": "HTML",
-			"label": "Sign Up",
+			"label": _("Sign Up"),
 			"width": 250,
 		},
 		{
 			"fieldname": "function_display",
 			"fieldtype": "HTML",
-			"label": "Function",
+			"label": _("Function"),
 			"width": 200,
 		},
-		{"fieldname": "item", "fieldtype": "Link", "label": "Item", "options": "Sign-Up Item", "width": 200},
+		{
+			"fieldname": "item",
+			"fieldtype": "Link",
+			"label": _("Item"),
+			"options": "Sign-Up Item",
+			"width": 200,
+		},
 		{
 			"fieldname": "person_display",
 			"fieldtype": "HTML",
-			"label": "Person",
+			"label": _("Person"),
 			"width": 250,
 		},
-		{"fieldname": "my_quantity", "fieldtype": "Int", "label": "Quantity", "width": 100},
+		{"fieldname": "my_quantity", "fieldtype": "Int", "label": _("Quantity"), "width": 100},
 	]
 
 
@@ -70,7 +79,7 @@ def get_data(filters=None):
 	if filters.get("person"):
 		query = query.where(SignUp.person == filters["person"])
 
-	rows = query.run(as_dict=True)
+	rows = scoped(query, Function, filters).run(as_dict=True)
 
 	# Format as clickable links with titles
 	for row in rows:

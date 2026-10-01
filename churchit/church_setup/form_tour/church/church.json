@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 17:00:00.000000",
+ "modified": "2026-09-21 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church",
@@ -17,7 +17,7 @@
  "save_on_complete": 0,
  "steps": [
   {
-   "description": "A short abbreviation for the church name (e.g. \"GCC\" for Grace Community Church). Used as a compact identifier in reports and other places where space is limited.",
+   "description": "A short abbreviation for the church name (e.g. \"GCC\" for Grace Community Church). Used as a compact identifier in reports, in the name of the church's newsletter group, and other places where space is limited.",
    "fieldname": "abbreviation",
    "fieldtype": "Data",
    "has_next_condition": 0,
@@ -51,7 +51,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Check `Is Group` if this church has multiple locations or branches.\nMarking a church as a group allows other churches to be linked under it via the `Parent Church` field.\n<b>Note:</b> child churches are not included in any reports — the parent/child hierarchy is currently used only to display churches on the public `/locations` web page.",
+   "description": "Check `Is Group` if this church has branches or satellite locations.\nMarking a church as a group allows other churches to be linked under it via the `Parent Church` field once `Enable Multi-Church` is on in Church Features. Records, users, reports and notifications are then kept per church; a main-church user can include the branches from the user menu.",
    "fieldname": "is_group",
    "fieldtype": "Check",
    "has_next_condition": 0,
@@ -68,7 +68,7 @@
    "ui_tour": 0
   },
   {
-   "description": "If this church is a branch of another church, select the parent church here.\nThis church will then appear as a location on the public `/locations` web page of the website.\n<b>Note:</b> child churches are not used in any reports; the parent/child relationship currently only affects how churches are shown on the `/locations` web page.",
+   "description": "If this church is a branch of another church, select the parent church here (requires `Enable Multi-Church` in Church Features and a parent marked `Is Group`).\nA published branch then appears in the website's Locations menu and on the public `/locations` page, and visitors can browse the site as that branch.",
    "fieldname": "parent_church",
    "fieldtype": "Link",
    "has_next_condition": 0,
@@ -119,7 +119,7 @@
    "ui_tour": 0
   },
   {
-   "description": "A short statement of the church's purpose or calling.\nIt appears in the footer of each church card on the public `/locations` webpage and in the footer of the `/home` page for the top-level parent church.",
+   "description": "A short statement of the church's purpose or calling.\nIt appears under the welcome on the public `/home` page.",
    "fieldname": "mission_statement",
    "fieldtype": "Small Text",
    "has_next_condition": 0,
@@ -136,7 +136,7 @@
    "ui_tour": 0
   },
   {
-   "description": "A description of the church shown in the body of each church card on the public `/locations` webpage, and in the main content area of the `/home` page for the top-level parent church.\nIt is also the default content for the `/about` page of the public website.",
+   "description": "A description of the church, shown in the About section of the public `/home` page.",
    "fieldname": "about",
    "fieldtype": "Text Editor",
    "has_next_condition": 0,

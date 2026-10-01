@@ -2,12 +2,18 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
+from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
 from churchit.utils import resolve_link_titles
 
 
 class AlmsRequest(Document):
+	def validate(self):
+		pin_to_members_own_person(self, "requestor")
+		validate_members_recipient(self)
+
 	def before_save(self):
 		# Set the alms request title
 		recipient_label = self.recipient or ""
@@ -23,15 +29,15 @@ class AlmsRequest(Document):
 
 
 @frappe.whitelist()
-def create_expense(alms_request_name):
+def create_expense(alms_request_name: str):
 	"""Create a Expense from the given Alms Request."""
 	alms = frappe.get_doc("Alms Request", alms_request_name)
 	alms.check_permission("read")
 	# Make sure an expense type and amount are provided
 	if not alms.amount:
-		frappe.throw("⚠️ An amount is required for an expense to be created.")
+		frappe.throw(_("⚠️ An amount is required for an expense to be created."))
 	if not alms.expense_type:
-		frappe.throw("⚠️ An expense type is required for an expense to be created.")
+		frappe.throw(_("⚠️ An expense type is required for an expense to be created."))
 	expense = frappe.new_doc("Expense")
 	expense.title = f"Alms: {alms.title}"
 	expense.amount = alms.amount

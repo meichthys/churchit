@@ -108,7 +108,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-01 00:10:00.000000",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",
@@ -141,7 +141,20 @@
    "quick_list_filter": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false],[\"Prayer Request\",\"end_date\",\"Timespan\",\"next 7 days\",false]]"
   }
  ],
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  },
+  {
+   "role": "Church Pastoral Care"
+  }
+ ],
  "sequence_id": 17.0,
  "shortcuts": [],
  "title": "Prayers",

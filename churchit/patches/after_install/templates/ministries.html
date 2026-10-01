@@ -1,5 +1,5 @@
 <div class="row justify-content-center">
-{% set ministry_docs = frappe.get_list("Ministry", fields=["name"], filters={"publish": 1, "status": "Active"}, ignore_permissions=True, order_by="ministry_name asc") %}
+{% set ministry_docs = frappe.get_list("Ministry", fields=["name"], filters=selected_church_filters(publish=1, status="Active"), ignore_permissions=True, order_by="ministry_name asc") %}
 {% if ministry_docs %}
 {% for doc in ministry_docs %}
     {% set ministry = frappe.get_doc("Ministry", doc.name) %}

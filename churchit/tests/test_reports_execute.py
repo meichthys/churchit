@@ -12,10 +12,16 @@ import os
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_years, getdate
+from frappe.utils import add_years, getdate, nowdate
 
+from churchit.church_finances.report.donations import donations
+from churchit.church_finances.report.donations_by_person import donations_by_person
+from churchit.church_finances.report.person_donations import person_donations
+from churchit.church_ministries.report.church_attendance import church_attendance
+from churchit.church_ministries.report.function_attendance_by_person import function_attendance_by_person
+from churchit.church_ministries.report.function_attendance_by_type import function_attendance_by_type
 from churchit.church_people.report.person_birthdays_this_week import person_birthdays_this_week
-from churchit.tests.helpers import ensure
+from churchit.tests.helpers import ensure, make_function, make_person
 
 APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -55,3 +61,49 @@ class TestBirthdaysThisWeekReport(FrappeTestCase):
 
 		_columns, data = person_birthdays_this_week.execute({})
 		self.assertIn(person.name, [row.name for row in data])
+
+
+class TestDonationReports(FrappeTestCase):
+	def make_submitted_collection(self, giver, amount):
+		collection = frappe.get_doc({"doctype": "Collection", "date": nowdate(), "expected_total": amount})
+		collection.append(
+			"donations",
+			{
+				"payment_type": ensure("Payment Type", {"type": "Cash"}),
+				"fund": ensure("Fund", {"fund": "_Test Report Fund"}),
+				"amount": amount,
+				"person": giver,
+			},
+		)
+		collection.insert(ignore_permissions=True)
+		collection.submit()
+		return collection
+
+	def test_cancelled_collections_are_left_out(self):
+		giver = make_person("_Test Report Giver").name
+		kept = self.make_submitted_collection(giver, 30)
+		cancelled = self.make_submitted_collection(giver, 70)
+		cancelled.cancel()
+
+		listed = {row.name for row in donations.execute({})[1]}
+		self.assertIn(kept.name, listed)
+		self.assertNotIn(cancelled.name, listed)
+		self.assertEqual(
+			[row.collection for row in person_donations.execute({"person": giver})[1]], [kept.name]
+		)
+		totals = {row.person: row.total_amount for row in donations_by_person.execute({})[1]}
+		self.assertEqual(totals[giver], 30)
+
+
+class TestAttendanceReports(FrappeTestCase):
+	def test_checked_in_people_count_as_attending(self):
+		person = make_person("_Test Checked In").name
+		function = make_function("_Test Checked In Service")
+		function.append("attendance", {"person": person, "attendance_type": "Checked-In"})
+		function.save(ignore_permissions=True)
+
+		self.assertIn(person, [row.person for row in church_attendance.execute({})[1]])
+		by_person = function_attendance_by_person.execute({"person": person})[1]
+		self.assertEqual([row.function for row in by_person], [function.name])
+		by_type = {row.function: row.attendance_count for row in function_attendance_by_type.execute({})[1]}
+		self.assertEqual(by_type.get(function.name), 1)

@@ -1,19 +1,16 @@
 {
- "based_on": "date",
  "chart_name": "Members",
- "chart_type": "Count",
+ "chart_type": "Custom",
  "creation": "2026-03-13 08:12:33.143482",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
- "document_type": "Life Event",
  "dynamic_filters_json": "[]",
  "filters_json": "[[\"Life Event\",\"event_type\",\"=\",\"Membership\",false]]",
- "parent_document_type": "Person",
  "group_by_type": "Count",
  "idx": 0,
  "is_public": 0,
  "is_standard": 1,
- "modified": "2026-03-13 08:12:33.143482",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Members",
@@ -26,5 +23,7 @@
  "timespan": "Last Year",
  "type": "Line",
  "use_report_chart": 0,
- "y_axis": []
+ "y_axis": [],
+ "source": "Life Events",
+ "document_type": "Person"
 }

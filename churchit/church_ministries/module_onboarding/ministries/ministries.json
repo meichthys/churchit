@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-06-27 00:00:00.000000",
+ "modified": "2026-09-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
@@ -27,9 +27,18 @@
   },
   {
    "step": "Song"
+  },
+  {
+   "step": "Function Sign-Up"
+  },
+  {
+   "step": "Check-In Settings"
+  },
+  {
+   "step": "Counseling Case"
   }
  ],
- "subtitle": "Ministries, their functions, and worship songs.",
+ "subtitle": "Ministries, their functions, sign-ups, check-in, and counseling.",
  "success_message": "Your ministries and gatherings are ready to run.",
  "title": "\ud83e\udd1d Organizing Ministries & Gatherings"
 }

@@ -35,7 +35,7 @@
  ],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-04-14 17:23:04.098921",
+ "modified": "2026-09-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "prayer-request-anonymous",
@@ -47,6 +47,20 @@
  "show_sidebar": 0,
  "title": "Prayer Request (Anonymous)",
  "web_form_fields": [
+  {
+   "allow_read_on_all_link_options": 0,
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Church",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "Church",
+   "precision": "",
+   "read_only": 0,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
   {
    "allow_read_on_all_link_options": 0,
    "fieldname": "title",

@@ -1,7 +1,7 @@
 """Add the missionary map to the public Missions web page on existing sites.
 
 The `missions` Web Page is user-owned starter data (see `after_install`), so
-this only prepends the map container — it never touches or replaces whatever
+this only prepends the map container; it never touches or replaces whatever
 content is already there, published or user-edited.
 """
 

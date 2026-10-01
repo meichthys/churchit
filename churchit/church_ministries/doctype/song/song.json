@@ -9,6 +9,9 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "church",
+  "is_shared",
+  "shared_by_church",
   "column_break_odyq",
   "ccli",
   "section_break_btjs",
@@ -24,6 +27,35 @@
    "in_standard_filter": 1,
    "label": "Title",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!doc.is_shared && !(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "0",
+   "description": "Every church can see and use this record. Leave off to keep it to this church.",
+   "fieldname": "is_shared",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shared with All Churches"
+  },
+  {
+   "description": "The church that shared this record. It returns here if sharing is switched off.",
+   "fieldname": "shared_by_church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Shared By",
+   "options": "Church",
+   "read_only": 1
   },
   {
    "fieldname": "ccli",
@@ -57,7 +89,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",
@@ -88,6 +120,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

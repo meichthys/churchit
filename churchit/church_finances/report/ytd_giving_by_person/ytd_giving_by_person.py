@@ -1,8 +1,10 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Avg, Count, Max, Sum
 from frappe.utils import cint
 from pypika import Order
 
+from churchit.church_scope import scoped
 from churchit.query import Year
 from churchit.utils import set_report_link_titles
 
@@ -16,12 +18,12 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 240},
-		{"fieldname": "gift_count", "fieldtype": "Int", "label": "# Gifts", "width": 80},
-		{"fieldname": "ytd_amount", "fieldtype": "Currency", "label": "YTD Amount", "width": 140},
-		{"fieldname": "avg_gift", "fieldtype": "Currency", "label": "Avg Gift", "width": 120},
-		{"fieldname": "last_gift_date", "fieldtype": "Date", "label": "Last Gift", "width": 110},
-		{"fieldname": "prior_year_amount", "fieldtype": "Currency", "label": "Prior Year", "width": 140},
+		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 240},
+		{"fieldname": "gift_count", "fieldtype": "Int", "label": _("# Gifts"), "width": 80},
+		{"fieldname": "ytd_amount", "fieldtype": "Currency", "label": _("YTD Amount"), "width": 140},
+		{"fieldname": "avg_gift", "fieldtype": "Currency", "label": _("Avg Gift"), "width": 120},
+		{"fieldname": "last_gift_date", "fieldtype": "Date", "label": _("Last Gift"), "width": 110},
+		{"fieldname": "prior_year_amount", "fieldtype": "Currency", "label": _("Prior Year"), "width": 140},
 	]
 
 
@@ -45,7 +47,7 @@ def get_data(filters=None):
 		)
 	)
 
-	return (
+	query = (
 		frappe.qb.from_(Donation)
 		.join(Collection)
 		.on(Collection.name == Donation.parent)
@@ -60,5 +62,5 @@ def get_data(filters=None):
 		.where(Donation.person.isnotnull() & (Year(Collection.date) == year) & (Collection.docstatus == 1))
 		.groupby(Donation.person)
 		.orderby(Sum(Donation.amount), order=Order.desc)
-		.run(as_dict=True)
 	)
+	return scoped(query, Collection, filters).run(as_dict=True)

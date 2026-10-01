@@ -3,14 +3,14 @@
 {%- set upcoming = frappe.get_all(
 	"Function",
 	fields=["name", "function_name", "title", "start_date", "start_time", "all_day", "description"],
-	filters={"publish": 1, "start_date": [">=", frappe.utils.nowdate()]},
+	filters=selected_church_filters(publish=1, start_date=[">=", frappe.utils.nowdate()]),
 	order_by="start_date asc, start_time asc",
 	limit=4,
 ) -%}
 {%- set sermons = frappe.get_all(
 	"Sermon",
 	fields=["name", "title", "notes", "audio_recording", "prepared_by"],
-	filters={"publish": 1},
+	filters=selected_church_filters(publish=1),
 	order_by="modified desc",
 	limit=1,
 ) -%}
@@ -22,16 +22,14 @@
 {#- a stat with nothing behind it reads worse than no stat, so drop the zeroes -#}
 {%- set stats = [
 	{"number": (frappe.utils.date_diff(frappe.utils.nowdate(), church.founding_date) // 365) if church.founding_date else 0, "label": _("Years serving")},
-	{"number": frappe.db.count("Ministry", {"publish": 1}), "label": _("Ministries")},
-	{"number": frappe.db.count("Missionary", {"publish": 1}), "label": _("Missionaries supported")},
-	{"number": frappe.db.count("Sermon", {"publish": 1}), "label": _("Sermons online")},
+	{"number": frappe.db.count("Ministry", selected_church_filters(publish=1)), "label": _("Ministries")},
+	{"number": frappe.db.count("Missionary", selected_church_filters(publish=1)), "label": _("Missionaries supported")},
+	{"number": frappe.db.count("Sermon", selected_church_filters(publish=1)), "label": _("Sermons online")},
 ] | selectattr("number") | list -%}
 
 <section class="home-hero">
 	<div class="home-hero-copy">
-		<h1 class="home-title">
-			{{ _("Welcome to") }} <span class="home-title-accent">{{ church.church_name }}</span>
-		</h1>
+		<h1 class="home-title">{{ church.church_name }}</h1>
 		{% if church.mission_statement %}
 		<p class="home-lead">{{ church.mission_statement }}</p>
 		{% endif %}
@@ -72,6 +70,13 @@
 	</div>
 	{% endfor %}
 </div>
+{% endif %}
+
+{% if church.about %}
+<section class="home-section home-about">
+	<span class="home-eyebrow">{{ _("About us") }}</span>
+	<div class="home-about-text">{{ church.about }}</div>
+</section>
 {% endif %}
 
 {% if sermons or upcoming %}

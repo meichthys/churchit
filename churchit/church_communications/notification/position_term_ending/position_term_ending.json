@@ -10,8 +10,8 @@
  "enabled": 0,
  "event": "Days Before",
  "is_standard": 1,
- "message": "<p>This is a reminder that the following position term will end in 30 days:</p>\n\n<ul>\n  <li><strong>Person:</strong> {{ frappe.db.get_value(\"Person\", doc.person, \"full_name\") or doc.person }}</li>\n  <li><strong>Position:</strong> {{ frappe.db.get_value(\"Position Type\", doc.type, \"position\") or doc.type }}</li>\n  <li><strong>Term End:</strong> {{ frappe.utils.formatdate(doc.end_date, \"MMMM d, yyyy\") }}</li>\n</ul>\n\n<p>Please plan for renewal or transition before this date.</p>",
- "modified": "2026-05-29 00:00:00.000000",
+ "message": "<p>This is a reminder that the following position term will end in 30 days:</p>\n\n<ul>\n  <li><strong>Person:</strong> {{ frappe.db.get_value(\"Person\", doc.parent, \"full_name\") or doc.parent }}</li>\n  <li><strong>Position:</strong> {{ frappe.db.get_value(\"Position Type\", doc.position, \"position\") or doc.position }}</li>\n  <li><strong>Term End:</strong> {{ frappe.utils.formatdate(doc.end_date, \"MMMM d, yyyy\") }}</li>\n</ul>\n\n<p>Please plan for renewal or transition before this date.</p>",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Position Term Ending",
@@ -23,5 +23,5 @@
  ],
  "send_system_notification": 1,
  "send_to_all_assignees": 0,
- "subject": "Position term ending in 30 days: {{ doc.type }} ({{ doc.person }})"
+ "subject": "Position term ending in 30 days: {{ doc.position }} ({{ frappe.db.get_value('Person', doc.parent, 'full_name') }})"
 }

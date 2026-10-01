@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "function",
+  "church",
   "function_name",
   "function_date",
   "title",
@@ -50,6 +51,17 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "function.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
    "fetch_from": "function.function_name",
    "fieldname": "function_name",
    "fieldtype": "Data",
@@ -83,11 +95,10 @@
    "label": "Cover Image"
   },
   {
-   "description": "Printed at the foot of the front cover.",
+   "description": "Printed at the foot of the front cover, such as John 3:16, in the church's default translation.",
    "fieldname": "verse",
-   "fieldtype": "Link",
-   "label": "Verse of the Week",
-   "options": "Bible Reference"
+   "fieldtype": "Data",
+   "label": "Verse of the Week"
   },
   {
    "default": "0",
@@ -228,7 +239,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-17 00:00:00",
+ "modified": "2026-09-30 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin",
@@ -259,6 +270,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

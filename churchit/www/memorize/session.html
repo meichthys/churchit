@@ -1,6 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ reference_label }} — Memorize{% endblock %}
+{% block title %}{{ reference_label }} · Memorize{% endblock %}
 
 {% block page_content %}
 <div id="memorize-session" data-mode="{{ mode }}" data-item="{{ item_name }}">
@@ -105,7 +105,7 @@
     const progressLabel = document.getElementById("progress-label");
 
     // --- Tokenization -------------------------------------------------------
-    // Word = anything containing a letter. Verse numbers (e.g. "16.") and
+    // Word = anything containing a letter. Verse numbers (e.g. "16") and
     // pure punctuation are skipped during typing/blur but kept in the layout.
     function tokenize(text) {
         const tokens = [];

@@ -2,23 +2,20 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_people.doctype.group.group import create_email_group
-from churchit.tests.helpers import ensure_user, make_person
+from churchit.church_people.doctype.group.group import add_people, create_email_group
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person
 
 
-class TestGroup(FrappeTestCase):
+class TestGroup(RollbackEachTest):
 	def setUp(self):
+		super().setUp()
 		self.member = make_person("_Test Group", "Member")
 		self.member.append("emails", {"email_address": "_test_group_member@example.com"})
 		self.member.save(ignore_permissions=True)
 		self.outsider = make_person("_Test Group", "Outsider")
 		self.user = ensure_user("_test_group_member@example.com", "_Test Group Member")
 		frappe.db.set_value("Person", self.member.name, "user", self.user)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
 
 	def _make_group(self, name, members=(), **values):
 		group = frappe.get_doc({"doctype": "Group", "group_name": name, **values})
@@ -63,3 +60,22 @@ class TestGroup(FrappeTestCase):
 		result = create_email_group(group.name)
 		self.assertFalse(result["created"])
 		self.assertEqual(result["total_members"], 1)
+
+	def test_add_people_adds_new_members_and_skips_existing_ones(self):
+		group = self._make_group("_Test Add People", members=[self.member.name])
+
+		result = add_people(group.name, [self.member.name, self.outsider.name, self.outsider.name])
+
+		self.assertEqual(result, {"added": 1, "already_members": 1})
+		group.reload()
+		self.assertEqual(
+			sorted(row.person for row in group.members), sorted([self.member.name, self.outsider.name])
+		)
+
+	def test_add_people_needs_the_right_to_edit_the_group(self):
+		group = self._make_group("_Test Locked Group")
+		frappe.set_user(
+			ensure_user("_test_group_staff@example.com", "_Test Group Staff", roles=("Church Staff",))
+		)
+		with self.assertRaises(frappe.PermissionError):
+			add_people(group.name, [self.outsider.name])

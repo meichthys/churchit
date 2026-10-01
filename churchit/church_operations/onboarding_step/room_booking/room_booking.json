@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Book a Room",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Room Booking reserves one room for a window of time. Bookings cannot overlap, and rooms marked <b>Requires Approval</b> hold their bookings at Requested until a Church Manager clears them.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Room Booking",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Room Booking",
+ "owner": "Administrator",
+ "reference_document": "Room Booking",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Room Bookings",
+ "validate_action": 1
+}

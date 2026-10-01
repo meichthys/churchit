@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2025-09-07 00:16:55.853612",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Person",
@@ -12,14 +11,15 @@
  "is_public": 0,
  "is_standard": 1,
  "label": "Person Count",
- "modified": "2025-09-21 22:43:42.061281",
+ "modified": "2026-09-28 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Persons",
  "owner": "Administrator",
  "parent_document_type": "",
  "report_function": "Sum",
- "show_percentage_stats": 1,
+ "show_percentage_stats": 0,
  "stats_time_interval": "Yearly",
- "type": "Document Type"
+ "type": "Custom",
+ "method": "churchit.dashboard.count_people"
 }

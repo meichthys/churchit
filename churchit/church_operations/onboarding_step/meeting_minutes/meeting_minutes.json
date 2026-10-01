@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Record Minutes",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "Meeting Minutes are the record of a board or committee meeting: who attended, what was decided, and optionally the audio. They carry their own review workflow up to Published.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Meeting Minutes",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Meeting Minutes",
+ "owner": "Administrator",
+ "reference_document": "Meeting Minutes",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Meeting Minutes",
+ "validate_action": 1
+}

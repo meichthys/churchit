@@ -1,0 +1,831 @@
+.rolodex {
+	--rolodex-top: 0px;
+	--rolodex-cards-top: 0px;
+	--rolodex-accent: var(--orange-500, #f59e0b);
+	--rolodex-rule: rgba(59, 130, 246, 0.16);
+	--rolodex-margin-rule: rgba(239, 68, 68, 0.32);
+	--rolodex-card-height: 184px;
+	--rolodex-household-height: 272px;
+	--rolodex-radius: 14px;
+	position: relative;
+	padding: 0 var(--padding-lg, 20px);
+}
+
+.rolodex-icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* Toolbar: search, view switch, filter button, chips and what is shown. */
+.rolodex-toolbar {
+	position: sticky;
+	top: var(--rolodex-top);
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 0;
+	background: var(--bg-color);
+}
+.rolodex-toolbar-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+.rolodex-search {
+	position: relative;
+	flex: 1 1 260px;
+	margin: 0;
+}
+.rolodex-search .rolodex-icon {
+	position: absolute;
+	top: 50%;
+	left: 11px;
+	z-index: 1;
+	transform: translateY(-50%);
+	color: var(--text-muted);
+	pointer-events: none;
+}
+.rolodex-search input {
+	height: 38px;
+	padding-left: 36px;
+	font-size: var(--text-base);
+}
+.rolodex-view {
+	display: inline-flex;
+	padding: 3px;
+	border-radius: 10px;
+	background: var(--control-bg, var(--gray-100));
+}
+.rolodex-view button {
+	border: 0;
+	border-radius: 7px;
+	padding: 5px 12px;
+	background: transparent;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	font-weight: 500;
+}
+.rolodex-view button.active {
+	background: var(--card-bg);
+	color: var(--text-color);
+	box-shadow: var(--shadow-sm);
+}
+.rolodex-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.rolodex-filter-count:not(:empty) {
+	min-width: 18px;
+	padding: 0 5px;
+	border-radius: 9px;
+	background: var(--primary);
+	color: var(--white, #fff);
+	font-size: 11px;
+	line-height: 18px;
+	text-align: center;
+}
+.rolodex-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+.rolodex-chips:empty {
+	display: none;
+}
+.rolodex-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 6px 3px 11px;
+	border: 1px solid var(--border-color);
+	border-radius: 999px;
+	background: var(--card-bg);
+	color: var(--text-color);
+	font-size: var(--text-sm);
+}
+.rolodex-chip .rolodex-icon {
+	width: 14px;
+	height: 14px;
+	color: var(--text-muted);
+}
+.rolodex-summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.rolodex-shown-actions {
+	display: flex;
+	gap: 6px;
+}
+
+/* Filters beside the cards on a desk, a bottom sheet on a phone. */
+.rolodex-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 26px;
+	gap: 14px;
+	align-items: start;
+	padding-bottom: calc(24px + var(--rolodex-tray-height, 0px));
+}
+.rolodex-filters {
+	display: none;
+	flex-direction: column;
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--rolodex-radius);
+}
+.rolodex-sheet-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px 4px;
+}
+.rolodex-facets {
+	padding: 0 14px 12px;
+	overflow: auto;
+}
+.rolodex-facet h3 {
+	margin: 14px 0 6px;
+	color: var(--text-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.rolodex-facet-find {
+	margin-bottom: 6px;
+}
+.rolodex-options {
+	max-height: 220px;
+	overflow: auto;
+}
+.rolodex-option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 6px 4px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-weight: normal;
+}
+.rolodex-option:hover {
+	background: var(--control-bg, var(--gray-100));
+}
+.rolodex-option input {
+	margin: 0;
+}
+.rolodex-option span {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rolodex-option small {
+	color: var(--text-muted);
+}
+.rolodex-sheet-foot,
+.rolodex-backdrop {
+	display: none;
+}
+
+@media (min-width: 992px) {
+	.rolodex.filters-open .rolodex-body {
+		grid-template-columns: 236px minmax(0, 1fr) 26px;
+	}
+	.rolodex.filters-open .rolodex-filters {
+		display: flex;
+		position: sticky;
+		top: calc(var(--rolodex-cards-top) + 8px);
+		max-height: calc(100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px);
+	}
+}
+
+@media (max-width: 991.98px) {
+	.rolodex-filters {
+		display: flex;
+		position: fixed;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		z-index: 1041;
+		max-height: 82vh;
+		padding-bottom: env(safe-area-inset-bottom);
+		border-radius: 18px 18px 0 0;
+		box-shadow: var(--shadow-lg, 0 -8px 32px rgba(0, 0, 0, 0.2));
+		transform: translateY(105%);
+		visibility: hidden;
+		transition: transform 0.25s ease, visibility 0s 0.25s;
+	}
+	.rolodex.filters-open .rolodex-filters {
+		transform: none;
+		visibility: visible;
+		transition: transform 0.25s ease;
+	}
+	.rolodex-sheet-head {
+		position: relative;
+		padding-top: 18px;
+	}
+	.rolodex-sheet-head::before {
+		content: "";
+		position: absolute;
+		top: 6px;
+		left: 50%;
+		width: 36px;
+		height: 4px;
+		border-radius: 2px;
+		background: var(--border-color);
+		transform: translateX(-50%);
+	}
+	.rolodex-sheet-foot {
+		display: block;
+		padding: 10px 14px 14px;
+		border-top: 1px solid var(--border-color);
+	}
+	.rolodex-backdrop {
+		display: block;
+		position: fixed;
+		inset: 0;
+		z-index: 1040;
+		background: rgba(0, 0, 0, 0.35);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s;
+	}
+	.rolodex.filters-open .rolodex-backdrop {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
+
+/* Letter sections: each opens with a tab, like the divider cards in a rolodex. */
+.rolodex-section {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 420px;
+	scroll-margin-top: var(--rolodex-cards-top);
+	padding-bottom: 10px;
+}
+.rolodex-letter {
+	position: sticky;
+	top: var(--rolodex-cards-top);
+	z-index: 3;
+	margin: 0;
+	padding: 6px 0 8px;
+	background: var(--bg-color);
+	font-size: inherit;
+}
+.rolodex-letter span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 48px;
+	height: 26px;
+	padding: 0 14px;
+	border: 1px solid var(--border-color);
+	border-bottom: 3px solid var(--rolodex-accent);
+	border-radius: 10px 10px 4px 4px;
+	background: var(--card-bg);
+	color: var(--text-color);
+	font-size: var(--text-base);
+	font-weight: 700;
+}
+.rolodex-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: 14px;
+}
+
+/* Cards flip over to their back like an index card. */
+.rolodex-card {
+	position: relative;
+	height: var(--rolodex-card-height);
+	perspective: 1200px;
+	border-radius: var(--rolodex-radius);
+	outline: none;
+	cursor: pointer;
+}
+.rolodex-household {
+	height: var(--rolodex-household-height);
+}
+.rolodex-card-inner {
+	position: absolute;
+	inset: 0;
+	transform-style: preserve-3d;
+	transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.rolodex-card.is-flipped .rolodex-card-inner {
+	transform: rotateY(180deg);
+}
+.rolodex-face {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px 14px 20px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--rolodex-radius);
+	background: var(--card-bg);
+	box-shadow: var(--shadow-sm);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	transition: visibility 0s 0.25s, box-shadow 0.15s, border-color 0.15s;
+}
+.rolodex-card:hover .rolodex-face {
+	box-shadow: var(--shadow-md);
+}
+.rolodex-card:focus-visible .rolodex-face {
+	box-shadow: 0 0 0 2px var(--primary);
+}
+/* The slot a rolodex card hangs on. */
+.rolodex-face::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 50%;
+	width: 46px;
+	height: 9px;
+	border: 1px solid var(--border-color);
+	border-bottom: 0;
+	border-radius: 9px 9px 0 0;
+	background: var(--bg-color);
+	transform: translateX(-50%);
+}
+.rolodex-back {
+	transform: rotateY(180deg);
+	visibility: hidden;
+	padding-left: 40px;
+	background-image: linear-gradient(to right, transparent 30px, var(--rolodex-margin-rule) 30px 31px, transparent 31px),
+		linear-gradient(to bottom, transparent 39px, var(--rolodex-margin-rule) 39px 40px, transparent 40px),
+		repeating-linear-gradient(to bottom, transparent 0 23px, var(--rolodex-rule) 23px 24px);
+	background-position: 0 0, 0 0, 0 40px;
+}
+.rolodex-card.is-flipped .rolodex-back {
+	visibility: visible;
+}
+.rolodex-card.is-flipped .rolodex-front {
+	visibility: hidden;
+}
+.rolodex-card.is-saved .rolodex-front {
+	border-color: color-mix(in srgb, var(--rolodex-accent) 55%, var(--border-color));
+}
+.rolodex-card.is-flash .rolodex-face,
+.rolodex-members li.is-flash {
+	animation: rolodex-flash 1.4s ease-out;
+}
+@keyframes rolodex-flash {
+	0%,
+	40% {
+		box-shadow: 0 0 0 3px var(--rolodex-accent);
+	}
+}
+
+.rolodex-who {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+	padding-right: 30px;
+}
+.rolodex .avatar-large {
+	width: 52px;
+	height: 52px;
+	flex: none;
+}
+.rolodex-who-text {
+	min-width: 0;
+}
+.rolodex-name {
+	overflow: hidden;
+	color: var(--text-color);
+	font-size: var(--text-lg);
+	font-weight: 600;
+	line-height: 1.3;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rolodex-sub,
+.rolodex-lines,
+.rolodex-muted {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.rolodex-sub,
+.rolodex-lines div {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rolodex-contact {
+	display: flex;
+	gap: 8px;
+	margin-top: auto;
+}
+.rolodex-contact-btn {
+	display: grid;
+	place-items: center;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: var(--control-bg, var(--gray-100));
+	color: var(--text-color);
+}
+.rolodex-contact-btn:hover,
+.rolodex-contact-btn:focus-visible {
+	background: var(--primary);
+	color: var(--white, #fff);
+	text-decoration: none;
+}
+
+/* Save: an outline bookmark that becomes a ribbon hanging from the card's top edge. */
+.rolodex-save {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--text-muted);
+}
+.rolodex-save:hover {
+	background: var(--control-bg, var(--gray-100));
+	color: var(--text-color);
+}
+.rolodex-save[aria-pressed="true"] {
+	top: -1px;
+	right: 14px;
+	width: 26px;
+	height: 40px;
+	padding-top: 6px;
+	place-items: start center;
+	border-radius: 0;
+	background: var(--rolodex-accent);
+	color: var(--white, #fff);
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+.rolodex-save[aria-pressed="true"] .rolodex-icon {
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+}
+
+/* Household cards list their people, each with a save toggle of their own. */
+.rolodex-members {
+	flex: 1;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+	list-style: none;
+}
+.rolodex-members li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 2px;
+	border-radius: 8px;
+}
+.rolodex-members li.is-muted {
+	opacity: 0.45;
+}
+.rolodex-member-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rolodex-head {
+	margin-left: 4px;
+	color: var(--rolodex-accent);
+}
+.rolodex-save.rolodex-save-small,
+.rolodex-save.rolodex-save-small[aria-pressed="true"] {
+	position: static;
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	place-items: center;
+	border-radius: 8px;
+	background: transparent;
+	clip-path: none;
+}
+.rolodex-save.rolodex-save-small[aria-pressed="true"] {
+	color: var(--rolodex-accent);
+}
+
+/* The back: an index card with a red margin, ruled in blue. */
+.rolodex-back-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	height: 26px;
+}
+.rolodex-back-head .rolodex-name {
+	font-size: var(--text-base);
+}
+.rolodex-open {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--text-sm);
+}
+.rolodex-back-body {
+	flex: 1;
+	min-height: 0;
+	margin-top: 6px;
+	overflow: auto;
+	font-size: var(--text-sm);
+	line-height: 24px;
+}
+.rolodex-facts {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	column-gap: 10px;
+	margin: 0;
+}
+.rolodex-facts dt {
+	color: var(--text-muted);
+	font-weight: 500;
+}
+.rolodex-facts dd {
+	margin: 0;
+	color: var(--text-color);
+}
+.rolodex-member-facts {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.rolodex-member-facts strong {
+	display: block;
+	color: var(--text-color);
+}
+.rolodex-member-facts span {
+	white-space: nowrap;
+}
+
+.rolodex-empty {
+	padding: 48px 16px;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+/* A to Z rail: tap a letter, or drag along it to scrub through the cards. */
+.rolodex-rail {
+	position: sticky;
+	top: var(--rolodex-cards-top);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: min(620px, calc(100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px));
+	touch-action: none;
+	user-select: none;
+}
+.rolodex-rail button {
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--text-color);
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1;
+}
+.rolodex-rail button:hover:not(:disabled) {
+	color: var(--rolodex-accent);
+}
+.rolodex-rail button:disabled {
+	opacity: 0.3;
+	pointer-events: none;
+}
+.rolodex-rail-bubble {
+	position: fixed;
+	top: 45%;
+	left: 50%;
+	z-index: 1030;
+	display: grid;
+	place-items: center;
+	width: 76px;
+	height: 76px;
+	border-radius: 18px;
+	background: var(--card-bg);
+	box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.2));
+	color: var(--text-color);
+	font-size: 36px;
+	font-weight: 700;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+.rolodex-rail-bubble[hidden] {
+	display: none;
+}
+
+/* Saved tray, docked to the bottom of the screen. */
+.rolodex-tray {
+	position: fixed;
+	bottom: 0;
+	left: var(--rolodex-tray-left, 0);
+	z-index: 1020;
+	width: var(--rolodex-tray-width, 100%);
+	padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+	border: 1px solid var(--border-color);
+	border-bottom: 0;
+	border-radius: 16px 16px 0 0;
+	background: var(--card-bg);
+	box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+}
+.rolodex-tray[hidden] {
+	display: none;
+}
+.rolodex-tray-bar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.rolodex-tray-toggle {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	padding: 4px;
+	border: 0;
+	background: transparent;
+	color: var(--text-color);
+	text-align: left;
+}
+.rolodex-stack {
+	display: flex;
+	padding-left: 8px;
+}
+.rolodex-stack .avatar {
+	margin-left: -8px;
+	border-radius: 50%;
+	box-shadow: 0 0 0 2px var(--card-bg);
+}
+.rolodex-tray-count {
+	font-weight: 600;
+	white-space: nowrap;
+}
+.rolodex-tray-toggle .rolodex-icon {
+	transform: rotate(0);
+	transition: transform 0.2s;
+}
+.rolodex-tray.is-open .rolodex-tray-toggle .rolodex-icon {
+	transform: rotate(180deg);
+}
+.rolodex-tray-list {
+	display: none;
+	gap: 8px;
+	margin: 8px 0 2px;
+	padding: 0 0 4px;
+	overflow-x: auto;
+	list-style: none;
+}
+.rolodex-tray.is-open .rolodex-tray-list {
+	display: flex;
+}
+.rolodex-tray-list li {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 2px;
+	padding: 3px;
+	border: 1px solid var(--border-color);
+	border-radius: 999px;
+	background: var(--bg-color);
+}
+.rolodex-tray-list button {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 6px 2px 2px;
+	border: 0;
+	background: transparent;
+	color: var(--text-color);
+	font-size: var(--text-sm);
+}
+.rolodex-tray-list button span {
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rolodex-tray-list .rolodex-unsave {
+	padding: 4px;
+	border-radius: 50%;
+	color: var(--text-muted);
+}
+
+@media (max-width: 575.98px) {
+	.rolodex {
+		--rolodex-card-height: 172px;
+		padding: 0 12px;
+	}
+	.rolodex-grid {
+		grid-template-columns: 1fr;
+	}
+	.rolodex-body {
+		grid-template-columns: minmax(0, 1fr) 20px;
+		gap: 8px;
+	}
+	.rolodex-label {
+		display: none;
+	}
+	.rolodex-contact-btn {
+		width: 42px;
+		height: 42px;
+	}
+	.rolodex-rail button {
+		font-size: 10px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rolodex-card-inner,
+	.rolodex-face,
+	.rolodex-filters,
+	.rolodex-backdrop,
+	.rolodex-tray-toggle .rolodex-icon {
+		transition: none;
+	}
+}
+
+/* Printing lifts a plain sheet of cards out of the desk. */
+.rolodex-print {
+	display: none;
+}
+@media print {
+	body.rolodex-printing > :not(.rolodex-print) {
+		display: none !important;
+	}
+	body.rolodex-printing {
+		background: #fff;
+	}
+	body.rolodex-printing .rolodex-print {
+		display: block;
+		width: 100%;
+		font-size: 9.5pt;
+	}
+	/* The desk's dark theme sets light text, which would vanish on paper. */
+	.rolodex-print,
+	.rolodex-print * {
+		color: #000 !important;
+	}
+	.rolodex-print h1 {
+		margin: 0;
+		font-size: 16pt;
+	}
+	.rolodex-print header p {
+		margin: 2px 0 10px;
+	}
+	.rolodex-print-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+	.rolodex-print-card {
+		display: flex;
+		gap: 10px;
+		padding: 8px 10px;
+		border: 1px solid #bbb;
+		border-radius: 8px;
+		break-inside: avoid;
+	}
+	.rolodex-print-card .avatar {
+		flex: none;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+	.rolodex-print-card ul {
+		margin: 4px 0 0;
+		padding-left: 16px;
+	}
+	@page {
+		margin: 12mm;
+	}
+}

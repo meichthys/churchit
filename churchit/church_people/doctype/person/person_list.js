@@ -1,5 +1,9 @@
 frappe.listview_settings["Person"] = {
 	onload(listview) {
+		listview.page.add_inner_button(__("Rolodex"), () => {
+			frappe.route_options = { view: "people" };
+			frappe.set_route("rolodex");
+		});
 		listview.page.add_action_item(__("Check In"), () => bulk_check_in(listview));
 		listview.page.add_action_item(__("Print Name Tags"), () => {
 			const persons = listview.get_checked_items().map((p) => p.name);

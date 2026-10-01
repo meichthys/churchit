@@ -1,16 +1,16 @@
 // ==========================================================================
-// churchit — the "Churchit" website theme
+// churchit: the "Churchit" website theme
 // The docs/ marketing site look: Inter type, indigo→violet accent, frosted
 // glass surfaces. Frappe compiles this into every Website Theme that does
 // not list churchit under Ignored Apps; its prebuilt "Standard" theme skips
 // it and shows frappe's own look. Page layout shared by all themes is in
-// css/website.css, which loads after the theme — so everything below is
+// css/website.css, which loads after the theme, so everything below is
 // nested under `body` to outrank the layout rules it restyles.
 // ==========================================================================
 
 // frappe compiles its `@import "frappe/public/css/fonts/inter/inter.css"` into
 // a theme as a relative CSS import, which resolves under /files/website_theme/
-// and 404s — so no custom theme ever loads Inter. Declare the variable faces
+// and 404s, so no custom theme ever loads Inter. Declare the variable faces
 // frappe's --font-stack names first, at the asset URL it actually serves.
 @font-face {
 	font-family: InterVariable;
@@ -72,7 +72,7 @@ body {
 	color: var(--text-color);
 	background: var(--bg-color);
 
-	// Aurora mesh backdrop — fixed so glass surfaces always have something to blur
+	// Aurora mesh backdrop, fixed so glass surfaces always have something to blur
 	&::before {
 		content: "";
 		position: fixed;
@@ -116,7 +116,7 @@ body {
 
 	// Frosted navbar + footer.
 	// backdrop-filter makes the navbar its own stacking context, and so is every
-	// glass card further down the page — so without a z-index the cards paint
+	// glass card further down the page, so without a z-index the cards paint
 	// over the navbar and swallow the account dropdown. 1030 is bootstrap's
 	// fixed-navbar layer: above page content, still below modals at 1050.
 	.navbar {
@@ -132,7 +132,7 @@ body {
 		border-top: 1px solid var(--border-color);
 	}
 
-	// Active page in the top nav — a rounded highlight pill, in the same spirit
+	// Active page in the top nav: a rounded highlight pill, in the same spirit
 	// as the desk's active-workspace highlight. nav_active_state.js adds the
 	// "active" class; top_bar_items carries no such state on its own.
 	.navbar-nav .nav-item.active > .nav-link {

@@ -1,5 +1,6 @@
 frappe.query_reports["Function Attendance by Person"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "person",
 			label: __("Person"),

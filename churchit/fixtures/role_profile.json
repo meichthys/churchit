@@ -82,5 +82,98 @@
     "role": "Church User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-28 12:00:00",
+  "name": "Church Staff",
+  "role_profile": "Church Staff",
+  "roles": [
+   {
+    "parent": "Church Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Staff"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-28 12:00:00",
+  "name": "Church Office",
+  "role_profile": "Church Office",
+  "roles": [
+   {
+    "parent": "Church Office",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Staff"
+   },
+   {
+    "parent": "Church Office",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church People Editor"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-28 12:00:00",
+  "name": "Church Care Team",
+  "role_profile": "Church Care Team",
+  "roles": [
+   {
+    "parent": "Church Care Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Staff"
+   },
+   {
+    "parent": "Church Care Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Pastoral Care"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-28 12:00:00",
+  "name": "Church Treasurer",
+  "role_profile": "Church Treasurer",
+  "roles": [
+   {
+    "parent": "Church Treasurer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Staff"
+   },
+   {
+    "parent": "Church Treasurer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Finance"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-28 12:00:00",
+  "name": "Church Check-In Volunteer",
+  "role_profile": "Church Check-In Volunteer",
+  "roles": [
+   {
+    "parent": "Church Check-In Volunteer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Check-In"
+   }
+  ]
  }
 ]

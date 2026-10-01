@@ -1,11 +1,12 @@
 """
-after_install patch — runs once when the Church app is installed on a new site.
+after_install patch, run once when the Church app is installed on a new site.
 
 Creates all default reference data, configuration, and website content so the
 app is usable out of the box.  Existing sites are not affected (this hook only
 fires on ``bench install-app churchit``).
 """
 
+import json
 from pathlib import Path
 
 import frappe
@@ -16,9 +17,10 @@ WEBSITE_THEME = "Churchit"
 
 
 def execute():
-	# Default church — must exist before lookup types that reference it.
+	# Default church, which must exist before lookup types that reference it.
 	_create_default_church()
 	create_default_address_template()
+	create_unsynced_records()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -35,9 +37,9 @@ def execute():
 	_create_group_statuses()
 	_create_default_ministry()
 
-	# Bible reference data
-	_create_bible_books()
+	# Bible translations, and the one the main church reads by default
 	_create_bible_translations()
+	set_default_bible_translation()
 
 	# Module access control
 	_create_module_profile()
@@ -76,7 +78,7 @@ def execute():
 	_clean_gender_options()
 	_hide_default_workspaces()
 
-	# Newsletter recipients — Email Group seeded from Person emails
+	# Newsletter recipients: Email Group seeded from Person emails
 	_create_member_email_group()
 
 
@@ -84,7 +86,7 @@ def after_sync():
 	"""Runs after frappe's ``after_app_install`` hook, which auto-generates the
 	"Tools" desktop icon from the Tools workspace. That icon does not exist yet
 	when ``execute()`` (``after_install``) runs, so reordering has to happen
-	here instead — otherwise Tools keeps its default idx of 0 and lands first.
+	here instead. Otherwise Tools keeps its default idx of 0 and lands first.
 	"""
 	_reorder_default_desktop_icons()
 
@@ -127,6 +129,34 @@ ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
 """
 
 
+# Doctypes Frappe's standard-record sync skips: frappe.model.sync.IMPORTABLE_DOCTYPES
+# lists neither, so JSON shipped beside their module never reaches a site.
+UNSYNCED_RECORD_FOLDERS = {
+	"Letter Head": "church_customizations/letter_head",
+	"Email Template": "church_communications/email_template",
+}
+
+
+def create_unsynced_records():
+	"""Insert the default letterhead and the starter email templates.
+
+	Both ship as JSON beside their module, which for these two doctypes nothing
+	imports, so without this the app's letterhead and email templates reach no
+	site at all. They are the church's to edit afterwards, so a record that is
+	already there is left alone.
+	"""
+	app_path = Path(frappe.get_app_path("churchit"))
+	for doctype, folder in UNSYNCED_RECORD_FOLDERS.items():
+		for source in sorted((app_path / folder).glob("*/*.json")):
+			values = json.loads(source.read_text())
+			if frappe.db.exists(doctype, values["name"]):
+				continue
+			# A church that has already chosen its own default keeps it.
+			if values.get("is_default") and frappe.db.exists(doctype, {"is_default": 1}):
+				values["is_default"] = 0
+			frappe.get_doc(values).insert(ignore_permissions=True)
+
+
 def create_default_address_template():
 	"""Give the site a default Address Template.
 
@@ -161,9 +191,7 @@ def _create_default_church():
 			"church_name": DEFAULT_CHURCH_NAME,
 			"abbreviation": "MC",
 			"legal_name": "My Church",
-			"founding_date": "1990-03-15",
 			"publish": 1,
-			"mission_statement": "To glorify God by making disciples, and serving our neighbors with the love of Christ.",
 			"about": "<p>Welcome to My Church. We are a community of believers committed to worship, fellowship, and service. We are a congregation rooted in Scripture and passionate about sharing the grace of God with all people.</p><p>Founded in 1990, we have grown from a small gathering into a vibrant church family. Whether you are a lifelong believer or simply curious about faith, you are welcome here.</p>",
 		}
 	).insert(ignore_permissions=True)
@@ -319,97 +347,35 @@ def _create_default_ministry():
 
 
 # ---------------------------------------------------------------------------
-# Bible reference data
+# Bible translations
 # ---------------------------------------------------------------------------
 
+# Translations the Free Use Bible API publishes free to use: abbreviation -> its id there.
+FREE_USE_TRANSLATIONS = {
+	"ASV": "eng_asv",
+	"BBE": "eng_bbe",
+	"BSB": "BSB",
+	"DRB": "eng_dra",
+	"KJV": "eng_kjv",
+	"WEB": "ENGWEBP",
+}
+DEFAULT_BIBLE_TRANSLATION = "BSB"
 
-def _create_bible_books():
-	"""Insert all 66 canonical Bible books with their standard abbreviations.
 
-	The record ``name`` is the full book name (e.g. "Genesis") and
-	``abbreviation`` is the short code used by bible-api.com (e.g. "GEN").
-	"""
-	books = [
-		# Old Testament
-		("Genesis", "GEN"),
-		("Exodus", "EXO"),
-		("Leviticus", "LEV"),
-		("Numbers", "NUM"),
-		("Deuteronomy", "DEU"),
-		("Joshua", "JOS"),
-		("Judges", "JDG"),
-		("Ruth", "RUT"),
-		("1 Samuel", "1SA"),
-		("2 Samuel", "2SA"),
-		("1 Kings", "1KI"),
-		("2 Kings", "2KI"),
-		("1 Chronicles", "1CH"),
-		("2 Chronicles", "2CH"),
-		("Ezra", "EZR"),
-		("Nehemiah", "NEH"),
-		("Esther", "EST"),
-		("Job", "JOB"),
-		("Psalms", "PSA"),
-		("Proverbs", "PRO"),
-		("Ecclesiastes", "ECC"),
-		("Song of Solomon", "SNG"),
-		("Isaiah", "ISA"),
-		("Jeremiah", "JER"),
-		("Lamentations", "LAM"),
-		("Ezekiel", "EZK"),
-		("Daniel", "DAN"),
-		("Hosea", "HOS"),
-		("Joel", "JOL"),
-		("Amos", "AMO"),
-		("Obadiah", "OBA"),
-		("Jonah", "JON"),
-		("Micah", "MIC"),
-		("Nahum", "NAM"),
-		("Habakkuk", "HAB"),
-		("Zephaniah", "ZEP"),
-		("Haggai", "HAG"),
-		("Zechariah", "ZEC"),
-		("Malachi", "MAL"),
-		# New Testament
-		("Matthew", "MAT"),
-		("Mark", "MRK"),
-		("Luke", "LUK"),
-		("John", "JHN"),
-		("Acts", "ACT"),
-		("Romans", "ROM"),
-		("1 Corinthians", "1CO"),
-		("2 Corinthians", "2CO"),
-		("Galatians", "GAL"),
-		("Ephesians", "EPH"),
-		("Philippians", "PHP"),
-		("Colossians", "COL"),
-		("1 Thessalonians", "1TH"),
-		("2 Thessalonians", "2TH"),
-		("1 Timothy", "1TI"),
-		("2 Timothy", "2TI"),
-		("Titus", "TIT"),
-		("Philemon", "PHM"),
-		("Hebrews", "HEB"),
-		("James", "JAS"),
-		("1 Peter", "1PE"),
-		("2 Peter", "2PE"),
-		("1 John", "1JN"),
-		("2 John", "2JN"),
-		("3 John", "3JN"),
-		("Jude", "JUD"),
-		("Revelation", "REV"),
-	]
-	for book_name, abbreviation in books:
-		_insert_if_missing(
-			"Bible Book",
-			{"book": book_name},
-			book=book_name,
-			abbreviation=abbreviation,
-		)
+def should_skip_download(abbreviation, source_id):
+	"""True for every free translation but the site's default, which waits to download its text
+	until a church first opens it (see churchit.scripture.is_readable)."""
+	return bool(source_id) and abbreviation != DEFAULT_BIBLE_TRANSLATION
 
 
 def _create_bible_translations():
-	"""Insert common English Bible translations used by bible-api.com."""
+	"""Seed common English translations.
+
+	The default one (the BSB) downloads its text now. The other free ones download the first
+	time a church opens them (see churchit.scripture.is_readable), so installing the app does
+	not fetch every translation's text up front. The rest wait for a church to import a copy
+	it is licensed to use.
+	"""
 	translations = [
 		("King James Version", "KJV"),
 		("New International Version", "NIV"),
@@ -442,17 +408,34 @@ def _create_bible_translations():
 		("Berean Standard Bible", "BSB"),
 		("Bible in Basic English", "BBE"),
 	]
-	for translation_name, abbreviation in translations:
-		_insert_if_missing(
-			"Bible Translation",
-			{"translation": translation_name},
-			translation=translation_name,
-			abbreviation=abbreviation,
+	for title, abbreviation in translations:
+		if frappe.db.exists("Bible Translation", abbreviation):
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "Bible Translation",
+				"abbreviation": abbreviation,
+				"translation": title,
+				"language": "English",
+				"source": "Free Use Bible API" if abbreviation in FREE_USE_TRANSLATIONS else "User Import",
+				"source_id": FREE_USE_TRANSLATIONS.get(abbreviation),
+			}
 		)
+		doc.flags.skip_download = should_skip_download(abbreviation, FREE_USE_TRANSLATIONS.get(abbreviation))
+		doc.insert(ignore_permissions=True)
+
+
+def set_default_bible_translation():
+	"""Give the main church a default translation, unless it has one."""
+	church = frappe.db.get_value("Church", {"parent_church": ("is", "not set")}, "name")
+	if not church or not frappe.db.exists("Bible Translation", DEFAULT_BIBLE_TRANSLATION):
+		return
+	if not frappe.db.get_value("Church", church, "default_bible_translation"):
+		frappe.db.set_value("Church", church, "default_bible_translation", DEFAULT_BIBLE_TRANSLATION)
 
 
 # ---------------------------------------------------------------------------
-# Module Profile — controls which Frappe modules Church users can see
+# Module Profile: controls which Frappe modules Church users can see
 # ---------------------------------------------------------------------------
 
 
@@ -581,12 +564,12 @@ def _create_custom_html_blocks():
 
 
 # ---------------------------------------------------------------------------
-# Web Pages — dynamic Jinja templates stored in templates/*.html
+# Web Pages: dynamic Jinja templates stored in templates/*.html
 # ---------------------------------------------------------------------------
 
 
 def _create_web_pages():
-	"""Create the four default church website pages.
+	"""Create the default church website pages.
 
 	HTML content is stored in separate template files under templates/ so it
 	can be edited without touching this Python script.
@@ -622,12 +605,6 @@ def _create_web_pages():
 			"route": "ministries",
 			"template_file": "ministries.html",
 		},
-		{
-			"name": "locations",
-			"title": "Locations",
-			"route": "locations",
-			"template_file": "locations.html",
-		},
 	]
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
@@ -659,18 +636,11 @@ def _create_web_pages():
 
 
 def _setup_about_us_settings():
-	"""Populate the About Us page with default church-oriented content."""
+	"""Enable the About Us page with church wording; the text itself is the church's to write."""
 	doc = frappe.get_doc("About Us Settings")
 	# frappe ships the /about page disabled; the navbar links to it, so enable it
 	doc.is_disabled = 0
 	doc.page_title = "About Our Church"
-	doc.company_introduction = (
-		"<p>We are a congregation of believers committed to worshipping God, growing"
-		" in His Word, and serving one another and our community in love.</p>"
-		'<p>To learn more about what we believe, visit our <a href="/beliefs">Beliefs</a>'
-		" page. To see how we support missionaries around the world, visit our"
-		' <a href="/missions">Missions</a> page.</p>'
-	)
 	doc.company_history_heading = "Church History"
 	doc.team_members_heading = "Our Team"
 	doc.save(ignore_permissions=True)
@@ -744,14 +714,13 @@ def _setup_website_settings():
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
 	doc.footer_items = []
-	doc.append("footer_items", {"label": "Submit a Prayer Request", "url": "/prayer-request-anonymous"})
 	doc.save(ignore_permissions=True)
 
 
 def _setup_portal_settings():
 	"""Seed the member portal menu (Portal Settings) with Church defaults.
 
-	Seeds frappe's standard menu table — the one get_portal_roles() reads, so
+	Seeds frappe's standard menu table, the one get_portal_roles() reads, so
 	the "Church User" role on the items is what makes members portal users and
 	shows the Portal link on /me. Runs once at install; from then on the menu
 	belongs to the site admin (Desk > Portal Settings). reference_doctype must
@@ -760,6 +729,7 @@ def _setup_portal_settings():
 	"""
 	items = [
 		("Function Sign-Ups", "function-sign-up", "Function Sign-Up", "Church User"),
+		("Bible", "bible", "Bible Translation", "Church User"),
 		("Bible Memory", "memorize", "Bible Memory Item", "Church User"),
 		("Prayer Requests", "prayer-request", "Prayer Request", "Church User"),
 		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
@@ -972,7 +942,7 @@ def _reorder_default_desktop_icons():
 	but frappe's icons default to idx 0 and would land in front. frappe installs
 	(and creates its icons) before churchit, so they all exist by the time this
 	patch runs. Tools has no app set (it's auto-generated from the workspace,
-	not a fixture), so app must be checked in Python — an "app != churchit"
+	not a fixture), so app must be checked in Python, because an "app != churchit"
 	filter in SQL silently drops NULL rows instead of matching them.
 	"""
 	pinned_last = ["Settings", "Tools", "Framework"]

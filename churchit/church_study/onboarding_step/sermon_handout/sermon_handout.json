@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create a Handout",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Sermon Handout is the note-taking sheet for a sermon, with fill-in blanks. Build one from a sermon's notes with <b>Create Handout</b> on the Sermon, and any Bulletin whose function has that sermon on its schedule prints the handout as an insert.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Sermon Handout",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Sermon Handout",
+ "owner": "Administrator",
+ "reference_document": "Sermon Handout",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Sermon Handouts",
+ "validate_action": 1
+}

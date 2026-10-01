@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Report",
  "is_standard": "Yes",
- "modified": "2026-06-01 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Budget vs Actual",
@@ -12,5 +12,15 @@
  "ref_doctype": "Budget",
  "report_name": "Budget vs Actual",
  "report_type": "Script Report",
- "roles": []
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Finance"
+  }
+ ]
 }

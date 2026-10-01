@@ -10,6 +10,7 @@
  "field_order": [
   "amount",
   "fund",
+  "church",
   "status",
   "column_break_giver",
   "person",
@@ -41,6 +42,16 @@
    "label": "Fund",
    "options": "Fund",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "description": "The church the gift belongs to. A shared fund names no church, so the gift keeps its own.",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
   },
   {
    "default": "Pending",
@@ -125,7 +136,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-15 00:00:00",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Online Donation",
@@ -154,6 +165,15 @@
    "report": 1,
    "role": "Church Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
    "write": 1
   }
  ],

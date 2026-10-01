@@ -8,7 +8,7 @@ frappe.ready(function() {
 
 	{% if link_titles %}
 	// Read-only Link fields show the raw docname, since the portal renders them as
-	// Autocomplete. Display the title instead — the values on the doc stay as docnames
+	// Autocomplete. Display the title instead; the values on the doc stay as docnames
 	// so the client script can look up the function's sign-up items. Overriding the
 	// display rather than writing to it once keeps the title through later re-renders.
 	$.each({{ link_titles | json }}, function(fieldname, title) {

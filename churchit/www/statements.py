@@ -33,6 +33,7 @@ def get_own_statements(person):
 	if person.family:
 		or_filters["family"] = person.family
 
+	# church-scope: the signed-in member's own statements, by their person and family
 	return frappe.get_all(
 		"Giving Statement",
 		or_filters=or_filters,

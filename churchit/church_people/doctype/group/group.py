@@ -22,16 +22,19 @@ class Group(Document):
 
 
 @frappe.whitelist()
-def create_email_group(group):
+def create_email_group(group: str):
 	"""Create (or top up) a Frappe Email Group from this Person Group's members.
 
 	Pulls each member's primary email into an Email Group named after the group so
-	the group can be used as a newsletter recipient list. Idempotent — the unique
+	the group can be used as a newsletter recipient list. Idempotent, because the unique
 	(email_group, email) index means re-running just adds any new members.
 	"""
 	from frappe.email.doctype.email_group.email_group import add_subscribers
 
 	doc = frappe.get_doc("Group", group)
+	# frappe.get_doc checks nothing, and the members' email addresses end up in an
+	# Email Group that is not scoped to a church.
+	doc.check_permission("read")
 	email_group = doc.group_name or doc.name
 
 	created = False
@@ -44,6 +47,7 @@ def create_email_group(group):
 	if person_ids:
 		by_person = get_primary_emails("Person", person_ids)
 		names = dict(
+			# church-scope: names for the people already listed on this group
 			frappe.get_all(
 				"Person",
 				filters={"name": ["in", person_ids]},
@@ -67,3 +71,20 @@ def create_email_group(group):
 		"missing": missing,
 		"total_members": frappe.db.count("Email Group Member", {"email_group": email_group}),
 	}
+
+
+@frappe.whitelist()
+def add_people(group: str, people: str | list[str], group_role: str | None = None):
+	"""Add *people* to a Group, skipping anyone already in it."""
+	doc = frappe.get_doc("Group", group)
+	doc.check_permission("write")
+	people = list(dict.fromkeys(frappe.parse_json(people)))
+	existing = {member.person for member in doc.members}
+	added = [person for person in people if person not in existing]
+	for person in added:
+		# `person` is a plain Link, which user permissions never measure against its church.
+		frappe.has_permission("Person", doc=person, throw=True)
+		doc.append("members", {"person": person, "group_role": group_role})
+	if added:
+		doc.save()
+	return {"added": len(added), "already_members": len(people) - len(added)}

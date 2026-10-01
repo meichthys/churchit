@@ -1,15 +1,17 @@
 import frappe
 from frappe.query_builder.functions import Count
 
+from churchit.church_scope import scoped
 from churchit.query import falls_this_week
 
 
 @frappe.whitelist()
 def get_count():
+	frappe.has_permission("Person", "report", throw=True)
 	Person = frappe.qb.DocType("Person")
 	LifeEvent = frappe.qb.DocType("Life Event")
 
-	return (
+	query = (
 		frappe.qb.from_(Person)
 		.join(LifeEvent)
 		.on(
@@ -19,5 +21,5 @@ def get_count():
 		)
 		.select(Count("*"))
 		.where(LifeEvent.date.isnotnull() & falls_this_week(LifeEvent.date))
-		.run()[0][0]
 	)
+	return scoped(query, Person, {}).run()[0][0]

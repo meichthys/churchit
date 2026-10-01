@@ -22,6 +22,7 @@ frappe.query_reports["Church Directory Report"] = {
 			show_birthdays: report.get_filter_value("show_birthdays") ? 1 : 0,
 			show_anniversaries: report.get_filter_value("show_anniversaries") ? 1 : 0,
 			show_missionaries: report.get_filter_value("show_missionaries") ? 1 : 0,
+			church: report.get_filter_value("church") || null,
 		};
 
 		frappe.call({
@@ -40,6 +41,7 @@ frappe.query_reports["Church Directory Report"] = {
 	},
 
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "members_only",
 			label: __("Members Only"),

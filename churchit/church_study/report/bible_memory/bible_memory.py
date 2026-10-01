@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 from churchit.utils import set_report_link_titles
 
@@ -13,21 +14,22 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "user", "fieldtype": "Link", "label": "User", "options": "User", "width": 200},
+		{"fieldname": "user", "fieldtype": "Link", "label": _("User"), "options": "User", "width": 200},
+		{"fieldname": "bible_reference", "fieldtype": "Data", "label": _("Reference"), "width": 200},
 		{
-			"fieldname": "bible_reference",
+			"fieldname": "translation",
 			"fieldtype": "Link",
-			"label": "Reference",
-			"options": "Bible Reference",
-			"width": 240,
+			"label": _("Translation"),
+			"options": "Bible Translation",
+			"width": 160,
 		},
-		{"fieldname": "progress", "fieldtype": "Percent", "label": "Progress", "width": 100},
-		{"fieldname": "memorized", "fieldtype": "Check", "label": "Memorized", "width": 100},
-		{"fieldname": "memorized_on", "fieldtype": "Date", "label": "Memorized On", "width": 120},
+		{"fieldname": "progress", "fieldtype": "Percent", "label": _("Progress"), "width": 100},
+		{"fieldname": "memorized", "fieldtype": "Check", "label": _("Memorized"), "width": 100},
+		{"fieldname": "memorized_on", "fieldtype": "Date", "label": _("Memorized On"), "width": 120},
 		{
 			"fieldname": "times_memorized",
 			"fieldtype": "Int",
-			"label": "Perfect Runs",
+			"label": _("Perfect Runs"),
 			"width": 110,
 		},
 	]
@@ -50,6 +52,7 @@ def get_data(filters):
 			"name",
 			"user",
 			"bible_reference",
+			"translation",
 			"progress",
 			"memorized",
 			"memorized_on",

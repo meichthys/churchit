@@ -1,7 +1,9 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Coalesce, Count
 from pypika.terms import LiteralValue
 
+from churchit.church_scope import scoped
 from churchit.query import CurDate, TimestampDiff
 
 AGE_BUCKETS = (
@@ -20,11 +22,11 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "bucket", "fieldtype": "Data", "label": "Bucket", "width": 200},
-		{"fieldname": "male", "fieldtype": "Int", "label": "Male", "width": 100},
-		{"fieldname": "female", "fieldtype": "Int", "label": "Female", "width": 100},
-		{"fieldname": "other", "fieldtype": "Int", "label": "Other/Unspecified", "width": 140},
-		{"fieldname": "total", "fieldtype": "Int", "label": "Total", "width": 100},
+		{"fieldname": "bucket", "fieldtype": "Data", "label": _("Bucket"), "width": 200},
+		{"fieldname": "male", "fieldtype": "Int", "label": _("Male"), "width": 100},
+		{"fieldname": "female", "fieldtype": "Int", "label": _("Female"), "width": 100},
+		{"fieldname": "other", "fieldtype": "Int", "label": _("Other/Unspecified"), "width": 140},
+		{"fieldname": "total", "fieldtype": "Int", "label": _("Total"), "width": 100},
 	]
 
 
@@ -38,7 +40,7 @@ def _tally(label, counts_by_gender):
 	return row
 
 
-def get_data():
+def get_data(filters=None):
 	Person = frappe.qb.DocType("Person")
 	LifeEvent = frappe.qb.DocType("Life Event")
 
@@ -52,26 +54,25 @@ def get_data():
 
 	rows = []
 	for label, low, high in AGE_BUCKETS:
-		counts = (
+		bucket = (
 			frappe.qb.from_(Person)
 			.join(LifeEvent)
 			.on(birth_event)
 			.select(*gender_counts)
 			.where((Person.membership_status == "Active") & LifeEvent.date.isnotnull() & age[low:high])
 			.groupby(Person.gender)
-			.run(as_dict=True)
 		)
-		rows.append(_tally(label, counts))
+		rows.append(_tally(label, scoped(bucket, Person, filters).run(as_dict=True)))
 
-	unknown = (
+	unknown_query = (
 		frappe.qb.from_(Person)
 		.left_join(LifeEvent)
 		.on(birth_event)
 		.select(*gender_counts)
 		.where((Person.membership_status == "Active") & LifeEvent.date.isnull())
 		.groupby(Person.gender)
-		.run(as_dict=True)
 	)
+	unknown = scoped(unknown_query, Person, filters).run(as_dict=True)
 	if unknown:
 		rows.append(_tally("Unknown Age", unknown))
 

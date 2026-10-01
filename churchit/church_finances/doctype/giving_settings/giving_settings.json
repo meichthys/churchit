@@ -20,7 +20,8 @@
   "section_break_statements",
   "statement_grouping",
   "column_break_statements",
-  "statement_acknowledgment"
+  "statement_acknowledgment",
+  "church_wording"
  ],
  "fields": [
   {
@@ -89,29 +90,37 @@
    "label": "Contribution Statements"
   },
   {
+   "default": "Household",
+   "description": "Household combines the giving of everyone in a Family onto one statement.",
    "fieldname": "statement_grouping",
    "fieldtype": "Select",
    "label": "Group Statements By",
-   "options": "Household\nPerson",
-   "default": "Household",
-   "description": "Household combines the giving of everyone in a Family onto one statement."
+   "options": "Household\nPerson"
   },
   {
    "fieldname": "column_break_statements",
    "fieldtype": "Column Break"
   },
   {
+   "default": "No goods or services were provided in exchange for these contributions.",
+   "description": "Printed at the foot of every statement. US churches need this wording for gifts of $250 or more (IRS Publication 1771).",
    "fieldname": "statement_acknowledgment",
    "fieldtype": "Small Text",
-   "label": "Acknowledgment Text",
-   "default": "No goods or services were provided in exchange for these contributions.",
-   "description": "Printed at the foot of every statement. US churches need this wording for gifts of $250 or more (IRS Publication 1771)."
+   "label": "Acknowledgment Text"
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "description": "Add a row for a church that needs its own wording. Without one it uses the text above.",
+   "fieldname": "church_wording",
+   "fieldtype": "Table",
+   "label": "Wording Per Church",
+   "options": "Church Giving Wording"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-12 00:40:00.000000",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",
@@ -136,6 +145,14 @@
    "role": "Church Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

@@ -12,9 +12,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 		<div class="sample-data-page" style="max-width: 600px; margin: 40px auto;">
 			<p style="font-size: var(--text-lg); color: var(--text-muted);">
 				${__(
-					"Sample data lets you explore the Church app with a pre-populated " +
-						"church, people, families, missionaries, funds, collections, expenses, " +
-						"prayer requests, functions, sermons, beliefs, and related Bible study data."
+					"Sample data lets you explore the Church app with a pre-populated church, people, families, missionaries, funds, collections, expenses, prayer requests, functions, sermons, beliefs, and related Bible study data."
 				)}
 			</p>
 			<div class="mt-3">

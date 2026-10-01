@@ -1,9 +1,11 @@
 import frappe
+from frappe import _
 from frappe.query_builder.functions import Coalesce, Max
 from frappe.utils import cint
 from pypika import Interval
 
 from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
+from churchit.church_scope import scoped
 from churchit.contacts import get_primary_email, get_primary_phone
 from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
@@ -18,11 +20,11 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "person", "fieldtype": "Link", "label": "Person", "options": "Person", "width": 240},
-		{"fieldname": "reason", "fieldtype": "Data", "label": "Reason", "width": 200},
-		{"fieldname": "last_event_date", "fieldtype": "Date", "label": "Last Event", "width": 110},
-		{"fieldname": "primary_phone", "fieldtype": "Data", "label": "Phone", "width": 130},
-		{"fieldname": "email", "fieldtype": "Data", "label": "Email", "width": 200},
+		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 240},
+		{"fieldname": "reason", "fieldtype": "Data", "label": _("Reason"), "width": 200},
+		{"fieldname": "last_event_date", "fieldtype": "Date", "label": _("Last Event"), "width": 110},
+		{"fieldname": "primary_phone", "fieldtype": "Data", "label": _("Phone"), "width": 130},
+		{"fieldname": "email", "fieldtype": "Data", "label": _("Email"), "width": 200},
 	]
 
 
@@ -32,7 +34,7 @@ def get_data(filters=None):
 	Visitation = frappe.qb.DocType("Visitation Log")
 	Prayer = frappe.qb.DocType("Prayer Request")
 
-	recent_visits = (
+	visits_query = (
 		frappe.qb.from_(Visitation)
 		.select(Visitation.person.as_("person"), Max(Visitation.visit_date).as_("last_event_date"))
 		.where(
@@ -40,10 +42,10 @@ def get_data(filters=None):
 			& (Visitation.follow_up_needed == 1)
 		)
 		.groupby(Visitation.person)
-		.run(as_dict=True)
 	)
+	recent_visits = scoped(visits_query, Visitation, filters).run(as_dict=True)
 
-	active_prayer_persons = (
+	prayer_query = (
 		frappe.qb.from_(Prayer)
 		.select(Prayer.requestor.as_("person"), Max(Prayer.creation).as_("last_event_date"))
 		.where(
@@ -52,8 +54,8 @@ def get_data(filters=None):
 			& Prayer.requestor.isnotnull()
 		)
 		.groupby(Prayer.requestor)
-		.run(as_dict=True)
 	)
+	active_prayer_persons = scoped(prayer_query, Prayer, filters).run(as_dict=True)
 
 	rows = []
 	for r in recent_visits:

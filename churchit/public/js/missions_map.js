@@ -62,6 +62,7 @@
 		.call({
 			method: "churchit.church_missions.doctype.missionary.missionary.get_public_map_markers",
 			type: "GET",
+			args: churchit.with_church({}),
 		})
 		.then((r) => {
 			const { markers = [], hidden_count: hiddenCount = 0 } = r.message || {};

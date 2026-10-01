@@ -4,9 +4,12 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, today
 
+from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_scope import church_filters
 from churchit.contacts import validate_contact_tables
 
 # Maps each Missionary Support Frequency to the function that advances a date by
@@ -31,7 +34,7 @@ class Missionary(Document):
 
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
-				frappe.throw("A positive Support Amount is required to auto-create expenses.")
+				frappe.throw(_("A positive Support Amount is required to auto-create expenses."))
 			if self.support_frequency not in FREQUENCY_STEP:
 				frappe.throw(
 					f"Support Frequency '{self.support_frequency}' is not supported for "
@@ -57,13 +60,16 @@ def get_public_map_markers() -> dict:
 	Also reports how many otherwise-mappable missionaries were hidden for being sensitive,
 	so the page can note that some locations are intentionally not shown.
 	"""
+	church = selected_church_name()
 	missionaries = frappe.get_list(
 		"Missionary",
-		filters={"geolocation": ["is", "set"], "publish": 1, "sensitive": 0},
+		filters=church_filters(church, geolocation=["is", "set"], publish=1, sensitive=0),
 		fields=["title", "photo", "country", "geolocation"],
 		ignore_permissions=True,
 	)
-	hidden_count = frappe.db.count("Missionary", {"geolocation": ["is", "set"], "publish": 1, "sensitive": 1})
+	hidden_count = frappe.db.count(
+		"Missionary", church_filters(church, geolocation=["is", "set"], publish=1, sensitive=1)
+	)
 	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
 
 
@@ -100,6 +106,7 @@ def _get_point_coordinates(geolocation):
 def create_missionary_expenses():
 	"""Daily scheduler: for every Missionary with auto_create_expenses enabled,
 	create a draft Expense for each support period that has come due."""
+	# church-scope: scheduled daily job, site-wide by design; each expense takes its missionary's church
 	missionaries = frappe.get_all(
 		"Missionary",
 		filters={"auto_create_expenses": 1},
@@ -158,6 +165,7 @@ def _create_expense(missionary, expense_date):
 			"type": missionary.expense_type,
 			"date": expense_date,
 			"missionary": missionary.name,
+			"church": missionary.church,
 			"notes": (f"Auto-generated {missionary.support_frequency} support for " f"{missionary.title}."),
 		}
 	)

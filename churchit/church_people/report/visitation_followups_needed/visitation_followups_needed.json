@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2026-07-13 00:00:00.000000",
+ "modified": "2026-09-28 12:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Visitation Followups Needed",
@@ -24,6 +24,9 @@
   },
   {
    "role": "Church Manager"
+  },
+  {
+   "role": "Church Pastoral Care"
   }
  ],
  "timeout": 0

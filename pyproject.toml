@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # frappe is installed and managed by bench.
+    "pythonbible>=0.15",
 ]
 
 [tool.bench.frappe-dependencies]

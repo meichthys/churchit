@@ -1,7 +1,7 @@
 {
  "app": "churchit",
  "charts": [],
- "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"g8CNKH3aRO\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Study\",\"col\":12}},{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":3}},{\"id\":\"wSz8xMwBmx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible References\",\"col\":3}},{\"id\":\"UBixP3IqhZ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Bible Verses\",\"col\":3}},{\"id\":\"ckBmem01rd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"References Memorized\",\"col\":3}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}},{\"id\":\"mc4PE39_sG\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"g8CNKH3aRO\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Study\",\"col\":12}},{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"bibleShortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bible\",\"col\":4}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":4}},{\"id\":\"ckBmem01rd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"References Memorized\",\"col\":4}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}},{\"id\":\"mc4PE39_sG\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.783659",
  "custom_blocks": [
   {
@@ -50,39 +50,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Bible Books",
-   "link_count": 0,
-   "link_to": "Bible Book",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Bible Translations",
    "link_count": 0,
    "link_to": "Bible Translation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Verses",
-   "link_count": 0,
-   "link_to": "Bible Verse",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible References",
-   "link_count": 0,
-   "link_to": "Bible Reference",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -138,7 +108,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-14 22:00:00.000000",
+ "modified": "2026-09-30 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
@@ -146,14 +116,6 @@
   {
    "label": "Sermons",
    "number_card_name": "Sermons"
-  },
-  {
-   "label": "Bible References",
-   "number_card_name": "Bible References"
-  },
-  {
-   "label": "Bible Verses",
-   "number_card_name": "Bible Verses"
   },
   {
    "label": "References Memorized",
@@ -164,9 +126,26 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
  "sequence_id": 19.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "label": "Bible",
+   "link_to": "bible",
+   "type": "Page"
+  }
+ ],
  "title": "Study",
  "type": "Workspace"
 }

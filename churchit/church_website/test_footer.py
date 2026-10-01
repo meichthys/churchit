@@ -6,14 +6,18 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_foundations.doctype.church.church import get_church
+from churchit.church_foundations.doctype.church.church import (
+	address_line,
+	church_contact_details,
+	get_church,
+)
 from churchit.church_website.context import update_website_context
-from churchit.church_website.footer import address_line, get_footer_church, map_url
+from churchit.church_website.footer import get_footer_church, map_url
 from churchit.tests.helpers import make_address
 
 
 def set_church_address(address):
-	church = get_church()
+	church = frappe.get_doc("Church", get_church().name)
 	church.address = address
 	church.founding_date = "1952-06-01"
 	church.save(ignore_permissions=True)
@@ -109,3 +113,30 @@ class TestRemoveMyAccountFooterLink(FrappeTestCase):
 		self.assertEqual(
 			rows, [("Submit a Prayer Request", "/prayer-request-anonymous"), ("My Account", "/portal")]
 		)
+
+
+class TestFooterContactDetails(FrappeTestCase):
+	"""Contact Us Settings holds one number for the site, so a branch's own wins."""
+
+	def setUp(self):
+		frappe.db.set_single_value("Contact Us Settings", "phone", "555-0100")
+		frappe.db.set_single_value("Contact Us Settings", "email_id", "office@example.com")
+
+	def test_a_church_without_its_own_details_uses_the_shared_ones(self):
+		church = get_church()
+		frappe.db.set_value("Church", church.name, {"phone": None, "email": None})
+		frappe.clear_document_cache("Church", church.name)
+
+		self.assertEqual(church_contact_details().phone, "555-0100")
+		self.assertEqual(church_contact_details().email, "office@example.com")
+		self.assertEqual(get_footer_church().phone, "555-0100")
+
+	def test_a_church_with_its_own_details_shows_them_instead(self):
+		church = get_church()
+		frappe.db.set_value("Church", church.name, {"phone": "555-0199", "email": "branch@example.com"})
+		frappe.clear_document_cache("Church", church.name)
+
+		details = church_contact_details()
+		self.assertEqual(details.phone, "555-0199")
+		self.assertEqual(details.email, "branch@example.com")
+		self.assertEqual(get_footer_church().phone, "555-0199")

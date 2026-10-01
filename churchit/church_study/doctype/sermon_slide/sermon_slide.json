@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "creation": "2026-02-26 12:00:00.000000",
- "description": "A slide in a Sermon that references a document from the Church App",
+ "description": "A slide in a Sermon: a document from the Church App, or a passage of Scripture",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-study",
  "editable_grid": 1,
@@ -10,6 +10,8 @@
  "field_order": [
   "slide_type",
   "slide",
+  "scripture",
+  "translation",
   "display_fields",
   "fields_selector",
   "notes"
@@ -17,6 +19,8 @@
  "fields": [
   {
    "allow_in_quick_entry": 1,
+   "depends_on": "eval:!doc.scripture",
+   "description": "The kind of record the slide shows. Leave blank for a Scripture slide.",
    "fieldname": "slide_type",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -24,11 +28,12 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Slide Type",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval:!doc.scripture",
+   "options": "DocType"
   },
   {
    "allow_in_quick_entry": 1,
+   "depends_on": "eval:!doc.scripture",
    "fieldname": "slide",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
@@ -36,8 +41,24 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Slide",
-   "options": "slide_type",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.slide_type",
+   "options": "slide_type"
+  },
+  {
+   "depends_on": "eval:!doc.slide_type",
+   "description": "A passage to show, such as Psalms 23, instead of a record.",
+   "fieldname": "scripture",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Scripture"
+  },
+  {
+   "depends_on": "eval:doc.scripture",
+   "description": "Leave blank for the church's default translation.",
+   "fieldname": "translation",
+   "fieldtype": "Link",
+   "label": "Translation",
+   "options": "Bible Translation"
   },
   {
    "fieldname": "display_fields",
@@ -46,6 +67,7 @@
    "label": "Display Fields"
   },
   {
+   "depends_on": "eval:doc.slide_type",
    "fieldname": "fields_selector",
    "fieldtype": "HTML",
    "label": "Display Fields"
@@ -62,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-26 12:00:00.000000",
+ "modified": "2026-09-30 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Slide",

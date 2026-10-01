@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Log a Care Request",
+ "creation": "2026-09-25 00:00:00.000000",
+ "description": "A Care Request is one ask for practical help: a meal, a lift, a hospital visit. Members can raise their own from the portal, and staff can log one taken over the phone.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Care Request",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Care Request",
+ "owner": "Administrator",
+ "reference_document": "Care Request",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Care Requests",
+ "validate_action": 1
+}

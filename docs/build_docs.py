@@ -5,6 +5,8 @@
   `churchit/<module>/workspace/manual:_<name>/manual:_<name>.json`.
 - getting-started.html comes from README.md ("Installing Churchit") and the
   setup one-liner in deploy/README.md.
+- screenshots.html comes from SHOTS in docs/screenshots.py, which also takes
+  the pictures.
 
 Page shells live in docs/_templates/ (Jekyll skips underscore folders, so
 GitHub Pages does not serve them). Needs markdown2, which the bench env has:
@@ -20,6 +22,8 @@ import re
 
 import markdown2
 
+from screenshots import SHOTS, THEMES
+
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(APP_ROOT, "docs")
 TEMPLATES = os.path.join(DOCS, "_templates")
@@ -34,9 +38,9 @@ DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
 FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
 FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
 
-# Base address of the churchit desk that /app/ links point at — the public demo
+# Base address of the churchit desk that /app/ links point at. The public demo
 # site, so the documentation's desk links resolve for website visitors.
-DESK_URL = "https://church.meichthys.com"
+DESK_URL = "https://demo.churchit.app"
 
 # Display order + presentation metadata (slug is the on-page anchor id).
 MODULES = [
@@ -51,6 +55,15 @@ MODULES = [
 	("Church Operations", "operations", "🔧"),
 	("Church Website", "website", "🌐"),
 ]
+
+# The colour of each module's icon in the desk, for the screenshots page.
+MODULE_COLORS = {
+	"Desk": "#6366f1",
+	"Ministries": "#ec4899",
+	"People": "#14b8a6",
+	"Study": "#f59e0b",
+	"Website": "#06b6d4",
+}
 
 
 def strip_tags(html):
@@ -83,8 +96,8 @@ def load_manual(module):
 	return []
 
 
-def render_blocks(blocks):
-	"""Convert workspace editor blocks -> clean documentation HTML."""
+def render_blocks(blocks, slug):
+	"""Convert workspace editor blocks -> clean documentation HTML. Headings get `<slug>-<heading>` ids."""
 	out = []
 	for b in blocks:
 		btype = b.get("type")
@@ -92,8 +105,7 @@ def render_blocks(blocks):
 		raw = data.get("text", "")
 
 		if btype in ("header",):
-			lvl = min(int(data.get("level", 2)) + 1, 4)
-			out.append(f"<h{lvl}>{strip_tags(raw)}</h{lvl}>")
+			out.append(heading(min(int(data.get("level", 2)) + 1, 4), strip_tags(raw), slug))
 			continue
 
 		if btype == "list":
@@ -107,15 +119,19 @@ def render_blocks(blocks):
 
 		# Paragraphs carry the manual's headings as styled spans (h1/h2 classes).
 		if 'class="h1"' in raw:
-			continue  # the manual title — we render our own section header
+			continue  # the manual title; we render our own section header
 		if 'class="h2"' in raw:
-			out.append(f"<h3>{strip_tags(raw)}</h3>")
+			out.append(heading(3, strip_tags(raw), slug))
 			continue
 
 		text = clean_inline(raw)
 		if text:
 			out.append(f"<p>{text}</p>")
 	return "\n          ".join(out)
+
+
+def heading(level, text, slug):
+	return f'<h{level} id="{slug}-{github_slug(text).strip("-")}">{text}</h{level}>'
 
 
 def build_documentation():
@@ -129,7 +145,7 @@ def build_documentation():
 		sections.append(
 			f"""<article class="glass doc-section reveal" id="{slug}">
           <h2><span aria-hidden="true">{emoji}</span> {label} <span class="doc-badge">Manual</span></h2>
-          {render_blocks(blocks)}
+          {render_blocks(blocks, slug)}
         </article>"""
 		)
 	write_page(
@@ -159,6 +175,49 @@ def build_getting_started():
 		first_steps=readme.render(readme.section(FIRST_STEPS_HEADING)),
 	)
 	print(f"Wrote getting-started.html  ({len(paths)} paths)")
+
+
+def build_screenshots():
+	write_page(
+		"screenshots.html",
+		index="\n      ".join(f'<a href="#{shot.slug}">{html.escape(shot.title)}</a>' for shot in SHOTS),
+		shots="\n\n    ".join(render_shot(shot) for shot in SHOTS),
+	)
+	print(f"Wrote screenshots.html  ({len(SHOTS)} features)")
+
+
+def render_shot(shot):
+	"""One feature: its text above the desktop picture, with the phone picture beside it."""
+	devices = " ".join(f"has-{device}" for device in shot.views)
+	frames = "".join(render_frame(shot, device) for device in shot.views)
+	manual = (
+		f'\n        <a href="documentation.html#{shot.manual}">Read the manual →</a>' if shot.manual else ""
+	)
+	return f"""<section class="shot" id="{shot.slug}">
+      <div class="shot-text">
+        <p class="shot-module" style="--module: {MODULE_COLORS[shot.module]}">{html.escape(shot.module)}</p>
+        <h2>{html.escape(shot.title)}</h2>
+        <p>{html.escape(shot.caption)}</p>{manual}
+      </div>
+      <div class="shot-media {devices}">{frames}</div>
+    </section>"""
+
+
+def render_frame(shot, device):
+	"""Both themes' pictures, of which the page's own theme shows one (see .img-light in style.css)."""
+	viewport = shot.get_viewport(device)
+	alt = html.escape(f"{shot.title} on a {'computer' if device == 'desktop' else 'phone'}")
+	images = ""
+	for theme in THEMES:
+		src = shot.get_image_path(device, theme)
+		if not os.path.exists(os.path.join(DOCS, src)):
+			raise SystemExit(f"{src} is missing. Take it with: uv run docs/screenshots.py {shot.slug}")
+		images += (
+			f'<img class="img-{theme}" src="{src}" alt="{alt}" width="{viewport["width"]}" '
+			f'height="{viewport["height"]}" loading="lazy" decoding="async" />'
+		)
+	href = shot.get_image_path(device, THEMES[0])
+	return f'<a class="shot-frame shot-{device}" href="{href}" data-zoom>{images}</a>'
 
 
 class Readme:
@@ -267,6 +326,17 @@ def command_block(code):
 	)
 
 
+def check_documentation_anchors():
+	"""Fail when a site page links to a documentation.html anchor that a manual no longer has."""
+	ids = set(re.findall(r'\sid="([^"]+)"', read(os.path.join(DOCS, "documentation.html"))))
+	for page in sorted(glob.glob(os.path.join(DOCS, "*.html"))):
+		missing = set(re.findall(r'href="documentation\.html#([^"]+)"', read(page))) - ids
+		if missing:
+			raise SystemExit(
+				f"{os.path.basename(page)} links to missing manual anchors: {', '.join(sorted(missing))}"
+			)
+
+
 def write_page(name, **slots):
 	page = read(os.path.join(TEMPLATES, name.replace("-", "_")))
 	for key, value in slots.items():
@@ -283,3 +353,5 @@ def read(path):
 if __name__ == "__main__":
 	build_documentation()
 	build_getting_started()
+	build_screenshots()
+	check_documentation_anchors()

@@ -13,7 +13,7 @@
  "documentation_url": "https://github.com/meichthys/church",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-06-27 00:00:00.000000",
+ "modified": "2026-09-30 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
@@ -27,9 +27,12 @@
   },
   {
    "step": "Sermon"
+  },
+  {
+   "step": "Sermon Handout"
   }
  ],
- "subtitle": "Translations, sermon series, and sermons.",
+ "subtitle": "Bible translations, sermon series, sermons, and handouts.",
  "success_message": "Your study and sermon library is ready to grow.",
  "title": "\ud83d\udcd6 Sermons & Bible Study"
 }

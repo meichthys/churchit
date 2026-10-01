@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 # Roles that may clear a booking on a room whose "Requires Approval" flag is set.
@@ -11,7 +12,7 @@ APPROVER_ROLES = {"Church Manager", "System Manager"}
 class RoomBooking(Document):
 	def validate(self):
 		if self.end_datetime and self.start_datetime and self.end_datetime <= self.start_datetime:
-			frappe.throw("End time must be after start time.")
+			frappe.throw(_("End time must be after start time."))
 		requires_approval = bool(frappe.db.get_value("Room", self.room, "requires_approval"))
 		self.set_initial_status(requires_approval)
 		self.validate_approver(requires_approval)
@@ -40,11 +41,13 @@ class RoomBooking(Document):
 		if before and before.status == "Approved":
 			return
 		if not APPROVER_ROLES & set(frappe.get_roles()):
-			frappe.throw("Only a Church Manager can approve a booking for this room.")
+			frappe.throw(_("Only a Church Manager can approve a booking for this room."))
 
 	def check_conflicts(self):
 		if self.status in ("Denied", "Cancelled"):
 			return
+		# church-scope: a shared room is booked by several churches, so a clash has to be
+		# found across all of them, not only the booking church's own diary
 		Booking = frappe.qb.DocType("Room Booking")
 		conflicts = (
 			frappe.qb.from_(Booking)

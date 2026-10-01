@@ -38,7 +38,7 @@
    "table_fieldname": "relationships"
   }
  ],
- "modified": "2026-03-04 21:43:28.465430",
+ "modified": "2026-09-28 13:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Relation Type",
@@ -69,6 +69,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "quick_entry": 1,
