@@ -1,17 +1,31 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The Portal entry in the website's top-right user menu."""
+"""What the website context hook adds to every page."""
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import set_request
+from frappe.website.serve import get_response
+from frappe.website.utils import get_portal_sidebar_items
 
 from churchit.church_website.context import PORTAL_URL, update_website_context
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
+from churchit.tests.helpers import ensure_user
 
 
 def menu():
 	return [{"label": "My Account", "url": "/me"}, {"label": "Log out", "url": "/logout"}]
+
+
+def serve(path):
+	"""Render *path*, following a web form's redirect to its list."""
+	frappe.local.form_dict = frappe._dict()
+	set_request(method="GET", path=path)
+	response = get_response(path)
+	if response.status_code in (301, 302):
+		return serve(response.headers["Location"].lstrip("/"))
+	return response.get_data(as_text=True)
 
 
 def labels_for(user):
@@ -46,6 +60,46 @@ class TestPortalMenuLink(FrappeTestCase):
 		context = frappe._dict({})
 		update_website_context(context)
 		self.assertIsNone(context.get("post_login"))
+
+
+class TestPortalSidebar(FrappeTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.local.form_dict = frappe._dict()
+
+	def test_every_portal_page_shows_the_whole_menu(self):
+		# A web form fills its sidebar from a Website Sidebar record alone, and a
+		# www page shows one only when it asks to, so either could drop the menu.
+		frappe.set_user(ensure_user("_test_sidebar_member@example.com", "_Test Sidebar Member"))
+		menu = get_portal_sidebar_items()
+		self.assertTrue(menu)
+		for item in menu:
+			with self.subTest(route=item.route):
+				html = serve(item.route)
+				self.assertIn('class="web-sidebar"', html)
+				for link in menu:
+					self.assertIn(f'href="/{link.route.lstrip("/")}"', html)
+
+	def test_relative_routes_are_made_absolute(self):
+		# "bible" seen from /prayer-request/new would be /prayer-request/bible
+		context = frappe._dict(
+			show_sidebar=1,
+			sidebar_items=[
+				{"title": "Bible", "route": "bible"},
+				{"title": "My Account", "route": "/me"},
+				{"title": "Elsewhere", "route": "https://example.com/give"},
+			],
+		)
+		update_website_context(context)
+		self.assertEqual(
+			[item["route"] for item in context.sidebar_items],
+			["/bible", "/me", "https://example.com/give"],
+		)
+
+	def test_a_page_without_a_sidebar_is_left_alone(self):
+		context = frappe._dict()
+		update_website_context(context)
+		self.assertIsNone(context.get("sidebar_items"))
 
 
 class TestBrandHtml(FrappeTestCase):

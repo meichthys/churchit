@@ -15,5 +15,6 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
+	context.show_sidebar = 1
 	context.title = _("Newsletter Subscription")
 	context.update(get_subscription_status())

@@ -15,6 +15,8 @@ no_cache = 1
 
 def get_context(context):
 	context.title = _("Bible")
+	# The page is public; the portal menu is only for signed-in members.
+	context.show_sidebar = frappe.session.user != "Guest"
 	context.church = frappe.form_dict.get("church")
 	context.translations = get_readable_translations()
 	if not context.translations:
