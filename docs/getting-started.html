@@ -92,10 +92,13 @@
       </div>
       <div class="paths reveal">
         <article class="glass path" id="path-frappe-cloud" role="tabpanel" aria-labelledby="tab-frappe-cloud"><div class="path-head"><h3>Frappe Cloud</h3><dl class="path-meta"><dt>Best for</dt><dd>Anyone who does not want to run a server</dd><dt>Cost</dt><dd>A few dollars/month</dd><dt>Effort</dt><dd>Click <strong>Install</strong></dd></dl></div><div class="path-body"><ol>
-<li>Log into your <a href="https://frappe.cloud/">Frappe Cloud</a> dashboard.</li>
+<li>Create a free account at <a href="https://frappecloud.com/dashboard/signup">Frappe Cloud</a> and verify your email address.</li>
+<li>Click <strong>New Site</strong>. Choose the <strong>Version 16</strong> release group, a region, and a plan. The cheapest plan is fine for a typical church. Enter a site name (for example <code>mychurch</code>) and click <strong>Create Site</strong>.</li>
+<li>Wait for the site to finish creating.</li>
 <li>Open the <a href="https://frappecloud.com/marketplace/apps/churchit">Churchit listing on the Frappe Marketplace</a> (or search for "Churchit" from <strong>Marketplace</strong> in the sidebar).</li>
-<li>Click <strong>Install</strong>, then choose the site you want to install it on.</li>
-<li>Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the <code>Churchit</code> icons in the desk.</li>
+<li>Click <strong>Install</strong>, then choose the site you created. Frappe Cloud handles the download, install, and migrate automatically.</li>
+<li>Once the install completes, go to <strong>Sites</strong> → your site name → <strong>Visit Site</strong> and complete the setup wizard.</li>
+<li>To use your own domain, see <a href="#setting-up-a-public-domain">Setting up a public domain</a>.</li>
 </ol>
 
 <p><strong>To update:</strong> open the site page → <strong>Apps</strong> tab → <strong>Update</strong>.</p>
@@ -106,7 +109,7 @@
 <div class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/meichthys/churchit/version-16/deploy/setup.sh | bash</code><button class="btn cmd-copy" type="button" data-copy>Copy</button></div><p>The script installs Docker if it is missing, asks for your domain (press Enter to try it out locally at <code>http://churchit.localhost</code>), generates passwords, and starts everything. When it finishes it prints your site address and the <code>Administrator</code> password.</p>
 
 <p><strong>To update:</strong></p>
-<div class="cmd"><code>cd ~/churchit &amp;&amp; docker compose pull &amp;&amp; docker compose up -d</code><button class="btn cmd-copy" type="button" data-copy>Copy</button></div><p>For Windows/macOS steps, making the site reachable from the internet (domain, DNS, HTTPS, port forwarding), password resets, and uninstalling, see the <a href="https://github.com/meichthys/churchit/blob/HEAD/deploy/README.md">self-hosting guide</a>.</p>
+<div class="cmd"><code>cd ~/churchit &amp;&amp; docker compose pull &amp;&amp; docker compose up -d</code><button class="btn cmd-copy" type="button" data-copy>Copy</button></div><p>For Windows/macOS steps, password resets, and uninstalling, see the <a href="https://github.com/meichthys/churchit/blob/HEAD/deploy/README.md">self-hosting guide</a>. To make the site reachable from the internet with your own domain, see <a href="#setting-up-a-public-domain">Setting up a public domain</a>.</p>
 </div></article>
         <article class="glass path" id="path-existing-frappe-bench-pilot" role="tabpanel" aria-labelledby="tab-existing-frappe-bench-pilot" hidden><div class="path-head"><h3>Existing Frappe bench (Pilot)</h3><dl class="path-meta"><dt>Best for</dt><dd>Admins who already run Frappe, or want other Frappe apps alongside Churchit</dd><dt>Cost</dt><dd>Free</dd><dt>Effort</dt><dd>A few commands</dd></dl></div><div class="path-body"><p><a href="https://github.com/frappe/pilot">Pilot</a> is Frappe's official tool for running benches on your own Linux server. Use it if you already have a Pilot bench, or want Churchit next to other Frappe apps. Follow Pilot's README to install it and create a bench, then:</p>
 <div class="cmd"><code># Replace &quot;church&quot; with your bench name and church.example.org with your domain.
@@ -115,6 +118,8 @@ pilot -b church new-site church.example.org --apps churchit
 pilot -b church setup production</code><button class="btn cmd-copy" type="button" data-copy>Copy</button></div><p><strong>To update:</strong> <code>pilot -b church update</code>.</p>
 
 <p>On a plain <code>bench</code> (without Pilot), the equivalent is <code>bench get-app https://github.com/meichthys/churchit</code>, <code>bench --site &lt;your-site&gt; install-app churchit</code>, and <code>bench update</code> to upgrade.</p>
+
+<p>To make the site reachable from the internet with your own domain, see <a href="#setting-up-a-public-domain">Setting up a public domain</a>.</p>
 </div></article>
       </div>
     </div>
@@ -145,6 +150,40 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
 <p>Combine profiles when one person has several jobs. Open the <code>Role Permissions Manager</code> to see exactly what each role can do.</p></li>
 <li>Members do not need a desk login. Use <strong>Invite to Portal</strong> on their Person. It gives them the <code>Church User</code> role, which reaches the portal and their own records only.</li>
 </ol>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Public domain (pulled from README.md) -->
+  <section id="setting-up-a-public-domain">
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <span class="eyebrow">🌐 Your own web address</span>
+        <h2>Set up a public domain</h2>
+        <p class="lead center" style="margin-inline:auto">Do this once so people can reach your site at an address like www.yourchurch.org.</p>
+      </div>
+      <div class="glass first-steps reveal">
+        <p>A domain lets people open your site at an address like <code>www.mychurch.org</code>. The goal is the same on every deployment path:</p>
+
+<ol>
+<li><strong>Get a domain name.</strong> Register one with a domain registrar, or use a subdomain you already own (for example <code>churchit.mychurch.org</code>).</li>
+<li><strong>Point the domain at your site.</strong> Follow the part below that matches how you run Churchit.</li>
+<li><strong>Check HTTPS.</strong> Open <code>https://</code> plus your domain from a phone that is not on your home or office Wi-Fi. The page should load with a padlock.</li>
+</ol>
+
+<p><strong>Frappe Cloud.</strong> At your domain provider, add a DNS record. For a subdomain, add a <code>CNAME</code> record pointing to your Frappe Cloud site name (for example <code>mychurch.frappe.cloud</code>). For a bare domain like <code>mychurch.org</code>, add a single <code>A</code> record pointing to the <strong>Inbound IP</strong> shown on your Frappe site's page. Then open your site's <strong>Domains</strong> tab, click <strong>Add Domain</strong>, enter the domain, click <strong>Verify DNS</strong>, and click <strong>Add Domain</strong> again. Frappe Cloud sets up the HTTPS certificate for you. See <a href="https://docs.frappe.io/cloud/sites/custom-domains">Frappe's custom domain guide</a> for details.</p>
+
+<p><strong>Self-hosted (Docker or Pilot).</strong> Your server has to be reachable from the internet, and the exact setup depends on your network.</p>
+
+<ul>
+<li><strong>Tunnel (recommended).</strong> A service such as Cloudflare Tunnel or Tailscale Funnel connects out from your server, so you open no ports and change nothing on your router. It also works if your internet provider does not give you a public IP (CGNAT). The tunnel handles DNS and HTTPS. Install the tunnel on the server and point it at Churchit's local address.</li>
+<li><strong>Reverse proxy or port forwarding.</strong> With port forwarding, add an <code>A</code> record to your domain pointing to your public IP address, and forward TCP ports 80 and 443 from your router to the server. If your public IP changes, use a dynamic DNS service to keep the record current. If you already run a <a href="https://en.wikipedia.org/wiki/Reverse_proxy">reverse proxy</a> such as Nginx, Caddy, or Traefik, point your domain at the proxy and have the proxy forward traffic to Churchit. Pass the original <code>Host</code> header through, so Frappe can tell which site the request is for. Learn more about <a href="https://en.wikipedia.org/wiki/Port_forwarding">port forwarding</a>.</li>
+</ul>
+
+<p>For Docker with port forwarding, enter your domain when the setup script asks, and Churchit gets a free HTTPS certificate automatically once DNS and ports are right. The <a href="https://github.com/meichthys/churchit/blob/HEAD/deploy/README.md#making-churchit-reachable-from-the-internet">self-hosting guide</a> has the full steps. For Pilot, create the site with your domain as its name, as in the example above, and see Pilot's README for HTTPS.</p>
+
+<p>Putting a site on the internet has security risks. Use a strong <code>Administrator</code> password, keep the server up to date, and take regular backups.</p>
 
       </div>
     </div>
