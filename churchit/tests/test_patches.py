@@ -14,6 +14,7 @@ from frappe.website.doctype.website_theme.website_theme import WebsiteTheme
 
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
+	add_attendance_to_portal,
 	add_churchit_website_theme,
 	add_default_address_template,
 	add_missionary_map_to_missions_page,
@@ -214,18 +215,20 @@ class TestVersionedPatches(FrappeTestCase):
 			"patched@example.com",
 		)
 
-	def test_giving_statements_portal_item_is_added_once(self):
-		settings = frappe.get_doc("Portal Settings")
-		settings.menu = [row for row in settings.menu if row.route != portal_patch.ROUTE]
-		settings.save(ignore_permissions=True)
+	def test_portal_menu_items_are_added_once(self):
+		for patch in (portal_patch, add_attendance_to_portal):
+			with self.subTest(patch.ROUTE):
+				settings = frappe.get_doc("Portal Settings")
+				settings.menu = [row for row in settings.menu if row.route != patch.ROUTE]
+				settings.save(ignore_permissions=True)
 
-		portal_patch.execute()
-		portal_patch.execute()
+				patch.execute()
+				patch.execute()
 
-		rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == portal_patch.ROUTE]
-		self.assertEqual(len(rows), 1)
-		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
-		self.assertTrue(rows[0].enabled)
+				rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == patch.ROUTE]
+				self.assertEqual(len(rows), 1)
+				self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
+				self.assertTrue(rows[0].enabled)
 
 	def test_knowledge_base_is_taken_out_of_the_app(self):
 		settings = frappe.get_doc("Portal Settings")

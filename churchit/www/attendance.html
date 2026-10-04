@@ -1,0 +1,82 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Attendance") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.attendance-list { list-style: none; padding: 0; margin: 0; }
+	/* wraps on narrow screens: the date above, the function and status below */
+	.attendance-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding: 14px 0;
+		border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.attendance-list .date { flex: 0 0 7.5rem; color: var(--text-muted, #6b7280); white-space: nowrap; }
+	.attendance-list .function { flex: 1 1 10rem; min-width: 0; overflow-wrap: anywhere; }
+	.attendance-list .status { font-weight: 600; white-space: nowrap; }
+	.attendance-list select.status { width: auto; align-self: center; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-4">{{ _("Attendance") }}</h3>
+
+	{% if not person %}
+		<p class="text-muted">
+			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+		</p>
+	{% elif not attendance %}
+		<p class="text-muted">{{ _("No attendance has been recorded for you yet.") }}</p>
+	{% else %}
+		{% if choices %}
+			<p class="text-muted">{{ _("If your attendance below is wrong, change it. A check-in can only be changed by the church office.") }}</p>
+		{% endif %}
+		<ul class="attendance-list">
+			{% for row in attendance %}
+			<li>
+				<span class="date">{{ frappe.format(row.start_date, {"fieldtype": "Date"}) }}</span>
+				<span class="function">{{ row.function_name | e }}</span>
+				{% if row.is_changeable %}
+					<select class="status form-control form-control-sm attendance-choice"
+						data-function="{{ row.name | e }}"
+						aria-label="{{ _('Your attendance at {0}').format(row.function_name) | e }}">
+						{% if row.attendance_type not in choices %}
+							<option value="{{ row.attendance_type | e }}" selected disabled>{{ _(row.attendance_type) | e }}</option>
+						{% endif %}
+						{% for choice in choices %}
+							<option value="{{ choice | e }}" {{ "selected" if choice == row.attendance_type }}>{{ _(choice) | e }}</option>
+						{% endfor %}
+					</select>
+				{% else %}
+					<span class="status">{{ _(row.attendance_type) | e }}</span>
+				{% endif %}
+			</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	document.querySelectorAll(".attendance-choice").forEach(function (select) {
+		var saved = select.value;
+		select.addEventListener("change", function () {
+			select.disabled = true;
+			frappe.call({
+				method: "churchit.church_ministries.member_attendance.change_own_attendance",
+				args: { function: select.dataset.function, attendance_type: select.value },
+				callback: function () {
+					select.disabled = false;
+					saved = select.value;
+					frappe.show_alert({ message: "{{ _('Attendance saved.') }}", indicator: "green" });
+				},
+				error: function () {
+					select.disabled = false;
+					select.value = saved;
+				},
+			});
+		});
+	});
+});
+</script>
+{% endblock %}

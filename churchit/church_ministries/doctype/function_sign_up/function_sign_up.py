@@ -62,13 +62,11 @@ class FunctionSignUp(Document):
 		self._remove_attendance_record()
 
 	def _add_attendance_record(self):
+		"""Add a Signed-Up row, unless the person's attendance is already recorded."""
 		function_doc = frappe.get_doc("Function", self.function)
-		for row in function_doc.attendance:
-			if row.person == self.person:
-				if row.attendance_type != "Signed-Up":
-					row.attendance_type = "Signed-Up"
-					function_doc.save(ignore_permissions=True)
-				return
+		# Any other row (Checked-In, Confirmed, Absent) says more than a sign-up does.
+		if any(row.person == self.person for row in function_doc.attendance):
+			return
 		function_doc.append(
 			"attendance",
 			{

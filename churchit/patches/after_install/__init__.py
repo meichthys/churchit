@@ -729,6 +729,7 @@ def _setup_portal_settings():
 	"""
 	items = [
 		("Function Sign-Ups", "function-sign-up", "Function Sign-Up", "Church User"),
+		("Attendance", "attendance", "Function Attendance", "Church User"),
 		("Bible", "bible", "Bible Translation", "Church User"),
 		("Bible Memory", "memorize", "Bible Memory Item", "Church User"),
 		("Prayer Requests", "prayer-request", "Prayer Request", "Church User"),

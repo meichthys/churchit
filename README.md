@@ -53,7 +53,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, alms requests, function sign-ups, and bulletin PDFs
+- Portal pages for personal details, prayer requests, alms requests, function sign-ups, attendance history, giving statements, and bulletin PDFs
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
@@ -238,12 +238,8 @@ The public pages (Home, Beliefs, Sermons, Missions, Ministries) are `Web Page` r
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.
 
-- [Add standard church website pages:](https://github.com/meichthys/churchit/issues/13)
-  - Calendar
 - Additional portal pages
-  - Show tracked giving
-  - Show tracked attendance
-    - Allow updating attendance status(?)
+  - Allow members to update their own attendance status(?)
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/YxpdU6qM5w) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
