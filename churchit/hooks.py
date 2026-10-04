@@ -27,8 +27,6 @@ fixtures = [
 				[
 					"About Us Settings",
 					"Contact Us Settings",
-					"Help Article",
-					"Help Category",
 					"Newsletter",
 					"Website Settings",
 				],

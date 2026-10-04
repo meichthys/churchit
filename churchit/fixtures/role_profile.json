@@ -34,18 +34,6 @@
     "parent": "Church Manager",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Knowledge Base Contributor"
-   },
-   {
-    "parent": "Church Manager",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Knowledge Base Editor"
-   },
-   {
-    "parent": "Church Manager",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
     "role": "Newsletter Manager"
    },
    {

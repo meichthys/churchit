@@ -1,38 +1,6 @@
 [
  {
   "default_value": null,
-  "doc_type": "Help Article",
-  "docstatus": 0,
-  "doctype": "Property Setter",
-  "doctype_or_field": "DocType",
-  "field_name": null,
-  "is_system_generated": 0,
-  "modified": "2026-05-13 18:10:41.353719",
-  "module": "Church Customizations",
-  "name": "Help Article-main-allow_guest_to_view",
-  "property": "allow_guest_to_view",
-  "property_type": "Check",
-  "row_name": null,
-  "value": "0"
- },
- {
-  "default_value": null,
-  "doc_type": "Help Category",
-  "docstatus": 0,
-  "doctype": "Property Setter",
-  "doctype_or_field": "DocType",
-  "field_name": null,
-  "is_system_generated": 0,
-  "modified": "2026-05-13 18:16:07.694586",
-  "module": "Church Customizations",
-  "name": "Help Category-main-allow_guest_to_view",
-  "property": "allow_guest_to_view",
-  "property_type": "Check",
-  "row_name": null,
-  "value": "0"
- },
- {
-  "default_value": null,
   "doc_type": "About Us Settings",
   "docstatus": 0,
   "doctype": "Property Setter",

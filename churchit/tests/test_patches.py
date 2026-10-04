@@ -19,6 +19,7 @@ from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	add_unsynced_default_records,
 	redesign_home_page,
+	remove_knowledge_base,
 	rename_agency_logo_field,
 	scope_website_pages_to_church,
 	seed_naming_series_counters,
@@ -225,6 +226,51 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(len(rows), 1)
 		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
 		self.assertTrue(rows[0].enabled)
+
+	def test_knowledge_base_is_taken_out_of_the_app(self):
+		settings = frappe.get_doc("Portal Settings")
+		settings.append(
+			"custom_menu",
+			{
+				"title": "Help Articles",
+				"route": "Help Article",
+				"reference_doctype": "Help Article",
+				"enabled": 1,
+			},
+		)
+		settings.save(ignore_permissions=True)
+		if not frappe.db.exists("Number Card", "Help Articles"):
+			frappe.get_doc(
+				{
+					"doctype": "Number Card",
+					"label": "Help Articles",
+					"type": "Document Type",
+					"document_type": "Help Article",
+					"function": "Count",
+				}
+			).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Custom DocPerm",
+				"parent": "Help Article",
+				"parenttype": "DocType",
+				"parentfield": "permissions",
+				"role": "Church User",
+				"read": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		remove_knowledge_base.execute()
+		remove_knowledge_base.execute()
+
+		settings = frappe.get_doc("Portal Settings")
+		menu = [row.reference_doctype for row in settings.menu + settings.custom_menu]
+		self.assertNotIn("Help Article", menu)
+		self.assertIn("Function Sign-Up", menu, "the rest of the menu stays")
+		self.assertFalse(frappe.db.exists("Number Card", "Help Articles"))
+		self.assertFalse(
+			frappe.db.exists("Custom DocPerm", {"parent": "Help Article", "role": "Church User"})
+		)
 
 	def test_bulletins_setup_seeds_once_and_retires_the_old_print_format(self):
 		settings = frappe.get_doc("Portal Settings")

@@ -738,8 +738,6 @@ def _setup_portal_settings():
 		("Giving Statements", "statements", "Giving Statement", "Church User"),
 		("Bulletins", "bulletins", "Bulletin", "Church User"),
 		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
-		# no role: visible to any logged-in user
-		("Help Articles", "Help Article", "Help Article", None),
 	]
 	doc = frappe.get_doc("Portal Settings")
 	# Left blank deliberately. Frappe consults this before Website Settings when a
