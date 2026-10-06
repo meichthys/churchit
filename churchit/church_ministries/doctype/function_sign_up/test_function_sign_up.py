@@ -124,6 +124,19 @@ class TestFunctionSignUp(FrappeTestCase):
 		self._sign_up(attending=1)
 		self.assertEqual(self._attendance_for(self.person), ["Signed-Up"])
 
+	def test_saving_a_sign_up_keeps_a_recorded_attendance(self):
+		"""Editing a sign-up after the function must not turn a check-in back into a sign-up."""
+		sign_up = self._sign_up(attending=1)
+		function_doc = frappe.get_doc("Function", self.function)
+		row = next(row for row in function_doc.attendance if row.person == self.person)
+		row.attendance_type = "Checked-In"
+		function_doc.save(ignore_permissions=True)
+
+		sign_up.notes = "Running late"
+		sign_up.save(ignore_permissions=True)
+
+		self.assertEqual(self._attendance_for(self.person), ["Checked-In"])
+
 	def test_not_attending_adds_no_attendance_row(self):
 		self._sign_up(attending=0)
 		self.assertEqual(self._attendance_for(self.person), [])

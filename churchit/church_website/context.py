@@ -7,6 +7,7 @@ from pathlib import Path
 
 import frappe
 from frappe import _
+from frappe.website.utils import get_portal_sidebar_items
 
 from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_scope import is_multi_church
@@ -21,6 +22,7 @@ THEME_MODE_SCRIPT = (
 
 def update_website_context(context):
 	_add_portal_menu_item(context)
+	_set_portal_sidebar(context)
 	_set_brand_html(context)
 	_add_locations_menu(context)
 	context["footer_church"] = get_footer_church()
@@ -54,6 +56,28 @@ def _add_portal_menu_item(context):
 		return
 
 	menu.insert(0, {"label": _("Portal"), "url": PORTAL_URL})
+
+
+def _set_portal_sidebar(context):
+	"""Fill a shown sidebar with the member portal menu and make its links absolute.
+
+	Frappe already falls back to the Portal Settings menu for www pages, but a
+	web form fills its sidebar from a Website Sidebar record alone, so the
+	portal's forms showed My Account and nothing else. Frappe also renders a
+	route as typed, and "bible" seen from /prayer-request/new is
+	/prayer-request/bible.
+	"""
+	if not context.get("show_sidebar"):
+		return
+	items = context.get("sidebar_items") or get_portal_sidebar_items()
+	context["sidebar_items"] = [_with_absolute_route(item) for item in items]
+
+
+def _with_absolute_route(item):
+	route = item.get("route")
+	if not route or route.startswith("/") or "://" in route:
+		return item
+	return frappe._dict(item, route=f"/{route}")
 
 
 def _set_brand_html(context):

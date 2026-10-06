@@ -45,6 +45,11 @@ class TestBiblePage(FrappeTestCase):
 		self.assertIsNone(context.previous_url)
 		self.assertEqual(context.next_url, f"/bible?translation={self.free}&book=GEN&chapter=2")
 
+	def test_only_members_get_the_portal_sidebar(self):
+		self.assertTrue(self.context().show_sidebar)
+		frappe.set_user("Guest")
+		self.assertFalse(self.context().show_sidebar)
+
 	def test_the_next_chapter_runs_on_into_the_next_book(self):
 		context = self.context(translation=self.free, book="gen", chapter="2")
 		self.assertEqual(context.next_url, f"/bible?translation={self.free}&book=EXO&chapter=1")

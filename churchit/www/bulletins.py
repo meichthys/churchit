@@ -16,6 +16,7 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
+	context.show_sidebar = 1
 	context.title = _("Bulletins")
 	context.bulletins = get_published_bulletins()
 

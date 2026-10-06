@@ -30,5 +30,13 @@
   "modified": "2026-05-04 19:59:05.573227",
   "name": "Checked-In",
   "type": "Checked-In"
+ },
+ {
+  "description": "The person was not present at this function.",
+  "docstatus": 0,
+  "doctype": "Function Attendance Type",
+  "modified": "2026-10-04 01:30:00.000000",
+  "name": "Absent",
+  "type": "Absent"
  }
 ]

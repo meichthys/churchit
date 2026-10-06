@@ -17,7 +17,7 @@ before_request = ["churchit.church_website.context.before_request"]
 
 fixtures = [
 	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
-	{"dt": "Custom Field", "filters": [["dt", "in", ["Contact Us Settings"]]]},
+	{"dt": "Custom Field", "filters": [["dt", "in", ["Contact Us Settings", "Portal Settings"]]]},
 	{
 		"dt": "Property Setter",
 		"filters": [
@@ -27,8 +27,6 @@ fixtures = [
 				[
 					"About Us Settings",
 					"Contact Us Settings",
-					"Help Article",
-					"Help Category",
 					"Newsletter",
 					"Website Settings",
 				],
@@ -37,10 +35,10 @@ fixtures = [
 	},
 	{"dt": "Role", "filters": [["Name", "like", "Church%"]]},
 	{"dt": "Role Profile", "filters": [["Name", "like", "Church%"]]},
-	# These attendance types are fixtures since they are referenced in code (attendance total calculation, sign-up, and check-in).
+	# These attendance types are fixtures since they are referenced in code (attendance total calculation, sign-up, check-in, and the portal Attendance page).
 	{
 		"dt": "Function Attendance Type",
-		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In"]]],
+		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In", "Absent"]]],
 	},
 	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
 	# The module nav shown at the top of every module workspace, and the map

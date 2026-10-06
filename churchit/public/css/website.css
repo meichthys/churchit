@@ -250,6 +250,10 @@
 [data-theme="dark"] .portal-row a {
   color: var(--text-color);
 }
+[data-theme="dark"] .sidebar-item a.active {
+  color: var(--heading-color);
+  background-color: var(--subtle-accent);
+}
 
 /* ---- Account menu ---------------------------------------------------------
    v16 renders the navbar avatar dropdown (My Account / Log out) with an inline
@@ -513,6 +517,78 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 .portal-home-grid .card:hover .portal-card-arrow {
   transform: translateX(3px);
+}
+
+/* ---- Portal sidebar ---------------------------------------------------------
+   frappe's web sidebar, listing the Portal Settings menu on pages that set
+   show_sidebar. frappe gives it a col-sm-2 column and hides it below the
+   desktop breakpoint, which left a phone with no way between portal pages.
+   Below that breakpoint it is a row of links that scrolls sideways; above
+   it, a fixed-width column. */
+.web-sidebar .sidebar-item a:hover {
+  /* frappe's hover is a compiled near-black, unreadable in dark mode */
+  color: var(--heading-color);
+}
+.web-sidebar .sidebar-items > ul + ul {
+  border-top: 1px solid var(--border-color);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+@media (min-width: 992px) {
+  .row > .sidebar-column {
+    flex: 0 0 16rem;
+    max-width: 16rem;
+  }
+  .row > .main-column {
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
+  }
+  /* the page's own container sits inside the outer one; one gutter is enough */
+  .row > .main-column main.container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+@media (max-width: 991.98px) {
+  /* frappe's .container has no padding to absorb the row's negative margins,
+     so the page scrolled sideways once the container filled the screen */
+  .row:has(> .sidebar-column) {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .row > .sidebar-column,
+  .row > .main-column {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .row > .sidebar-column {
+    display: block;
+  }
+  .sidebar-column .web-sidebar {
+    position: static;
+    padding-top: 1rem;
+  }
+  .sidebar-column .sidebar-items {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sidebar-column .sidebar-items > ul {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0;
+  }
+  .web-sidebar .sidebar-items > ul + ul {
+    border-top: 0;
+    border-left: 1px solid var(--border-color);
+    margin: 0 0 0 0.25rem;
+    padding: 0 0 0 0.25rem;
+  }
+  .sidebar-column .sidebar-item a {
+    margin-top: 0;
+    white-space: nowrap;
+  }
 }
 
 /* ---- Recipient search (prayer-request web form) -----------------------------

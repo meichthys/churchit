@@ -34,6 +34,7 @@ DEPLOY_README = os.path.join(APP_ROOT, "deploy", "README.md")
 REPO_BLOB_URL = "https://github.com/meichthys/churchit/blob/HEAD"
 INSTALL_HEADING = "## 📥 Installing Churchit"
 FIRST_STEPS_HEADING = "### First steps after installing"
+DOMAIN_HEADING = "### Setting up a public domain"
 DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
 FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
 FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
@@ -173,6 +174,7 @@ def build_getting_started():
 			render_path(readme, title, body, labels, table[github_slug(title)]) for title, body in paths
 		),
 		first_steps=readme.render(readme.section(FIRST_STEPS_HEADING)),
+		domain_setup=readme.render(readme.section(DOMAIN_HEADING)),
 	)
 	print(f"Wrote getting-started.html  ({len(paths)} paths)")
 

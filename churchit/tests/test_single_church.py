@@ -20,7 +20,7 @@ from churchit.tests.helpers import ensure, ensure_root_church, force_single_chur
 from churchit.tests.test_reports_execute import report_modules
 
 # Pages a signed-in staff user reaches. Guest-only redirects are covered per page.
-PUBLIC_PAGES = ("about", "bulletins", "calendar", "contact", "give", "statements")
+PUBLIC_PAGES = ("about", "attendance", "bulletins", "calendar", "contact", "give", "statements")
 
 
 class TestSingleChurch(FrappeTestCase):

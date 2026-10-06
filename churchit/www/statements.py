@@ -12,6 +12,7 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
+	context.show_sidebar = 1
 	context.title = "Giving Statements"
 
 	person = frappe.db.get_value("Person", {"user": frappe.session.user}, ["name", "family"], as_dict=True)

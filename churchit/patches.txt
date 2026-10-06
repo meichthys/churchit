@@ -26,3 +26,5 @@ churchit.patches.v1_0.rename_member_email_groups
 churchit.patches.v1_0.scope_beliefs_page_to_church
 churchit.patches.v1_0.replace_bible_records_with_references
 churchit.patches.v1_0.add_bible_to_portal
+churchit.patches.v1_0.remove_knowledge_base
+churchit.patches.v1_0.add_attendance_to_portal

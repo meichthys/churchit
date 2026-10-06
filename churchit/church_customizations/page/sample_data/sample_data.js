@@ -62,7 +62,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 							<p style="margin-bottom: 8px;">This will permanently delete <strong>ALL</strong> records in:</p>
 							<p style="margin-bottom: 8px;">
 								Persons, Families, Missionaries, Prayer Requests, Functions,
-								Collections, Expenses, Funds, Bible Memory, Help Articles
+								Collections, Expenses, Funds, Bible Memory
 								<em>…and more.</em>
 							</p>
 							<p style="margin-bottom: 0;">Any data you created after installation will <strong>also be deleted</strong>.</p>

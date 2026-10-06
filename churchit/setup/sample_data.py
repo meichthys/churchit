@@ -61,8 +61,6 @@ _DELETE_STEPS = [
 	(False, "Background Check", {}),
 	(False, "Family", {}),
 	(False, "Person", {}),
-	(False, "Help Article", {}),
-	(False, "Help Category", {}),
 ]
 
 # ---------------------------------------------------------------------------
@@ -167,8 +165,6 @@ def create_sample_data():
 	_create_church_assets(locations)
 
 	_create_church_tasks()
-
-	_create_help_article()
 
 
 def delete_sample_data():
@@ -2634,11 +2630,6 @@ def _create_church_tasks():
 		doc.insert(ignore_permissions=True)
 
 
-# ---------------------------------------------------------------------------
-# Help Article
-# ---------------------------------------------------------------------------
-
-
 def _create_vendors(expense_types):
 	"""Create sample vendors used for church expenses."""
 	vendors = [
@@ -2795,34 +2786,3 @@ def _create_room_bookings(rooms, people):
 		if frappe.db.exists("Room Booking", {"room": b["room"], "start_datetime": b["start_datetime"]}):
 			continue
 		frappe.get_doc({"doctype": "Room Booking", **b}).insert(ignore_permissions=True)
-
-
-def _create_help_article():
-	"""Create a sample Help Category and Help Article."""
-	category = _insert_if_missing(
-		"Help Category",
-		{"category_name": "Getting Started"},
-		category_name="Getting Started",
-		category_description="Answers to common questions for new visitors and members.",
-		published=1,
-	)
-
-	_insert_if_missing(
-		"Help Article",
-		{"title": "How do I become a member?"},
-		title="How do I become a member?",
-		category=category,
-		published=1,
-		level="Beginner",
-		content=(
-			"<p>We are glad you are considering membership with us! Joining the "
-			"church family is a simple process:</p>"
-			"<ol>"
-			"<li>Attend our membership class, offered quarterly on a Saturday morning.</li>"
-			"<li>Meet briefly with one of the pastors to share your testimony.</li>"
-			"<li>Be received by the congregation at a Sunday service.</li>"
-			"</ol>"
-			"<p>If you have questions or would like to sign up for the next class, "
-			"please reach out to the church office.</p>"
-		),
-	)

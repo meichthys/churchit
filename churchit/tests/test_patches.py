@@ -9,16 +9,20 @@ from unittest import mock
 
 import frappe
 from frappe.model.naming import NamingSeries
+from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
 from frappe.website.doctype.website_theme.website_theme import WebsiteTheme
 
+from churchit.church_scope import is_multi_church
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
+	add_attendance_to_portal,
 	add_churchit_website_theme,
 	add_default_address_template,
 	add_missionary_map_to_missions_page,
 	add_unsynced_default_records,
 	redesign_home_page,
+	remove_knowledge_base,
 	rename_agency_logo_field,
 	scope_website_pages_to_church,
 	seed_naming_series_counters,
@@ -30,7 +34,7 @@ from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as cont
 from churchit.patches.v1_0 import number_repeated_bible_translation_abbreviations as abbreviation_patch
 from churchit.patches.v1_0 import replace_bible_records_with_references as bible_patch
 from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
-from churchit.tests.helpers import make_address, make_function, make_person
+from churchit.tests.helpers import RollbackEachTest, make_address, make_function, make_person
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):
@@ -213,18 +217,65 @@ class TestVersionedPatches(FrappeTestCase):
 			"patched@example.com",
 		)
 
-	def test_giving_statements_portal_item_is_added_once(self):
+	def test_portal_menu_items_are_added_once(self):
+		for patch in (portal_patch, add_attendance_to_portal):
+			with self.subTest(patch.ROUTE):
+				settings = frappe.get_doc("Portal Settings")
+				settings.menu = [row for row in settings.menu if row.route != patch.ROUTE]
+				settings.save(ignore_permissions=True)
+
+				patch.execute()
+				patch.execute()
+
+				rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == patch.ROUTE]
+				self.assertEqual(len(rows), 1)
+				self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
+				self.assertTrue(rows[0].enabled)
+
+	def test_knowledge_base_is_taken_out_of_the_app(self):
 		settings = frappe.get_doc("Portal Settings")
-		settings.menu = [row for row in settings.menu if row.route != portal_patch.ROUTE]
+		settings.append(
+			"custom_menu",
+			{
+				"title": "Help Articles",
+				"route": "Help Article",
+				"reference_doctype": "Help Article",
+				"enabled": 1,
+			},
+		)
 		settings.save(ignore_permissions=True)
+		if not frappe.db.exists("Number Card", "Help Articles"):
+			frappe.get_doc(
+				{
+					"doctype": "Number Card",
+					"label": "Help Articles",
+					"type": "Document Type",
+					"document_type": "Help Article",
+					"function": "Count",
+				}
+			).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Custom DocPerm",
+				"parent": "Help Article",
+				"parenttype": "DocType",
+				"parentfield": "permissions",
+				"role": "Church User",
+				"read": 1,
+			}
+		).insert(ignore_permissions=True)
 
-		portal_patch.execute()
-		portal_patch.execute()
+		remove_knowledge_base.execute()
+		remove_knowledge_base.execute()
 
-		rows = [row for row in frappe.get_doc("Portal Settings").menu if row.route == portal_patch.ROUTE]
-		self.assertEqual(len(rows), 1)
-		self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
-		self.assertTrue(rows[0].enabled)
+		settings = frappe.get_doc("Portal Settings")
+		menu = [row.reference_doctype for row in settings.menu + settings.custom_menu]
+		self.assertNotIn("Help Article", menu)
+		self.assertIn("Function Sign-Up", menu, "the rest of the menu stays")
+		self.assertFalse(frappe.db.exists("Number Card", "Help Articles"))
+		self.assertFalse(
+			frappe.db.exists("Custom DocPerm", {"parent": "Help Article", "role": "Church User"})
+		)
 
 	def test_bulletins_setup_seeds_once_and_retires_the_old_print_format(self):
 		settings = frappe.get_doc("Portal Settings")
@@ -553,3 +604,29 @@ class TestBibleReferencePatch(FrappeTestCase):
 			bible_patch.execute()
 		self.assertEqual(frappe.get_all("Bible Memory Item", fields=fields, order_by="name"), before)
 		enqueue.assert_not_called()
+
+
+class TestPreModelSync(RollbackEachTest):
+	"""Pre-model-sync patches run on the schema of the version being upgraded."""
+
+	PATCH = "churchit.patches.v1_0._test_pre_model_sync"
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.clear_cache(doctype="Church Features")
+
+	def record_a_patch(self):
+		frappe.clear_cache(doctype="Church Features")
+		frappe.db.value_cache.pop("Church Features", None)
+		update_patch_log(self.PATCH)
+		self.assertTrue(frappe.db.exists("Patch Log", {"patch": self.PATCH}))
+
+	def test_a_patch_is_recorded_before_the_multi_church_switch_is_synced(self):
+		frappe.db.delete("DocField", {"parent": "Church Features", "fieldname": "enable_multi_church"})
+		self.record_a_patch()
+		self.assertFalse(is_multi_church())
+
+	def test_a_patch_is_recorded_before_church_features_is_synced(self):
+		frappe.db.delete("DocType", "Church Features")
+		self.record_a_patch()
+		self.assertFalse(is_multi_church())

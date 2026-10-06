@@ -53,7 +53,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, alms requests, function sign-ups, and bulletin PDFs
+- Portal pages for personal details, prayer requests, alms requests, function sign-ups, attendance history, giving statements, and bulletin PDFs
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
 - Publishable missionary profiles with sensitive-info redaction
@@ -141,10 +141,13 @@ There are three ways to run Churchit. Pick the one that fits you:
 
 ### Frappe Cloud
 
-1. Log into your [Frappe Cloud](https://frappe.cloud/) dashboard.
-2. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/churchit) (or search for "Churchit" from **Marketplace** in the sidebar).
-3. Click **Install**, then choose the site you want to install it on.
-4. Frappe Cloud handles the download, install, and migrate automatically. Once the deploy completes, log into your site and you should see the `Churchit` icons in the desk.
+1. Create a free account at [Frappe Cloud](https://frappecloud.com/dashboard/signup) and verify your email address.
+2. Click **New Site**. Choose the **Version 16** release group, a region, and a plan. The cheapest plan is fine for a typical church. Enter a site name (for example `mychurch`) and click **Create Site**.
+3. Wait for the site to finish creating.
+4. Open the [Churchit listing on the Frappe Marketplace](https://frappecloud.com/marketplace/apps/churchit) (or search for "Churchit" from **Marketplace** in the sidebar).
+5. Click **Install**, then choose the site you created. Frappe Cloud handles the download, install, and migrate automatically.
+6. Once the install completes, go to **Sites** → your site name → **Visit Site** and complete the setup wizard.
+7. To use your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 **To update:** open the site page → **Apps** tab → **Update**.
 
@@ -166,7 +169,7 @@ The script installs Docker if it is missing, asks for your domain (press Enter t
 cd ~/churchit && docker compose pull && docker compose up -d
 ```
 
-For Windows/macOS steps, making the site reachable from the internet (domain, DNS, HTTPS, port forwarding), password resets, and uninstalling, see the [self-hosting guide](deploy/README.md).
+For Windows/macOS steps, password resets, and uninstalling, see the [self-hosting guide](deploy/README.md). To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 ### Existing Frappe bench (Pilot)
 
@@ -182,6 +185,8 @@ pilot -b church setup production
 **To update:** `pilot -b church update`.
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
+
+To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 ### First steps after installing
 
@@ -200,6 +205,25 @@ On a plain `bench` (without Pilot), the equivalent is `bench get-app https://git
    Combine profiles when one person has several jobs. Open the `Role Permissions Manager` to see exactly what each role can do.
 4. Members do not need a desk login. Use **Invite to Portal** on their Person. It gives them the `Church User` role, which reaches the portal and their own records only.
 
+### Setting up a public domain
+
+A domain lets people open your site at an address like `www.mychurch.org`. The goal is the same on every deployment path:
+
+1. **Get a domain name.** Register one with a domain registrar, or use a subdomain you already own (for example `churchit.mychurch.org`).
+2. **Point the domain at your site.** Follow the part below that matches how you run Churchit.
+3. **Check HTTPS.** Open `https://` plus your domain from a phone that is not on your home or office Wi-Fi. The page should load with a padlock.
+
+**Frappe Cloud.** At your domain provider, add a DNS record. For a subdomain, add a `CNAME` record pointing to your Frappe Cloud site name (for example `mychurch.frappe.cloud`). For a bare domain like `mychurch.org`, add a single `A` record pointing to the **Inbound IP** shown on your Frappe site's page. Then open your site's **Domains** tab, click **Add Domain**, enter the domain, click **Verify DNS**, and click **Add Domain** again. Frappe Cloud sets up the HTTPS certificate for you. See [Frappe's custom domain guide](https://docs.frappe.io/cloud/sites/custom-domains) for details.
+
+**Self-hosted (Docker or Pilot).** Your server has to be reachable from the internet, and the exact setup depends on your network.
+
+- **Tunnel (recommended).** A service such as Cloudflare Tunnel or Tailscale Funnel connects out from your server, so you open no ports and change nothing on your router. It also works if your internet provider does not give you a public IP (CGNAT). The tunnel handles DNS and HTTPS. Install the tunnel on the server and point it at Churchit's local address.
+- **Reverse proxy or port forwarding.** With port forwarding, add an `A` record to your domain pointing to your public IP address, and forward TCP ports 80 and 443 from your router to the server. If your public IP changes, use a dynamic DNS service to keep the record current. If you already run a [reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) such as Nginx, Caddy, or Traefik, point your domain at the proxy and have the proxy forward traffic to Churchit. Pass the original `Host` header through, so Frappe can tell which site the request is for. Learn more about [port forwarding](https://en.wikipedia.org/wiki/Port_forwarding).
+
+For Docker with port forwarding, enter your domain when the setup script asks, and Churchit gets a free HTTPS certificate automatically once DNS and ports are right. The [self-hosting guide](deploy/README.md#making-churchit-reachable-from-the-internet) has the full steps. For Pilot, create the site with your domain as its name, as in the example above, and see Pilot's README for HTTPS.
+
+Putting a site on the internet has security risks. Use a strong `Administrator` password, keep the server up to date, and take regular backups.
+
 ### Customising the website pages
 
 The public pages (Home, Beliefs, Sermons, Missions, Ministries) are `Web Page` records, created once when the app is installed. They belong to your church: edit them freely, and upgrades will not overwrite them.
@@ -214,12 +238,8 @@ The public pages (Home, Beliefs, Sermons, Missions, Ministries) are `Web Page` r
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.
 
-- [Add standard church website pages:](https://github.com/meichthys/churchit/issues/13)
-  - Calendar
 - Additional portal pages
-  - Show tracked giving
-  - Show tracked attendance
-    - Allow updating attendance status(?)
+  - Allow members to update their own attendance status(?)
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/YxpdU6qM5w) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
