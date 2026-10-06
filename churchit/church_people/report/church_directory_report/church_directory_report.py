@@ -6,11 +6,14 @@ import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
+from frappe.utils.pdf import inline_private_images
+from frappe.utils.weasyprint import import_weasyprint
 from pypika import Order
 
-from churchit.church_scope import church_filter, root_church, scoped
+from churchit.church_scope import church_filter, is_feature_enabled, root_church, scoped
 from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
 from churchit.query import Day, Month
+from churchit.scripture import get_printable_passage
 from churchit.utils import set_report_link_titles
 
 
@@ -148,6 +151,9 @@ def get_directory_html(
 	show_birthdays: bool = 0,
 	show_anniversaries: bool = 0,
 	show_missionaries: bool = 0,
+	blank_back_cover: bool = 0,
+	show_page_numbers: bool = 0,
+	include_notes_page: bool = 0,
 	church: str | None = None,
 ):
 	"""Generate the full HTML for the church directory, ready to print."""
@@ -161,12 +167,17 @@ def get_directory_html(
 	show_birthdays = frappe.utils.cint(show_birthdays)
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
 	show_missionaries = frappe.utils.cint(show_missionaries)
+	blank_back_cover = frappe.utils.cint(blank_back_cover)
+	show_page_numbers = frappe.utils.cint(show_page_numbers)
+	include_notes_page = frappe.utils.cint(include_notes_page)
 
 	church_name = header_church(filters)
 	church_doc = frappe.get_doc("Church", church_name) if church_name else None
 	church_address = None
 	if church_doc and church_doc.address:
 		church_address = frappe.get_doc("Address", church_doc.address)
+	church_verse = get_printable_passage(church_doc.church_verse, church_doc.name) if church_doc else None
+	website = frappe.utils.get_url().split("://", 1)[-1] if is_feature_enabled("enable_website") else None
 
 	Family = frappe.qb.DocType("Family")
 	Address = frappe.qb.DocType("Address")
@@ -527,6 +538,11 @@ def get_directory_html(
 		"show_birthdays": show_birthdays,
 		"show_anniversaries": show_anniversaries,
 		"show_missionaries": show_missionaries,
+		"blank_back_cover": blank_back_cover,
+		"show_page_numbers": show_page_numbers,
+		"include_notes_page": include_notes_page,
+		"website": website,
+		"church_verse": church_verse,
 		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
 	}
 
@@ -535,6 +551,18 @@ def get_directory_html(
 	return frappe.get_template(
 		"churchit/church_people/report/church_directory_report/church_directory.html"
 	).render(context)
+
+
+@frappe.whitelist()
+def download_directory_pdf(**options):
+	"""The directory as a PDF, rendered here because only Chromium prints page numbers and footers."""
+	HTML, _CSS = import_weasyprint()
+	html = inline_private_images(frappe.call(get_directory_html, **options))
+	pdf = HTML(string=html, base_url=frappe.utils.get_url()).write_pdf(dpi=200)
+
+	frappe.local.response.filename = f"{_('Church Directory')}.pdf"
+	frappe.local.response.filecontent = pdf
+	frappe.local.response.type = "pdf"
 
 
 def header_church(filters):

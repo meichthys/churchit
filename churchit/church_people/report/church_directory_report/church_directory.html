@@ -53,6 +53,11 @@ body {
     line-height: 1.5;
 }
 
+.cover-website {
+    color: #1f3c88;
+    margin-top: 4px;
+}
+
 .cover-title {
     font-size: 24pt;
     letter-spacing: 3px;
@@ -80,6 +85,37 @@ body {
     padding-left: 14px;
     text-align: left;
     margin-top: 20px;
+}
+
+.cover-verse {
+    font-size: 12pt;
+    color: #444;
+    max-width: 420px;
+    line-height: 1.6;
+    margin-top: 30px;
+}
+
+.cover-verse-text {
+    font-style: italic;
+}
+
+.cover-verse-reference {
+    font-size: 10.5pt;
+    color: #1f3c88;
+    margin-top: 4px;
+}
+
+/* ── Booklet pages ──────────────────────────────────────────── */
+.blank-page {
+    page: blank;
+    break-before: page;
+    page-break-before: always;
+    height: 1px;
+}
+
+.note-line {
+    height: 9mm;
+    border-bottom: 1px solid #c5cfe0;
 }
 
 /* ── Directory section header ───────────────────────────────── */
@@ -182,15 +218,15 @@ body {
     border-bottom: none;
 }
 
-.col-photo      { width: 58px; padding-right: 4px !important; }
+.col-photo      { width: 88px; padding-right: 8px !important; }
 .col-name       { width: 30%; font-weight: 600; }
 .col-membership { width: 18%; }
 .col-phone      { width: 22%; }
 .col-email      { width: 26%; word-break: break-all; }
 
 .member-photo {
-    width: 50px;
-    height: 50px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
     border-radius: 50%;
     display: block;
@@ -350,6 +386,39 @@ body {
         color: #999;
     }
 }
+
+@page blank {
+    @bottom-center { content: none; }
+}
+
+{% if show_page_numbers %}
+@page :left {
+    @bottom-left {
+        content: counter(page);
+        font-family: Georgia, serif;
+        font-size: 9pt;
+        color: #666;
+    }
+}
+
+@page :right {
+    @bottom-right {
+        content: counter(page);
+        font-family: Georgia, serif;
+        font-size: 9pt;
+        color: #666;
+    }
+}
+
+@page :first {
+    @bottom-right { content: none; }
+}
+
+@page blank {
+    @bottom-left { content: none; }
+    @bottom-right { content: none; }
+}
+{% endif %}
 </style>
 </head>
 <body>
@@ -364,10 +433,13 @@ body {
     <div class="cover-legal-name">{{ church.legal_name }}</div>
     {% endif %}
 
-    {% if church_address %}
+    {% if church_address or website %}
     <div class="cover-address">
+        {% if church_address %}
         {{ church_address.address_line1 }}{% if church_address.address_line2 %}<br>{{ church_address.address_line2 }}{% endif %}<br>
         {{ church_address.city }}{% if church_address.state %}, {{ church_address.state }}{% endif %}{% if church_address.pincode %} {{ church_address.pincode }}{% endif %}
+        {% endif %}
+        {% if website %}<div class="cover-website">{{ website | e }}</div>{% endif %}
     </div>
     {% endif %}
 
@@ -376,6 +448,13 @@ body {
 
     {% if church.mission_statement %}
     <div class="cover-mission">{{ church.mission_statement }}</div>
+    {% endif %}
+
+    {% if church_verse %}
+    <div class="cover-verse">
+        {% if church_verse.text %}<div class="cover-verse-text">&ldquo;{{ church_verse.text | e }}&rdquo;</div>{% endif %}
+        <div class="cover-verse-reference">{{ church_verse.reference | e }}</div>
+    </div>
     {% endif %}
 </div>
 
@@ -529,6 +608,20 @@ body {
     </div>
     {% endfor %}
 </div>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════════════
+     NOTES
+═════════════════════════════════════════════════════════════ -->
+{% if include_notes_page %}
+<div class="appendix-section">
+    <div class="appendix-heading">Notes</div>
+    {% for line in range(24) %}<div class="note-line"></div>{% endfor %}
+</div>
+{% endif %}
+
+{% if blank_back_cover %}
+<div class="blank-page"></div>
 {% endif %}
 
 </body>

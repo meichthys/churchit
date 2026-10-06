@@ -143,6 +143,18 @@ def get_passage_text(reference: str, translation: str | None = None) -> str:
 	)
 
 
+def get_printable_passage(reference: str | None, church: str | None = None):
+	"""A reference, with its text in the church's translation when the reader may see that text."""
+	if not reference:
+		return None
+	translation = get_default_translation(church)
+	if not is_readable(translation):
+		return frappe._dict(reference=reference, text=None)
+	return frappe._dict(
+		reference=f"{reference} ({translation})", text=get_passage_text(reference, translation)
+	)
+
+
 def get_default_translation(church: str | None = None) -> str | None:
 	"""A church's default translation, inherited from the churches above it.
 

@@ -11,8 +11,8 @@ frappe.query_reports["Church Directory Report"] = {
 		}, 0);
 	},
 
-	_refresh_preview: function (report) {
-		const args = {
+	_directory_args: function (report) {
+		return {
 			members_only: report.get_filter_value("members_only") ? 1 : 0,
 			group_by_family: report.get_filter_value("group_by_family") ? 1 : 0,
 			show_photos: report.get_filter_value("show_photos") ? 1 : 0,
@@ -22,12 +22,17 @@ frappe.query_reports["Church Directory Report"] = {
 			show_birthdays: report.get_filter_value("show_birthdays") ? 1 : 0,
 			show_anniversaries: report.get_filter_value("show_anniversaries") ? 1 : 0,
 			show_missionaries: report.get_filter_value("show_missionaries") ? 1 : 0,
+			blank_back_cover: report.get_filter_value("blank_back_cover") ? 1 : 0,
+			show_page_numbers: report.get_filter_value("show_page_numbers") ? 1 : 0,
+			include_notes_page: report.get_filter_value("include_notes_page") ? 1 : 0,
 			church: report.get_filter_value("church") || null,
 		};
+	},
 
+	_refresh_preview: function (report) {
 		frappe.call({
 			method: "churchit.church_people.report.church_directory_report.church_directory_report.get_directory_html",
-			args: args,
+			args: this._directory_args(report),
 			callback: function (r) {
 				if (!r.message) return;
 				if (!report._$preview) {
@@ -96,16 +101,35 @@ frappe.query_reports["Church Directory Report"] = {
 			fieldtype: "Check",
 			default: 0,
 		},
+		{
+			fieldname: "blank_back_cover",
+			label: __("Blank Back Cover"),
+			fieldtype: "Check",
+			default: 0,
+		},
+		{
+			fieldname: "show_page_numbers",
+			label: __("Show Page Numbers"),
+			fieldtype: "Check",
+			default: 0,
+		},
+		{
+			fieldname: "include_notes_page",
+			label: __("Include Notes Page"),
+			fieldtype: "Check",
+			default: 0,
+		},
 	],
 
 	onload: function (report) {
 		frappe.query_reports["Church Directory Report"]._report = report;
 
 		report.page.add_inner_button(__("Print Directory"), function () {
-			const self = frappe.query_reports["Church Directory Report"];
-			if (self._report && self._report._$preview) {
-				self._report._$preview[0].contentWindow.print();
-			}
+			const args = frappe.query_reports["Church Directory Report"]._directory_args(report);
+			window.open(
+				"/api/method/churchit.church_people.report.church_directory_report.church_directory_report.download_directory_pdf?" +
+					$.param(args)
+			);
 		});
 	},
 };

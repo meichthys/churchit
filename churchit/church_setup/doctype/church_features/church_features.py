@@ -79,17 +79,8 @@ class ChurchFeatures(Document):
 		church_access.grant_root_permission_to_users(root)
 
 	def get_disabled_modules(self):
-		"""Return the modules whose box is explicitly unchecked.
-
-		A field that was never written counts as enabled. That covers the Single
-		nobody has saved yet, and a module added by a later churchit release:
-		neither should hide itself just because it has no stored value.
-		"""
-		return {
-			module
-			for field, module in MODULE_FIELDS.items()
-			if self.get(field) is not None and not cint(self.get(field))
-		}
+		"""Return the modules whose box is unchecked."""
+		return {module for field, module in MODULE_FIELDS.items() if not cint(self.get(field))}
 
 	def get_managed_records(self):
 		"""Return the records this page hid on an earlier save.
@@ -206,4 +197,23 @@ def apply_on_migrate():
 	if not frappe.db.exists("DocType", "Church Features"):
 		return
 
+	store_missing_defaults()
 	frappe.get_single("Church Features").apply()
+
+
+def store_missing_defaults():
+	"""Store the default of every field that has no stored value yet.
+
+	Frappe gives a Single its defaults only while it stores nothing at all. Once
+	apply() stores managed_records, a checkbox nobody saved loads as 0, so the
+	next migrate would hide its module. This also covers a module field added
+	by a later release.
+	"""
+	stored = frappe.db.get_singles_dict("Church Features")
+	missing = {
+		field.fieldname: field.default
+		for field in frappe.get_meta("Church Features").fields
+		if field.default is not None and field.fieldname not in stored
+	}
+	if missing:
+		frappe.db.set_single_value("Church Features", missing)
