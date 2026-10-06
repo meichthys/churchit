@@ -60,12 +60,26 @@ SHAREABLE_DOCTYPES = (
 
 def is_multi_church():
 	"""True when the Church Features switch is on."""
-	return bool(cint(frappe.db.get_single_value("Church Features", "enable_multi_church")))
+	return is_feature_enabled("enable_multi_church")
 
 
 def is_people_directory_private():
 	"""True when Church Features keeps each church's people and families to itself."""
-	return bool(cint(frappe.db.get_single_value("Church Features", "private_people")))
+	return is_feature_enabled("private_people")
+
+
+def is_feature_enabled(fieldname):
+	"""True when a Church Features checkbox is ticked.
+
+	Off until migrate has synced the field: pre-model-sync patches still save
+	records (their own Patch Log among them) on the schema being upgraded.
+	"""
+	try:
+		meta = frappe.get_meta("Church Features")
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return False
+	return meta.has_field(fieldname) and bool(cint(frappe.db.get_single_value("Church Features", fieldname)))
 
 
 def root_church():

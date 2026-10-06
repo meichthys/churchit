@@ -9,9 +9,11 @@ from unittest import mock
 
 import frappe
 from frappe.model.naming import NamingSeries
+from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
 from frappe.website.doctype.website_theme.website_theme import WebsiteTheme
 
+from churchit.church_scope import is_multi_church
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
 	add_attendance_to_portal,
@@ -32,7 +34,7 @@ from churchit.patches.v1_0 import migrate_contact_fields_to_child_tables as cont
 from churchit.patches.v1_0 import number_repeated_bible_translation_abbreviations as abbreviation_patch
 from churchit.patches.v1_0 import replace_bible_records_with_references as bible_patch
 from churchit.patches.v1_0 import set_statement_acknowledgment as acknowledgment_patch
-from churchit.tests.helpers import make_address, make_function, make_person
+from churchit.tests.helpers import RollbackEachTest, make_address, make_function, make_person
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):
@@ -602,3 +604,29 @@ class TestBibleReferencePatch(FrappeTestCase):
 			bible_patch.execute()
 		self.assertEqual(frappe.get_all("Bible Memory Item", fields=fields, order_by="name"), before)
 		enqueue.assert_not_called()
+
+
+class TestPreModelSync(RollbackEachTest):
+	"""Pre-model-sync patches run on the schema of the version being upgraded."""
+
+	PATCH = "churchit.patches.v1_0._test_pre_model_sync"
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.clear_cache(doctype="Church Features")
+
+	def record_a_patch(self):
+		frappe.clear_cache(doctype="Church Features")
+		frappe.db.value_cache.pop("Church Features", None)
+		update_patch_log(self.PATCH)
+		self.assertTrue(frappe.db.exists("Patch Log", {"patch": self.PATCH}))
+
+	def test_a_patch_is_recorded_before_the_multi_church_switch_is_synced(self):
+		frappe.db.delete("DocField", {"parent": "Church Features", "fieldname": "enable_multi_church"})
+		self.record_a_patch()
+		self.assertFalse(is_multi_church())
+
+	def test_a_patch_is_recorded_before_church_features_is_synced(self):
+		frappe.db.delete("DocType", "Church Features")
+		self.record_a_patch()
+		self.assertFalse(is_multi_church())
