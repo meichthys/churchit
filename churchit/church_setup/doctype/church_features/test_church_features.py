@@ -1,6 +1,9 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
+import re
+
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.exceptions import ValidationError
@@ -67,14 +70,20 @@ class TestChurchFeatures(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Workspace", "Tools", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Build", "is_hidden"), 1)
 
-	def test_unset_checks_count_as_enabled(self):
-		"""A Single nobody has saved yet reads every check as None. Those must
-		not be treated as "off", or the first after_migrate hides the whole app."""
-		fresh = frappe.new_doc("Church Features")
-		for field in MODULE_FIELDS:
-			fresh.set(field, None)
+	def test_migrate_stores_the_defaults_nobody_saved(self):
+		"""Frappe gives a Single its defaults only while it stores nothing. A site that
+		never saved this page held only managed_records after its first migrate, so
+		every box loaded unchecked and the next migrate hid every module."""
+		frappe.db.delete("Singles", {"doctype": "Church Features"})
+		frappe.db.set_single_value("Church Features", "managed_records", "{}")
 
-		self.assertEqual(fresh.get_disabled_modules(), set())
+		apply_on_migrate()
+
+		features = frappe.get_single("Church Features")
+		self.assertEqual(features.enable_missions, 1)
+		self.assertEqual(features.enable_multi_church, 0)
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "Missions", "hidden"), 0)
+		self.assertEqual(frappe.db.get_value("Workspace", "Missions", "is_hidden"), 0)
 
 	def test_settings_workspace_survives_disabling_setup(self):
 		self.features.enable_setup = 0
@@ -83,6 +92,16 @@ class TestChurchFeatures(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Workspace", "Summary", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
 		self.assertEqual(frappe.db.get_value("Desktop Icon", "Settings", "hidden"), 0)
+
+	def test_every_workspace_header_link_has_a_desktop_icon(self):
+		"""The header shows a module only while its desktop icon is visible, so a
+		link whose label matches no icon would never show."""
+		with open(frappe.get_app_path("churchit", "fixtures", "custom_html_block.json")) as file:
+			header = next(block for block in json.load(file) if block["name"] == "WorkspaceHeader")
+		labels = re.findall(r'<span class="ws-label">([^<]+)</span>', header["html"])
+
+		self.assertEqual(len(labels), 13)
+		self.assertEqual([label for label in labels if not frappe.db.exists("Desktop Icon", label)], [])
 
 
 class TestMultiChurchSwitch(FrappeTestCase):

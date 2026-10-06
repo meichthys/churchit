@@ -14,7 +14,7 @@ from churchit.church_foundations.doctype.church.church import (
 )
 from churchit.church_people import celebrations
 from churchit.church_scope import church_filters
-from churchit.scripture import get_default_translation, get_passage_text, is_readable
+from churchit.scripture import get_printable_passage
 
 TIME_FORMAT = "h:mm a"
 
@@ -135,15 +135,8 @@ class BulletinSections:
 		return self.get_passage(church.church_verse) if church else None
 
 	def get_passage(self, reference):
-		"""A reference, with its text in the church's translation when the reader may see that text."""
-		if not reference:
-			return None
-		translation = get_default_translation(self.church_doc.name if self.church_doc else None)
-		if not is_readable(translation):
-			return frappe._dict(reference=reference, text=None)
-		return frappe._dict(
-			reference=f"{reference} ({translation})", text=get_passage_text(reference, translation)
-		)
+		"""A reference, with its text in the bulletin church's translation when the reader may see it."""
+		return get_printable_passage(reference, self.church_doc.name if self.church_doc else None)
 
 	@property
 	def church_image(self):
