@@ -174,7 +174,7 @@
    "label": "Church Verse"
   },
   {
-   "description": "A logo or photo of the church. Can be shown in church bulletin or website.",
+   "description": "A logo or photo of the church. Can be shown in church bulletin, directory or website.",
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image"
@@ -185,7 +185,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-30 00:00:00",
+ "modified": "2026-10-07 01:30:00",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

@@ -11,11 +11,16 @@ which is parsed once and cached in Redis a chapter at a time.
 import csv
 import io
 import json
+import re
+import unicodedata
 
 import frappe
 import pythonbible
 import requests
 from frappe import _
+from frappe.utils import escape_html
+from pythonbible.regular_expressions import SCRIPTURE_REFERENCE_REGULAR_EXPRESSION
+from pythonbible.roman_numeral_util import convert_all_roman_numerals_to_integers
 
 from churchit.church_foundations.doctype.church.church import get_church, inherited_value
 
@@ -31,6 +36,22 @@ USFM_BOOKS = (
 	"HAG ZEC MAL MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL 1TH 2TH 1TI "
 	"2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV"
 ).split()
+BIBLE_BOOKS = list(pythonbible.Book)[: len(USFM_BOOKS)]
+# Characters of verse text shown when a reference field is hovered.
+PREVIEW_LENGTH = 600
+
+# Text allowed around passages: separators, "and", and a translation in brackets such as (NIV),
+# which is chosen separately.
+JOINING_TEXT = re.compile(r"(?:\s|[,;.&-]|\band\b|\([^)]*\))*", re.IGNORECASE)
+
+# Fields holding Bible references: tidied on save, and given suggestions in the desk.
+REFERENCE_FIELDS = {
+	"Belief": ["bible_references"],
+	"Bible Memory Item": ["bible_reference"],
+	"Bulletin": ["verse"],
+	"Church": ["church_verse"],
+	"Sermon Slide": ["scripture"],
+}
 
 
 # References --------------------------------------------------------------------------------------
@@ -38,17 +59,123 @@ USFM_BOOKS = (
 
 def parse_reference(text: str) -> list:
 	"""The passages a reference names, as pythonbible NormalizedReferences."""
-	references = pythonbible.get_references(text or "")
-	if not references:
-		frappe.throw(_("Could not read the Bible reference {0}.").format(frappe.bold(text)))
-	for reference in references:
-		if max(reference.book.value, (reference.end_book or reference.book).value) > len(USFM_BOOKS):
-			frappe.throw(
-				_("{0} is outside the 66 books of the Bible, which is not supported yet.").format(
-					frappe.bold(reference.book.title)
-				)
-			)
+	references, problem = read_reference(text)
+	if problem:
+		frappe.throw(problem, title=_("Bible Reference"))
 	return references
+
+
+def read_reference(text: str) -> tuple[list, str | None]:
+	"""The passages a reference names, and what stops it being read, if anything.
+
+	pythonbible skips whatever it cannot read, so "John 3:16; Mark 16:21" came back as John 3:16
+	alone (Mark 16 has 20 verses). Here every part of the text has to be read, and every chapter
+	and verse typed has to land in a passage.
+	"""
+	cleaned = clean_reference_text(text or "")
+	matches = list(re.finditer(SCRIPTURE_REFERENCE_REGULAR_EXPRESSION, cleaned))
+	if not matches:
+		return [], _("Could not read the Bible reference {0}.").format(bold_text(text))
+	unread = get_unread_text(cleaned, matches)
+	if unread:
+		return [], _("Could not read {0} in the Bible reference {1}.").format(
+			bold_text(unread), bold_text(text)
+		)
+
+	references = []
+	for match in matches:
+		passages = read_passage(match[0])
+		if not passages:
+			return [], describe_missing_passage(match[0])
+		references.extend(passages)
+	outside = next((r.book for r in references if (r.end_book or r.book).value > len(USFM_BOOKS)), None)
+	if outside:
+		return [], _("{0} is outside the 66 books of the Bible, which is not supported yet.").format(
+			frappe.bold(outside.title)
+		)
+	return references, None
+
+
+def clean_reference_text(text: str) -> str:
+	"""Roman numerals as digits and every kind of dash as a hyphen, the way pythonbible reads them."""
+	text = convert_all_roman_numerals_to_integers(text)
+	return "".join("-" if unicodedata.category(char) == "Pd" else char for char in text)
+
+
+def get_unread_text(text: str, matches: list) -> str | None:
+	"""The first stretch of text around the matched passages that is more than a separator."""
+	starts = [0, *(match.end() for match in matches)]
+	ends = [*(match.start() for match in matches), len(text)]
+	gaps = (text[start:end] for start, end in zip(starts, ends, strict=True))
+	return next((gap.strip() for gap in gaps if not JOINING_TEXT.fullmatch(gap)), None)
+
+
+def read_passage(passage: str) -> list:
+	"""What pythonbible reads in one matched reference, or nothing when it dropped any number typed."""
+	try:
+		references = pythonbible.normalize_reference(passage)
+	except (pythonbible.InvalidBookError, pythonbible.InvalidChapterError, pythonbible.InvalidVerseError):
+		return []
+	typed = {int(number) for number in re.findall(r"\d+", passage)}
+	return references if typed <= get_passage_numbers(references) else []
+
+
+def get_passage_numbers(references) -> set[int]:
+	"""Every chapter and verse number in the references, and the number in a book's name (1 John)."""
+	numbers = set()
+	for reference in references:
+		numbers.update(
+			(reference.start_chapter, reference.start_verse, reference.end_chapter, reference.end_verse)
+		)
+		for book in (reference.book, reference.end_book):
+			numbers.update(int(number) for number in re.findall(r"\d+", book.title if book else ""))
+	return numbers - {None}
+
+
+def describe_missing_passage(passage: str) -> str:
+	"""Why a reference that reads like a passage is not one, as far as its book's size can tell."""
+	message = _("{0} is not in the Bible.").format(bold_text(passage.strip()))
+	hint = get_book_size_hint(passage)
+	return f"{message} {hint}" if hint else message
+
+
+def get_book_size_hint(passage: str) -> str | None:
+	"""How many chapters, or how many verses in the chapter, the passage's book has, if it asks for more."""
+	book, rest = split_book(passage)
+	if not book:
+		return None
+	chapters = pythonbible.get_number_of_chapters(book)
+	if chapters == 1 and ":" not in rest:
+		rest = f"1:{rest}"
+	numbers = [int(number) for number in re.findall(r"\d+", rest)]
+	if not numbers or rest.count(":") > 1:
+		return None
+	if (numbers[0] if ":" in rest else max(numbers)) > chapters:
+		return describe_chapter_count(book, chapters)
+	verses = pythonbible.get_number_of_verses(book, numbers[0]) if ":" in rest else 0
+	if max(numbers[1:], default=0) > verses > 0:
+		return _("{0} {1} has {2} verses.").format(book.title, numbers[0], verses)
+	return None
+
+
+def describe_chapter_count(book, chapters: int) -> str:
+	if chapters == 1:
+		return _("{0} has only one chapter.").format(book.title)
+	return _("{0} has {1} chapters.").format(book.title, chapters)
+
+
+def split_book(passage: str) -> tuple:
+	"""The book a passage starts with, and the text after its name."""
+	for book in BIBLE_BOOKS:
+		found = re.match(rf"\s*(?:{book.regular_expression})\b\.?", passage, re.IGNORECASE)
+		if found:
+			return book, passage[found.end() :]
+	return None, passage
+
+
+def bold_text(text: str) -> str:
+	"""Typed text in bold, escaped, for a message the desk shows as HTML."""
+	return frappe.bold(escape_html(text or ""))
 
 
 def format_reference(text: str | None) -> str | None:
@@ -56,7 +183,45 @@ def format_reference(text: str | None) -> str | None:
 	"jn 3:16; ps 23" becomes "John 3:16; Psalms 23", not reordered or expanded into verses."""
 	if not text:
 		return text
-	return "; ".join(_format_one_reference(reference) for reference in parse_reference(text))
+	return format_references(parse_reference(text))
+
+
+def format_references(references: list) -> str:
+	return "; ".join(_format_one_reference(reference) for reference in references)
+
+
+@frappe.whitelist()
+def check_reference(text: str) -> dict:
+	"""The reference as it will be saved, or why it cannot be, for checking a field as it is typed."""
+	references, problem = read_reference(text)
+	return {"problem": problem} if problem else {"reference": format_references(references)}
+
+
+@frappe.whitelist()
+def get_reference_outline() -> list[dict]:
+	"""Each book's title, the names a reader may type for it, and its verse count per chapter."""
+	return [
+		{
+			"title": book.title,
+			"names": [book.title, *(f"{get_book_number(book)}{name}" for name in book.abbreviations)],
+			"verses": [
+				pythonbible.get_number_of_verses(book, chapter)
+				for chapter in range(1, pythonbible.get_number_of_chapters(book) + 1)
+			],
+		}
+		for book in BIBLE_BOOKS
+	]
+
+
+def extend_bootinfo(bootinfo):
+	"""Tell the desk which fields hold Bible references."""
+	bootinfo.bible_reference_fields = REFERENCE_FIELDS
+
+
+def get_book_number(book) -> str:
+	"""The "1 " of 1 John, which pythonbible leaves out of the book's abbreviations."""
+	found = re.match(r"\d\s", book.title)
+	return found[0] if found else ""
 
 
 def _format_one_reference(reference) -> str:
@@ -122,7 +287,11 @@ def get_chapter(book: str, chapter: int, translation: str | None = None) -> list
 @frappe.whitelist(allow_guest=True)
 def get_passage(reference: str, translation: str | None = None) -> list[dict]:
 	"""The verses of a reference, one entry per chapter it touches."""
-	passage = []
+	return list(iter_passage(reference, translation))
+
+
+def iter_passage(reference: str, translation: str | None = None):
+	"""The entries of get_passage, reading each chapter only when it is reached."""
 	for (book, chapter), numbers in get_verses_by_chapter(reference).items():
 		text = {
 			item["number"]: item["text"]
@@ -130,29 +299,51 @@ def get_passage(reference: str, translation: str | None = None) -> list[dict]:
 			if item["type"] == "verse"
 		}
 		verses = [{"number": number, "text": text[number]} for number in numbers if number in text]
-		passage.append({"book": book, "chapter": chapter, "verses": verses})
-	return passage
+		yield {"book": book, "chapter": chapter, "verses": verses}
 
 
-def get_passage_text(reference: str, translation: str | None = None) -> str:
-	"""A reference's verses as one line of numbered text, for print formats, web pages and memorizing."""
-	return " ".join(
-		f"{verse['number']} {' '.join(verse['text'].split())}"
-		for section in get_passage(reference, translation)
-		for verse in section["verses"]
-	)
+def get_passage_text(reference: str, translation: str | None = None, limit: int | None = None) -> str:
+	"""A reference's verses as one line of numbered text, for print formats, web pages and memorizing.
+
+	With a limit, the text stops after the verse that passes that many characters, so a preview of
+	a whole book reads one chapter rather than all of them.
+	"""
+	verses, length = [], 0
+	for section in iter_passage(reference, translation):
+		for verse in section["verses"]:
+			verses.append(f"{verse['number']} {' '.join(verse['text'].split())}")
+			length += len(verses[-1]) + 1
+			if limit and length > limit:
+				return " ".join(verses) + " ..."
+	return " ".join(verses)
 
 
-def get_printable_passage(reference: str | None, church: str | None = None):
-	"""A reference, with its text in the church's translation when the reader may see that text."""
+def get_printable_passage(
+	reference: str | None, church: str | None = None, translation: str | None = None, limit: int | None = None
+):
+	"""A reference, with its text in the translation given or else the church's, when the reader may see it."""
 	if not reference:
 		return None
-	translation = get_default_translation(church)
+	translation = translation or get_default_translation(church)
 	if not is_readable(translation):
 		return frappe._dict(reference=reference, text=None)
 	return frappe._dict(
-		reference=f"{reference} ({translation})", text=get_passage_text(reference, translation)
+		reference=f"{reference} ({translation})", text=get_passage_text(reference, translation, limit)
 	)
+
+
+@frappe.whitelist()
+def get_reference_preview(text: str, church: str | None = None, translation: str | None = None) -> dict:
+	"""A reference and the start of its text, for showing when a reference field is hovered.
+
+	The church is the record's; a reader who cannot open it gets their own church's translation.
+	"""
+	references, problem = read_reference(text)
+	if problem:
+		return {"problem": problem}
+	if church and not (frappe.db.exists("Church", church) and frappe.has_permission("Church", doc=church)):
+		church = None
+	return get_printable_passage(format_references(references), church, translation, PREVIEW_LENGTH)
 
 
 def get_default_translation(church: str | None = None) -> str | None:

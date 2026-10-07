@@ -32,6 +32,13 @@ body {
     padding: 40mm 20mm;
 }
 
+.cover-image {
+    max-width: 70mm;
+    max-height: 45mm;
+    object-fit: contain;
+    margin-bottom: 16px;
+}
+
 .cover-church-name {
     font-size: 30pt;
     font-weight: bold;
@@ -73,18 +80,6 @@ body {
     font-size: 13pt;
     color: #666;
     margin-bottom: 30px;
-}
-
-.cover-mission {
-    font-size: 12pt;
-    font-style: italic;
-    color: #444;
-    max-width: 420px;
-    line-height: 1.6;
-    border-left: 3px solid #1f3c88;
-    padding-left: 14px;
-    text-align: left;
-    margin-top: 20px;
 }
 
 .cover-verse {
@@ -157,7 +152,7 @@ body {
 
 .family-church-label {
     font-size: 8.5pt;
-    color: #888;
+    color: #555;
     font-style: italic;
     margin-top: 1px;
 }
@@ -200,7 +195,7 @@ body {
 .member-table th {
     font-size: 8.5pt;
     font-weight: normal;
-    color: #888;
+    color: #444;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     padding: 2px 6px 3px 0;
@@ -257,7 +252,7 @@ body {
 
 .member-relation {
     font-size: 8pt;
-    color: #888;
+    color: #555;
     margin-left: 4px;
 }
 
@@ -304,7 +299,7 @@ body {
 }
 
 .calendar-date {
-    color: #555;
+    color: #333;
     font-style: italic;
 }
 
@@ -383,7 +378,7 @@ body {
         content: "{{ church.church_name }} Church Directory  ·  {{ generated_date }}";
         font-family: Georgia, serif;
         font-size: 8pt;
-        color: #999;
+        color: #666;
     }
 }
 
@@ -419,6 +414,17 @@ body {
     @bottom-right { content: none; }
 }
 {% endif %}
+
+{% if booklet_printing %}
+/* Half-letter at 125%, so the layout keeps its proportions when each page is shrunk onto half a sheet */
+@page {
+    size: 6.875in 10.625in;
+}
+
+.cover {
+    padding: 30mm 0;
+}
+{% endif %}
 </style>
 </head>
 <body>
@@ -427,6 +433,10 @@ body {
      COVER PAGE
 ═════════════════════════════════════════════════════════════ -->
 <div class="cover">
+    {% if show_church_image and church.image %}
+    <img class="cover-image" src="{{ church.image | e }}" alt="">
+    {% endif %}
+
     <div class="cover-church-name">{{ church.church_name }}</div>
 
     {% if church.legal_name and church.legal_name != church.church_name %}
@@ -445,10 +455,6 @@ body {
 
     <div class="cover-title">Church Directory</div>
     <div class="cover-date">{{ generated_date }}</div>
-
-    {% if church.mission_statement %}
-    <div class="cover-mission">{{ church.mission_statement }}</div>
-    {% endif %}
 
     {% if church_verse %}
     <div class="cover-verse">
@@ -610,6 +616,8 @@ body {
 </div>
 {% endif %}
 
+{% for page in range(padding_pages) %}<div class="blank-page"></div>{% endfor %}
+
 <!-- ════════════════════════════════════════════════════════════
      NOTES
 ═════════════════════════════════════════════════════════════ -->
@@ -620,7 +628,7 @@ body {
 </div>
 {% endif %}
 
-{% if blank_back_cover %}
+{% if blank_back_cover or booklet_printing %}
 <div class="blank-page"></div>
 {% endif %}
 

@@ -10,6 +10,7 @@ from frappe.utils.pdf import inline_private_images
 from frappe.utils.weasyprint import import_weasyprint
 from pypika import Order
 
+from churchit.church_people.report.church_directory_report.booklet import impose_booklet
 from churchit.church_scope import church_filter, is_feature_enabled, root_church, scoped
 from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
 from churchit.query import Day, Month
@@ -148,12 +149,15 @@ def get_directory_html(
 	show_roles: bool = 0,
 	show_membership: bool = 1,
 	show_hoh: bool = 1,
+	show_church_image: bool = 0,
 	show_birthdays: bool = 0,
 	show_anniversaries: bool = 0,
 	show_missionaries: bool = 0,
 	blank_back_cover: bool = 0,
 	show_page_numbers: bool = 0,
 	include_notes_page: bool = 0,
+	booklet_printing: bool = 0,
+	padding_pages: int = 0,
 	church: str | None = None,
 ):
 	"""Generate the full HTML for the church directory, ready to print."""
@@ -164,12 +168,15 @@ def get_directory_html(
 	show_roles = frappe.utils.cint(show_roles)
 	show_membership = frappe.utils.cint(show_membership)
 	show_hoh = frappe.utils.cint(show_hoh)
+	show_church_image = frappe.utils.cint(show_church_image)
 	show_birthdays = frappe.utils.cint(show_birthdays)
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
 	show_missionaries = frappe.utils.cint(show_missionaries)
 	blank_back_cover = frappe.utils.cint(blank_back_cover)
 	show_page_numbers = frappe.utils.cint(show_page_numbers)
 	include_notes_page = frappe.utils.cint(include_notes_page)
+	booklet_printing = frappe.utils.cint(booklet_printing)
+	padding_pages = min(frappe.utils.cint(padding_pages), 3)
 
 	church_name = header_church(filters)
 	church_doc = frappe.get_doc("Church", church_name) if church_name else None
@@ -532,6 +539,7 @@ def get_directory_html(
 		"show_roles": show_roles,
 		"show_membership": show_membership,
 		"show_hoh": show_hoh,
+		"show_church_image": show_church_image,
 		"birthdays": birthdays,
 		"anniversaries": anniversaries,
 		"missionaries": missionaries,
@@ -541,6 +549,8 @@ def get_directory_html(
 		"blank_back_cover": blank_back_cover,
 		"show_page_numbers": show_page_numbers,
 		"include_notes_page": include_notes_page,
+		"booklet_printing": booklet_printing,
+		"padding_pages": padding_pages,
 		"website": website,
 		"church_verse": church_verse,
 		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
@@ -556,13 +566,26 @@ def get_directory_html(
 @frappe.whitelist()
 def download_directory_pdf(**options):
 	"""The directory as a PDF, rendered here because only Chromium prints page numbers and footers."""
-	HTML, _CSS = import_weasyprint()
-	html = inline_private_images(frappe.call(get_directory_html, **options))
-	pdf = HTML(string=html, base_url=frappe.utils.get_url()).write_pdf(dpi=200)
+	booklet_printing = frappe.utils.cint(options.get("booklet_printing"))
+	document = get_paginated_directory(options)
+	if booklet_printing and len(document.pages) % 4:
+		# Pad before the notes page, which belongs on the inside back cover
+		padding_pages = -len(document.pages) % 4
+		document = get_paginated_directory({**options, "padding_pages": padding_pages})
+	pdf = document.write_pdf(dpi=200)
+	if booklet_printing:
+		pdf = impose_booklet(pdf)
 
 	frappe.local.response.filename = f"{_('Church Directory')}.pdf"
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
+
+
+def get_paginated_directory(options):
+	"""The directory laid out into pages, ready to write as a PDF."""
+	HTML, _CSS = import_weasyprint()
+	html = inline_private_images(frappe.call(get_directory_html, **options))
+	return HTML(string=html, base_url=frappe.utils.get_url()).render(dpi=200)
 
 
 def header_church(filters):

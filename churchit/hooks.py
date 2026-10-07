@@ -74,6 +74,7 @@ app_include_js = [
 	"/assets/churchit/js/published_fields_indicator.js",
 	"/assets/churchit/js/contact_tables.js",
 	"/assets/churchit/js/name_tags.js",
+	"/assets/churchit/js/bible_reference.js",
 ]
 
 # include js, css files in header of web template
@@ -155,6 +156,8 @@ jinja = {
 
 after_install = "churchit.patches.after_install.execute"
 after_sync = "churchit.patches.after_install.after_sync"
+# Runs after Frappe's own hook has generated the new app's desktop icons.
+after_app_install = "churchit.church_setup.doctype.church_features.church_features.apply_after_app_install"
 
 # Workspaces and Desktop Icons ship as standard records, so migrate re-imports
 # them and resets the visibility flags Church Features set. Re-apply them, and
@@ -228,18 +231,23 @@ permission_query_conditions = {
 	"Person": "churchit.church_people.member_access.person_query_conditions",
 }
 
-# Every doctype with a `church` Link gets it defaulted (or refused) on save, and a
-# new login is scoped to the church it was created in rather than seeing them all.
+# Every doctype with a `church` Link gets it defaulted (or refused) on save, a
+# new login is scoped to the church it was created in rather than seeing them all,
+# and publishing, un-publishing or deleting a Web Page adds it to or removes it from the menu.
 doc_events = {
 	"*": {
 		"validate": "churchit.church_scope.ensure_church",
 		"on_trash": "churchit.church_scope.refuse_deleting_another_churches_record",
 	},
 	"User": {"after_insert": "churchit.church_foundations.church_access.scope_new_user"},
+	"Web Page": {
+		"on_update": "churchit.church_website.menu.sync_web_page",
+		"on_trash": "churchit.church_website.menu.remove_from_menu",
+	},
 }
 
 # Desk: whether multi-church is on and whether the user may include branches.
-extend_bootinfo = ["churchit.church_scope.extend_bootinfo"]
+extend_bootinfo = ["churchit.church_scope.extend_bootinfo", "churchit.scripture.extend_bootinfo"]
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed.
