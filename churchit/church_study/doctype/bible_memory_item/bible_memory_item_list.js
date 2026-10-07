@@ -14,6 +14,7 @@ frappe.listview_settings["Bible Memory Item"] = {
 						label: __("Reference"),
 						description: __("Such as John 3:16-18"),
 						reqd: 1,
+						bible_reference: 1,
 					},
 					{
 						fieldname: "translation",

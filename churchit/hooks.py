@@ -74,6 +74,7 @@ app_include_js = [
 	"/assets/churchit/js/published_fields_indicator.js",
 	"/assets/churchit/js/contact_tables.js",
 	"/assets/churchit/js/name_tags.js",
+	"/assets/churchit/js/bible_reference.js",
 ]
 
 # include js, css files in header of web template
@@ -241,7 +242,7 @@ doc_events = {
 }
 
 # Desk: whether multi-church is on and whether the user may include branches.
-extend_bootinfo = ["churchit.church_scope.extend_bootinfo"]
+extend_bootinfo = ["churchit.church_scope.extend_bootinfo", "churchit.scripture.extend_bootinfo"]
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed.

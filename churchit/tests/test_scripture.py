@@ -1,6 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import unicodedata
 from unittest.mock import MagicMock, patch
 
 import frappe
@@ -42,6 +43,55 @@ class TestReferences(FrappeTestCase):
 		for text in ("not a verse", "John 30:1", "Tobit 1:1"):
 			with self.assertRaises(frappe.ValidationError, msg=text):
 				scripture.parse_reference(text)
+
+	def test_a_passage_not_in_the_bible_is_refused_with_the_reason(self):
+		"""pythonbible drops what it cannot read, so these used to be saved without the bad part."""
+		for text, reason in (
+			("Matthew 28:20; Mark 16:21", "Mark 16 has 20 verses."),
+			("John 3:16, 99", "John 3 has 36 verses."),
+			("John 20-25", "John has 21 chapters."),
+			("Jude 5:1", "Jude has only one chapter."),
+			("Psalm 151", "Psalms has 150 chapters."),
+		):
+			with self.assertRaises(frappe.ValidationError, msg=text) as raised:
+				scripture.format_reference(text)
+			self.assertIn(reason, str(raised.exception))
+
+	def test_text_that_is_not_a_reference_is_named(self):
+		for text, unread in (
+			("Jn 3:16 blah", "blah"),
+			("John 3:16 Hezekiah 2", "Hezekiah 2"),
+			("<b>x</b> John 3:16", "&lt;b&gt;"),
+		):
+			with self.assertRaises(frappe.ValidationError, msg=text) as raised:
+				scripture.format_reference(text)
+			self.assertIn(unread, str(raised.exception))
+
+	def test_any_dash_and_a_translation_in_brackets_are_read(self):
+		en_dash = unicodedata.lookup("EN DASH")
+		self.assertEqual(scripture.format_reference(f"John 3:16{en_dash}18"), "John 3:16-18")
+		self.assertEqual(scripture.format_reference("John 3:16 (NIV); I John 4:8"), "John 3:16; 1 John 4:8")
+
+	def test_a_reference_is_checked_without_raising(self):
+		self.assertEqual(scripture.check_reference("jn 3:16; ps 23"), {"reference": "John 3:16; Psalms 23"})
+		self.assertIn("Mark 16 has 20 verses.", scripture.check_reference("Mark 16:21")["problem"])
+
+	def test_the_outline_has_every_book_with_its_names_and_verse_counts(self):
+		outline = {book["title"]: book for book in scripture.get_reference_outline()}
+
+		self.assertEqual(len(outline), 66)
+		self.assertEqual(len(outline["John"]["verses"]), 21)
+		self.assertEqual(outline["John"]["verses"][2], 36)
+		self.assertIn("1 Jn", outline["1 John"]["names"])
+
+	def test_every_reference_field_exists(self):
+		"""The desk gives these fields suggestions; a renamed one would silently lose them."""
+		for doctype, fieldnames in scripture.REFERENCE_FIELDS.items():
+			for fieldname in fieldnames:
+				field = frappe.get_meta(doctype).get_field(fieldname)
+				self.assertIn(
+					getattr(field, "fieldtype", None), ("Data", "Small Text"), f"{doctype}.{fieldname}"
+				)
 
 	def test_verses_are_grouped_by_chapter_in_reading_order(self):
 		self.assertEqual(
@@ -111,6 +161,30 @@ class TestReading(FrappeTestCase):
 		self.assertEqual(
 			scripture.get_passage_text("Psalms 23:1", self.free),
 			"1 The LORD is my shepherd; I shall not want.",
+		)
+
+	def test_passage_text_stops_after_its_limit(self):
+		self.assertEqual(
+			scripture.get_passage_text("John 3:16-4:1", self.free, limit=20),
+			"16 For God so loved the world. ...",
+		)
+
+	def test_a_preview_reads_the_translation_given(self):
+		preview = scripture.get_reference_preview("jn 3:16", translation=self.free)
+
+		self.assertEqual(preview.reference, f"John 3:16 ({self.free})")
+		self.assertEqual(preview.text, "16 For God so loved the world.")
+		self.assertIn("Mark 16 has 20 verses.", scripture.get_reference_preview("Mark 16:21")["problem"])
+
+	def test_a_preview_of_a_church_the_reader_cannot_open_uses_their_own(self):
+		church = ensure_root_church()
+		original = frappe.db.get_value("Church", church, "default_bible_translation")
+		frappe.db.set_value("Church", church, "default_bible_translation", self.free)
+		self.addCleanup(frappe.db.set_value, "Church", church, "default_bible_translation", original)
+
+		self.assertEqual(
+			scripture.get_reference_preview("jn 3:16", "_Test No Such Church").reference,
+			f"John 3:16 ({self.free})",
 		)
 
 	def test_guests_read_only_free_texts(self):
