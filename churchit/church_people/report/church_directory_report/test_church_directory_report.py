@@ -7,6 +7,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from pypdf import PdfReader
 
+from churchit.church_people.report.church_directory_report.booklet import SHEET_WIDTH, get_booklet_spreads
 from churchit.church_people.report.church_directory_report.church_directory_report import (
 	download_directory_pdf,
 	get_directory_html,
@@ -51,6 +52,19 @@ class TestChurchDirectoryReport(FrappeTestCase):
 
 		self.assertNotIn('<div class="cover-website">', self.render())
 
+	def test_cover_shows_the_church_image_only_when_ticked(self):
+		self.set_church_value("image", "/files/_test_church.png")
+
+		self.assertNotIn('class="cover-image"', self.render())
+		self.assertIn(
+			'<img class="cover-image" src="/files/_test_church.png"', self.render(show_church_image="1")
+		)
+
+	def test_cover_leaves_out_the_mission_statement(self):
+		self.set_church_value("mission_statement", "_Test mission statement")
+
+		self.assertNotIn("_Test mission statement", self.render())
+
 	def test_booklet_pages_are_added_only_when_ticked(self):
 		html = self.render()
 		self.assertNotIn('<div class="blank-page">', html)
@@ -62,13 +76,13 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		self.assertIn("counter(page)", html)
 		self.assertEqual(html.count('<div class="note-line">'), 24)
 
-	def render_pdf_pages(self, **options):
-		download_directory_pdf(church=self.church, include_notes_page="1", **options)
+	def render_pdf(self, **options):
+		download_directory_pdf(church=self.church, **options)
 		self.addCleanup(frappe.local.response.pop, "filecontent", None)
-		return [
-			page.extract_text().split()
-			for page in PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages
-		]
+		return PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages
+
+	def render_pdf_pages(self, **options):
+		return [page.extract_text().split() for page in self.render_pdf(include_notes_page="1", **options)]
 
 	def test_pdf_numbers_the_pages_and_ends_on_a_blank_back_cover(self):
 		plain = self.render_pdf_pages()
@@ -80,3 +94,40 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		notes_page = str(len(plain))
 		self.assertEqual(booklet[-2].count(notes_page), plain[-1].count(notes_page) + 1)
 		self.assertEqual(booklet[-1], [])
+
+	def test_booklet_spreads_fold_into_page_order(self):
+		folded = [(8, 1), (2, 7), (6, 3), (4, 5)]
+		self.assertEqual(get_booklet_spreads(8), folded)
+		self.assertEqual(get_booklet_spreads(5), folded)
+
+	def test_booklet_pdf_puts_the_cover_in_front_and_page_numbers_on_the_outer_edge(self):
+		cover = "".join(word for x, word in get_positioned_words(self.render_pdf()[0]))
+		sides = self.render_pdf(booklet_printing="1", show_page_numbers="1")
+
+		self.assertEqual({(side.mediabox.width, side.mediabox.height) for side in sides}, {(792, 612)})
+		self.assertEqual(len(sides) % 2, 0)
+		front = get_positioned_words(sides[0])
+		self.assertEqual([word for x, word in front if x < SHEET_WIDTH / 2], [])
+		self.assertEqual("".join(word for x, word in front if x >= SHEET_WIDTH / 2), cover)
+		page_two_number = [x for x, word in get_positioned_words(sides[1]) if word == "2"]
+		self.assertEqual(len(page_two_number), 1)
+		self.assertLess(page_two_number[0], SHEET_WIDTH / 8)
+
+	def test_booklet_pads_before_the_notes_page_so_it_stays_inside_the_back_cover(self):
+		sides = self.render_pdf(booklet_printing="1", show_page_numbers="1", include_notes_page="1")
+
+		inside_back_cover = [word for x, word in get_positioned_words(sides[1]) if x >= SHEET_WIDTH / 2]
+		self.assertEqual(inside_back_cover[0], "Notes")
+		self.assertIn(str(len(sides) * 2 - 1), inside_back_cover)
+
+
+def get_positioned_words(page):
+	"""Each word on the page with the x position of the text run it is in."""
+	words = []
+
+	def visit(text, cm, tm, font, size):
+		x = tm[4] * cm[0] + tm[5] * cm[2] + cm[4]
+		words.extend((x, word) for word in text.split())
+
+	page.extract_text(visitor_text=visit)
+	return words

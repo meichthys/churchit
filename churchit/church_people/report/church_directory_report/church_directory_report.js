@@ -19,27 +19,40 @@ frappe.query_reports["Church Directory Report"] = {
 			show_roles: report.get_filter_value("show_roles") ? 1 : 0,
 			show_membership: report.get_filter_value("show_membership") ? 1 : 0,
 			show_hoh: report.get_filter_value("show_hoh") ? 1 : 0,
+			show_church_image: report.get_filter_value("show_church_image") ? 1 : 0,
 			show_birthdays: report.get_filter_value("show_birthdays") ? 1 : 0,
 			show_anniversaries: report.get_filter_value("show_anniversaries") ? 1 : 0,
 			show_missionaries: report.get_filter_value("show_missionaries") ? 1 : 0,
 			blank_back_cover: report.get_filter_value("blank_back_cover") ? 1 : 0,
 			show_page_numbers: report.get_filter_value("show_page_numbers") ? 1 : 0,
 			include_notes_page: report.get_filter_value("include_notes_page") ? 1 : 0,
+			booklet_printing: report.get_filter_value("booklet_printing") ? 1 : 0,
 			church: report.get_filter_value("church") || null,
 		};
 	},
 
 	_refresh_preview: function (report) {
+		const args = this._directory_args(report);
 		frappe.call({
 			method: "churchit.church_people.report.church_directory_report.church_directory_report.get_directory_html",
-			args: this._directory_args(report),
+			args: args,
 			callback: function (r) {
 				if (!r.message) return;
 				if (!report._$preview) {
 					report._$preview = $(
 						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>'
 					).insertAfter($(".report-wrapper"));
+					report._$booklet_note = $(
+						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>'
+					)
+						.text(
+							__(
+								"To print the booklet, print double-sided and flip on the short edge. Keep the sheets in order, then fold the stack in half with the cover on the outside."
+							)
+						)
+						.insertBefore(report._$preview);
 				}
+				report._$booklet_note.toggle(Boolean(args.booklet_printing));
 				report._$preview[0].srcdoc = r.message;
 			},
 		});
@@ -58,6 +71,12 @@ frappe.query_reports["Church Directory Report"] = {
 			label: __("Group by Family"),
 			fieldtype: "Check",
 			default: 1,
+		},
+		{
+			fieldname: "show_church_image",
+			label: __("Show Church Image"),
+			fieldtype: "Check",
+			default: 0,
 		},
 		{
 			fieldname: "show_photos",
@@ -106,6 +125,7 @@ frappe.query_reports["Church Directory Report"] = {
 			label: __("Blank Back Cover"),
 			fieldtype: "Check",
 			default: 0,
+			depends_on: "eval:!doc.booklet_printing",
 		},
 		{
 			fieldname: "show_page_numbers",
@@ -116,6 +136,12 @@ frappe.query_reports["Church Directory Report"] = {
 		{
 			fieldname: "include_notes_page",
 			label: __("Include Notes Page"),
+			fieldtype: "Check",
+			default: 0,
+		},
+		{
+			fieldname: "booklet_printing",
+			label: __("Booklet Printing"),
 			fieldtype: "Check",
 			default: 0,
 		},
