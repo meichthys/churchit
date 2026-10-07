@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 
 from churchit.church_people.member_access import RECIPIENT_DOCTYPES, get_recipient_filters
+from churchit.church_website.menu import get_route
 from churchit.church_website.published_fields import published_field_map
 
 
@@ -31,9 +32,7 @@ def get_published_web_page(url: str | None):
 	have nothing to un-publish.
 	"""
 	frappe.only_for(["Church Manager", "System Manager"])
-	if not url or not url.startswith("/"):
-		return None
-	route = url.lstrip("/").split("?")[0].split("#")[0]
+	route = get_route(url)
 	if not route:
 		return None
 	return frappe.db.get_value(

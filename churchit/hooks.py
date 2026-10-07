@@ -231,14 +231,19 @@ permission_query_conditions = {
 	"Person": "churchit.church_people.member_access.person_query_conditions",
 }
 
-# Every doctype with a `church` Link gets it defaulted (or refused) on save, and a
-# new login is scoped to the church it was created in rather than seeing them all.
+# Every doctype with a `church` Link gets it defaulted (or refused) on save, a
+# new login is scoped to the church it was created in rather than seeing them all,
+# and publishing, un-publishing or deleting a Web Page adds it to or removes it from the menu.
 doc_events = {
 	"*": {
 		"validate": "churchit.church_scope.ensure_church",
 		"on_trash": "churchit.church_scope.refuse_deleting_another_churches_record",
 	},
 	"User": {"after_insert": "churchit.church_foundations.church_access.scope_new_user"},
+	"Web Page": {
+		"on_update": "churchit.church_website.menu.sync_web_page",
+		"on_trash": "churchit.church_website.menu.remove_from_menu",
+	},
 }
 
 # Desk: whether multi-church is on and whether the user may include branches.
