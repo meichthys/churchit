@@ -53,6 +53,7 @@ class ChurchFeatures(Document):
 	def apply(self):
 		"""Hide the desk surfaces of every disabled module, restore the enabled ones.
 
+		Also hides other apps' desktop icons unless Show Other Apps is ticked.
 		Nothing is deleted and no permission changes: this only flips the
 		visibility flags Frappe already honours.
 		"""
@@ -61,6 +62,7 @@ class ChurchFeatures(Document):
 
 		managed["workspaces"] = self.sync_workspaces(disabled, managed.get("workspaces") or [])
 		managed["desktop_icons"] = self.sync_desktop_icons(disabled, managed.get("desktop_icons") or [])
+		managed["other_app_icons"] = self.sync_other_app_icons(managed.get("other_app_icons") or [])
 		self.sync_blocked_modules(disabled)
 		multi_church.apply_field_visibility(cint(self.enable_multi_church))
 		multi_church.apply_people_privacy(cint(self.private_people))
@@ -141,7 +143,59 @@ class ChurchFeatures(Document):
 					)
 				)
 
-		return self.set_flag("Desktop Icon", "hidden", should_hide, previously_hidden)
+		return self.hide_desktop_icons(should_hide, previously_hidden)
+
+	def sync_other_app_icons(self, previously_hidden):
+		"""Hide the desktop icons of Frappe and every other app unless Show Other Apps is ticked."""
+		should_hide = set() if cint(self.show_other_apps) else self.get_other_app_icons()
+		return self.hide_desktop_icons(should_hide, previously_hidden)
+
+	def get_other_app_icons(self):
+		"""Desktop icons that open neither churchit nor one of its modules' sidebars.
+
+		Frappe gives the icons it generates from workspaces no app, so the
+		sidebar's module is what ties a Manual icon to churchit. Icons a user
+		made for themselves, and the ones Frappe will not let anyone remove,
+		are left alone.
+		"""
+		modules = frappe.get_all("Module Def", filters={"app_name": "churchit"}, pluck="name")
+		own_sidebars = set(
+			frappe.get_all("Workspace Sidebar", filters={"module": ("in", modules)}, pluck="name")
+		)
+		icons = frappe.get_all(
+			"Desktop Icon",
+			filters={"owner": "Administrator", "restrict_removal": 0},
+			fields=["name", "app", "link_to"],
+		)
+		return {icon.name for icon in icons if icon.app != "churchit" and icon.link_to not in own_sidebars}
+
+	def hide_desktop_icons(self, should_hide, previously_hidden):
+		"""Hide `should_hide` on the desktop, saved layouts included, and reveal what no longer needs hiding."""
+		managed = self.set_flag("Desktop Icon", "hidden", should_hide, previously_hidden)
+		self.sync_desktop_layouts(hide=should_hide, reveal=set(previously_hidden) - should_hide)
+		return managed
+
+	def sync_desktop_layouts(self, hide, reveal):
+		"""Copy the icons' hidden flags into every saved Desktop Layout.
+
+		A user who has rearranged their desktop gets their saved copy of the icons
+		drawn instead of the Desktop Icon records, so without this a disabled
+		module's icon stays on their desktop.
+		"""
+		wanted = {**dict.fromkeys(reveal, 0), **dict.fromkeys(hide, 1)}
+		for layout in frappe.get_all("Desktop Layout", fields=["name", "layout"]):
+			icons = json.loads(layout.layout or "[]")
+			changed = [
+				icon
+				for icon in icons
+				if icon.get("name") in wanted and icon.get("hidden") != wanted[icon["name"]]
+			]
+			for icon in changed:
+				icon["hidden"] = wanted[icon["name"]]
+			if changed:
+				frappe.db.set_value(
+					"Desktop Layout", layout.name, "layout", json.dumps(icons), update_modified=False
+				)
 
 	def set_flag(self, doctype, fieldname, should_hide, previously_hidden):
 		"""Hide `should_hide`, reveal what we hid before and no longer need to.
@@ -199,6 +253,15 @@ def apply_on_migrate():
 
 	store_missing_defaults()
 	frappe.get_single("Church Features").apply()
+
+
+def apply_after_app_install(app_name):
+	"""after_app_install hook: hide the desktop icons Frappe just made for an app.
+
+	Frappe's own hook creates them first, and both hooks run for churchit's own
+	install too, so a new site starts with only churchit on its desktop.
+	"""
+	apply_on_migrate()
 
 
 def store_missing_defaults():

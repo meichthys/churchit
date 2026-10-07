@@ -155,6 +155,8 @@ jinja = {
 
 after_install = "churchit.patches.after_install.execute"
 after_sync = "churchit.patches.after_install.after_sync"
+# Runs after Frappe's own hook has generated the new app's desktop icons.
+after_app_install = "churchit.church_setup.doctype.church_features.church_features.apply_after_app_install"
 
 # Workspaces and Desktop Icons ship as standard records, so migrate re-imports
 # them and resets the visibility flags Church Features set. Re-apply them, and

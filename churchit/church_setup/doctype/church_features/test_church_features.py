@@ -12,6 +12,7 @@ from frappe.utils import now
 
 from churchit.church_setup.doctype.church_features.church_features import (
 	MODULE_FIELDS,
+	apply_after_app_install,
 	apply_on_migrate,
 )
 from churchit.tests.helpers import (
@@ -34,6 +35,7 @@ class TestChurchFeatures(FrappeTestCase):
 		features = frappe.get_single("Church Features")
 		for field in MODULE_FIELDS:
 			features.set(field, 1)
+		features.show_other_apps = 0
 		features.save()
 
 	def test_disabling_a_module_hides_its_workspaces(self):
@@ -44,6 +46,61 @@ class TestChurchFeatures(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Workspace", "Manual: Missions", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Desktop Icon", "Missions", "hidden"), 1)
 		self.assertIn("Church Missions", frappe.get_doc("User", "Administrator").get_blocked_modules())
+
+	def test_saved_desktop_layouts_follow_the_modules(self):
+		"""A user who rearranged their desktop sees their saved copy of the icons."""
+		user = ensure_user("_test_layout_user@example.com", "Layout", roles=("Church Manager",))
+		icons = [{"name": "Missions", "label": "Missions", "hidden": 0}, {"name": "People", "hidden": 0}]
+		frappe.get_doc({"doctype": "Desktop Layout", "user": user, "layout": json.dumps(icons)}).insert(
+			ignore_permissions=True
+		)
+
+		def saved_flags():
+			layout = json.loads(frappe.db.get_value("Desktop Layout", user, "layout"))
+			return {icon["name"]: icon["hidden"] for icon in layout}
+
+		self.features.enable_missions = 0
+		self.features.save()
+		self.assertEqual(saved_flags(), {"Missions": 1, "People": 0})
+
+		features = frappe.get_single("Church Features")
+		features.enable_missions = 1
+		features.save()
+		self.assertEqual(saved_flags(), {"Missions": 0, "People": 0})
+
+	def test_other_apps_icons_are_hidden_until_shown(self):
+		self.features.show_other_apps = 0
+		self.features.save()
+
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "Framework", "hidden"), 1)
+		# Inside the Framework folder: left visible, it would land on the desktop by itself.
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "Users", "hidden"), 1)
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "People", "hidden"), 0)
+
+		features = frappe.get_single("Church Features")
+		features.show_other_apps = 1
+		features.save()
+
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "Framework", "hidden"), 0)
+		self.assertEqual(frappe.db.get_value("Desktop Icon", "Users", "hidden"), 0)
+
+	def test_an_app_installed_later_starts_hidden(self):
+		self.features.show_other_apps = 0
+		self.features.save()
+		icon = frappe.get_doc(
+			{
+				"doctype": "Desktop Icon",
+				"label": "_Test Other App",
+				"icon_type": "App",
+				"link_type": "External",
+				"app": "_test_other_app",
+				"link": "/_test_other_app",
+			}
+		).insert(ignore_permissions=True)
+
+		apply_after_app_install("_test_other_app")
+
+		self.assertEqual(frappe.db.get_value("Desktop Icon", icon.name, "hidden"), 1)
 
 	def test_re_enabling_restores_what_was_hidden(self):
 		self.features.enable_missions = 0
@@ -74,8 +131,9 @@ class TestChurchFeatures(FrappeTestCase):
 		"""Frappe gives a Single its defaults only while it stores nothing. A site that
 		never saved this page held only managed_records after its first migrate, so
 		every box loaded unchecked and the next migrate hid every module."""
+		managed = frappe.db.get_single_value("Church Features", "managed_records")
 		frappe.db.delete("Singles", {"doctype": "Church Features"})
-		frappe.db.set_single_value("Church Features", "managed_records", "{}")
+		frappe.db.set_single_value("Church Features", "managed_records", managed)
 
 		apply_on_migrate()
 

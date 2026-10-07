@@ -23,6 +23,8 @@
   "enable_website",
   "enable_setup",
   "enable_customizations",
+  "section_desktop",
+  "show_other_apps",
   "section_multi_church",
   "enable_multi_church",
   "private_people",
@@ -133,6 +135,18 @@
    "label": "Customizations"
   },
   {
+   "fieldname": "section_desktop",
+   "fieldtype": "Section Break",
+   "label": "Desktop"
+  },
+  {
+   "default": "0",
+   "description": "Show the desktop icons of Frappe and every other installed app, such as Framework. Leave it unticked to show only Churchit. The Settings workspace links to the Frappe settings a church needs, such as Users and Email Account.",
+   "fieldname": "show_other_apps",
+   "fieldtype": "Check",
+   "label": "Show Other Apps on the Desktop"
+  },
+  {
    "fieldname": "section_multi_church",
    "fieldtype": "Section Break",
    "label": "Multi-Church"
@@ -169,7 +183,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-30 00:00:00.000000",
+ "modified": "2026-10-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",
