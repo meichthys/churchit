@@ -36,7 +36,59 @@
 		}
 	}
 
+	// Shared From links to a record of the same doctype as the form, which the
+	// link search reads from the hidden type field before the server sets it.
+	function set_shared_from_type(frm, cdt, cdn) {
+		locals[cdt][cdn].shared_from_type = frm.doctype;
+	}
+
+	// Shared From offers only the other records that already hold the row's value.
+	const SHARED_TABLES = [
+		[
+			"emails",
+			"email_address",
+			__("Only records that already have this email address are listed."),
+		],
+		[
+			"phones",
+			"phone_number",
+			__("Only records that already have this phone number are listed."),
+		],
+	];
+
+	function set_shared_from_queries(frm) {
+		for (const [fieldname, value_field] of SHARED_TABLES) {
+			frm.set_query("shared_from", fieldname, (doc, cdt, cdn) => ({
+				query: "churchit.contacts.search_holders",
+				filters: {
+					child_doctype: cdt,
+					value: locals[cdt][cdn][value_field],
+					parent: doc.name,
+				},
+			}));
+		}
+	}
+
+	// Replaces Frappe's "Filtered by" line, which would list the query's arguments.
+	function describe_shared_from_filter(frm) {
+		for (const [fieldname, , description] of SHARED_TABLES) {
+			frm.fields_dict[fieldname].grid.update_docfield_property(
+				"shared_from",
+				"filter_description",
+				description
+			);
+		}
+	}
+
+	for (const parent of ["Person", "Family", "Missionary", "Missionary Agency"]) {
+		frappe.ui.form.on(parent, {
+			setup: set_shared_from_queries,
+			refresh: describe_shared_from_filter,
+		});
+	}
+
 	frappe.ui.form.on("Email Address", {
+		emails_add: set_shared_from_type,
 		is_primary(frm, cdt, cdn) {
 			clear_flag_on_siblings(frm, cdt, cdn, "is_primary");
 		},
@@ -46,6 +98,7 @@
 	});
 
 	frappe.ui.form.on("Phone Number", {
+		phones_add: set_shared_from_type,
 		is_primary(frm, cdt, cdn) {
 			clear_flag_on_siblings(frm, cdt, cdn, "is_primary");
 		},

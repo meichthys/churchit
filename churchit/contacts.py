@@ -21,7 +21,7 @@ addresses only, ``is_mailing_address`` says where paper mail goes.
 
 An email address or phone number identifies one person, so it may sit on one
 record of each doctype only. Anyone else using it, such as a spouse on a
-shared email, carries it on a row ticked ``is_shared`` (see
+shared email, carries it on a row whose ``shared_from`` names the record it belongs to (see
 :func:`get_other_holder`).
 """
 
@@ -54,6 +54,8 @@ CONTACT_TABLES = (
 
 # Tables whose values identify one person. A household shares its address, so it is not here.
 UNIQUE_CONTACT_FIELDS = (EMAIL_FIELD, PHONE_FIELD)
+# Child doctype -> value fieldname for those tables
+UNIQUE_VALUE_FIELDS = {EMAIL_DOCTYPE: "email_address", PHONE_DOCTYPE: "phone_number"}
 
 
 # Sane starting points for the three type lookups. Churches are free to rename,
@@ -253,7 +255,7 @@ def validate_contact_tables(doc):
 		_trim_values(rows, value_field)
 		_reject_duplicates(rows, child_doctype, value_field, label)
 		if fieldname in UNIQUE_CONTACT_FIELDS:
-			_reject_values_held_elsewhere(doc, rows, child_doctype, value_field, label)
+			_validate_values_held_elsewhere(doc, before, fieldname, child_doctype, value_field, label)
 		_ensure_single_flag(
 			rows,
 			"is_primary",
@@ -322,25 +324,96 @@ def _reject_duplicates(rows, child_doctype, value_field, label):
 		seen.add(key)
 
 
-def _reject_values_held_elsewhere(doc, rows, child_doctype, value_field, label):
-	"""Refuse an unshared email or phone that another record of the same doctype already holds."""
-	for row in rows:
+def _validate_values_held_elsewhere(doc, before, fieldname, child_doctype, value_field, label):
+	"""Keep each email or phone on one record of *doc*'s doctype, unless the row names the record it is shared from.
+
+	Only rows this save adds or changes are checked, so duplicates saved before the
+	rule existed do not block a save that fixes them one record at a time.
+	"""
+	saved = _saved_values(before, fieldname, child_doctype, value_field)
+	for row in doc.get(fieldname) or []:
+		row.shared_from_type = doc.doctype
 		value = row.get(value_field)
-		if not value or row.get("is_shared"):
+		if not value or saved.get(row.name) == (contact_key(child_doctype, value), row.get("shared_from")):
+			continue
+		if row.get("shared_from"):
+			_validate_shared_from(doc, row, child_doctype, value_field)
 			continue
 		holder = get_other_holder(doc, child_doctype, value_field, value)
 		if holder:
 			frappe.throw(
 				_(
 					"{0} is already on {1}. If this is the same person, update that record instead. "
-					"If they share it, tick Shared on this row."
+					"If they share it, set Shared From on this row to {1}."
 				).format(frappe.bold(value), _describe_holder(doc.doctype, holder)),
 				title=_("{0} Already in Use").format(label.title()),
 			)
 
 
+def _saved_values(before, fieldname, child_doctype, value_field):
+	"""Map ``{row name: (contact key, shared from)}`` of the rows at the last save."""
+	if not before:
+		return {}
+	return {
+		row.name: (contact_key(child_doctype, row.get(value_field)), row.get("shared_from"))
+		for row in before.get(fieldname) or []
+		if row.get(value_field)
+	}
+
+
+def _validate_shared_from(doc, row, child_doctype, value_field):
+	value = row.get(value_field)
+	owner = row.shared_from
+	if owner == doc.name or not get_holders(doc.doctype, child_doctype, value_field, value, parent=owner):
+		frappe.throw(
+			_("Shared From must name another {0} that has {1}.").format(_(doc.doctype), frappe.bold(value)),
+			title=_("Not Shared"),
+		)
+
+
 def get_other_holder(doc, child_doctype, value_field, value):
-	"""Name of another record of *doc*'s doctype holding *value* on an unshared row, or ``None``.
+	"""Name of another record of *doc*'s doctype holding *value* without sharing it, or ``None``."""
+	# church-scope: one person must not be entered twice, whichever church entered them first
+	holders = get_holders(
+		doc.doctype,
+		child_doctype,
+		value_field,
+		value,
+		parent=("!=", doc.name or ""),
+		shared_from=("is", "not set"),
+	)
+	return next(iter(holders), None)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def search_holders(doctype, txt, searchfield, start, page_len, filters):
+	"""Link search for Shared From: the records the user may read that already hold the row's value."""
+	value_field = UNIQUE_VALUE_FIELDS.get(filters.get("child_doctype"))
+	if doctype not in CONTACT_PARENTS or not value_field:
+		frappe.throw(_("Shared From can only search records that carry emails and phones"))
+	value = filters.get("value")
+	if not value:
+		return []
+	holders = get_holders(
+		doctype, filters["child_doctype"], value_field, value, parent=("!=", filters.get("parent") or "")
+	)
+	if not holders:
+		return []
+	title_field = frappe.get_meta(doctype).get_title_field()
+	return frappe.get_list(
+		doctype,
+		filters={"name": ("in", holders)},
+		or_filters={"name": ("like", f"%{txt}%"), title_field: ("like", f"%{txt}%")},
+		fields=["name", title_field],
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)
+
+
+def get_holders(parenttype, child_doctype, value_field, value, **filters):
+	"""Names of the *parenttype* records holding *value*, oldest row first.
 
 	Phone numbers match however they are formatted, the way check-in search does:
 	the query finds every number with the same digits in order, and the key
@@ -348,19 +421,13 @@ def get_other_holder(doc, child_doctype, value_field, value):
 	"""
 	key = contact_key(child_doctype, value)
 	candidate = ("like", "%" + "%".join(key) + "%") if key.isdigit() else value
-	# church-scope: one person must not be entered twice, whichever church entered them first
 	rows = frappe.get_all(
 		child_doctype,
-		filters={
-			"parenttype": doc.doctype,
-			"parent": ("!=", doc.name or ""),
-			"is_shared": 0,
-			value_field: candidate,
-		},
+		filters={"parenttype": parenttype, value_field: candidate, **filters},
 		fields=["parent", value_field],
 		order_by="creation asc",
 	)
-	return next((row.parent for row in rows if contact_key(child_doctype, row[value_field]) == key), None)
+	return [row.parent for row in rows if contact_key(child_doctype, row[value_field]) == key]
 
 
 def _describe_holder(doctype, name):

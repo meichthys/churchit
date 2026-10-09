@@ -20,6 +20,7 @@ from churchit.contacts import (
 	primary_email_query,
 	primary_phone,
 	primary_phone_query,
+	search_holders,
 )
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address, make_person
 
@@ -225,15 +226,100 @@ class TestContactDetailsBelongToOneRecord(RollbackEachTest):
 	def test_a_phone_with_extra_digits_is_a_different_number(self):
 		self._person_with("Extension", phone_number="+1 (202) 555-01470")
 
-	def test_a_shared_row_may_repeat_it(self):
-		person = self._person_with("Spouse", email_address="unique.holder@example.com", is_shared=1)
+	def test_a_row_shared_from_the_holder_may_repeat_it(self):
+		person = self._person_with(
+			"Spouse",
+			email_address="unique.holder@example.com",
+			shared_from=self.holder.name,
+			shared_from_type="Person",
+		)
 		self.holder.save(ignore_permissions=True)
-		self.assertEqual(person.emails[0].is_shared, 1)
+		self.assertEqual(person.emails[0].shared_from, self.holder.name)
+		self.assertEqual(person.emails[0].shared_from_type, "Person")
+
+	def test_several_people_may_share_with_one_holder(self):
+		for name in ("Spouse", "Child"):
+			self._person_with(
+				name,
+				email_address="unique.holder@example.com",
+				shared_from=self.holder.name,
+				shared_from_type="Person",
+			)
+
+	def test_shared_from_must_name_a_record_that_has_it(self):
+		other = make_person("_Test Unique", "Other")
+		with self.assertRaises(ValidationError):
+			self._person_with(
+				"Copy",
+				email_address="unique.holder@example.com",
+				shared_from=other.name,
+				shared_from_type="Person",
+			)
+
+	def test_a_row_may_not_be_shared_from_its_own_record(self):
+		self.holder.emails[0].shared_from = self.holder.name
+		with self.assertRaises(ValidationError):
+			self.holder.save(ignore_permissions=True)
 
 	def test_a_family_may_hold_a_members_email(self):
 		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Unique"})
 		family.append("emails", {"email_address": "unique.holder@example.com"})
 		family.insert(ignore_permissions=True)
+
+	def test_an_existing_duplicate_does_not_block_sharing_another_row(self):
+		spouse = self._person_with("Spouse", phone_number="+1 (202) 555-0198")
+		# Saved before the rule existed: each holds the other's phone unshared.
+		for parent, number in ((spouse.name, "+1 (202) 555-0147"), (self.holder.name, "+1 (202) 555-0198")):
+			frappe.get_doc(
+				{
+					"doctype": "Phone Number",
+					"parenttype": "Person",
+					"parentfield": "phones",
+					"parent": parent,
+					"phone_number": number,
+					"phone_type": "Mobile",
+					"shared_from_type": "Person",
+					"idx": 2,
+				}
+			).db_insert()
+		spouse.reload()
+		spouse.phones[1].shared_from = self.holder.name
+		spouse.save(ignore_permissions=True)
+		self.holder.reload()
+		self.holder.phones[1].shared_from = spouse.name
+		self.holder.save(ignore_permissions=True)
+
+	def test_clearing_shared_from_checks_the_row_again(self):
+		person = self._person_with(
+			"Spouse",
+			email_address="unique.holder@example.com",
+			shared_from=self.holder.name,
+			shared_from_type="Person",
+		)
+		person.emails[0].shared_from = None
+		with self.assertRaises(ValidationError):
+			person.save(ignore_permissions=True)
+
+	def test_shared_from_search_offers_only_other_holders(self):
+		spouse = self._person_with(
+			"Spouse",
+			email_address="unique.holder@example.com",
+			shared_from=self.holder.name,
+			shared_from_type="Person",
+		)
+		make_person("_Test Unique", "Other")
+
+		def search(txt, parent):
+			filters = {
+				"child_doctype": "Email Address",
+				"value": "unique.holder@example.com",
+				"parent": parent,
+			}
+			return [row[0] for row in search_holders("Person", txt, "name", 0, 20, filters)]
+
+		self.assertEqual(sorted(search("", "new-person-1")), sorted([self.holder.name, spouse.name]))
+		self.assertEqual(search("", spouse.name), [self.holder.name])
+		self.assertEqual(search("Spouse", "new-person-1"), [spouse.name])
 
 	def test_the_holder_is_not_named_to_someone_who_may_not_read_it(self):
 		frappe.set_user(ensure_user("_test_contact_nobody@example.com", "_Test Nobody", roles=()))
