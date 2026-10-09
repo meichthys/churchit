@@ -72,6 +72,12 @@ class TestServiceWorker(FrappeTestCase):
 		self.assertEqual(response.mimetype, "text/javascript")
 		self.assertIn('addEventListener("fetch"', body)
 
+	def test_leaves_api_calls_to_the_browser(self):
+		"""Firefox cuts off a navigation its worker waits on for over a minute, such as a large PDF."""
+		_response, body = serve("/sw.js")
+		self.assertIn('pathname.startsWith("/api/")', body)
+		self.assertIn('event.request.mode === "navigate" && !isApiCall', body)
+
 	def test_the_offline_page_it_precaches_stands_on_its_own(self):
 		response, body = serve("/offline")
 		self.assertEqual(response.status_code, 200)

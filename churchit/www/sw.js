@@ -28,7 +28,10 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-	if (event.request.mode === "navigate") {
+	// API calls opened as pages (PDF downloads) skip the worker: Firefox stops a worker that
+	// waits over a minute, then sends the request again and fails it.
+	const isApiCall = new URL(event.request.url).pathname.startsWith("/api/");
+	if (event.request.mode === "navigate" && !isApiCall) {
 		event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
 	}
 });
