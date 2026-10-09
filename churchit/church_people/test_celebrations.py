@@ -45,6 +45,28 @@ class TestCelebrations(FrappeTestCase):
 			[(r.day, r.name) for r in celebrations.birthdays("2031-02-28", "2031-02-28")],
 		)
 
+	def test_hidden_people_and_their_anniversaries_are_left_out(self):
+		make_person(
+			"Shy",
+			"_Test Hidden",
+			membership_status=self.active,
+			hide_from_directory=1,
+			life_events=born_on("1990-12-30"),
+		)
+		partner = make_person("Partner", "_Test Hidden", membership_status=self.active, hide_from_directory=1)
+		make_person(
+			"Open",
+			"_Test Hidden",
+			membership_status=self.active,
+			is_married=1,
+			anniversary="2010-12-29",
+			spouse=partner.name,
+		)
+
+		names = [row.name for row in celebrations.birthdays(START, END)]
+		names += [row.name for row in celebrations.anniversaries(START, END)]
+		self.assertFalse([name for name in names if "_Test Hidden" in name])
+
 	def test_everyone_includes_non_members(self):
 		make_person(
 			"Visiting", "_Test Everyone", membership_status=self.visitor, life_events=born_on("1990-12-31")
