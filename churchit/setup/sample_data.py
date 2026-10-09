@@ -180,6 +180,8 @@ def delete_sample_data():
 			_delete_docs(doctype, filters)
 
 	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
+	# Address is shared with the church and other records, so only the sample homes go.
+	_delete_docs("Address", {"address_title": ["in", list(_HOME_ADDRESSES)]})
 	# Function Types survive; their template links point at deleted Functions.
 	frappe.db.set_value("Function Type", {"template_function": ["is", "set"]}, "template_function", None)
 
@@ -552,6 +554,7 @@ def _create_people(position_refs):
 				"life_events": life_events,
 				"phones": [{"phone_number": phone, "phone_type": "Mobile", "is_primary": 1}] if phone else [],
 				"emails": [{"email_address": email, "email_type": "Home", "is_primary": 1}] if email else [],
+				"addresses": _get_home_address_rows(key),
 			}
 		)
 		doc.insert(ignore_permissions=True)
@@ -655,11 +658,42 @@ def _create_families():
 			{
 				"doctype": "Family",
 				"family_name": family_name,
+				"addresses": _get_home_address_rows(family_name),
 			}
 		)
 		doc.insert(ignore_permissions=True)
 		refs[family_name] = doc.name
 	return refs
+
+
+# Home addresses in Springfield, IL, keyed by family name or by a person without a family.
+# The missionaries live abroad, so they have none.
+_HOME_ADDRESSES = {
+	"Wilson - James": {"address_line1": "418 Maple Avenue", "pincode": "62704"},
+	"Johnson - Robert": {"address_line1": "1207 Oak Street", "pincode": "62702"},
+	"Thompson - David": {"address_line1": "56 Lincoln Park Drive", "pincode": "62703"},
+	"Martha Evans": {"address_line1": "230 Walnut Street", "address_line2": "Apt 4B", "pincode": "62701"},
+	"Rachel Cooper": {"address_line1": "89 Cedar Lane", "pincode": "62704"},
+	"Samuel Brooks": {"address_line1": "1510 South Grand Avenue", "pincode": "62703"},
+}
+
+
+def _get_home_address_rows(key):
+	"""The addresses table for the family or person *key*, inserting its Address."""
+	fields = _HOME_ADDRESSES.get(key)
+	if not fields:
+		return []
+	address = _insert_if_missing(
+		"Address",
+		{"address_title": key},
+		address_title=key,
+		address_type="Personal",
+		city="Springfield",
+		state="IL",
+		country="United States",
+		**fields,
+	)
+	return [{"address": address, "address_type": "Home", "is_primary": 1, "is_mailing_address": 1}]
 
 
 def _assign_families(people, families):

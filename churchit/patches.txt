@@ -29,4 +29,5 @@ churchit.patches.v1_0.add_bible_to_portal
 churchit.patches.v1_0.remove_knowledge_base
 churchit.patches.v1_0.add_attendance_to_portal
 churchit.patches.v1_0.name_who_contacts_are_shared_from
+churchit.patches.v1_0.list_missionary_people_in_a_table
 churchit.patches.v1_0.add_step_in_law_and_cousin_relation_types

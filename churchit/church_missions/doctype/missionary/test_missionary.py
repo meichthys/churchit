@@ -60,7 +60,7 @@ class TestMissionary(FrappeTestCase):
 		data = {
 			"doctype": "Missionary",
 			"title": TEST_MISSIONARY_TITLE,
-			"person": self.person,
+			"people": [{"person": self.person}],
 			"support_amount": 100,
 			"support_frequency": "Monthly",
 			"support_start_date": add_days(today(), -70),

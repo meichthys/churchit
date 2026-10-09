@@ -120,11 +120,13 @@ class TestSampleDataLoader(FrappeTestCase):
 
 
 class TestSampleDataRoundTrip(FrappeTestCase):
-	"""One load and one wipe for the whole class, then what the wipe had to leave behind.
+	"""A wipe, one load and one wipe for the whole class, then what the wipe had to leave behind.
 
 	Its own class so the wipe does not strand the loader tests above.
 	delete_sample_data() runs on unfiltered doctypes, so it clears every record of
-	them on whatever site the suite runs against, not only the seeded ones.
+	them on whatever site the suite runs against, not only the seeded ones. The
+	first wipe makes the load start from nothing, as on a new site, even when the
+	site already has sample data.
 
 	The round trip is in setUpClass because a load and a wipe cost seconds each:
 	one cycle, with what each test needs recorded on the way past, buys the same
@@ -134,7 +136,12 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		sample_data.delete_sample_data()
 		sample_data.create_sample_data()
+		cls.home_addresses = frappe.get_all(
+			"Address", {"address_title": ["in", list(sample_data._HOME_ADDRESSES)]}, pluck="name"
+		)
+		cls.linked_home_addresses = frappe.db.count("Postal Address", {"address": ["in", cls.home_addresses]})
 		generate_statements("2000-01-01", "2100-12-31")
 		cls.statements = frappe.db.count("Giving Statement")
 		cls.draft_expense = bool(frappe.db.exists("Expense", {"docstatus": 0}))
@@ -174,6 +181,11 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		]
 		self.assertEqual(remaining, [])
 		self.assertFalse(frappe.db.exists("User", sample_data._CHURCH_MANAGER_EMAIL))
+
+	def test_families_and_people_without_one_get_a_home_address_that_delete_removes(self):
+		self.assertEqual(len(self.home_addresses), len(sample_data._HOME_ADDRESSES))
+		self.assertEqual(self.linked_home_addresses, len(sample_data._HOME_ADDRESSES))
+		self.assertFalse(frappe.db.exists("Address", {"name": ["in", self.home_addresses]}))
 
 	def test_delete_leaves_the_church_saveable(self):
 		"""The Church survives the wipe; a link left pointing into it would strand the record."""

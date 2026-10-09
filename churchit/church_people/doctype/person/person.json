@@ -16,6 +16,7 @@
   "church",
   "gender",
   "membership_status",
+  "hide_from_directory",
   "column_break_agva",
   "photo",
   "age",
@@ -255,6 +256,14 @@
    "print_hide": 1
   },
   {
+   "default": "0",
+   "description": "Leave this person out of the printed Church Directory. Members can set this themselves on their Personal Details page.",
+   "fieldname": "hide_from_directory",
+   "fieldtype": "Check",
+   "label": "Hide from Directory",
+   "print_hide": 1
+  },
+ {
    "allow_in_quick_entry": 1,
    "default": "Unknown",
    "fieldname": "gender",

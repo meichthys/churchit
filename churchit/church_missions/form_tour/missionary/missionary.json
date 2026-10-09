@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-08-27 12:00:00.000000",
+  "modified": "2026-10-08 16:00:00.000000",
   "modified_by": "Administrator",
   "module": "Church Missions",
   "name": "Missionary",
@@ -17,13 +17,13 @@
   "save_on_complete": 1,
   "steps": [
     {
-      "description": "A Missionary is anchored to an existing Person record, so create the Person first if they are not in the system yet.<br><br><b>Select the linked Person to continue.</b>",
-      "fieldname": "person",
-      "fieldtype": "Link",
-      "has_next_condition": 1,
+      "description": "List the People this missionary record is about, such as a couple and their children, or the contact person at a supported organization or ministry. Create each Person first if they are not in the system yet.",
+      "fieldname": "people",
+      "fieldtype": "Table",
+      "has_next_condition": 0,
       "hide_buttons": 0,
       "is_table_field": 0,
-      "label": "Link the Person",
+      "label": "List the People",
       "modal_trigger": 0,
       "next_on_click": 0,
       "next_step_condition": "",
@@ -31,7 +31,7 @@
       "offset_y": 0,
       "popover_element": 0,
       "position": "Bottom",
-      "title": "Link the Person",
+      "title": "List the People",
       "ui_tour": 0
     },
     {

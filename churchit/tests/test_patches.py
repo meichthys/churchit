@@ -21,6 +21,7 @@ from churchit.patches.v1_0 import (
 	add_default_address_template,
 	add_missionary_map_to_missions_page,
 	add_unsynced_default_records,
+	list_missionary_people_in_a_table,
 	redesign_home_page,
 	remove_knowledge_base,
 	rename_agency_logo_field,
@@ -166,6 +167,21 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertFalse(frappe.db.has_column("Missionary Agency", "image_hhbv"))
 		rename_agency_logo_field.execute()
 		self.assertTrue(frappe.db.has_column("Missionary Agency", "logo"))
+
+	def test_missionary_person_moves_into_the_people_table_once(self):
+		if not frappe.db.has_column("Missionary", "person"):
+			self.skipTest("this site never had the Missionary person column")
+		person = make_person("_Test", "Patch Missionary").name
+		missionary = frappe.get_doc({"doctype": "Missionary", "title": "_Test Patch Missionary"}).insert(
+			ignore_permissions=True
+		)
+		frappe.db.set_value("Missionary", missionary.name, "person", person, update_modified=False)
+
+		list_missionary_people_in_a_table.execute()
+		list_missionary_people_in_a_table.execute()
+
+		missionary.reload()
+		self.assertEqual([row.person for row in missionary.people], [person])
 
 	def test_contact_migration_reruns_without_legacy_columns(self):
 		self.assertEqual(contact_patch._read_legacy("Person", ["email", "primary_phone"]), [])

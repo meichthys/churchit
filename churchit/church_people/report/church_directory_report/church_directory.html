@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% autoescape true %}
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -157,20 +158,6 @@ body {
     margin-top: 1px;
 }
 
-/* Right side of family header: address + optional photo */
-.family-meta {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.family-address {
-    font-size: 9.5pt;
-    color: #555;
-    text-align: right;
-    line-height: 1.4;
-}
-
 .family-photo-img {
     height: 150px;
     width: auto;
@@ -180,44 +167,18 @@ body {
     display: block;
 }
 
-/* ── Member table ───────────────────────────────────────────── */
-.member-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 4px;
-    font-size: 10pt;
+/* ── Member details: one person after another, one detail per row */
+.member {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 5px;
 }
 
-.member-table thead tr {
-    border-bottom: 1px solid #c5cfe0;
+.member-photo-cell {
+    flex: none;
+    width: 80px;
 }
-
-.member-table th {
-    font-size: 8.5pt;
-    font-weight: normal;
-    color: #444;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    padding: 2px 6px 3px 0;
-    text-align: left;
-}
-
-.member-table td {
-    padding: 3px 6px 3px 0;
-    vertical-align: middle;
-    color: #222;
-    border-bottom: 1px dotted #e4e8f0;
-}
-
-.member-table tr:last-child td {
-    border-bottom: none;
-}
-
-.col-photo      { width: 88px; padding-right: 8px !important; }
-.col-name       { width: 30%; font-weight: 600; }
-.col-membership { width: 18%; }
-.col-phone      { width: 22%; }
-.col-email      { width: 26%; word-break: break-all; }
 
 .member-photo {
     width: 80px;
@@ -227,10 +188,50 @@ body {
     display: block;
 }
 
-.hoh-star {
-    color: #1f3c88;
-    font-size: 9pt;
-    margin-left: 3px;
+.member-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.member-name {
+    font-size: 10.5pt;
+    font-weight: 600;
+    margin-bottom: 1px;
+}
+
+.member-relation {
+    font-size: 8pt;
+    color: #555;
+    margin-left: 4px;
+}
+
+.detail-rows {
+    border-collapse: collapse;
+    font-size: 10pt;
+}
+
+.detail-rows th {
+    width: 22mm;
+    font-size: 8pt;
+    font-weight: normal;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: baseline;
+    padding: 1px 6px 1px 0;
+}
+
+.detail-rows td {
+    color: #222;
+    vertical-align: baseline;
+    overflow-wrap: anywhere;
+    padding: 1px 0;
+}
+
+.family-details {
+    margin-bottom: 2px;
 }
 
 .status-badge {
@@ -241,19 +242,6 @@ body {
     background: #e8edf8;
     color: #1f3c88;
     white-space: nowrap;
-}
-
-.member-roles {
-    font-size: 8pt;
-    color: #666;
-    font-style: italic;
-    margin-top: 1px;
-}
-
-.member-relation {
-    font-size: 8pt;
-    color: #555;
-    margin-left: 4px;
 }
 
 /* ── Appendix sections (birthdays, anniversaries, missionaries) */
@@ -375,7 +363,7 @@ body {
 /* ── Footer ─────────────────────────────────────────────────── */
 @page {
     @bottom-center {
-        content: "{{ church.church_name }} Church Directory  ·  {{ generated_date }}";
+        content: {{ footer }};
         font-family: Georgia, serif;
         font-size: 8pt;
         color: #666;
@@ -428,13 +416,17 @@ body {
 </style>
 </head>
 <body>
+{% macro address(place) -%}
+{% if place.address_line1 %}{{ place.address_line1 }}{% if place.address_line2 %}, {{ place.address_line2 }}{% endif %}{% if place.city %}, {% endif %}{% endif %}
+{%- if place.city %}{{ place.city }}{% if place.state %}, {{ place.state }}{% endif %}{% if place.pincode %} {{ place.pincode }}{% endif %}{% endif %}
+{%- endmacro %}
 
 <!-- ════════════════════════════════════════════════════════════
      COVER PAGE
 ═════════════════════════════════════════════════════════════ -->
 <div class="cover">
     {% if show_church_image and church.image %}
-    <img class="cover-image" src="{{ church.image | e }}" alt="">
+    <img class="cover-image" src="{{ church.image }}" alt="">
     {% endif %}
 
     <div class="cover-church-name">{{ church.church_name }}</div>
@@ -449,7 +441,7 @@ body {
         {{ church_address.address_line1 }}{% if church_address.address_line2 %}<br>{{ church_address.address_line2 }}{% endif %}<br>
         {{ church_address.city }}{% if church_address.state %}, {{ church_address.state }}{% endif %}{% if church_address.pincode %} {{ church_address.pincode }}{% endif %}
         {% endif %}
-        {% if website %}<div class="cover-website">{{ website | e }}</div>{% endif %}
+        {% if website %}<div class="cover-website">{{ website }}</div>{% endif %}
     </div>
     {% endif %}
 
@@ -458,8 +450,8 @@ body {
 
     {% if church_verse %}
     <div class="cover-verse">
-        {% if church_verse.text %}<div class="cover-verse-text">&ldquo;{{ church_verse.text | e }}&rdquo;</div>{% endif %}
-        <div class="cover-verse-reference">{{ church_verse.reference | e }}</div>
+        {% if church_verse.text %}<div class="cover-verse-text">&ldquo;{{ church_verse.text }}&rdquo;</div>{% endif %}
+        <div class="cover-verse-reference">{{ church_verse.reference }}</div>
     </div>
     {% endif %}
 </div>
@@ -477,70 +469,60 @@ body {
 
     <div class="family-block">
         <div class="family-header">
-            <!-- Left: name + optional sub-church label -->
             <div>
                 <div class="family-name">{{ entry.display_name }}</div>
                 {% if show_church_label %}<div class="family-church-label">{{ entry.church_name }}</div>{% endif %}
             </div>
-
-            <!-- Right: address + optional family photo -->
-            <div class="family-meta">
-                {% if entry.address_line1 or entry.city %}
-                <div class="family-address">
-                    {% if entry.address_line1 %}{{ entry.address_line1 }}{% if entry.address_line2 %}, {{ entry.address_line2 }}{% endif %}<br>{% endif %}
-                    {% if entry.city %}{{ entry.city }}{% if entry.state %}, {{ entry.state }}{% endif %}{% if entry.pincode %} {{ entry.pincode }}{% endif %}{% endif %}
-                </div>
-                {% endif %}
-                {% if show_photos and entry.family_photo %}
-                <img class="family-photo-img" src="{{ entry.family_photo }}" alt="{{ entry.display_name }}">
-                {% endif %}
-            </div>
+            {% if show_photos and entry.family_photo %}
+            <img class="family-photo-img" src="{{ entry.family_photo }}" alt="{{ entry.display_name }}">
+            {% endif %}
         </div>
 
-        <table class="member-table">
-            <thead>
-                <tr>
-                    {% if show_photos %}<th class="col-photo"></th>{% endif %}
-                    <th class="col-name">Name</th>
-                    {% if show_membership %}<th class="col-membership">Membership</th>{% endif %}
-                    <th class="col-phone">Phone</th>
-                    <th class="col-email">Email</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for member in entry.members %}
-                <tr>
-                    {% if show_photos %}
-                    <td class="col-photo">
-                        {% if member.photo %}
-                        <img class="member-photo" src="{{ member.photo }}" alt="">
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                    <td class="col-name">
-                        {{ member.full_name }}
-                        {% if show_hoh and member.is_head_of_household %}
-                        <span class="member-relation">(Head of Household)</span>
-                        {% elif not entry.is_individual and member.relation_to_hoh %}
-                        <span class="member-relation">({{ member.relation_to_hoh }})</span>
-                        {% endif %}
-                        {% if show_roles and member.positions %}
-                        <div class="member-roles">{{ member.positions | join(', ') }}</div>
-                        {% endif %}
-                    </td>
-                    {% if show_membership %}
-                    <td class="col-membership">
-                        {% if member.membership_status %}
-                        <span class="status-badge">{{ member.membership_status }}</span>
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                    <td class="col-phone">{{ member.primary_phone or '' }}</td>
-                    <td class="col-email">{{ member.email or '' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
+        {% if not entry.is_individual and show_address and (entry.address_line1 or entry.city) %}
+        <table class="detail-rows family-details">
+            <tr><th>Address</th><td>{{ address(entry) }}</td></tr>
         </table>
+        {% endif %}
+
+        {% for member in entry.members %}
+        <div class="member">
+            {% if show_photos %}
+            <div class="member-photo-cell">
+                {% if member.photo %}<img class="member-photo" src="{{ member.photo }}" alt="">{% endif %}
+            </div>
+            {% endif %}
+            <div class="member-details">
+                {# An entry of its own is headed by the person's name already #}
+                {% if not entry.is_individual %}
+                <div class="member-name">
+                    {{ member.full_name }}
+                    {% if show_hoh and member.is_head_of_household %}
+                    <span class="member-relation">(Head of Household)</span>
+                    {% elif member.relation_to_hoh %}
+                    <span class="member-relation">({{ member.relation_to_hoh }})</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <table class="detail-rows">
+                    {% if show_membership and member.membership_status %}
+                    <tr><th>Membership</th><td><span class="status-badge">{{ member.membership_status }}</span></td></tr>
+                    {% endif %}
+                    {% if show_phone and member.primary_phone %}
+                    <tr><th>Phone</th><td>{{ member.primary_phone }}</td></tr>
+                    {% endif %}
+                    {% if show_email and member.email %}
+                    <tr><th>Email</th><td>{{ member.email }}</td></tr>
+                    {% endif %}
+                    {% if show_roles and member.positions %}
+                    <tr><th>Positions</th><td>{{ member.positions | join(', ') }}</td></tr>
+                    {% endif %}
+                    {% if show_address and (entry.is_individual or member.has_own_address) and (member.address_line1 or member.city) %}
+                    <tr><th>Address</th><td>{{ address(member) }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 {% endfor %}
 
@@ -604,10 +586,11 @@ body {
                 {% if m.mission_statement %}<div class="missionary-statement">{{ m.mission_statement }}</div>{% endif %}
             </div>
         </div>
-        {% if not m.sensitive and (m.email or m.website) %}
+        {% set missionary_email = m.email if show_email else '' %}
+        {% if not m.sensitive and (missionary_email or m.website) %}
         <div class="missionary-contact">
-            {% if m.email %}Email: {{ m.email }}{% endif %}
-            {% if m.email and m.website %}<br>{% endif %}
+            {% if missionary_email %}Email: {{ missionary_email }}{% endif %}
+            {% if missionary_email and m.website %}<br>{% endif %}
             {% if m.website %}Website: {{ m.website }}{% endif %}
         </div>
         {% endif %}
@@ -634,3 +617,4 @@ body {
 
 </body>
 </html>
+{% endautoescape %}
