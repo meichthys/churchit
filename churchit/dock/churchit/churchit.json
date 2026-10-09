@@ -1,0 +1,119 @@
+{
+ "app": "churchit",
+ "creation": "2026-10-08 19:41:39.385306",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "chart-column",
+   "link_to": "Summary",
+   "link_type": "Sidebar",
+   "title": "Summary"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "users",
+   "link_to": "People",
+   "link_type": "Sidebar",
+   "title": "People"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "handshake",
+   "link_to": "Ministries",
+   "link_type": "Sidebar",
+   "title": "Ministries"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "hand-heart",
+   "link_to": "Prayers",
+   "link_type": "Sidebar",
+   "title": "Prayers"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "book-open",
+   "link_to": "Study",
+   "link_type": "Sidebar",
+   "title": "Study"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "mail",
+   "link_to": "Communications",
+   "link_type": "Sidebar",
+   "title": "Communications"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "globe",
+   "link_to": "Missions",
+   "link_type": "Sidebar",
+   "title": "Missions"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "hand-coins",
+   "link_to": "Finances",
+   "link_type": "Sidebar",
+   "title": "Finances"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "wrench",
+   "link_to": "Operations",
+   "link_type": "Sidebar",
+   "title": "Operations"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "landmark",
+   "link_to": "Foundations",
+   "link_type": "Sidebar",
+   "title": "Foundations"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "app-window",
+   "link_to": "Web Site",
+   "link_type": "Sidebar",
+   "title": "Web Site"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "settings",
+   "link_to": "Settings",
+   "link_type": "Sidebar",
+   "title": "Settings"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "circle-question-mark",
+   "link_to": "Help",
+   "link_type": "Sidebar",
+   "title": "Help"
+  }
+ ],
+ "modified": "2026-10-08 19:41:39.385306",
+ "modified_by": "Administrator",
+ "name": "churchit",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

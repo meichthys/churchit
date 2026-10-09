@@ -22,9 +22,6 @@
   "enable_finances",
   "enable_website",
   "enable_setup",
-  "enable_customizations",
-  "section_desktop",
-  "show_other_apps",
   "section_multi_church",
   "enable_multi_church",
   "private_people",
@@ -35,7 +32,7 @@
   {
    "fieldname": "features_intro",
    "fieldtype": "HTML",
-   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its icon in the app switcher for everyone, and drops its dashboards, charts and number cards from the desk. Nothing is deleted and no permissions change, so records stay reachable by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. The Multi-Church switch below is different: it changes what every user can see, so read its description before turning it on.</p>"
+   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its entry in the dock for everyone. Nothing is deleted and no permissions change, so records stay reachable by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. The Multi-Church switch below is different: it changes what every user can see, so read its description before turning it on.</p>"
   },
   {
    "fieldname": "section_modules",
@@ -122,29 +119,10 @@
   },
   {
    "default": "1",
-   "description": "The Welcome workspace and onboarding. The Settings workspace always stays visible so this page remains reachable.",
+   "description": "The Summary and Help pages. Settings always stays visible so this page remains reachable.",
    "fieldname": "enable_setup",
    "fieldtype": "Check",
    "label": "Setup"
-  },
-  {
-   "default": "1",
-   "description": "Developer and administrator tooling. Its workspaces ship hidden already, so this mainly affects its dashboards and charts.",
-   "fieldname": "enable_customizations",
-   "fieldtype": "Check",
-   "label": "Customizations"
-  },
-  {
-   "fieldname": "section_desktop",
-   "fieldtype": "Section Break",
-   "label": "Desktop"
-  },
-  {
-   "default": "0",
-   "description": "Show the desktop icons of Frappe and every other installed app, such as Framework. Leave it unticked to show only Churchit. The Settings workspace links to the Frappe settings a church needs, such as Users and Email Account.",
-   "fieldname": "show_other_apps",
-   "fieldtype": "Check",
-   "label": "Show Other Apps on the Desktop"
   },
   {
    "fieldname": "section_multi_church",
@@ -183,7 +161,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-06 12:00:00.000000",
+ "modified": "2026-10-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

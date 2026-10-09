@@ -3,9 +3,9 @@
 
 """Every module's onboarding must be reachable, complete, and its tours must point at real fields.
 
-Each failure here is silent: an onboarding no sidebar names is never rendered, a step without a
-form tour drops the user on an unexplained form, and a tour step naming a field that was since
-renamed or hidden stalls the tour with no error.
+Each failure here is silent: an onboarding whose module has no sidebar is never rendered, a step
+without a form tour drops the user on an unexplained form, and a tour step naming a field that was
+since renamed or hidden stalls the tour with no error.
 
 Onboarding Step carries no module field, so the app's own steps are enumerated from the folders
 they ship in rather than filtered out of the table.
@@ -17,9 +17,9 @@ import os
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-# Church Customizations owns no records of its own: its workspaces are frappe's own Build,
-# Integrations, Tools and Users pages, grouped under the church app.
-MODULES_WITHOUT_ONBOARDING = {"Church Customizations"}
+# The Church onboarding sits on Summary, the page a new church lands on, so Settings and Help
+# offer none of their own.
+MODULES_WITHOUT_ONBOARDING = {"Church Setup", "Church Help"}
 
 # frappe's onboarding widget runs a tour from these two actions only (create_entry and
 # show_form_tour in public/js/frappe/widgets/onboarding_widget.js). "Go to Page" and
@@ -44,15 +44,17 @@ class TestOnboardingHygiene(FrappeTestCase):
 		self.assertEqual(missing, [], f"Church modules without a Module Onboarding: {missing}")
 
 	def test_every_onboarding_is_shown_in_a_sidebar(self):
-		"""The desk sidebar renders an onboarding only where a Workspace Sidebar names it.
+		"""The desk shows a module's onboarding in that module's sidebar, and only its earliest one.
 
-		frappe/public/js/frappe/ui/sidebar/sidebar.py reads `module_onboarding` off the sidebar in
-		bootinfo; an `onboarding` block in a workspace's content is the older mechanism and renders
-		nothing.
+		frappe.desk.doctype.module_onboarding.module_onboarding.get_permitted_onboardings picks one
+		per module; an `onboarding` block in a workspace's content is the older mechanism and
+		renders nothing.
 		"""
-		shown = set(frappe.get_all("Workspace Sidebar", pluck="module_onboarding"))
-		missing = sorted(set(self.onboardings) - shown)
-		self.assertEqual(missing, [], f"Module Onboardings no sidebar shows: {missing}")
+		with_sidebar = set(frappe.get_all("Sidebar", filters={"app": "churchit"}, pluck="module"))
+		modules = self.onboarding_modules()
+		missing = sorted(set(modules) - with_sidebar)
+		self.assertEqual(missing, [], f"Module Onboardings whose module has no sidebar: {missing}")
+		self.assertEqual(len(modules), len(set(modules)), "A module offers only its earliest onboarding")
 
 	def test_every_step_belongs_to_an_onboarding(self):
 		orphans = sorted(set(self.shipped_steps()) - set(self.listed_steps()))

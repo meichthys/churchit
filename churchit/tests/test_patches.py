@@ -22,6 +22,7 @@ from churchit.patches.v1_0 import (
 	add_missionary_map_to_missions_page,
 	add_unsynced_default_records,
 	list_missionary_people_in_a_table,
+	move_to_the_apps_screen_and_dock,
 	redesign_home_page,
 	remove_knowledge_base,
 	rename_agency_logo_field,
@@ -646,3 +647,68 @@ class TestPreModelSync(RollbackEachTest):
 		frappe.db.delete("DocType", "Church Features")
 		self.record_a_patch()
 		self.assertFalse(is_multi_church())
+
+
+class TestMoveToTheAppsScreenAndDock(RollbackEachTest):
+	"""What Frappe's sidebar conversion made from Churchit's old navigation goes."""
+
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(frappe.clear_cache)
+		frappe.db.set_single_value("Desktop Settings", "desktop_page", "Desktop Icons")
+		frappe.get_doc(
+			{"doctype": "Module Def", "module_name": "Manual: _Test", "app_name": "churchit", "custom": 1}
+		).insert(ignore_permissions=True)
+		self.converted_sidebar("_Test Manual", "Manual: _Test")
+		self.converted_sidebar("_Test Merged", "Church Setup")
+		frappe.db.delete("Dock", {"app": "churchit", "standard": 0})
+		frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "churchit",
+				"items": [{"link_type": "Sidebar", "link_to": "_Test Manual"}],
+			}
+		).insert(ignore_permissions=True)
+		administrator = frappe.get_doc("User", "Administrator")
+		administrator.append("block_modules", {"module": "Church Missions"})
+		administrator.append("block_modules", {"module": "Manual: _Test"})
+		administrator.save(ignore_permissions=True)
+		if not frappe.db.exists("Custom HTML Block", "WorkspaceHeader"):
+			frappe.get_doc({"doctype": "Custom HTML Block", "html": "<nav></nav>"}).insert(
+				set_name="WorkspaceHeader", ignore_permissions=True
+			)
+
+	def converted_sidebar(self, title, module):
+		"""A site-owned sidebar as the conversion writes it, which only developer mode may save."""
+		sidebar = frappe.get_doc(
+			{
+				"doctype": "Sidebar",
+				"name": title,
+				"title": title,
+				"module": module,
+				"merged_from": frappe.as_json([title]),
+				"items": [{"type": "Link", "link_type": "DocType", "link_to": "Person", "label": "People"}],
+			}
+		)
+		sidebar.db_insert()
+		for item in sidebar.items:
+			item.db_insert()
+
+	def test_it_clears_the_conversion_and_opens_the_apps_screen(self):
+		move_to_the_apps_screen_and_dock.execute()
+
+		self.assertEqual(frappe.db.get_single_value("Desktop Settings", "desktop_page"), "Apps")
+		self.assertFalse(frappe.db.exists("Module Def", "Manual: _Test"))
+		self.assertFalse(frappe.db.exists("Sidebar", "_Test Manual"))
+		self.assertFalse(frappe.db.exists("Sidebar", "_Test Merged"))
+		self.assertFalse(frappe.db.exists("Dock", {"app": "churchit", "standard": 0}))
+		self.assertFalse(
+			frappe.db.exists("Block Module", {"parent": "Administrator", "module": "Church Missions"})
+		)
+		self.assertFalse(frappe.db.exists("Custom HTML Block", "WorkspaceHeader"))
+
+	def test_it_keeps_the_sidebars_churchit_ships(self):
+		move_to_the_apps_screen_and_dock.execute()
+
+		self.assertTrue(frappe.db.exists("Sidebar", {"name": "People", "standard": 1}))
+		self.assertTrue(frappe.db.exists("Dock", "churchit"))

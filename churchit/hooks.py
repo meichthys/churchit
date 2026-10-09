@@ -41,27 +41,25 @@ fixtures = [
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In", "Absent"]]],
 	},
 	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
-	# The module nav shown at the top of every module workspace, and the map
-	# block on the Missions workspace. App-owned: the workspace JSONs reference
-	# them by name and are re-synced on every migrate, so these have to be
-	# re-applied alongside them.
-	{"dt": "Custom HTML Block", "filters": [["name", "in", ["WorkspaceHeader", "MissionaryMap"]]]},
+	# The map block on the Missions workspace. App-owned: the workspace JSON
+	# references it by name and is re-synced on every migrate, so it has to be
+	# re-applied alongside it.
+	{"dt": "Custom HTML Block", "filters": [["name", "in", ["MissionaryMap"]]]},
 ]
 # Apps
 # ------------------
 
 required_apps = ["payments"]
 
-# Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "churchit",
-# 		"logo": "/assets/churchit/logo.png",
-# 		"title": "Churchit",
-# 		"route": "/churchit",
-# 		"has_permission": "churchit.api.permission.has_app_permission",
-# 	}
-# ]
+# The Churchit tile on the Apps screen, which opens on Summary.
+add_to_apps_screen = [
+	{
+		"name": "churchit",
+		"logo": app_logo_url,
+		"title": app_title,
+		"route": "/desk/summary",
+	}
+]
 
 # Includes in <head>
 # ------------------
@@ -155,17 +153,10 @@ jinja = {
 # ------------
 
 after_install = "churchit.patches.after_install.execute"
-after_sync = "churchit.patches.after_install.after_sync"
-# Runs after Frappe's own hook has generated the new app's desktop icons.
-after_app_install = "churchit.church_setup.doctype.church_features.church_features.apply_after_app_install"
 
-# Workspaces and Desktop Icons ship as standard records, so migrate re-imports
-# them and resets the visibility flags Church Features set. Re-apply them, and
-# re-hide the icons Frappe auto-generates for each module's Manual workspace.
-after_migrate = [
-	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
-	"churchit.church_setup.manual_workspaces.hide_manual_desktop_icons",
-]
+# Workspaces ship as standard records, so migrate re-imports them and resets the
+# visibility Church Features set. Re-apply it, and add newly shipped dock entries.
+after_migrate = ["churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"]
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
@@ -233,13 +224,17 @@ permission_query_conditions = {
 
 # Every doctype with a `church` Link gets it defaulted (or refused) on save, a
 # new login is scoped to the church it was created in rather than seeing them all,
-# and publishing, un-publishing or deleting a Web Page adds it to or removes it from the menu.
+# a desk user opens Summary after login, and publishing, un-publishing or deleting
+# a Web Page adds it to or removes it from the menu.
 doc_events = {
 	"*": {
 		"validate": "churchit.church_scope.ensure_church",
 		"on_trash": "churchit.church_scope.refuse_deleting_another_churches_record",
 	},
-	"User": {"after_insert": "churchit.church_foundations.church_access.scope_new_user"},
+	"User": {
+		"validate": "churchit.church_summary.home.land_on_summary",
+		"after_insert": "churchit.church_foundations.church_access.scope_new_user",
+	},
 	"Web Page": {
 		"on_update": "churchit.church_website.menu.sync_web_page",
 		"on_trash": "churchit.church_website.menu.remove_from_menu",

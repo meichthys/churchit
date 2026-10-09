@@ -272,8 +272,8 @@ into Role Profiles in `fixtures/role_profile.json`:
 
 A new doctype gives its rights to Church Manager and to the role that owns its area, and read to
 Church Staff if staff look it up. `tests/test_role_hygiene.py` fails when a profile can fill in a
-form but cannot pick what one of its Link fields points at. Reports, workspaces and desktop icons
-carry the same roles.
+form but cannot pick what one of its Link fields points at. Reports and workspaces carry the same
+roles.
 
 A portal member reaches their own records through `if_owner` DocPerms, and their own Person
 through `church_people/member_access.py`. That module also limits their Person edits to the
@@ -433,6 +433,26 @@ Run the whole suite before committing anything broad: `bench --site <site> run-t
   ```
 - Run `ruff format` only on the files you changed; the pinned version reformats older files.
 
+## Desk navigation
+
+The Apps screen shows one Churchit tile (`add_to_apps_screen` in `hooks.py`), but a desk user opens
+Summary after login: `church_summary/home.land_on_summary` sets their Default Workspace when they
+first become a desk user, and leaves a choice they make later alone. Inside the app, the dock on
+the left lists the modules (`churchit/dock/churchit/churchit.json`), and each module has one sidebar
+(`churchit/<module>/sidebar/`). Three rules fail silently, so
+`churchit/tests/test_navigation_hygiene.py` checks them:
+
+- **The dock must name every sidebar.** A sidebar the dock leaves out opens by URL only.
+- **One sidebar per module.** The desk opens a workspace in the first sidebar of the workspace's
+  module, so a second sidebar in one module shows the wrong one. A new dock entry needs its own
+  module, the way Summary and Help have theirs.
+- **A sidebar opens on a workspace of its own module.** A module opens on the first link of its
+  sidebar, and a workspace of another module switches the sidebar on arrival.
+
+Edit a sidebar or the dock on a developer-mode site, from the desk or with `doc.save()`. Frappe
+writes the file itself. Church Features hides a disabled module through the site's own layer of the
+dock and each user's (`Dock` rows with `standard` off), never through the files.
+
 ## Onboarding steps and form tours
 
 A module's `Module Onboarding` is the checklist a new church works through, and each step carries a
@@ -440,11 +460,10 @@ A module's `Module Onboarding` is the checklist a new church works through, and 
 silently, so `churchit/tests/test_onboarding_hygiene.py` checks them rather than leaving them to
 review:
 
-- **An onboarding is rendered only where a `Workspace Sidebar` names it.** Set
-  `module_onboarding` on the module's sidebar record in `churchit/workspace_sidebar/`, and bump its
-  `modified`. Without it the records import, the desk shows nothing, and no error is raised. The
-  `onboarding` block some workspaces still carry in their `content` is the pre-v16 mechanism and
-  renders nothing.
+- **An onboarding is rendered only in its module's sidebar.** Frappe shows the earliest
+  onboarding of each module, so give it the `module` of a module that ships a sidebar, and give a
+  module one onboarding. The `onboarding` block some workspaces still carry in their `content` is
+  the pre-v16 mechanism and renders nothing.
 - **Only two step actions start the tour.** `Create Entry` for a normal doctype and
   `Show Form Tour` for a Single, which routes to the settings page and then starts the tour.
   `Go to Page` and `Update Settings` both route to the form and ignore `form_tour` entirely, so a
