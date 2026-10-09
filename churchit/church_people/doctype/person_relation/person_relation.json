@@ -9,7 +9,8 @@
  "field_order": [
   "section_break_mhmq",
   "person",
-  "type"
+  "type",
+  "from_family"
  ],
  "fields": [
   {
@@ -35,13 +36,22 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "description": "Filled in from the Family's 'Relationship to Head' and kept up to date. Untick it to keep a type you set by hand.",
+   "fieldname": "from_family",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "From Family"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-14 00:00:11.595410",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Relation",

@@ -82,15 +82,6 @@ def execute():
 	_create_member_email_group()
 
 
-def after_sync():
-	"""Runs after frappe's ``after_app_install`` hook, which auto-generates the
-	"Tools" desktop icon from the Tools workspace. That icon does not exist yet
-	when ``execute()`` (``after_install``) runs, so reordering has to happen
-	here instead. Otherwise Tools keeps its default idx of 0 and lands first.
-	"""
-	_reorder_default_desktop_icons()
-
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -273,6 +264,11 @@ def _create_person_relation_types():
 		"Stepmother",
 		"Stepbrother",
 		"Stepsister",
+		"Stepson",
+		"Stepdaughter",
+		"Son-in-law",
+		"Daughter-in-law",
+		"Cousin",
 	):
 		_insert_if_missing("Person Relation Type", {"type": relation}, type=relation)
 
@@ -931,35 +927,3 @@ def _create_default_life_event_types():
 		"Conversion",
 	):
 		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
-
-
-def _reorder_default_desktop_icons():
-	"""Push frappe's default desktop icons (Framework, Tools, ...) behind the
-	church icons on the desk grid, ending with Settings, Tools, then Framework.
-
-	Icons sort by idx; churchit ships its icons with idx 1-13 (Summary first),
-	but frappe's icons default to idx 0 and would land in front. frappe installs
-	(and creates its icons) before churchit, so they all exist by the time this
-	patch runs. Tools has no app set (it's auto-generated from the workspace,
-	not a fixture), so app must be checked in Python, because an "app != churchit"
-	filter in SQL silently drops NULL rows instead of matching them.
-	"""
-	pinned_last = ["Settings", "Tools", "Framework"]
-
-	icons = frappe.get_all(
-		"Desktop Icon",
-		filters={"parent_icon": ("is", "not set"), "idx": ("<", 90)},
-		fields=["name", "app"],
-		order_by="label asc",
-	)
-	pos = 90
-	for icon in icons:
-		if icon.app == "churchit" or icon.name in pinned_last:
-			continue
-		frappe.db.set_value("Desktop Icon", icon.name, "idx", pos, update_modified=False)
-		pos += 1
-
-	for name in pinned_last:
-		if frappe.db.exists("Desktop Icon", name):
-			frappe.db.set_value("Desktop Icon", name, "idx", pos, update_modified=False)
-			pos += 1

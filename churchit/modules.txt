@@ -10,3 +10,5 @@ Church Communications
 Church Operations
 Church Website
 Church Setup
+Church Summary
+Church Help

@@ -140,6 +140,8 @@ class TestCommunityPrayerRequestsWebForm(FrappeTestCase):
 		data = json.dumps(
 			{
 				"title": "_Test Community Submitted",
+				# The form's default; Frappe checks mandatory fields before it fills defaults.
+				"status": "Requested",
 				"type": self.public.type,
 				"request": "Please pray.",
 				"requestor": person.name,

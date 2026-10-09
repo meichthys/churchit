@@ -1,7 +1,10 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Birthdays and wedding anniversaries falling in a window of days, as a bulletin prints them."""
+"""Birthdays and wedding anniversaries falling in a window of days, as a bulletin prints them.
+
+People who ticked Hide from Directory and Bulletin are left out, and so is a couple's anniversary when either is.
+"""
 
 import frappe
 from frappe.utils import formatdate, getdate
@@ -20,6 +23,7 @@ def birthdays(start, end, members_only=True, church=None):
 		.on((LifeEvent.parent == Person.name) & (LifeEvent.parenttype == "Person"))
 		.select(Person.full_name, LifeEvent.date)
 		.where((LifeEvent.event_type == "Birth") & LifeEvent.date.isnotnull())
+		.where(Person.hide_from_directory == 0)
 	)
 	if members_only:
 		query = query.where(Person.membership_status == ACTIVE_MEMBER_STATUS)
@@ -35,7 +39,7 @@ def birthdays(start, end, members_only=True, church=None):
 
 def anniversaries(start, end, members_only=True, church=None):
 	"""Couples whose wedding anniversary falls between *start* and *end*, as (day, name), one row per couple."""
-	filters = {"is_married": 1, "anniversary": ("is", "set")}
+	filters = {"is_married": 1, "anniversary": ("is", "set"), "hide_from_directory": 0}
 	if members_only:
 		filters["membership_status"] = ACTIVE_MEMBER_STATUS
 	if church:
@@ -51,6 +55,8 @@ def anniversaries(start, end, members_only=True, church=None):
 	for person in people:
 		occurrence = occurrence_between(person.anniversary, start, end)
 		if not occurrence or person.name in listed:
+			continue
+		if person.spouse and frappe.db.get_value("Person", person.spouse, "hide_from_directory"):
 			continue
 		listed.update({person.name, person.spouse})
 		rows.append((occurrence, couple_name(person)))

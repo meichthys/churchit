@@ -51,6 +51,7 @@ class TestPortalMembers(FrappeTestCase):
 		frappe.set_user(self.member)
 		person = frappe.get_doc("Person", self.own.name)
 		person.alergies = "_Test Peanuts"
+		person.hide_from_directory = 1
 		person.save()
 
 		person.membership_status = "Active"

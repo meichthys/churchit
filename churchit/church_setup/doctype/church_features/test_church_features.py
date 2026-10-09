@@ -1,9 +1,6 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
-import re
-
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.exceptions import ValidationError
@@ -12,10 +9,10 @@ from frappe.utils import now
 
 from churchit.church_setup.doctype.church_features.church_features import (
 	MODULE_FIELDS,
-	apply_after_app_install,
 	apply_on_migrate,
 )
 from churchit.tests.helpers import (
+	RollbackEachTest,
 	ensure,
 	ensure_root_church,
 	ensure_user,
@@ -26,106 +23,84 @@ from churchit.tests.helpers import (
 )
 
 
-class TestChurchFeatures(FrappeTestCase):
-	def setUp(self):
-		self.features = frappe.get_single("Church Features")
-		self.addCleanup(self.restore)
+def dock_flags(user=""):
+	"""The hidden flag of each entry in the site's arrangement of the Churchit dock, or one user's."""
+	name = frappe.db.get_value("Dock", {"app": "churchit", "standard": 0, "user": user})
+	return {row.link_to: row.hidden for row in frappe.get_doc("Dock", name).items} if name else {}
 
-	def restore(self):
+
+class TestChurchFeatures(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		# Runs after the rollback, so no cached dock layer outlives its rows.
+		self.addCleanup(frappe.clear_cache)
 		features = frappe.get_single("Church Features")
 		for field in MODULE_FIELDS:
 			features.set(field, 1)
-		features.show_other_apps = 0
 		features.save()
 
-	def test_disabling_a_module_hides_its_workspaces(self):
-		self.features.enable_missions = 0
-		self.features.save()
+	def set_module(self, field, enabled):
+		features = frappe.get_single("Church Features")
+		features.set(field, enabled)
+		features.save()
+
+	def test_disabling_a_module_hides_its_workspaces_and_dock_entry(self):
+		self.set_module("enable_missions", 0)
 
 		self.assertEqual(frappe.db.get_value("Workspace", "Missions", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Manual: Missions", "is_hidden"), 1)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Missions", "hidden"), 1)
-		self.assertIn("Church Missions", frappe.get_doc("User", "Administrator").get_blocked_modules())
+		self.assertEqual(dock_flags()["Missions"], 1)
+		self.assertEqual(dock_flags()["People"], 0)
 
-	def test_saved_desktop_layouts_follow_the_modules(self):
-		"""A user who rearranged their desktop sees their saved copy of the icons."""
-		user = ensure_user("_test_layout_user@example.com", "Layout", roles=("Church Manager",))
-		icons = [{"name": "Missions", "label": "Missions", "hidden": 0}, {"name": "People", "hidden": 0}]
-		frappe.get_doc({"doctype": "Desktop Layout", "user": user, "layout": json.dumps(icons)}).insert(
-			ignore_permissions=True
-		)
+	def test_re_enabling_restores_what_was_hidden(self):
+		self.set_module("enable_missions", 0)
+		self.set_module("enable_missions", 1)
 
-		def saved_flags():
-			layout = json.loads(frappe.db.get_value("Desktop Layout", user, "layout"))
-			return {icon["name"]: icon["hidden"] for icon in layout}
+		self.assertEqual(frappe.db.get_value("Workspace", "Missions", "is_hidden"), 0)
+		self.assertEqual(dock_flags()["Missions"], 0)
 
-		self.features.enable_missions = 0
-		self.features.save()
-		self.assertEqual(saved_flags(), {"Missions": 1, "People": 0})
-
-		features = frappe.get_single("Church Features")
-		features.enable_missions = 1
-		features.save()
-		self.assertEqual(saved_flags(), {"Missions": 0, "People": 0})
-
-	def test_other_apps_icons_are_hidden_until_shown(self):
-		self.features.show_other_apps = 0
-		self.features.save()
-
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Framework", "hidden"), 1)
-		# Inside the Framework folder: left visible, it would land on the desktop by itself.
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Users", "hidden"), 1)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "People", "hidden"), 0)
-
-		features = frappe.get_single("Church Features")
-		features.show_other_apps = 1
-		features.save()
-
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Framework", "hidden"), 0)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Users", "hidden"), 0)
-
-	def test_an_app_installed_later_starts_hidden(self):
-		self.features.show_other_apps = 0
-		self.features.save()
-		icon = frappe.get_doc(
+	def test_a_users_own_dock_follows_the_modules(self):
+		"""A user's own arrangement is laid over the site's and would otherwise keep the module."""
+		user = ensure_user("_test_dock_user@example.com", "Dock", roles=("Church Manager",))
+		frappe.get_doc(
 			{
-				"doctype": "Desktop Icon",
-				"label": "_Test Other App",
-				"icon_type": "App",
-				"link_type": "External",
-				"app": "_test_other_app",
-				"link": "/_test_other_app",
+				"doctype": "Dock",
+				"app": "churchit",
+				"user": user,
+				"items": [
+					{"link_type": "Sidebar", "link_to": "Missions"},
+					{"link_type": "Sidebar", "link_to": "People"},
+				],
 			}
 		).insert(ignore_permissions=True)
 
-		apply_after_app_install("_test_other_app")
+		self.set_module("enable_missions", 0)
+		self.assertEqual(dock_flags(user), {"Missions": 1, "People": 0})
 
-		self.assertEqual(frappe.db.get_value("Desktop Icon", icon.name, "hidden"), 1)
+		self.set_module("enable_missions", 1)
+		self.assertEqual(dock_flags(user), {"Missions": 0, "People": 0})
 
-	def test_re_enabling_restores_what_was_hidden(self):
-		self.features.enable_missions = 0
-		self.features.save()
+	def test_an_entry_hidden_by_hand_stays_hidden(self):
+		self.set_module("enable_missions", 0)
+		dock = frappe.get_doc("Dock", {"app": "churchit", "standard": 0, "user": ""})
+		next(row for row in dock.items if row.link_to == "Prayers").hidden = 1
+		dock.save(ignore_permissions=True)
 
-		features = frappe.get_single("Church Features")
-		features.enable_missions = 1
-		features.save()
+		self.set_module("enable_prayers", 0)
+		self.set_module("enable_prayers", 1)
 
-		self.assertEqual(frappe.db.get_value("Workspace", "Missions", "is_hidden"), 0)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Missions", "hidden"), 0)
-		self.assertNotIn("Church Missions", frappe.get_doc("User", "Administrator").get_blocked_modules())
+		self.assertEqual(dock_flags()["Prayers"], 1)
 
-	def test_workspaces_that_ship_hidden_stay_hidden(self):
-		"""Customizations workspaces ship with is_hidden set; toggling the module
-		off and back on must not reveal them."""
-		self.features.enable_customizations = 0
-		self.features.save()
+	def test_the_sites_dock_gains_entries_churchit_ships_later(self):
+		"""A saved arrangement is the whole rail, so an entry it does not name would never show."""
+		frappe.db.delete("Dock", {"app": "churchit", "standard": 0, "user": ""})
+		frappe.get_doc(
+			{"doctype": "Dock", "app": "churchit", "items": [{"link_type": "Sidebar", "link_to": "People"}]}
+		).insert(ignore_permissions=True)
 
-		features = frappe.get_single("Church Features")
-		features.enable_customizations = 1
-		features.save()
+		apply_on_migrate()
 
-		self.assertEqual(frappe.db.get_value("Workspace", "Tools", "is_hidden"), 1)
-		self.assertEqual(frappe.db.get_value("Workspace", "Build", "is_hidden"), 1)
+		self.assertEqual(set(dock_flags()), {row.link_to for row in frappe.get_doc("Dock", "churchit").items})
 
 	def test_migrate_stores_the_defaults_nobody_saved(self):
 		"""Frappe gives a Single its defaults only while it stores nothing. A site that
@@ -140,26 +115,17 @@ class TestChurchFeatures(FrappeTestCase):
 		features = frappe.get_single("Church Features")
 		self.assertEqual(features.enable_missions, 1)
 		self.assertEqual(features.enable_multi_church, 0)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Missions", "hidden"), 0)
 		self.assertEqual(frappe.db.get_value("Workspace", "Missions", "is_hidden"), 0)
+		self.assertEqual(dock_flags().get("Missions", 0), 0)
 
-	def test_settings_workspace_survives_disabling_setup(self):
-		self.features.enable_setup = 0
-		self.features.save()
+	def test_settings_survive_disabling_setup(self):
+		self.set_module("enable_setup", 0)
 
 		self.assertEqual(frappe.db.get_value("Workspace", "Summary", "is_hidden"), 1)
+		self.assertEqual(frappe.db.get_value("Workspace", "Help", "is_hidden"), 1)
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
-		self.assertEqual(frappe.db.get_value("Desktop Icon", "Settings", "hidden"), 0)
-
-	def test_every_workspace_header_link_has_a_desktop_icon(self):
-		"""The header shows a module only while its desktop icon is visible, so a
-		link whose label matches no icon would never show."""
-		with open(frappe.get_app_path("churchit", "fixtures", "custom_html_block.json")) as file:
-			header = next(block for block in json.load(file) if block["name"] == "WorkspaceHeader")
-		labels = re.findall(r'<span class="ws-label">([^<]+)</span>', header["html"])
-
-		self.assertEqual(len(labels), 13)
-		self.assertEqual([label for label in labels if not frappe.db.exists("Desktop Icon", label)], [])
+		self.assertEqual(dock_flags()["Summary"], 1)
+		self.assertEqual(dock_flags()["Settings"], 0)
 
 
 class TestMultiChurchSwitch(FrappeTestCase):

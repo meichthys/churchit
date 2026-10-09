@@ -12,23 +12,37 @@ frappe.query_reports["Church Directory Report"] = {
 	},
 
 	_directory_args: function (report) {
-		return {
-			members_only: report.get_filter_value("members_only") ? 1 : 0,
-			group_by_family: report.get_filter_value("group_by_family") ? 1 : 0,
-			show_photos: report.get_filter_value("show_photos") ? 1 : 0,
-			show_roles: report.get_filter_value("show_roles") ? 1 : 0,
-			show_membership: report.get_filter_value("show_membership") ? 1 : 0,
-			show_hoh: report.get_filter_value("show_hoh") ? 1 : 0,
-			show_church_image: report.get_filter_value("show_church_image") ? 1 : 0,
-			show_birthdays: report.get_filter_value("show_birthdays") ? 1 : 0,
-			show_anniversaries: report.get_filter_value("show_anniversaries") ? 1 : 0,
-			show_missionaries: report.get_filter_value("show_missionaries") ? 1 : 0,
-			blank_back_cover: report.get_filter_value("blank_back_cover") ? 1 : 0,
-			show_page_numbers: report.get_filter_value("show_page_numbers") ? 1 : 0,
-			include_notes_page: report.get_filter_value("include_notes_page") ? 1 : 0,
-			booklet_printing: report.get_filter_value("booklet_printing") ? 1 : 0,
-			church: report.get_filter_value("church") || null,
-		};
+		const args = { church: report.get_filter_value("church") || null };
+		for (const filter of report.filters) {
+			if (filter.df.fieldtype !== "Check") continue;
+			args[filter.df.fieldname] = filter.get_value() ? 1 : 0;
+		}
+		return args;
+	},
+
+	// Lays the check filters out in labelled columns, one per `group`.
+	_group_options: function (report) {
+		const $options = $(`<div class="directory-options">
+			<style>
+				.directory-options { display: flex; flex-wrap: wrap; gap: var(--margin-md) 40px; width: 100%; padding: var(--padding-sm) 0; }
+				.directory-options .directory-option-heading { font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); margin-bottom: var(--margin-xs); }
+				#page-query-report .directory-options .frappe-control { width: auto; max-width: none; padding: 0; margin: 0; }
+				.directory-options .checkbox { margin: 0; }
+				.directory-options .checkbox label { padding: 1px 0; }
+				.directory-options .help-box { display: none; }
+			</style>
+		</div>`).appendTo(report.page.page_form);
+		const groups = {};
+		for (const filter of report.filters) {
+			const group = filter.df.group;
+			if (!group) continue;
+			if (!groups[group]) {
+				groups[group] = $('<div class="directory-option-group"></div>')
+					.append($('<div class="directory-option-heading"></div>').text(group))
+					.appendTo($options);
+			}
+			groups[group].append(filter.wrapper);
+		}
 	},
 
 	_refresh_preview: function (report) {
@@ -65,90 +79,126 @@ frappe.query_reports["Church Directory Report"] = {
 			label: __("Members Only"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("People"),
 		},
 		{
 			fieldname: "group_by_family",
 			label: __("Group by Family"),
 			fieldtype: "Check",
 			default: 1,
-		},
-		{
-			fieldname: "show_church_image",
-			label: __("Show Church Image"),
-			fieldtype: "Check",
-			default: 0,
+			group: __("People"),
 		},
 		{
 			fieldname: "show_photos",
-			label: __("Show Photos"),
+			label: __("Photos"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Show"),
 		},
 		{
 			fieldname: "show_roles",
-			label: __("Show Positions"),
+			label: __("Positions"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Show"),
 		},
 		{
 			fieldname: "show_membership",
-			label: __("Show Membership Status"),
+			label: __("Membership Status"),
 			fieldtype: "Check",
 			default: 1,
+			group: __("Show"),
 		},
 		{
 			fieldname: "show_hoh",
-			label: __("Show Head of Household"),
+			label: __("Head of Household"),
 			fieldtype: "Check",
 			default: 1,
+			group: __("Show"),
+		},
+		{
+			fieldname: "show_phone",
+			label: __("Phone Numbers"),
+			fieldtype: "Check",
+			default: 1,
+			group: __("Contact Details"),
+		},
+		{
+			fieldname: "show_email",
+			label: __("Emails"),
+			fieldtype: "Check",
+			default: 1,
+			group: __("Contact Details"),
+		},
+		{
+			fieldname: "show_address",
+			label: __("Addresses"),
+			fieldtype: "Check",
+			default: 1,
+			group: __("Contact Details"),
 		},
 		{
 			fieldname: "show_birthdays",
-			label: __("Include Birthday List"),
+			label: __("Birthday List"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Extra Pages"),
 		},
 		{
 			fieldname: "show_anniversaries",
-			label: __("Include Anniversary List"),
+			label: __("Anniversary List"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Extra Pages"),
 		},
 		{
 			fieldname: "show_missionaries",
-			label: __("Include Missionaries"),
+			label: __("Missionaries"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Extra Pages"),
+		},
+		{
+			fieldname: "include_notes_page",
+			label: __("Notes Page"),
+			fieldtype: "Check",
+			default: 0,
+			group: __("Extra Pages"),
+		},
+		{
+			fieldname: "show_church_image",
+			label: __("Church Image on Cover"),
+			fieldtype: "Check",
+			default: 0,
+			group: __("Printing"),
+		},
+		{
+			fieldname: "show_page_numbers",
+			label: __("Page Numbers"),
+			fieldtype: "Check",
+			default: 0,
+			group: __("Printing"),
+		},
+		{
+			fieldname: "booklet_printing",
+			label: __("Booklet"),
+			fieldtype: "Check",
+			default: 0,
+			group: __("Printing"),
 		},
 		{
 			fieldname: "blank_back_cover",
 			label: __("Blank Back Cover"),
 			fieldtype: "Check",
 			default: 0,
+			group: __("Printing"),
 			depends_on: "eval:!doc.booklet_printing",
-		},
-		{
-			fieldname: "show_page_numbers",
-			label: __("Show Page Numbers"),
-			fieldtype: "Check",
-			default: 0,
-		},
-		{
-			fieldname: "include_notes_page",
-			label: __("Include Notes Page"),
-			fieldtype: "Check",
-			default: 0,
-		},
-		{
-			fieldname: "booklet_printing",
-			label: __("Booklet Printing"),
-			fieldtype: "Check",
-			default: 0,
 		},
 	],
 
 	onload: function (report) {
 		frappe.query_reports["Church Directory Report"]._report = report;
+		frappe.query_reports["Church Directory Report"]._group_options(report);
 
 		report.page.add_inner_button(__("Print Directory"), function () {
 			const args = frappe.query_reports["Church Directory Report"]._directory_args(report);

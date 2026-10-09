@@ -1,14 +1,8 @@
 {
- "app": "churchit",
  "charts": [],
- "content": "[{\"id\":\"chWsHeader\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WorkspaceHeader\",\"col\":12}},{\"id\":\"ciUonBt9cC\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\",\"col\":12}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vWebsiteView\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Website\",\"col\":12}}]",
+ "content": "[{\"id\":\"ciUonBt9cC\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\",\"col\":12}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"id\":\"vWebsiteView\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Website\",\"col\":12}}]",
  "creation": "2026-07-08 09:43:37.127745",
- "custom_blocks": [
-  {
-   "custom_block_name": "WorkspaceHeader",
-   "label": "WorkspaceHeader"
-  }
- ],
+ "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -204,7 +198,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-04 12:00:00.000000",
+ "modified": "2026-10-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
@@ -239,6 +233,7 @@
    "url": "/home"
   }
  ],
+ "standard": 1,
  "title": "Web Site",
  "type": "Workspace"
 }

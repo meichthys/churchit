@@ -11,7 +11,6 @@
   "section_break_oyuw",
   "title",
   "church",
-  "person",
   "agency",
   "mission_statement",
   "column_break_vedu",
@@ -21,6 +20,8 @@
   "photo",
   "publish",
   "sensitive",
+  "people_section",
+  "people",
   "contact_information_section",
   "emails",
   "phones",
@@ -184,11 +185,16 @@
    "options": "Phone Number"
   },
   {
-   "description": "Link an associated `Person` (or primary contact person). Optional: supported organizations and ministries have no single person to link.",
-   "fieldname": "person",
-   "fieldtype": "Link",
-   "label": "Person",
-   "options": "Person"
+   "fieldname": "people_section",
+   "fieldtype": "Section Break",
+   "label": "People"
+  },
+  {
+   "description": "The people this missionary record is about, such as a couple and their children, or the contact person at a supported organization or ministry.",
+   "fieldname": "people",
+   "fieldtype": "Table",
+   "label": "People",
+   "options": "Missionary Person"
   },
   {
    "collapsible": 1,
@@ -253,7 +259,7 @@
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-08 16:00:00",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",

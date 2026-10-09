@@ -80,11 +80,6 @@ class Shot:
 		return viewport
 
 
-def hide_frappe_builder(page):
-	"""The dev bench has Frappe Builder installed. A churchit install does not."""
-	page.locator(".desktop-icon").filter(has_text="Frappe Builder").evaluate("icon => icon.remove()")
-
-
 def select_two_wilsons(page):
 	page.fill(".station-search", "Wilson")
 	members = page.locator(".station-results .member")
@@ -117,10 +112,10 @@ SHOTS = [
 		slug="desk",
 		title="The desk",
 		module="Desk",
-		caption="Every part of churchit is an app on the home screen: people, finances, ministries, missions "
-		"and the rest. Open one to see its workspace, or search for anything from the bar at the top.",
-		desktop=View("/desk", hide_frappe_builder, height=600),
-		mobile=View("/desk", hide_frappe_builder),
+		caption="The dock on the left holds every part of churchit: people, finances, ministries, missions "
+		"and the rest. Open one to see its sidebar and workspace, or search for anything from the bar.",
+		desktop=View("/desk/summary", height=600),
+		mobile=View("/desk/summary"),
 	),
 	Shot(
 		slug="rolodex",

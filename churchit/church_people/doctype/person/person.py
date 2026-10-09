@@ -31,29 +31,39 @@ class Person(Document):
 	def on_update(self):
 		self.sync_church_permission()
 		self.sync_family_church()
+		self.sync_family_members()
 
-		# The rosters follow the person, so the right to edit this person is the one
-		# that counts, not a right to the Family. Leave the old family first: saving
-		# it clears `family` on everyone it no longer lists, and saving the new one
-		# sets it back.
+	def sync_family_members(self):
+		"""Put this person on their family's roster, bringing a newly linked or moving spouse along.
+
+		The rosters follow the person, so the right to edit this person is the one
+		that counts, not a right to the Family. Leave the old family before the new
+		one is saved, so the new one's labels see who its members are.
+		"""
 		before = self.get_doc_before_save()
+		moving_spouse = self.spouse_moving_along
+		if moving_spouse:
+			frappe.db.set_value("Person", moving_spouse, "is_head_of_household", 0)
+		spouse = moving_spouse or self.spouse_without_family
 		if before and before.family and before.family != self.family:
-			self.remove_from_family(before.family)
+			self.remove_from_family(before.family, spouse)
 		if self.family:
 			family = frappe.get_doc("Family", self.family)
-			if not any(member.member == self.name for member in family.members):
-				family.append("members", {"member": self.name})
+			for person in filter(None, (self.name, spouse)):
+				if not any(member.member == person for member in family.members):
+					family.append("members", {"member": person})
 			family.save(ignore_permissions=True)
+		if self.family or (before and before.family):
+			# The Family rewrote this person's From Family relation rows.
+			self.load_children_from_db()
 
-	def remove_from_family(self, family_name):
-		"""Drop this person from *family_name*'s members, when that family still exists."""
+	def remove_from_family(self, family_name, spouse=None):
+		"""Drop this person, and *spouse* when given, from *family_name*'s members, when that family still exists."""
 		if not frappe.db.exists("Family", family_name):
 			return
 		family = frappe.get_doc("Family", family_name)
-		for member in family.members:
-			if member.member == self.name:
-				family.remove(member)
-				break
+		for member in [member for member in family.members if member.member in (self.name, spouse)]:
+			family.remove(member)
 		family.save(ignore_permissions=True)
 
 	def sync_church_permission(self):
@@ -94,6 +104,8 @@ class Person(Document):
 	def on_trash(self):
 		if self.spouse:
 			self.unlink_spouse(self.spouse)
+		# Leaving a family keeps its rows as hand-entered ones, which would block the delete.
+		frappe.db.delete("Person Relation", {"parenttype": "Person", "person": self.name, "from_family": 1})
 		# A bulk delete takes the Family out first, and then there is no member row left to remove.
 		if self.family:
 			self.remove_from_family(self.family)
@@ -136,6 +148,7 @@ class Person(Document):
 				family_doc.save(ignore_permissions=True)
 
 		self.sync_spouse()
+		self.share_family_with_spouse()
 
 	def sync_spouse(self):
 		"""Mirror the spouse link, anniversary and Husband/Wife relation onto the other person."""
@@ -152,6 +165,48 @@ class Person(Document):
 			self.anniversary = None
 		self.spouse = None
 		self.sync_spouse_relation(None)
+
+	@property
+	def has_new_spouse(self):
+		before = self.get_doc_before_save()
+		return bool(self.spouse) and (not before or before.spouse != self.spouse)
+
+	@property
+	def spouse_without_family(self):
+		"""A newly linked spouse with no family yet, who joins this person's."""
+		if self.has_new_spouse and not frappe.db.get_value("Person", self.spouse, "family"):
+			return self.spouse
+
+	@property
+	def spouse_moving_along(self):
+		"""The spouse who shared this person's old family, and so moves with them to the new one."""
+		before = self.get_doc_before_save()
+		has_moved = self.family and before and before.family and before.family != self.family
+		if (
+			has_moved
+			and self.spouse
+			and frappe.db.get_value("Person", self.spouse, "family") == before.family
+		):
+			return self.spouse
+
+	@property
+	def household_name(self):
+		return f"{self.last_name} - {self.first_name}" if self.last_name else self.first_name
+
+	def share_family_with_spouse(self):
+		"""Give a newly linked couple one family: this person's, the spouse's, or a new one this person heads."""
+		if self.family or not self.has_new_spouse:
+			return
+		self.family = frappe.db.get_value("Person", self.spouse, "family")
+		if self.family:
+			return
+		family = frappe.get_doc({"doctype": "Family", "family_name": self.household_name})
+		family.insert(ignore_permissions=True)
+		self.family = family.name
+		self.is_head_of_household = 1
+		if not frappe.flags.in_import:
+			family_link = get_link_to_form("Family", family.name, family.family_name)
+			frappe.msgprint(f"👨‍👩‍👧‍👦 New family created: {family_link}")
 
 	def link_spouse(self):
 		"""Point the spouse back at this person, sharing the anniversary and relation rows."""
@@ -205,14 +260,14 @@ class Person(Document):
 	@frappe.whitelist()
 	def new_family_from_person(self):
 		# Check if a family with this person's name already exists
-		existing_family = frappe.db.exists("Family", {"family_name": f"{self.last_name} - {self.first_name}"})
+		existing_family = frappe.db.exists("Family", {"family_name": self.household_name})
 
 		if existing_family:
 			# Set this person's family to the existing one
 			self.family = existing_family
 			self.is_head_of_household = False  # Not head of household in an existing family
 			self.save()
-			family_link = get_link_to_form("Family", existing_family, f"{self.last_name} - {self.first_name}")
+			family_link = get_link_to_form("Family", existing_family, self.household_name)
 			frappe.msgprint(
 				f"⚠️ The {family_link} family already exists. This person has been added to that family."
 			)
@@ -220,7 +275,7 @@ class Person(Document):
 			return  # Don't create a new family
 
 		doc = frappe.new_doc("Family")
-		doc.family_name = f"{self.last_name} - {self.first_name}"
+		doc.family_name = self.household_name
 		doc.save()
 		self.set("family", doc.name)
 		self.set("is_head_of_household", True)

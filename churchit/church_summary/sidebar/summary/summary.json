@@ -1,0 +1,33 @@
+{
+ "app": "churchit",
+ "creation": "2026-10-08 19:41:39.321293",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "header_icon": "chart-column",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "child": 0,
+   "collapsible": 1,
+   "hidden": 0,
+   "icon": "home",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "Summary",
+   "link_to": "Summary",
+   "link_type": "Workspace",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-09 12:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Summary",
+ "name": "Summary",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Summary"
+}

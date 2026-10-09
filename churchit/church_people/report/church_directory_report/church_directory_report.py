@@ -8,6 +8,7 @@ from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
 from frappe.utils.pdf import inline_private_images
 from frappe.utils.weasyprint import import_weasyprint
+from markupsafe import Markup
 from pypika import Order
 
 from churchit.church_people.report.church_directory_report.booklet import impose_booklet
@@ -16,6 +17,8 @@ from churchit.contacts import primary_address_query, primary_email_query, primar
 from churchit.query import Day, Month
 from churchit.scripture import get_printable_passage
 from churchit.utils import set_report_link_titles
+
+ADDRESS_FIELDS = ("address_line1", "address_line2", "city", "state", "pincode")
 
 
 def execute(filters=None):
@@ -61,22 +64,14 @@ def get_individual_data(filters):
 	members_only = frappe.utils.cint((filters or {}).get("members_only", 0))
 
 	Person = frappe.qb.DocType("Person")
-	Family = frappe.qb.DocType("Family")
-	Address = frappe.qb.DocType("Address")
 
 	query = (
 		frappe.qb.from_(Person)
-		.left_join(Family)
-		.on(Family.name == Person.family)
-		.left_join(Address)
-		.on(Address.name == Coalesce(primary_address_query(Person), primary_address_query(Family, "Family")))
 		.select(
 			Person.name.as_("person"),
 			Person.family,
 			primary_phone_query(Person).as_("primary_phone"),
 			primary_email_query(Person).as_("email"),
-			Coalesce(Address.city, "").as_("city"),
-			Coalesce(Address.state, "").as_("state"),
 		)
 		.orderby(Person.last_name)
 		.orderby(Person.first_name)
@@ -84,7 +79,7 @@ def get_individual_data(filters):
 	if members_only:
 		query = query.where(Person.membership_status == "Active")
 
-	return scoped(query, Person, filters).run(as_dict=True)
+	return scoped(with_home_address(listed(query, Person), Person), Person, filters).run(as_dict=True)
 
 
 def get_data(filters):
@@ -116,7 +111,7 @@ def get_data(filters):
 	if members_only:
 		members_query = members_query.where(Person.membership_status == "Active")
 
-	all_members = scoped(members_query, Person, filters).run(as_dict=True)
+	all_members = scoped(listed(members_query, Person), Person, filters).run(as_dict=True)
 
 	members_by_family = {}
 	for m in all_members:
@@ -149,6 +144,9 @@ def get_directory_html(
 	show_roles: bool = 0,
 	show_membership: bool = 1,
 	show_hoh: bool = 1,
+	show_phone: bool = 1,
+	show_email: bool = 1,
+	show_address: bool = 1,
 	show_church_image: bool = 0,
 	show_birthdays: bool = 0,
 	show_anniversaries: bool = 0,
@@ -168,6 +166,9 @@ def get_directory_html(
 	show_roles = frappe.utils.cint(show_roles)
 	show_membership = frappe.utils.cint(show_membership)
 	show_hoh = frappe.utils.cint(show_hoh)
+	show_phone = frappe.utils.cint(show_phone)
+	show_email = frappe.utils.cint(show_email)
+	show_address = frappe.utils.cint(show_address)
 	show_church_image = frappe.utils.cint(show_church_image)
 	show_birthdays = frappe.utils.cint(show_birthdays)
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
@@ -198,11 +199,7 @@ def get_directory_html(
 			Family.name.as_("family_id"),
 			Family.family_name,
 			Family.photo.as_("family_photo"),
-			Coalesce(Address.address_line1, "").as_("address_line1"),
-			Coalesce(Address.address_line2, "").as_("address_line2"),
-			Coalesce(Address.city, "").as_("city"),
-			Coalesce(Address.state, "").as_("state"),
-			Coalesce(Address.pincode, "").as_("pincode"),
+			*get_address_columns(Address),
 		)
 		.orderby(Family.family_name)
 	)
@@ -231,8 +228,12 @@ def get_directory_html(
 	)
 	if members_only:
 		members_query = members_query.where(Person.membership_status == "Active")
+	if show_missionaries:
+		members_query = without_missionaries(members_query, Person, filters)
 
-	all_members = scoped(members_query, Person, filters).run(as_dict=True)
+	all_members = scoped(with_home_address(listed(members_query, Person), Person), Person, filters).run(
+		as_dict=True
+	)
 
 	# Fetch active positions if requested
 	roles_by_person = {}
@@ -327,8 +328,12 @@ def get_directory_html(
 	)
 	if members_only:
 		individuals_query = individuals_query.where(Person.membership_status == "Active")
+	if show_missionaries:
+		individuals_query = without_missionaries(individuals_query, Person, filters)
 
-	individuals_raw = scoped(individuals_query, Person, filters).run(as_dict=True)
+	individuals_raw = scoped(
+		with_home_address(listed(individuals_query, Person), Person), Person, filters
+	).run(as_dict=True)
 
 	for p in individuals_raw:
 		p["positions"] = roles_by_person.get(p.person_name, [])
@@ -352,66 +357,38 @@ def get_directory_html(
 	# Build merged sorted entry list
 	all_entries = []
 
+	hidden_head_families = get_families_with_hidden_head()
 	if group_by_family:
 		for family in families:
+			family_name = listed_family_name(family.family_name, family.family_id in hidden_head_families)
 			members = members_by_family.get(family.family_id, [])
+			for member in members:
+				member["has_own_address"] = any(member[field] != family[field] for field in ADDRESS_FIELDS)
 			if members:
 				all_entries.append(
 					{
-						"sort_name": family.family_name,
-						"display_name": family.family_name + " Family",
+						"sort_name": family_name,
+						"display_name": family_name + " Family",
 						"is_individual": False,
 						"family_photo": family.family_photo,
-						"address_line1": family.address_line1,
-						"address_line2": family.address_line2,
-						"city": family.city,
-						"state": family.state,
-						"pincode": family.pincode,
+						**{field: family[field] for field in ADDRESS_FIELDS},
 						"members": members,
 					}
 				)
 
-		for person in individuals_raw:
-			sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
-			all_entries.append(
-				{
-					"sort_name": sort_key,
-					"display_name": person.full_name,
-					"is_individual": True,
-					"family_photo": None,
-					"address_line1": "",
-					"address_line2": "",
-					"city": "",
-					"state": "",
-					"pincode": "",
-					"members": [person],
-				}
-			)
-	else:
-		# Flat list: every person is their own entry
-		all_people = list(all_members) + list(individuals_raw)
-		# Fetch address info for family members
-		family_address = {}
-		for family in families:
-			family_address[family.family_id] = family
-
-		for person in all_people:
-			sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
-			fam = family_address.get(person.get("family"))
-			all_entries.append(
-				{
-					"sort_name": sort_key,
-					"display_name": person.full_name,
-					"is_individual": True,
-					"family_photo": None,
-					"address_line1": fam.address_line1 if fam else "",
-					"address_line2": fam.address_line2 if fam else "",
-					"city": fam.city if fam else "",
-					"state": fam.state if fam else "",
-					"pincode": fam.pincode if fam else "",
-					"members": [person],
-				}
-			)
+	# People without a family, or everyone in a flat list, are entries of their own
+	for person in individuals_raw if group_by_family else all_people:
+		sort_key = (person.get("last_name") or person.get("full_name") or "").strip()
+		all_entries.append(
+			{
+				"sort_name": sort_key,
+				"display_name": person.full_name,
+				"is_individual": True,
+				"family_photo": None,
+				**{field: person[field] for field in ADDRESS_FIELDS},
+				"members": [person],
+			}
+		)
 
 	all_entries.sort(key=lambda e: (e["sort_name"] or "").upper())
 
@@ -442,7 +419,7 @@ def get_directory_html(
 		if members_only:
 			birthdays_query = birthdays_query.where(Person.membership_status == "Active")
 
-		raw_birthdays = scoped(birthdays_query, Person, filters).run(as_dict=True)
+		raw_birthdays = scoped(listed(birthdays_query, Person), Person, filters).run(as_dict=True)
 		for row in raw_birthdays:
 			row["month_name"] = calendar.month_name[int(row.birth_month)]
 			row["month_day"] = f"{calendar.month_name[int(row.birth_month)]} {int(row.birth_day)}"
@@ -464,12 +441,14 @@ def get_directory_html(
 				Person.first_name.as_("person_first"),
 				Person.full_name.as_("person_full"),
 				Spouse.first_name.as_("spouse_first"),
+				Person.family.as_("family_id"),
 				Coalesce(Family.family_name, "").as_("family_name"),
 				Person.anniversary,
 				Month(Person.anniversary).as_("ann_month"),
 				Day(Person.anniversary).as_("ann_day"),
 			)
 			.where(Person.anniversary.isnotnull() & (Person.is_married == 1))
+			.where(Coalesce(Spouse.hide_from_directory, 0) == 0)
 			.orderby(Month(Person.anniversary))
 			.orderby(Day(Person.anniversary))
 			.orderby(Person.last_name)
@@ -478,7 +457,7 @@ def get_directory_html(
 		if members_only:
 			anniversaries_query = anniversaries_query.where(Person.membership_status == "Active")
 
-		raw_anniversaries = scoped(anniversaries_query, Person, filters).run(as_dict=True)
+		raw_anniversaries = scoped(listed(anniversaries_query, Person), Person, filters).run(as_dict=True)
 		seen_persons = set()
 		for row in raw_anniversaries:
 			if row.person_name in seen_persons:
@@ -488,8 +467,9 @@ def get_directory_html(
 				seen_persons.add(row.spouse_name)
 			row["month_name"] = calendar.month_name[int(row.ann_month)]
 			row["month_day"] = f"{calendar.month_name[int(row.ann_month)]} {int(row.ann_day)}"
-			if row.spouse_first and row.family_name:
-				row["display_name"] = f"{row.person_first} & {row.spouse_first} {row.family_name}"
+			family_name = listed_family_name(row.family_name, row.family_id in hidden_head_families)
+			if row.spouse_first and family_name:
+				row["display_name"] = f"{row.person_first} & {row.spouse_first} {family_name}"
 			elif row.spouse_first:
 				row["display_name"] = f"{row.person_full} & {row.spouse_first}"
 			else:
@@ -530,6 +510,8 @@ def get_directory_html(
 				if m.agency:
 					m["agency"] = agency_map.get(m.agency, m.agency)
 
+	generated_date = frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy")
+	church_name = church_doc.church_name if church_doc else ""
 	context = {
 		"church": church_doc,
 		"church_address": church_address,
@@ -539,6 +521,9 @@ def get_directory_html(
 		"show_roles": show_roles,
 		"show_membership": show_membership,
 		"show_hoh": show_hoh,
+		"show_phone": show_phone,
+		"show_email": show_email,
+		"show_address": show_address,
 		"show_church_image": show_church_image,
 		"birthdays": birthdays,
 		"anniversaries": anniversaries,
@@ -553,7 +538,8 @@ def get_directory_html(
 		"padding_pages": padding_pages,
 		"website": website,
 		"church_verse": church_verse,
-		"generated_date": frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy"),
+		"generated_date": generated_date,
+		"footer": get_css_string(f"{church_name} Church Directory  ·  {generated_date}"),
 	}
 
 	# Load the shipped template through the Jinja filesystem loader (path-only, so
@@ -586,6 +572,66 @@ def get_paginated_directory(options):
 	HTML, _CSS = import_weasyprint()
 	html = inline_private_images(frappe.call(get_directory_html, **options))
 	return HTML(string=html, base_url=frappe.utils.get_url()).render(dpi=200)
+
+
+def get_css_string(text):
+	"""*text* as a quoted CSS string, with every character that could end the string or the style escaped."""
+	escaped = "".join(char if char.isalnum() or char == " " else f"\\{ord(char):x} " for char in text)
+	return Markup(f'"{escaped}"')
+
+
+def get_address_columns(Address):
+	"""The printed address fields, blank when there is no address."""
+	return [Coalesce(getattr(Address, field), "").as_(field) for field in ADDRESS_FIELDS]
+
+
+def with_home_address(query, Person):
+	"""*query* with each person's primary address, else their family's."""
+	Family = frappe.qb.DocType("Family")
+	Address = frappe.qb.DocType("Address")
+	return (
+		query.left_join(Family)
+		.on(Family.name == Person.family)
+		.left_join(Address)
+		.on(Address.name == Coalesce(primary_address_query(Person), primary_address_query(Family, "Family")))
+		.select(*get_address_columns(Address))
+	)
+
+
+def listed(query, Person):
+	"""*query* without the people who asked to be left out of the directory."""
+	return query.where(Person.hide_from_directory == 0)
+
+
+def get_families_with_hidden_head():
+	"""Families whose head of household is left out of the directory."""
+	# church-scope: only used to shorten names of families the scoped queries already listed
+	return set(
+		frappe.get_all(
+			"Person", filters={"is_head_of_household": 1, "hide_from_directory": 1}, pluck="family"
+		)
+	)
+
+
+def listed_family_name(family_name, is_head_hidden):
+	"""*family_name*, cut to the surname when the head it is named after is hidden ("Doe - John" to "Doe")."""
+	if not is_head_hidden:
+		return family_name
+	return family_name.rpartition(" - ")[0].strip() or family_name
+
+
+def without_missionaries(query, Person, filters):
+	"""*query* without the people the missionaries section already lists."""
+	Missionary = frappe.qb.DocType("Missionary")
+	MissionaryPerson = frappe.qb.DocType("Missionary Person")
+	missionary_people = (
+		frappe.qb.from_(MissionaryPerson)
+		.join(Missionary)
+		.on(Missionary.name == MissionaryPerson.parent)
+		.select(MissionaryPerson.person)
+		.where(MissionaryPerson.parenttype == "Missionary")
+	)
+	return query.where(Person.name.notin(scoped(missionary_people, Missionary, filters)))
 
 
 def header_church(filters):
