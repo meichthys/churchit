@@ -171,6 +171,59 @@ class TestPerson(FrappeTestCase):
 		self.assertIsNone(frappe.db.get_value("Person", wife.name, "spouse"))
 		self.assertEqual(self._spouse_relations(wife.name), [])
 
+	def _members(self, family_name):
+		return {m.member for m in frappe.get_doc("Family", family_name).members}
+
+	def test_marrying_without_a_family_starts_one(self):
+		wife = self._make_person(first_name="Nora", last_name="Newlywed", gender="Female")
+		husband = self._make_person(
+			first_name="Ned", last_name="Newlywed", gender="Male", spouse=wife.name, is_married=1
+		)
+
+		self.assertEqual(frappe.db.get_value("Family", husband.family, "family_name"), "Newlywed - Ned")
+		self.assertTrue(husband.is_head_of_household)
+		self.assertEqual(frappe.db.get_value("Person", wife.name, "family"), husband.family)
+		self.assertEqual(self._members(husband.family), {husband.name, wife.name})
+
+	def test_marrying_into_a_family_joins_it(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Joining - Jo"}).insert(
+			ignore_permissions=True
+		)
+		wife = self._make_person(first_name="Jo", gender="Female", family=family.name, is_head_of_household=1)
+		husband = self._make_person(first_name="Jim", gender="Male", spouse=wife.name, is_married=1)
+
+		self.assertEqual(husband.family, family.name)
+		self.assertFalse(husband.is_head_of_household)
+		self.assertEqual(self._members(family.name), {husband.name, wife.name})
+
+	def test_marrying_brings_a_spouse_without_a_family_in(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Bringing - Bo"}).insert(
+			ignore_permissions=True
+		)
+		husband = self._make_person(
+			first_name="Bo", gender="Male", family=family.name, is_head_of_household=1
+		)
+		wife = self._make_person(first_name="Bea", gender="Female")
+		husband.spouse = wife.name
+		husband.is_married = 1
+		husband.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.get_value("Person", wife.name, "family"), family.name)
+		labels = {m.member: m.relationship_to_head for m in frappe.get_doc("Family", family.name).members}
+		self.assertEqual(labels[wife.name], "Wife")
+
+	def test_marrying_across_two_families_moves_no_one(self):
+		his = frappe.get_doc({"doctype": "Family", "family_name": "His"}).insert(ignore_permissions=True)
+		hers = frappe.get_doc({"doctype": "Family", "family_name": "Hers"}).insert(ignore_permissions=True)
+		wife = self._make_person(first_name="Her", gender="Female", family=hers.name)
+		husband = self._make_person(first_name="Him", gender="Male", family=his.name)
+		husband.spouse = wife.name
+		husband.is_married = 1
+		husband.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.get_value("Person", wife.name, "family"), hers.name)
+		self.assertEqual(self._members(his.name), {husband.name})
+
 	def test_new_head_of_household_demotes_the_old_one_and_renames_family(self):
 		family = frappe.get_doc({"doctype": "Family", "family_name": "Swap - Old"}).insert(
 			ignore_permissions=True

@@ -273,6 +273,11 @@ def _create_person_relation_types():
 		"Stepmother",
 		"Stepbrother",
 		"Stepsister",
+		"Stepson",
+		"Stepdaughter",
+		"Son-in-law",
+		"Daughter-in-law",
+		"Cousin",
 	):
 		_insert_if_missing("Person Relation Type", {"type": relation}, type=relation)
 

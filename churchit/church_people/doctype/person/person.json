@@ -236,7 +236,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Family relationships: children, parents, siblings and so on. The Husband/Wife row follows the Spouse field.",
+   "description": "Family relationships: children, parents, siblings and so on. The Husband/Wife row follows the Spouse field, and From Family rows follow each member's Relationship to Head on the Family.",
    "fieldname": "relations",
    "fieldtype": "Table",
    "label": "Relations",
@@ -327,7 +327,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-09 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
