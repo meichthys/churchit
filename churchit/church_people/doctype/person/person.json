@@ -16,12 +16,12 @@
   "church",
   "gender",
   "membership_status",
-  "hide_from_directory",
   "column_break_agva",
   "photo",
   "age",
   "alergies",
   "user",
+  "hide_from_directory",
   "life_events_section",
   "life_events",
   "section_break_osjz",
@@ -77,7 +77,6 @@
    "fieldtype": "Link",
    "hidden": 1,
    "ignore_user_permissions": 1,
-   "in_standard_filter": 0,
    "label": "Church",
    "options": "Church",
    "search_index": 1
@@ -263,7 +262,7 @@
    "label": "Hide from Directory and Bulletin",
    "print_hide": 1
   },
- {
+  {
    "allow_in_quick_entry": 1,
    "default": "Unknown",
    "fieldname": "gender",
@@ -336,7 +335,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-10-09 11:00:00.000000",
+ "modified": "2026-10-09 16:03:10.254548",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
