@@ -41,6 +41,16 @@ def get_published_web_page(url: str | None):
 
 
 @frappe.whitelist(allow_guest=False)
+def get_website_home_page():
+	"""The route a visitor lands on at the site root, for the desk's website preview.
+
+	The route is public, but Website Settings is not readable by every desk user.
+	A site without a home page sends a visitor to the login page, as Frappe does.
+	"""
+	return frappe.db.get_single_value("Website Settings", "home_page") or "login"
+
+
+@frappe.whitelist(allow_guest=False)
 def search_church_recipient(doctype: str, txt: str | None):
 	"""Names of the records a member may pray for or ask alms for, as ``[{name, label}]``.
 

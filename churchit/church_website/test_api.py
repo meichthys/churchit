@@ -9,6 +9,7 @@ from churchit.church_website.api import (
 	get_published_fields,
 	get_published_web_page,
 	get_recipient_doctypes,
+	get_website_home_page,
 	search_church_recipient,
 )
 from churchit.tests.helpers import ensure_user, make_person
@@ -23,6 +24,13 @@ class TestWebsiteApi(FrappeTestCase):
 		# A browser running a cached copy of the badge script asks for one doctype.
 		self.assertEqual(get_published_fields("Person"), get_published_fields()["Person"])
 		self.assertEqual(get_published_fields("_Not A Doctype"), {})
+
+	def test_any_desk_user_gets_the_website_home_page(self):
+		home_page = frappe.db.get_single_value("Website Settings", "home_page")
+		frappe.set_user(
+			ensure_user("_test_home_page_staff@example.com", "_Test Staff", roles=("Church Staff",))
+		)
+		self.assertEqual(get_website_home_page(), home_page or "login")
 
 	def test_published_fields_is_restricted_to_managers(self):
 		frappe.set_user(ensure_user("_test_church_user@example.com", "_Test Church User"))
