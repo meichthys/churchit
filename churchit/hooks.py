@@ -158,6 +158,11 @@ after_install = "churchit.patches.after_install.execute"
 # visibility Church Features set. Re-apply it, and add newly shipped dock entries.
 after_migrate = ["churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"]
 
+# Frappe collects the login notes on `on_login`, which runs before the session
+# is the user's, so it stores them for Guest and the desk shows none. Collect
+# them again once the session belongs to the user.
+on_session_creation = ["frappe.desk.doctype.note.note._get_unseen_notes"]
+
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
 setup_wizard_complete = [
