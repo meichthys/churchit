@@ -41,10 +41,10 @@ fixtures = [
 		"filters": [["type", "in", ["Confirmed", "Assumed", "Signed-Up", "Checked-In", "Absent"]]],
 	},
 	{"dt": "Notification", "filters": [["module", "like", "Church%"]]},
-	# The map block on the Missions workspace. App-owned: the workspace JSON
-	# references it by name and is re-synced on every migrate, so it has to be
-	# re-applied alongside it.
-	{"dt": "Custom HTML Block", "filters": [["name", "in", ["MissionaryMap"]]]},
+	# The map block on the Missions workspace and the preview on Web Site.
+	# App-owned: the workspace JSON references each by name and is re-synced on
+	# every migrate, so they have to be re-applied alongside it.
+	{"dt": "Custom HTML Block", "filters": [["name", "in", ["MissionaryMap", "WebsitePreview"]]]},
 ]
 # Apps
 # ------------------

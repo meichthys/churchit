@@ -3,7 +3,7 @@
 
 """Every block on a shipped workspace must find its widget, and every quick list must keep its filters.
 
-Both fail silently. A number card, chart or quick list block names its widget by the label of the
+Both fail silently. A number card, chart, quick list or custom block names its widget by the label of the
 workspace's row, so a row relabelled without its block leaves an empty space. Frappe 16.50 drops
 the last condition of a quick list whose conditions carry a fifth part (frappe.utils.cleanup_filters
 in public/js/frappe/utils/utils.js), so a list filtered on one condition shows every record.
@@ -21,6 +21,7 @@ BLOCK_ROWS = {
 	"number_card": ("number_card_name", "number_cards"),
 	"chart": ("chart_name", "charts"),
 	"quick_list": ("quick_list_name", "quick_lists"),
+	"custom_block": ("custom_block_name", "custom_blocks"),
 }
 
 
