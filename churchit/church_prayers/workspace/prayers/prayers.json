@@ -102,7 +102,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-09 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",
@@ -127,12 +127,12 @@
   {
    "document_type": "Prayer Request",
    "label": "Urgent Prayer Requests",
-   "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1,false],[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false]]"
+   "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1],[\"Prayer Request\",\"status\",\"!=\",\"Answered\"]]"
   },
   {
    "document_type": "Prayer Request",
    "label": "Prayer Requests Ending Within 1 Week",
-   "quick_list_filter": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\",false],[\"Prayer Request\",\"end_date\",\"Timespan\",\"next 7 days\",false]]"
+   "quick_list_filter": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\"],[\"Prayer Request\",\"end_date\",\"Timespan\",\"next 7 days\"]]"
   }
  ],
  "roles": [

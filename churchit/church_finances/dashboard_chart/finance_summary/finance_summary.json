@@ -10,7 +10,7 @@
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2026-09-28 12:00:00.000000",
+ "modified": "2026-10-09 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finance Summary",
@@ -25,5 +25,6 @@
  "type": "Line",
  "use_report_chart": 0,
  "y_axis": [],
- "document_type": "Collection"
+ "document_type": "Collection",
+ "custom_options": "{\"fieldtype\": \"Currency\", \"colors\": [\"#2a9d8f\", \"#e76f51\"], \"lineOptions\": {\"regionFill\": 1}}"
 }

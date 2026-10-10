@@ -11,6 +11,7 @@ records violate surfaces here rather than on a new user's first install.
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.number_card.number_card import calculate_previous_result
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
@@ -114,6 +115,16 @@ class TestSampleDataLoader(FrappeTestCase):
 	def test_a_group_is_public_so_the_portal_has_something_to_join(self):
 		self.assertTrue(frappe.db.exists("Group", {"public": 1, "show_in_portal": 1}))
 
+	def test_the_manager_and_the_loader_have_assignments(self):
+		for user in (sample_data._CHURCH_MANAGER_EMAIL, frappe.session.user):
+			self.assertTrue(frappe.db.exists("ToDo", {"allocated_to": user, "status": "Open"}), user)
+
+	def test_the_yearly_cards_have_a_year_to_compare_with(self):
+		"""Frappe shows a card's change only when records existed a year ago."""
+		for card in ("Ministries", "Total Missionaries"):
+			doc = frappe.get_doc("Number Card", card)
+			self.assertTrue(calculate_previous_result(doc, doc.filters_json), card)
+
 	def test_collections_are_submitted_so_funds_carry_a_balance(self):
 		self.assertTrue(frappe.db.exists("Collection", {"docstatus": 1}))
 		self.assertTrue(any(frappe.get_all("Fund", pluck="balance")))
@@ -147,6 +158,17 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		cls.draft_expense = bool(frappe.db.exists("Expense", {"docstatus": 0}))
 		cls.submitted_expense = bool(frappe.db.exists("Expense", {"docstatus": 1}))
 		cls.function_type = cls.add_records_a_user_would_make()
+		# The first wipe took every record of these, so assignments on them are the sample's.
+		cls.assignments = frappe.get_all(
+			"ToDo",
+			filters={
+				"reference_type": [
+					"in",
+					["Person", "Alms Request", "Prayer Request", "Church Task", "Function"],
+				]
+			},
+			pluck="name",
+		)
 
 		sample_data.delete_sample_data()
 
@@ -202,6 +224,10 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		for doctype in ("Bulletin", "Online Donation", "Background Check"):
 			self.assertEqual(frappe.db.count(doctype), 0, doctype)
 		self.assertFalse(frappe.db.get_value("Function Type", self.function_type, "template_function"))
+
+	def test_delete_removes_the_assignments(self):
+		self.assertTrue(self.assignments, "the sample data assigned nothing to wipe")
+		self.assertFalse(frappe.db.exists("ToDo", {"name": ["in", self.assignments]}))
 
 	def test_delete_removes_draft_and_submitted_expenses_alike(self):
 		self.assertTrue(self.draft_expense, "the sample data seeded no draft expense to wipe")

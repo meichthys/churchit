@@ -165,6 +165,7 @@ def create_sample_data():
 	_create_church_assets(locations)
 
 	_create_church_tasks()
+	_create_assignments(people)
 
 
 def delete_sample_data():
@@ -224,6 +225,12 @@ def _insert_if_missing(doctype, filters, **fields):
 	doc = frappe.get_doc({"doctype": doctype, **fields})
 	doc.insert(ignore_permissions=True)
 	return doc.name
+
+
+def _backdate(doctype, name, date):
+	"""Date a record as entered on *date*, so the Summary's "since last year"
+	change, which compares with what existed then, has something to show."""
+	frappe.db.set_value(doctype, name, "creation", date, update_modified=False)
 
 
 def _resolve_link(doctype, title_field, value):
@@ -939,11 +946,8 @@ def _create_missionaries(people, agencies):
 		},
 	]
 	for m in missionaries:
-		existing = frappe.db.exists("Missionary", {"title": m["title"]})
-		if existing:
-			continue
-		doc = frappe.get_doc({"doctype": "Missionary", **m})
-		doc.insert(ignore_permissions=True)
+		name = _insert_if_missing("Missionary", {"title": m["title"]}, **m)
+		_backdate("Missionary", name, m["support_start_date"])
 
 
 # ---------------------------------------------------------------------------
@@ -2307,11 +2311,8 @@ def _create_ministries(groups):
 		},
 	]
 	for ministry in ministries:
-		_insert_if_missing(
-			"Ministry",
-			{"ministry_name": ministry["ministry_name"]},
-			**ministry,
-		)
+		name = _insert_if_missing("Ministry", {"ministry_name": ministry["ministry_name"]}, **ministry)
+		_backdate("Ministry", name, ministry["start_date"])
 
 
 # ---------------------------------------------------------------------------
@@ -2662,6 +2663,67 @@ def _create_church_tasks():
 			continue
 		doc = frappe.get_doc({"doctype": "Church Task", **task})
 		doc.insert(ignore_permissions=True)
+
+
+# ---------------------------------------------------------------------------
+# Assignments
+# ---------------------------------------------------------------------------
+
+
+def _create_assignments(people):
+	"""Assign sample records to Mary and to whoever loads the sample data, so the
+	Summary's "My Assignments" list has something in it. Deleting a record
+	deletes its assignments."""
+	assignments = [
+		(
+			"Alms Request",
+			{"recipient": people["Samuel Brooks"], "status": "Pending"},
+			"Review Samuel's request for help with his electric bill.",
+			"High",
+			1,
+		),
+		(
+			"Person",
+			{"name": people["Samuel Brooks"]},
+			"Invite Samuel to lunch after Sunday service.",
+			"Medium",
+			3,
+		),
+		(
+			"Prayer Request",
+			{"title": "Lisa Thompson's Medical Tests"},
+			"Call Lisa to ask how her medical tests went.",
+			"Medium",
+			4,
+		),
+		(
+			"Church Task",
+			{"title": "Set up candles and holders"},
+			"Set up candles before the service.",
+			"Low",
+			6,
+		),
+		(
+			"Function",
+			{"function_name": "Church Picnic"},
+			"Confirm the volunteers for the Church Picnic.",
+			"Medium",
+			7,
+		),
+	]
+	users = {_CHURCH_MANAGER_EMAIL, frappe.session.user}
+	for doctype, filters, description, priority, day_offset in assignments:
+		name = frappe.get_last_doc(doctype, filters=filters).name
+		for user in users:
+			assignment = {"reference_type": doctype, "reference_name": name, "allocated_to": user}
+			_insert_if_missing(
+				"ToDo",
+				assignment,
+				**assignment,
+				description=description,
+				priority=priority,
+				date=_near_date(day_offset),
+			)
 
 
 def _create_vendors(expense_types):
