@@ -12,7 +12,7 @@ self.addEventListener("install", (event) => {
 		caches
 			.open(CACHE)
 			.then((cache) => cache.addAll([OFFLINE_URL, OFFLINE_ICON]))
-			.then(() => self.skipWaiting())
+			.then(() => self.skipWaiting()),
 	);
 });
 
@@ -21,9 +21,13 @@ self.addEventListener("activate", (event) => {
 		caches
 			.keys()
 			.then((keys) =>
-				Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))
+				Promise.all(
+					keys
+						.filter((key) => key !== CACHE)
+						.map((key) => caches.delete(key)),
+				),
 			)
-			.then(() => self.clients.claim())
+			.then(() => self.clients.claim()),
 	);
 });
 
@@ -32,6 +36,8 @@ self.addEventListener("fetch", (event) => {
 	// waits over a minute, then sends the request again and fails it.
 	const isApiCall = new URL(event.request.url).pathname.startsWith("/api/");
 	if (event.request.mode === "navigate" && !isApiCall) {
-		event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
+		event.respondWith(
+			fetch(event.request).catch(() => caches.match(OFFLINE_URL)),
+		);
 	}
 });

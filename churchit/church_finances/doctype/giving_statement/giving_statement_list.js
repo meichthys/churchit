@@ -29,18 +29,22 @@ frappe.listview_settings["Giving Statement"] = {
 						freeze: true,
 						freeze_message: __("Building statements..."),
 						callback: (r) => {
-							const { created = 0, updated = 0 } = r.message || {};
+							const { created = 0, updated = 0 } =
+								r.message || {};
 							frappe.msgprint({
 								title: __("Statements Ready"),
 								indicator: "green",
-								message: __("{0} created, {1} rebuilt.", [created, updated]),
+								message: __("{0} created, {1} rebuilt.", [
+									created,
+									updated,
+								]),
 							});
 							listview.refresh();
 						},
 					});
 				},
 				__("Generate Statements"),
-				__("Generate")
+				__("Generate"),
 			);
 		});
 	},

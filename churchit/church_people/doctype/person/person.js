@@ -25,14 +25,19 @@ frappe.ui.form.on("Person", {
 		}
 
 		// Add 'New Family From Person' button if Last Name is populated and person does not already head a family
-		if (frm.doc.last_name && !(frm.doc.family && frm.doc.is_head_of_household)) {
+		if (
+			frm.doc.last_name &&
+			!(frm.doc.family && frm.doc.is_head_of_household)
+		) {
 			frm.add_custom_button(__("New Family From Person"), function () {
 				frm.call("new_family_from_person");
 			});
 		}
 
 		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
-		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+		const has_email = (frm.doc.emails || []).some(
+			(row) => row.email_address,
+		);
 		if (has_email && !frm.doc.user) {
 			frm.add_custom_button(__("Invite to Portal"), function () {
 				frm.call("invite_to_portal");
@@ -60,16 +65,20 @@ function show_family_members_without_relation(frm) {
 			fields: ["name", "full_name"],
 		})
 		.then((members) => {
-			const related = new Set((frm.doc.relations || []).map((row) => row.person));
-			const missing = members.filter((member) => !related.has(member.name));
+			const related = new Set(
+				(frm.doc.relations || []).map((row) => row.person),
+			);
+			const missing = members.filter(
+				(member) => !related.has(member.name),
+			);
 			if (!missing.length) return;
 			const names = missing.map((member) => member.full_name).join(", ");
 			frm.dashboard.set_headline_alert(
 				__(
 					"No relation could be worked out for {0}. Set their Relationship to Head on the Family, or add a Relations row on the Family tab.",
-					[frappe.utils.escape_html(names)]
+					[frappe.utils.escape_html(names)],
 				),
-				"yellow"
+				"yellow",
 			);
 		});
 }
@@ -87,11 +96,18 @@ function show_background_check_status(frm) {
 		.then((rows) => {
 			if (!rows || !rows.length) return;
 			const check = rows[0];
-			const colors = { Cleared: "green", "Not Cleared": "red", Expired: "gray" };
+			const colors = {
+				Cleared: "green",
+				"Not Cleared": "red",
+				Expired: "gray",
+			};
 			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
 			if (check.status === "Cleared" && check.expires_on) {
 				label += ` ${__("until")} ${frappe.datetime.str_to_user(check.expires_on)}`;
 			}
-			frm.dashboard.add_indicator(label, colors[check.status] || "orange");
+			frm.dashboard.add_indicator(
+				label,
+				colors[check.status] || "orange",
+			);
 		});
 }
