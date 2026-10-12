@@ -10,7 +10,9 @@ frappe.ui.form.on("Check-In Settings", {
 			filters: { doc_type: "Function Check-In", raw_printing: 1 },
 		}));
 		frm.add_custom_button(__("Print Test Tag"), () => print_test_tag(frm));
-		frm.add_custom_button(__("Open Check-In Station"), () => frappe.set_route("check-in"));
+		frm.add_custom_button(__("Open Check-In Station"), () =>
+			frappe.set_route("check-in"),
+		);
 	},
 });
 
@@ -29,6 +31,6 @@ function print_test_tag(frm) {
 		},
 		(values) => church.name_tags.print_for({ persons: [values.person] }),
 		__("Print Test Tag"),
-		__("Print")
+		__("Print"),
 	);
 }

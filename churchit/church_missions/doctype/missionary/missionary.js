@@ -9,16 +9,19 @@ frappe.ui.form.on("Missionary", {
 				"🚨 This missionary is marked as sensitive and is published \
                 to the public website. Make sure sensitive content is not being \
                 leaked to the public!",
-				"red"
+				"red",
 			);
 		} else if (frm.doc.sensitive) {
 			frm.set_intro(
 				"⚠️ This missionary is marked as sensitive. \
                 be careful not to disclose sensitive information.",
-				"yellow"
+				"yellow",
 			);
 		} else if (frm.doc.publish) {
-			frm.set_intro("🌐 This missionary is published to the public website", "blue");
+			frm.set_intro(
+				"🌐 This missionary is published to the public website",
+				"blue",
+			);
 		}
 	},
 
@@ -28,9 +31,12 @@ frappe.ui.form.on("Missionary", {
 		if (!frm.doc.country || frm.doc.geolocation) return;
 
 		const query = encodeURIComponent(frm.doc.country);
-		fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-			headers: { "Accept-Language": "en" },
-		})
+		fetch(
+			`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+			{
+				headers: { "Accept-Language": "en" },
+			},
+		)
 			.then((r) => r.json())
 			.then((results) => {
 				if (!results.length || frm.doc.geolocation) return;

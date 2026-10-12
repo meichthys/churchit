@@ -166,7 +166,7 @@ def _create_expense(missionary, expense_date):
 			"date": expense_date,
 			"missionary": missionary.name,
 			"church": missionary.church,
-			"notes": (f"Auto-generated {missionary.support_frequency} support for " f"{missionary.title}."),
+			"notes": (f"Auto-generated {missionary.support_frequency} support for {missionary.title}."),
 		}
 	)
 	expense.insert(ignore_permissions=True)

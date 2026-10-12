@@ -76,7 +76,9 @@ function render_fields_selector(frm, cdt, cdn) {
 	let wrapper = html_field.$wrapper;
 
 	if (!row.slide_type) {
-		wrapper.html('<p class="text-muted">Select a Slide Type to choose display fields.</p>');
+		wrapper.html(
+			'<p class="text-muted">Select a Slide Type to choose display fields.</p>',
+		);
 		return;
 	}
 
@@ -102,12 +104,12 @@ function render_fields_selector(frm, cdt, cdn) {
 			"HTML",
 		];
 		let fields_list = meta.fields.filter(
-			(df) => displayable_fieldtypes.includes(df.fieldtype) && !df.hidden
+			(df) => displayable_fieldtypes.includes(df.fieldtype) && !df.hidden,
 		);
 
 		if (!fields_list.length) {
 			wrapper.html(
-				`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`
+				`<p class="text-muted">No displayable fields found for ${row.slide_type}.</p>`,
 			);
 			return;
 		}
@@ -122,7 +124,9 @@ function render_fields_selector(frm, cdt, cdn) {
 		let selected_fields = selected
 			.map((s) => fields_list.find((df) => df.fieldname === s.fieldname))
 			.filter(Boolean);
-		let unselected_fields = fields_list.filter((df) => !selected_map[df.fieldname]);
+		let unselected_fields = fields_list.filter(
+			(df) => !selected_map[df.fieldname],
+		);
 		let ordered_fields = [...selected_fields, ...unselected_fields];
 
 		let table_html = `
@@ -166,9 +170,11 @@ function render_fields_selector(frm, cdt, cdn) {
 			save_display_fields(frm, cdt, cdn, wrapper);
 		});
 
-		wrapper.find(".field-label-check, .field-title-check").on("change", function () {
-			save_display_fields(frm, cdt, cdn, wrapper);
-		});
+		wrapper
+			.find(".field-label-check, .field-title-check")
+			.on("change", function () {
+				save_display_fields(frm, cdt, cdn, wrapper);
+			});
 	});
 }
 
@@ -180,7 +186,10 @@ frappe.ui.form.on("Sermon", {
 
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro("🌐 This sermon is published to the public website", "blue");
+			frm.set_intro(
+				"🌐 This sermon is published to the public website",
+				"blue",
+			);
 		}
 
 		if (!frm.is_new() && !frm.doc.handout) {
@@ -193,7 +202,13 @@ frappe.ui.form.on("Sermon", {
 								method: "churchit.church_study.doctype.sermon_handout.sermon_handout.make_handout",
 								args: { sermon: frm.doc.name },
 							})
-							.then((r) => frappe.set_route("Form", "Sermon Handout", r.message));
+							.then((r) =>
+								frappe.set_route(
+									"Form",
+									"Sermon Handout",
+									r.message,
+								),
+							);
 					}
 					if (frm.is_dirty()) {
 						frm.save("Save", create_handout);
@@ -201,7 +216,7 @@ frappe.ui.form.on("Sermon", {
 						create_handout();
 					}
 				},
-				__("Create")
+				__("Create"),
 			);
 		}
 
@@ -211,8 +226,9 @@ frappe.ui.form.on("Sermon", {
 				function () {
 					function open_presentation() {
 						window.open(
-							"/sermon_presentation?name=" + encodeURIComponent(frm.doc.name),
-							"_blank"
+							"/sermon_presentation?name=" +
+								encodeURIComponent(frm.doc.name),
+							"_blank",
 						);
 					}
 					if (frm.is_dirty()) {
@@ -222,7 +238,7 @@ frappe.ui.form.on("Sermon", {
 					}
 				},
 				null,
-				"primary"
+				"primary",
 			);
 		}
 	},
