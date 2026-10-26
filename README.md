@@ -48,7 +48,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
 - Person Notes in categories that decide who reads them, with alert notes at the top of the form
-- Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, a membership change, a life event or a smart list
+- Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event or a smart list
 - Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
 - Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
 - Care requests with a caregiver and due date, and background checks a position or a group can require
@@ -71,6 +71,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
 - Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, and bulletin PDFs
+- Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
 - A guest Connection Card with a QR code, a one-time link for a person to update their details without a login, and new portal logins linked to their person
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
@@ -79,6 +80,10 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
+- Event registration: guests and members register on the public Register page between open and close dates, and bring their household or others they name
+- A capacity for each function and each selection (such as Adult or Child), limited sign-up items, a waitlist that fills freed seats, and sign-up approval by staff
+- Prices for selections and items, discount codes, early bird and group discounts, and online payment with a Pay now link; Finance records offline payments and refunds
+- Registration questions for each attendee, a confirmation email with a calendar file, and reminders by email and text before the event
 - Check-In Station: search by name or phone number or scan a Member QR Card, check whole families in with a tap, and add first-time visitors on the spot after the station offers people already on file. Each person shows their grade and allergies, and check-in volunteers also see medical notes and an emergency contact
 - A live list at the station that shows the check-ins and checkouts of other stations within seconds, with photos, the booked rooms and a name or code filter. From it, undo, reprint, check out people who have no pickup tag, and page a child's parents by text or email
 - Pickup: verify a pickup code, typed or scanned from the QR code on the pickup tag, and record who collected each child. Authorized Pickups and Pickup Restrictions say who may and who may not collect a child, and only a Church Manager can override a restriction
@@ -133,6 +138,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Other ways to give (bank transfer, standing order, mailed check) on /give, per church
+- Event registration fees and form payments recorded as collections at the event's church, off giving statements
 - Finance can link a guest's online gift to a person, and a cancelled gift Collection marks the gift Refunded
 - Non-cash gifts (donated property) recorded with a description and no value
 - Funds that are not tax deductible stay off giving statements
@@ -169,6 +175,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Churches overview (people and family counts)
 - People report (filterable by name, family, role, membership, baptism)
 - Function attendance by type and by person, with a group filter
+- Function Registrations: one row per attendee with the status, the payment and a column for each question
 - Group attendance: meetings held, average attendance and attendance rate for each group
 - Function count by type
 - Church directory (printable, with photos, roles, family grouping, and other options)
