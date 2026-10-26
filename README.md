@@ -80,7 +80,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
-- Event registration: guests and members register on the public Register page between open and close dates, and bring their household or others they name
+- Event registration: guests and members register on the public Register page between open and close dates (the page is not in the website menu until you add it), and bring their household or others they name
 - A capacity for each function and each selection (such as Adult or Child), limited sign-up items, a waitlist that fills freed seats, and sign-up approval by staff
 - Prices for selections and items, discount codes, early bird and group discounts, a one-click Freely Given discount that makes a function free, and online payment with a Pay now link; Finance records offline payments and refunds
 - Registration questions for each attendee, a confirmation email with a calendar file, and reminders by email and text before the event
