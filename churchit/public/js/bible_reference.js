@@ -15,30 +15,41 @@
 	let outline = null;
 
 	function get_outline() {
-		outline = outline || frappe.xcall("churchit.scripture.get_reference_outline");
+		outline =
+			outline || frappe.xcall("churchit.scripture.get_reference_outline");
 		return outline;
 	}
 
 	function is_reference_field(df) {
 		const fields = frappe.boot.bible_reference_fields || {};
-		return Boolean(df.bible_reference || (fields[df.parent] || []).includes(df.fieldname));
+		return Boolean(
+			df.bible_reference ||
+			(fields[df.parent] || []).includes(df.fieldname),
+		);
 	}
 
 	const squash = (text) => text.toLowerCase().replace(/[\s.]/g, "");
 
 	// Several passages are separated by semicolons; only the last one is being typed.
 	const typed_before_passage = (text) =>
-		text.includes(";") ? text.slice(0, text.lastIndexOf(";") + 1) + " " : "";
-	const current_passage = (text) => text.slice(text.lastIndexOf(";") + 1).trimStart();
+		text.includes(";")
+			? text.slice(0, text.lastIndexOf(";") + 1) + " "
+			: "";
+	const current_passage = (text) =>
+		text.slice(text.lastIndexOf(";") + 1).trimStart();
 
 	function get_suggestions(books, passage) {
 		const found = PASSAGE.exec(passage);
 		if (!found) return [];
 		const [, typed_book, chapter, verse] = found;
 		const key = squash(typed_book);
-		const book = books.find((b) => b.names.some((name) => squash(name) === key));
-		if (book && chapter && verse !== undefined) return suggest_verses(book, chapter, verse);
-		if (book && (chapter || passage.endsWith(" "))) return suggest_chapters(book, chapter);
+		const book = books.find((b) =>
+			b.names.some((name) => squash(name) === key),
+		);
+		if (book && chapter && verse !== undefined)
+			return suggest_verses(book, chapter, verse);
+		if (book && (chapter || passage.endsWith(" ")))
+			return suggest_chapters(book, chapter);
 		if (chapter) return [];
 		return books
 			.filter((b) => b.names.some((name) => squash(name).startsWith(key)))
@@ -47,7 +58,11 @@
 
 	function suggest_chapters(book, typed) {
 		return numbers_up_to(book.verses.length, typed).map((chapter) => ({
-			label: __("{0} {1} ({2} verses)", [book.title, chapter, book.verses[chapter - 1]]),
+			label: __("{0} {1} ({2} verses)", [
+				book.title,
+				chapter,
+				book.verses[chapter - 1],
+			]),
 			value: `${book.title} ${chapter}`,
 		}));
 	}
@@ -62,7 +77,9 @@
 
 	function numbers_up_to(last, typed) {
 		const numbers = Array.from({ length: last }, (_, index) => index + 1);
-		return typed ? numbers.filter((number) => String(number).startsWith(typed)) : numbers;
+		return typed
+			? numbers.filter((number) => String(number).startsWith(typed))
+			: numbers;
 	}
 
 	function check(control) {
@@ -77,11 +94,16 @@
 
 	function show_problem(control, problem) {
 		control.$wrapper.toggleClass("has-error", Boolean(problem));
-		control.$input.attr("title", problem ? $("<div>").html(problem).text() : null);
+		control.$input.attr(
+			"title",
+			problem ? $("<div>").html(problem).text() : null,
+		);
 		if (control.in_grid()) return;
 		let $problem = control.$wrapper.find(".bible-reference-problem");
 		if (!$problem.length) {
-			$problem = $('<div class="help-box small text-danger bible-reference-problem"></div>');
+			$problem = $(
+				'<div class="help-box small text-danger bible-reference-problem"></div>',
+			);
 			$problem.insertAfter(control.$input.closest(".awesomplete"));
 		}
 		$problem.html(problem || "").toggle(Boolean(problem));
@@ -93,7 +115,10 @@
 		const args = { text, ...get_preview_source(control) };
 		const key = JSON.stringify(args);
 		if (!previews.has(key)) {
-			previews.set(key, frappe.xcall("churchit.scripture.get_reference_preview", args));
+			previews.set(
+				key,
+				frappe.xcall("churchit.scripture.get_reference_preview", args),
+			);
 		}
 		return previews.get(key);
 	}
@@ -103,7 +128,9 @@
 		const record = (control.frm && control.frm.doc) || {};
 		const row = control.doc || record;
 		const church =
-			record.doctype === "Church" ? !record.__islocal && record.name : record.church;
+			record.doctype === "Church"
+				? !record.__islocal && record.name
+				: record.church;
 		return { church: church || null, translation: row.translation || null };
 	}
 
@@ -138,7 +165,8 @@
 			sort: false,
 			filter: () => true,
 			replace(suggestion) {
-				this.input.value = typed_before_passage(this.input.value) + suggestion.value;
+				this.input.value =
+					typed_before_passage(this.input.value) + suggestion.value;
 			},
 		});
 		control.$input.on("input", () => {
@@ -149,24 +177,32 @@
 		});
 		// Picking a book goes straight on to its chapters. A grid only stores a value on change.
 		control.$input.on("awesomplete-selectcomplete", () =>
-			control.$input.trigger("input").trigger("change")
+			control.$input.trigger("input").trigger("change"),
 		);
 		control.$input.on("blur", () => check(control));
 		control.$input.on("mouseenter", () => show_preview(control));
-		control.$input.on("mouseleave input", () => control.$input.popover("dispose"));
+		control.$input.on("mouseleave input", () =>
+			control.$input.popover("dispose"),
+		);
 		if (control.in_grid()) hang_from_grid(control, awesomplete);
 	}
 
 	// A grid cell clips what overflows it, so the list hangs from the grid instead, the way
 	// Frappe does it for Link fields (grid_row.js).
 	function hang_from_grid(control, awesomplete) {
-		const $list = $('<div class="awesomplete"></div>').append(awesomplete.ul);
+		const $list = $('<div class="awesomplete"></div>').append(
+			awesomplete.ul,
+		);
 		control.$input.on("focus", () => {
 			const $grid = control.$input.closest(".grid-field");
 			const cell = control.$input.offset();
 			$list.appendTo($grid).css({
 				position: "absolute",
-				top: cell.top - $grid.offset().top + control.$input.outerHeight() + 4,
+				top:
+					cell.top -
+					$grid.offset().top +
+					control.$input.outerHeight() +
+					4,
 				left: cell.left - $grid.offset().left,
 				minWidth: "250px",
 				width: control.$input.outerWidth(),

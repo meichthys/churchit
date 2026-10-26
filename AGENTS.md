@@ -57,8 +57,8 @@ need the others, scope them yourself with `churchit/church_scope.py`:
 ```python
 from churchit.church_scope import church_filters, church_query_filters, scoped
 
-scoped(query, Person, filters)              # query builder, for the churches the reader may see
-frappe.get_all("Person", filters=church_query_filters(filters))   # same, as a filters dict
+scoped(query, Person, filters)  # query builder, for the churches the reader may see
+frappe.get_all("Person", filters=church_query_filters(filters))  # same, as a filters dict
 frappe.get_all("Fund", filters=church_filters(church, allow_giving=1))  # one known church
 ```
 
@@ -96,8 +96,8 @@ safe; but a whitelisted function that takes a name is called directly by anyone 
   `frappe.qb` check nothing. Add the check yourself, against the record the caller named:
 
 ```python
-frappe.has_permission("Function", doc=function, throw=True)   # before reading anything about it
-frappe.get_doc("Group", group).check_permission("read")        # when you need the document anyway
+frappe.has_permission("Function", doc=function, throw=True)  # before reading anything about it
+frappe.get_doc("Group", group).check_permission("read")  # when you need the document anyway
 ```
 
 Do not reason from "this is keyed to one function, and a function belongs to one church". That says

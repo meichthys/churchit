@@ -31,10 +31,14 @@
 		const titles = (sources) => sources.map((s) => s.title).join(", ");
 		const lines = [];
 		if (open_to_all.length) {
-			lines.push(__("Shown on the public website: {0}", [titles(open_to_all)]));
+			lines.push(
+				__("Shown on the public website: {0}", [titles(open_to_all)]),
+			);
 		}
 		if (members_only.length) {
-			lines.push(__("Shown to signed-in members: {0}", [titles(members_only)]));
+			lines.push(
+				__("Shown to signed-in members: {0}", [titles(members_only)]),
+			);
 		}
 		return lines.join("\n");
 	}
@@ -51,7 +55,7 @@
 			const open_to_all = sources.filter((s) => s.access !== "members");
 			const tooltip = describe(
 				open_to_all,
-				sources.filter((s) => s.access === "members")
+				sources.filter((s) => s.access === "members"),
 			);
 			// Link to a page anyone can open when there is one, else the first source.
 			const route = "/" + (open_to_all[0] || sources[0]).route;
@@ -66,11 +70,13 @@
 				.html(
 					'<svg class="icon icon-sm" aria-hidden="true">' +
 						`<use href="#${icon}"></use>` +
-						"</svg>"
+						"</svg>",
 				);
 
 			// Append to the label area if available
-			const $label = field.$wrapper.find(".clearfix .label-area, .clearfix label");
+			const $label = field.$wrapper.find(
+				".clearfix .label-area, .clearfix label",
+			);
 			if ($label.length) {
 				$label.first().append($badge);
 			}
@@ -81,7 +87,8 @@
 		if (!frm || !frm.meta) return;
 
 		// Only managers may ask where a field is published.
-		if (!MANAGER_ROLES.some((role) => frappe.user_roles.includes(role))) return;
+		if (!MANAGER_ROLES.some((role) => frappe.user_roles.includes(role)))
+			return;
 
 		fetch_published_fields().then(function (published) {
 			apply_indicators(frm, published[frm.doctype] || {});
