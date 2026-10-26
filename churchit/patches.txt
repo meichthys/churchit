@@ -95,3 +95,6 @@ churchit.patches.v1_0.add_group_message_template
 churchit.patches.v1_0.add_group_join_request_templates
 churchit.patches.v1_0.add_find_a_group_to_navbar
 churchit.patches.v1_0.add_group_files_menu_item
+churchit.patches.v1_0.confirm_existing_sign_ups
+churchit.patches.v1_0.add_sign_up_attendees
+churchit.patches.v1_0.add_sign_up_confirmation_template

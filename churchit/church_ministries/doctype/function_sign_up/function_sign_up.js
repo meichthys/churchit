@@ -3,6 +3,34 @@
 
 frappe.ui.form.on("Function Sign-Up", {
 	refresh(frm) {
+		if (!frm.is_new() && frm.doc.status !== "Cancelled" && frm.perm[0].write) {
+			frm.add_custom_button(__("Cancel Registration"), () =>
+				frappe.confirm(__("Cancel this sign-up and give its seats to the waitlist?"), () =>
+					frm.call("cancel_registration").then(() => frm.reload_doc())
+				)
+			);
+		}
+
+		const approvers = ["Church Manager", "System Manager", "Church People Editor"];
+		const is_waiting =
+			frm.doc.status === "Pending" && !frm.doc.approved_by && !frm.doc.hold_expires_on;
+		if (!frm.is_new() && is_waiting && frappe.user.has_role(approvers)) {
+			frm.add_custom_button(
+				__("Approve"),
+				() => frm.call("approve").then(() => frm.reload_doc()),
+				__("Approval")
+			);
+			frm.add_custom_button(
+				__("Decline"),
+				() =>
+					frappe.confirm(
+						__("Decline this sign-up and give its seats to the waitlist?"),
+						() => frm.call("decline").then(() => frm.reload_doc())
+					),
+				__("Approval")
+			);
+		}
+
 		// Customize the items grid: hide Description, show qty_needed, qty_signed_up, my_quantity.
 		const grid = frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
 		if (grid) {

@@ -30,9 +30,17 @@ from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Coalesce
 from frappe.utils import cint, cstr, getdate
 
-from churchit.church_people.membership import living_people_filter
+from churchit.church_people.doctype.people_settings.people_settings import SHARE_DEFAULTS
+from churchit.church_people.membership import VISITOR, living_people_filter
 from churchit.church_scope import church_filters
-from churchit.contacts import EMAIL_DOCTYPE, EMAIL_FIELD, PHONE_DOCTYPE, PHONE_FIELD, phone_digits
+from churchit.contacts import (
+	EMAIL_DOCTYPE,
+	EMAIL_FIELD,
+	PHONE_DOCTYPE,
+	PHONE_FIELD,
+	get_other_holder,
+	phone_digits,
+)
 
 POSSIBLE_DUPLICATE = "Possible Duplicate"
 OPEN = "Open"
@@ -474,3 +482,66 @@ def get_pairs(person: str, other_person: str | None = None) -> list[frappe._dict
 		.orderby(Pair.creation)
 		.run(as_dict=True)
 	)
+
+
+# Guest input is linked to an existing person only when the match shares one reason from each set.
+SHARED_CONTACT = frozenset(("same email", "same phone"))
+SAME_FIRST_NAME = frozenset(("same first name", "nickname of first name"))
+SAME_LAST_NAME = frozenset(("same last name", "matches previous last name"))
+# A guest never saw the member directory's choices, so the people guest input adds share nothing in it.
+SHARES_NOTHING = dict.fromkeys(SHARE_DEFAULTS, 0)
+
+
+def is_strong_match(match: Match) -> bool:
+	"""True when the match shares the guest's email or phone, first name and last name.
+
+	A nickname counts as the first name and a previous last name as the last name.
+	"""
+	reasons = set(match.reasons)
+	return all(reasons & wanted for wanted in (SHARED_CONTACT, SAME_FIRST_NAME, SAME_LAST_NAME))
+
+
+def find_or_add_person(candidate: dict, church: str | None, source: str) -> tuple[str, bool]:
+	"""The one person who strongly matches what a guest typed, else a new Visitor: (person, added).
+
+	*candidate* is read as `find_matches` reads it (first_name, last_name, emails, phones). A new Visitor gets
+	the Person source *source*, and the other matches are left for staff as its possible duplicates. Guest input
+	never changes an existing person.
+	"""
+	matches = find_matches(candidate, church=church)
+	strong = [match for match in matches if is_strong_match(match)]
+	if len(strong) == 1:
+		return strong[0].person, False
+
+	person = add_visitor(candidate, church, source)
+	record_possible_duplicates(person, matches)
+	return person, True
+
+
+def add_visitor(candidate: dict, church: str | None, source: str) -> str:
+	"""Add a Visitor from guest input. An email or phone another person holds is shared from them."""
+	person = frappe.get_doc(
+		{
+			"doctype": "Person",
+			"first_name": candidate.get("first_name"),
+			"last_name": candidate.get("last_name"),
+			"church": church,
+			"membership": VISITOR,
+			"source": source,
+			**SHARES_NOTHING,
+		}
+	)
+	for fieldname, child_doctype, value_field, values in (
+		(EMAIL_FIELD, EMAIL_DOCTYPE, "email_address", candidate.get("emails") or []),
+		(PHONE_FIELD, PHONE_DOCTYPE, "phone_number", candidate.get("phones") or []),
+	):
+		for value in values:
+			person.append(
+				fieldname,
+				{
+					value_field: value,
+					"shared_from_type": person.doctype,
+					"shared_from": get_other_holder(person, child_doctype, value_field, value),
+				},
+			)
+	return person.insert(ignore_permissions=True).name

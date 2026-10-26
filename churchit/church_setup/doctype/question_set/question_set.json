@@ -13,6 +13,10 @@
   "is_shared",
   "shared_by_church",
   "description",
+  "publish_as_form",
+  "members_only",
+  "price",
+  "fund",
   "questions"
  ],
  "fields": [
@@ -60,6 +64,36 @@
    "label": "Description"
   },
   {
+   "default": "0",
+   "description": "Anyone can answer this set on the website at /form/new?question_set=<name>. Each answer is a Form Response.",
+   "fieldname": "publish_as_form",
+   "fieldtype": "Check",
+   "label": "Publish as a Form"
+  },
+  {
+   "default": "0",
+   "depends_on": "publish_as_form",
+   "description": "Only signed-in members can answer the form.",
+   "fieldname": "members_only",
+   "fieldtype": "Check",
+   "label": "Members Only"
+  },
+  {
+   "depends_on": "publish_as_form",
+   "description": "The form takes this payment after it is sent. Leave empty for a free form.",
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "Price"
+  },
+  {
+   "depends_on": "price",
+   "description": "The fund that form payments go to.",
+   "fieldname": "fund",
+   "fieldtype": "Link",
+   "label": "Fund",
+   "options": "Fund"
+  },
+  {
    "description": "Asked in this order. To ask different questions to different people, make a second Question Set.",
    "fieldname": "questions",
    "fieldtype": "Table",
@@ -70,7 +104,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-22 17:13:03.000000",
+ "modified": "2026-10-24 00:03:35.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Question Set",

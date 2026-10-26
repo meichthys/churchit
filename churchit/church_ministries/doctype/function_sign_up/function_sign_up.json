@@ -11,11 +11,28 @@
   "function",
   "church",
   "person",
+  "registrant_name",
+  "email",
+  "phone",
   "attending",
   "column_break_abcd",
+  "status",
+  "hold_expires_on",
+  "approved_by",
   "notes",
+  "section_break_attendees",
+  "attendees",
   "section_break_yuko",
   "table_iprj",
+  "section_break_payment",
+  "discount_code",
+  "discount",
+  "amount_due",
+  "column_break_payment",
+  "amount_paid",
+  "payment_status",
+  "section_break_answers",
+  "answers",
   "hidden_fields_section",
   "title"
  ],
@@ -58,6 +75,35 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Confirmed holds seats. Pending holds them until the hold expires, a payment arrives or the sign-up is approved. Waitlisted waits for a free seat.",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "\nPending\nConfirmed\nWaitlisted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status=='Pending'",
+   "description": "A Pending sign-up with an amount due is cancelled after this, and its seats go to the waitlist.",
+   "fieldname": "hold_expires_on",
+   "fieldtype": "Datetime",
+   "label": "Hold Expires On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "approved_by",
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "no_copy": 1,
+   "options": "User",
+   "read_only": 1
+  },
+  {
    "allow_in_quick_entry": 1,
    "fieldname": "person",
    "fieldtype": "Link",
@@ -67,8 +113,28 @@
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
-   "reqd": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval:!doc.person",
+   "description": "The name a guest typed. A sign-up with no Person needs it.",
+   "fieldname": "registrant_name",
+   "fieldtype": "Data",
+   "label": "Registrant Name"
+  },
+  {
+   "depends_on": "eval:!doc.person",
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "depends_on": "eval:!doc.person",
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
   },
   {
    "allow_in_quick_entry": 1,
@@ -88,6 +154,18 @@
    "label": "Notes"
   },
   {
+   "fieldname": "section_break_attendees",
+   "fieldtype": "Section Break",
+   "label": "Attendees"
+  },
+  {
+   "description": "The people this sign-up brings. Each one takes a seat. The Person is added while Attending is ticked.",
+   "fieldname": "attendees",
+   "fieldtype": "Table",
+   "label": "Attendees",
+   "options": "Function Sign-Up Attendee"
+  },
+  {
    "fieldname": "hidden_fields_section",
    "fieldtype": "Section Break",
    "label": "Hidden Fields"
@@ -101,11 +179,68 @@
    "fieldtype": "Table",
    "label": "Sign-Up Items",
    "options": "Function Sign-Up Item"
+  },
+  {
+   "fieldname": "section_break_payment",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "fieldname": "discount_code",
+   "fieldtype": "Data",
+   "label": "Discount Code"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Currency",
+   "label": "Discount",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "The selection and item prices less the discount, worked out on each save.",
+   "fieldname": "amount_due",
+   "fieldtype": "Currency",
+   "label": "Amount Due",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_payment",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount_paid",
+   "fieldtype": "Currency",
+   "label": "Amount Paid",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Payment Status",
+   "no_copy": 1,
+   "options": "\nUnpaid\nPaid\nRefund Due\nRefunded",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_answers",
+   "fieldtype": "Section Break",
+   "label": "Answers"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Question Answer"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-24 00:19:50.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up",
@@ -175,6 +310,15 @@
    "report": 1,
    "role": "Church People Editor",
    "select": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
    "write": 1
   }
  ],

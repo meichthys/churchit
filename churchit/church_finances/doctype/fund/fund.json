@@ -149,7 +149,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-10-23 01:04:02.000000",
+ "modified": "2026-10-24 00:07:42.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",
@@ -191,6 +191,10 @@
    "role": "Church Finance",
    "select": 1,
    "write": 1
+  },
+  {
+   "role": "Church People Editor",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

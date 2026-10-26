@@ -23,6 +23,7 @@ PERSON = "Person"
 ROSTERS = {
 	"Family Members": "member",
 	"Function Attendance": "person",
+	"Function Sign-Up Attendee": "person",
 	"Group Member": "person",
 	"Meeting Attendee": "person",
 	"Ministry Team Position Person": "person",

@@ -367,7 +367,10 @@ scheduler_events = {
 	],
 	"weekly_long": ["churchit.church_people.duplicates.scan"],
 	"cron": {
-		"*/5 * * * *": ["churchit.church_communications.doctype.church_email.church_email.send_scheduled"],
+		"*/5 * * * *": [
+			"churchit.church_communications.doctype.church_email.church_email.send_scheduled",
+			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.release_expired_holds",
+		],
 	},
 }
 

@@ -4,7 +4,9 @@ import frappe
 from frappe import _
 
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
+	WINDOW_FIELDS,
 	get_item_totals,
+	is_in_sign_up_window,
 	is_open_for_sign_up,
 )
 from churchit.church_people.member_access import is_portal_member
@@ -24,9 +26,25 @@ def get_context(context):
 			"function": display_doc.function,
 			"person": display_doc.person,
 		}
-	sign_up_functions = set(
-		frappe.get_all("Function", filters=church_filters(session_church(), allow_sign_ups=1), pluck="name")
+	functions = frappe.get_all(
+		"Function",
+		filters=church_filters(session_church(), allow_sign_ups=1),
+		fields=["name", "question_set", *WINDOW_FIELDS],
 	)
+	# This form has no selection or question inputs, so those functions sign up on /register.
+	# church-scope: the selections of the functions read above
+	with_selections = frappe.get_all(
+		"Function Sign-Up Selection",
+		filters={"parenttype": "Function", "parent": ("in", [function.name for function in functions])},
+		pluck="parent",
+	)
+	sign_up_functions = {
+		function.name
+		for function in functions
+		if is_in_sign_up_window(function)
+		and not function.question_set
+		and function.name not in with_selections
+	}
 	context.has_sign_up_functions = bool(sign_up_functions)
 
 	# Filter the Function autocomplete options to only show functions with sign-ups enabled.

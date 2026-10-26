@@ -6,7 +6,7 @@ from datetime import datetime, time, timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, date_diff, format_datetime, get_datetime, getdate
+from frappe.utils import add_days, cint, date_diff, format_datetime, get_datetime, getdate
 
 from churchit.church_ministries.attendance import get_attendance_total
 from churchit.church_scope import refuse_another_churches_record
@@ -28,6 +28,29 @@ class Function(Document):
 		self.refuse_new_group_associations()
 		if any(self.has_value_changed(field) for field in ("group", "church", "is_shared")):
 			self.validate_group()
+
+	def on_update(self):
+		self.promote_waitlist_when_capacity_grows()
+
+	def promote_waitlist_when_capacity_grows(self):
+		"""A raised capacity, or a selection's, gives the new seats to the waitlist."""
+
+		def get_limits(doc):
+			selections = sorted((row.selection, cint(row.capacity)) for row in doc.selections)
+			items = sorted(
+				(row.item, cint(row.quantity_needed), cint(row.is_limited)) for row in doc.table_cxhh
+			)
+			return cint(doc.capacity), selections, items
+
+		before = self.get_doc_before_save()
+		if before and get_limits(before) != get_limits(self):
+			# After the commit: the promoted sign-ups save this Function's attendance, which would leave
+			# the copy the form gets back stale.
+			frappe.enqueue(
+				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.promote_waitlist",
+				function=self.name,
+				enqueue_after_commit=True,
+			)
 
 	def validate_group(self):
 		"""A group belongs to one church, so its meetings do too."""

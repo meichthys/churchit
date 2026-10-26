@@ -17,33 +17,24 @@ from churchit.church_communications.doctype.communication_consent.communication_
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
-from churchit.church_people.doctype.people_settings.people_settings import SHARE_DEFAULTS
 from churchit.church_people.doctype.person.person import get_display_name
 from churchit.church_people.family_relations import ROLE_OF_TYPE, ROLE_TYPES
 from churchit.church_people.followup import start_cards
-from churchit.church_people.matching import Match, find_matches, record_possible_duplicates
+from churchit.church_people.matching import (
+	SHARES_NOTHING,
+	find_matches,
+	find_or_add_person,
+	record_possible_duplicates,
+)
 from churchit.church_people.membership import VISITOR
 from churchit.church_scope import is_multi_church
-from churchit.contacts import (
-	EMAIL_DOCTYPE,
-	EMAIL_FIELD,
-	PHONE_DOCTYPE,
-	PHONE_FIELD,
-	get_holders,
-	get_other_holder,
-)
+from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, get_holders
 
 NEW = "New"
 PROCESSED = "Processed"
 SPAM = "Spam"
 # The Follow-up Trigger a card starts workflows on, and the Person source of the people it adds.
 CONNECTION_CARD = "Connection Card"
-# A card is linked to an existing person only when the match shares one reason from each set.
-SHARED_CONTACT = frozenset(("same email", "same phone"))
-SAME_FIRST_NAME = frozenset(("same first name", "nickname of first name"))
-SAME_LAST_NAME = frozenset(("same last name", "matches previous last name"))
-# A guest never saw the member directory's choices, so the people a card adds share nothing in it.
-SHARES_NOTHING = dict.fromkeys(SHARE_DEFAULTS, 0)
 
 
 class ConnectionCard(Document):
@@ -90,15 +81,10 @@ class ConnectionCard(Document):
 		The matches are left for staff. A card that matched someone adds nobody from its household,
 		because guest input never changes an existing person; its rows stay on the card for staff.
 		"""
-		matches = find_matches(self.candidate, church=self.church)
-		strong = [match for match in matches if is_strong_match(match)]
-		if len(strong) == 1:
-			return strong[0].person
-
-		guest = self.add_person()
-		record_possible_duplicates(guest.name, matches)
-		self.add_household(guest)
-		return guest.name
+		person, added = find_or_add_person(self.candidate, self.church, CONNECTION_CARD)
+		if added:
+			self.add_household(frappe.get_doc("Person", person))
+		return person
 
 	def record_consent(self, person: str):
 		"""Record Church News by email, or by text, for each box ticked beside an address or number.
@@ -127,34 +113,6 @@ class ConnectionCard(Document):
 			"emails": [self.email] if self.email else [],
 			"phones": [self.phone] if self.phone else [],
 		}
-
-	def add_person(self) -> Document:
-		"""Add a Visitor from the card. An email or phone another person holds is shared from them."""
-		person = frappe.get_doc(
-			{
-				"doctype": "Person",
-				"first_name": self.first_name,
-				"last_name": self.last_name,
-				"church": self.church,
-				"membership": VISITOR,
-				"source": CONNECTION_CARD,
-				**SHARES_NOTHING,
-			}
-		)
-		for fieldname, child_doctype, value_field, value in (
-			(EMAIL_FIELD, EMAIL_DOCTYPE, "email_address", self.email),
-			(PHONE_FIELD, PHONE_DOCTYPE, "phone_number", self.phone),
-		):
-			if value:
-				person.append(
-					fieldname,
-					{
-						value_field: value,
-						"shared_from_type": person.doctype,
-						"shared_from": get_other_holder(person, child_doctype, value_field, value),
-					},
-				)
-		return person.insert(ignore_permissions=True)
 
 	def add_household(self, guest: Document) -> None:
 		"""Add the people the guest came with as Visitors, in a new Family with the guest as its primary contact.
@@ -220,12 +178,3 @@ def get_relationship_values(relationship: str | None, guest: str) -> dict:
 	if male != female:
 		values["gender"] = "Male" if relationship == male else "Female"
 	return values
-
-
-def is_strong_match(match: Match) -> bool:
-	"""True when the match shares the card's email or phone, first name and last name.
-
-	A nickname counts as the first name and a previous last name as the last name.
-	"""
-	reasons = set(match.reasons)
-	return all(reasons & wanted for wanted in (SHARED_CONTACT, SAME_FIRST_NAME, SAME_LAST_NAME))
