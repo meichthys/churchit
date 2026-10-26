@@ -22,6 +22,7 @@ from churchit.church_people.household import members
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_scope import church_filters, session_person
 from churchit.ics import calendar_response
+from churchit.questions import get_fields
 
 no_cache = 1
 # One registration brings at most this many others, so one request cannot add rows without end.
@@ -109,7 +110,8 @@ def sign_up(
 			"attendees": attendees,
 			"answers": get_answer_rows(function_doc, form, attendees),
 		}
-	).insert(ignore_permissions=True)
+		# Keep the attendee row names that the answers name: insert renames every child row otherwise.
+	).insert(ignore_permissions=True, set_child_names=False)
 	return {"status": doc.status, **get_calendar_link(doc), **get_payment_link(doc)}
 
 
@@ -199,8 +201,38 @@ def get_attendee_choices(function: str) -> dict:
 
 
 def get_answer_rows(function_doc: Document, form: dict, attendees: list[dict]) -> list[dict]:
-	"""Question Answer rows for the sign-up's answers: none, because /register asks no questions yet."""
-	return []
+	"""Question Answer rows from the `answers` input: a JSON object of each attendee's answers by question.
+
+	The key "" is the registrant, whose attendee row the save adds. Another key is an attendee row's person, or
+	its name as typed. Each attendee row gets its name here, so that its answers can name it. The save checks
+	the answers against the function's Question Set (`set_attendee_answers`).
+	"""
+	answers = frappe.parse_json(form.get("answers") or "{}")
+	if not isinstance(answers, dict) or not all(isinstance(given, dict) for given in answers.values()):
+		frappe.throw(_("The answers could not be read."))
+
+	attendee_by_key = {"": ""}
+	for row in attendees:
+		row["name"] = frappe.generate_hash(length=10)
+		attendee_by_key[row.get("person") or row.get("attendee_name")] = row["name"]
+	if set(answers) - set(attendee_by_key):
+		frappe.throw(_("Some answers are for someone who is not on this registration."))
+
+	return [
+		{"attendee": attendee_by_key[key], "question": question, "answer": answer}
+		for key, given in answers.items()
+		for question, answer in given.items()
+	]
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=300, seconds=60 * 60)
+def get_questions(function: str) -> list[dict]:
+	"""The questions /register asks each attendee: the fields of the open function's Question Set."""
+	if not get_open_functions(name=function):
+		frappe.throw(_("This function is not open for registration."), frappe.PermissionError)
+	question_set = frappe.db.get_value("Function", function, "question_set")
+	return get_fields(question_set) if question_set else []
 
 
 def get_calendar_link(sign_up: Document) -> dict:

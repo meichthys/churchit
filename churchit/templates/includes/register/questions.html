@@ -1,0 +1,78 @@
+{#- A part of the /register page: the function's questions, asked of each person who comes. The answers go in
+the hidden answers input by person: "" is the registrant, and another key is the person or typed name of a row
+of the household part's attendees input (register.get_answer_rows). -#}
+<style>
+	/* As on a web form: no answer names, and the fields line up with the rest of the page. */
+	#register-questions .tooltip-content { display: none; }
+	#register-questions .form-column { padding: 0; }
+</style>
+<div id="register-questions" style="display: none;"></div>
+<input type="hidden" name="answers" id="register-answers" value="{}">
+
+<script>
+frappe.ready(function () {
+	const form = document.getElementById('register-form');
+	const wrapper = document.getElementById('register-questions');
+	const groups = new Map();
+	let fields = [];
+
+	// The registrant, then each attendee the household part lists, with the name it shows.
+	function getAttendees() {
+		const rows = JSON.parse((form.elements.attendees || {}).value || '[]');
+		const attendees = [{ key: '', label: {{ _("Your answers") | tojson }} }];
+		rows.forEach(function (row) {
+			const key = row.person || row.attendee_name;
+			const tick = row.person && form.querySelector('input[type=checkbox][value="' + CSS.escape(row.person) + '"]');
+			const name = tick ? tick.parentElement.textContent.trim() : key;
+			attendees.push({ key: key, label: __('Answers for {0}', [name]) });
+		});
+		return attendees;
+	}
+
+	function showAttendees() {
+		const attendees = getAttendees();
+		const keys = attendees.map(function (attendee) { return attendee.key; });
+		groups.forEach(function (entry, key) {
+			if (keys.includes(key)) return;
+			entry.section.remove();
+			groups.delete(key);
+		});
+		attendees.forEach(function (attendee) {
+			if (groups.has(attendee.key)) return;
+			const section = $('<fieldset class="mb-3">').appendTo(wrapper);
+			$('<legend class="h6">').text(attendee.label).appendTo(section);
+			groups.set(attendee.key, { section: section, group: churchit.questions.render(section, fields) });
+		});
+	}
+
+	frappe.call({
+		method: 'churchit.www.register.get_questions',
+		type: 'GET',
+		args: churchit.with_church({ function: {{ function.name | tojson }} }),
+		callback: function (r) {
+			fields = r.message || [];
+			if (!fields.length) return;
+			frappe.require(['controls.bundle.js', 'dialog.bundle.js'], function () {
+				wrapper.style.display = '';
+				showAttendees();
+				form.addEventListener('change', showAttendees);
+			});
+		},
+	});
+
+	// Before the page's own submit handler reads the form: a capture listener on the form runs first.
+	form.addEventListener('submit', function (e) {
+		const answers = {};
+		for (const [key, entry] of groups) {
+			const values = entry.group.get_values();
+			if (!values) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				return;
+			}
+			answers[key] = values;
+		}
+		document.getElementById('register-answers').value = JSON.stringify(answers);
+	}, true);
+});
+</script>

@@ -19,7 +19,9 @@ is counted. The change history, comments and
 attachments of the person and of the records about them (`RECORDS_ABOUT_THE_PERSON`) are deleted, because they
 hold the old values, and the messages kept on them lose their addresses and text. A record that names the
 person in a field of its own also loses the answers kept on it to a Question Set, and its change history
-(`clear_answers`).
+(`clear_answers`). A Function Sign-Up that names the person only as an attendee loses that attendee's answers
+and its change history, and the others' answers stay. A sign-up the person made keeps no typed name, email or
+phone (`forget_sign_up_details`), and nor does a guest sign-up left unlinked with one of their email addresses.
 
 A member's Personal Data Deletion Request anonymizes their Person once Frappe has deleted their login
 (`anonymize_on_data_deletion`).
@@ -33,6 +35,7 @@ from frappe import _
 from frappe.core.doctype.comment.comment import update_comments_in_parent
 from frappe.model.delete_doc import get_linked_docs
 from frappe.model.document import Document
+from frappe.query_builder.functions import Coalesce, Lower
 
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.person.person import UNKNOWN_GENDER, get_display_name
@@ -85,6 +88,7 @@ RECORDS_ABOUT_THE_PERSON = (
 	("Communication Consent", "person"),
 	("Counseling Case", "person"),
 	("Follow-up Card", "person"),
+	("Function Sign-Up", "person"),
 	("Giving Statement", "person"),
 	("Member Transfer", "person"),
 	("Online Donation", "person"),
@@ -92,6 +96,8 @@ RECORDS_ABOUT_THE_PERSON = (
 	("Prayer Request", "requestor"),
 	("Visitation Log", "person"),
 )
+# What the registrant typed about themselves on a sign-up, which a linked Person makes a copy.
+SIGN_UP_REGISTRANT_FIELDS = ("registrant_name", "email", "phone")
 # What a message kept on a forgotten record keeps of its address, number and text.
 BLANK_MESSAGE = {"recipients": None, "cc": None, "bcc": None, "phone_no": None, "content": ""}
 # Field types where a record that names the person can hold a copy of their name or email address.
@@ -136,6 +142,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 			update_modified=False,
 		)
 	forget_records_about(person)
+	forget_sign_up_details(person, emails)
 	records = linked_records(person)
 	remove_copies(records, names, emails)
 	for record in records:
@@ -164,6 +171,67 @@ def forget_records_about(person: str) -> None:
 	for doctype, fieldname in RECORDS_ABOUT_THE_PERSON:
 		for name in frappe.get_all(doctype, filters={fieldname: person}, pluck="name"):
 			forget(doctype, name)
+
+
+def forget_sign_up_details(person: str, emails: set[str]) -> None:
+	"""Clear what a registrant typed about themselves on *person*'s own sign-ups, and delete the answers given
+	for *person* as an attendee of any sign-up, with that sign-up's change history. The others' answers stay.
+	"""
+	forget_unlinked_sign_ups(emails)
+	# church-scope: the sign-ups of the one person being anonymized, whichever church holds them
+	frappe.db.set_value(
+		"Function Sign-Up",
+		{"person": person},
+		dict.fromkeys(SIGN_UP_REGISTRANT_FIELDS),
+		update_modified=False,
+	)
+	rows = frappe.get_all(
+		"Function Sign-Up Attendee",
+		filters={"parenttype": "Function Sign-Up", "person": person},
+		fields=["name", "parent"],
+	)
+	if rows:
+		frappe.db.delete(
+			"Question Answer",
+			{"parenttype": "Function Sign-Up", "attendee": ("in", [row.name for row in rows])},
+		)
+		frappe.db.delete(
+			"Version", {"ref_doctype": "Function Sign-Up", "docname": ("in", [row.parent for row in rows])}
+		)
+
+
+def forget_unlinked_sign_ups(emails: set[str]) -> None:
+	"""Forget the guest sign-ups made with one of *emails* and linked to nobody, as the person's own.
+
+	`link_registrant` leaves a sign-up unlinked when the person is already signed up for the function.
+	"""
+	if not emails:
+		return
+
+	SignUp = frappe.qb.DocType("Function Sign-Up")
+	# church-scope: the sign-ups of the one person being anonymized, whichever church holds them
+	names = (
+		frappe.qb.from_(SignUp)
+		.select(SignUp.name)
+		.where(Coalesce(SignUp.person, "") == "")
+		.where(Lower(SignUp.email).isin(list(emails)))
+	).run(pluck=True)
+	for name in names:
+		doc = frappe.get_doc("Function Sign-Up", name)
+		for row in doc.attendees:
+			if doc.is_registrant_row(row):
+				frappe.db.set_value(row.doctype, row.name, "attendee_name", ANONYMIZED, update_modified=False)
+		# The title named the typed name, as set_title builds it.
+		function_name = frappe.db.get_value("Function", doc.function, "function_name")
+		title = " - ".join(part for part in (function_name, ANONYMIZED) if part)
+		frappe.db.set_value(
+			doc.doctype,
+			name,
+			{**dict.fromkeys(SIGN_UP_REGISTRANT_FIELDS), "title": title},
+			update_modified=False,
+		)
+		clear_answers(doc)
+		forget(doc.doctype, name)
 
 
 def get_identity(doc: Document) -> tuple[set[str], set[str]]:

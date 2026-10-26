@@ -28,10 +28,17 @@ class Function(Document):
 		self.refuse_new_group_associations()
 		if any(self.has_value_changed(field) for field in ("group", "church", "is_shared")):
 			self.validate_group()
+		self.refuse_another_churches_question_set()
 		self.refuse_another_churches_sign_up_fund()
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
+
+	def refuse_another_churches_question_set(self):
+		"""The sign-up questions come from a Question Set of this church or a shared one."""
+		# Only when they change: an attendance save of the Function must not trip it.
+		if any(self.has_value_changed(field) for field in ("question_set", "church", "is_shared")):
+			refuse_another_churches_record(self, "Question Set", self.question_set)
 
 	def refuse_another_churches_sign_up_fund(self):
 		"""Sign-up payments go to a fund of the payment church or a shared one, and a price needs a fund."""

@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
@@ -7,6 +7,7 @@ from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import (
 	add_to_date,
 	cint,
+	cstr,
 	flt,
 	fmt_money,
 	format_date,
@@ -37,6 +38,7 @@ from churchit.church_scope import (
 )
 from churchit.contacts import get_primary_email
 from churchit.ics import make_calendar, make_event
+from churchit.questions import get_questions, validate_answers
 from churchit.utils import resolve_link_titles
 from churchit.www.calendar import _format_address
 
@@ -78,6 +80,7 @@ class FunctionSignUp(Document):
 		self.set_attendees()
 		self.refuse_people_signed_up()
 		self.set_item_quantities_needed()
+		self.set_attendee_answers()
 		self.set_amounts()
 		self.reserve_seats()
 
@@ -235,6 +238,42 @@ class FunctionSignUp(Document):
 			)
 			row.quantity_needed = function_row.quantity_needed or 0
 			row.price = function_row.price or 0
+
+	def set_attendee_answers(self):
+		"""Check each attendee's answers to the function's Question Set and keep them in `answers`.
+
+		Each answer names its attendee row in `attendee`; one with none is the registrant's, as /register sends
+		it. An attendee row and answers as saved are not checked again, so a later change to the set does not
+		refuse an old sign-up. The answers of a removed attendee row go with it.
+		"""
+		if self.flags.set_by_code:
+			return  # code changes the status, never the answers
+
+		for row in self.attendees:
+			row.name = row.name or frappe.generate_hash(length=10)
+		registrant = next((row.name for row in self.attendees if self.is_registrant_row(row)), None)
+		sent = get_answers_by_attendee(self.answers, registrant)
+		before = self.get_doc_before_save()
+		saved = get_answers_by_attendee(before.answers) if before else {}
+		saved_attendees = {row.name: get_attendee_key(row) for row in before.attendees} if before else {}
+		if set(sent) - {row.name for row in self.attendees} - set(saved_attendees):
+			frappe.throw(_("An answer names nobody who attends on this sign-up."))
+
+		question_set = frappe.db.get_value("Function", self.function, "question_set")
+		answers = []
+		for attendee in self.attendees:
+			given = sent.get(attendee.name, {})
+			is_unchanged = saved_attendees.get(attendee.name) == get_attendee_key(attendee)
+			if is_unchanged and given == saved.get(attendee.name, {}):
+				# The rows as saved, not as sent: a sent row can repeat a question with another answer or label.
+				answers += [
+					{field: row.get(field) for field in ("name", "attendee", "question", "label", "answer")}
+					for row in before.answers
+					if row.attendee == attendee.name
+				]
+			else:
+				answers += get_attendee_answer_rows(question_set, attendee.name, given)
+		self.set("answers", answers)
 
 	def set_amounts(self):
 		"""Work out `discount` and `amount_due` on the server, whatever the browser sent."""
@@ -798,6 +837,29 @@ def link_registrant(sign_up: str) -> None:
 	doc.person = person
 	doc.flags.ignore_permissions = doc.flags.set_by_code = True
 	doc.save()
+
+
+def get_answers_by_attendee(rows: list, registrant: str | None = None) -> dict[str, dict]:
+	"""The answers of Question Answer *rows* by question, for each attendee row; a row with none is *registrant*'s."""
+	answers = defaultdict(dict)
+	for row in rows:
+		answers[row.attendee or registrant or ""][cstr(row.question)] = row.answer
+	return answers
+
+
+def get_attendee_answer_rows(question_set: str | None, attendee: str, given: dict) -> list[dict]:
+	"""The Question Answer rows of the answers *given* for the attendee row *attendee*, checked against the set."""
+	if not question_set:
+		if given:
+			frappe.throw(_("This function asks no questions."))
+		return []
+
+	kept = validate_answers(question_set, given)
+	labels = {question.fieldname: question.label for question in get_questions(question_set)}
+	return [
+		{"attendee": attendee, "question": name, "label": labels[name], "answer": answer}
+		for name, answer in kept.items()
+	]
 
 
 def get_item_totals(function, exclude_sign_up=None, for_update=False):

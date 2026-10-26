@@ -602,6 +602,10 @@ NAME_CHECK_EXEMPT = {
 	"churchit.scripture.get_reference_preview": TRANSLATION,
 	"churchit.www.give.start_donation": "a guest may give to any fund with Allow Giving; the gift takes the fund's church",
 	"churchit.www.register.pay": SIGNED_LINK,
+	"churchit.www.register.get_questions": (
+		"a guest read; it gives the questions only of a published Function of the selected church with guest "
+		"sign-ups open now (get_open_functions)"
+	),
 	"churchit.www.register.sign_up": (
 		"a guest registers only for a published Function of the selected church with guest sign-ups open now "
 		"(get_open_functions); the sign-up takes the function's church"
