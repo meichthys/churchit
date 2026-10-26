@@ -16,11 +16,12 @@
  ],
  "fields": [
   {
+   "description": "A Freely Given discount comes off every sign-up. With Percent 100 the function is free, and its prices still show what it costs.",
    "fieldname": "kind",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Kind",
-   "options": "Code\nEarly Bird\nGroup",
+   "options": "Code\nEarly Bird\nGroup\nFreely Given",
    "reqd": 1
   },
   {
@@ -63,7 +64,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-26 00:36:10.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Discount",

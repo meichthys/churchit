@@ -668,8 +668,11 @@ class FunctionSignUp(Document):
 			reason = _(
 				"Sign-up {0} was charged online, but not the {1} it owes. Check the payment before you record it."
 			).format(self.name, fmt_money(amount, currency=currency))
+		elif not (fund := frappe.db.get_value("Function", self.function, "sign_up_fund")):
+			reason = _(
+				"Sign-up {0} was paid online, but its Function has no Sign-Up Fund. Choose a fund, then record the payment."
+			).format(self.name)
 		else:
-			fund = frappe.db.get_value("Function", self.function, "sign_up_fund")
 			add_single_donation(church, fund, amount, _("Registration fee of sign-up {0}").format(self.name))
 			self.record_payment(amount, limits)
 			return
@@ -1004,6 +1007,25 @@ def promote_waitlist(function: str) -> None:
 		if sign_up.get_full_capacity(limits, get_seats_taken(function, name)) or sign_up.get_item_problem():
 			continue
 		sign_up.flags.set_by_code = sign_up.flags.promote = True
+		sign_up.save(ignore_permissions=True)
+
+
+def settle_payment_holds(function: str) -> None:
+	"""After a Function's prices or discounts change: confirm each payment hold that now owes nothing."""
+	limits = get_seat_limits(function)  # the Function lock, before the sign-up rows
+	# church-scope: the sign-ups of one function, after its own save
+	held = frappe.get_all(
+		"Function Sign-Up",
+		filters={"function": function, "status": PENDING, "hold_expires_on": ("is", "set")},
+		pluck="name",
+	)
+	for name in held:
+		sign_up = frappe.get_doc("Function Sign-Up", name, for_update=True)
+		sign_up.set_amounts()
+		if sign_up.amount_to_pay:
+			continue
+		sign_up.hold_seats(limits.sign_up_requires_approval)
+		sign_up.flags.set_by_code = True
 		sign_up.save(ignore_permissions=True)
 
 

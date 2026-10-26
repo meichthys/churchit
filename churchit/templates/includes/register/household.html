@@ -14,6 +14,9 @@ fills it once the page loads, so the page itself holds no household name. -#}
 		<div id="register-guest-list"></div>
 		<button type="button" class="btn btn-default btn-sm" id="register-add-guest" disabled>{{ _("Add a person") }}</button>
 	</div>
+	<p class="text-muted" id="register-freely-given" style="display: none;">
+		<i>{{ _("Freely you have received; freely give.") }}</i> (Matthew 10:8) {{ _("This registration is freely given: you pay nothing.") }}
+	</p>
 	<input type="hidden" name="attendees" id="register-attendees-json" value="[]">
 </div>
 
@@ -23,13 +26,16 @@ frappe.ready(function () {
 	const output = document.getElementById('register-attendees-json');
 	const guests = document.getElementById('register-guest-list');
 	let selections = [];
+	let freelyGiven = false;
+	const freelyGivenPrice = {{ _("{0}, freely given") | tojson }};
 
 	function selectionInput() {
 		const select = document.createElement('select');
 		select.className = 'form-control form-control-sm register-attendee-selection';
 		select.append(new Option({{ _("Choose an option") | tojson }}, ''));
 		selections.forEach(function (row) {
-			const label = row.price ? row.selection + ' (' + row.price + ')' : row.selection;
+			const price = freelyGiven ? freelyGivenPrice.split('{0}').join(row.price) : row.price;
+			const label = row.price ? row.selection + ' (' + price + ')' : row.selection;
 			select.append(new Option(label, row.selection));
 		});
 		return select;
@@ -91,6 +97,8 @@ frappe.ready(function () {
 		callback: function (r) {
 			const choices = r.message || {};
 			selections = choices.selections || [];
+			freelyGiven = Boolean(choices.freely_given);
+			if (freelyGiven) document.getElementById('register-freely-given').style.display = '';
 			document.getElementById('register-add-guest').disabled = false;
 			if (selections.length) {
 				const own = document.getElementById('register-selection');

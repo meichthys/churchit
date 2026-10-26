@@ -13,7 +13,7 @@ from datetime import date
 import frappe
 from frappe.utils import cint, flt, getdate, nowdate
 
-CODE, EARLY_BIRD, GROUP = "Code", "Early Bird", "Group"
+CODE, EARLY_BIRD, GROUP, FREELY_GIVEN = "Code", "Early Bird", "Group", "Freely Given"
 
 
 def get_amount_due(sign_up) -> float:
@@ -63,7 +63,21 @@ def is_discount_applicable(row, sign_up, sign_up_date: date) -> bool:
 		return bool(row.valid_until)
 	if row.kind == GROUP:
 		return bool(row.min_attendees) and len(sign_up.attendees) >= row.min_attendees
-	return False
+	return row.kind == FREELY_GIVEN
+
+
+def is_freely_given(discounts, on_date: date | None = None) -> bool:
+	"""True when a Freely Given row of *discounts* takes the whole price off every sign-up made on *on_date*.
+
+	With no date, only a row with no Valid Until counts, so the price never comes back.
+	"""
+	return any(
+		row.kind == FREELY_GIVEN
+		and flt(row.percent) >= 100
+		and not flt(row.amount)
+		and (not row.valid_until if on_date is None else getdate(row.valid_until or on_date) >= on_date)
+		for row in discounts
+	)
 
 
 def get_sign_up_date(sign_up) -> date:

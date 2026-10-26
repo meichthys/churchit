@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 import frappe
-from frappe.utils import add_to_date, flt, fmt_money, now_datetime, set_request
+from frappe.utils import add_to_date, flt, fmt_money, now_datetime, nowdate, set_request
 from frappe.website.serve import get_response
 
 from churchit.church_finances.doctype.giving_settings.test_giving_settings import make_gateway
@@ -24,6 +24,7 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	REFUNDED,
 	UNPAID,
 	FunctionSignUp,
+	settle_payment_holds,
 )
 from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import make_sign_up
 from churchit.tests.helpers import (
@@ -39,6 +40,7 @@ from churchit.www.register import get_payment_link, pay
 
 SIGN_UP = "Function Sign-Up"
 PAY_PATH = "/api/method/churchit.www.register.pay"
+SETTLE = "churchit.church_ministries.doctype.function_sign_up.function_sign_up.settle_payment_holds"
 ADULT = [{"selection": "Adult", "price": 20}]
 
 
@@ -130,6 +132,14 @@ class TestSignUpFund(SignUpPaymentTestCase):
 	def test_a_price_needs_a_sign_up_fund(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "Sign-Up Fund"):
 			self.make_function(sign_up_fund=None)
+
+	def test_a_function_freely_given_for_good_needs_no_fund(self):
+		self.make_function(sign_up_fund=None, discounts=[{"kind": "Freely Given", "percent": 100}])
+		with self.assertRaisesRegex(frappe.ValidationError, "Sign-Up Fund"):
+			self.make_function(
+				sign_up_fund=None,
+				discounts=[{"kind": "Freely Given", "percent": 100, "valid_until": nowdate()}],
+			)
 
 	def test_the_fund_belongs_to_the_payment_church_or_is_shared(self):
 		shared_fund = ensure(
@@ -357,6 +367,18 @@ class TestPaymentCallback(SignUpPaymentTestCase):
 		self.assertEqual(len(alerts(self.finance_a, sign_up)), 1)
 		self.assertEqual(alerts(self.finance_b, sign_up), [])
 
+	def test_a_charge_on_a_function_with_no_fund_records_nothing_and_alerts_finance(self):
+		sign_up = self.sign_up(self.make_function())
+		frappe.db.set_value("Function", sign_up.function, "sign_up_fund", None)
+		log_charge(sign_up, 20)
+
+		sign_up.on_payment_authorized("Completed")
+		sign_up.reload()
+
+		self.assertEqual((sign_up.status, sign_up.payment_status, sign_up.amount_paid), (PENDING, UNPAID, 0))
+		self.assertEqual(collections_of(sign_up), [])
+		self.assertIn("no Sign-Up Fund", alerts(self.finance_a, sign_up)[0])
+
 	def test_a_late_payment_takes_a_free_seat(self):
 		sign_up = self.sign_up(self.make_function(capacity=1))
 		past = add_to_date(now_datetime(), hours=-1)
@@ -395,6 +417,38 @@ class TestPaymentCallback(SignUpPaymentTestCase):
 		sign_up.on_payment_authorized("Completed")
 		alert_unrecorded_gifts()
 		self.assertEqual(len(alerts(self.finance_a, sign_up)), 1)
+
+
+def settle_now(method, **kwargs):
+	"""In place of frappe.enqueue: settle the payment holds at once, and queue nothing else."""
+	if method == SETTLE:
+		settle_payment_holds(kwargs["function"])
+
+
+class TestOfferItFreely(SignUpPaymentTestCase):
+	def test_a_freely_given_function_confirms_the_sign_ups_that_wait_to_pay(self):
+		sign_up = self.sign_up(self.make_function())
+		self.assertEqual((sign_up.status, sign_up.payment_status), (PENDING, UNPAID))
+
+		function = frappe.get_doc("Function", sign_up.function)
+		function.append("discounts", {"kind": "Freely Given", "percent": 100})
+		with patch("frappe.enqueue", side_effect=settle_now):
+			function.save(ignore_permissions=True)
+
+		sign_up.reload()
+		self.assertEqual((sign_up.status, sign_up.amount_due, sign_up.payment_status), (CONFIRMED, 0, None))
+		self.assertIsNone(sign_up.hold_expires_on)
+		self.assertEqual(sign_up.pay_url, "")
+
+	def test_a_new_price_leaves_the_held_sign_ups_as_they_are(self):
+		sign_up = self.sign_up(self.make_function())
+		function = frappe.get_doc("Function", sign_up.function)
+		function.selections[0].price = 25
+		with patch("frappe.enqueue", side_effect=settle_now):
+			function.save(ignore_permissions=True)
+
+		sign_up.reload()
+		self.assertEqual((sign_up.status, sign_up.amount_due), (PENDING, 20))
 
 
 class TestPaymentByHand(SignUpPaymentTestCase):

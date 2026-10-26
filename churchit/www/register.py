@@ -7,7 +7,16 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr, flt, fmt_money, format_date, format_time, today, validate_email_address
+from frappe.utils import (
+	cstr,
+	flt,
+	fmt_money,
+	format_date,
+	format_time,
+	getdate,
+	today,
+	validate_email_address,
+)
 from frappe.utils.verified_command import verify_request
 
 from churchit.church_finances.payments import get_payment_url
@@ -18,6 +27,7 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	get_function_calendar,
 	is_in_sign_up_window,
 )
+from churchit.church_ministries.sign_up_amounts import get_function_rows, is_freely_given
 from churchit.church_people.household import members
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_scope import church_filters, session_person
@@ -197,7 +207,11 @@ def get_attendee_choices(function: str) -> dict:
 	for row in selections:
 		row.price = fmt_money(row.price, currency=currency) if flt(row.price) else ""
 	household = [{"person": person, "full_name": name} for person, name in get_household().items()]
-	return {"selections": selections, "household": household}
+	discounts = get_function_rows(
+		"Function Sign-Up Discount", function, ["kind", "amount", "percent", "valid_until"]
+	)
+	freely_given = is_freely_given(discounts, getdate(today()))
+	return {"selections": selections, "household": household, "freely_given": freely_given}
 
 
 def get_answer_rows(function_doc: Document, form: dict, attendees: list[dict]) -> list[dict]:

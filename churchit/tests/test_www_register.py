@@ -355,6 +355,20 @@ class TestRegisterAttendees(RegisterTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			self.choices(function=self.members_only)
 
+	def test_the_choices_say_when_the_function_is_freely_given(self):
+		self.assertFalse(self.choices()["freely_given"])
+		frappe.get_doc(
+			{
+				"doctype": "Function Sign-Up Discount",
+				"parent": self.function,
+				"parenttype": "Function",
+				"parentfield": "discounts",
+				"kind": "Freely Given",
+				"percent": 100,
+			}
+		).insert(ignore_permissions=True)
+		self.assertTrue(self.choices()["freely_given"])
+
 	def test_the_page_a_guest_gets_holds_no_household_name_after_a_member_opened_it(self):
 		frappe.set_user(self.user)
 		set_request(method="GET", path=ROUTE, query_string=f"church={self.church}&function={self.function}")

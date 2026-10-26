@@ -25,6 +25,7 @@ frappe.ui.form.on("Function", {
 
 		// Populate the virtual quantity_signed_up column for each Sign-Up Item row.
 		populate_signed_up_totals(frm);
+		show_freely_given_hint(frm);
 
 		// Add template-fill functionality if we have a template specified and this is a new form
 		if (frm.is_new() && frm.doc.type) {
@@ -245,5 +246,61 @@ function populate_signed_up_totals(frm) {
 			});
 			frm.refresh_field("table_cxhh");
 		},
+	});
+}
+
+// A priced function is the place to remember Matthew 10:8, and one click makes it free.
+const FREELY_GIVEN = "Freely Given";
+
+frappe.ui.form.on("Function", {
+	selections_remove: show_freely_given_hint,
+	table_cxhh_remove: show_freely_given_hint,
+	discounts_remove: show_freely_given_hint,
+});
+frappe.ui.form.on("Function Sign-Up Selection", { price: show_freely_given_hint });
+frappe.ui.form.on("Function Sign-Up Item", { price: show_freely_given_hint });
+frappe.ui.form.on("Function Sign-Up Discount", {
+	kind: show_freely_given_hint,
+	amount: show_freely_given_hint,
+	percent: show_freely_given_hint,
+	valid_until: show_freely_given_hint,
+});
+
+function show_freely_given_hint(frm) {
+	// Function Sign-Up uses the Sign-Up Item table too, and these handlers run on every form.
+	if (frm.doctype !== "Function") return;
+	const label = __("Offer It Freely");
+	frm.remove_custom_button(label);
+	const priced = [...(frm.doc.selections || []), ...(frm.doc.table_cxhh || [])].some(
+		(row) => flt(row.price) > 0
+	);
+	if (!priced) {
+		frm.set_intro("");
+		return;
+	}
+	const given = (frm.doc.discounts || []).some(
+		(row) =>
+			row.kind === FREELY_GIVEN &&
+			flt(row.percent) >= 100 &&
+			!flt(row.amount) &&
+			!row.valid_until
+	);
+	if (given) {
+		frm.set_intro(__("This function is freely given: its sign-ups pay nothing."), "green");
+		return;
+	}
+	frm.set_intro(
+		`<i>${__("Freely you have received; freely give.")}</i> (Matthew 10:8) ` +
+			__(
+				"This function has a price. Consider offering it freely: {0} adds a discount that takes the whole price off, and the prices still show what it costs.",
+				[`<b>${label}</b>`]
+			),
+		"blue"
+	);
+	if (!frm.has_perm("write")) return;
+	frm.add_custom_button(label, () => {
+		frm.add_child("discounts", { kind: FREELY_GIVEN, percent: 100 });
+		frm.refresh_field("discounts");
+		frm.save();
 	});
 }

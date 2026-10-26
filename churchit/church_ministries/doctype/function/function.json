@@ -547,6 +547,7 @@
    "label": "Discounts"
   },
   {
+   "description": "\"Freely you have received; freely give\" (Matthew 10:8). Before you charge, consider a Freely Given discount of 100 percent: the function is then free, and needs no Sign-Up Fund.",
    "fieldname": "discounts",
    "fieldtype": "Table",
    "label": "Discounts",
@@ -597,7 +598,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-26 00:36:10.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

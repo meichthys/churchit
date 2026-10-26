@@ -80,7 +80,7 @@
   },
   {
    "depends_on": "publish_as_form",
-   "description": "The form takes this payment after it is sent. Leave empty for a free form.",
+   "description": "The form takes this payment after it is sent. \"Freely you have received; freely give\" (Matthew 10:8): consider leaving it empty, so the form is free.",
    "fieldname": "price",
    "fieldtype": "Currency",
    "label": "Price"
@@ -104,7 +104,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-26 00:36:10.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Question Set",

@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
 
 from churchit.church_ministries.attendance import get_attendance_total
+from churchit.church_ministries.sign_up_amounts import is_freely_given
 from churchit.church_scope import refuse_another_churches_fund, refuse_another_churches_record
 from churchit.utils import link_title
 
@@ -33,6 +34,7 @@ class Function(Document):
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
+		self.settle_payment_holds_when_prices_change()
 
 	def refuse_another_churches_question_set(self):
 		"""The sign-up questions come from a Question Set of this church or a shared one."""
@@ -41,8 +43,12 @@ class Function(Document):
 			refuse_another_churches_record(self, "Question Set", self.question_set)
 
 	def refuse_another_churches_sign_up_fund(self):
-		"""Sign-up payments go to a fund of the payment church or a shared one, and a price needs a fund."""
-		if not self.sign_up_fund and any(flt(row.price) for row in (*self.selections, *self.table_cxhh)):
+		"""Sign-up payments go to a fund of the payment church or a shared one, and a price needs a fund.
+
+		A function that is freely given for good takes no payment, so it needs none.
+		"""
+		priced = any(flt(row.price) for row in (*self.selections, *self.table_cxhh))
+		if not self.sign_up_fund and priced and not is_freely_given(self.discounts):
 			frappe.throw(_("Choose a Sign-Up Fund on the Registration tab to take the sign-up payments."))
 		# Only when they change: an attendance save of the Function must not trip it.
 		if any(self.has_value_changed(field) for field in ("sign_up_fund", "church", "is_shared")):
@@ -64,6 +70,26 @@ class Function(Document):
 			# the copy the form gets back stale.
 			frappe.enqueue(
 				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.promote_waitlist",
+				function=self.name,
+				enqueue_after_commit=True,
+			)
+
+	def settle_payment_holds_when_prices_change(self):
+		"""A lower price or a new discount, such as Offer It Freely, reaches the sign-ups that wait to pay."""
+
+		def get_prices(doc):
+			selections = sorted((row.selection, flt(row.price)) for row in doc.selections)
+			items = sorted((row.item, flt(row.price)) for row in doc.table_cxhh)
+			discounts = sorted(
+				(row.kind, row.code or "", flt(row.amount), flt(row.percent), str(row.valid_until or ""))
+				for row in doc.discounts
+			)
+			return selections, items, discounts
+
+		before = self.get_doc_before_save()
+		if before and get_prices(before) != get_prices(self):
+			frappe.enqueue(
+				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.settle_payment_holds",
 				function=self.name,
 				enqueue_after_commit=True,
 			)

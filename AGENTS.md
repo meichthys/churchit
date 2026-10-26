@@ -1054,7 +1054,11 @@ read only, but REST accepts them, so `restore_protected_fields` puts back the st
 `db_set`, so attendance, the emails and the follow-up cards follow the change. `amount_due` and
 `discount` are worked out on every save by `church_ministries/sign_up_amounts.py`, the one place for
 sign-up money: the Function's own selection and item prices, less the largest discount that applies.
-Codes match without case on the server only, and no page sends the discount rows. The sign-up window
+Codes match without case on the server only, and no page sends the discount rows. A Freely Given
+discount applies to every sign-up; `is_freely_given` says when one takes the whole price off, and a
+Function freely given with no end date needs no Sign-Up Fund. A change of the Function's prices or
+discounts queues `settle_payment_holds`, which confirms each payment hold that now owes nothing; a
+payment that arrives for a Function with no fund alerts Finance. The sign-up window
 (`sign_ups_open_on`, `sign_ups_close_on`) is read when asked (`is_open_for_sign_up`,
 `is_in_sign_up_window`), with no job; the desk is never refused.
 

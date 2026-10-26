@@ -6,9 +6,9 @@ import json
 import frappe
 from frappe.api.v1 import create_doc, update_doc
 from frappe.desk.form.save import savedocs
-from frappe.utils import add_days, nowdate
+from frappe.utils import add_days, getdate, nowdate
 
-from churchit.church_ministries.sign_up_amounts import get_amount_due, get_discount
+from churchit.church_ministries.sign_up_amounts import get_amount_due, get_discount, is_freely_given
 from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
 	get_function_sign_up_items,
 )
@@ -135,6 +135,31 @@ class TestSignUpAmounts(RollbackEachTest):
 		self.add_discount(kind="Early Bird", valid_until=add_days(nowdate(), 7), amount=12)
 		sign_up = self.sign_up(discount_code="FAMILY")
 		self.assertEqual((sign_up.amount_due, sign_up.discount), (60, 20))
+
+	def test_a_freely_given_discount_makes_every_sign_up_free(self):
+		self.add_discount(kind="Freely Given", percent=100)
+		sign_up = self.sign_up()
+		self.assertEqual((sign_up.amount_due, sign_up.discount), (0, 80))
+
+	def test_a_freely_given_discount_ends_after_its_date(self):
+		self.add_discount(kind="Freely Given", percent=100, valid_until=add_days(nowdate(), -1))
+		sign_up = self.sign_up()
+		self.assertEqual((sign_up.amount_due, sign_up.discount), (80, 0))
+
+	def test_a_function_is_freely_given_only_when_the_whole_price_comes_off(self):
+		def row(**values):
+			return frappe._dict(
+				{"kind": "Freely Given", "percent": 100, "amount": 0, "valid_until": None, **values}
+			)
+
+		today, tomorrow = getdate(nowdate()), getdate(add_days(nowdate(), 1))
+		self.assertTrue(is_freely_given([row()]))
+		self.assertTrue(is_freely_given([row(valid_until=tomorrow)], today))
+		self.assertFalse(is_freely_given([row(valid_until=tomorrow)]))
+		self.assertFalse(is_freely_given([row(valid_until=today)], tomorrow))
+		self.assertFalse(is_freely_given([row(percent=50)]))
+		self.assertFalse(is_freely_given([row(amount=5)]))
+		self.assertFalse(is_freely_given([row(kind="Early Bird")]))
 
 	def test_code_matches_without_case(self):
 		self.add_discount(kind="Code", code="Family", amount=10)
