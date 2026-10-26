@@ -70,7 +70,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, and bulletin PDFs
+- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
 - A guest Connection Card with a QR code, a one-time link for a person to update their details without a login, and new portal logins linked to their person
 - Anonymous prayer request submission (no login required)
@@ -93,8 +93,9 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Pre check-in: a member picks who is coming to today's function on My Household and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
 - Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag; a household keeps one code for the day. Each kind of check-in (Regular, Guest, Volunteer) can print its own tag. The label layouts are Print Formats a church can copy and customize
 - Recurring functions: every n days, weeks, months or years, on a day of the month or a weekday of the month (the second Sunday), created weeks ahead for the calendar, with skip dates and room bookings
-- Calendar view (Private & Public)
-- A public calendar feed that visitors subscribe to in their phone or computer calendar, for the whole church or one published ministry
+- Calendar view (Private & Public). The public calendar shows the rooms, a map, an online meeting link and a link to open each function, and it can include the functions of branch churches
+- A public calendar feed that visitors subscribe to in their phone or computer calendar, for the whole church or one published ministry, with Subscribe and Download .ics links on the Calendar page
+- Link-only functions that do not show on the calendar, the feed, the home page or the Register list, but open from their link
 - Attendance types (Confirmed, Assumed, Absent, etc.)
 - Song tracking for worship services, and a Song Usage report with CCLI numbers for CCLI reporting
 - Reports: attendance by function, attendance by person, function count by type
@@ -169,6 +170,10 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Operations
 - Task tracking with document references
 - Asset tracking (location, details, status)
+- Room booking with approvers for each room, blocked times, and conflicts that an approver resolves by keeping one booking or sharing the room
+- Equipment booking (bookable Church Assets) with a room or on its own, and several rooms for a Function from one dialog. Each church names its rooms freely, so two campuses can each have a Sanctuary
+- Room setups (such as Banquet or Theatre) and room questions on each booking, and a Setup Sheet to print for the people who set up the room
+- A room calendar in the desk, a Room Usage report, and a Book a Room page where members ask for a room
 - Letter tracking from people and missionaries
 
 ### Reports
@@ -178,6 +183,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Function Registrations: one row per attendee with the status, the payment and a column for each question
 - Group attendance: meetings held, average attendance and attendance rate for each group
 - Function count by type
+- Room Usage: one row per room booking in a date range with its room, equipment, hours, status and requester
 - Church directory (printable, with photos, roles, family grouping, and other options)
 - Person letters, birthdays, current positions, and more
 
