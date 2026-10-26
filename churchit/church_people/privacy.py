@@ -167,6 +167,13 @@ def forget_records_about(person: str) -> None:
 	# church-scope: every record about the one person being anonymized, whichever church holds it
 	for doctype, fieldname in PERSONAL_DOCTYPES:
 		for name in frappe.get_all(doctype, filters={fieldname: person}, pluck="name"):
+			# A follow-up card it started is forgotten below; unlink it so the delete is not refused.
+			frappe.db.set_value(
+				"Follow-up Card",
+				{"source_type": doctype, "source_name": name},
+				{"source_type": None, "source_name": None},
+				update_modified=False,
+			)
 			frappe.delete_doc(doctype, name, ignore_permissions=True, delete_permanently=True)
 	for doctype, fieldname in RECORDS_ABOUT_THE_PERSON:
 		for name in frappe.get_all(doctype, filters={fieldname: person}, pluck="name"):
