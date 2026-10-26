@@ -1,9 +1,24 @@
 frappe.query_reports["Function Sign-Up Items"] = {
 	filters: [
 		...church.report_filters(),
-		{ fieldname: "function", label: __("Function"), fieldtype: "Link", options: "Function" },
-		{ fieldname: "item", label: __("Item"), fieldtype: "Link", options: "Sign-Up Item" },
-		{ fieldname: "person", label: __("Person"), fieldtype: "Link", options: "Person" },
+		{
+			fieldname: "function",
+			label: __("Function"),
+			fieldtype: "Link",
+			options: "Function",
+		},
+		{
+			fieldname: "item",
+			label: __("Item"),
+			fieldtype: "Link",
+			options: "Sign-Up Item",
+		},
+		{
+			fieldname: "person",
+			label: __("Person"),
+			fieldtype: "Link",
+			options: "Person",
+		},
 	],
 };
 
@@ -16,14 +31,18 @@ frappe.after_ajax(() => {
 
 		if (functionParam) {
 			// Find and set the function filter input
-			const functionFilterInput = document.querySelector('input[data-fieldname="function"]');
+			const functionFilterInput = document.querySelector(
+				'input[data-fieldname="function"]',
+			);
 			if (functionFilterInput) {
 				functionFilterInput.value = functionParam;
-				functionFilterInput.dispatchEvent(new Event("change", { bubbles: true }));
+				functionFilterInput.dispatchEvent(
+					new Event("change", { bubbles: true }),
+				);
 
 				// Trigger report refresh
 				const refreshBtn = document.querySelector(
-					'button.btn-primary[data-label="Refresh"]'
+					'button.btn-primary[data-label="Refresh"]',
 				);
 				if (refreshBtn) {
 					refreshBtn.click();

@@ -18,8 +18,22 @@ frappe.query_reports["Ministry Team Schedule"] = {
 			default: frappe.datetime.add_days(frappe.datetime.get_today(), 28),
 			reqd: 1,
 		},
-		{ fieldname: "ministry", label: __("Ministry"), fieldtype: "Link", options: "Ministry" },
-		{ fieldname: "function", label: __("Function"), fieldtype: "Link", options: "Function" },
-		{ fieldname: "only_open", label: __("Only Open Positions"), fieldtype: "Check" },
+		{
+			fieldname: "ministry",
+			label: __("Ministry"),
+			fieldtype: "Link",
+			options: "Ministry",
+		},
+		{
+			fieldname: "function",
+			label: __("Function"),
+			fieldtype: "Link",
+			options: "Function",
+		},
+		{
+			fieldname: "only_open",
+			label: __("Only Open Positions"),
+			fieldtype: "Check",
+		},
 	],
 };

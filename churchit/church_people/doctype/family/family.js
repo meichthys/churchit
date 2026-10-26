@@ -4,7 +4,9 @@
 frappe.ui.form.on("Family", {
 	setup(frm) {
 		frm.set_query("primary_contact", () => ({
-			filters: { name: ["in", (frm.doc.members || []).map((row) => row.member)] },
+			filters: {
+				name: ["in", (frm.doc.members || []).map((row) => row.member)],
+			},
 		}));
 	},
 });

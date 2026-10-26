@@ -9,16 +9,19 @@ frappe.ui.form.on("Missionary", {
 				"🚨 This missionary is marked as sensitive and is published \
                 to the public website. Make sure sensitive content is not being \
                 leaked to the public!",
-				"red"
+				"red",
 			);
 		} else if (frm.doc.sensitive) {
 			frm.set_intro(
 				"⚠️ This missionary is marked as sensitive. \
                 be careful not to disclose sensitive information.",
-				"yellow"
+				"yellow",
 			);
 		} else if (frm.doc.publish) {
-			frm.set_intro("🌐 This missionary is published to the public website", "blue");
+			frm.set_intro(
+				"🌐 This missionary is published to the public website",
+				"blue",
+			);
 		}
 
 		const grid = frm.fields_dict.people.grid;
@@ -34,7 +37,7 @@ frappe.ui.form.on("Missionary", {
 				},
 				(values) => add_family(frm, values.family),
 				__("Add Family"),
-				__("Add")
+				__("Add"),
 			);
 		}).appendTo(grid.grid_buttons);
 	},
@@ -45,9 +48,12 @@ frappe.ui.form.on("Missionary", {
 		if (!frm.doc.country || frm.doc.geolocation) return;
 
 		const query = encodeURIComponent(frm.doc.country);
-		fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-			headers: { "Accept-Language": "en" },
-		})
+		fetch(
+			`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+			{
+				headers: { "Accept-Language": "en" },
+			},
+		)
 			.then((r) => r.json())
 			.then((results) => {
 				if (!results.length || frm.doc.geolocation) return;
@@ -74,7 +80,11 @@ function add_family(frm, family) {
 	frm.call("add_family", { family }).then(async (r) => {
 		const added = r.message || [];
 		// Rows from the server carry Person IDs; fetch titles so the grid shows names.
-		await Promise.all(added.map((person) => frappe.utils.fetch_link_title("Person", person)));
+		await Promise.all(
+			added.map((person) =>
+				frappe.utils.fetch_link_title("Person", person),
+			),
+		);
 		frm.refresh_field("people");
 		// Syncing the server's copy leaves a saved form looking unchanged.
 		if (added.length) frm.dirty();

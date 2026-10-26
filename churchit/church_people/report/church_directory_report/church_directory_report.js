@@ -38,7 +38,11 @@ frappe.query_reports["Church Directory Report"] = {
 			if (!group) continue;
 			if (!groups[group]) {
 				groups[group] = $('<div class="directory-option-group"></div>')
-					.append($('<div class="directory-option-heading"></div>').text(group))
+					.append(
+						$('<div class="directory-option-heading"></div>').text(
+							group,
+						),
+					)
 					.appendTo($options);
 			}
 			groups[group].append(filter.wrapper);
@@ -54,15 +58,15 @@ frappe.query_reports["Church Directory Report"] = {
 				if (!r.message) return;
 				if (!report._$preview) {
 					report._$preview = $(
-						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>'
+						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>',
 					).insertAfter($(".report-wrapper"));
 					report._$booklet_note = $(
-						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>'
+						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>',
 					)
 						.text(
 							__(
-								"To print the booklet, print double-sided and flip on the short edge. Keep the sheets in order, then fold the stack in half with the cover on the outside."
-							)
+								"To print the booklet, print double-sided and flip on the short edge. Keep the sheets in order, then fold the stack in half with the cover on the outside.",
+							),
 						)
 						.insertBefore(report._$preview);
 				}
@@ -208,10 +212,13 @@ frappe.query_reports["Church Directory Report"] = {
 		frappe.query_reports["Church Directory Report"]._group_options(report);
 
 		report.page.add_inner_button(__("Print Directory"), function () {
-			const args = frappe.query_reports["Church Directory Report"]._directory_args(report);
+			const args =
+				frappe.query_reports["Church Directory Report"]._directory_args(
+					report,
+				);
 			window.open(
 				"/api/method/churchit.church_people.report.church_directory_report.church_directory_report.download_directory_pdf?" +
-					$.param(args)
+					$.param(args),
 			);
 		});
 	},
