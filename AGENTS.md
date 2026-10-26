@@ -255,6 +255,11 @@ booked it. `church_scope.inherits_a_shared_church` keeps `ensure_church` from st
 default over an inherited blank. When the source stops being shared, `restamp_dependents` stamps
 those records back to its church.
 
+A Room is named `ROOM-.####`, so code that shows a room to a person reads `room_name`.
+`Room.refuse_a_second_room_with_this_name` keeps `room_name` unique among the rooms one church
+lists: its own and the shared ones. A shared room's name is compared with every room. A clash read
+of a room or of equipment crosses churches on purpose (see "Room bookings").
+
 Two shapes that are neither, and how they are handled today:
 
 - **Family** follows its primary contact's church (`Family.follow_primary_contacts_church`),
@@ -398,6 +403,12 @@ A shipped Notification with a `condition` sets `"condition_type": "Python"` in i
 syncs it without field defaults, and Frappe ignores a condition whose type is empty
 (`tests/test_notification_templates.py` checks this).
 
+Production cannot enable a shipped Notification. A Notification that must work there, or that a
+church may change, is inserted once as a record that is not standard, from `after_install` and a
+v1_0 patch, as `room_booking.create_decided_notification` does for Room Booking Decided. To tell
+staff that a record waits for them, assign it with `frappe.desk.form.assign_to`: the assignment
+sends its own email, so add no second Notification.
+
 ## Public website and portal
 
 `get_church()` resolves which church a page is about: an explicit `?church=` (published churches
@@ -466,6 +477,26 @@ A guest endpoint behind a public page declares no `church` parameter. `churchit.
 Calendar feeds are built in `churchit/ics.py`: `make_event`, `make_calendar` (folds every line) and
 `calendar_response` (ETag and 304). Stamp each event with the `modified` of the records it shows,
 never the time of the request, or the ETag changes on every GET. Do not add a second feed mechanism.
+
+`/calendar` offers Subscribe (`webcal://`) and Download .ics links to
+`churchit.ics.get_public_calendar?church=<selected church>` (`calendar.get_context`). The team
+feed and the sign-up calendar file also pass the meeting link to `make_event`.
+
+`/calendar`, its feed, the home page and the `/register` list leave out a Function with Link Only
+(`is_link_only=0` beside `church_filters`). The guest GET `churchit.www.calendar.get_event` opens
+one Function by name for a `?event=` link, a link-only one too, but only a published Function whose
+church is published or blank. Function names are a counter, so Link Only hides nothing from a person
+who guesses. `get_events` takes `include_branches`, which adds the published churches below the
+selected one (`get_published_branches` reads the tree by `lft` and `rgt`: `get_descendants_of` with
+`ignore_permissions` counts as a write in the HTTP method hygiene test, and without it a guest
+cannot read the tree).
+
+An event lists the rooms of its Approved bookings (`calendar.get_rooms`). In multi-church mode it
+leaves out a booking whose church is set and is not the Function's church. A Function's
+`meeting_url` must be https and hold no space or line break (`Function.validate_meeting_url`),
+because a URL field accepts `javascript:` and feeds write the link as it is. The page shows it only
+when it starts with `https://`, and `make_event` writes it as the event `URL` only when it holds no
+line break.
 
 Every field a page shows carries a badge on its desk form, worked out by scanning the pages
 themselves (`church_website/published_fields.py`). Nothing is declared by hand: a new www page,
@@ -1046,6 +1077,21 @@ only a leader of the group adds one (`GroupFile.validate`, which runs under the 
 attached with `set_value`. The Attach field is `attached_file`, not `file`: Frappe's web form
 uploads again for a saved result with a `file` key.
 
+The Room Request web form (`/room-request`, `church_operations/web_form/room_request/`, Book a Room
+in the portal menu) is members-only. `RoomBooking.set_portal_requester` sets the requester to
+`session_person()` for a portal member or anyone on a web form, under the form's
+`ignore_permissions` too, and refuses a login with no Person and a form edit of another person's
+booking. `refuse_a_room_outside_the_members_church` refuses a room that `get_bookable_rooms()` does
+not offer: the bookable rooms of the member's church and the shared ones, less each room whose
+Question Set has a required question, the same read that fills the form's room options
+(`allow_read_on_all_link_options` is 0). The form has no status or requester
+field, because Frappe's `accept` sets every web form field from the browser. Its list reads with
+`get_list` (Church User has `if_owner` read), and `get_list_context` filters on the requester and
+leaves out Blocked times. The form asks no room questions, so it does not offer a room with a
+required question; staff book that room. A member books no equipment:
+`refuse_assets_that_cannot_be_booked` refuses an asset that a member, or anyone on a web form,
+adds (Church User has no permission on Church Asset).
+
 ## Function sign-ups
 
 Function Sign-Up `status`, `hold_expires_on`, `approved_by`, `amount_paid` and `payment_status` are
@@ -1092,6 +1138,73 @@ bounces"). The event comes from `get_function_calendar`, whose UID is the Functi
 public calendar feed.
 
 Sign-ups of a shared Function have an empty church, so every church sees them.
+
+## Room bookings
+
+Room Booking `status` stores Requested, Approved, Denied, Cancelled, Completed, Blocked and
+Conflict. Do not rename them, and append a new value at the end.
+
+`Room.get_approvers` and `Room.is_approver` are the one rule for who approves. The users in the
+room's Approvers table approve while they hold Church Staff or Church Manager; when the table is
+empty, the Church Managers and System Managers do. Each needs `has_church_access` to the room's
+church. A new booking on a gated room is Approved when an approver of the room makes it, never on a
+write with `ignore_permissions` (the recurrence copy stays Requested or becomes Conflict). A move of
+an Approved booking by a user who is not an approver sends it back to Requested.
+
+A booking that waits (Requested or Conflict) is assigned to the approvers with `assign_to`, and the
+assignment closes when the status or the room changes (`update_approver_assignments`). That ToDo is
+the alert; add no second email. The maker hears of the decision from the Room Booking Decided
+Notification (see "Notifications"). The form shows the decision buttons from `__onload.is_approver`,
+not from the assignment.
+
+| Status | Who sets it |
+| --- | --- |
+| Requested | A new booking on a gated room, or a move of an Approved one by a user who is not an approver. |
+| Approved | A new booking on an open room or by an approver, a booking of equipment only, `approve`, `resolve_conflict`. |
+| Denied | `deny`, `resolve_conflict("keep")`, and a Blocked save over a Requested or Conflict booking. On a gated room, `validate_approver` refuses any other save to Denied, or out of Denied to a status other than Cancelled, by a user who is not an approver. |
+| Cancelled, Completed | A user who may write the booking. |
+| Blocked | Only an approver of the room (`validate_blocked`), with a room and no requester. Changing, releasing or deleting it (`on_trash`) needs an approver too. Every other status needs a requester (`refuse_a_request_with_no_requester`, because Frappe checks `mandatory_depends_on` only in the form). |
+| Conflict | A clash saved with `request_anyway`, unless it clashes with a Blocked time. |
+
+`approve`, `deny` and `resolve_conflict` are POST doc methods. Each checks the role
+(`frappe.only_for`), reloads, checks read and `is_approver`, then saves with
+`save(ignore_permissions=True)` (`set_booking_values` for the other bookings), never `db_set`, so
+`validate`, the assignments and the Notification run. `resolve_conflict("keep")` denies the
+Requested and Conflict bookings it clashes with, except those that both share the room, and approves
+this one; an Approved or Blocked booking that still clashes refuses it. "share" ticks Can Share Room
+on each clashing booking that is not Blocked and approves this one.
+
+`RoomBooking.is_clash` decides a clash: a Blocked save clashes only with an Approved booking, a
+stored Blocked booking clashes with every request, a Conflict booking holds no room time, and two
+bookings with Can Share Room do not clash. A clash message names bookings only through
+`describe_clashes`, from (name, church) pairs, which counts but does not name a booking whose church
+the user cannot access. A clash read crosses churches with a `# church-scope:` reason, under locks
+so two saves at once cannot both pass. `check_conflicts` locks the Room row, then reads with a
+locking read. `check_asset_conflicts` locks the overlapping Room Booking rows, then each Church
+Asset row in name order, reads again, then locks the Room Booking Asset rows. Keep that order, and
+run the race tests in `test_room_booking.py` and `test_room_booking_assets.py` again after you add
+an index on Room Booking.
+
+A booking reserves bookable Church Assets in its `assets` table (Room Booking Asset, labelled
+Equipment), with or without a room. A booking with no room is never gated and takes its church from
+`ensure_church`. A booking of a shared room judges its equipment against `shared_by_church`, the
+church that made it, so a recurrence copy that runs as Administrator keeps it. An equipment clash
+always refuses: Requested, Approved and Conflict bookings hold their equipment, Blocked ones do
+not. R10 loans build on this: a loan is a Room Booking with assets rows and normally no room, so
+add no single asset field.
+
+`setup` is text that `validate_setup` checks against the room's Room Setup rows when the setup or
+the room changes, not a Link to the child table. A booking asks its room's Question Set
+(`set_room_answers`); the desk form reads the fields from the GET `room_booking.get_room_questions`,
+which checks read on the Room. A saved booking keeps its answer rows while its room and answers do
+not change, so a decision never asks new questions; after a change of room, answers to another set
+are dropped. A Blocked booking asks nothing. A Room names only a Question Set of its church or a
+shared one (`Room.refuse_another_churches_question_set`).
+
+`room_booking_list.js` hides Denied and Cancelled bookings by default. The calendar view
+(`/desk/room-booking/view/calendar`, Room Calendar in the Operations sidebar) extends the list view,
+so it starts with the same filter, and both read through `get_list`. The Room Usage report scopes
+Room Booking with `scoped`, so a booking of a shared room shows for every church, as in the list.
 
 ## Care and child safety
 
