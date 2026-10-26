@@ -46,6 +46,7 @@ def get_own_assignments(person: str, from_date: str | None = None) -> list[frapp
 			Function.end_date,
 			Function.end_time,
 			Function.all_day,
+			Function.meeting_url,
 			Position.title.as_("position"),
 		)
 		.where(
@@ -89,7 +90,8 @@ def get_calendar(person: str) -> str:
 		if row.status != ACCEPTED:
 			continue
 		summary = _("{0} at {1}").format(row.position, row.function_name)
-		events.append(make_event(row.name, row, summary, max(row.modified, row.function_modified)))
+		stamp = max(row.modified, row.function_modified)
+		events.append(make_event(row.name, row, summary, stamp, url=row.meeting_url))
 	return make_calendar(_("Ministry Team"), events)
 
 

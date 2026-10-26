@@ -149,8 +149,41 @@ class TestPublicCalendar(RollbackEachTest):
 
 		self.assertIn("LOCATION:12 Chapel Rd\\, Springfield\\, IL\\, United States", unfold(self.feed()))
 
+	def test_a_link_only_function_is_left_out(self):
+		listed = self.function("_Test Feed Listed", publish=1)
+		self.function("_Test Feed Link Only", publish=1, is_link_only=1)
+
+		feed = unfold(self.feed())
+		self.assertIn(f"UID:{listed.name}@", feed)
+		self.assertNotIn("_Test Feed Link Only", feed)
+
+	def test_a_meeting_link_is_the_event_url(self):
+		self.function("_Test Feed Online", publish=1, meeting_url="https://meet.example.org/a,b;c")
+		self.function("_Test Feed In Person", publish=1)
+
+		feed = unfold(self.feed())
+		self.assertIn("URL:https://meet.example.org/a,b;c\r\n", feed)
+		self.assertEqual(feed.count("URL:"), 1)
+
+	def test_a_stored_meeting_link_with_a_line_break_adds_no_line(self):
+		function = self.function("_Test Feed Broken Link", publish=1)
+		frappe.db.set_value("Function", function.name, "meeting_url", "https://x.org/a\r\nX-INJECT:1")
+
+		feed = unfold(self.feed())
+		self.assertIn(f"UID:{function.name}@", feed)
+		self.assertNotIn("X-INJECT", feed)
+		self.assertNotIn("URL:", feed)
+
 	def test_the_feed_fields_carry_the_public_badge(self):
 		published = published_field_map()["Function"]
-		for fieldname in ("function_name", "start_date", "start_time", "end_date", "address", "description"):
+		for fieldname in (
+			"function_name",
+			"start_date",
+			"start_time",
+			"end_date",
+			"address",
+			"description",
+			"meeting_url",
+		):
 			sources = [source for source in published[fieldname] if source["route"] == FEED_ROUTE]
 			self.assertEqual([source["access"] for source in sources], [PUBLIC], fieldname)

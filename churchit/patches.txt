@@ -104,3 +104,4 @@ churchit.patches.v1_0.add_sign_up_payment_due_template
 churchit.patches.v1_0.add_room_request_to_portal
 churchit.patches.v1_0.remove_room_booking_pending_approval
 churchit.patches.v1_0.add_room_booking_decided_notification
+churchit.patches.v1_0.hide_link_only_functions_on_home_page

@@ -6,7 +6,7 @@ from datetime import datetime, time, timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
+from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate, validate_url
 
 from churchit.church_ministries.attendance import get_attendance_total
 from churchit.church_ministries.sign_up_amounts import is_freely_given
@@ -31,10 +31,23 @@ class Function(Document):
 			self.validate_group()
 		self.refuse_another_churches_question_set()
 		self.refuse_another_churches_sign_up_fund()
+		self.validate_meeting_url()
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
 		self.settle_payment_holds_when_prices_change()
+
+	def validate_meeting_url(self):
+		"""Guests open the meeting link, and a URL field accepts javascript:, so it must be https.
+
+		Calendar feeds write the link as it is, so a space or a line break in it is refused too.
+		"""
+		if not (self.meeting_url and self.has_value_changed("meeting_url")):
+			return
+		self.meeting_url = self.meeting_url.strip()
+		if any(character.isspace() or not character.isprintable() for character in self.meeting_url):
+			frappe.throw(_("The Online Meeting Link must not contain spaces or line breaks."))
+		validate_url(self.meeting_url, throw=True, valid_schemes=("https",))
 
 	def refuse_another_churches_question_set(self):
 		"""The sign-up questions come from a Question Set of this church or a shared one."""
@@ -158,6 +171,7 @@ def apply_template(source_name: str, start_date: str | None = None):
 	# Specify which fields to include (whitelist approach)
 	include_fields = [
 		"address",
+		"meeting_url",
 		"all_day",
 		"description",
 		"associated_ministry",

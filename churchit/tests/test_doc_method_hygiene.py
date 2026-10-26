@@ -608,6 +608,9 @@ NAME_CHECK_EXEMPT = {
 	"churchit.scripture.get_chapter": TRANSLATION,
 	"churchit.scripture.get_passage": TRANSLATION,
 	"churchit.scripture.get_reference_preview": TRANSLATION,
+	"churchit.www.calendar.get_event": (
+		"a guest read; it gives a Function only when it is published and its church is published or blank"
+	),
 	"churchit.www.give.start_donation": "a guest may give to any fund with Allow Giving; the gift takes the fund's church",
 	"churchit.www.register.pay": SIGNED_LINK,
 	"churchit.www.register.get_questions": (

@@ -22,9 +22,11 @@
   "end_time",
   "column_break_bkje",
   "publish",
+  "is_link_only",
   "attendance_total",
   "headcount",
   "address",
+  "meeting_url",
   "description",
   "section_break_bkwy",
   "schedule",
@@ -194,6 +196,14 @@
    "search_index": 1
   },
   {
+   "default": "0",
+   "depends_on": "publish",
+   "description": "Leave this function off the calendar, the feed and the home page. People with its link can still open it. Function names are a counter, so someone could guess the link: do not use this to hide private events.",
+   "fieldname": "is_link_only",
+   "fieldtype": "Check",
+   "label": "Link Only"
+  },
+  {
    "description": "Counts Confirmed, Assumed and Checked-In attendance, from the day the function starts.",
    "fieldname": "attendance_total",
    "fieldtype": "Int",
@@ -214,6 +224,13 @@
    "in_preview": 1,
    "label": "Address",
    "options": "Address"
+  },
+  {
+   "description": "An https link to join online. Guests see it on the public calendar when the function is published.",
+   "fieldname": "meeting_url",
+   "fieldtype": "Data",
+   "label": "Online Meeting Link",
+   "options": "URL"
   },
   {
    "fieldname": "description",
@@ -598,7 +615,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-26 00:36:10.000000",
+ "modified": "2026-10-26 15:41:12.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

@@ -52,6 +52,8 @@ def get_context(context):
 	chosen = frappe.form_dict.get("function")
 	context.function = next((function for function in context.functions if function.name == chosen), None)
 	context.is_unknown_function = bool(chosen and not context.function)
+	# A link-only function opens from its link but is not listed.
+	context.functions = [function for function in context.functions if not function.is_link_only]
 
 
 def get_open_functions(**filters) -> list[frappe._dict]:
@@ -75,6 +77,7 @@ def get_open_functions(**filters) -> list[frappe._dict]:
 			"description",
 			"sign_ups_open_on",
 			"sign_ups_close_on",
+			"is_link_only",
 		],
 		order_by="start_date, start_time",
 	)

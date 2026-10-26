@@ -47,6 +47,7 @@ def make_event(
 	stamp: datetime,
 	description: str | None = None,
 	location: str | None = None,
+	url: str | None = None,
 ) -> list[str]:
 	"""One VEVENT at the times of *function*, stamped with *stamp*, when its content last changed.
 
@@ -63,6 +64,9 @@ def make_event(
 		lines.append(f"DESCRIPTION:{calendar_text(description)}")
 	if location:
 		lines.append(f"LOCATION:{calendar_text(location)}")
+	# A URI value, not text, so it is not escaped: a line break in it would start a new property.
+	if url and "\r" not in url and "\n" not in url:
+		lines.append(f"URL:{url}")
 	return [*lines, "END:VEVENT"]
 
 
@@ -125,7 +129,7 @@ def get_public_calendar(ministry: str | None = None):
 	church = selected_church_name()
 	today = getdate()
 	window_start = add_months(today, -1)
-	filters = church_filters(church, publish=1, start_date=["<=", add_months(today, 6)])
+	filters = church_filters(church, publish=1, is_link_only=0, start_date=["<=", add_months(today, 6)])
 	if ministry:
 		filters["associated_ministry"] = ministry
 
@@ -146,6 +150,7 @@ def get_public_calendar(ministry: str | None = None):
 				"all_day",
 				"address",
 				"description",
+				"meeting_url",
 				"modified",
 			],
 			order_by="start_date asc, start_time asc",
@@ -160,6 +165,7 @@ def get_public_calendar(ministry: str | None = None):
 			row.modified,
 			description=row.description,
 			location=_format_address(row.address, addresses),
+			url=row.meeting_url,
 		)
 		for row in rows
 	]

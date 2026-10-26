@@ -161,3 +161,29 @@ class TestFunctionGroup(RollbackEachTest):
 		function.save(ignore_permissions=True)
 
 		self.assertEqual([row.association for row in function.associations], [group.name])
+
+
+class TestFunctionMeetingLink(RollbackEachTest):
+	def test_only_an_https_meeting_link_saves(self):
+		function = make_function("_Test Online Meeting", meeting_url="https://meet.example.org/abc")
+		self.assertEqual(function.meeting_url, "https://meet.example.org/abc")
+
+		for unsafe in (
+			"javascript:alert(1)",
+			"http://x.org",
+			"https://x.org/a\r\nATTENDEE:mailto:x@example.org",
+			"https://x.org/a\nX:1",
+			"https://x.org/a b",
+			"https://x.org/a\tb",
+		):
+			function.meeting_url = unsafe
+			with self.subTest(unsafe), self.assertRaises(frappe.ValidationError):
+				function.save(ignore_permissions=True)
+
+	def test_a_stored_link_is_not_checked_again_on_an_unrelated_save(self):
+		function = make_function("_Test Online Old Link", meeting_url="https://meet.example.org/abc")
+		frappe.db.set_value("Function", function.name, "meeting_url", "http://old.example.org")
+
+		function.reload()
+		function.description = "Now with notes"
+		function.save(ignore_permissions=True)

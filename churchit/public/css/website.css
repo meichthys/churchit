@@ -162,8 +162,9 @@
 [data-theme="dark"] h4,
 [data-theme="dark"] h5,
 [data-theme="dark"] h6,
-[data-theme="dark"] a,
-[data-theme="dark"] a:hover {
+/* map controls keep Leaflet's own colors on their white boxes */
+[data-theme="dark"] a:not(.leaflet-container a),
+[data-theme="dark"] a:not(.leaflet-container a):hover {
   color: var(--heading-color);
 }
 [data-theme="dark"] .text-muted {

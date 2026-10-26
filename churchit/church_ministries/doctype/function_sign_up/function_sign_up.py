@@ -79,6 +79,7 @@ EVENT_FIELDS = (
 	"all_day",
 	"address",
 	"description",
+	"meeting_url",
 	"modified",
 )
 
@@ -804,7 +805,15 @@ def get_function_calendar(function: str) -> str:
 	row = frappe.db.get_value("Function", function, EVENT_FIELDS, as_dict=True)
 	summary = row.function_name or row.title or row.name
 	location = _format_address(row.address, {})
-	event = make_event(row.name, row, summary, row.modified, description=row.description, location=location)
+	event = make_event(
+		row.name,
+		row,
+		summary,
+		row.modified,
+		description=row.description,
+		location=location,
+		url=row.meeting_url,
+	)
 	return make_calendar(summary, [event])
 
 

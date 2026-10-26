@@ -160,5 +160,10 @@ class TestLeafletOnMissions(FrappeTestCase):
 		self.assertEqual(context.web_include_css.count("leaflet.bundle.css"), 1)
 		self.assertNotIn("leaflet.bundle.js", frappe.get_hooks("web_include_js"))
 
+	def test_the_calendar_loads_leaflet_for_its_event_map(self):
+		context = self.context_for("calendar")
+		self.assertEqual(context.web_include_js.count("leaflet.bundle.js"), 1)
+		self.assertEqual(context.web_include_css.count("leaflet.bundle.css"), 1)
+
 	def test_other_pages_do_not_load_leaflet(self):
 		self.assertNotIn("leaflet.bundle.js", self.context_for("about").web_include_js)

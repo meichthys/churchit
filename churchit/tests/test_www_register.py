@@ -107,6 +107,14 @@ class TestRegisterPage(RegisterTestCase):
 		self.assertIn("_Test Register Retreat", html)
 		self.assertNotIn(self.member.full_name, html)
 
+	def test_a_link_only_function_is_not_listed_but_opens_by_its_link(self):
+		frappe.db.set_value("Function", self.function, "is_link_only", 1)
+
+		self.assertNotIn("_Test Register Retreat", self.serve())
+		html = self.serve(function=self.function)
+		self.assertIn('name="registrant_name"', html)
+		self.assertIn("_Test Register Retreat", html)
+
 	def test_a_function_outside_its_window_is_not_offered(self):
 		self.set_window(opens=add_days(now_datetime(), 1))
 		self.assertNotIn("_Test Register Retreat", self.serve())

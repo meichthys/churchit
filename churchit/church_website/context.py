@@ -16,7 +16,7 @@ from churchit.church_website.footer import get_footer_church
 
 PORTAL_URL = "/portal"
 # The pages that draw a Leaflet map.
-MAP_PAGES = ("missions", "find-a-group")
+MAP_PAGES = ("missions", "find-a-group", "calendar")
 THEME_MODE_SCRIPT = (
 	"<script>" + (Path(__file__).parents[1] / "public/js/theme_mode.js").read_text() + "</script>"
 )

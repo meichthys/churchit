@@ -110,6 +110,7 @@ def create_occurrence(template: Document, start_date: date) -> Document:
 		source_template=template.name,
 		auto_repeat=0,
 		publish=template.publish,
+		is_link_only=template.is_link_only,
 		church=template.church,
 	)
 	if not template.all_day:

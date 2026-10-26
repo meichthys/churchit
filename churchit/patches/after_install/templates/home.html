@@ -3,7 +3,7 @@
 {%- set upcoming = frappe.get_all(
 	"Function",
 	fields=["name", "function_name", "title", "start_date", "start_time", "all_day", "description"],
-	filters=selected_church_filters(publish=1, start_date=[">=", frappe.utils.nowdate()]),
+	filters=selected_church_filters(publish=1, is_link_only=0, start_date=[">=", frappe.utils.nowdate()]),
 	order_by="start_date asc, start_time asc",
 	limit=4,
 ) -%}

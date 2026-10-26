@@ -194,6 +194,37 @@ class TestRecurrence(RollbackEachTest):
 		for name in names:
 			self.assertIn(f"UID:{name}@", feed)
 
+	def test_a_link_only_template_makes_link_only_occurrences_with_its_meeting_link(self):
+		template = self.make_template(
+			"_Test Link Only Weekly",
+			start_date=getdate(),
+			publish=1,
+			is_link_only=1,
+			meeting_url="https://example.com/meet",
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(getdate()),
+		)
+		create_missing_occurrences(template, getdate())
+		rows = frappe.get_all(
+			"Function",
+			filters={"source_template": template.name},
+			fields=["name", "is_link_only", "meeting_url"],
+		)
+
+		self.assertTrue(rows)
+		self.assertEqual(
+			{(row.is_link_only, row.meeting_url) for row in rows}, {(1, "https://example.com/meet")}
+		)
+		events = {event["id"] for event in get_events(getdate(), add_days(getdate(), 60))}
+		self.assertFalse(events & {row.name for row in rows})
+		frappe.set_user("Guest")
+		try:
+			feed = unfold(request_feed(self, get_public_calendar, church=template.church))
+		finally:
+			frappe.set_user("Administrator")
+		for row in rows:
+			self.assertNotIn(f"UID:{row.name}@", feed)
+
 	def test_an_occurrence_of_a_deleted_template_can_be_deleted(self):
 		template = self.make_template(
 			"_Test Gone Template",
