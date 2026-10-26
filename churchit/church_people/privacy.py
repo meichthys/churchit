@@ -75,6 +75,7 @@ PERSONAL_TABLES = ("emails", "phones", "addresses", "letters")
 PERSONAL_DOCTYPES = (
 	("Person Note", "person"),
 	("Connection Card", "person"),
+	("Form Response", "person"),
 	("Pickup Restriction", "child"),
 	("Group Join Request", "person"),
 )

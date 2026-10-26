@@ -590,6 +590,14 @@ NAME_CHECK_EXEMPT = {
 	"churchit.church_people.list_actions.mark_inactive": (
 		"Inactive Reason is a global lookup; each Person is checked for write"
 	),
+	"churchit.church_setup.doctype.form_response.form_response.pay": (
+		"the response name is a random hash that only its sender's page holds, and it gives only a checkout of "
+		"the set's own price"
+	),
+	"churchit.church_setup.doctype.form_response.form_response.get_form": (
+		"a guest read; refuse_a_closed_form gives the questions only of a set published as a form, and "
+		"refuses a guest a members-only set"
+	),
 	"churchit.church_study.doctype.bible_memory_item.bible_memory_item.assign_memory": TRANSLATION,
 	"churchit.church_study.doctype.bible_memory_item.bible_memory_item.record_mistake": OWN_RECORD,
 	"churchit.church_study.doctype.bible_memory_item.bible_memory_item.complete_session": OWN_RECORD,

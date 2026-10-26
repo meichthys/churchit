@@ -1,0 +1,8 @@
+/* This source code is freely given for the sake of the gospel (Matthew 10:8)
+   and is licensed under MIT No Attribution (MIT-0). */
+
+/* The questions show as fields (form.js) instead of the table rows Frappe draws. */
+.frappe-control[data-fieldname="answers"] .form-grid-container,
+.frappe-control[data-fieldname="answers"] .grid-footer {
+	display: none !important;
+}

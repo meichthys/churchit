@@ -4,7 +4,9 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import flt
 
+from churchit.church_scope import refuse_another_churches_fund
 from churchit.questions import get_choices, get_fieldname
 
 
@@ -24,3 +26,7 @@ class QuestionSet(Document):
 		repeated = sorted({name for name in names if names.count(name) > 1})
 		if repeated:
 			frappe.throw(_("Give each question its own Answer Name: {0}.").format(", ".join(repeated)))
+
+		if flt(self.price) and not self.fund:
+			frappe.throw(_("Choose a Fund to take the form's payments."))
+		refuse_another_churches_fund(self, self.fund)
