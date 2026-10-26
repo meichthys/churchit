@@ -601,6 +601,13 @@ NAME_CHECK_EXEMPT = {
 	"churchit.scripture.get_passage": TRANSLATION,
 	"churchit.scripture.get_reference_preview": TRANSLATION,
 	"churchit.www.give.start_donation": "a guest may give to any fund with Allow Giving; the gift takes the fund's church",
+	"churchit.www.register.sign_up": (
+		"a guest registers only for a published Function of the selected church with guest sign-ups open now "
+		"(get_open_functions); the sign-up takes the function's church"
+	),
+	"churchit.www.register.get_event_calendar": (
+		"a guest feed; it gives the calendar only of a function /register offers (get_open_functions)"
+	),
 }
 
 
