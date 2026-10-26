@@ -388,9 +388,24 @@
    "open_in_new_tab": 1,
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "Form Responses",
+   "link_to": "Form Response",
+   "link_type": "DocType",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-10-22 17:49:48.000000",
+ "modified": "2026-10-25 23:01:06.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",
