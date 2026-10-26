@@ -1,0 +1,64 @@
+{#- Setup Sheet for a Room Booking: what the people who set up the room need to know. Text is typed
+    by requesters and staff, so it is escaped. -#}
+{%- set room_name = frappe.db.get_value("Room", doc.room, "room_name") if doc.room else "" -%}
+{%- set setup = frappe.db.get_value("Room Setup", {"parenttype": "Room", "parent": doc.room, "setup_name": doc.setup}, ["capacity", "description"], as_dict=True) if doc.room and doc.setup else None -%}
+<style>
+  .setup-sheet { font-family: Arial, sans-serif; font-size: 11pt; color: #222; }
+  .setup-sheet h1 { margin: 0 0 6px 0; font-size: 18pt; }
+  .setup-sheet h2 { margin: 18px 0 6px 0; font-size: 13pt; }
+  .setup-sheet .meta { color: #666; margin-bottom: 12px; }
+  .setup-sheet table { width: 100%; border-collapse: collapse; }
+  .setup-sheet th, .setup-sheet td { border: 1px solid #888; padding: 6px 8px; text-align: left; vertical-align: top; }
+  .setup-sheet th { background: #f4f4f4; width: 30%; }
+  .setup-sheet .text { white-space: pre-wrap; }
+</style>
+<div class="setup-sheet">
+  <h1>{{ _("Setup Sheet") }}</h1>
+  <div class="meta"><strong>{{ (room_name or _("Equipment only"))|e }}</strong> · {{ doc.name }}</div>
+  <table>
+    <tr><th>{{ _("Start") }}</th><td>{{ doc.get_formatted("start_datetime") }}</td></tr>
+    <tr><th>{{ _("End") }}</th><td>{{ doc.get_formatted("end_datetime") }}</td></tr>
+    {%- if doc.purpose %}
+    <tr><th>{{ _("Purpose") }}</th><td>{{ doc.purpose|e }}</td></tr>
+    {%- endif %}
+    {%- if doc.requester %}
+    <tr><th>{{ _("Requester") }}</th><td>{{ (frappe.db.get_value("Person", doc.requester, "full_name") or "")|e }}</td></tr>
+    {%- endif %}
+  </table>
+
+  {%- if doc.setup or doc.setup_notes %}
+  <h2>{{ _("Setup") }}</h2>
+  <table>
+    {%- if doc.setup %}
+    <tr><th>{{ _("Setup") }}</th><td>{{ doc.setup|e }}</td></tr>
+    {%- endif %}
+    {%- if setup and setup.capacity %}
+    <tr><th>{{ _("Capacity") }}</th><td>{{ setup.capacity }}</td></tr>
+    {%- endif %}
+    {%- if setup and setup.description %}
+    <tr><th>{{ _("Description") }}</th><td class="text">{{ setup.description|e }}</td></tr>
+    {%- endif %}
+    {%- if doc.setup_notes %}
+    <tr><th>{{ _("Setup Notes") }}</th><td class="text">{{ doc.setup_notes|e }}</td></tr>
+    {%- endif %}
+  </table>
+  {%- endif %}
+
+  {%- if doc.assets %}
+  <h2>{{ _("Equipment") }}</h2>
+  <table>
+    {%- for row in doc.assets %}
+    <tr><td>{{ frappe.db.get_value("Church Asset", row.asset, "title")|e }}</td></tr>
+    {%- endfor %}
+  </table>
+  {%- endif %}
+
+  {%- if doc.answers %}
+  <h2>{{ _("Questions") }}</h2>
+  <table>
+    {%- for row in doc.answers %}
+    <tr><th>{{ row.label|e }}</th><td class="text">{{ (row.answer or "")|e }}</td></tr>
+    {%- endfor %}
+  </table>
+  {%- endif %}
+</div>
