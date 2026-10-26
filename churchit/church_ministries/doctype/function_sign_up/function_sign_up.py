@@ -8,6 +8,7 @@ from frappe.utils import (
 	add_to_date,
 	cint,
 	cstr,
+	date_diff,
 	flt,
 	fmt_money,
 	format_date,
@@ -16,9 +17,15 @@ from frappe.utils import (
 	get_datetime,
 	get_url,
 	now_datetime,
+	today,
 )
 from frappe.utils.verified_command import get_signed_params
 
+from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL, SMS
+from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
+	EVENT_REGISTRATIONS,
+)
+from churchit.church_communications.sending import can_send_texts, send
 from churchit.church_finances.doctype.collection.collection import add_single_donation
 from churchit.church_finances.doctype.online_donation.online_donation import PAID_STATUSES
 from churchit.church_finances.payments import PAYMENT_RECORDERS, is_charge_confirmed, notify_finance
@@ -51,6 +58,10 @@ WINDOW_FIELDS = ("sign_ups_open_on", "sign_ups_close_on")
 SIGN_UP_SOURCE = "Sign-Up"
 HOLD_HOURS = 24
 SIGN_UP_APPROVERS = {"Church Manager", "System Manager", "Church People Editor"}
+REMINDER_TEMPLATE = "Sign-Up Reminder"
+REMINDER_TEXT = "Reminder: {{ function_name }} on {{ date }}{% if time %} at {{ time }}{% endif %}."
+# One send key per channel, so a text still goes to a person the email reached.
+REMINDER_KEYS = {EMAIL: "reminder", SMS: "reminder-text"}
 CONFIRMATION_TEMPLATE = "Sign-Up Confirmation"
 UNPAID, PAID, REFUND_DUE, REFUNDED = "Unpaid", "Paid", "Refund Due", "Refunded"
 # A sign-up in one of these takes no more payment.
@@ -1028,3 +1039,67 @@ def release_expired_holds() -> None:
 				reference_doctype="Function",
 				reference_name=function,
 			)
+
+
+def send_reminders() -> None:
+	"""Daily: remind Confirmed registrants of a function that starts within its Reminder Days.
+
+	The send keys make a rerun send nothing. Email waits while the site has no outgoing email account,
+	so the reminder still goes once there is one.
+	"""
+	ready = {EMAIL: can_send_email(), SMS: can_send_texts()}
+	channels = [channel for channel, is_ready in ready.items() if is_ready]
+	functions = get_functions_due_a_reminder()
+	if not (channels and functions):
+		return
+
+	# church-scope: a job over every church; each reminder goes to the registrant of its own sign-up
+	sign_ups = frappe.get_all(
+		"Function Sign-Up",
+		filters={"function": ("in", list(functions)), "status": CONFIRMED, "person": ("is", "set")},
+		pluck="name",
+	)
+	for name in sign_ups:
+		sign_up = frappe.get_doc("Function Sign-Up", name)
+		send_reminder(sign_up, channels, functions[sign_up.function])
+
+
+def get_functions_due_a_reminder() -> dict[str, dict]:
+	"""The reminder context of each function that starts between today and its Reminder Days from today."""
+	# church-scope: a job over every church's functions
+	functions = frappe.get_all(
+		"Function",
+		filters={"reminder_days": (">", 0), "start_date": (">=", today())},
+		fields=["name", "function_name", "start_date", "start_time", "all_day", "reminder_days"],
+	)
+	return {
+		function.name: {
+			"function_name": function.function_name,
+			"date": format_date(function.start_date),
+			"time": format_time(function.start_time, TIME_FORMAT)
+			if function.start_time and not function.all_day
+			else "",
+		}
+		for function in functions
+		if date_diff(function.start_date, today()) <= function.reminder_days
+	}
+
+
+def send_reminder(sign_up: Document, channels: list[str], context: dict) -> None:
+	"""Remind the registrant of *sign_up* on each of *channels* they allow for Event Registrations."""
+	church = sign_up.church or frappe.db.get_value("Person", sign_up.person, "church")
+	for channel in channels:
+		send(
+			[sign_up.person],
+			channel,
+			EVENT_REGISTRATIONS,
+			sign_up,
+			key=REMINDER_KEYS[channel],
+			church=church,
+			template=REMINDER_TEMPLATE if channel == EMAIL else None,
+			text=REMINDER_TEXT if channel == SMS else "",
+			context=context,
+		)
+		# A text leaves at once, so each copy is committed as soon as it is sent, and the lock on the
+		# sign-up goes with it.
+		frappe.db.commit()

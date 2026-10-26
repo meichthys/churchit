@@ -367,6 +367,7 @@ scheduler_events = {
 		"churchit.church_people.followup.start_smart_list_cards",
 		"churchit.church_people.privacy.remove_due_personal_data",
 		"churchit.church_people.group_meetings.send_attendance_reminders",
+		"churchit.church_ministries.doctype.function_sign_up.function_sign_up.send_reminders",
 	],
 	"weekly_long": ["churchit.church_people.duplicates.scan"],
 	"cron": {
