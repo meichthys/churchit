@@ -9,6 +9,8 @@ const VALUE_TYPES = {
 	"Membership Type Becomes": "Membership Type",
 	"Member Status Becomes": "Member Status",
 	"On Smart List": "Report",
+	"Signed Up": "Function Type",
+	"Form Submitted": "Question Set",
 };
 
 frappe.ui.form.on("Follow-up Workflow", {

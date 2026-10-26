@@ -306,6 +306,9 @@ doc_events = {
 	"Function Check-In": {
 		"after_insert": "churchit.church_people.followup.on_check_in",
 	},
+	"Function Sign-Up": {
+		"on_update": "churchit.church_people.followup.on_sign_up",
+	},
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
 	},

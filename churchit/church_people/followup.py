@@ -18,6 +18,7 @@ from frappe.permissions import get_doctype_roles
 from frappe.utils import today
 
 from churchit.church_ministries.doctype.function_check_in.function_check_in import VOLUNTEER
+from churchit.church_ministries.doctype.function_sign_up.function_sign_up import CONFIRMED
 from churchit.church_people import smart_lists
 from churchit.church_scope import church_filters
 
@@ -35,6 +36,8 @@ LIFE_EVENT_ADDED = "Life Event Added"
 MEMBERSHIP_TYPE_BECOMES = "Membership Type Becomes"
 MEMBER_STATUS_BECOMES = "Member Status Becomes"
 ON_SMART_LIST = "On Smart List"
+SIGNED_UP = "Signed Up"
+FORM_SUBMITTED = "Form Submitted"
 # What a trigger row's "Which" value names. follow_up_workflow.js offers the same pickers.
 VALUE_TYPES = {
 	CONNECTION_CARD: "Connection Card Interest",
@@ -43,6 +46,8 @@ VALUE_TYPES = {
 	MEMBERSHIP_TYPE_BECOMES: "Membership Type",
 	MEMBER_STATUS_BECOMES: "Member Status",
 	ON_SMART_LIST: "Report",
+	SIGNED_UP: "Function Type",
+	FORM_SUBMITTED: "Question Set",
 }
 # The trigger each membership field starts, by the field a membership_changed event names.
 MEMBERSHIP_TRIGGERS = {"membership": MEMBERSHIP_TYPE_BECOMES, "membership_status": MEMBER_STATUS_BECOMES}
@@ -199,6 +204,40 @@ def start_check_in_cards(check_in: str) -> list[str]:
 	doc = frappe.get_doc("Function Check-In", check_in)
 	church = doc.church or frappe.db.get_value("Person", doc.person, "church")
 	return start_cards(FIRST_CHECK_IN, doc.person, church, value=doc.function_type, source=doc)
+
+
+def on_sign_up(doc, method=None) -> None:
+	"""on_update on Function Sign-Up: a Confirmed sign-up starts the Signed Up workflows of each new attendee.
+
+	Every attendee Person is new when the sign-up has just become Confirmed. The cards start after the
+	commit, so a follow-up problem never stops a sign-up, and the job runs as the user who saved it,
+	a guest included.
+	"""
+	if doc.status != CONFIRMED:
+		return
+	people = doc.get_attendee_people()
+	before = doc.get_doc_before_save()
+	if before and before.status == CONFIRMED:
+		people -= before.get_attendee_people()
+	if people:
+		frappe.enqueue(
+			start_sign_up_cards, enqueue_after_commit=True, sign_up=doc.name, people=sorted(people)
+		)
+
+
+def start_sign_up_cards(sign_up: str, people: list[str]) -> list[str]:
+	"""Background job: start the Signed Up workflows of each of *people*, attendees of one sign-up.
+
+	A sign-up of a function shared with every church belongs to none of them, so each person's own
+	church follows them up.
+	"""
+	doc = frappe.get_doc("Function Sign-Up", sign_up)
+	function_type = frappe.db.get_value("Function", doc.function, "type")
+	cards = []
+	for person in people:
+		church = doc.church or frappe.db.get_value("Person", person, "church")
+		cards += start_cards(SIGNED_UP, person, church, value=function_type, source=doc)
+	return cards
 
 
 def wake_snoozed_cards() -> None:
