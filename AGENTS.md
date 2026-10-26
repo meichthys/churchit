@@ -350,9 +350,9 @@ into Role Profiles in `fixtures/role_profile.json`:
 | Role | Owns |
 | --- | --- |
 | Church Staff | Reads people, events, groups, ministries and the lookup types. Changes only records it created, except Church Task: it edits any task but adds none. The Church Staff, Church Office, Church Care Team and Church Treasurer profiles hold it. |
-| Church People Editor | Person, Family, Group, Member Transfer, Function Sign-Up and Inactive Reason. Adds and edits Person Notes and Follow-up Cards, edits and deletes Connection Cards, and records Communication Consent. Marks a Possible Duplicate Not a Duplicate, but cannot merge, because a merge deletes a Person. |
+| Church People Editor | Person, Family, Group, Member Transfer, Function Sign-Up (and approves sign-ups), Form Response and Inactive Reason. Adds and edits Person Notes and Follow-up Cards, edits and deletes Connection Cards, and records Communication Consent. Marks a Possible Duplicate Not a Duplicate, but cannot merge, because a merge deletes a Person. |
 | Church Pastoral Care | Care, counseling, visitation, background checks, prayer, alms. Adds and edits Person Notes and Follow-up Cards, records Communication Consent, and reads the care figures on Person (permlevel 3). |
-| Church Finance | Collections, online donations, expenses, funds and transfers, budgets, statements, vendors, and their types. Edits Alms Requests and reads the giving figures on Person (permlevel 2). |
+| Church Finance | Collections, online donations, the payments and refunds of sign-ups and form responses, expenses, funds and transfers, budgets, statements, vendors, and their types. Edits Alms Requests and reads the giving figures on Person (permlevel 2). |
 | Church Check-In | The Check-In Station. Reads people, families and functions. |
 | Church Follow-up | The Follow-up Cards assigned to it (`followup.has_card_permission`). Reads connection cards and follow-up workflows. |
 | Church Manager | Everything, including settings |
@@ -443,6 +443,20 @@ group's living members. `/find-a-group` lists the selected church's open groups 
 city and a pin rounded to 2 decimals from each group's schedule Function. It never reads `meets` or
 the street. A member's own requests come from `joinable_public_groups`, so the public page reads no
 Group Join Request.
+
+`/register` is the guest sign-up page (`no_cache = 1`). It lists the selected church's published
+Functions from today on with Allow Guest Sign-Ups that are inside their sign-up window
+(`register.get_open_functions`, `frappe.get_all` with `church_filters`), and every `/register`
+endpoint asks it first. `register.sign_up` is a rate-limited guest POST with a honeypot; it takes no
+person, status, price or amount from the browser. Other units extend the page only through
+`get_attendee_rows`, `get_answer_rows`, `get_calendar_link`, `get_payment_link` and the includes in
+`templates/includes/register/`, which add named inputs (a JSON value goes in a hidden input). The
+household and the selections come from the guest GET `get_attendee_choices` after the page loads,
+so the page HTML holds no name; `get_attendee_rows` rebuilds the household from the session and
+refuses any other Person. The questions come from `get_questions`, and the page sends the answers as
+one JSON object by attendee (`""` is the registrant, another key is an attendee's person or typed
+name). The insert passes `set_child_names=False`, because Frappe renames every child row on insert
+and the answers name their attendee rows.
 
 A guest endpoint behind a public page declares no `church` parameter. `churchit.with_church`
 (`site_church.js`) sends the page's `?church=` with the call, and the endpoint reads it through
@@ -542,6 +556,22 @@ people's summaries after commit. Cancelling a Collection is the refund: `Collect
 each of its Paid Online Donations to Refunded before it removes the ledger rows, and
 `record_charge` skips a Paid or Refunded gift, so a late callback records nothing. A partial
 refund is a negative Donation row in a new Collection.
+
+Function Sign-Up and Form Response are payable records too. Their payments go to `payment_church`:
+the Function's or Question Set's church, or `shared_by_church` when it is shared. Its fund must be
+that church's or a shared one (`church_scope.refuse_another_churches_fund`; do not use
+`refuse_another_churches_record`, which reads a shared record's empty church as the editor's). A
+registration fee or form payment is one Donation row with no person through
+`collection.add_single_donation`, which `OnlineDonation.record_donation` uses too, so it is on no
+Giving Statement. A sign-up's Pay now link is the signed GET `register.pay`; a form's is the POST
+`form_response.pay`. A charge on a record already paid records nothing and alerts Finance. A sign-up
+payment that arrives after its hold ended confirms only while seats are free, else it is Refund Due.
+A paid sign-up that is cancelled or declined is Refund Due and alerts Finance, and only a
+`PAYMENT_RECORDERS` user deletes a paid sign-up. A guest of a shared Function or Question Set is
+matched and added as a Person at its `payment_church`.
+Refunds are made at the processor; then Finance cancels the Collection or adds a negative row and
+calls `record_refund`. `alert_unrecorded_gifts` also reports sign-ups and form responses that a
+gateway charged and that are still unpaid.
 
 Giving statements are tax receipts. `get_donations` and `get_givers` count only funds with
 `is_tax_deductible`; a shared Fund has one flag for every church. A Payment Type with `is_non_cash`
@@ -890,8 +920,12 @@ answers in a Question Answer table and writes them only with `questions.set_answ
 `validate_answers`. Name the person who answers in a Link field of the owner doctype itself:
 anonymizing clears the Question Answer tables and the change history of each record that names the
 person in its own field (`clear_answers`), and a record that names the person only in a table row (one
-attendee of a group) keeps its answers, which are the group's. A merge keeps the answers, because they
-stay on their record. Render the questions with `churchit.questions.render(wrapper, fields)` from
+attendee of a group) keeps its answers, which are the group's. Function Sign-Up is the exception:
+each answer names its attendee row in the hidden `attendee` column, and anonymizing deletes the
+answers of the attendee rows that name the person, with that sign-up's change history, and blanks the
+registrant name, email and phone on the person's own sign-ups (`privacy.forget_sign_up_details`). A
+guest sign-up left unlinked with one of the person's email addresses counts as their own
+(`forget_unlinked_sign_ups`). A merge keeps the answers, because they stay on their record. Render the questions with `churchit.questions.render(wrapper, fields)` from
 `questions.get_fields`; do not add conditional questions, `depends_on`, Web Form `eval:` text or
 stored JSON.
 
@@ -1012,6 +1046,49 @@ only a leader of the group adds one (`GroupFile.validate`, which runs under the 
 attached with `set_value`. The Attach field is `attached_file`, not `file`: Frappe's web form
 uploads again for a saved result with a `file` key.
 
+## Function sign-ups
+
+Function Sign-Up `status`, `hold_expires_on`, `approved_by`, `amount_paid` and `payment_status` are
+read only, but REST accepts them, so `restore_protected_fields` puts back the stored values unless
+`flags.set_by_code` is set. Code that changes them sets the flag and saves the document, never
+`db_set`, so attendance, the emails and the follow-up cards follow the change. `amount_due` and
+`discount` are worked out on every save by `church_ministries/sign_up_amounts.py`, the one place for
+sign-up money: the Function's own selection and item prices, less the largest discount that applies.
+Codes match without case on the server only, and no page sends the discount rows. The sign-up window
+(`sign_ups_open_on`, `sign_ups_close_on`) is read when asked (`is_open_for_sign_up`,
+`is_in_sign_up_window`), with no job; the desk is never refused.
+
+Seats are the Function's `capacity` and each Selection's `capacity` (0 is no limit); a limited
+Sign-Up Item's `quantity_needed` caps that item. A sign-up holds seats while Confirmed, or Pending
+with an empty hold (waiting for approval) or a hold not yet passed (waiting for payment):
+`holds_seats` is that rule, and the item totals use it too. Every change to seats takes the Function
+row lock first (`get_seat_limits`) and then counts with a locking read (`get_seats_taken`), because
+under REPEATABLE READ a plain count answers from an older snapshot. A new party that does not fit is
+Waitlisted as a whole. Only `promote_waitlist` moves a party on, oldest first among those that fit,
+after a cancel, a decline, a delete, a smaller party, a released hold (`release_expired_holds`, every
+5 minutes) or a changed capacity (a job after the commit). It sends nothing itself. Each attendee
+Person has a Signed-Up attendance row while the sign-up is Confirmed. A paid sign-up cannot grow into
+a balance or move to another Function.
+
+`approve` and `decline` need a role in `SIGN_UP_APPROVERS` as well as write, and
+`record_offline_payment` and `record_refund` need `payments.PAYMENT_RECORDERS`, because a registrant
+holds `if_owner` write on their own sign-up. Each takes the Function lock before the sign-up row.
+
+A guest sign-up has no `person`. `function_sign_up.link_registrant` runs after the commit as the
+guest, locks the Function and then the sign-up, and links the one strong match or adds a Visitor
+(source Sign-Up) through `matching.find_or_add_person`, the one matcher-and-adder that Connection
+Cards and Form Responses use too. When that Person is already on another live sign-up of the
+Function, it leaves `person` empty and comments with that sign-up.
+
+Emails that answer the registrant's own request (the Sign-Up Confirmation with its `.ics` and the
+Sign-Up Payment Due) go through `FunctionSignUp.send_registrant_email`: to the Person's primary
+email, or to the sign-up's `email` only while it has no Person, with no consent check, and only when
+an outgoing account exists. Reminders go through `send()` (see "Church Emails, consent and
+bounces"). The event comes from `get_function_calendar`, whose UID is the Function name, as in the
+public calendar feed.
+
+Sign-ups of a shared Function have an empty church, so every church sees them.
+
 ## Care and child safety
 
 `background_check.is_cleared(person, on_date, check_types)` is the one rule for "cleared to serve":
@@ -1130,6 +1207,10 @@ the On Smart List triggers itself and calls `add_card`. A person has one open ca
 `add_card` and the card's `validate` both ask `followup.get_open_card`, which locks the Person row,
 because a plain read answers from the job's older snapshot. Anything more a church wants on a step,
 an email or a desk alert, is its own Notification on Follow-up Card, not code.
+`followup.on_sign_up` queues `start_sign_up_cards` after the commit for each attendee Person a
+Confirmed sign-up gained (Signed Up, by Function Type), so it runs as Guest after `/register` and the
+person-linking job. `FormResponse.process` starts the Form Submitted workflows of its Question Set.
+In both, a shared Function or set follows up at the Person's own church.
 
 The workflow owns its Kanban Board: `FollowupWorkflow.sync_board` rewrites its columns and filters
 on every save, so never edit the board by hand. `Follow-up Card.step` stays a Data field, because
@@ -1157,6 +1238,20 @@ lists for its Link column (`connection_card.js`).
 Form) for the card's person, desk cards included. A tick counts only for an address or number
 already on the person's record (`contacts.get_holders`, phones on `digits`), and never overrides a
 withdrawal on record, because guest input cannot prove who ticked it.
+
+## Forms
+
+A Question Set with Publish as a Form is answered at `/form/new?question_set=<name>`, the `form`
+Web Form (`church_setup/web_form/form/`). The question set is a hidden Data field, never a Link, and
+the page draws the questions from the guest GET `form_response.get_form`, which answers only for a
+published set and refuses a members-only one to anyone without a Person. `FormResponse.validate`
+checks the same on insert only, so a later change to the set never blocks a save, and rebuilds the
+answer rows with `questions.set_answers`, so the browser sends no label or unknown question. A
+member's response takes `session_person()`. `FormResponse.process` runs after the commit as the
+sender, as `ConnectionCard.process` does: it locks the response, returns unless it is New, links or
+adds the person (source Form) through `matching.find_or_add_person`, sets Processed and starts the
+follow-up. Responses to a shared set have an empty church, so every church sees them.
+`restore_payment_fields` keeps `amount_paid` and `payment_status` as code stored them.
 
 ## Church Emails, consent and bounces
 
@@ -1204,6 +1299,13 @@ attendance reminder, a join request to the leaders and the decision to the perso
 subject and text are `context` values, never template source. A leader's message takes the name of
 its Comment on the Group as its key, so the same words sent twice both go out. `send` sends nothing
 for an empty list of people.
+
+A sign-up reminder (`function_sign_up.send_reminders`, daily) goes through `send` with the purpose
+Event Registrations (`communication_purpose.EVENT_REGISTRATIONS`, which cannot be deleted), to the
+registrant's Person only, with the key `reminder` for the email and `reminder-text` for the text, so
+a rerun sends nothing. It waits while the site has no outgoing email account. The confirmation and
+payment emails answer the registrant's own request, so they go through `send_registrant_email`
+instead (see "Function sign-ups").
 
 Consent is answered only by `consent.allowed`, or `consent.allowed_people` for a list. The newest
 record decides, ties by creation; a blank-purpose Given never undoes a withdrawal for one purpose.
