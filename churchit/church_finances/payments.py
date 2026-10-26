@@ -51,6 +51,7 @@ def get_payment_url(
 		"payer_name": payer_name or (get_fullname(frappe.session.user) if signed_in else None),
 		"order_id": reference.name,
 		"currency": currency,
+		"payment_gateway": gateway.payment_gateway,  # stripe_checkout refuses a URL without it
 	}
 	# Stripe puts every value into its checkout URL, so a missing one would arrive as "None".
 	if redirect_to:

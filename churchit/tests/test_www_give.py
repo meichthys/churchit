@@ -170,6 +170,7 @@ class TestGivePage(FrappeTestCase):
 		self.assertEqual(gift.donor_name, "Anon")
 		self.assertIsNone(gift.person)
 		self.assertEqual(kwargs["amount"], 25.5)
+		self.assertEqual(kwargs["payment_gateway"], self.other_gateway)
 		self.assertEqual(kwargs["payer_email"], "anon@example.com")
 		self.assertIn(f"success={gift.name}", kwargs["redirect_to"])
 
