@@ -6,8 +6,10 @@ from itertools import groupby
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, fmt_money, formatdate, now, nowdate
+from frappe.query_builder.functions import Coalesce
+from frappe.utils import flt, fmt_money, formatdate, nowdate
 
+from churchit.church_finances.doctype.collection.collection import add_single_donation
 from churchit.church_finances.payments import get_integration_request, is_charge_confirmed, notify_finance
 from churchit.church_people import summaries
 from churchit.church_scope import refuse_another_churches_record
@@ -16,9 +18,8 @@ from churchit.contacts import get_primary_email
 # Statuses reported by Payments-app gateway controllers that mean the
 # payment succeeded. Different gateways use slightly different words.
 PAID_STATUSES = ("Completed", "Paid")
-
-# Payment Type used for online gifts (created in after_install / patch).
-ONLINE_PAYMENT_TYPE = "Online"
+# Doctypes besides gifts that take online payments, each with `payment_status` and `payment_church`.
+PAYABLE_DOCTYPES = ("Function Sign-Up", "Form Response")
 
 
 class OnlineDonation(Document):
@@ -116,29 +117,10 @@ class OnlineDonation(Document):
 		"""Create and submit a Collection holding this single gift so it flows
 		through the existing Fund / report / dashboard logic, then mark this
 		record Paid and email a receipt."""
-		collection = frappe.new_doc("Collection")
-		collection.date = now()
-		# The gift settles the church, not the session: a gateway calls back with
-		# whatever session finished the payment, and a shared fund names no church.
-		collection.church = self.church
-		collection.append(
-			"donations",
-			{
-				"amount": self.charged_amount,
-				"payment_type": ONLINE_PAYMENT_TYPE,
-				"fund": self.fund,
-				# blank person => recorded as an anonymous gift
-				"person": self.person or None,
-				"notes": self.notes,
-			},
+		self.collection = add_single_donation(
+			self.church, self.fund, self.charged_amount, self.notes, person=self.person
 		)
-		# A single-donation collection balances exactly, so before_submit() passes.
-		collection.expected_total = self.charged_amount
-		collection.insert(ignore_permissions=True)
-		collection.submit()
-
 		self.status = "Paid"
-		self.collection = collection.name
 		self.flags.recording_gift = True
 		self.save(ignore_permissions=True)
 
@@ -245,4 +227,42 @@ def alert_unrecorded_gifts():
 			_(
 				"These online gifts were charged but are still Pending: {0}. Open each one and record it."
 			).format(", ".join(gift.name for gift in rows)),
+		)
+
+	for doctype in PAYABLE_DOCTYPES:
+		alert_unrecorded_payments(doctype)
+
+
+def alert_unrecorded_payments(doctype: str):
+	"""Tell Finance about *doctype* records that a gateway charged but that are still unpaid."""
+	Record = frappe.qb.DocType(doctype)
+	Request = frappe.qb.DocType("Integration Request")
+	# church-scope: a job over every church; notify_finance alerts only each record's payment church
+	names = (
+		frappe.qb.from_(Record)
+		.join(Request)
+		.on(Request.reference_docname == Record.name)
+		.where(
+			(Request.reference_doctype == doctype)
+			& (Request.status == "Completed")
+			& Coalesce(Record.payment_status, "").isin(("", "Unpaid"))
+		)
+		.select(Record.name)
+		.distinct()
+		.run(pluck=True)
+	)
+	records = sorted(
+		(
+			frappe._dict(doctype=doctype, name=name, church=frappe.get_doc(doctype, name).payment_church)
+			for name in names
+		),
+		key=lambda row: (row.church or "", row.name),
+	)
+	for _church, rows in groupby(records, key=lambda row: row.church):
+		rows = list(rows)
+		notify_finance(
+			rows,
+			_(
+				"These were charged online but are still unpaid: {0}. Check each payment, then record it or refund it."
+			).format(", ".join(row.name for row in rows)),
 		)

@@ -6,10 +6,10 @@ from datetime import datetime, time, timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, format_datetime, get_datetime, getdate
+from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
 
 from churchit.church_ministries.attendance import get_attendance_total
-from churchit.church_scope import refuse_another_churches_record
+from churchit.church_scope import refuse_another_churches_fund, refuse_another_churches_record
 from churchit.utils import link_title
 
 TIME_FORMAT = "h:mm a"
@@ -28,9 +28,18 @@ class Function(Document):
 		self.refuse_new_group_associations()
 		if any(self.has_value_changed(field) for field in ("group", "church", "is_shared")):
 			self.validate_group()
+		self.refuse_another_churches_sign_up_fund()
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
+
+	def refuse_another_churches_sign_up_fund(self):
+		"""Sign-up payments go to a fund of the payment church or a shared one, and a price needs a fund."""
+		if not self.sign_up_fund and any(flt(row.price) for row in (*self.selections, *self.table_cxhh)):
+			frappe.throw(_("Choose a Sign-Up Fund on the Registration tab to take the sign-up payments."))
+		# Only when they change: an attendance save of the Function must not trip it.
+		if any(self.has_value_changed(field) for field in ("sign_up_fund", "church", "is_shared")):
+			refuse_another_churches_fund(self, self.sign_up_fund)
 
 	def promote_waitlist_when_capacity_grows(self):
 		"""A raised capacity, or a selection's, gives the new seats to the waitlist."""

@@ -29,6 +29,7 @@
 			<label for="register-notes">{{ _("Notes (optional)") }}</label>
 			<textarea class="form-control" id="register-notes" name="notes" rows="2"></textarea>
 		</div>
+		{% include "churchit/templates/includes/register/discount.html" %}
 		{#- Hidden from people; a bot that fills it in is not registered. -#}
 		<div style="position: absolute; left: -10000px;" aria-hidden="true">
 			<label for="register-website">{{ _("Website") }}</label>
@@ -40,6 +41,7 @@
 
 	<div id="register-success" style="display: none;">
 		<div class="alert alert-success" role="alert" id="register-message"></div>
+		<p id="register-amount" style="display: none;"></p>
 		<p>
 			<a class="btn btn-default mr-2" id="register-calendar" style="display: none;">{{ _("Add to calendar") }}</a>
 			<a class="btn btn-primary" id="register-pay" style="display: none;">{{ _("Pay now") }}</a>
@@ -76,6 +78,9 @@ frappe.ready(function () {
 		Waitlisted: {{ _("The event is full, so you are on the waitlist. We will email you if a seat opens.") | tojson }},
 	};
 
+	const amountDue = {{ _("The amount due is {0}.") | tojson }};
+	const amountWithDiscount = {{ _("The amount due is {0}, after a discount of {1}.") | tojson }};
+
 	function showLink(id, url) {
 		if (!url) return;
 		const link = document.getElementById(id);
@@ -100,6 +105,13 @@ frappe.ready(function () {
 					messages[response.status] || messages.Confirmed;
 				showLink('register-calendar', response.calendar_url);
 				showLink('register-pay', response.pay_url);
+				if (response.amount_due) {
+					const amount = document.getElementById('register-amount');
+					amount.textContent = (response.discount ? amountWithDiscount : amountDue)
+						.replace('{0}', response.amount_due)
+						.replace('{1}', response.discount);
+					amount.style.display = '';
+				}
 				document.getElementById('register-success').style.display = '';
 			},
 			error: function () {

@@ -8,12 +8,19 @@ from frappe.utils import (
 	add_to_date,
 	cint,
 	flt,
+	fmt_money,
 	format_date,
+	format_datetime,
 	format_time,
 	get_datetime,
+	get_url,
 	now_datetime,
 )
+from frappe.utils.verified_command import get_signed_params
 
+from churchit.church_finances.doctype.collection.collection import add_single_donation
+from churchit.church_finances.doctype.online_donation.online_donation import PAID_STATUSES
+from churchit.church_finances.payments import PAYMENT_RECORDERS, is_charge_confirmed, notify_finance
 from churchit.church_ministries.attendance import record, remove
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
@@ -43,6 +50,11 @@ SIGN_UP_SOURCE = "Sign-Up"
 HOLD_HOURS = 24
 SIGN_UP_APPROVERS = {"Church Manager", "System Manager", "Church People Editor"}
 CONFIRMATION_TEMPLATE = "Sign-Up Confirmation"
+UNPAID, PAID, REFUND_DUE, REFUNDED = "Unpaid", "Paid", "Refund Due", "Refunded"
+# A sign-up in one of these takes no more payment.
+PAYMENT_DONE = (PAID, REFUND_DUE, REFUNDED)
+PAYMENT_DUE_TEMPLATE = "Sign-Up Payment Due"
+PAY_METHOD = "churchit.www.register.pay"
 EVENT_FIELDS = (
 	"name",
 	"function_name",
@@ -228,6 +240,10 @@ class FunctionSignUp(Document):
 		"""Work out `discount` and `amount_due` on the server, whatever the browser sent."""
 		self.discount = get_discount(self)
 		self.amount_due = get_amount_due(self)
+		if not self.payment_status and self.amount_to_pay:
+			self.payment_status = UNPAID
+		elif self.payment_status == UNPAID and not self.amount_to_pay:
+			self.payment_status = None
 
 	def reserve_seats(self):
 		"""Give a new, promoted or moved sign-up, or one with more attendees, its status: Confirmed, Pending or Waitlisted."""
@@ -359,6 +375,7 @@ class FunctionSignUp(Document):
 
 	def on_update(self):
 		self.send_confirmation()
+		self.send_payment_request()
 
 	def send_registrant_email(
 		self, template: str, attachments: list | None = None, context: dict | None = None
@@ -423,7 +440,57 @@ class FunctionSignUp(Document):
 		}
 		self.send_registrant_email(CONFIRMATION_TEMPLATE, attachments=[calendar])
 
+	def send_payment_request(self):
+		"""Email the registrant the payment link when a new hold starts."""
+		if not (self.hold_expires_on and self.has_value_changed("hold_expires_on")):
+			return
+		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		context = {
+			"amount": fmt_money(self.amount_to_pay, currency=currency),
+			"pay_by": format_datetime(self.hold_expires_on),
+			"pay_url": self.pay_url,
+		}
+		self.send_registrant_email(PAYMENT_DUE_TEMPLATE, context=context)
+
+	@property
+	def payment_church(self) -> str | None:
+		"""The church that takes this sign-up's payments: its Function's, or the church that shared it."""
+		church, shared_by = frappe.db.get_value("Function", self.function, ["church", "shared_by_church"])
+		return church or shared_by
+
+	@property
+	def amount_to_pay(self) -> float:
+		return max(flt(self.amount_due) - flt(self.amount_paid), 0)
+
+	@property
+	def is_holding_seats(self) -> bool:
+		"""Confirmed, or Pending with no hold or one not yet passed: `holds_seats` for this sign-up."""
+		if self.status == CONFIRMED:
+			return True
+		hold = self.hold_expires_on
+		return self.status == PENDING and (not hold or get_datetime(hold) >= now_datetime())
+
+	@property
+	def is_payable(self) -> bool:
+		"""True while a payment hold waits for money that the payment church can take online."""
+		if not (self.hold_expires_on and self.is_holding_seats and self.amount_to_pay):
+			return False
+		return bool(frappe.get_cached_doc("Giving Settings").gateways_for(self.payment_church))
+
+	@property
+	def pay_url(self) -> str:
+		"""The signed Pay now link of the /register page and the payment email, while the sign-up is payable."""
+		if not self.is_payable:
+			return ""
+		return get_url(f"/api/method/{PAY_METHOD}?{get_signed_params({'sign_up': self.name})}")
+
 	def on_trash(self):
+		# Deleting a paid sign-up would lose the record of what Finance owes back.
+		if flt(self.amount_paid) and not set(PAYMENT_RECORDERS) & set(frappe.get_roles()):
+			frappe.throw(
+				_("This sign-up is paid, so only a Church Manager can delete it. Cancel it instead."),
+				frappe.PermissionError,
+			)
 		if self.status == CONFIRMED:
 			self.remove_attendance(self.get_attendee_people())
 
@@ -476,11 +543,19 @@ class FunctionSignUp(Document):
 		self.cancel_sign_up()
 
 	def cancel_sign_up(self):
-		"""Cancel, under the caller's Function lock, and give the seats to the waitlist."""
+		"""Cancel, under the caller's Function lock, and give the seats to the waitlist. A paid one is Refund Due."""
+		was_paid = self.payment_status == PAID
 		self.status = CANCELLED
+		if was_paid:
+			self.payment_status = REFUND_DUE
 		self.flags.set_by_code = True
 		self.save()
 		promote_waitlist(self.function)
+		if was_paid:
+			reason = _("Sign-up {0} was cancelled after it was paid. Refund the payment.").format(self.name)
+			notify_finance(
+				[frappe._dict(doctype=self.doctype, name=self.name, church=self.payment_church)], reason
+			)
 
 	def refuse_unless_waiting_for_approval(self):
 		"""Load the stored sign-up under its Function's lock, for an approver, while it waits for approval."""
@@ -497,6 +572,79 @@ class FunctionSignUp(Document):
 		frappe.db.get_value("Function", self.function, "name", for_update=True)
 		if self.status != PENDING or self.approved_by or self.hold_expires_on:
 			frappe.throw(_("This sign-up is not waiting for approval."))
+
+	@frappe.whitelist(methods=["POST"])
+	def record_offline_payment(self):
+		"""Church Finance: the registrant paid in person, so the cash goes in the weekly Collection."""
+		self.refuse_unless_payment_recorder()
+		if self.status == WAITLISTED or self.payment_status in PAYMENT_DONE or not self.amount_to_pay:
+			frappe.throw(_("This sign-up has no amount due."))
+		self.record_payment(self.amount_to_pay, get_seat_limits(self.function))
+
+	@frappe.whitelist(methods=["POST"])
+	def record_refund(self):
+		"""Church Finance: the payment was refunded at the processor."""
+		self.refuse_unless_payment_recorder()
+		if self.payment_status not in (PAID, REFUND_DUE):
+			frappe.throw(_("Only a paid sign-up can be refunded."))
+		self.payment_status = REFUNDED
+		self.flags.set_by_code = True
+		self.save()
+
+	def refuse_unless_payment_recorder(self):
+		"""Load the stored sign-up under its Function's lock, for Church Finance or a Church Manager."""
+		# A registrant holds write on their own sign-up, so the role decides.
+		frappe.only_for(PAYMENT_RECORDERS)
+		self.reload()
+		self.check_permission("write")
+		# The Function before the sign-up, the order every change to its seats takes the locks in.
+		frappe.db.get_value("Function", self.function, "name", for_update=True)
+
+	def on_payment_authorized(self, status: str | None = None):
+		"""The payments app callback (X6.4): record a confirmed charge once and confirm the sign-up."""
+		if status not in PAID_STATUSES:
+			return
+		limits = get_seat_limits(self.function)  # the Function lock, before the sign-up row
+		frappe.db.get_value(self.doctype, self.name, "name", for_update=True)
+		self.reload()
+		amount, church = self.amount_to_pay, self.payment_church
+		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		# A gateway calls back once for each charge, so a callback on a paid sign-up is a second charge.
+		if self.payment_status in PAYMENT_DONE:
+			reason = _("Sign-up {0} was charged again after it was paid. Refund the extra charge.").format(
+				self.name
+			)
+		elif not (amount and is_charge_confirmed(self, amount, currency)):
+			reason = _(
+				"Sign-up {0} was charged online, but not the {1} it owes. Check the payment before you record it."
+			).format(self.name, fmt_money(amount, currency=currency))
+		else:
+			fund = frappe.db.get_value("Function", self.function, "sign_up_fund")
+			add_single_donation(church, fund, amount, _("Registration fee of sign-up {0}").format(self.name))
+			self.record_payment(amount, limits)
+			return
+
+		notify_finance([frappe._dict(doctype=self.doctype, name=self.name, church=church)], reason)
+
+	def record_payment(self, amount: float, limits: frappe._dict):
+		"""Add *amount* to what is paid and confirm. A sign-up whose seats went meanwhile is Refund Due."""
+		self.amount_paid = flt(self.amount_paid) + amount
+		if self.is_holding_seats or self.has_free_seats(limits):
+			self.payment_status = PAID
+			self.hold_seats(limits.sign_up_requires_approval)
+		else:
+			self.payment_status = REFUND_DUE
+		self.flags.set_by_code = True
+		self.save(ignore_permissions=True)
+
+	def has_free_seats(self, limits: frappe._dict) -> bool:
+		"""True when the seats, limited items and people of this sign-up are free, under the Function lock."""
+		people = {self.person, *self.get_attendee_people()} - {None, ""}
+		return not (
+			self.get_full_capacity(limits, get_seats_taken(self.function, self.name))
+			or self.get_item_problem()
+			or self.get_people_signed_up(people, for_update=True)
+		)
 
 
 @frappe.whitelist()
@@ -629,7 +777,8 @@ def link_registrant(sign_up: str) -> None:
 		"emails": [doc.email],
 		"phones": [doc.phone] if doc.phone else [],
 	}
-	person, _added = find_or_add_person(candidate, doc.church, SIGN_UP_SOURCE)
+	# A shared function has no church, so a guest is matched and added at the church that shared it.
+	person, _added = find_or_add_person(candidate, doc.payment_church, SIGN_UP_SOURCE)
 
 	# A locking read sees the link another job committed while this one waited for the Function lock.
 	other = frappe.db.get_value(

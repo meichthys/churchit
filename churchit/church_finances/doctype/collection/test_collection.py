@@ -8,6 +8,7 @@ from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_months, get_datetime, getdate, now
 
+from churchit.church_finances.doctype.collection.collection import ONLINE_PAYMENT_TYPE
 from churchit.church_finances.doctype.online_donation import online_donation
 from churchit.church_finances.report.fund_transactions_by_date import fund_transactions_by_date
 from churchit.patches.v1_0 import date_collection_ledger_rows
@@ -199,8 +200,8 @@ class TestRefund(RollbackEachTest):
 	def test_a_second_callback_on_a_refunded_gift_records_nothing(self):
 		_ensure(
 			"Payment Type",
-			{"type": online_donation.ONLINE_PAYMENT_TYPE},
-			{"type": online_donation.ONLINE_PAYMENT_TYPE},
+			{"type": ONLINE_PAYMENT_TYPE},
+			{"type": ONLINE_PAYMENT_TYPE},
 		)
 		gift = self.gift(status="Pending")
 		with (

@@ -26,6 +26,7 @@ from churchit.tests.helpers import (
 	ensure_user,
 	make_function,
 	make_person,
+	make_two_churches,
 )
 from churchit.tests.test_questions import make_question_set
 
@@ -387,3 +388,41 @@ class TestSignUpWindow(SignUpTestCase):
 			)
 			with self.assertRaises(frappe.PermissionError):
 				self.guest_sign_up()
+
+
+class TestSharedFunctionGuest(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		enqueue = patch("frappe.enqueue")
+		enqueue.start()
+		self.addCleanup(enqueue.stop)
+
+	def test_a_guest_of_a_shared_function_is_added_at_the_church_that_shared_it(self):
+		_root, branch_a, branch_b = make_two_churches()
+		self.addCleanup(frappe.clear_cache)
+		function = make_function(
+			"_Test Guest Shared Camp",
+			church=branch_a,
+			is_shared=1,
+			allow_sign_ups=1,
+			publish=1,
+			allow_guest_sign_ups=1,
+		).name
+		frappe.set_user("Guest")
+		# The branch whose public page took the sign-up is not the church that shared the function.
+		frappe.local.form_dict = frappe._dict(church=branch_b)
+		sign_up = frappe.get_doc(
+			{
+				"doctype": SIGN_UP,
+				"function": function,
+				"registrant_name": "_Test Shared Newby",
+				"email": "_test_shared_newby@example.com",
+			}
+		).insert(ignore_permissions=True)
+		frappe.local.form_dict = frappe._dict()
+
+		link_registrant(sign_up.name)
+
+		frappe.set_user("Administrator")
+		person = frappe.db.get_value(SIGN_UP, sign_up.name, "person")
+		self.assertEqual(frappe.db.get_value("Person", person, "church"), branch_a)

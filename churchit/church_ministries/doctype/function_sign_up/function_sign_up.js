@@ -31,6 +31,34 @@ frappe.ui.form.on("Function Sign-Up", {
 			);
 		}
 
+		const recorders = ["Church Finance", "Church Manager"];
+		if (!frm.is_new() && frappe.user.has_role(recorders)) {
+			const is_due =
+				frm.doc.amount_due > frm.doc.amount_paid &&
+				frm.doc.status !== "Waitlisted" &&
+				!["Paid", "Refund Due", "Refunded"].includes(frm.doc.payment_status);
+			if (is_due) {
+				frm.add_custom_button(
+					__("Record Offline Payment"),
+					() =>
+						frappe.confirm(__("Record that the registrant paid the amount due?"), () =>
+							frm.call("record_offline_payment").then(() => frm.reload_doc())
+						),
+					__("Payment")
+				);
+			}
+			if (["Paid", "Refund Due"].includes(frm.doc.payment_status)) {
+				frm.add_custom_button(
+					__("Record Refund"),
+					() =>
+						frappe.confirm(__("Record that the payment was refunded?"), () =>
+							frm.call("record_refund").then(() => frm.reload_doc())
+						),
+					__("Payment")
+				);
+			}
+		}
+
 		// Customize the items grid: hide Description, show qty_needed, qty_signed_up, my_quantity.
 		const grid = frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
 		if (grid) {

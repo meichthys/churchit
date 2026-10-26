@@ -77,6 +77,9 @@ def make_primary_contact(person):
 
 def make_function(function_name, **values):
 	function_type = ensure("Function Type", {"type": "_Test Function Type"})
+	# A price needs a Sign-Up Fund, and a shared one suits a function of any church.
+	fund = {"fund": "_Test Sign-Up Fund", "is_shared": 1}
+	values.setdefault("sign_up_fund", ensure("Fund", {"fund": fund["fund"]}, fund))
 	return frappe.get_doc(
 		{
 			"doctype": "Function",

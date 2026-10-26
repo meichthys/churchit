@@ -8,7 +8,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, flt, fmt_money, format_date, format_time, today, validate_email_address
+from frappe.utils.verified_command import verify_request
 
+from churchit.church_finances.payments import get_payment_url
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
@@ -222,5 +224,43 @@ def get_event_calendar(function: str):
 
 
 def get_payment_link(sign_up: Document) -> dict:
-	"""Keys for the success view's "Pay now" link (`pay_url`): none, because /register takes no payment yet."""
-	return {}
+	"""Keys for the success view's "Pay now" link (`pay_url`), with the amount due and any discount."""
+	pay_url = sign_up.pay_url
+	if not pay_url:
+		return {}
+
+	currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+	link = {"pay_url": pay_url, "amount_due": fmt_money(sign_up.amount_to_pay, currency=currency)}
+	if flt(sign_up.discount) > 0:
+		link["discount"] = fmt_money(sign_up.discount, currency=currency)
+	return link
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=30, seconds=60 * 60)
+def pay(sign_up: str, **signed_params) -> None:
+	"""The signed Pay now link of /register and the payment email: on to the checkout of the amount due."""
+	if not verify_request():
+		return
+
+	doc = frappe.get_doc("Function Sign-Up", sign_up)
+	if not doc.is_payable:
+		frappe.respond_as_web_page(
+			_("Nothing to pay"),
+			_("This registration has no payment due now. Please contact the church office."),
+			indicator_color="orange",
+		)
+		return
+
+	function_name = frappe.db.get_value("Function", doc.function, "function_name")
+	frappe.local.response["type"] = "redirect"
+	frappe.local.response["location"] = get_payment_url(
+		doc,
+		doc.amount_to_pay,
+		frappe.get_cached_doc("Giving Settings").currency or "USD",
+		doc.payment_church,
+		function_name,
+		_("Registration for {0}").format(function_name),
+		payer_name=doc.registrant_name or None,
+		payer_email=doc.email or None,
+	)

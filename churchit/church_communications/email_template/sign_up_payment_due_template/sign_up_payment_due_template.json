@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-25 22:33:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-25 22:33:00.000000",
+ "modified_by": "Administrator",
+ "name": "Sign-Up Payment Due",
+ "owner": "Administrator",
+ "reference_doctype": "Function Sign-Up",
+ "response_html": "<p>Dear {{ first_name | e }},</p>\n\n<p>Thank you for registering for <strong>{{ function_name | e }}</strong> on {{ date }}{% if time %} at {{ time }}{% endif %}. Your place is held for you until {{ pay_by }}. The amount due is {{ amount }}.</p>\n\n{% if pay_url %}<p><a href=\"{{ pay_url }}\">Pay now</a></p>{% else %}<p>Please pay the church office before then.</p>{% endif %}\n\n<p>If it is not paid by then, the registration is cancelled.</p>",
+ "subject": "Payment due for {{ function_name }}",
+ "use_html": 1
+}

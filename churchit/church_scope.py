@@ -400,6 +400,27 @@ def refuse_another_churches_record(doc, doctype, name):
 	)
 
 
+def refuse_another_churches_fund(doc: Document, fund: str | None) -> None:
+	"""Refuse *fund* unless it is shared or belongs to the church that takes *doc*'s payments.
+
+	That church is *doc*'s own, or the church that shared *doc*. `refuse_another_churches_record` reads a
+	shared record's empty church as the editor's default church, so it cannot judge a shared Function.
+	"""
+	if not is_multi_church() or not fund:
+		return
+	owner = frappe.db.get_value("Fund", fund, CHURCH_FIELD)
+	church = doc.get(CHURCH_FIELD) or doc.get(SHARED_BY_FIELD) or default_church()
+	if not owner or owner == church:
+		return
+
+	frappe.throw(
+		_("Fund {0} belongs to another church. Choose a fund of {1} or a shared one.").format(
+			frappe.bold(fund), frappe.db.get_value("Church", church, "church_name") or church
+		),
+		frappe.PermissionError,
+	)
+
+
 def refuse_another_churches_parent(doc: Document, link_field: str, message: str) -> None:
 	"""Refuse a change of *link_field* to or from a record of a church the user cannot see.
 

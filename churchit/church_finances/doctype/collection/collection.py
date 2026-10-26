@@ -4,10 +4,14 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import now
 
 from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
 from churchit.church_scope import refuse_another_churches_record
 from churchit.contacts import get_primary_emails
+
+# Payment Type of the money a gateway takes (created in after_install / patch).
+ONLINE_PAYMENT_TYPE = "Online"
 
 
 class Collection(Document):
@@ -123,3 +127,29 @@ class Collection(Document):
 
 		if messages:
 			frappe.msgprint("<br>".join(messages))
+
+
+def add_single_donation(church: str, fund: str, amount: float, notes: str, person: str | None = None) -> str:
+	"""Record one online payment as a submitted Collection of one Donation row, and return its name.
+
+	The payment settles the church, not the session: a gateway calls back with whatever session finished
+	the payment, and a shared fund names no church. A row with no *person* is on no Giving Statement.
+	"""
+	collection = frappe.new_doc("Collection")
+	collection.date = now()
+	collection.church = church
+	collection.append(
+		"donations",
+		{
+			"amount": amount,
+			"payment_type": ONLINE_PAYMENT_TYPE,
+			"fund": fund,
+			"person": person or None,
+			"notes": notes,
+		},
+	)
+	# A single-donation collection balances exactly, so before_submit() passes.
+	collection.expected_total = amount
+	collection.insert(ignore_permissions=True)
+	collection.submit()
+	return collection.name

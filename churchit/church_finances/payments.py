@@ -19,6 +19,9 @@ from frappe.utils.user import get_users_with_role
 
 from churchit.church_communications.scoped_notification import drop_out_of_scope
 
+# The roles that record a payment or a refund by hand. A registrant holds write on their own record.
+PAYMENT_RECORDERS = ("Church Finance", "Church Manager")
+
 
 def get_payment_url(
 	reference: Document,
