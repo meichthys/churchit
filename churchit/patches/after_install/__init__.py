@@ -19,6 +19,7 @@ from churchit.church_ministries.doctype.check_in_settings.check_in_settings impo
 from churchit.church_missions.doctype.missionary_status.missionary_status import (
 	DEFAULT_STATUSES as DEFAULT_MISSIONARY_STATUSES,
 )
+from churchit.church_operations.doctype.room_booking.room_booking import create_decided_notification
 from churchit.church_people.doctype.background_check_type.background_check_type import (
 	create_background_check_types,
 )
@@ -46,6 +47,7 @@ def execute():
 	_create_default_church()
 	create_default_address_template()
 	create_unsynced_records()
+	create_decided_notification()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -776,6 +778,7 @@ def _setup_portal_settings():
 		("Group Files", "group-files", "Group File", "Church User"),
 		("Giving Statements", "statements", "Giving Statement", "Church User"),
 		("Pledges", "pledge", "Pledge", "Church User"),
+		("Book a Room", "room-request", "Room Booking", "Church User"),
 		("Bulletins", "bulletins", "Bulletin", "Church User"),
 		("Personal Details", "personal-details", "Person", "Church User"),
 		("Communication Preferences", "preferences", "Communication Consent", "Church User"),

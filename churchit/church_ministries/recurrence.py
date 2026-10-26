@@ -133,13 +133,16 @@ def copy_room_bookings(template: Document, function: Document, days: int) -> Non
 		booking.end_datetime = add_days(get_datetime(booking.end_datetime), days)
 		booking.function = function.name
 		booking.status = "Requested"
+		booking.request_anyway = 1
 		try:
 			booking.insert(ignore_permissions=True)
-		except frappe.ValidationError:
+		except (frappe.ValidationError, frappe.PermissionError):
 			function.add_comment(
 				"Comment",
 				_("{0} was not booked from {1} to {2}: the room is taken or cannot be booked.").format(
-					booking.room,
+					frappe.db.get_value("Room", booking.room, "room_name")
+					if booking.room
+					else _("Equipment"),
 					format_datetime(booking.start_datetime),
 					format_datetime(booking.end_datetime),
 				),

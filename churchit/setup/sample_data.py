@@ -2534,6 +2534,7 @@ def _create_church_assets(locations):
 			"title": "Epson Projector",
 			"acquisition_date": "2020-08-10",
 			"location": locations.get("Fellowship Hall"),
+			"is_bookable": 1,
 			"notes": "<p>Epson PowerLite projector used for presentations and movie nights.</p>",
 		},
 		{
@@ -2811,6 +2812,10 @@ def _create_rooms(locations):
 			"capacity": 120,
 			"is_bookable": 1,
 			"description": "Multi-purpose hall for meals and gatherings.",
+			"setups": [
+				{"setup_name": "Banquet", "capacity": 100, "description": "Round tables of eight."},
+				{"setup_name": "Theatre", "capacity": 120, "description": "Rows of chairs facing the stage."},
+			],
 		},
 		{
 			"room_name": "Conference Room",
@@ -2843,6 +2848,7 @@ def _create_room_bookings(rooms, people):
 			"room": rooms.get("Fellowship Hall"),
 			"requester": people.get("Lisa Thompson"),
 			"purpose": "Women's ministry luncheon",
+			"setup": "Banquet",
 			"start_datetime": _near_datetime(6, "11:30:00"),
 			"end_datetime": _near_datetime(6, "14:00:00"),
 			"status": "Requested",

@@ -8,6 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import add_days, get_datetime, getdate
 
+from churchit.church_foundations.church_access import set_user_church
 from churchit.church_ministries.doctype.function.function import _as_time
 from churchit.church_ministries.recurrence import (
 	create_missing_occurrences,
@@ -16,7 +17,14 @@ from churchit.church_ministries.recurrence import (
 )
 from churchit.church_ministries.report.recurring_functions import recurring_functions
 from churchit.ics import get_public_calendar
-from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_function,
+	make_person,
+	make_two_churches,
+)
 from churchit.tests.test_ics import request_feed, unfold
 from churchit.www.calendar import get_events
 
@@ -398,9 +406,33 @@ class TestRecurringRoomBookings(RollbackEachTest):
 		self.template.reload()
 		self.assertEqual([getdate(row.date) for row in self.template.skip_dates], [getdate()])
 
-	def test_a_clash_keeps_the_function_and_leaves_one_comment(self):
+	def test_a_copy_that_clashes_is_a_conflict_assigned_to_each_approver(self):
+		self.book(self.gated_room, self.start, self.template.name)
+		self.book(self.gated_room, getdate(), status="Approved")
+		approvers = [
+			ensure_user(
+				f"_test_recurrence_approver_{number}@example.com", "Approver", roles=("Church Staff",)
+			)
+			for number in (1, 2)
+		]
+		room = frappe.get_doc("Room", self.gated_room)
+		room.set("approvers", [{"user": user} for user in approvers])
+		room.save(ignore_permissions=True)
+
+		create_missing_occurrences(self.template, getdate())
+
+		booking = frappe.get_doc("Room Booking", {"function": self.occurrence().name})
+		self.assertEqual(booking.status, "Conflict")
+		todos = frappe.get_all(
+			"ToDo",
+			filters={"reference_type": "Room Booking", "reference_name": booking.name, "status": "Open"},
+			pluck="allocated_to",
+		)
+		self.assertCountEqual(todos, approvers)
+
+	def test_a_clash_with_a_blocked_time_keeps_the_function_and_leaves_one_comment(self):
 		self.book(self.open_room, self.start, self.template.name)
-		self.book(self.open_room, getdate(), status="Approved")
+		self.book(self.open_room, getdate(), status="Blocked")
 
 		create_missing_occurrences(self.template, getdate())
 
@@ -416,4 +448,63 @@ class TestRecurringRoomBookings(RollbackEachTest):
 			pluck="content",
 		)
 		self.assertEqual(len(comments), 1)
-		self.assertIn(self.open_room, comments[0])
+		self.assertIn("_Test Recurrence Open Room", comments[0], "the room name, not its ROOM- ID")
+
+
+class TestRecurringSharedRoomBookings(RollbackEachTest):
+	def test_a_shared_rooms_booking_keeps_the_equipment_of_the_church_that_made_it(self):
+		_root, branch_a, _branch_b = make_two_churches()
+		self.addCleanup(frappe.clear_cache)
+		staff = ensure_user(
+			"_test_recurrence_staff_a@example.com", "Recurrence Staff", roles=("Church Staff",)
+		)
+		set_user_church(staff, branch_a)
+		room = ensure(
+			"Room",
+			{"room_name": "_Test Recurrence Shared Room"},
+			{
+				"room_name": "_Test Recurrence Shared Room",
+				"church": branch_a,
+				"is_shared": 1,
+				"is_bookable": 1,
+			},
+		)
+		asset = ensure(
+			"Church Asset",
+			{"title": "_Test Recurrence Projector"},
+			{"title": "_Test Recurrence Projector", "church": branch_a, "is_bookable": 1},
+		)
+		start = add_days(getdate(), -7)
+		template = make_function(
+			"_Test Shared Room Weekly",
+			church=branch_a,
+			start_date=start,
+			auto_repeat=1,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(start),
+			repeat_until=getdate(),
+			repeat_horizon_weeks=8,
+		)
+		requester = make_person("_Test Recurrence", "Sharer", church=branch_a).name
+		frappe.set_user(staff)
+		try:
+			frappe.get_doc(
+				{
+					"doctype": "Room Booking",
+					"room": room,
+					"assets": [{"asset": asset}],
+					"function": template.name,
+					"requester": requester,
+					"purpose": "_Test recurrence",
+					"start_datetime": f"{start} 10:00:00",
+					"end_datetime": f"{start} 11:00:00",
+				}
+			).insert()
+		finally:
+			frappe.set_user("Administrator")
+
+		create_missing_occurrences(template, getdate())
+
+		occurrence = frappe.get_doc("Function", {"source_template": template.name})
+		booking = frappe.get_doc("Room Booking", {"function": occurrence.name})
+		self.assertEqual([row.asset for row in booking.assets], [asset])

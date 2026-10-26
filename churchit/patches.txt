@@ -101,3 +101,6 @@ churchit.patches.v1_0.confirm_existing_sign_ups
 churchit.patches.v1_0.add_sign_up_attendees
 churchit.patches.v1_0.add_sign_up_confirmation_template
 churchit.patches.v1_0.add_sign_up_payment_due_template
+churchit.patches.v1_0.add_room_request_to_portal
+churchit.patches.v1_0.remove_room_booking_pending_approval
+churchit.patches.v1_0.add_room_booking_decided_notification

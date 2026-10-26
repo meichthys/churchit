@@ -158,4 +158,5 @@ def get_rooms(function: str) -> list[str]:
 	frappe.has_permission("Function", doc=function, throw=True)
 	# church-scope: Church Check-In has no Room Booking permission, and a Function's bookings follow it
 	rooms = frappe.get_all("Room Booking", filters={"function": function, "status": "Approved"}, pluck="room")
-	return sorted(set(rooms))
+	# church-scope: the booked rooms, which may be another church's shared rooms
+	return sorted(frappe.get_all("Room", filters={"name": ("in", rooms)}, pluck="room_name")) if rooms else []

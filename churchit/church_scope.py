@@ -365,8 +365,8 @@ def restamp_dependents(doc):
 		)
 
 
-def refuse_another_churches_record(doc, doctype, name):
-	"""Refuse *doc* when it points at a *doctype* record belonging to a different church.
+def refuse_another_churches_record(doc, doctype, name, church=None):
+	"""Refuse *doc* when it points at a *doctype* record belonging to a different church than *church*.
 
 	Money carries the church that gave or spent it, and the fund it lands in has
 	to be one that church may use: its own, or one shared with every church. The
@@ -379,12 +379,13 @@ def refuse_another_churches_record(doc, doctype, name):
 
 	The church a new record is about to take is resolved here rather than read off
 	the document: ``ensure_church`` settles it on the same ``validate``, and a
-	doc_events handler runs after the controller's own method.
+	doc_events handler runs after the controller's own method. A shared record has
+	no church of its own, so its caller passes the church it acts for.
 	"""
 	if not is_multi_church() or not name:
 		return
 	owner = frappe.db.get_value(doctype, name, CHURCH_FIELD)
-	church = document_church(doc) or default_church()
+	church = church or document_church(doc) or default_church()
 	if not owner or not church or owner == church:
 		return
 
