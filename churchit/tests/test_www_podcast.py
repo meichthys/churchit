@@ -11,6 +11,7 @@ from frappe.utils import CallbackManager, get_datetime, getdate, set_request
 from frappe.website.serve import get_response
 
 from churchit.church_website.context import update_website_context
+from churchit.church_website.pages import sync_page_switches
 from churchit.church_website.published_fields import published_field_map
 from churchit.tests.helpers import RollbackEachTest, force_single_church, make_two_churches
 from churchit.www.podcast import get_public_file_sizes
@@ -158,6 +159,18 @@ class TestPodcastFeed(RollbackEachTest):
 		self.assertIn('href="/podcast.xml"', context.head_html)
 
 		frappe.local.path = "about"
+		context = frappe._dict()
+		update_website_context(context)
+		self.assertNotIn("application/rss+xml", context.head_html)
+
+	def test_a_switched_off_podcast_is_not_linked_from_the_sermons_page(self):
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.local.path = "sermons"
+		sync_page_switches()
+		features = frappe.get_single("Church Features")
+		features.get("website_pages", {"route": "podcast.xml"})[0].enabled = 0
+		features.save()
+
 		context = frappe._dict()
 		update_website_context(context)
 		self.assertNotIn("application/rss+xml", context.head_html)

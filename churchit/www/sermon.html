@@ -46,7 +46,9 @@
 	</section>
 	{% endif %}
 
+	{% if "sermons" not in get_switched_off_pages() %}
 	<p class="sermon-back"><a href="/sermons">&larr; {{ _("All sermons") }}</a></p>
+	{% endif %}
 </div>
 {% endblock %}
 

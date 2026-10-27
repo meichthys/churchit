@@ -37,6 +37,7 @@ from churchit.church_people.doctype.people_settings.people_settings import (
 )
 from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
 from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
+from churchit.church_website.pages import sync_page_switches
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
@@ -89,6 +90,8 @@ def execute():
 	_setup_contact_us_settings()
 	_setup_website_settings()
 	_setup_portal_settings()
+	# One switch per shipped page; migrate keeps them in step after this.
+	sync_page_switches()
 	# The directory starts off, so its menu item does too.
 	sync_directory_menu_item()
 	setup_bulletin_settings()

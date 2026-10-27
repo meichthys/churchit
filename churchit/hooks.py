@@ -134,11 +134,18 @@ website_redirects = [
 # One page per published sermon. A sermon name can hold a slash.
 website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
 
-# Members-only Web Pages send guests to the login page before Frappe's page cache runs.
-page_renderer = ["churchit.church_website.pages.MembersOnlyPage"]
+# Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
+# cache run, and members-only Web Pages send guests to the login page.
+page_renderer = [
+	"churchit.church_website.pages.SwitchedOffPage",
+	"churchit.church_website.pages.MembersOnlyPage",
+]
 
-# A members-only Web Page stays out of guest search.
-extend_doctype_class = {"Web Page": ["churchit.church_website.pages.MembersOnlyWebPage"]}
+# A members-only Web Page stays out of guest search, and a switched-off web form takes no submission.
+extend_doctype_class = {
+	"Web Page": ["churchit.church_website.pages.MembersOnlyWebPage"],
+	"Web Form": ["churchit.church_website.pages.SwitchedOffWebForm"],
+}
 
 # website user home page (by Role)
 # role_home_page = {
@@ -164,6 +171,7 @@ jinja = {
 		"churchit.church_people.household.salutation",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		"churchit.church_website.pages.get_switched_off_pages",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.

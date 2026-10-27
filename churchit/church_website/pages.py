@@ -1,19 +1,147 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""A page renderer and a Web Page extension that keep members-only Web Pages from guests."""
+"""Page renderers that turn shipped pages off and keep members-only Web Pages from guests."""
 
 from urllib.parse import urlencode
 
 import frappe
 from frappe import _
+from frappe.utils import cint
 from frappe.website.page_renderers.base_renderer import BaseRenderer
+from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.router import evaluate_dynamic_routes
 from frappe.www import list as portal_list
 from werkzeug.routing import Rule
 
 from churchit.church_scope import session_person
+from churchit.church_website.menu import get_route
 from churchit.www.directory import is_directory_member
+
+# route: (label, the Church Features field whose module owns the page, or None)
+SHIPPED_PAGES: dict[str, tuple[str, str | None]] = {
+	"about": ("About", None),
+	"contact": ("Contact", None),
+	"beliefs": ("Beliefs", None),
+	"locations": ("Locations", None),
+	"form": ("Forms", None),
+	"live": ("Watch Live", None),
+	"directory": ("Member Directory", "enable_people"),
+	"household": ("My Household", "enable_people"),
+	"find-a-group": ("Find a Group", "enable_people"),
+	"group-leader": ("Lead a Group", "enable_people"),
+	"groups": ("Groups", "enable_people"),
+	"group-files": ("Group Files", "enable_people"),
+	"personal-details": ("Personal Details", "enable_people"),
+	"update-your-details": ("Update Your Details", "enable_people"),
+	"connection-card": ("Connection Card", "enable_people"),
+	"care-request": ("Care Request", "enable_people"),
+	"ministries": ("Ministries", "enable_ministries"),
+	"calendar": ("Calendar", "enable_ministries"),
+	"register": ("Register", "enable_ministries"),
+	"function-sign-up": ("Function Sign-Up", "enable_ministries"),
+	"attendance": ("Attendance", "enable_ministries"),
+	"check-in-kiosk": ("Check In", "enable_ministries"),
+	"ministry-team": ("Ministry Team", "enable_ministries"),
+	"ministry-team-response": ("Ministry Team Request", "enable_ministries"),
+	"prayer-request": ("Prayer Request", "enable_prayers"),
+	"prayer-request-anonymous": ("Prayer Request (Anonymous)", "enable_prayers"),
+	"community-prayer-requests": ("Community Prayer Requests", "enable_prayers"),
+	"sermons": ("Sermons", "enable_study"),
+	"sermon": ("Sermon", "enable_study"),
+	"podcast.xml": ("Podcast", "enable_study"),
+	"sermon_presentation": ("Sermon Presentation", "enable_study"),
+	"bible": ("Bible", "enable_study"),
+	"memorize": ("Bible Memory", "enable_study"),
+	"bulletins": ("Bulletins", "enable_communications"),
+	"announcements": ("Announcements", "enable_communications"),
+	"missions": ("Missions", "enable_missions"),
+	"room-request": ("Room Request", "enable_operations"),
+	"give": ("Give", "enable_finances"),
+	"statements": ("Giving Statements", "enable_finances"),
+	"pledge": ("Pledge", "enable_finances"),
+	"alms-request": ("Alms Request", "enable_finances"),
+}
+
+
+class SwitchedOffPage(BaseRenderer):
+	"""A 404 for a shipped page that is switched off, or whose module is off."""
+
+	def can_render(self):
+		off_pages = get_switched_off_pages()
+		if not off_pages:
+			return False
+
+		# A route rule hands over its endpoint ("sermon"), not the path ("sermon/<name>").
+		if is_page_off(self.path, off_pages) or is_page_off(frappe.local.path, off_pages):
+			return True
+
+		# Frappe finds a Web Page by route with a case and accent insensitive lookup ("Sérmons").
+		route = frappe.db.get_value("Web Page", {"route": self.path, "published": 1}, "route")
+		return is_page_off(route, off_pages)
+
+	def render(self):
+		return NotFoundPage(self.path).render()
+
+
+def get_switched_off_pages() -> set[str]:
+	"""The shipped pages that are off, by their own switch or because their module is off."""
+	features = frappe.get_cached_doc("Church Features")
+	# Before migrate adds the table, no page has its own switch.
+	switched_off = {row.route for row in features.get("website_pages") or [] if not cint(row.enabled)}
+	return {
+		route
+		for route, (_label, module_field) in SHIPPED_PAGES.items()
+		if route in switched_off or (module_field and not cint(features.get(module_field)))
+	}
+
+
+def is_page_off(route: str | None, off_pages: set[str]) -> bool:
+	"""Whether *route* is a switched-off page or a path under one."""
+	route = (route or "").strip("/").lower()
+	return any(route == page or route.startswith(page + "/") for page in off_pages)
+
+
+def is_link_off(url: str | None, off_pages: set[str]) -> bool:
+	"""Whether a menu or sidebar link points at a switched-off page. A sidebar route may lack its "/"."""
+	if url and not url.startswith("/"):
+		url = "/" + url
+	return is_page_off(get_route(url), off_pages)
+
+
+def sync_page_switches() -> bool:
+	"""Give Church Features one row per shipped page, keeping each row's setting. Safe to run again.
+
+	Returns whether it saved, and so applied, Church Features.
+	"""
+	features = frappe.get_single("Church Features")
+	enabled = {row.route: cint(row.enabled) for row in features.website_pages}
+	rows = [
+		{"route": route, "label": label, "enabled": enabled.get(route, 1)}
+		for route, (label, _module_field) in SHIPPED_PAGES.items()
+	]
+	current = [
+		{"route": row.route, "label": row.label, "enabled": cint(row.enabled)}
+		for row in features.website_pages
+	]
+	if current == rows:
+		return False
+
+	features.set("website_pages", rows)
+	features.save(ignore_permissions=True)
+	return True
+
+
+class SwitchedOffWebForm:
+	"""Web Form extension: Frappe's web form APIs refuse a form whose page is switched off.
+
+	They check only ``published``, which the switch leaves alone.
+	"""
+
+	def raise_if_unpublished(self):
+		super().raise_if_unpublished()
+		if is_page_off(self.route, get_switched_off_pages()):
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 class MembersOnlyPage(BaseRenderer):

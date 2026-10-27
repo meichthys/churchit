@@ -15,6 +15,7 @@
     ignore_permissions=True,
     order_by="start_date desc"
 ) -%}
+{%- set off_pages = get_switched_off_pages() -%}
 
   <div class="col-12 mb-4 d-flex flex-wrap align-items-center justify-content-between" style="gap: 8px;">
     <form class="form-inline" method="get" action="/sermons" role="search" style="gap: 8px;">
@@ -23,7 +24,7 @@
       <button class="btn btn-default" type="submit">Search</button>
       {% if q %}<a href="/sermons" class="small">Show all</a>{% endif %}
     </form>
-    <a href="{{ get_feed_url(get_church().name) | e }}" class="small">Subscribe to the podcast</a>
+    {% if "podcast.xml" not in off_pages %}<a href="{{ get_feed_url(get_church().name) | e }}" class="small">Subscribe to the podcast</a>{% endif %}
   </div>
 
 {%- macro sermon_meta(sermon) -%}
@@ -39,7 +40,7 @@
 {%- macro sermon_card(sermon) -%}
   <div class="col-md-4 mb-4">
     <div class="card h-100">
-      <div class="card-header"><a href="/sermon/{{ sermon.name | urlencode }}"><strong>{{ sermon.title | e }}</strong></a></div>
+      <div class="card-header">{% if "sermon" in off_pages %}<strong>{{ sermon.title | e }}</strong>{% else %}<a href="/sermon/{{ sermon.name | urlencode }}"><strong>{{ sermon.title | e }}</strong></a>{% endif %}</div>
       <div class="card-body">
         {{ sermon_meta(sermon) }}
         {% if sermon.notes %}<p class="card-text">{{ sermon.notes }}</p>{% endif %}
@@ -53,7 +54,7 @@
         <div class="small text-muted">
           {% if sermon.prepared_by %}{{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") | e }}{% endif %}
         </div>
-        <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
+        {% if "sermon_presentation" not in off_pages %}<a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>{% endif %}
       </div>
     </div>
   </div>
@@ -93,7 +94,7 @@
             {% for sermon in series_sermons %}
             <div data-sermon-detail="{{ loop.index }}" style="display: none;">
               <a href="#" class="series-back small" data-series-back>&larr; Back to series</a>
-              <h6 class="mt-2 mb-1"><a href="/sermon/{{ sermon.name | urlencode }}">{{ sermon.title | e }}</a></h6>
+              <h6 class="mt-2 mb-1">{% if "sermon" in off_pages %}{{ sermon.title | e }}{% else %}<a href="/sermon/{{ sermon.name | urlencode }}">{{ sermon.title | e }}</a>{% endif %}</h6>
               {{ sermon_meta(sermon) }}
               {% if sermon.prepared_by %}<div class="small text-muted mb-2">{{ frappe.db.get_value("Person", sermon.prepared_by, "full_name") | e }}</div>{% endif %}
               {% if sermon.notes %}<p class="card-text">{{ sermon.notes }}</p>{% endif %}
@@ -102,9 +103,11 @@
                   <source src="{{ sermon.audio_recording | e }}">
                 </audio>
               {% endif %}
+              {% if "sermon_presentation" not in off_pages %}
               <div class="mt-2">
                 <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
               </div>
+              {% endif %}
             </div>
             {% endfor %}
 

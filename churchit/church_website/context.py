@@ -3,6 +3,7 @@
 
 """Website context additions, wired through the ``update_website_context`` hook."""
 
+import copy
 from pathlib import Path
 
 import frappe
@@ -13,6 +14,7 @@ from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_scope import is_multi_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
+from churchit.church_website.pages import get_switched_off_pages, is_link_off
 from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
@@ -33,6 +35,7 @@ def update_website_context(context):
 	_add_theme_mode_script(context)
 	_add_leaflet(context)
 	_add_podcast_link(context)
+	_hide_switched_off_links(context)
 
 
 def before_request():
@@ -149,9 +152,44 @@ def _add_leaflet(context):
 
 def _add_podcast_link(context):
 	"""Point feed readers at the podcast from the sermons page."""
-	if getattr(frappe.local, "path", None) != "sermons":
+	if getattr(frappe.local, "path", None) != "sermons" or "podcast.xml" in get_switched_off_pages():
 		return
 	church = get_church()
 	href = get_feed_url(church and church.name)
 	title = frappe.utils.escape_html(_("Sermon Podcast"))
 	context["head_html"] += f'<link rel="alternate" type="application/rss+xml" title="{title}" href="{href}">'
+
+
+def _hide_switched_off_links(context):
+	"""Drop navbar, footer and sidebar links to pages that are switched off.
+
+	The menu rows are Website Settings' cached rows, so this builds new lists and copies a row
+	before it changes the row's children.
+	"""
+	off_pages = get_switched_off_pages()
+	if not off_pages:
+		return
+
+	for key in ("top_bar_items", "footer_items"):
+		if context.get(key):
+			context[key] = _menu_without(context[key], off_pages)
+	if context.get("sidebar_items"):
+		context["sidebar_items"] = [
+			item for item in context["sidebar_items"] if not is_link_off(item.get("route"), off_pages)
+		]
+
+
+def _menu_without(items, off_pages):
+	kept = []
+	for item in items:
+		if is_link_off(item.get("url"), off_pages):
+			continue
+		children = item.get("child_items") or []
+		kept_children = [child for child in children if not is_link_off(child.get("url"), off_pages)]
+		if len(kept_children) != len(children):
+			if not kept_children and not item.get("url"):
+				continue
+			item = copy.copy(item)
+			item.child_items = kept_children
+		kept.append(item)
+	return kept

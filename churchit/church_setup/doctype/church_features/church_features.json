@@ -22,6 +22,8 @@
   "enable_finances",
   "enable_website",
   "enable_setup",
+  "section_website_pages",
+  "website_pages",
   "section_multi_church",
   "enable_multi_church",
   "private_people",
@@ -32,7 +34,7 @@
   {
    "fieldname": "features_intro",
    "fieldtype": "HTML",
-   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its entry in the dock for everyone. Nothing is deleted and no permissions change, so records stay reachable by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. The Multi-Church switch below is different: it changes what every user can see, so read its description before turning it on.</p>"
+   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its entry in the dock for everyone, and takes its website pages off the website. Nothing is deleted and no permissions change, so records stay reachable in the desk by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. Under Website Pages you can also take one page off the website. The Multi-Church switch below is different: it changes what every user can see, so read its description before turning it on.</p>"
   },
   {
    "fieldname": "section_modules",
@@ -125,6 +127,19 @@
    "label": "Setup"
   },
   {
+   "collapsible": 1,
+   "description": "Untick a page to take it off the website. Its menu, footer and portal links go too. Nothing is deleted.",
+   "fieldname": "section_website_pages",
+   "fieldtype": "Section Break",
+   "label": "Website Pages"
+  },
+  {
+   "fieldname": "website_pages",
+   "fieldtype": "Table",
+   "label": "Website Pages",
+   "options": "Website Page Switch"
+  },
+  {
    "fieldname": "section_multi_church",
    "fieldtype": "Section Break",
    "label": "Multi-Church"
@@ -161,7 +176,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-27 13:53:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

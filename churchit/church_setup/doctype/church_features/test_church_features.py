@@ -13,6 +13,7 @@ from churchit.church_setup.doctype.church_features.church_features import (
 	MODULE_FIELDS,
 	apply_on_migrate,
 )
+from churchit.church_website.pages import SHIPPED_PAGES, get_switched_off_pages
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -45,6 +46,8 @@ class TestChurchFeatures(RollbackEachTest):
 		features = frappe.get_single("Church Features")
 		for field in MODULE_FIELDS:
 			features.set(field, 1)
+		for row in features.website_pages:
+			row.enabled = 1
 		features.save()
 
 	def setUp(self):
@@ -153,6 +156,37 @@ class TestChurchFeatures(RollbackEachTest):
 		self.assertEqual(frappe.db.get_value("Workspace", "Settings", "is_hidden"), 0)
 		self.assertEqual(dock_flags()["Summary"], 1)
 		self.assertEqual(dock_flags()["Settings"], 0)
+
+	def test_migrate_gives_each_shipped_page_a_switch_and_keeps_its_setting(self):
+		features = frappe.get_single("Church Features")
+		features.set(
+			"website_pages",
+			[
+				{"route": "_test-gone", "label": "_Test Gone", "enabled": 0},
+				{"route": "bulletins", "label": "_Test Old Label", "enabled": 0},
+			],
+		)
+		features.save()
+
+		apply_on_migrate()
+
+		rows = frappe.get_single("Church Features").website_pages
+		self.assertEqual([row.route for row in rows], list(SHIPPED_PAGES))
+		self.assertEqual({row.route: (row.label, row.enabled) for row in rows}["bulletins"], ("Bulletins", 0))
+		self.assertEqual({row.route for row in rows if not row.enabled}, {"bulletins"})
+
+		modified = frappe.db.get_single_value("Church Features", "modified")
+		apply_on_migrate()
+		self.assertEqual(frappe.db.get_single_value("Church Features", "modified"), modified)
+
+	def test_a_module_switch_turns_off_its_website_pages(self):
+		self.set_module("enable_finances", 0)
+		self.assertTrue({"give", "statements", "pledge", "alms-request"} <= get_switched_off_pages())
+		self.assertNotIn("bulletins", get_switched_off_pages())
+
+	def test_turning_off_the_web_site_desk_tools_keeps_the_public_site(self):
+		self.set_module("enable_website", 0)
+		self.assertEqual(get_switched_off_pages(), set())
 
 
 class TestMultiChurchSwitch(FrappeTestCase):

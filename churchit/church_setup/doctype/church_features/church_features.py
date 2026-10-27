@@ -14,6 +14,7 @@ from frappe.website.utils import clear_website_cache
 from churchit.church_foundations import church_access
 from churchit.church_scope import root_church
 from churchit.church_setup import multi_church
+from churchit.church_website.pages import sync_page_switches
 
 # Check fieldname on Church Features -> the churchit modules it switches. Setup
 # leaves out Church Setup, whose Settings page holds these switches.
@@ -210,13 +211,15 @@ def apply_on_migrate():
 
 	Workspaces ship as standard records, so migrate re-imports them whenever
 	churchit changes their JSON, resetting the visibility flags this page set.
-	It also puts dock entries churchit added since on the site's arrangement.
+	It also puts dock entries churchit added since on the site's arrangement, and a
+	switch for each website page churchit added since.
 	"""
 	if not frappe.db.exists("DocType", "Church Features"):
 		return
 
 	store_missing_defaults()
-	frappe.get_single("Church Features").apply()
+	if not sync_page_switches():
+		frappe.get_single("Church Features").apply()
 
 
 def store_missing_defaults():
