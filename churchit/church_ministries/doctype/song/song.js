@@ -7,6 +7,7 @@ frappe.ui.form.on("Song", {
 		add_chord_chart_button(frm);
 		add_make_slides_button(frm);
 		add_present_button(frm);
+		add_export_button(frm);
 	},
 });
 
@@ -123,5 +124,32 @@ function get_charted_arrangements(frm) {
 function add_present_button(frm) {
 	frm.add_custom_button(__("Present"), () => {
 		window.open(`/sermon_presentation?song=${encodeURIComponent(frm.doc.name)}`, "_blank");
+	});
+}
+
+function add_export_button(frm) {
+	if (!get_charted_arrangements(frm).length) return;
+	frm.add_custom_button(__("Export"), () => {
+		if (frm.is_dirty()) return frappe.msgprint(__("Save the song first."));
+		frappe.prompt(
+			{
+				fieldname: "file_format",
+				fieldtype: "Select",
+				label: __("Format"),
+				options: ["OpenLyrics", "ChordPro"],
+				default: "OpenLyrics",
+				reqd: 1,
+				description: __(
+					"OpenLyrics opens in FreeShow, OpenLP and Quelea. ChordPro keeps the chords. The export uses the first arrangement with a ChordPro chart."
+				),
+			},
+			({ file_format }) =>
+				window.open(
+					"/api/method/churchit.church_ministries.songs.song_files.export_songs?" +
+						$.param({ songs: JSON.stringify([frm.doc.name]), file_format })
+				),
+			__("Export Song"),
+			__("Export")
+		);
 	});
 }

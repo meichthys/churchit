@@ -1,15 +1,18 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Song files: import ChordPro and SongSelect `.usr` files as Songs.
+"""Song files: import ChordPro and SongSelect `.usr` files as Songs, and export Songs as files.
 
 An imported file becomes a Song with one Default arrangement and its slides. A file is skipped when
-the importer already lists a Song with its CCLI number, or with its title when it has none. The
-public-domain hymns shipped in `hymns/` import the same way, and are never fetched at run time.
+the importer already lists a Song with its CCLI number, or with its title when it has none. Export
+writes the first arrangement whose chart has words as OpenLyrics or ChordPro. The public-domain
+hymns shipped in `hymns/` import the same way, and are never fetched at run time.
 """
 
+import io
 import os
 import re
+import zipfile
 
 import frappe
 from frappe import _
@@ -18,6 +21,7 @@ from frappe.utils import cint
 
 from churchit.church_ministries.doctype.song.song import make_slides
 from churchit.church_ministries.songs import chordpro
+from churchit.church_ministries.songs.openlyrics import to_openlyrics
 from churchit.church_people.list_actions import parse_names
 
 DEFAULT_ARRANGEMENT = "Default"
@@ -27,6 +31,8 @@ MAX_IMPORT_FILES = 50
 MAX_FILE_SIZE = 1024 * 1024
 # Frappe's default list tries windows-1250 first, which garbles Western ANSI song files.
 TEXT_ENCODINGS = ("utf-8-sig", "utf-8", "windows-1252")
+MAX_EXPORT_SONGS = 200
+EXPORT_FORMATS = {"OpenLyrics": ".xml", "ChordPro": ".cho"}
 AUTHOR_DIRECTIVES = ("artist", "author", "lyricist", "composer")
 THEME_DIRECTIVES = ("tag", "theme")
 # A theme becomes a Tag, which the desk list shows unescaped and splits on commas.
@@ -240,3 +246,54 @@ def get_hymn_files() -> list[str]:
 def read_hymn(filename: str) -> str:
 	with open(os.path.join(HYMNS_FOLDER, filename), encoding="utf-8") as file:
 		return file.read()
+
+
+@frappe.whitelist(methods=["GET"])
+def export_songs(songs: str | list[str], file_format: str):
+	"""Download *songs* as OpenLyrics or ChordPro: one file, or a zip with a list of the skipped songs."""
+	names = parse_names(songs)
+	if not names:
+		frappe.throw(_("Select at least one song."))
+	if len(names) > MAX_EXPORT_SONGS:
+		frappe.throw(_("Export at most {0} songs at a time.").format(MAX_EXPORT_SONGS))
+	if file_format not in EXPORT_FORMATS:
+		frappe.throw(_("Export as OpenLyrics or ChordPro."))
+
+	files, skipped = {}, []
+	for name in names:
+		song = frappe.get_doc("Song", name)
+		song.check_permission("read")
+		arrangement = next((row for row in song.arrangements if chordpro.lyrics(row.chordpro or "")), None)
+		if not arrangement:
+			skipped.append(song.title)
+			continue
+		content = to_openlyrics(song, arrangement) if file_format == "OpenLyrics" else arrangement.chordpro
+		files[get_export_filename(song, EXPORT_FORMATS[file_format], files)] = content
+
+	if not files:
+		frappe.throw(_("None of these songs has an arrangement with words in its ChordPro chart."))
+	if len(files) == 1 and not skipped:
+		frappe.local.response.filename, frappe.local.response.filecontent = next(iter(files.items()))
+	else:
+		frappe.local.response.filename = f"{_('Songs')}.zip"
+		frappe.local.response.filecontent = zip_files(files, skipped)
+	frappe.local.response.type = "download"
+
+
+def get_export_filename(song, extension: str, taken: dict) -> str:
+	"""The song's title as a file name, with the song's name added when another file has it."""
+	base = re.sub(r"[^\w ,'()-]+", "", song.title).strip() or song.name
+	if f"{base}{extension}" in taken:
+		base = f"{base} {song.name}"
+	return f"{base}{extension}"
+
+
+def zip_files(files: dict[str, str], skipped: list[str]) -> bytes:
+	if skipped:
+		header = _("These songs have no arrangement with words in a ChordPro chart:")
+		files = {**files, f"{_('Skipped Songs')}.txt": "\n".join([header, *skipped]) + "\n"}
+	buffer = io.BytesIO()
+	with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+		for filename, content in files.items():
+			archive.writestr(filename, content)
+	return buffer.getvalue()

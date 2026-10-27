@@ -5,6 +5,7 @@ frappe.listview_settings["Song"] = {
 	onload(listview) {
 		add_song_import_button(listview);
 		add_public_domain_hymns_button(listview);
+		add_song_export_list_button(listview);
 	},
 };
 
@@ -118,4 +119,31 @@ function show_hymns_added(titles, { imported, skipped }) {
 		message += reason + items(skipped.map((file) => titles[file]));
 	}
 	frappe.msgprint({ title: __("Add Public-Domain Hymns"), message, indicator: "green" });
+}
+
+function add_song_export_list_button(listview) {
+	listview.page.add_action_item(__("Export Songs"), () => {
+		const songs = listview.get_checked_items(true);
+		if (!songs.length) return frappe.msgprint(__("Select at least one song."));
+		frappe.prompt(
+			{
+				fieldname: "file_format",
+				fieldtype: "Select",
+				label: __("Format"),
+				options: ["OpenLyrics", "ChordPro"],
+				default: "OpenLyrics",
+				reqd: 1,
+				description: __(
+					"OpenLyrics opens in FreeShow, OpenLP and Quelea. ChordPro keeps the chords. More than one song comes as a zip file."
+				),
+			},
+			({ file_format }) =>
+				window.open(
+					`/api/method/${SONG_FILES}.export_songs?` +
+						$.param({ songs: JSON.stringify(songs), file_format })
+				),
+			__("Export Songs"),
+			__("Export")
+		);
+	});
 }
