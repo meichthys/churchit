@@ -109,3 +109,4 @@ churchit.patches.v1_0.add_serving_purpose
 churchit.patches.v1_0.add_ministry_team_replacement_template
 churchit.patches.v1_0.name_the_replacement_in_ministry_team_decline
 churchit.patches.v1_0.add_spiritual_gifts
+churchit.patches.v1_0.fill_team_and_membership_summaries

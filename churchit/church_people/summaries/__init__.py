@@ -52,10 +52,13 @@ def sources() -> dict[str, tuple]:
 def on_change(doc, method=None) -> None:
 	"""doc_events for every doctype: queue a refresh of the people whose summaries a save, cancel or delete changes.
 
-	A person who moves church is refreshed too, because `same_church` counts their new church's records.
+	A person who moves church is refreshed too, because `same_church` counts their new church's records. A deleted
+	record's summary rows go at once.
 	"""
 	if frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate:
 		return
+	if method == "on_trash":
+		delete_rows_naming(doc)
 	people = set()
 	for area in sources().get(doc.doctype, ()):
 		people.update(area.SOURCES[doc.doctype](doc))
@@ -64,6 +67,22 @@ def on_change(doc, method=None) -> None:
 	people.discard(None)
 	if people:
 		frappe.enqueue(refresh, queue="short", enqueue_after_commit=True, people=sorted(people))
+
+
+def delete_rows_naming(doc) -> None:
+	"""Delete the summary table rows that name *doc*, which is being deleted, in the same transaction.
+
+	`ignore_links_on_delete` lets the delete through, and a row left until the queued refresh would fail every save
+	of its person on Frappe's link check.
+	"""
+	meta = frappe.get_meta("Person")
+	for area in sources().get(doc.doctype, ()):
+		for df in filter(is_table, map(meta.get_field, area.FIELDS)):
+			link = table_link_field(df)
+			if frappe.get_meta(df.options).get_field(link).options == doc.doctype:
+				frappe.db.delete(
+					df.options, {"parenttype": "Person", "parentfield": df.fieldname, link: doc.name}
+				)
 
 
 def refresh_daily() -> None:

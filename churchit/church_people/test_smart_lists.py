@@ -56,6 +56,34 @@ class TestSmartListChurches(RollbackEachTest):
 		self.assertEqual(smart_lists.get_people(smart_list, self.branch_a), [mine])
 
 
+class TestLifeEventSmartLists(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		force_single_church()
+
+	def baptize(self, first_name, event_type, date):
+		return make_person(
+			first_name, "_Test Smart Life Event", life_events=[{"event_type": event_type, "date": date}]
+		).name
+
+	def test_a_list_on_a_life_event_and_a_date_range_returns_the_people_it_matches(self):
+		baptism = ensure("Life Event Type", {"type": "_Test Smart Baptism"})
+		wedding = ensure("Life Event Type", {"type": "_Test Smart Wedding"})
+		baptized = self.baptize("_Test Smart Baptized", baptism, "2025-04-20")
+		self.baptize("_Test Smart Earlier", baptism, "2024-04-20")
+		self.baptize("_Test Smart Married", wedding, "2025-04-20")
+		smart_list = make_person_list(
+			"_Test Smart Baptized 2025",
+			[
+				["Life Event", "event_type", "=", baptism],
+				["Life Event", "date", "between", ["2025-01-01", "2025-12-31"]],
+			],
+		)
+
+		self.assertEqual(smart_lists.get_people(smart_list.name, None), [baptized])
+
+
 class TestSkillLists(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):

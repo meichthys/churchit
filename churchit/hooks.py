@@ -428,7 +428,7 @@ override_doctype_dashboards = {"User": "churchit.church_people.doctype.person.pe
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+ignore_links_on_delete = ["Person Group", "Person Ministry Team", "Person Team Position"]
 
 # Request Events
 # ----------------

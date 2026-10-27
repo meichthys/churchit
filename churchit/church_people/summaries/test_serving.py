@@ -7,7 +7,7 @@ from unittest import mock
 import frappe
 from frappe.utils import add_days, getdate, today
 
-from churchit.church_people import summaries
+from churchit.church_people import smart_lists, summaries
 from churchit.church_people.summaries import refresh, serving
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -56,7 +56,7 @@ class TestServingSummary(RollbackEachTest):
 
 	def summary(self):
 		refresh([self.person])
-		return frappe.db.get_value("Person", self.person, serving.FIELDS, as_dict=True)
+		return frappe.db.get_value("Person", self.person, list(NOTHING), as_dict=True)
 
 	def test_last_served_and_the_functions_served_in_the_last_90_days(self):
 		self.serve(-serving.WINDOW_DAYS - 1)
@@ -111,6 +111,72 @@ class TestServingSummary(RollbackEachTest):
 		self.assertEqual(self.summary().last_served_on, getdate(add_days(today(), -5)))
 
 
+class TestTeamPositionsSummary(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		self.person = make_person("_Test Team", "Summary").name
+
+	def teams(self):
+		refresh([self.person])
+		person = frappe.get_doc("Person", self.person)
+		return [row.ministry for row in person.ministry_teams], [
+			row.position for row in person.team_positions
+		]
+
+	def test_the_positions_that_list_a_person_and_their_ministries(self):
+		greeter = make_team_position("_Test Team Greeter", [self.person], "_Test Team Welcome")
+		usher = make_team_position("_Test Team Usher", [self.person], "_Test Team Welcome")
+		singer = make_team_position("_Test Team Singer", [self.person], "_Test Team Choir")
+		make_team_position("_Test Team Other", [], "_Test Team Choir")
+
+		self.assertEqual(
+			self.teams(),
+			([singer.ministry, greeter.ministry], [singer.name, greeter.name, usher.name]),
+		)
+
+	def test_taking_a_person_off_a_position_queues_and_clears_it(self):
+		position = make_team_position("_Test Team Leaving", [self.person])
+		self.teams()
+		position.people = []
+
+		self.assertEqual(queued_people(lambda: position.save(ignore_permissions=True)), [[self.person]])
+		self.assertEqual(self.teams(), ([], []))
+
+	def test_an_inactive_ministry_is_left_out_and_its_status_change_queues_its_people(self):
+		position = make_team_position("_Test Team Paused", [self.person], "_Test Team Paused Ministry")
+		ministry = frappe.get_doc("Ministry", position.ministry)
+		self.assertEqual(self.teams(), ([ministry.name], [position.name]))
+		ministry.description = "Meets on Sundays"
+
+		self.assertEqual(queued_people(lambda: ministry.save(ignore_permissions=True)), [])
+		ministry.status = serving.INACTIVE
+		self.assertEqual(queued_people(lambda: ministry.save(ignore_permissions=True)), [[self.person]])
+		self.assertEqual(self.teams(), ([], []))
+
+	def test_a_list_on_a_team_or_a_position_returns_the_people_it_lists(self):
+		other = make_person("_Test Team Other", "Summary").name
+		position = make_team_position("_Test Team Listed", [self.person], "_Test Team Listed Ministry")
+		make_team_position("_Test Team Not Listed", [other])
+		refresh([self.person, other])
+		by_team = make_person_list(
+			"_Test Team List", [["Person Ministry Team", "ministry", "=", position.ministry]]
+		)
+		by_position = make_person_list(
+			"_Test Position List", [["Person Team Position", "position", "=", position.name]]
+		)
+
+		self.assertEqual(smart_lists.get_people(by_team.name, None), [self.person])
+		self.assertEqual(smart_lists.get_people(by_position.name, None), [self.person])
+
+	def test_a_position_that_lists_people_can_be_deleted(self):
+		position = make_team_position("_Test Team Deleted", [self.person])
+		self.teams()
+
+		frappe.delete_doc("Ministry Team Position", position.name)
+
+		self.assertEqual(self.teams(), ([], []))
+
+
 class TestServingStaysInItsChurch(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):
@@ -135,3 +201,21 @@ class TestServingStaysInItsChurch(RollbackEachTest):
 		function.save(ignore_permissions=True)
 		refresh([person])
 		self.assertEqual(frappe.db.get_value("Person", person, "times_served_90d"), 1)
+
+	def test_another_churchs_position_is_left_out(self):
+		person = make_person("_Test Branch", "Team", church=self.branch_a).name
+		mine = {"ministry_name": "_Test Team Branch A", "church": self.branch_a}
+		ensure("Ministry", {"ministry_name": mine["ministry_name"]}, mine)
+		theirs = {"ministry_name": "_Test Team Branch B", "church": self.branch_b}
+		ensure("Ministry", {"ministry_name": theirs["ministry_name"]}, theirs)
+		kept = make_team_position("_Test Team Kept", [person], mine["ministry_name"])
+		make_team_position("_Test Team Left Out", [person], theirs["ministry_name"])
+		refresh([person])
+
+		self.assertEqual(
+			frappe.get_all("Person Team Position", filters={"parent": person}, pluck="position"), [kept.name]
+		)
+		self.assertEqual(
+			frappe.get_all("Person Ministry Team", filters={"parent": person}, pluck="ministry"),
+			[kept.ministry],
+		)

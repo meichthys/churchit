@@ -9,11 +9,13 @@ from frappe.utils import add_days, today
 
 from churchit.church_people import summaries
 from churchit.church_people.summaries import attendance, groups
+from churchit.church_people.summaries.test_groups import make_group
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
 	make_function,
 	make_person,
+	make_team_position,
 	make_two_churches,
 )
 
@@ -75,6 +77,20 @@ class TestSummaryEngine(RollbackEachTest):
 		function.delete(ignore_permissions=True)
 		summaries.refresh([self.person])
 		self.assertIsNone(frappe.db.get_value("Person", self.person, "last_attended_on"))
+
+	def test_deleting_a_record_a_summary_names_deletes_its_rows_before_the_refresh(self):
+		group = make_group("_Test Summary Deleted", [self.person]).name
+		position = make_team_position("_Test Summary Deleted", [self.person], "_Test Summary Ministry")
+		summaries.refresh([self.person])
+
+		with mock.patch("frappe.enqueue"):
+			frappe.delete_doc("Group", group)
+			frappe.delete_doc("Ministry Team Position", position.name)
+		frappe.get_doc("Person", self.person).save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("Person Group", {"parent": self.person}))
+		self.assertFalse(frappe.db.exists("Person Team Position", {"parent": self.person}))
+		self.assertTrue(frappe.db.exists("Person Ministry Team", {"ministry": position.ministry}))
 
 	def test_a_form_opened_before_a_refresh_saves_without_undoing_it(self):
 		"""A refresh leaves `modified` alone, so Frappe takes the older form for the latest copy."""
