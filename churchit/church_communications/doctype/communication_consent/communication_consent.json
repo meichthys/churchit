@@ -59,7 +59,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Channel",
-   "options": "Email\nSMS\nPhone\nPost",
+   "options": "Email\nSMS\nPush\nPhone\nPost",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -118,7 +118,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-21 21:30:00.000000",
+ "modified": "2026-10-27 01:49:09.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communication Consent",

@@ -3,7 +3,8 @@
 
 """Sending a message about a record: a copy for each person, filled in for them and kept on their timeline.
 
-A Church Email goes out through `Delivery`; any other record sends with `send`.
+A Church Email goes out through `Delivery`; any other record sends with `send`, by email, text or push
+notification.
 
 Placeholders are filled by a sandboxed Jinja environment that holds only the person's names.
 Church Managers write Church Emails but not Email Templates, and Frappe's own Jinja
@@ -24,8 +25,13 @@ from requests import HTTPError
 
 from churchit.church_communications.bounces import bounced_addresses
 from churchit.church_communications.consent import allowed_people
-from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL, SMS
+from churchit.church_communications.doctype.communication_consent.communication_consent import (
+	EMAIL,
+	PUSH,
+	SMS,
+)
 from churchit.church_communications.newsletter import UNSUBSCRIBE_METHOD, email_church, unsubscribed_emails
+from churchit.church_communications.push import SUBSCRIPTION, is_push_on, send_push
 from churchit.church_scope import default_church, document_church, session_person
 from churchit.contacts import (
 	EMAIL_DOCTYPE,
@@ -52,6 +58,9 @@ ERROR = "Error"
 # STOP. Any other failure stops the delivery, so it goes on once the gateway works again.
 REFUSED_STATUSES = (400, 422)
 
+# Communication has no medium for a push notification.
+MEDIUMS = {EMAIL: "Email", SMS: "SMS", PUSH: "Other"}
+
 TEXT = SandboxedEnvironment(undefined=StrictUndefined)
 HTML = SandboxedEnvironment(undefined=StrictUndefined, autoescape=True)
 
@@ -76,6 +85,7 @@ class Sender:
 		key: str = "",
 		attachments: list[dict] | None = None,
 		email_template: str | None = None,
+		url: str | None = None,
 	):
 		self.source = source
 		self.channel = channel
@@ -84,15 +94,25 @@ class Sender:
 		self.key = key
 		self.attachments = attachments or []
 		self.email_template = email_template
+		self.url = url
 
 	def deliver(self, recipient: Recipient, copy: frappe._dict) -> bool:
-		"""Send *recipient* their *copy* and return whether it left. A text that did not leave is marked Error."""
+		"""Send *recipient* their *copy* and return whether it left.
+
+		A text that did not leave, or a push notification no browser took, is marked Error.
+		A push notification opens *url*, else the source's desk form.
+		"""
 		communication = self.record(recipient, copy)
 		if self.channel == EMAIL:
 			self.send_email(recipient.address, copy, communication, person=recipient.person)
 			return True
 
-		is_sent = send_text(recipient.address, copy.text)
+		if self.channel == PUSH:
+			is_sent = bool(
+				send_push(recipient.address, copy.subject, copy.text, self.url or self.source.get_url())
+			)
+		else:
+			is_sent = send_text(recipient.address, copy.text)
 		frappe.db.set_value(
 			"Communication",
 			communication,
@@ -104,20 +124,20 @@ class Sender:
 
 	def record(self, recipient: Recipient, copy: frappe._dict) -> str:
 		"""Keep the copy as a Communication on the person's timeline, linked to the source."""
-		is_text = self.channel == SMS
+		is_plain_text = self.channel != EMAIL
 		communication = frappe.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
-				"communication_medium": "SMS" if is_text else "Email",
+				"communication_medium": MEDIUMS[self.channel],
 				"sent_or_received": "Sent",
 				"communication_date": now_datetime(),
 				"sender": get_formatted_email(frappe.session.user),
 				"subject": copy.subject,
-				"content": escape_html(copy.text).replace("\n", "<br>") if is_text else copy.message,
-				"phone_no": recipient.address if is_text else None,
-				"recipients": None if is_text else recipient.address,
-				"has_attachment": int(bool(self.attachments) and not is_text),
+				"content": escape_html(copy.text).replace("\n", "<br>") if is_plain_text else copy.message,
+				"phone_no": recipient.address if self.channel == SMS else None,
+				"recipients": None if is_plain_text else recipient.address,
+				"has_attachment": int(bool(self.attachments) and not is_plain_text),
 				"email_template": self.email_template,
 				"send_key": self.key,
 				"reference_doctype": "Person",
@@ -223,17 +243,23 @@ def send(
 	message: str = "",
 	text: str = "",
 	context: dict | None = None,
+	url: str | None = None,
 ) -> set[str]:
 	"""Send each of *people* who allows *channel* for *purpose* one copy about *source*, once for each *key*.
 
-	*channel* is EMAIL or SMS. With *template* (an Email Template) the subject and message come from it.
+	*channel* is EMAIL, SMS or PUSH. With *template* (an Email Template) the subject and message come from it.
+	A push notification has *subject* as its title and *text* as its body, and opens *url*, a page of this site.
+	Without *url* it opens the source's desk form, which members with no desk access cannot see.
 	*context* adds placeholders to the person's names. Returns the people whose copy left; the caller commits.
 	A text leaves at once, so a caller that texts many people calls this once per person and commits after
 	each, as `Delivery.send_all` does. Otherwise a rollback forgets texts that left, and a rerun repeats them.
+	Push notifications and emails leave after the commit.
 	"""
 	context = context or {}
-	if channel not in (EMAIL, SMS):
-		frappe.throw(_("A message goes by {0} or {1}, not {2}.").format(EMAIL, SMS, channel))
+	if channel not in (EMAIL, SMS, PUSH):
+		frappe.throw(_("A message goes by {0}, {1} or {2}, not {3}.").format(EMAIL, SMS, PUSH, channel))
+	if channel == PUSH and not text:
+		frappe.throw(_("A push notification needs a text."))
 	if source is None:
 		frappe.throw(_("A message needs the saved record it is about."))
 	if purpose and not frappe.db.exists("Communication Purpose", purpose):
@@ -255,7 +281,7 @@ def send(
 	handled = get_people_sent(source.name, people, True, doctype=source.doctype, key=key)
 	waiting = [recipient for recipient in recipients if recipient.person not in handled]
 	values = get_person_values([recipient.person for recipient in waiting])
-	sender = Sender(source, channel, email_church(church), purpose, key=key, email_template=template)
+	sender = Sender(source, channel, email_church(church), purpose, key=key, email_template=template, url=url)
 	return {
 		recipient.person
 		for recipient in waiting
@@ -268,9 +294,14 @@ def send(
 def get_copy(
 	channel: str, values: dict, subject: str = "", message: str = "", text: str = ""
 ) -> frappe._dict:
-	"""A message filled in with one person's placeholder *values*: a text, or a subject and message."""
+	"""A message filled in with one person's placeholder *values*.
+
+	A text, a push notification's title (*subject*) and text, or an email's subject and message.
+	"""
 	if channel == SMS:
 		return frappe._dict(text=render(text, values))
+	if channel == PUSH:
+		return frappe._dict(subject=render(subject, values), text=render(text, values))
 	return frappe._dict(subject=render(subject, values), message=render(message, values, html=True))
 
 
@@ -352,6 +383,8 @@ def get_recipients(people: list[str], channel: str, purpose: str | None, church:
 	allowed = sorted(allowed_people(people, channel, purpose))
 	if channel == SMS:
 		return get_text_recipients(allowed)
+	if channel == PUSH:
+		return get_push_recipients(allowed)
 	return get_email_recipients(allowed, email_church(church))
 
 
@@ -373,6 +406,25 @@ def get_text_recipients(people: list[str]) -> list[Recipient]:
 	"""Each of *people* at their primary phone, each number once."""
 	numbers = get_primary_values(PHONE_DOCTYPE, "phone_number", "Person", people)
 	return get_unique_recipients(people, numbers, PHONE_DOCTYPE)
+
+
+def get_push_recipients(people: list[str]) -> list[Recipient]:
+	"""Each of *people* at their User, while push is on and that User has a browser subscribed."""
+	if not people or not is_push_on():
+		return []
+	# church-scope: the users of people already chosen as recipients, read by name
+	users = dict(
+		frappe.get_all(
+			"Person",
+			filters={"name": ("in", people), "user": ("is", "set")},
+			fields=["name", "user"],
+			as_list=True,
+		)
+	)
+	subscribed = set(
+		frappe.get_all(SUBSCRIPTION, filters={"user": ("in", list(users.values()))}, pluck="user")
+	)
+	return [Recipient(person, users[person]) for person in people if users.get(person) in subscribed]
 
 
 def get_unique_recipients(

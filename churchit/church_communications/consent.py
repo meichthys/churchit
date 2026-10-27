@@ -18,6 +18,7 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	EMAIL_LINK,
 	GIVEN,
 	PHONE,
+	PUSH,
 	SMS,
 	UNSUBSCRIBE_LINK,
 	WITHDRAWN,
@@ -48,8 +49,8 @@ def allowed_people(people: list[str], channel: str, purpose: str | None = None) 
 
 	Nobody who has died is contacted. Otherwise the newest record for the channel decides,
 	whether it names this purpose or is blank for every purpose, but a yes for every purpose
-	never undoes a no for this one. With no record, nobody gets texts, and the person's church
-	decides the other channels. A few queries answer for any number of people.
+	never undoes a no for this one. With no record, nobody gets texts or push notifications, and
+	the person's church decides the other channels. A few queries answer for any number of people.
 	"""
 	people = [person for person in people if person]
 	if not people:
@@ -65,10 +66,10 @@ def allowed_people(people: list[str], channel: str, purpose: str | None = None) 
 def default_statuses(people: list[frappe._dict], channel: str) -> dict[str, str]:
 	"""Each person's status with no record.
 
-	Texts need a yes first, as carriers and the law require. On other channels it is Withdrawn
-	only where the person's church contacts people only with consent.
+	Texts need a yes first, as carriers and the law require, and push notifications too. On other
+	channels it is Withdrawn only where the person's church contacts people only with consent.
 	"""
-	if channel == SMS:
+	if channel in (SMS, PUSH):
 		return {row.name: WITHDRAWN for row in people}
 	asks_first = set(frappe.get_all("Church", filters={"contact_only_with_consent": 1}, pluck="name"))
 	churches = {church: email_church(church) for church in {row.church for row in people}}

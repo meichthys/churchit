@@ -4,7 +4,11 @@
 import frappe
 from frappe import _
 
-from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL, SMS
+from churchit.church_communications.doctype.communication_consent.communication_consent import (
+	EMAIL,
+	PUSH,
+	SMS,
+)
 from churchit.church_communications.preferences import get_member_preferences
 from churchit.church_communications.push import get_public_key
 
@@ -19,6 +23,6 @@ def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = 1
 	context.title = _("Communication Preferences")
-	context.channel_labels = {EMAIL: _("Email"), SMS: _("Text")}
+	context.channel_labels = {EMAIL: _("Email"), SMS: _("Text"), PUSH: _("Push")}
 	context.update(get_member_preferences())
 	context.push_public_key = get_public_key()

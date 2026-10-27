@@ -10,6 +10,7 @@ from churchit.church_scope import CHURCH_FIELD, has_church_access
 
 EMAIL = "Email"
 SMS = "SMS"
+PUSH = "Push"
 PHONE = "Phone"
 POST = "Post"
 

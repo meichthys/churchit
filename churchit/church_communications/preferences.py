@@ -12,12 +12,14 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	EMAIL,
 	GIVEN,
 	MEMBER_PORTAL,
+	PUSH,
 	SMS,
 	WITHDRAWN,
 	record,
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
 from churchit.church_communications.newsletter import email_church, lift_global_unsubscribe, set_subscribed
+from churchit.church_communications.push import SUBSCRIPTION, is_push_on
 from churchit.church_communications.sending import can_send_texts
 from churchit.church_scope import session_church, session_person
 from churchit.contacts import get_primary_email, get_primary_phone
@@ -50,10 +52,16 @@ def get_member_preferences() -> dict:
 
 
 def get_channels(email: str | None, phone: str | None) -> list[str]:
-	"""The channels a member can choose: email with an address, and texts with a phone once the site sends texts."""
+	"""The channels the signed-in member can choose.
+
+	Email with an address, texts with a phone once the site sends texts, and push notifications
+	once push is on and a browser of theirs is subscribed.
+	"""
 	channels = [EMAIL] if email else []
 	if phone and can_send_texts():
 		channels.append(SMS)
+	if is_push_on() and frappe.db.exists(SUBSCRIPTION, {"user": frappe.session.user}):
+		channels.append(PUSH)
 	return channels
 
 
@@ -106,6 +114,12 @@ def get_saved_message(channel: str, purpose: str, allow: bool) -> str:
 	"""The alert the page shows once a switch is saved."""
 	if channel == EMAIL:
 		message = _("You will get {0} by email.") if allow else _("You will not get {0} by email.")
+	elif channel == PUSH:
+		message = (
+			_("You will get {0} as a notification.")
+			if allow
+			else _("You will not get {0} as a notification.")
+		)
 	else:
 		message = _("You will get {0} by text.") if allow else _("You will not get {0} by text.")
 	return message.format(_(purpose))

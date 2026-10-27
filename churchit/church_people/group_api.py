@@ -234,6 +234,8 @@ def message_group(group: str, subject: str, message: str, channel: str = EMAIL) 
 	leader = require_leader(group)
 	if not (subject or "").strip() or not (message or "").strip():
 		frappe.throw(_("Write a subject and a message."))
+	if channel not in (EMAIL, SMS):
+		frappe.throw(_("A group message goes by {0} or {1}.").format(EMAIL, SMS))
 	if channel == SMS and not can_send_texts():
 		frappe.throw(_("This site cannot send texts."))
 	if channel == EMAIL and not can_send_email():

@@ -82,13 +82,15 @@
 		{% endif %}
 
 		{% if push_public_key %}
-			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}">
+			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}"
+				data-has-push-column="{{ 1 if 'Push' in channels else 0 }}">
 				<h5>{{ _("Notifications on this device") }}</h5>
 				<p class="text-muted">{{ _("Let {0} show notifications on this phone or computer.").format(church_name or _("your church")) | e }}</p>
 				<button type="button" class="btn btn-primary btn-sm d-none" id="allow-notifications">{{ _("Allow notifications") }}</button>
 				<p class="d-none" id="notifications-on">
 					{{ _("Notifications are on for this device.") }}
 					<button type="button" class="btn btn-default btn-sm ml-2" id="stop-notifications">{{ _("Turn off") }}</button>
+					<span class="d-block small text-muted mt-2">{{ _("Choose in the Push column which messages you get as a notification.") }}</span>
 				</p>
 				<p class="d-none" id="notifications-unsupported">{{ _("This browser cannot show notifications.") }}</p>
 				<p class="d-none" id="notifications-failed">{{ _("Notifications could not be turned on. Try again later.") }}</p>
@@ -150,6 +152,12 @@ function setup_push_notifications() {
 	}
 	if (!supported) return show("notifications-unsupported");
 
+	// The first browser a member subscribes adds the Push column, which shows after a reload.
+	function show_on() {
+		if (section.dataset.hasPushColumn !== "1") return window.location.reload();
+		show("notifications-on");
+	}
+
 	function save(subscription) {
 		return frappe.call({
 			method: "churchit.church_communications.push.subscribe",
@@ -162,7 +170,7 @@ function setup_push_notifications() {
 			if (Notification.permission === "denied") return show("notifications-blocked");
 			if (!subscription) return show("allow-notifications");
 			show("notifications-on");
-			save(subscription);
+			save(subscription).then(show_on);
 		});
 
 		document.getElementById("allow-notifications").addEventListener("click", function () {
@@ -172,9 +180,7 @@ function setup_push_notifications() {
 				registration.pushManager
 					.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(section.dataset.publicKey) })
 					.then(save)
-					.then(function () {
-						show("notifications-on");
-					})
+					.then(show_on)
 					.catch(function () {
 						// A subscription the site refused is dropped, so the next visit does not send it again.
 						registration.pushManager.getSubscription().then(function (subscription) {
