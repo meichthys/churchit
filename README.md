@@ -133,8 +133,10 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Church Emails & Consent
 - One email or text to active people, active members, a Group, a smart list or chosen people, each person getting their own copy on their timeline
 - Email templates, name placeholders, a preview, a test send and a scheduled send time
-- Consent per channel and purpose: texts need a yes, every email has an unsubscribe link for its purpose, and churches that ask first can send consent renewal reminders
+- Consent per channel and purpose: texts and push notifications need a yes, every email has an unsubscribe link for its purpose, and churches that ask first can send consent renewal reminders
 - Bounced addresses and refused texts are marked, and later emails skip them
+- See who opened each email copy (Read on the person's timeline) while the sending Email Account tracks it
+- Push notifications on members' phones and computers: members allow them per device on Communication Preferences and choose Push for each purpose, and the site sends them itself with Web Push (no outside push service). No feature sends them yet
 
 ### Finances
 - Collection and donation tracking with fund allocation
@@ -146,6 +148,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Alms request system for financial assistance (with web form)
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
+- Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
 - Other ways to give (bank transfer, standing order, mailed check) on /give, per church
 - Event registration fees and form payments recorded as collections at the event's church, off giving statements
 - Finance can link a guest's online gift to a person, and a cancelled gift Collection marks the gift Refunded
