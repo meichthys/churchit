@@ -16,7 +16,9 @@
   "section_break_steps",
   "steps",
   "section_break_triggers",
-  "triggers"
+  "triggers",
+  "section_break_actions",
+  "actions"
  ],
  "fields": [
   {
@@ -83,11 +85,23 @@
    "fieldtype": "Table",
    "label": "Triggers",
    "options": "Follow-up Trigger"
+  },
+  {
+   "fieldname": "section_break_actions",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "description": "Each action runs once for each card and event. It is never retried.",
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "Follow-up Action"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-18 09:00:00.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Workflow",

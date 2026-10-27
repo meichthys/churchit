@@ -66,6 +66,11 @@ class TestPersonSearch(RollbackEachTest):
 			self.assertEqual(found("555-019", filters={"gender": "Male"}), [self.ben])
 			self.assertEqual(len(found("_Testsearch", page_length=1)), 1)
 
+	def test_a_person_is_found_by_their_middle_name(self):
+		cora = make_matchable("Cora", "_Testsearch", middle_name="_Testmiddle")
+		with searching_people_by_contact():
+			self.assertEqual(found("_Testmiddle"), [cora])
+
 	def test_digits_inside_a_name_are_not_a_phone_search(self):
 		with searching_people_by_contact():
 			self.assertEqual(found("Anna 2175550190"), [])

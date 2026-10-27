@@ -37,7 +37,10 @@
   "membership_status",
   "inactive_reason",
   "inactive_since",
+  "membership_changed_on",
+  "status_changed_on",
   "source",
+  "how_heard",
   "legacy_system",
   "legacy_id",
   "envelope_number",
@@ -63,6 +66,10 @@
   "life_events",
   "section_break_osjz",
   "positions",
+  "section_break_skills",
+  "skills",
+  "section_break_relationships",
+  "relationships",
   "contact_information_tab",
   "contact_information_section",
   "emails",
@@ -78,6 +85,8 @@
   "column_break_involvement",
   "last_served_on",
   "times_served_90d",
+  "ministry_teams",
+  "team_positions",
   "group_count",
   "groups",
   "giving_section",
@@ -90,7 +99,8 @@
   "last_visited_on",
   "column_break_care",
   "background_check_status",
-  "background_check_expires_on"
+  "background_check_expires_on",
+  "church_fields_tab"
  ],
  "fields": [
   {
@@ -240,6 +250,29 @@
    "fieldtype": "Table",
    "label": "Positions",
    "options": "Position"
+  },
+  {
+   "fieldname": "section_break_skills",
+   "fieldtype": "Section Break",
+   "label": "Skills and Gifts"
+  },
+  {
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Skills, Interests and Gifts",
+   "options": "Person Skill"
+  },
+  {
+   "fieldname": "section_break_relationships",
+   "fieldtype": "Section Break",
+   "label": "Relationships"
+  },
+  {
+   "description": "People in other households, such as grandparents. The household roster keeps the people in this person's own Family. The other person sees this relationship in their Connections.",
+   "fieldname": "relationships",
+   "fieldtype": "Table",
+   "label": "Relationships",
+   "options": "Person Relationship"
   },
   {
    "fieldname": "section_break_osjz",
@@ -417,6 +450,20 @@
    "read_only": 1
   },
   {
+   "description": "When the Membership last changed, from its Milestones.",
+   "fieldname": "membership_changed_on",
+   "fieldtype": "Date",
+   "label": "Membership Changed On",
+   "read_only": 1
+  },
+  {
+   "description": "When the Status last changed, from its Milestones.",
+   "fieldname": "status_changed_on",
+   "fieldtype": "Date",
+   "label": "Status Changed On",
+   "read_only": 1
+  },
+  {
    "default": "Desk",
    "description": "How this person was first added: in the desk, by a Data Import, at the Check-In Station or from a Connection Card. Blank for people added before Churchit recorded it.",
    "fieldname": "source",
@@ -425,6 +472,12 @@
    "options": "Desk\nImport\nCheck-In\nConnection Card\nPortal\nSign-Up\nForm",
    "read_only": 1,
    "set_only_once": 1
+  },
+  {
+   "description": "How the person heard of the church, from their first Connection Card.",
+   "fieldname": "how_heard",
+   "fieldtype": "Data",
+   "label": "How They Heard"
   },
   {
    "depends_on": "eval:doc.legacy_id",
@@ -585,6 +638,22 @@
    "read_only": 1
   },
   {
+   "description": "From the ministry team positions that list this person.",
+   "fieldname": "ministry_teams",
+   "fieldtype": "Table MultiSelect",
+   "label": "Ministry Teams",
+   "options": "Person Ministry Team",
+   "read_only": 1
+  },
+  {
+   "description": "The ministry team positions that list this person.",
+   "fieldname": "team_positions",
+   "fieldtype": "Table MultiSelect",
+   "label": "Team Positions",
+   "options": "Person Team Position",
+   "read_only": 1
+  },
+  {
    "default": "0",
    "fieldname": "group_count",
    "fieldtype": "Int",
@@ -672,6 +741,11 @@
    "label": "Background Check Expires",
    "permlevel": 3,
    "read_only": 1
+  },
+  {
+   "fieldname": "church_fields_tab",
+   "fieldtype": "Tab Break",
+   "label": "Church Fields"
   }
  ],
  "grid_page_length": 50,
@@ -787,9 +861,14 @@
    "group": "Follow-up",
    "link_doctype": "Connection Card",
    "link_fieldname": "person"
+  },
+  {
+   "group": "Relationships",
+   "link_doctype": "Person",
+   "link_fieldname": "person"
   }
  ],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
@@ -915,7 +994,7 @@
  ],
  "route": "church-personz",
  "row_format": "Dynamic",
- "search_fields": "last_name, first_name, nickname, previous_last_name, envelope_number",
+ "search_fields": "last_name, first_name, nickname, previous_last_name, envelope_number, middle_name",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
  "sort_field": "modified",

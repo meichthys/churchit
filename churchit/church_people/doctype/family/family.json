@@ -22,7 +22,8 @@
   "phones",
   "emails",
   "legacy_system",
-  "legacy_id"
+  "legacy_id",
+  "church_fields_tab"
  ],
  "fields": [
   {
@@ -69,6 +70,11 @@
    "label": "Imported ID",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "church_fields_tab",
+   "fieldtype": "Tab Break",
+   "label": "Church Fields"
   },
   {
    "allow_in_quick_entry": 1,
@@ -136,7 +142,7 @@
    "link_fieldname": "family"
   }
  ],
- "modified": "2026-10-22 22:18:03.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",

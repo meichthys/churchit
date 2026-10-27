@@ -15,6 +15,8 @@
   "group",
   "smart_list",
   "people",
+  "include_household",
+  "household_roles",
   "purpose",
   "email_template",
   "column_break_status",
@@ -88,6 +90,21 @@
    "label": "People",
    "mandatory_depends_on": "eval:doc.send_to==\"Chosen People\"",
    "options": "Church Email Person"
+  },
+  {
+   "default": "0",
+   "description": "Also send to the people in each recipient's Family. Each person gets one copy.",
+   "fieldname": "include_household",
+   "fieldtype": "Check",
+   "label": "Include Their Households"
+  },
+  {
+   "default": "Everyone",
+   "depends_on": "include_household",
+   "fieldname": "household_roles",
+   "fieldtype": "Select",
+   "label": "Household Members",
+   "options": "Everyone\nAdults\nAdults and Other Adults"
   },
   {
    "default": "Church News",
@@ -165,7 +182,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Church Email",

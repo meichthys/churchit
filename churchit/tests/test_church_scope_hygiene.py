@@ -60,6 +60,7 @@ GLOBAL_DOCTYPES = {
 		"Prayer Request Status",
 		"Prayer Request Type",
 		"Sign-Up Item",
+		"Skill",
 		"Visit Type",
 	},
 	"reference data that reads the same in every church": {

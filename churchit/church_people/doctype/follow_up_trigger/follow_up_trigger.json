@@ -8,7 +8,8 @@
  "field_order": [
   "trigger",
   "value_type",
-  "value"
+  "value",
+  "step"
  ],
  "fields": [
   {
@@ -17,7 +18,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Trigger",
-   "options": "Connection Card\nFirst Check-In\nLife Event Added\nMembership Type Becomes\nMember Status Becomes\nOn Smart List\nSigned Up\nForm Submitted",
+   "options": "Connection Card\nFirst Check-In\nLife Event Added\nMembership Type Becomes\nMember Status Becomes\nOn Smart List\nSigned Up\nForm Submitted\nStep Reached\nCard Closed",
    "reqd": 1
   },
   {
@@ -36,12 +37,21 @@
    "in_list_view": 1,
    "label": "Which",
    "options": "value_type"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.trigger==\"Step Reached\"",
+   "description": "A step of the workflow named in Which. Leave blank for any step.",
+   "fieldname": "step",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Step"
   }
  ],
  "index_web_pages_for_search": 0,
  "istable": 1,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Trigger",
