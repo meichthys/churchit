@@ -3,10 +3,11 @@
 
 import frappe
 from frappe import _
+from frappe.utils import today
 
 from churchit.church_foundations.doctype.church.church import address_line
 from churchit.church_ministries.pre_check_in import get_functions
-from churchit.church_people.household import CHILD, get_ages, members
+from churchit.church_people.household import ADULT, CHILD, get_ages, members, role_of
 from churchit.church_scope import session_person
 from churchit.contacts import mailing_address
 
@@ -41,6 +42,14 @@ def get_household(person: str) -> dict:
 		),
 		"address": get_address_line(mailing_address(family)),
 		"can_change_photo": family.has_permission("write"),
+		# What the Add a Child form needs, for an Adult only.
+		"add_child": frappe._dict(
+			last_name=frappe.db.get_value("Person", person, "last_name"),
+			adult_age=frappe.db.get_single_value("People Settings", "adult_age"),
+			today=today(),
+		)
+		if role_of(person) == ADULT
+		else None,
 		"members": get_members(
 			members(family_name), {row.member: row.household_role for row in family.members}
 		),

@@ -15,6 +15,7 @@
 	.household-list .member-role { flex: 0 0 6.5rem; }
 	.household-list .member-note { flex: 0 0 4rem; color: var(--text-muted, #6b7280); white-space: nowrap; }
 	.household-list .member-edit { flex: 0 0 3.5rem; text-align: right; }
+	.add-child { max-width: 420px; margin: 16px 0; }
 	.pre-check-in-person { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 0; font-weight: normal; }
 	.pre-check-in select { max-width: 420px; margin: 8px 0; }
 	/* white behind the code, so a scanner reads it in dark mode too */
@@ -66,7 +67,42 @@
 			</li>
 			{% endfor %}
 		</ul>
+		{% if add_child %}
+		<p class="text-muted">{{ _("To add an adult or remove someone, contact the church office.") }}</p>
+		<button type="button" class="btn btn-default btn-sm" id="show-add-child"
+			aria-controls="add-child" aria-expanded="false">{{ _("Add a Child") }}</button>
+		<form class="add-child" id="add-child" hidden>
+			<h4 class="mb-1">{{ _("Add a Child") }}</h4>
+			<p class="text-muted">{{ _("Add a child under {0} who lives in your household.").format(add_child.adult_age) }}</p>
+			<div class="form-group">
+				<label for="add-child-first-name">{{ _("First Name") }}</label>
+				<input class="form-control" id="add-child-first-name" name="first_name" maxlength="140" required>
+			</div>
+			<div class="form-group">
+				<label for="add-child-last-name">{{ _("Last Name") }}</label>
+				<input class="form-control" id="add-child-last-name" name="last_name" maxlength="140"
+					value="{{ (add_child.last_name or '') | e }}">
+			</div>
+			<div class="form-group">
+				<label for="add-child-birthday">{{ _("Birthday") }}</label>
+				<input class="form-control" type="date" id="add-child-birthday" name="birthday"
+					max="{{ add_child.today }}" required>
+			</div>
+			<div class="form-group">
+				<label for="add-child-gender">{{ _("Gender") }}</label>
+				<select class="form-control" id="add-child-gender" name="gender" required>
+					<option value="">{{ _("Choose") }}</option>
+					<option value="Female">{{ _("Female") }}</option>
+					<option value="Male">{{ _("Male") }}</option>
+				</select>
+			</div>
+			<p class="add-child-error text-danger" role="alert"></p>
+			<button type="submit" class="btn btn-primary btn-sm">{{ _("Add Child") }}</button>
+			<button type="button" class="btn btn-default btn-sm" id="cancel-add-child">{{ _("Cancel") }}</button>
+		</form>
+		{% else %}
 		<p class="text-muted">{{ _("To add or remove someone, contact the church office.") }}</p>
+		{% endif %}
 
 		{% set check_in_people = members | selectattr("can_edit") | list %}
 		{% if check_in_functions and check_in_people %}
@@ -129,6 +165,45 @@ frappe.ready(function () {
 				},
 			});
 		});
+	});
+});
+
+frappe.ready(function () {
+	var form = document.getElementById("add-child");
+	if (!form) return;
+	var show = document.getElementById("show-add-child");
+	var error = form.querySelector(".add-child-error");
+	function toggle(open) {
+		form.hidden = !open;
+		show.hidden = open;
+		show.setAttribute("aria-expanded", open);
+		if (open) form.elements.first_name.focus();
+	}
+	show.addEventListener("click", function () {
+		toggle(true);
+	});
+	document.getElementById("cancel-add-child").addEventListener("click", function () {
+		toggle(false);
+	});
+	form.addEventListener("submit", function (event) {
+		event.preventDefault();
+		error.textContent = "";
+		frappe
+			.call({
+				method: "churchit.church_people.member_access.add_household_child",
+				args: {
+					first_name: form.elements.first_name.value,
+					last_name: form.elements.last_name.value,
+					birthday: form.elements.birthday.value,
+					gender: form.elements.gender.value,
+				},
+				btn: form.querySelector("button[type='submit']"),
+				error_msg: error,
+				statusCode: {},
+			})
+			.done(function () {
+				window.location.reload();
+			});
 	});
 });
 

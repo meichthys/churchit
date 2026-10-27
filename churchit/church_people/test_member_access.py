@@ -5,10 +5,13 @@
 
 import frappe
 from frappe.client import set_value
+from frappe.handler import execute_cmd
+from frappe.utils import add_days, add_years, getdate, nowdate
 
-from churchit.church_people.member_access import refuse_member_edits_beyond_photo
-from churchit.church_people.test_household import link_user, make_household, set_adult_age
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person
+from churchit.church_people.matching import is_paired
+from churchit.church_people.member_access import add_household_child, refuse_member_edits_beyond_photo
+from churchit.church_people.test_household import born, link_user, make_household, set_adult_age
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 PHOTO = "/files/_test_household_photo.png"
 
@@ -154,3 +157,98 @@ class TestFamilyAccess(HouseholdAccessTestCase):
 		father.save()
 
 		self.assertEqual(frappe.db.get_value("Person", self.father, "alergies"), "_Test Pollen")
+
+
+class TestAddHouseholdChild(HouseholdAccessTestCase):
+	def add_child(self, user, first_name="_Test Ruth", years_old=5, gender="Female"):
+		frappe.set_user(user)
+		return add_household_child(first_name, "Smith", add_years(nowdate(), -years_old), gender)
+
+	def roster_row(self, person):
+		return frappe.db.get_value(
+			"Family Members",
+			{"parent": self.family, "member": person},
+			["household_role", "relationship_to_primary_contact"],
+			as_dict=True,
+		)
+
+	def test_an_adult_adds_a_child_to_their_household(self):
+		child = frappe.get_doc("Person", self.add_child(self.father_user))
+
+		self.assertEqual((child.family, child.church), (self.family, self.family_church()))
+		self.assertEqual((child.membership, child.source), ("Visitor", "Portal"))
+		self.assertEqual(child.birth_date, frappe.utils.getdate(add_years(nowdate(), -5)))
+		self.assertFalse(any(child.get(field) for field in ("share_email", "share_phone", "share_address")))
+		self.assertEqual(
+			self.roster_row(child.name),
+			{"household_role": "Child", "relationship_to_primary_contact": "Daughter"},
+		)
+		self.assertTrue(frappe.has_permission("Person", "write", doc=child.name))
+
+	def test_a_boy_is_the_primary_contacts_son(self):
+		child = self.add_child(self.father_user, "_Test Seth", gender="Male")
+
+		self.assertEqual(self.roster_row(child).relationship_to_primary_contact, "Son")
+
+	def test_a_child_or_an_other_adult_cannot_add_a_child(self):
+		for user in (self.son_user, self.grandmother_user):
+			with self.assertRaises(frappe.PermissionError, msg=user):
+				self.add_child(user)
+
+	def test_a_member_with_no_person_cannot_add_a_child(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.add_child(ensure_user("_test_access_nobody@example.com", "Nobody"))
+
+	def test_a_birthday_at_the_adult_age_or_in_the_future_is_refused(self):
+		before = frappe.db.count("Person")
+		with self.assertRaisesRegex(frappe.ValidationError, "under 18"):
+			self.add_child(self.father_user, years_old=18)
+		with self.assertRaisesRegex(frappe.ValidationError, "future"):
+			add_household_child("_Test Ruth", "Smith", add_days(nowdate(), 1), "Female")
+
+		self.assertEqual(frappe.db.count("Person"), before)
+
+	def test_the_child_keeps_the_birthday_the_age_check_read(self):
+		"""The database reads 05-01-10 as 2005-01-10, so a child of 16 by the check would be stored as 21."""
+		birthday = getdate(add_years(nowdate(), -5))
+		frappe.set_user(self.father_user)
+
+		child = add_household_child("_Test Ruth", "Smith", birthday.strftime("%m-%d-%y"), "Female")
+
+		self.assertEqual(frappe.db.get_value("Person", child, "birth_date"), birthday)
+
+	def test_a_get_is_refused(self):
+		"""A GET carries no CSRF token, so another site could add children from a member's browser."""
+		frappe.set_user(self.father_user)
+		frappe.local.request = frappe._dict(method="GET")
+		self.addCleanup(delattr, frappe.local, "request")
+		frappe.local.form_dict = frappe._dict(
+			first_name="_Test Ruth", last_name="Smith", birthday=add_years(nowdate(), -5), gender="Female"
+		)
+
+		with self.assertRaises(frappe.PermissionError):
+			execute_cmd("churchit.church_people.member_access.add_household_child")
+
+	def test_a_likely_match_opens_a_possible_duplicate(self):
+		known = make_person("_Test Ruth", "Smith", gender="Female", life_events=[born(5)]).name
+
+		child = self.add_child(self.father_user)
+
+		self.assertTrue(is_paired(child, known))
+
+	def test_the_child_joins_the_households_church_and_is_matched_only_there(self):
+		_root, branch_a, branch_b = make_two_churches()
+		for person in (self.father, self.mother, self.son, self.grandmother):
+			frappe.db.set_value("Person", person, "church", branch_a)
+		frappe.db.set_value("Family", self.family, "church", branch_a)
+		in_a = make_person("_Test Ruth", "Smith", church=branch_a, life_events=[born(5)]).name
+		in_b = make_person("_Test Ruth", "Smith", church=branch_b, life_events=[born(5)]).name
+
+		child = self.add_child(self.father_user)
+
+		self.assertEqual(frappe.db.get_value("Person", child, "church"), branch_a)
+		self.assertTrue(is_paired(child, in_a))
+		self.assertFalse(is_paired(child, in_b))
+
+	def family_church(self):
+		return frappe.db.get_value("Family", self.family, "church")

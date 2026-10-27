@@ -8,11 +8,19 @@ sign-ups and bookings are theirs through `if_owner` DocPerms; this module covers
 the records other people own.
 """
 
+from datetime import date
+
 import frappe
 from frappe import _
 from frappe.model import table_fields
+from frappe.rate_limiter import rate_limit
+from frappe.utils import getdate
 
-from churchit.church_people.household import ADULT, can_edit, get_editable_children, role_of
+from churchit.church_people.derived import years_since
+from churchit.church_people.family_relations import get_gendered_type
+from churchit.church_people.household import ADULT, CHILD, can_edit, get_editable_children, role_of
+from churchit.church_people.matching import SHARES_NOTHING, find_matches, record_possible_duplicates
+from churchit.church_people.membership import VISITOR
 from churchit.church_scope import church_filters, is_scoped, session_church, session_person
 
 PERSONAL_DETAILS = "personal-details"
@@ -55,8 +63,9 @@ def refuse_member_edits_beyond_personal_details(person):
 	a membership status, a family or a spouse set by the member. Nor may a member add
 	a person: Frappe's web form saves a new record without checking their rights.
 	"""
-	# A Person a member's own sign-in adds (accounts.link_portal_user) is not the member's edit.
-	if not is_portal_member() or person.flags.from_portal_login:
+	# A Person a member's own sign-in adds (accounts.link_portal_user), or a child an Adult adds
+	# (add_household_child), is not the member's edit.
+	if not is_portal_member() or person.flags.from_portal_login or person.flags.from_household_page:
 		return
 	if person.is_new():
 		frappe.throw(_("Ask the church office to add a person."), frappe.PermissionError)
@@ -87,6 +96,73 @@ def refuse_changes_beyond(doc, allowed: set[str]) -> None:
 			_("Ask the church office to change {0}.").format(", ".join(_(label) for label in changed)),
 			frappe.PermissionError,
 		)
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=20, seconds=60 * 60)
+def add_household_child(first_name: str, last_name: str, birthday: str, gender: str) -> str:
+	"""/household: an Adult of a household adds a child under People Settings' adult age to it.
+
+	The child is a Visitor of the household's church who shares nothing in the directory. The people
+	they may be are left to staff as possible duplicates. Returns the new Person.
+	"""
+	from churchit.church_people.accounts import PORTAL  # accounts imports this module
+
+	adult = session_person()
+	if not adult or role_of(adult) != ADULT:
+		frappe.throw(_("Only an adult of a household adds a child to it."), frappe.PermissionError)
+	if not (first_name or "").strip() or not birthday:
+		frappe.throw(_("Enter the child's first name and birthday."))
+	# Store the date that was checked: the database reads some forms, such as 05-01-10, as another date.
+	born = getdate(birthday)
+	refuse_an_adult_birthday(born)
+
+	family = frappe.db.get_value("Person", adult, "family")
+	# Lock the household first, so two children added at once both keep their roster rows.
+	church = frappe.db.get_value("Family", family, "church", for_update=True)
+	child = frappe.get_doc(
+		{
+			"doctype": "Person",
+			"first_name": first_name.strip(),
+			"last_name": (last_name or "").strip(),
+			"gender": gender,
+			"birthday": born,
+			"church": church,
+			"family": family,
+			"membership": VISITOR,
+			"source": PORTAL,
+			**SHARES_NOTHING,
+		}
+	)
+	child.flags.from_household_page = True
+	child.insert(ignore_permissions=True)
+	mark_as_child(family, child)
+
+	candidate = {"first_name": child.first_name, "last_name": child.last_name, "birth_date": child.birth_date}
+	record_possible_duplicates(child.name, find_matches(candidate, church=church, exclude=child.name))
+	return child.name
+
+
+def refuse_an_adult_birthday(birthday: date) -> None:
+	"""Refuse a birthday in the future, or one at or over People Settings' adult age: the office adds adults."""
+	if birthday > getdate():
+		frappe.throw(_("A birthday cannot be in the future."))
+	adult_age = frappe.db.get_single_value("People Settings", "adult_age")
+	if years_since(birthday) >= adult_age:
+		frappe.throw(
+			_("Add only a child under {0}. To add someone older, contact the church office.").format(
+				adult_age
+			)
+		)
+
+
+def mark_as_child(family_name: str, child) -> None:
+	"""Make *child*'s roster row, which `Person.on_update` added, a Child and a Son or Daughter by gender."""
+	family = frappe.get_doc("Family", family_name)
+	row = next(member for member in family.members if member.member == child.name)
+	row.household_role = CHILD
+	row.relationship_to_primary_contact = get_gendered_type("child", child.gender)
+	family.save(ignore_permissions=True)
 
 
 def personal_details_fields():

@@ -137,6 +137,16 @@ class TestHouseholdPage(RollbackEachTest):
 		self.assertNotIn(f'href="/personal-details/{self.mother}/edit"', html)
 		self.assertIn('id="change-household-photo"', html)
 
+	def test_only_an_adult_gets_the_add_a_child_form(self):
+		frappe.set_user(self.father_user)
+
+		self.assertEqual(page_context().add_child.last_name, "Smith")
+		self.assertIn('id="add-child"', self.serve())
+
+		frappe.set_user(self.son_user)
+		self.assertIsNone(page_context().add_child)
+		self.assertNotIn('id="add-child"', self.serve())
+
 
 class TestPortalMenuPatch(RollbackEachTest):
 	def test_my_household_and_the_member_directory_are_added_once(self):
