@@ -74,6 +74,7 @@ GLOBAL_DOCTYPES = {
 	},
 	"the church tree itself": {"Church"},
 	"virtual import targets that store nothing; the records they make take the importer's church": {
+		"Breeze Import",
 		"Giving Import",
 		"People Import",
 		"Planning Center Import",

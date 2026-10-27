@@ -414,6 +414,7 @@ data_import_providers = {
 	"People Import": "churchit.church_people.imports.people.PeopleImportProvider",
 	"Planning Center Import": "churchit.church_people.imports.planning_center.PlanningCenterImportProvider",
 	"Rock RMS Import": "churchit.church_people.imports.rock_rms.RockRMSImportProvider",
+	"Breeze Import": "churchit.church_people.imports.breeze.BreezeImportProvider",
 	"Giving Import": "churchit.church_finances.imports.giving.GivingImportProvider",
 }
 

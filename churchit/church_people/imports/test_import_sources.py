@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""A Planning Center export and a Rock RMS report, as each system writes them, imported end to end."""
+"""A Planning Center export, a Rock RMS report and a Breeze export, as each system writes them, imported end to end."""
 
 import frappe
 from frappe.core.doctype.data_import.importer import UPSERT
@@ -19,6 +19,7 @@ from churchit.tests.helpers import ensure, force_single_church
 
 PLANNING_CENTER_IMPORT = "Planning Center Import"
 ROCK_RMS_IMPORT = "Rock RMS Import"
+BREEZE_IMPORT = "Breeze Import"
 # Rock's Connection and Record Status values a church maps to its own once, on the Data Import
 ROCK_MAPPINGS = {"Attendee": "Regular Attender", "Prospect": "Visitor", "Pending": "Active"}
 
@@ -224,3 +225,60 @@ class TestRockRMSImport(SourceCase):
 
 		self.assertEqual(count_imported("Person", "Rock RMS", column(self.rows, "Id")), 5)
 		self.assertEqual(count_imported("Family", "Rock RMS", column(self.rows, "Family Id")), 3)
+
+
+class TestBreezeImport(SourceCase):
+	"""Two Hartwell families: Samuel, Leah and their son Micah, and Owen with his daughter Ivy and his mother Hazel."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		for membership in ("Member", "Visitor"):
+			ensure("Membership Type", {"type": membership})
+		cls.rows = read_fixture("breeze.csv")
+
+	def test_an_export_maps_without_column_mapping(self):
+		self.assertColumnsMapped(BREEZE_IMPORT, self.rows)
+
+	def test_each_family_takes_its_head_of_household_as_primary_contact_and_its_children(self):
+		self.assertImported(self.run_import(BREEZE_IMPORT, self.rows))
+
+		family, roles, primary_contact = self.get_household("Micah")
+		self.assertEqual(
+			(family.family_name, family.legacy_system, family.legacy_id),
+			("Hartwell - Samuel", "Breeze", "8801"),
+		)
+		self.assertEqual(roles, {"Micah": "Child", "Samuel": "Adult", "Leah": "Adult"})
+		self.assertEqual(primary_contact, "Samuel")
+		self.assertEqual(address_lines(family), ["14 Juniper Lane"])
+
+	def test_families_with_one_surname_and_two_family_ids_stay_two_families(self):
+		self.run_import(BREEZE_IMPORT, self.rows)
+
+		family, roles, primary_contact = self.get_household("Ivy")
+		self.assertNotEqual(family.name, get_person("Samuel").family)
+		self.assertEqual((family.family_name, family.legacy_id), ("Hartwell - Owen", "8802"))
+		self.assertEqual(primary_contact, "Owen")
+		# Unassigned leaves the role to the family's rule: an adult with no relationship is an Other Adult.
+		self.assertEqual(roles, {"Owen": "Adult", "Ivy": "Child", "Hazel": "Other Adult"})
+
+	def test_the_columns_become_the_persons_details(self):
+		self.run_import(BREEZE_IMPORT, self.rows)
+
+		samuel = frappe.get_doc("Person", get_person("Samuel").name)
+		self.assertEqual(
+			(samuel.nickname, samuel.middle_name, samuel.gender, str(samuel.birth_date), samuel.legacy_id),
+			("Sam", "Lee", "Male", "1981-11-02", "31001"),
+		)
+		self.assertEqual((samuel.membership, samuel.marital_status), ("Member", "Married"))
+		self.assertEqual([row.email_address for row in samuel.emails], ["sam.hartwell@example.com"])
+		self.assertEqual({row.phone_type for row in samuel.phones}, {"Mobile", "Home", "Work"})
+		self.assertEqual(get_person("Owen").membership, "Visitor")
+
+	def test_a_second_import_of_the_same_file_adds_no_one(self):
+		self.run_import(BREEZE_IMPORT, self.rows)
+
+		self.assertImported(self.run_import(BREEZE_IMPORT, self.rows, UPSERT))
+
+		self.assertEqual(count_imported("Person", "Breeze", column(self.rows, "Breeze ID")), 6)
+		self.assertEqual(count_imported("Family", "Breeze", column(self.rows, "Family")), 2)
