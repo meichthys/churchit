@@ -55,6 +55,8 @@
 							{{ _("Birthdays") if entry.birthdays | length > 1 else _("Birthday") }}: {{ entry.birthdays | join(", ") | e }}
 						</div>
 					{% endif %}
+					<a class="btn btn-default btn-xs mt-2" href="data:text/vcard;charset=utf-8,{{ entry.vcard | urlencode }}"
+						download="{{ entry.title | e }}.vcf">{{ _("Save contact") }}</a>
 				</div>
 			</li>
 			{% endfor %}

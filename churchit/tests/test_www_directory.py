@@ -3,6 +3,9 @@
 
 """The member's /directory page: the living people of their church who do not hide, with only what each one shares."""
 
+import re
+from urllib.parse import unquote
+
 import frappe
 from frappe.utils import get_html_for_route
 
@@ -16,7 +19,7 @@ from churchit.tests.helpers import (
 	make_primary_contact,
 	make_two_churches,
 )
-from churchit.www.directory import get_context
+from churchit.www.directory import get_context, get_vcard
 
 ROBERT_EMAIL = "_test_directory_robert@example.com"
 MARY_EMAIL = "_test_directory_mary@example.com"
@@ -193,3 +196,48 @@ class TestDirectoryPage(RollbackEachTest):
 
 		self.assertEqual(page_context().entries, [])
 		self.assertIn("not linked to a member record", self.serve())
+
+	def test_a_vcard_holds_only_the_email_phone_and_address_its_entry_shows(self):
+		self.assertEqual(
+			self.entries()[JOHNSONS].vcard,
+			"BEGIN:VCARD\r\n"
+			"VERSION:3.0\r\n"
+			"N:_Test Johnson\\, Robert & Mary;;;;\r\n"
+			"FN:_Test Johnson\\, Robert & Mary\r\n"
+			f"EMAIL;TYPE=INTERNET:{ROBERT_EMAIL}\r\n"
+			f"TEL:{MARY_PHONE}\r\n"
+			"ADR:;;12 Elm Street\\, Springfield;;;;\r\n"
+			"END:VCARD\r\n",
+		)
+
+	def test_an_entry_that_shares_no_phone_has_no_tel_line(self):
+		vcard = self.entries()["Member, _Test Directory"].vcard
+
+		self.assertIn("FN:Member\\, _Test Directory\r\n", vcard)
+		for kept in ("TEL", "EMAIL", "ADR"):
+			self.assertNotIn(kept, vcard)
+
+	def test_a_semicolon_and_a_backslash_in_a_title_are_escaped(self):
+		self.assertIn("FN:Smith\\; Jones\\\\Lee\r\n", get_vcard("Smith; Jones\\Lee", [], [], []))
+
+	def test_a_line_break_in_a_value_cannot_start_a_line(self):
+		vcard = get_vcard("Lee\r\nTEL:1", [], [], ["1 Elm\nEND:VCARD"])
+
+		properties = [line.split(":")[0] for line in vcard.split("\r\n") if line]
+		self.assertEqual(properties, ["BEGIN", "VERSION", "N", "FN", "ADR", "END"])
+		self.assertIn("ADR:;;1 Elm\\nEND:VCARD;;;;\r\n", vcard)
+
+	def test_each_entry_offers_its_vcard_to_save(self):
+		html = self.serve()
+
+		johnsons = self.entries()[JOHNSONS]
+		links = re.findall(r'href="data:text/vcard;charset=utf-8,([^"]+)"\s+download="([^"]+)"', html)
+		self.assertIn(
+			(johnsons.vcard, "_Test Johnson, Robert &amp; Mary.vcf"),
+			[(unquote(href), name) for href, name in links],
+		)
+
+	def test_a_visitor_gets_a_page_with_no_vcard(self):
+		self.view_as("vcard_visitor", membership="Visitor")
+
+		self.assertNotIn("text/vcard", self.serve())

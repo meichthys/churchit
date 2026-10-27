@@ -11,6 +11,7 @@ from churchit.church_foundations.doctype.church.church import address_line
 from churchit.church_people.household import join_names
 from churchit.church_people.membership import ACTIVE, CONTACT, VISITOR, living_people_filter
 from churchit.church_scope import church_filters, session_church, session_person
+from churchit.ics import calendar_text, fold
 
 no_cache = 1
 # A leap year, so that a birthday on 29 February has a date to format.
@@ -111,12 +112,17 @@ def get_entry(family: frappe._dict | None, people: list[frappe._dict], details: 
 	shared = [details[person.name] for person in people]
 	photos = [family.photo if family else None, *(person.photo for person in people)]
 	names = [name for person in people for name in (person.first_name, person.nickname, person.last_name)]
+	title = get_title(people)
+	emails = unique(item.get("email") for item in shared)
+	phones = unique(item.get("phone") for item in shared)
+	addresses = unique(item.get("address") for item in shared)
 	return frappe._dict(
-		title=get_title(people),
+		title=title,
 		photo=next(filter(is_public, photos), None),
-		emails=unique(item.get("email") for item in shared),
-		phones=unique(item.get("phone") for item in shared),
-		addresses=unique(item.get("address") for item in shared),
+		emails=emails,
+		phones=phones,
+		addresses=addresses,
+		vcard=get_vcard(title, emails, phones, addresses),
 		birthdays=[
 			f"{person.nickname or person.first_name} {item['birthday']}"
 			for person, item in zip(people, shared, strict=True)
@@ -124,6 +130,17 @@ def get_entry(family: frappe._dict | None, people: list[frappe._dict], details: 
 		],
 		search=" ".join(filter(None, names)).lower(),
 	)
+
+
+def get_vcard(title: str, emails: list[str], phones: list[str], addresses: list[str]) -> str:
+	"""A vCard 3.0 contact of one entry, with only the details the entry shows. An address goes in the street part."""
+	name = calendar_text(title)
+	lines = ["BEGIN:VCARD", "VERSION:3.0", f"N:{name};;;;", f"FN:{name}"]
+	lines += [f"EMAIL;TYPE=INTERNET:{calendar_text(email)}" for email in emails]
+	lines += [f"TEL:{calendar_text(phone)}" for phone in phones]
+	lines += [f"ADR:;;{calendar_text(address)};;;;" for address in addresses]
+	lines.append("END:VCARD")
+	return "\r\n".join(fold(line) for line in lines) + "\r\n"
 
 
 def get_title(people: list[frappe._dict]) -> str:
