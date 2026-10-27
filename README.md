@@ -48,11 +48,16 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
 - Person Notes in categories that decide who reads them, with alert notes at the top of the form
-- Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event or a smart list
+- Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event, a smart list, or a card of another workflow that reaches a step or closes
+- Follow-up workflows send emails and texts, add people to groups and tags, and start other workflows by themselves
 - Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
+- Smart lists filter on skills, ministry teams and team positions, when the membership changed, life events by date, and how many times a person attended since a date (the Attendance Count report)
+- Skills, interests and spiritual gifts on each person, with twelve starting spiritual gifts
+- Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
+- Relationships to people in other households, such as grandparents, shown on both people's forms
 - Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
 - Care requests with a caregiver and due date, and background checks a position or a group can require
-- Duplicate warnings, merging, and imports from Planning Center, Rock RMS or a spreadsheet
+- Duplicate warnings, merging with a choice of the value to keep for each detail, and imports from Planning Center, Rock RMS, Breeze or a spreadsheet
 - Envelope numbers, unique in each church, that find the giver in a gift's Person field
 - Remove Personal Data on request or after a set number of inactive years
 - A Map of Addresses
@@ -71,6 +76,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
 - Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
+- Household adults add their children on My Household
+- Save contact on each Member Directory entry: a contact card with only the details the entry shows
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
 - A guest Connection Card with a QR code, a one-time link for a person to update their details without a login, and new portal logins linked to their person
 - Anonymous prayer request submission (no login required)
@@ -132,6 +139,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Church Emails & Consent
 - One email or text to active people, active members, a Group, a smart list or chosen people, each person getting their own copy on their timeline
+- Include Their Households: send to the whole household of each recipient, or only its adults
 - Email templates, name placeholders, a preview, a test send and a scheduled send time
 - Consent per channel and purpose: texts and push notifications need a yes, every email has an unsubscribe link for its purpose, and churches that ask first can send consent renewal reminders
 - Bounced addresses and refused texts are marked, and later emails skip them
