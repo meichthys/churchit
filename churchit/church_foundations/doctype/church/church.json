@@ -14,6 +14,7 @@
   "abbreviation",
   "legal_name",
   "tax_id",
+  "ccli_license_number",
   "founding_date",
   "image",
   "is_group",
@@ -55,6 +56,12 @@
    "fieldname": "tax_id",
    "fieldtype": "Data",
    "label": "Tax ID"
+  },
+  {
+   "description": "The church's CCLI Church Copyright License number. Song slides show it under the copyright.",
+   "fieldname": "ccli_license_number",
+   "fieldtype": "Data",
+   "label": "CCLI License Number"
   },
   {
    "fieldname": "founding_date",
@@ -201,7 +208,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-18 09:00:00.000000",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

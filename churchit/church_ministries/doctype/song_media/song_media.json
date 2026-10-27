@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2026-10-26 22:54:42.000000",
+ "description": "A file or link a team uses to rehearse a song, such as a chord chart or a recording.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "media_type",
+  "label",
+  "file",
+  "url",
+  "arrangement"
+ ],
+ "fields": [
+  {
+   "fieldname": "media_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Chord Chart\nLead Sheet\nAudio\nVideo\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "description": "Attach the file as private. Only the people serving at a function with this song can open it.",
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "File"
+  },
+  {
+   "description": "A link to the media, such as a recording on another site.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "Link",
+   "options": "URL"
+  },
+  {
+   "description": "The name of one of the song's arrangements, or leave empty for every arrangement.",
+   "fieldname": "arrangement",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Arrangement"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-26 22:54:42.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Song Media",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
