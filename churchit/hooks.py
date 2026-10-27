@@ -75,6 +75,7 @@ app_include_js = [
 	"/assets/churchit/js/name_tags.js",
 	"/assets/churchit/js/bible_reference.js",
 	"/assets/churchit/js/questions.js",
+	"/assets/churchit/js/merge_choices.js",
 ]
 
 # include js, css files in header of web template

@@ -258,24 +258,33 @@ function add_merge_menu_item(frm) {
 					reqd: 1,
 					get_query: () => ({ filters: { name: ["!=", frm.doc.name] } }),
 					description: __(
-						"Everything that names {0} moves to this person, and {0} is deleted. This person keeps their own details and gets the ones they do not have from {0}. You cannot undo a merge.",
+						"Everything that names {0} moves to this person, and {0} is deleted. This person keeps their own details, except the ones you choose below, and gets the ones they do not have from {0}. You cannot undo a merge.",
 						[name]
 					),
+					onchange: () =>
+						churchit.merge_choices.render(
+							choices(),
+							dialog.get_value("keep"),
+							frm.doc.name
+						),
 				},
+				{ fieldname: "choices", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Merge"),
 			primary_action({ keep }) {
+				const take_from_removed = churchit.merge_choices.get_taken(choices());
 				dialog.hide();
 				frappe
 					.call({
 						method: "churchit.church_people.merge.merge_people",
-						args: { keep, remove: frm.doc.name },
+						args: { keep, remove: frm.doc.name, take_from_removed },
 						freeze: true,
 						freeze_message: __("Merging…"),
 					})
 					.then(() => frappe.set_route("Form", "Person", keep));
 			},
 		});
+		const choices = () => dialog.get_field("choices").$wrapper;
 		dialog.show();
 	});
 }

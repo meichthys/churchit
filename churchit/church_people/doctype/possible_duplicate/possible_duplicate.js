@@ -96,21 +96,30 @@ function choose_person_to_keep(frm) {
 				description: __(
 					"The other person is merged into this one. Everything that names them moves to the person you keep, and their record is deleted. You cannot undo this."
 				),
+				onchange: () => show_choices(),
 			},
+			{ fieldname: "choices", fieldtype: "HTML" },
 		],
 		primary_action_label: __("Merge"),
 		primary_action({ keep }) {
-			const remove = keep === frm.doc.person ? frm.doc.other_person : frm.doc.person;
+			const take_from_removed = churchit.merge_choices.get_taken(choices());
 			dialog.hide();
 			frappe
 				.call({
 					method: "churchit.church_people.merge.merge_people",
-					args: { keep, remove },
+					args: { keep, remove: other(keep), take_from_removed },
 					freeze: true,
 					freeze_message: __("Merging..."),
 				})
 				.then(() => frm.reload_doc());
 		},
 	});
+	const other = (keep) => (keep === frm.doc.person ? frm.doc.other_person : frm.doc.person);
+	const choices = () => dialog.get_field("choices").$wrapper;
+	const show_choices = () => {
+		const keep = dialog.get_value("keep");
+		churchit.merge_choices.render(choices(), keep, other(keep));
+	};
 	dialog.show();
+	show_choices();
 }

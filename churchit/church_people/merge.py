@@ -9,18 +9,21 @@ existing". Frappe points every Link and Dynamic Link at the kept record, runs th
 The controllers decide what else moves: the kept record's values win, and its blank fields and missing child
 rows come from the removed one. `merge_people` and `merge_families` go the same way as the Rename dialog, so both
 follow one set of rules, and either the whole merge happens or none of it. Both also lose the removed record's
-copy in Deleted Documents (`drop_deleted_document`).
+copy in Deleted Documents (`drop_deleted_document`). They can also give the kept record the removed one's value
+of each field the user chooses (`take_from_removed`), before the rename.
 """
 
 from collections.abc import Callable
 
 import frappe
 from frappe import _
+from frappe.desk.search import get_link_title
 from frappe.model import data_fieldtypes
 from frappe.model.document import Document
+from frappe.utils import strip_html
 
 from churchit.church_people.person_data_map import ROSTERS, linked_records
-from churchit.church_scope import is_multi_church
+from churchit.church_scope import CHURCH_FIELD, is_multi_church
 from churchit.contacts import CONTACT_TABLES, UNIQUE_VALUE_FIELDS, contact_key
 
 # Contact child doctype -> the field holding its value
@@ -28,27 +31,102 @@ CONTACT_VALUE_FIELDS = {child_doctype: value_field for _f, child_doctype, value_
 
 
 @frappe.whitelist(methods=["POST"])
-def merge_people(keep: str, remove: str) -> str:
+def merge_people(keep: str, remove: str, take_from_removed: str | list[str] | None = None) -> str:
 	"""Merge the person *remove* into the person *keep*, and return *keep*."""
-	return merge("Person", keep, remove)
+	return merge("Person", keep, remove, frappe.parse_json(take_from_removed))
 
 
 @frappe.whitelist(methods=["POST"])
-def merge_families(keep: str, remove: str) -> str:
+def merge_families(keep: str, remove: str, take_from_removed: str | list[str] | None = None) -> str:
 	"""Merge the family *remove* into the family *keep*, and return *keep*."""
-	return merge("Family", keep, remove)
+	return merge("Family", keep, remove, frappe.parse_json(take_from_removed))
 
 
-def merge(doctype: str, keep: str, remove: str) -> str:
-	"""Merge *remove* into *keep*, undoing all of it when any part fails, even for a caller that goes on."""
+def merge(doctype: str, keep: str, remove: str, take_from_removed: list[str] | None = None) -> str:
+	"""Merge *remove* into *keep*, undoing all of it when any part fails, even for a caller that goes on.
+
+	*keep* first takes the value *remove* has in each of *take_from_removed*.
+	"""
 	savepoint = f"merge_{frappe.generate_hash(length=8)}"
 	frappe.db.savepoint(savepoint)
 	try:
+		if take_from_removed:
+			take_chosen_values(doctype, keep, remove, take_from_removed)
 		# The kept record's save and the delete keep global search current, so skip the whole-doctype rebuild.
 		return frappe.rename_doc(doctype, remove, keep, merge=True, show_alert=False, rebuild_search=False)
 	except Exception:
 		frappe.db.rollback(save_point=savepoint)
 		raise
+
+
+def take_chosen_values(doctype: str, keep: str, remove: str, fieldnames: list[str]) -> None:
+	"""Save *keep* with the value *remove* has in each of *fieldnames*, which must be fields the user may choose."""
+	kept = frappe.get_doc(doctype, keep)
+	kept.check_permission("write")
+	removed = frappe.get_doc(doctype, remove)
+	removed.check_permission("read")
+	refused = set(fieldnames) - set(choosable_fields(kept))
+	if refused:
+		frappe.throw(
+			_("You cannot choose {0} in a merge.").format(", ".join(map(frappe.bold, sorted(refused)))),
+			frappe.PermissionError,
+		)
+	for fieldname in fieldnames:
+		kept.set(fieldname, removed.get(fieldname))
+	kept.save()
+
+
+def choosable_fields(doc: Document) -> list[str]:
+	"""The typed fields of *doc* that a merge lets the user take from the removed record: those they may write.
+
+	The church is never one: a merge does not move a record to another church (`refuse_all_but_a_merge`).
+	"""
+	writable = doc.meta.get_permitted_fieldnames(permission_type="write", with_virtual_fields=False)
+	return [
+		fieldname for fieldname in typed_fields(doc) if fieldname in writable and fieldname != CHURCH_FIELD
+	]
+
+
+@frappe.whitelist()
+def get_merge_choices(keep: str, remove: str) -> dict:
+	"""The fields where the people *keep* and *remove* both have a value and the values differ.
+
+	Each field the user may choose comes with its label and each person's value as the form shows it.
+	"""
+	kept = frappe.get_doc("Person", keep)
+	kept.check_permission("read")
+	removed = frappe.get_doc("Person", remove)
+	removed.check_permission("read")
+	return {
+		"keep": kept.full_name,
+		"remove": removed.full_name,
+		"fields": [
+			{
+				"fieldname": fieldname,
+				"label": _(kept.meta.get_label(fieldname)),
+				"keep": get_display_value(kept, fieldname),
+				"remove": get_display_value(removed, fieldname),
+			}
+			for fieldname in choosable_fields(kept)
+			if kept.get(fieldname)
+			and removed.get(fieldname)
+			and kept.get(fieldname) != removed.get(fieldname)
+		],
+	}
+
+
+def get_display_value(doc: Document, fieldname: str) -> str:
+	"""The value of *fieldname* as plain text, as the form shows it: a linked record by its title when it has one."""
+	df = doc.meta.get_field(fieldname)
+	value = doc.get(fieldname)
+	if df.fieldtype == "Link":
+		return get_link_title(df.options, value)
+	if df.fieldtype == "Text Editor":
+		return strip_html(value)
+	# format_value gives these as HTML.
+	if df.fieldtype in ("Text", "Small Text", "Long Text", "Markdown Editor"):
+		return value
+	return frappe.format_value(value, df)
 
 
 def drop_deleted_document(doctype: str, name: str) -> None:

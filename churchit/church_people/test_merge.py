@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.handler import execute_cmd
+from frappe.model.meta import Meta
 from frappe.model.rename_doc import update_document_title
 from frappe.tests.classes.context_managers import patch_hooks
 from frappe.utils import CallbackManager
@@ -12,7 +13,7 @@ from frappe.utils import CallbackManager
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
 from churchit.church_people.followup import CARD, CLOSED, OPEN, add_card
 from churchit.church_people.matching import MERGED, Match, get_pairs, record_possible_duplicates
-from churchit.church_people.merge import merge_families, merge_people
+from churchit.church_people.merge import get_merge_choices, merge_families, merge_people
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -21,6 +22,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_primary_contact,
 	make_two_churches,
+	set_private_people,
 )
 
 
@@ -505,3 +507,141 @@ class TestMergeSkills(RollbackEachTest):
 		kept.reload()
 		self.assertEqual([row.skill for row in kept.skills], [teaching, giving, mercy])
 		self.assertFalse(frappe.db.exists("Person Skill", {"parent": removed.name}))
+
+
+def choice_fieldnames(keep, remove):
+	return [field["fieldname"] for field in get_merge_choices(keep, remove)["fields"]]
+
+
+class TestMergeFieldChoice(RollbackEachTest):
+	def test_a_chosen_field_takes_the_removed_persons_value(self):
+		kept = make_person("_Test Kept", "Chosen", nickname="Kit", middle_name="Ann")
+		removed = make_person("_Test Removed", "Chosen", nickname="Remy", middle_name="Bea", alergies="Kiwi")
+
+		merge_people(kept.name, removed.name, ["nickname"])
+
+		kept.reload()
+		self.assertEqual((kept.nickname, kept.middle_name, kept.alergies), ("Remy", "Ann", "Kiwi"))
+		self.assertFalse(frappe.db.exists("Person", removed.name))
+
+	def test_a_family_merge_takes_a_chosen_field_too(self):
+		kept = make_family("_Test Kept Family")
+		removed = make_family("_Test Chosen Family")
+
+		merge_families(kept.name, removed.name, ["family_name"])
+
+		self.assertEqual(frappe.db.get_value("Family", kept.name, "family_name"), "_Test Chosen Family")
+		self.assertFalse(frappe.db.exists("Family", removed.name))
+
+	def test_the_desk_sends_the_choice_as_json(self):
+		kept = make_person("_Test Kept", "Desk", nickname="Kit")
+		removed = make_person("_Test Removed", "Desk", nickname="Remy")
+		frappe.local.request = frappe._dict(method="POST")
+		self.addCleanup(delattr, frappe.local, "request")
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(
+			keep=kept.name, remove=removed.name, take_from_removed='["nickname"]'
+		)
+
+		execute_cmd("churchit.church_people.merge.merge_people")
+
+		self.assertEqual(frappe.db.get_value("Person", kept.name, "nickname"), "Remy")
+
+	def test_a_read_only_field_is_refused_and_nothing_merges(self):
+		kept = make_person("_Test Kept", "Read Only", nickname="Kit")
+		removed = make_person("_Test Removed", "Read Only", nickname="Remy")
+
+		with self.assertRaises(frappe.PermissionError):
+			merge_people(kept.name, removed.name, ["nickname", "full_name"])
+
+		self.assertTrue(frappe.db.exists("Person", removed.name))
+		self.assertEqual(frappe.db.get_value("Person", kept.name, "nickname"), "Kit")
+
+	def test_a_field_of_a_permlevel_the_user_cannot_write_is_refused(self):
+		"""A site can let a role delete people without letting it write the medical fields (permlevel 1)."""
+		kept = make_person("_Test Kept", "Permlevel", medical_notes="_Test Kept Notes")
+		removed = make_person("_Test Removed", "Permlevel", medical_notes="_Test Removed Notes")
+		frappe.set_user(ensure_user("_test_merge_manager@example.com", "Manager", ["Church Manager"]))
+
+		with patch.object(Meta, "get_permlevel_access", return_value=[0]):
+			self.assertRaises(
+				frappe.PermissionError, merge_people, kept.name, removed.name, ["medical_notes"]
+			)
+			self.assertNotIn("medical_notes", choice_fieldnames(kept.name, removed.name))
+
+		self.assertTrue(frappe.db.exists("Person", removed.name))
+		self.assertIn("medical_notes", choice_fieldnames(kept.name, removed.name))
+		merge_people(kept.name, removed.name, ["medical_notes"])
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Person", kept.name, "medical_notes"), "_Test Removed Notes")
+
+	def test_the_choices_are_the_fields_where_both_people_differ(self):
+		kept_family = frappe.get_doc(doctype="Family", family_name="_Test Kept Family").insert()
+		removed_family = frappe.get_doc(doctype="Family", family_name="_Test Removed Family").insert()
+		kept = make_person(
+			"_Test Kept",
+			"Choices",
+			nickname="Kit",
+			middle_name="Ann",
+			anniversary="2001-02-03",
+			family=kept_family.name,
+		)
+		removed = make_person(
+			"_Test Removed",
+			"Choices",
+			nickname="Kit",
+			middle_name="Bea",
+			alergies="Kiwi",
+			anniversary="2004-05-06",
+			family=removed_family.name,
+		)
+
+		choices = get_merge_choices(kept.name, removed.name)
+
+		self.assertEqual((choices["keep"], choices["remove"]), (kept.full_name, removed.full_name))
+		fields = {
+			field["fieldname"]: (field["label"], field["keep"], field["remove"])
+			for field in choices["fields"]
+		}
+		self.assertEqual(sorted(fields), ["anniversary", "family", "first_name", "middle_name"])
+		self.assertEqual(fields["middle_name"], ("Middle Name", "Ann", "Bea"))
+		self.assertEqual(fields["family"], ("Family", "_Test Kept Family", "_Test Removed Family"))
+		self.assertEqual(
+			fields["anniversary"][1:],
+			(frappe.utils.formatdate("2001-02-03"), frappe.utils.formatdate("2004-05-06")),
+		)
+
+	def test_the_choices_need_the_right_to_read_both_people(self):
+		_root, branch_a, branch_b = make_two_churches()
+		set_private_people(True)
+		self.addCleanup(set_private_people, False)
+		manager_a = ensure_user("_test_merge_choice_a@example.com", "ChoiceA", ["Church Manager"])
+		make_person("_Test Choice", "Manager", church=branch_a, user=manager_a)
+		mine = make_person("_Test Mine", "Choices", church=branch_a, nickname="Kit")
+		theirs = make_person("_Test Theirs", "Choices", church=branch_b, nickname="Remy")
+		frappe.set_user(manager_a)
+
+		self.assertRaises(frappe.PermissionError, get_merge_choices, mine.name, theirs.name)
+		self.assertRaises(frappe.PermissionError, get_merge_choices, theirs.name, mine.name)
+		self.assertRaises(frappe.PermissionError, merge_people, mine.name, theirs.name, ["nickname"])
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Person", mine.name, "nickname"), "Kit")
+
+	def test_the_church_and_a_table_cannot_be_chosen(self):
+		_root, branch_a, branch_b = make_two_churches()
+		mine = make_person("_Test Mine", "Church", church=branch_a)
+		theirs = make_person("_Test Theirs", "Church", church=branch_b, emails=[email("theirs@example.com")])
+
+		self.assertNotIn("church", choice_fieldnames(mine.name, theirs.name))
+		for fieldname in ("church", "emails"):
+			self.assertRaises(frappe.PermissionError, merge_people, mine.name, theirs.name, [fieldname])
+		self.assertEqual(frappe.db.get_value("Person", mine.name, "church"), branch_a)
+		self.assertTrue(frappe.db.exists("Person", theirs.name))
+
+	def test_a_text_choice_is_plain_text(self):
+		kept = make_person("_Test Kept", "Text", medical_notes="<b>Asthma</b>\nPeanuts")
+		removed = make_person("_Test Removed", "Text", medical_notes="Kiwi")
+
+		fields = {field["fieldname"]: field for field in get_merge_choices(kept.name, removed.name)["fields"]}
+
+		self.assertEqual(fields["medical_notes"]["keep"], "<b>Asthma</b>\nPeanuts")
