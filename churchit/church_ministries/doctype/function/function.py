@@ -6,12 +6,12 @@ from datetime import datetime, time, timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate, validate_url
+from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
 
 from churchit.church_ministries.attendance import get_attendance_total
 from churchit.church_ministries.sign_up_amounts import is_freely_given
 from churchit.church_scope import refuse_another_churches_fund, refuse_another_churches_record
-from churchit.utils import link_title
+from churchit.utils import link_title, validate_https_url
 
 TIME_FORMAT = "h:mm a"
 
@@ -39,16 +39,9 @@ class Function(Document):
 		self.settle_payment_holds_when_prices_change()
 
 	def validate_meeting_url(self):
-		"""Guests open the meeting link, and a URL field accepts javascript:, so it must be https.
-
-		Calendar feeds write the link as it is, so a space or a line break in it is refused too.
-		"""
-		if not (self.meeting_url and self.has_value_changed("meeting_url")):
-			return
-		self.meeting_url = self.meeting_url.strip()
-		if any(character.isspace() or not character.isprintable() for character in self.meeting_url):
-			frappe.throw(_("The Online Meeting Link must not contain spaces or line breaks."))
-		validate_url(self.meeting_url, throw=True, valid_schemes=("https",))
+		"""Guests open the meeting link, so it must be one https link."""
+		if self.meeting_url and self.has_value_changed("meeting_url"):
+			self.meeting_url = validate_https_url(self.meeting_url, "Online Meeting Link")
 
 	def validate_schedule_songs(self):
 		"""A Song row names a song the editor may read, and an arrangement of that song.

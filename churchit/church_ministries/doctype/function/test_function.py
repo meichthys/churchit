@@ -180,6 +180,9 @@ class TestFunctionMeetingLink(RollbackEachTest):
 			with self.subTest(unsafe), self.assertRaises(frappe.ValidationError):
 				function.save(ignore_permissions=True)
 
+		with self.assertRaisesRegex(frappe.ValidationError, "Online Meeting Link must be an https link"):
+			make_function("_Test Online Plain Link", meeting_url="http://x.org")
+
 	def test_a_stored_link_is_not_checked_again_on_an_unrelated_save(self):
 		function = make_function("_Test Online Old Link", meeting_url="https://meet.example.org/abc")
 		frappe.db.set_value("Function", function.name, "meeting_url", "http://old.example.org")

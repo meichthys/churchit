@@ -1,4 +1,20 @@
 import frappe
+from frappe import _
+from frappe.utils import validate_url
+
+
+def validate_https_url(url: str, label: str) -> str:
+	"""*url* without outer spaces, refused unless it is one https link.
+
+	Guests open these links, and a URL field accepts javascript:. Calendar feeds write a link
+	as it is, so a space or a line break inside it is refused too.
+	"""
+	url = url.strip()
+	if any(character.isspace() or not character.isprintable() for character in url):
+		frappe.throw(_("The {0} must not contain spaces or line breaks.").format(_(label)))
+	if not validate_url(url, valid_schemes=("https",)):
+		frappe.throw(_("The {0} must be an https link.").format(_(label)))
+	return url
 
 
 def link_title(doctype, name):
