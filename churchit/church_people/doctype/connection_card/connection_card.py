@@ -78,12 +78,15 @@ class ConnectionCard(Document):
 	def find_or_add_person(self) -> str:
 		"""The one person who strongly matches the card, else a new Visitor and their household.
 
-		The matches are left for staff. A card that matched someone adds nobody from its household,
-		because guest input never changes an existing person; its rows stay on the card for staff.
+		A new Visitor keeps how they heard of the church. The matches are left for staff. A card that matched
+		someone adds nobody from its household and leaves how they heard alone, because guest input never
+		changes an existing person; its rows stay on the card for staff.
 		"""
 		person, added = find_or_add_person(self.candidate, self.church, CONNECTION_CARD)
 		if added:
-			self.add_household(frappe.get_doc("Person", person))
+			guest = frappe.get_doc("Person", person)
+			guest.db_set("how_heard", self.how_heard, update_modified=False)
+			self.add_household(guest)
 		return person
 
 	def record_consent(self, person: str):

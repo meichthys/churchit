@@ -187,6 +187,28 @@ class TestConnectionCardProcessing(ConnectionCardTestCase):
 		self.assertTrue(is_paired(by_email.name, card.person))
 		self.assertTrue(is_paired(by_phone.name, card.person))
 
+	def test_a_new_visitor_keeps_how_they_heard(self):
+		card = self.processed(self.make_card(last_name="Heard", how_heard="_Test A friend"))
+
+		self.assertEqual(frappe.db.get_value("Person", card.person, "how_heard"), "_Test A friend")
+
+	def test_a_strong_match_keeps_how_they_heard_first(self):
+		known = make_person(
+			"_Test Card",
+			"Heard Before",
+			how_heard="_Test The radio",
+			emails=[{"email_address": "_test_card_heard@example.com"}],
+		)
+
+		card = self.processed(
+			self.make_card(
+				last_name="Heard Before", email="_test_card_heard@example.com", how_heard="_Test A friend"
+			)
+		)
+
+		self.assertEqual(card.person, known.name)
+		self.assertEqual(frappe.db.get_value("Person", known.name, "how_heard"), "_Test The radio")
+
 	def test_a_card_is_processed_once(self):
 		card = self.make_card(last_name="Once", email="_test_card_once@example.com")
 		card.process()

@@ -262,6 +262,16 @@ class TestAnonymizePerson(RollbackEachTest):
 
 		self.assertRaises(frappe.PermissionError, anonymize_person, person.name)
 
+	def test_skills_and_how_they_heard_are_cleared(self):
+		person = self.make_member(
+			how_heard="_Test A friend", skills=[{"skill": ensure("Skill", {"skill_name": "_Test Teaching"})}]
+		)
+
+		anonymize_person(person.name)
+
+		person.reload()
+		self.assertEqual((person.how_heard, person.skills), (None, []))
+
 	def test_the_pickup_restrictions_on_the_person_as_a_child_are_deleted(self):
 		person = self.make_member()
 		restriction = frappe.get_doc(
