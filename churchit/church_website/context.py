@@ -13,6 +13,7 @@ from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_scope import is_multi_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
+from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
 # The pages that draw a Leaflet map.
@@ -31,6 +32,7 @@ def update_website_context(context):
 	_add_pwa_head_tags(context)
 	_add_theme_mode_script(context)
 	_add_leaflet(context)
+	_add_podcast_link(context)
 
 
 def before_request():
@@ -143,3 +145,13 @@ def _add_leaflet(context):
 		return
 	context.web_include_js = ["leaflet.bundle.js", *context.web_include_js]
 	context.web_include_css = ["leaflet.bundle.css", *context.web_include_css]
+
+
+def _add_podcast_link(context):
+	"""Point feed readers at the podcast from the sermons page."""
+	if getattr(frappe.local, "path", None) != "sermons":
+		return
+	church = get_church()
+	href = get_feed_url(church and church.name)
+	title = frappe.utils.escape_html(_("Sermon Podcast"))
+	context["head_html"] += f'<link rel="alternate" type="application/rss+xml" title="{title}" href="{href}">'

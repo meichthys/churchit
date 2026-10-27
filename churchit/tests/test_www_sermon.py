@@ -233,9 +233,13 @@ class TestSermonsPage(RollbackEachTest):
 
 		self.assertNotIn("/private/files/_test_series.png", self.serve_sermons())
 
+	def test_the_page_offers_the_podcast(self):
+		html = self.serve_sermons()
+		self.assertIn('href="/podcast.xml"', html)
+
 
 class TestSermonsPageChurches(RollbackEachTest):
-	"""A branch's search keeps its church."""
+	"""A branch's search keeps its church, and its podcast link names it."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -261,6 +265,7 @@ class TestSermonsPageChurches(RollbackEachTest):
 		self.assertIn(mine.title, html)
 		self.assertNotIn(theirs.title, html)
 		self.assertIn(f'<input type="hidden" name="church" value="{self.church}">', html)
+		self.assertIn(f'href="/podcast.xml?church={quote(self.church)}"', html)
 
 
 class TestSermonLibraryPatch(RollbackEachTest):

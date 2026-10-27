@@ -32,21 +32,40 @@ class Sermon(Document):
 			self.name = self.title
 
 	def on_update(self):
-		if self.audio_recording:
-			file_doc = frappe.db.get_value(
-				"File",
-				{
-					"file_url": self.audio_recording,
-					"attached_to_doctype": "Sermon",
-					"attached_to_name": self.name,
-				},
-				"name",
-			)
-			if file_doc:
-				f = frappe.get_doc("File", file_doc)
-				should_be_private = not self.publish
-				if f.is_private != should_be_private:
-					f.is_private = should_be_private
-					f.save(ignore_permissions=True)
-					if f.file_url != self.audio_recording:
-						frappe.db.set_value("Sermon", self.name, "audio_recording", f.file_url)
+		"""Keep every recording public exactly while the sermon is published, so the podcast can play it.
+
+		A file that moves between /private/files and /files gets a new URL. Frappe writes it into
+		the field the file was uploaded to, which for a presentation row is the sermon's own
+		`audio_recording`, and stamps a new `modified`. So after any move the sermon's value is
+		written again with this save's `modified`, which keeps the open form saveable.
+		"""
+		rows = [self, *self.presentation_history]
+		moved = {}
+		for file_url in {row.audio_recording for row in rows if row.audio_recording}:
+			new_url = self.set_recording_privacy(file_url)
+			if new_url != file_url:
+				moved[file_url] = new_url
+		if not moved:
+			return
+
+		# Inside a save, db_set writes the doc's own `modified` back instead of a new one.
+		self.db_set("audio_recording", moved.get(self.audio_recording, self.audio_recording))
+		for row in self.presentation_history:
+			if row.audio_recording in moved:
+				row.db_set("audio_recording", moved[row.audio_recording], update_modified=False)
+
+	def set_recording_privacy(self, file_url: str) -> str:
+		"""Make this sermon's file at *file_url* private unless the sermon is published; return its URL."""
+		name = frappe.db.get_value(
+			"File",
+			{"file_url": file_url, "attached_to_doctype": "Sermon", "attached_to_name": self.name},
+			"name",
+		)
+		if not name:
+			return file_url
+		file = frappe.get_doc("File", name)
+		is_private = int(not self.publish)
+		if file.is_private != is_private:
+			file.is_private = is_private
+			file.save(ignore_permissions=True)
+		return file.file_url

@@ -23,6 +23,7 @@
       <button class="btn btn-default" type="submit">Search</button>
       {% if q %}<a href="/sermons" class="small">Show all</a>{% endif %}
     </form>
+    <a href="{{ get_feed_url(get_church().name) | e }}" class="small">Subscribe to the podcast</a>
   </div>
 
 {%- macro sermon_meta(sermon) -%}

@@ -159,6 +159,7 @@ jinja = {
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
 		"churchit.scripture.get_passage_text",
+		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.
 		"frappe.utils.print_format_generator.get_qr_code",
 	]
