@@ -14,6 +14,7 @@ import frappe
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
 	create_communication_purposes,
 )
+from churchit.church_finances.doctype.alms_request.alms_request import create_new_alms_request_notification
 from churchit.church_finances.doctype.payment_type.payment_type import create_non_cash_payment_type
 from churchit.church_ministries.doctype.check_in_settings.check_in_settings import add_volunteer_tag_format
 from churchit.church_missions.doctype.missionary_status.missionary_status import (
@@ -37,6 +38,9 @@ from churchit.church_people.doctype.people_settings.people_settings import (
 )
 from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
 from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
+from churchit.church_prayers.doctype.prayer_request.prayer_request import (
+	create_new_prayer_request_notifications,
+)
 from churchit.church_website.pages import sync_page_switches
 
 # We define this here so we can import it from sample_data
@@ -50,6 +54,8 @@ def execute():
 	create_default_address_template()
 	create_unsynced_records()
 	create_decided_notification()
+	create_new_prayer_request_notifications()
+	create_new_alms_request_notification()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()

@@ -4,13 +4,41 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
 from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
 from churchit.church_prayers.prayer_access import (
 	PRAYER_REQUEST,
+	PRAYER_TEAM_ROLE,
 	get_community_filters,
 	get_open_request_filters,
 )
 from churchit.utils import resolve_link_titles
+
+PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
+PRAYER_TEAM_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} prayer request: {{ doc.title }}"
+PRAYER_TEAM_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
+
+<ul>
+  <li><strong>Title:</strong> {{ doc.title | e }}</li>
+  {% if doc.requestor %}<li><strong>From:</strong> {{ frappe.db.get_value("Person", doc.requestor, "full_name") | e }}</li>{% elif doc.owner == "Guest" %}<li><strong>From:</strong> A guest on the website</li>{% endif %}
+  {% if doc.recipient_name %}<li><strong>For:</strong> {{ doc.recipient_name | e }}</li>{% endif %}
+  <li><strong>Type:</strong> {{ doc.type | e }}</li>
+  <li><strong>Visibility:</strong> {{ doc.visibility }}</li>
+</ul>
+
+<p style="white-space: pre-line">{{ doc.request | e }}</p>
+
+{% if doc.approved_for_list %}<p><a href="{{ frappe.utils.get_url("/community-prayer-requests/" ~ doc.name) }}">Pray for this request on Community Prayer Requests</a></p>
+{% else %}<p>It waits for approval before it shows on Community Prayer Requests.</p>
+{% endif %}<p>Staff can <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">open it in the desk</a>.</p>
+"""
+PRIVATE_NOTIFICATION = "New Private Prayer Request"
+PRIVATE_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} private prayer request"
+# The request stays out of the email: only the care team and Church Managers read a Private one.
+PRIVATE_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new private prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
+
+<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the request</a> to read it.</p>
+"""
 
 
 class PrayerRequest(Document):
@@ -71,3 +99,48 @@ def get_list_context(context):
 
 	context.get_list = get_list
 	return context
+
+
+def create_new_prayer_request_notifications() -> None:
+	"""Insert the Notifications that tell the prayer team and the care team of a new request, once each.
+
+	They are not standard, because production cannot enable a shipped one, and a church may change them.
+	The prayer team hears only of a request approved for the list, so a guest's request waits for moderation.
+	"""
+	staff = [{"receiver_by_role": role} for role in PASTORAL_ROLES]
+	notifications = (
+		{
+			"name": PRAYER_TEAM_NOTIFICATION,
+			"subject": PRAYER_TEAM_SUBJECT,
+			"condition": 'doc.visibility != "Private"',
+			"recipients": [
+				{"receiver_by_role": PRAYER_TEAM_ROLE, "condition": "doc.approved_for_list"},
+				*staff,
+			],
+			"message": PRAYER_TEAM_MESSAGE,
+		},
+		{
+			"name": PRIVATE_NOTIFICATION,
+			"subject": PRIVATE_SUBJECT,
+			"condition": 'doc.visibility == "Private"',
+			"recipients": staff,
+			"message": PRIVATE_MESSAGE,
+		},
+	)
+	for notification in notifications:
+		if frappe.db.exists("Notification", notification["name"]):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"document_type": PRAYER_REQUEST,
+				"event": "New",
+				"condition_type": "Python",
+				"channel": "Email",
+				"enabled": 1,
+				"is_standard": 0,
+				"send_system_notification": 1,
+				"message_type": "HTML",
+				**notification,
+			}
+		).insert(ignore_permissions=True)

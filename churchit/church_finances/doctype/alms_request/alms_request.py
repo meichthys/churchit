@@ -5,9 +5,27 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
 from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
 from churchit.church_scope import refuse_another_churches_parent
 from churchit.utils import resolve_link_titles
+
+ALMS_NOTIFICATION = "New Alms Request"
+ALMS_SUBJECT = "New alms request: {{ doc.title }}"
+ALMS_MESSAGE = """<p>A new alms request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
+
+{% set recipient_field = {"Person": "full_name", "Family": "family_name"}.get(doc.recipient_type) %}
+<ul>
+  <li><strong>For:</strong> {{ (recipient_field and frappe.db.get_value(doc.recipient_type, doc.recipient, recipient_field) or doc.recipient) | e }}</li>
+  <li><strong>Requested by:</strong> {{ frappe.db.get_value("Person", doc.requestor, "full_name") | e }}</li>
+  {% if doc.amount %}<li><strong>Amount:</strong> {{ frappe.utils.fmt_money(doc.amount) }}</li>{% endif %}
+  <li><strong>Status:</strong> {{ doc.status }}</li>
+</ul>
+
+<p style="white-space: pre-line">{{ doc.description | e }}</p>
+
+<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the request</a></p>
+"""
 
 
 class AlmsRequest(Document):
@@ -56,6 +74,31 @@ def create_expense(alms_request_name: str):
 	expense.insert()
 	expense.submit()
 	frappe.db.set_value("Alms Request", alms_request_name, "associated_expense", expense.name)
+
+
+def create_new_alms_request_notification() -> None:
+	"""Insert the Notification that tells the care team and Church Managers of a new alms request, once.
+
+	It is not standard, because production cannot enable a shipped one, and a church may change it.
+	"""
+	if frappe.db.exists("Notification", ALMS_NOTIFICATION):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Notification",
+			"name": ALMS_NOTIFICATION,
+			"subject": ALMS_SUBJECT,
+			"document_type": "Alms Request",
+			"event": "New",
+			"channel": "Email",
+			"enabled": 1,
+			"is_standard": 0,
+			"send_system_notification": 1,
+			"recipients": [{"receiver_by_role": role} for role in PASTORAL_ROLES],
+			"message_type": "HTML",
+			"message": ALMS_MESSAGE,
+		}
+	).insert(ignore_permissions=True)
 
 
 def get_list_context(context):

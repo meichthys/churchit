@@ -111,3 +111,4 @@ churchit.patches.v1_0.name_the_replacement_in_ministry_team_decline
 churchit.patches.v1_0.add_spiritual_gifts
 churchit.patches.v1_0.fill_team_and_membership_summaries
 churchit.patches.v1_0.build_sermon_library
+churchit.patches.v1_0.add_prayer_and_alms_notifications
