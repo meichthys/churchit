@@ -27,6 +27,8 @@
   "headcount",
   "address",
   "meeting_url",
+  "streamed",
+  "recorded",
   "description",
   "section_break_bkwy",
   "schedule",
@@ -231,6 +233,20 @@
    "fieldtype": "Data",
    "label": "Online Meeting Link",
    "options": "URL"
+  },
+  {
+   "default": "0",
+   "description": "The service was streamed live. Song Usage counts its songs for CCLI.",
+   "fieldname": "streamed",
+   "fieldtype": "Check",
+   "label": "Streamed"
+  },
+  {
+   "default": "0",
+   "description": "The service was recorded. Song Usage counts its songs for CCLI.",
+   "fieldname": "recorded",
+   "fieldtype": "Check",
+   "label": "Recorded"
   },
   {
    "fieldname": "description",
@@ -615,7 +631,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-26 15:41:12.000000",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
