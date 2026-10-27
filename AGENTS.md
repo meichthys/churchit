@@ -911,7 +911,7 @@ the tracked field fails the save.
 ## Person summary fields and smart lists
 
 A smart list is a saved Report Builder report on Person, so Frappe scopes and refreshes it. Person
-carries read-only summary fields (attendance, groups, serving, giving, care) from
+carries read-only summary fields (attendance, groups, serving, giving, care, membership dates) from
 `church_people/summaries/`, whose docstring is the contract. To add a figure, add a read-only Person
 field and an area module; do not add a hook.
 
@@ -931,6 +931,19 @@ that counts one church's records inherits the gap; say so in the manuals.
 `summaries.keep_stored_values` (first in `Person.before_save`) puts the stored figures and `groups`
 rows back on every save, because a refresh leaves `modified` alone. Never set a summary field
 through a Person save.
+
+A summary Table MultiSelect names other records, so add its child doctype to
+`ignore_links_on_delete` in `hooks.py`: otherwise Frappe refuses to delete a record that a stored
+row names. `summaries.delete_rows_naming` deletes those rows with the record, in the same
+transaction, because a row left for the queued refresh fails every save of its person on Frappe's
+link check. Like groups, the serving area leaves out the positions of an Inactive Ministry.
+
+A smart list can also be a Custom Report (menu > Save) of a script report named in
+`smart_lists.REPORT_LISTS`, such as Attendance Count; `smart_lists.get_people` runs it with its
+saved filters and then applies the church and the living filter. A new list of that kind goes in
+`REPORT_LISTS`, and its rows carry the person in `person`. Smart list pickers use
+`smart_lists.search_smart_lists`. A filter on a Person child table joins one row per match, so
+`get_people` and `dashboard.count_in_readers_churches` count each person once.
 
 The standard lists ship as Report Builder JSON under `church_people/report/`. The Report view runs
 the Person `listview_settings` too, so every saved list gets the Person list's Actions. Their server
@@ -977,6 +990,12 @@ Both ways of merging delete the removed record's Deleted Document when the merge
 deletes the record after every hook, so Person and Family `after_rename` call
 `merge.drop_deleted_document`. Possible Duplicate pairs go with `delete_permanently`
 (`duplicates.drop_pairs`, `matching.resolve_merged`).
+A merge can also take the removed record's value of each field the user chooses
+(`take_from_removed`): the kept record is saved with those values before the rename, as the user, so
+a field must be in `merge.choosable_fields` (typed, not virtual, not the church, of a permlevel the
+user may write). `merge.get_merge_choices` lists the fields where two people differ, and
+`public/js/merge_choices.js` shows them as radios in the Person and Possible Duplicate merge
+dialogs.
 
 Anonymizing (`privacy.anonymize_person`) keeps the Person, clears `PERSONAL_FIELDS` and empties
 `PERSONAL_TABLES`, so a new Person field or table holding personal data goes in one of them. A new
@@ -984,6 +1003,23 @@ doctype about one person (its subject, not a caregiver or other role) goes in
 `privacy.PERSONAL_DOCTYPES` when anonymizing should delete it, as for Person Note and Connection
 Card. Otherwise it goes in `privacy.RECORDS_ABOUT_THE_PERSON`, and anonymizing deletes its history,
 comments and attachments and blanks its messages.
+
+Anonymizing also clears every field added with Customize Form, on the Person and on an anonymized
+Family (`privacy.blank_church_fields`), because Churchit cannot tell which of them are personal. A
+mandatory one is cleared too, but the state field of an active Workflow stays, because a blank state
+is a move back to the first state, which the workflow refuses. Church fields are site-wide: only a
+System Manager adds them, after the shipped `church_fields_tab` tab, and Churchit adds no code to
+sync fields.
+
+A relationship to someone in another household is one `Person Relationship` row on the person who
+records it, never a mirror row: the other person sees it in Connections through the Person `links`
+entry on `person`. `Person.validate_relationships` refuses the person themselves, a member of their
+own Family (the roster owns that) and, in a private directory, another church's person. After a
+merge `remove_repeated_relationships` drops the rows that name the kept person on their own record
+and repeats on others, and `remove_relationships_with` deletes every row that names a person when
+they are anonymized or deleted. Deleting a person also clears the Shared From of the emails and
+phones other people share from them (`contacts.stop_sharing_from`, also used by anonymizing), so
+Frappe does not refuse the delete.
 
 Custom questions go through `churchit/questions.py`. A doctype that asks a Question Set keeps the
 answers in a Question Answer table and writes them only with `questions.set_answers`, after
@@ -1051,6 +1087,13 @@ lists only their own Family, only its Adults write it, and `refuse_member_edits_
 in `Family.validate`) limits them to the photo. It steps aside for `ignore_permissions` saves, which
 is how a Person keeps the roster, so never save a Family with `ignore_permissions` on values a member
 sent. `/household` offers pre check-in to the people the member may edit.
+
+An Adult adds a child on `/household` through `member_access.add_household_child`, the one way a
+member adds a Person. It takes a first and last name, a birthday under People Settings' adult age
+and a gender, and nothing else. The child joins the Adult's Family and church as a Visitor with
+source Portal who shares nothing, `mark_as_child` makes the roster row Child and Son or Daughter,
+and the matcher opens Possible Duplicates. The insert sets `flags.from_household_page`, which
+`refuse_member_edits_beyond_personal_details` lets through. Do not set that flag anywhere else.
 
 `Person.birthday` is virtual: a value set on a save rewrites the first Birth life event
 (`sync_birthday`, before `sync_derived`). Read birthdays from `birth_month`, `birth_day` and
@@ -1439,12 +1482,34 @@ off.
 about one person reaches the workflows that start on it; the daily `start_smart_list_cards` job reads
 the On Smart List triggers itself and calls `add_card`. A person has one open card per workflow:
 `add_card` and the card's `validate` both ask `followup.get_open_card`, which locks the Person row,
-because a plain read answers from the job's older snapshot. Anything more a church wants on a step,
-an email or a desk alert, is its own Notification on Follow-up Card, not code.
+because a plain read answers from the job's older snapshot.
 `followup.on_sign_up` queues `start_sign_up_cards` after the commit for each attendee Person a
 Confirmed sign-up gained (Signed Up, by Function Type), so it runs as Guest after `/register` and the
 person-linking job. `FormResponse.process` starts the Form Submitted workflows of its Question Set.
 In both, a shared Function or set follows up at the Person's own church.
+
+A workflow's Actions table sends an email or a text, adds the person to a group, or tags them when a
+card opens, reaches a step or closes. The card's `after_insert` and `on_update` call
+`followup.queue_actions`, which queues `run_actions` after the commit only when the workflow has an
+action for that event or another workflow starts on it. `followup.close_quietly` closes a card with
+`flags.closed_quietly` and queues nothing: a merge closes the repeated cards with it, and anonymizing
+closes the person's open cards with it, so no tag, group or new card is made for them. The job runs as the saver, Guest
+after a connection card, and writes with `ignore_permissions`. Pass the event as `run_on`:
+`frappe.enqueue` keeps an `event` argument for itself. Each action is logged once in a Follow-up
+Action Run, inserted first under the unique key `<card>:<row>:<event>:<step hash>` (a short sha256
+of the step, because a step name alone can fill a Data field), then run under a savepoint and
+committed on its own: a failure rolls back to the savepoint and logs Failed, a send that reaches
+nobody logs Skipped, and nothing is retried (Frappe still reruns a job after a deadlock; the keys
+skip the actions already committed). Sends go through `send()` with the card as source, the key
+`<row>:<event>:<step hash>` and `{{ step }}` in the context; the workflow checks the text and the
+Email Template placeholders on save. Add Tag writes `_user_tags`, read with `for_update`, and the
+Tag Link itself, because `DocTags.add` checks write on the Person as the session user; the Tag Link
+insert refuses a tag that does not exist. A Step Reached or Card Closed trigger names another
+workflow of the same church (and for Step Reached, optionally one of its steps); `run_actions` then
+calls `start_cards` with the card's workflow as value and its step. A desk alert is still a
+Notification on Follow-up Card. Deleting a card deletes its runs, and anonymizing blanks the `error`
+of the runs of the person's cards (`privacy.forget_records_about`), because a failed text's error
+can hold the number.
 
 The workflow owns its Kanban Board: `FollowupWorkflow.sync_board` rewrites its columns and filters
 on every save, so never edit the board by hand. `Follow-up Card.step` stays a Data field, because
@@ -1460,8 +1525,9 @@ The Connection Card web form saves as Guest, and `ConnectionCard.process` runs a
 commit, as the sender, writing with `ignore_permissions`; anything it reaches (`start_cards`,
 `add_card`, the Follow-up Card hooks) must work as Guest. Guest input never changes an existing
 Person: a card links only on `is_strong_match` and otherwise adds a Visitor and records Possible
-Duplicates. The honeypot is checked in the job, because `accept` returns the saved document to the
-sender.
+Duplicates. A card that adds a Visitor copies its `how_heard` to the new Person only. A strong match
+keeps the person's own value. The honeypot is checked in the job, because `accept` returns the saved
+document to the sender.
 
 Frappe fills web form fields from the query string but drops it when it redirects `/<route>` to
 `/<route>/new`, so a link carrying `?church=` points at `/new`. Web Form Field has no Table
@@ -1495,6 +1561,11 @@ only through `smart_lists.get_people(report, church)`, which applies `church_fil
 the dead. Unsubscribes are Email Unsubscribe records against a church, and `newsletter.email_church`
 is the one place that says which church: the root church on a single-church site, where records
 carry none.
+
+Include Their Households (`include_household`) adds the living members of each recipient's Family
+through `household.members`, limited to the roles in Household Members. On a multi-church site, only
+the message's own church's people are added. Consent applies to each added person in
+`get_recipients`.
 
 A Church Email fills placeholders with `sending.render` (see the `sending.py` docstring). Never
 render it with `frappe.render_template`, and keep `sending.check_placeholders` in `validate`.
