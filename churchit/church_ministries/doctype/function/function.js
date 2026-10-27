@@ -113,6 +113,8 @@ frappe.ui.form.on("Function", {
 				() => email_the_team(frm),
 				__("Ministry Team")
 			);
+
+			add_fill_open_needs_button(frm);
 		}
 
 		// Add Sign Ups buttons if sign-ups are enabled, there are items, or there are linked sign-ups
@@ -167,6 +169,33 @@ frappe.ui.form.on("Function Attendance", {
 			});
 	},
 });
+
+function add_fill_open_needs_button(frm) {
+	if (!frappe.model.can_create("Ministry Team Assignment")) return;
+	frm.add_custom_button(
+		__("Fill Open Needs"),
+		() =>
+			frappe.call({
+				method: "churchit.church_ministries.auto_schedule.fill_open_needs",
+				args: { function: frm.doc.name },
+				freeze: true,
+				callback: ({ message }) => {
+					const open = message.unfilled.reduce((total, row) => total + row.open, 0);
+					frappe.show_alert(
+						{
+							message: __("Asked {0} people to serve. Places still open: {1}.", [
+								message.assigned.length,
+								open,
+							]),
+							indicator: open ? "orange" : "green",
+						},
+						10
+					);
+				},
+			}),
+		__("Ministry Team")
+	);
+}
 
 function email_the_team(frm) {
 	frappe
