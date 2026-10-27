@@ -97,26 +97,28 @@ class TestFollowupTriggers(RollbackEachTest):
 
 		started = start_check_in_cards(check_in(first.name, self.person))
 		self.assertEqual(
-			frappe.db.get_value(CARD, started[0], ["workflow", "source_type"]),
-			(first_time, "Function Check-In"),
+			frappe.db.get_value(CARD, {"name": ("in", started), "workflow": first_time}, "source_type"),
+			"Function Check-In",
 		)
 		self.assertIsNone(check_in(second.name, self.person))
 
 	def test_a_volunteer_check_in_starts_no_card_and_leaves_the_first_check_in_to_come(self):
-		workflow_on("_Test First Check-In", ("First Check-In", None))
+		first_time = workflow_on("_Test First Check-In", ("First Check-In", None))
 		serving = make_function("_Test Followup Serving")
 		attending = make_function("_Test Followup Attending")
 
 		self.assertIsNone(check_in(serving.name, self.person, check_in_kind="Volunteer"))
-		self.assertTrue(start_check_in_cards(check_in(attending.name, self.person)))
+		start_check_in_cards(check_in(attending.name, self.person))
+		self.assertIn(first_time, cards_of(self.person))
 
 	def test_a_check_in_starts_only_the_workflows_for_its_function_type(self):
-		workflow_on(
+		other = workflow_on(
 			"_Test First Check-In Other", ("First Check-In", ensure("Function Type", {"type": "_Test Other"}))
 		)
 		function = make_function("_Test Followup Service")
 
-		self.assertEqual(start_check_in_cards(check_in(function.name, self.person)), [])
+		start_check_in_cards(check_in(function.name, self.person))
+		self.assertNotIn(other, cards_of(self.person))
 
 	def test_a_smart_list_adds_each_person_once(self):
 		smart_list = make_smart_list("_Test Followup Smart List").name
