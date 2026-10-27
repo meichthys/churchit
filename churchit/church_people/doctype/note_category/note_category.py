@@ -10,6 +10,7 @@ from churchit.church_foundations.church_access import has_every_church
 
 GENERAL = "General"
 PASTORAL_CARE = "Pastoral Care"
+BENEVOLENCE = "Benevolence"
 PASTORAL_ROLES = ("Church Pastoral Care", "Church Manager")
 
 
@@ -64,8 +65,11 @@ def role_set(rows: list) -> frozenset[str]:
 	return frozenset(row.role for row in rows)
 
 
-def create_note_categories():
-	"""Make General, which everyone reads, and Pastoral Care, which only the care team and managers read."""
+def create_note_categories(names: tuple[str, ...] | None = None) -> None:
+	"""Make the missing shipped categories, or only those in *names*, so a patch does not bring back a deleted one.
+
+	Everyone reads General; only the care team and managers read Pastoral Care and Benevolence.
+	"""
 	pastoral_roles = [{"role": role} for role in PASTORAL_ROLES]
 	categories = (
 		{"category_name": GENERAL, "description": "Notes everyone on staff can read and add."},
@@ -75,7 +79,15 @@ def create_note_categories():
 			"view_roles": pastoral_roles,
 			"create_roles": pastoral_roles,
 		},
+		{
+			"category_name": BENEVOLENCE,
+			"description": "Benevolence and alms case notes. Only the care team and Church Managers can read them.",
+			"view_roles": pastoral_roles,
+			"create_roles": pastoral_roles,
+		},
 	)
 	for category in categories:
+		if names is not None and category["category_name"] not in names:
+			continue
 		if not frappe.db.exists("Note Category", category["category_name"]):
 			frappe.get_doc({"doctype": "Note Category", **category}).insert(ignore_permissions=True)
