@@ -16,9 +16,12 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 )
 from churchit.church_communications.sending import Delivery, Recipient, get_people_sent
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
+from churchit.church_people.followup import CARD, CARD_CLOSED, CLOSED, add_card
 from churchit.church_people.privacy import ANONYMIZED, anonymize_person, remove_due_personal_data
 from churchit.church_people.smart_lists import get_people
 from churchit.church_people.summaries.test_serving import make_person_list
+from churchit.church_people.test_followup_actions import queued_events
 from churchit.church_people.test_merge import email, life_event, make_family, phone
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -286,6 +289,38 @@ class TestAnonymizePerson(RollbackEachTest):
 		anonymize_person(person.name)
 
 		self.assertFalse(frappe.db.exists("Pickup Restriction", restriction.name))
+
+	def test_the_errors_of_follow_up_actions_for_the_person_are_cleared(self):
+		person = self.make_member()
+		card = add_card(person.name, make_workflow("_Test Hidden Follow-up", [("Welcome", None, 1)]).name)
+		run = frappe.get_doc(
+			{
+				"doctype": "Follow-up Action Run",
+				"key": f"{card}:_test",
+				"card": card,
+				"status": "Failed",
+				"error": "_Test 555-010-0099 refused the text",
+			}
+		).insert(ignore_permissions=True)
+
+		anonymize_person(person.name)
+
+		self.assertIsNone(frappe.db.get_value("Follow-up Action Run", run.name, "error"))
+
+	def test_open_follow_up_cards_close_without_their_actions_or_triggers(self):
+		person = self.make_member()
+		tag = ensure("Tag", {"name": "_Test Hidden Tag"})
+		closed = {"run_on": CARD_CLOSED, "action": "Add Tag", "tag": tag}
+		workflow = make_workflow("_Test Hidden Cards", [("Welcome", None, 1)], actions=[closed]).name
+		make_workflow(
+			"_Test Hidden Next",
+			[("Welcome", None, 1)],
+			triggers=[{"trigger": CARD_CLOSED, "value": workflow}],
+		)
+		card = add_card(person.name, workflow)
+
+		self.assertEqual(queued_events(lambda: anonymize_person(person.name)), [])
+		self.assertEqual(frappe.db.get_value(CARD, card, "status"), CLOSED)
 
 
 class TestChurchFields(RollbackEachTest):

@@ -32,6 +32,8 @@ class FollowupWorkflow(Document):
 		for row in self.triggers:
 			if row.trigger == ON_SMART_LIST:
 				row.validate_smart_list()
+		for row in self.actions:
+			row.validate_action(self)
 
 	def on_update(self):
 		self.sync_board()

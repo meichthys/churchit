@@ -7,7 +7,20 @@ from frappe.desk.form import assign_to
 from frappe.model.document import Document
 from frappe.utils import add_days, cint, escape_html, today
 
-from churchit.church_people.followup import CARD, CLOSED, OPEN, STEP, WORKFLOW, first_step, get_open_card
+from churchit.church_people.followup import (
+	ACTION_RUN,
+	CARD,
+	CARD_CLOSED,
+	CARD_OPENED,
+	CLOSED,
+	OPEN,
+	STEP,
+	STEP_REACHED,
+	WORKFLOW,
+	first_step,
+	get_open_card,
+	queue_actions,
+)
 from churchit.church_scope import refuse_another_churches_parent
 from churchit.contacts import get_primary_email, get_primary_phone
 
@@ -50,11 +63,20 @@ class FollowupCard(Document):
 			self.due_on = add_days(today(), cint(self.get_step().due_in_days))
 		self.closed_on = (self.closed_on or today()) if self.status == CLOSED else None
 
+	def after_insert(self):
+		queue_actions(self, CARD_OPENED)
+
 	def on_update(self):
 		if self.is_handed_on():
 			self.hand_to_assignee()
+			queue_actions(self, STEP_REACHED)
 		elif self.status == CLOSED and self.has_value_changed("status"):
 			close_todos(self.name)
+			if not self.flags.closed_quietly:
+				queue_actions(self, CARD_CLOSED)
+
+	def on_trash(self):
+		frappe.db.delete(ACTION_RUN, {"card": self.name})
 
 	def is_handed_on(self) -> bool:
 		"""True when this save brings an open card to a step: a new card, a move, or a card reopened."""

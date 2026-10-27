@@ -6,16 +6,17 @@
 `add_card` is the one way code opens a card, and `start_cards` is the one way an event about one
 person (a connection card, a first check-in, a life event, a membership change) reaches the
 workflows that start on it. The daily `start_smart_list_cards` reads the smart-list triggers
-itself. Anything else a church wants to happen when a card starts or moves is a standard
-Notification on Follow-up Card.
+itself. A workflow's actions (an email, a text, a group, a tag) run in `run_actions` when a card
+opens, reaches a step or closes.
 """
 
 import json
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.permissions import get_doctype_roles
-from frappe.utils import today
+from frappe.utils import sha256_hash, today
 
 from churchit.church_ministries.doctype.function_check_in.function_check_in import VOLUNTEER
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import CONFIRMED
@@ -26,6 +27,8 @@ CARD = "Follow-up Card"
 WORKFLOW = "Follow-up Workflow"
 STEP = "Follow-up Step"
 TRIGGER = "Follow-up Trigger"
+ACTION = "Follow-up Action"
+ACTION_RUN = "Follow-up Action Run"
 OPEN = "Open"
 CLOSED = "Closed"
 FOLLOW_UP_ROLE = "Church Follow-up"
@@ -38,6 +41,10 @@ MEMBER_STATUS_BECOMES = "Member Status Becomes"
 ON_SMART_LIST = "On Smart List"
 SIGNED_UP = "Signed Up"
 FORM_SUBMITTED = "Form Submitted"
+# What happens to a card.
+CARD_OPENED = "Card Opened"
+STEP_REACHED = "Step Reached"
+CARD_CLOSED = "Card Closed"
 # What a trigger row's "Which" value names. follow_up_workflow.js offers the same pickers.
 VALUE_TYPES = {
 	CONNECTION_CARD: "Connection Card Interest",
@@ -49,6 +56,10 @@ VALUE_TYPES = {
 	SIGNED_UP: "Function Type",
 	FORM_SUBMITTED: "Question Set",
 }
+# A Follow-up Action Run's status.
+DONE = "Done"
+SKIPPED = "Skipped"
+FAILED = "Failed"
 # The trigger each membership field starts, by the field a membership_changed event names.
 MEMBERSHIP_TRIGGERS = {"membership": MEMBERSHIP_TYPE_BECOMES, "membership_status": MEMBER_STATUS_BECOMES}
 
@@ -240,6 +251,70 @@ def start_sign_up_cards(sign_up: str, people: list[str]) -> list[str]:
 	return cards
 
 
+def queue_actions(card: Document, event: str) -> None:
+	"""Run the actions of *card*'s workflow for *event* in a job after the commit, when there is anything to do."""
+	if has_actions(card.workflow, event):
+		# Not `event=`: frappe.enqueue takes that argument for itself.
+		frappe.enqueue(run_actions, enqueue_after_commit=True, card=card.name, run_on=event, step=card.step)
+
+
+def has_actions(workflow: str, event: str) -> bool:
+	"""True when *workflow* has an action for *event*."""
+	# church-scope: the rows of one workflow, which its church alone may add
+	return bool(frappe.db.exists(ACTION, {"parenttype": WORKFLOW, "parent": workflow, "run_on": event}))
+
+
+def run_actions(card: str, run_on: str, step: str) -> None:
+	"""Background job: run the actions of *card*'s workflow for *run_on* (an event) at *step*.
+
+	It runs as the user who saved the card, Guest after a connection card, so it writes with
+	ignore_permissions. An action with no step runs at every step.
+	"""
+	doc = frappe.get_doc(CARD, card)
+	for row in frappe.get_doc(WORKFLOW, doc.workflow).actions:
+		if row.run_on == run_on and not (run_on == STEP_REACHED and row.step and row.step != step):
+			run_action(doc, row, run_on, step)
+
+
+def run_action(card: Document, row: Document, event: str, step: str) -> None:
+	"""Run one action once for *event* at *step*, and log it. A failed action is logged and never retried.
+
+	The log is inserted first: its unique key stops a second job, which waits for this one to commit.
+	Each action is committed, because a text leaves at once and a later error must not forget it.
+	"""
+	# A step name alone can fill the Data field, so the keys hold a short hash of it.
+	key = f"{row.name}:{event}:{sha256_hash(step)[:10]}"
+	run = frappe.get_doc(
+		{
+			"doctype": ACTION_RUN,
+			"key": f"{card.name}:{key}",
+			"card": card.name,
+			"workflow": card.workflow,
+			"church": card.church,
+			"event": event,
+			"step": step,
+			"action": row.action,
+			"status": DONE,
+		}
+	)
+	try:
+		run.insert(ignore_permissions=True)
+	except frappe.UniqueValidationError:
+		return
+
+	frappe.db.savepoint("follow_up_action")
+	try:
+		if not row.run(card, key, step):
+			run.db_set("status", SKIPPED)
+	except Exception as error:
+		frappe.db.rollback(save_point="follow_up_action")
+		run.db_set({"status": FAILED, "error": str(error)})
+		frappe.log_error(
+			f"Follow-up action {row.action} failed", reference_doctype=CARD, reference_name=card.name
+		)
+	frappe.db.commit()
+
+
 def wake_snoozed_cards() -> None:
 	"""Daily job: clear the snooze of every card whose date has come, so it is back on its board."""
 	# church-scope: each card wakes on its own date; nothing here is shown to a user
@@ -289,7 +364,8 @@ def add_smart_list_people(workflow: str, report: str) -> list[str]:
 def close_repeated_cards(person: str) -> list[str]:
 	"""Close every open card of *person* but the oldest on each workflow, and return the closed ones.
 
-	Merging two people can leave the one kept with two open cards on one workflow.
+	Merging two people can leave the one kept with two open cards on one workflow. A card closed here
+	runs no Card Closed actions or triggers, because the card kept carries on.
 	"""
 	# church-scope: one person's cards, each closed on its own workflow
 	cards = frappe.get_all(
@@ -301,9 +377,17 @@ def close_repeated_cards(person: str) -> list[str]:
 		if card.workflow not in kept:
 			kept[card.workflow] = card.name
 			continue
-		doc = frappe.get_doc(CARD, card.name)
-		doc.status = CLOSED
-		doc.outcome = _("Closed when two people were merged. {0} carries on.").format(kept[card.workflow])
-		doc.save(ignore_permissions=True)
+		close_quietly(
+			card.name, _("Closed when two people were merged. {0} carries on.").format(kept[card.workflow])
+		)
 		closed.append(card.name)
 	return closed
+
+
+def close_quietly(card: str, outcome: str) -> None:
+	"""Close *card* with *outcome* and run no Card Closed actions or triggers, for a merged or anonymized person."""
+	doc = frappe.get_doc(CARD, card)
+	doc.status = CLOSED
+	doc.outcome = outcome
+	doc.flags.closed_quietly = True
+	doc.save(ignore_permissions=True)

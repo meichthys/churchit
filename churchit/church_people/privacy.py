@@ -48,6 +48,7 @@ from churchit.church_people.doctype.person.person import (
 	get_display_name,
 	remove_relationships_with,
 )
+from churchit.church_people.followup import CARD, OPEN, close_quietly
 from churchit.church_people.membership import INACTIVE, living_people_filter
 from churchit.church_people.person_data_map import LinkedRecord, linked_records
 from churchit.contacts import CONTACT_TABLES, UNIQUE_VALUE_FIELDS
@@ -174,7 +175,9 @@ def disable_login(user: str | None) -> None:
 def forget_records_about(person: str) -> None:
 	"""Delete the notes and connection cards about *person*, and forget the history of the others a church keeps.
 
-	Nothing is left in Deleted Documents.
+	Nothing is left in Deleted Documents. The person's open follow-up cards close without their Card Closed
+	actions or triggers, so no tag, group or new card is made for them. The follow-up actions run for the person
+	keep no error, because a failed text's error can hold the phone number and the message.
 	"""
 	# church-scope: every record about the one person being anonymized, whichever church holds it
 	for doctype, fieldname in PERSONAL_DOCTYPES:
@@ -187,9 +190,16 @@ def forget_records_about(person: str) -> None:
 				update_modified=False,
 			)
 			frappe.delete_doc(doctype, name, ignore_permissions=True, delete_permanently=True)
+	for card in frappe.get_all(CARD, filters={"person": person, "status": OPEN}, pluck="name"):
+		close_quietly(card, _("Closed when the person's personal data was removed."))
 	for doctype, fieldname in RECORDS_ABOUT_THE_PERSON:
 		for name in frappe.get_all(doctype, filters={fieldname: person}, pluck="name"):
 			forget(doctype, name)
+	cards = frappe.get_all("Follow-up Card", filters={"person": person}, pluck="name")
+	if cards:
+		frappe.db.set_value(
+			"Follow-up Action Run", {"card": ("in", cards)}, "error", None, update_modified=False
+		)
 
 
 def forget_sign_up_details(person: str, emails: set[str]) -> None:
