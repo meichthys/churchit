@@ -97,22 +97,30 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - A public calendar feed that visitors subscribe to in their phone or computer calendar, for the whole church or one published ministry, with Subscribe and Download .ics links on the Calendar page
 - Link-only functions that do not show on the calendar, the feed, the home page or the Register list, but open from their link
 - Attendance types (Confirmed, Assumed, Absent, etc.)
-- Song tracking for worship services, and a Song Usage report with CCLI numbers for CCLI reporting
+- Songs with authors, copyright, key, tempo and themes as tags, and a Song Usage report that counts displayed, printed, streamed and recorded uses to copy into CCLI
+- Song arrangements with ChordPro chord charts in any key, and slides made from the chart
+- Rehearsal charts, recordings and links on each song, which only the people serving at a function with the song can open
+- Import ChordPro and SongSelect (.usr) song files, add any of 33 public-domain hymns with chord charts and slides, and export songs as OpenLyrics (FreeShow, OpenLP, Quelea) or ChordPro
+- Service plans with song keys, arrangements, section headers and notes for the team
 - Reports: attendance by function, attendance by person, function count by type
 
 ### Ministry Teams
 - Ministry team positions (e.g. Greeter, Usher, Nursery Worker) with the people who can fill each one, and an optional background check rule
 - Team needs on each function, copied to recurring functions from their template
-- Assignments that ask one person to fill one position, with warnings for blocked dates, double booking, missing background checks and missing email addresses
-- Request and reminder emails with accept and decline links that work without signing in, and an email to the ministry's coordinator for each decline
-- A portal page where members answer their requests, see the schedule of each function they serve at, and block out the dates they cannot serve
+- Assignments that ask one person to fill one position, with warnings for blocked dates, double booking, missing background checks, the monthly limit and missing email addresses
+- Fill Open Needs: one click asks free people from each position's roster, those who served longest ago first
+- Request and reminder emails with accept and decline links that work without signing in, texts to people who agreed to get them, and an email to the ministry's coordinator for each decline
+- Volunteers who cannot come ask someone else on the team to take their place, from the portal or the request email
+- A portal page where members answer their requests, see the plan, notes and rehearsal media of each function they serve at, block out dates once or on repeat (weekly, every other week, or monthly on the same weekday), and set how many times a month they serve in each position
 - A calendar link that shows each member the functions they accepted in their phone or computer calendar
 - Email the Team on a function: one email, in BCC, to everyone asked to serve who has not declined
 - Ministry Team Schedule report: what each function needs, who is asked, and which places are still open
+- Ministry Team Grid report: several weeks of positions and functions in one grid, with a click to fill an open place
 
 ### Sermons & Presentations
 - Sermon management with slides referencing any church document
 - Presentation mode with configurable field display per slide
+- Present a song on its own or inside a sermon, one slide for each part and a last slide with the copyright and the CCLI numbers. Visitors see only public-domain songs
 - Presentation history tracking with date, presenter, and location
 - Audio/video recording support
 - Sermon handouts: fill-in-the-blank outlines started from the sermon notes, printed as bulletin inserts
