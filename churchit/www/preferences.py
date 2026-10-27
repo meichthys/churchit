@@ -6,6 +6,7 @@ from frappe import _
 
 from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL, SMS
 from churchit.church_communications.preferences import get_member_preferences
+from churchit.church_communications.push import get_public_key
 
 no_cache = 1
 
@@ -20,3 +21,4 @@ def get_context(context):
 	context.title = _("Communication Preferences")
 	context.channel_labels = {EMAIL: _("Email"), SMS: _("Text")}
 	context.update(get_member_preferences())
+	context.push_public_key = get_public_key()

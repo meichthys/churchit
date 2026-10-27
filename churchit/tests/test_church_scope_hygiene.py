@@ -69,6 +69,7 @@ GLOBAL_DOCTYPES = {
 	"belongs to one person rather than one church": {
 		"Bible Memory Item",
 		"Memory Session",
+		"Push Subscription",
 	},
 	"the church tree itself": {"Church"},
 	"virtual import targets that store nothing; the records they make take the importer's church": {

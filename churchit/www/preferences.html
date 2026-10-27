@@ -80,6 +80,22 @@
 				</tbody>
 			</table>
 		{% endif %}
+
+		{% if push_public_key %}
+			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}">
+				<h5>{{ _("Notifications on this device") }}</h5>
+				<p class="text-muted">{{ _("Let {0} show notifications on this phone or computer.").format(church_name or _("your church")) | e }}</p>
+				<button type="button" class="btn btn-primary btn-sm d-none" id="allow-notifications">{{ _("Allow notifications") }}</button>
+				<p class="d-none" id="notifications-on">
+					{{ _("Notifications are on for this device.") }}
+					<button type="button" class="btn btn-default btn-sm ml-2" id="stop-notifications">{{ _("Turn off") }}</button>
+				</p>
+				<p class="d-none" id="notifications-unsupported">{{ _("This browser cannot show notifications.") }}</p>
+				<p class="d-none" id="notifications-failed">{{ _("Notifications could not be turned on. Try again later.") }}</p>
+				<p class="d-none" id="notifications-blocked">{{ _("This browser blocks notifications from this site. Allow them in the browser's site settings.") }}</p>
+				<p class="small text-muted mt-2">{{ _("On an iPhone or iPad (iOS 16.4 or later), first add this site to the Home Screen, then open it from there.") }}</p>
+			</div>
+		{% endif %}
 	{% endif %}
 </div>
 {% endblock %}
@@ -110,6 +126,86 @@ frappe.ready(function () {
 			});
 		});
 	});
+
+	setup_push_notifications();
 });
+
+// The Allow notifications button: the browser asks for permission only after a click.
+function setup_push_notifications() {
+	var section = document.getElementById("push-notifications");
+	var supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+	if (!section) return;
+
+	var states = [
+		"allow-notifications",
+		"notifications-on",
+		"notifications-unsupported",
+		"notifications-failed",
+		"notifications-blocked",
+	];
+	function show(id) {
+		states.forEach(function (state) {
+			document.getElementById(state).classList.toggle("d-none", state !== id);
+		});
+	}
+	if (!supported) return show("notifications-unsupported");
+
+	function save(subscription) {
+		return frappe.call({
+			method: "churchit.church_communications.push.subscribe",
+			args: { subscription: JSON.stringify(subscription) },
+		});
+	}
+
+	navigator.serviceWorker.ready.then(function (registration) {
+		registration.pushManager.getSubscription().then(function (subscription) {
+			if (Notification.permission === "denied") return show("notifications-blocked");
+			if (!subscription) return show("allow-notifications");
+			show("notifications-on");
+			save(subscription);
+		});
+
+		document.getElementById("allow-notifications").addEventListener("click", function () {
+			Notification.requestPermission().then(function (permission) {
+				if (permission === "denied") return show("notifications-blocked");
+				if (permission !== "granted") return;
+				registration.pushManager
+					.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(section.dataset.publicKey) })
+					.then(save)
+					.then(function () {
+						show("notifications-on");
+					})
+					.catch(function () {
+						// A subscription the site refused is dropped, so the next visit does not send it again.
+						registration.pushManager.getSubscription().then(function (subscription) {
+							if (subscription) subscription.unsubscribe();
+						});
+						show("notifications-failed");
+					});
+			});
+		});
+
+		document.getElementById("stop-notifications").addEventListener("click", function () {
+			registration.pushManager.getSubscription().then(function (subscription) {
+				if (!subscription) return show("allow-notifications");
+				frappe.call({
+					method: "churchit.church_communications.push.unsubscribe",
+					args: { endpoint: subscription.endpoint },
+				});
+				subscription.unsubscribe().then(function () {
+					show("allow-notifications");
+				});
+			});
+		});
+	});
+}
+
+// The public key as the bytes pushManager.subscribe takes: base64url to a Uint8Array.
+function key_bytes(key) {
+	var base64 = (key + "=".repeat((4 - (key.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
+	return Uint8Array.from(atob(base64), function (character) {
+		return character.charCodeAt(0);
+	});
+}
 </script>
 {% endblock %}
