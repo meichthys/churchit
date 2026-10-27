@@ -101,3 +101,38 @@ class TestPrayerApi(FrappeTestCase):
 			execute_cmd("churchit.church_prayers.api.create_prayer")
 
 		self.assertFalse(frappe.db.exists("Prayer", {"person": self.person}))
+
+	def test_each_prayer_counts_once_and_a_deleted_prayer_drops_out(self):
+		frappe.set_user(self.user)
+		first = create_prayer(self.request.name)["name"]
+		create_prayer(self.request.name)
+		self.assertEqual(frappe.db.get_value("Prayer Request", self.request.name, "prayer_count"), 2)
+
+		frappe.set_user("Administrator")
+		frappe.delete_doc("Prayer", first)
+		self.assertEqual(frappe.db.get_value("Prayer Request", self.request.name, "prayer_count"), 1)
+
+	def test_a_member_cannot_pray_for_a_closed_or_ended_request(self):
+		ensure("Prayer Request Status", {"status": "Answered"})
+		closed, ended = (
+			frappe.get_doc(
+				{
+					"doctype": "Prayer Request",
+					"title": f"_Test {title} Request",
+					"type": self.request.type,
+					**values,
+				}
+			).insert(ignore_permissions=True)
+			for title, values in (
+				("Answered", {"status": "Answered"}),
+				("Ended", {"end_date": "2020-01-01 00:00:00"}),
+			)
+		)
+
+		frappe.set_user(self.user)
+		for name in (closed.name, ended.name):
+			request = frappe.get_doc("Prayer Request", name)
+			self.assertFalse(request.has_permission("read"))
+			self.assertFalse(request.has_webform_permission())
+			with self.assertRaises(PermissionError):
+				create_prayer(name)

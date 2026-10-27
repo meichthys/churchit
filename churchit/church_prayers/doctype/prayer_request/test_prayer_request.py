@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.client import insert, set_value
+from frappe.desk.form.save import savedocs
 from frappe.tests.utils import FrappeTestCase
 from frappe.website.doctype.web_form.web_form import accept
 
@@ -122,3 +123,37 @@ class TestPrayerRequest(FrappeTestCase):
 		self.assertEqual(
 			frappe.get_list("Prayer Request", {"name": saved.name}, pluck="status"), ["Answered"]
 		)
+
+	def test_church_staff_cannot_approve_a_request_from_the_list_edit(self):
+		"""The list's Edit action saves each document, so the permlevel 1 rule still holds there."""
+		staff = ensure_user("_test_prayer_staff_edit@example.com", "_Test Staff", roles=("Church Staff",))
+		own, other = (self._request(approved_for_list=0).name for _ in range(2))
+		frappe.db.set_value("Prayer Request", own, "owner", staff)
+
+		frappe.set_user(staff)
+		request = frappe.get_doc("Prayer Request", own)
+		request.update({"approved_for_list": 1})
+		request.save()
+		self.assertEqual(frappe.db.get_value("Prayer Request", own, "approved_for_list"), 0)
+
+		request = frappe.get_doc("Prayer Request", other)
+		request.update({"approved_for_list": 1})
+		with self.assertRaises(frappe.PermissionError):
+			request.save()
+
+	def test_a_form_opened_before_a_prayer_keeps_the_new_count(self):
+		"""recount_prayers leaves `modified` alone, so Frappe does not refuse the stale form."""
+		request = self._request()
+		opened = frappe.get_doc("Prayer Request", request.name).as_dict()
+		frappe.get_doc(
+			{
+				"doctype": "Prayer",
+				"person": make_person("_Test Stale", "Prayer").name,
+				"date": "2031-05-01 09:30:00",
+				"topics": [{"topic_type": "Prayer Request", "topic": request.name}],
+			}
+		).insert(ignore_permissions=True)
+
+		savedocs(json.dumps(opened, default=str), "Save")
+
+		self.assertEqual(frappe.db.get_value("Prayer Request", request.name, "prayer_count"), 1)

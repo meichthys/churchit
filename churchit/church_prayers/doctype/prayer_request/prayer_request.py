@@ -66,6 +66,10 @@ class PrayerRequest(Document):
 		else:
 			self.recipient_name = None
 
+		if not self.is_new():
+			# Only prayer.recount_prayers writes the count, so a form opened before a prayer cannot undo it.
+			self.prayer_count = frappe.db.get_value(self.doctype, self.name, "prayer_count", for_update=True)
+
 	def validate_public_church(self):
 		"""Keep a website request to a church the site actually offers.
 

@@ -35,7 +35,8 @@
    "in_standard_filter": 1,
    "label": "Topic",
    "options": "topic_type",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "prayer",
@@ -47,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-14 00:00:36.473877",
+ "modified": "2026-10-27 13:53:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Topic",

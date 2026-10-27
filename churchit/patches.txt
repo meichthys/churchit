@@ -112,3 +112,4 @@ churchit.patches.v1_0.add_spiritual_gifts
 churchit.patches.v1_0.fill_team_and_membership_summaries
 churchit.patches.v1_0.build_sermon_library
 churchit.patches.v1_0.add_prayer_and_alms_notifications
+churchit.patches.v1_0.count_prayers_for_requests
