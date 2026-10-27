@@ -520,6 +520,12 @@ The scan counts any `record.fieldname` attribute in a page's code, so a page tha
 whose name is also a private field of a published doctype reads it with `.get()` (the sermon
 presentation reads slide notes this way).
 
+The sermon presentation shows a Song row with no fields picked as the Song's own slides, then a
+last slide with its copyright and CCLI numbers. A viewer without Song read sees only a
+`public_domain` song (`get_public_slide`), and no title of any other song. A guest never gets a
+`/private/` background image. The license number is the sermon's church's, or the viewer's church
+(`default_church()`) when the sermon stores no church and for `?song=`, which needs Song read.
+
 The scan does not follow a method of a Single or its `self.` reads. A page that shows a field
 through such a method imports the class as the type of its document
 (`settings: GivingSettings = frappe.get_cached_doc("Giving Settings")`), and the method reads the
@@ -1206,6 +1212,84 @@ shared one (`Room.refuse_another_churches_question_set`).
 so it starts with the same filter, and both read through `get_list`. The Room Usage report scopes
 Room Booking with `scoped`, so a booking of a shared room shows for every church, as in the list.
 
+## Songs and worship planning
+
+A shared Song shares its charts and media with every church, and each church needs its own CCLI
+license, so lyrics, charts and media reach only staff, the volunteers assigned to a function with
+the song and, for a `public_domain` song, guests. Staff read Songs through `frappe.get_list` or
+`frappe.has_permission`. Portal members have no Song read: a member sees keys, arrangements, team
+notes, need notes and Song Media only through `function.get_team_schedule`, for a function where
+they have an assignment that is not Declined. It reads Function Schedule, Function Team Need and
+Song Media with literal doctypes, so the published-field scan badges them. The Bulletin calls
+`get_schedule_rows`, which carries no team details, so it never prints team notes.
+
+Song Media files are private. `songs/media.get_team_song_file` is the only way a member opens one:
+it checks the session person's own assignment (not Declined, the function ended 7 days ago or less,
+the song on its schedule), streams only a File attached to that Song with `get_content()`, and
+never hands out the private URL. `Function.validate_schedule_songs` refuses a new or changed Song
+row whose song the editor cannot read, because its media then reach this Function's team.
+
+`church_ministries/songs/chordpro.py` is the one ChordPro reader: `parse`, `transpose`, `to_html`
+and `lyrics`. The chart of a Song Arrangement is the source. Song slides are a generated copy that
+`song.make_slides` replaces. `to_html` escapes every part of a chart, because charts come from
+imports. `transpose` moves a chart only to a key of its own mode, and raises ValueError for a change
+from major to minor or back.
+
+`songs/song_files.import_song_text` is the one way to make a Song from a file. It reads ChordPro and
+SongSelect `.usr` text with the standard library only, inserts without `ignore_permissions`, makes
+the slides through `make_slides`, and skips a song that the importer's `frappe.get_list` already
+shows by CCLI number, else by title. Churchit parses no song XML: `openlyrics.py` only writes it.
+An import reads each File through `frappe.get_doc` and `check_permission("read")`, refuses a file
+over 1 MB on disk (never trust `File.file_size`, the uploader sets it), reads it as UTF-8 or
+Windows-1252, and deletes the caller's own unattached uploads after a successful import. A theme
+of a file becomes a Tag only when it matches `PLAIN_THEME`: the desk list shows tags unescaped and
+splits them on commas.
+
+`songs/hymns/` ships public-domain hymns from WorshipCommons as ChordPro files; keep its
+`LICENSE.txt`. A new hymn needs `{meta: year}` 1930 or earlier and one `{meta: died}` 1955 or
+earlier for each `{meta: author}` (every writer of the words, the tune and the verses), read from
+the source's own metadata. Leave out a hymn whose source names a setting or arranger who died after
+1955. `test_hymns` enforces the year and the deaths. Hymns go in only through
+`add_public_domain_hymns`, never in `after_install`, because the songs belong to the church.
+
+## Ministry team scheduling
+
+`church_ministries/availability.py` is the one place for scheduling problems.
+`get_problems(person, start, end, position, exclude_function)` gives the texts (blocks, repeating
+blocks too, double booking, missing checks, the monthly limit of the person's roster row), and
+`is_available` adds "not deceased". Blocks and limits only warn: a Ministry Team Assignment shows
+the texts and never refuses because of them. Code that picks people itself calls `is_available`
+and orders them with `rank`. A repeating Ministry Team Block repeats its From Date to To Date span
+with `dateutil.rrule` (`get_covered_dates`), so never filter blocks on `to_date` alone.
+`member_ministry_team.set_own_frequency` changes a member's `max_times_per_month` by saving the
+Position loaded with `for_update`, so a stale desk save fails.
+
+`church_ministries/auto_schedule.py` fills open places. For each Function it commits, then locks the
+Function with `for_update` and reads its assignments with a locking read (see "Care and child
+safety" on REPEATABLE READ), so a range fill holds one lock at a time. Before any plain read it also
+locks the roster rows of the positions the Function needs and their Person rows, in name order, so a
+fill of another Function that can ask the same people waits and then sees these requests. It counts
+Pending and Accepted against the needs and asks roster people in `rank` order who pass
+`is_available` (with no `exclude_function`, so one person fills one position of a function) and have
+no assignment of any status for that place. It inserts Pending assignments without
+`ignore_permissions`, so the church guards run, and fills only positions that are shared or of the
+church the assignment takes. The daily job sends the requests. The Ministry Team Grid report reads
+`get_needs` and `get_assignments` from the Ministry Team Schedule report, so both count open places
+the same way.
+
+A replacement request is a Ministry Team Assignment with `replaces`. Only
+`member_ministry_team.ask_replacement` makes one (`flags.is_replacement_request`):
+`validate_replacement` refuses a link set by hand, and `on_update` refuses a change of it. It locks
+the Function, then the original, takes only a person from `get_candidates` (roster people that
+`is_available` passes with no `exclude_function`, so not someone who serves at the function in
+another position, and that were not asked for that place), and allows one Pending request for each
+original. When the request is Accepted, `on_update` declines the original with "Replaced by ..." and
+the coordinator email follows, with `replaced_by` in its context. A declined request leaves the
+original as it was and does not email the coordinator. Either answer emails the original person with
+the Ministry Team Replacement Email Template. Keep the names and arguments of `answer_by_key`,
+`answer_own_assignment`, `add_own_block` and `send_team_emails`, the `/ministry-team-response` route
+(emails sent before a change link to it) and the stored statuses Pending, Accepted and Declined.
+
 ## Care and child safety
 
 `background_check.is_cleared(person, on_date, check_types)` is the one rule for "cleared to serve":
@@ -1416,6 +1500,16 @@ attendance reminder, a join request to the leaders and the decision to the perso
 subject and text are `context` values, never template source. A leader's message takes the name of
 its Comment on the Group as its key, so the same words sent twice both go out. `send` sends nothing
 for an empty list of people.
+
+Every message to volunteers goes out under the purpose Serving (`communication_purpose.SERVING`,
+which cannot be deleted). Ministry team request and reminder emails keep no consent check, because
+an email consent check for a new purpose would stop every request in a church with
+`contact_only_with_consent`, and they go only when the site can send email. Each assignment is also
+texted through `send(..., SMS, SERVING, ...)` while `TeamTexts.is_on` (`paging.can_text()`: the
+site can text and the user passes SMS Settings Allowed Roles), one commit after each text. When the
+site can text but the user cannot (`TeamTexts.is_held`), a run skips the people who allow Serving
+texts, so the daily job sends them the email and the text and no text is lost. A gateway error is
+logged and turns the texts off for the rest of the run.
 
 A sign-up reminder (`function_sign_up.send_reminders`, daily) goes through `send` with the purpose
 Event Registrations (`communication_purpose.EVENT_REGISTRATIONS`, which cannot be deleted), to the
