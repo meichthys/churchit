@@ -1,6 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
 from unittest import mock
 
 import frappe
@@ -19,6 +20,20 @@ from churchit.tests.helpers import (
 )
 
 NOTHING = {"last_served_on": None, "times_served_90d": 0}
+
+
+def make_person_list(name, filters):
+	"""A smart list: a saved Report Builder report on Person with *filters*."""
+	return frappe.get_doc(
+		{
+			"doctype": "Report",
+			"report_name": name,
+			"ref_doctype": "Person",
+			"report_type": "Report Builder",
+			"is_standard": "No",
+			"json": json.dumps({"filters": filters}),
+		}
+	).insert(ignore_permissions=True)
 
 
 def queued_people(save):

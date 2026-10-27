@@ -5,6 +5,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.utils import add_days, add_years, getdate, today
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import (
 	get_user_data,
@@ -16,6 +17,8 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 from churchit.church_communications.sending import Delivery, Recipient, get_people_sent
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.privacy import ANONYMIZED, anonymize_person, remove_due_personal_data
+from churchit.church_people.smart_lists import get_people
+from churchit.church_people.summaries.test_serving import make_person_list
 from churchit.church_people.test_merge import email, life_event, make_family, phone
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -26,6 +29,9 @@ from churchit.tests.helpers import (
 	make_primary_contact,
 	make_two_churches,
 )
+
+# Customize Form names a new field after its label, with this prefix.
+CHURCH_FIELD = "custom_test_shirt_size"
 
 
 class TestAnonymizePerson(RollbackEachTest):
@@ -270,6 +276,85 @@ class TestAnonymizePerson(RollbackEachTest):
 		anonymize_person(person.name)
 
 		self.assertFalse(frappe.db.exists("Pickup Restriction", restriction.name))
+
+
+class TestChurchFields(RollbackEachTest):
+	"""A field a System Manager adds with Customize Form under the Church Fields tab."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# Adding a column commits, so the fields are made before any test data and dropped at the end.
+		cls.addClassCleanup(remove_church_fields)
+		for doctype in ("Person", "Family"):
+			create_custom_field(
+				doctype,
+				{
+					"fieldname": CHURCH_FIELD,
+					"label": "_Test Shirt Size",
+					"insert_after": "church_fields_tab",
+					"reqd": doctype == "Person",
+				},
+				is_system_generated=False,
+			)
+
+	def test_the_field_shows_in_the_church_fields_tab(self):
+		fields = [field.fieldname for field in frappe.get_meta("Person").fields]
+		self.assertEqual(fields.index(CHURCH_FIELD), fields.index("church_fields_tab") + 1)
+
+	def test_a_smart_list_filters_on_the_field(self):
+		smart_list = make_person_list("_Test Smart Shirts", [["Person", CHURCH_FIELD, "=", "_Test Large"]])
+		large = make_person("_Test Shirt", "Large", **{CHURCH_FIELD: "_Test Large"})
+		make_person("_Test Shirt", "Small", **{CHURCH_FIELD: "_Test Small"})
+
+		self.assertEqual(get_people(smart_list.name, None), [large.name])
+
+	def test_anonymizing_clears_the_field_on_the_person_and_their_empty_family(self):
+		person = make_person("_Test Shirt", "Hidden", **{CHURCH_FIELD: "_Test Large"})
+		family = make_family("_Test Shirt Household", person, **{CHURCH_FIELD: "_Test Blue"})
+
+		anonymize_person(person.name)
+
+		self.assertIsNone(frappe.db.get_value("Person", person.name, CHURCH_FIELD))
+		self.assertIsNone(frappe.db.get_value("Family", family.name, CHURCH_FIELD))
+
+	def test_anonymizing_keeps_a_workflow_state_in_a_church_field(self):
+		"""A blank state sends the person back to the first state, a transition the workflow does not allow."""
+		states = [
+			ensure("Workflow State", {"workflow_state_name": name}) for name in ("_Test New", "_Test Seen")
+		]
+		frappe.get_doc(
+			{
+				"doctype": "Workflow",
+				"workflow_name": "_Test Person Review",
+				"document_type": "Person",
+				"workflow_state_field": CHURCH_FIELD,
+				"is_active": 1,
+				"states": [{"state": state, "allow_edit": "System Manager"} for state in states],
+				"transitions": [
+					{
+						"state": states[0],
+						"action": ensure("Workflow Action Master", {"workflow_action_name": "_Test See"}),
+						"next_state": states[1],
+						"allowed": "System Manager",
+					}
+				],
+			}
+		).insert(ignore_permissions=True)
+		person = make_person("_Test Shirt", "Reviewed", **{CHURCH_FIELD: states[0]})
+		frappe.db.set_value("Person", person.name, CHURCH_FIELD, states[1])
+
+		anonymize_person(person.name)
+
+		self.assertEqual(frappe.db.get_value("Person", person.name, CHURCH_FIELD), states[1])
+		self.assertEqual(frappe.db.get_value("Person", person.name, "first_name"), ANONYMIZED)
+
+
+def remove_church_fields():
+	for doctype in ("Person", "Family"):
+		frappe.delete_doc("Custom Field", f"{doctype}-{CHURCH_FIELD}", ignore_permissions=True)
+		frappe.db.sql_ddl(f"alter table `tab{doctype}` drop column if exists `{CHURCH_FIELD}`")
+		frappe.clear_cache(doctype=doctype)
 
 
 class TestPersonalDataRequests(RollbackEachTest):

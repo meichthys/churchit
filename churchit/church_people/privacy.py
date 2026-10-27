@@ -4,10 +4,12 @@
 """Remove a person's personal data and keep their record, so their giving and attendance still count.
 
 `anonymize` names the person Anonymized and clears what says who they are: names, contact details, letters,
-photo, medical notes, anniversary, the login and the IDs of an import. The login is disabled too, so signing
-in cannot add the person again. The person leaves their family and their spouse, because named relatives would
-say who they are. A family left with no one in it is anonymized too, since its name and contact details were
-the person's; a family that keeps members loses the person's first name from its name.
+photo, medical notes, anniversary, the login and the IDs of an import. It also clears the church fields a
+System Manager added with Customize Form, on the person and on an anonymized family, because Churchit cannot
+tell which of them are personal. The login is disabled too, so signing in cannot add the person again. The
+person leaves their family and their spouse because named relatives would say who they are. A family left with
+no one in it is anonymized too, since its name and contact details were the person's; a family that keeps
+members loses the person's first name from its name.
 
 A Birth life event goes, because a birth date identifies a person. The other life events keep their type and
 date, so the number of baptisms or new members in a year stays right, and lose their location and notes.
@@ -33,8 +35,10 @@ from collections.abc import Iterable
 import frappe
 from frappe import _
 from frappe.core.doctype.comment.comment import update_comments_in_parent
+from frappe.model import no_value_fields, table_fields
 from frappe.model.delete_doc import get_linked_docs
 from frappe.model.document import Document
+from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.query_builder.functions import Coalesce, Lower
 
 from churchit.church_people.derived import BIRTH
@@ -269,6 +273,24 @@ def strip_person(doc: Document) -> None:
 		row.update({"location": None, "notes": None})
 	for row in doc.positions:
 		row.notes = None
+	blank_church_fields(doc)
+
+
+def blank_church_fields(doc: Document) -> None:
+	"""Clear each field added with Customize Form, mandatory ones too, since any of them may be personal.
+
+	A workflow's state field stays: a blank state is a move back to the first state, which the workflow refuses.
+	"""
+	workflow = get_workflow_name(doc.doctype)
+	state_field = workflow and get_workflow_state_field(workflow)
+	for field in doc.meta.get_custom_fields():
+		if field.fieldname == state_field:
+			continue
+		if field.fieldtype in table_fields:
+			doc.set(field.fieldname, [])
+		elif field.fieldtype not in no_value_fields:
+			doc.set(field.fieldname, None)
+	doc.flags.ignore_mandatory = True
 
 
 def leave_family(family: str, first_name: str) -> None:
@@ -291,6 +313,7 @@ def anonymize_family(family: str) -> None:
 	doc.update({"family_name": ANONYMIZED, "photo": None, "legacy_system": None, "legacy_id": None})
 	for fieldname, *_rest in CONTACT_TABLES:
 		doc.set(fieldname, [])
+	blank_church_fields(doc)
 	doc.save(ignore_permissions=True)
 	forget(doc.doctype, doc.name, addresses)
 
