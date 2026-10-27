@@ -7,7 +7,7 @@ import frappe
 from frappe.handler import execute_cmd
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
+from churchit.church_study.doctype.sermon_handout.sermon_handout import fillable_content, make_handout
 
 
 class TestSermonHandout(FrappeTestCase):
@@ -25,6 +25,14 @@ class TestSermonHandout(FrappeTestCase):
 		self.assertNotIn("faith in Christ", rendered)
 		self.assertEqual(rendered.count('class="blank"'), 2)
 		self.assertIn("min-width:12em", rendered)
+
+	def test_bracketed_phrases_become_inputs_without_the_answers(self):
+		fillable = fillable_content("<p>By [grace] through [faith in Christ], not [works].</p>")
+		self.assertEqual(fillable.count("<input"), 3)
+		self.assertIn('data-blank="3"', fillable)
+		for answer in ("grace", "faith in Christ", "works"):
+			self.assertNotIn(answer, fillable)
+		self.assertIn("not ", fillable)
 
 	def test_make_handout_copies_the_sermon_notes_and_links_back(self):
 		sermon = frappe.get_doc(

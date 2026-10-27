@@ -5,6 +5,7 @@ import frappe
 from frappe.utils.html_utils import sanitize_html
 
 from churchit.church_scope import is_multi_church
+from churchit.church_study.doctype.sermon_handout.sermon_handout import fillable_content
 from churchit.church_study.media import get_embed_url
 
 no_cache = 1
@@ -26,7 +27,12 @@ def get_context(context):
 	context.series = sermon.series and frappe.db.get_value(
 		"Sermon Series", {"name": sermon.series, "publish": 1}, ["series_name", "image"], as_dict=True
 	)
-	context.notes = sanitize_html(sermon.get("notes") or "", always_sanitize=True)
+	content = sermon.handout and frappe.db.get_value("Sermon Handout", sermon.handout, "content")
+	# The handout replaces the notes: Make Handout copies them, and their [bracketed] words are its answer key.
+	if content:
+		context.handout = fillable_content(sanitize_html(content, always_sanitize=True))
+	else:
+		context.notes = sanitize_html(sermon.get("notes") or "", always_sanitize=True)
 
 
 def get_published_sermon(name: str | None) -> frappe._dict:
@@ -45,6 +51,7 @@ def get_published_sermon(name: str | None) -> frappe._dict:
 			"audio_recording",
 			"media_url",
 			"notes",
+			"handout",
 		],
 		as_dict=True,
 	)

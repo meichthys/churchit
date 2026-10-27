@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.utils import getdate
 
+from churchit.church_scope import refuse_another_churches_record
 from churchit.scripture import format_reference
 from churchit.utils import validate_https_url
 
@@ -20,6 +21,9 @@ class Sermon(Document):
 		self.scripture = format_reference(self.scripture)
 		if self.media_url and self.has_value_changed("media_url"):
 			self.media_url = validate_https_url(self.media_url, "Video Link")
+		# The sermon page shows the handout to anyone, so it must be this church's or a shared one.
+		if any(self.has_value_changed(field) for field in ("handout", "church", "is_shared")):
+			refuse_another_churches_record(self, "Sermon Handout", self.handout)
 
 		for slide in self.slides:
 			slide.scripture = format_reference(slide.scripture)

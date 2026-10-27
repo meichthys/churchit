@@ -7,10 +7,13 @@ import frappe
 from frappe.utils import set_request
 from frappe.website.serve import get_response
 
+from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
 from churchit.church_website.published_fields import PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import build_sermon_library
 from churchit.tests.helpers import RollbackEachTest, force_single_church, make_two_churches
+
+HANDOUT = "<p>God so loved the [world] that he gave his [only Son], so that we [believe].</p>"
 
 
 def make_sermon(title, **values):
@@ -111,11 +114,70 @@ class TestSermonPage(RollbackEachTest):
 			("Sermon", "scripture"),
 			("Sermon", "media_url"),
 			("Sermon", "notes"),
+			("Sermon Handout", "content"),
 		):
 			with self.subTest(field=f"{doctype}.{fieldname}"):
 				sources = published[doctype][fieldname]
 				self.assertIn(("sermon", PUBLIC), {(s["route"], s["access"]) for s in sources})
 		self.assertNotIn("notes", published.get("Sermon Presentation", {}))
+
+
+class TestListenerNotes(RollbackEachTest):
+	"""The handout becomes a fill-in outline that stays in the listener's browser."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		force_single_church()
+
+	def tearDown(self):
+		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
+
+	def test_each_blank_becomes_an_input_and_the_answers_stay_hidden(self):
+		handout = frappe.get_doc(
+			{"doctype": "Sermon Handout", "title": "_Test Listener Handout", "content": HANDOUT}
+		).insert(ignore_permissions=True)
+		sermon = make_sermon("_Test Listener Sermon", handout=handout.name)
+
+		html = serve_sermon(sermon.name).get_data(as_text=True)
+		self.assertEqual(html.count('class="handout-blank"'), 3)
+		self.assertIn("data-sermon-notes", html)
+		for answer in ("[world]", "only Son", "[believe]"):
+			self.assertNotIn(answer, html)
+
+	def test_a_handout_made_from_the_notes_keeps_its_answers_hidden(self):
+		sermon = make_sermon("_Test Made Handout Sermon", notes=HANDOUT)
+		make_handout(sermon.name)
+
+		html = serve_sermon(sermon.name).get_data(as_text=True)
+		self.assertEqual(html.count('class="handout-blank"'), 3)
+		for answer in ("world", "only Son", "believe"):
+			self.assertNotIn(answer, html)
+
+	def test_a_sermon_without_a_handout_has_no_notes_box(self):
+		sermon = make_sermon("_Test No Handout Sermon")
+
+		html = serve_sermon(sermon.name).get_data(as_text=True)
+		self.assertNotIn("data-sermon-notes", html)
+		self.assertNotIn('class="handout-blank"', html)
+
+	def test_rendering_the_notes_writes_nothing_and_posts_nothing(self):
+		handout = frappe.get_doc(
+			{"doctype": "Sermon Handout", "title": "_Test Quiet Handout", "content": HANDOUT}
+		).insert(ignore_permissions=True)
+		sermon = make_sermon("_Test Quiet Sermon", handout=handout.name)
+		writes = frappe.db.transaction_writes
+
+		html = serve_sermon(sermon.name).get_data(as_text=True)
+		self.assertEqual(frappe.db.transaction_writes, writes)
+		section = html[html.index('<section class="listener-notes"') : html.index("</section>")]
+		key = html.index("churchit:sermon-notes:")
+		script = html[html.rindex("<script>", 0, key) : html.index("</script>", key)]
+		self.assertNotIn("<form", section)
+		for call in ("frappe.call", "frappe.xcall", "fetch(", "XMLHttpRequest", "sendBeacon", "$.ajax"):
+			self.assertNotIn(call, script)
+		self.assertIn("localStorage.setItem", script)
 
 
 class TestSermonPageChurches(RollbackEachTest):
@@ -139,6 +201,20 @@ class TestSermonPageChurches(RollbackEachTest):
 
 		self.assertEqual(serve_sermon(hidden.name).status_code, 404)
 		self.assertEqual(serve_sermon(shown.name, church=self.other_church).status_code, 200)
+
+	def test_a_sermon_shows_only_a_handout_of_its_own_church_or_a_shared_one(self):
+		def handout(title, **values):
+			return frappe.get_doc(
+				{"doctype": "Sermon Handout", "title": title, "content": HANDOUT, **values}
+			).insert(ignore_permissions=True)
+
+		theirs = handout("_Test Their Handout", church=self.other_church)
+		shared = handout("_Test Shared Handout", church=self.other_church, is_shared=1)
+		with self.assertRaises(frappe.PermissionError):
+			make_sermon("_Test Borrowing Sermon", church=self.church, handout=theirs.name)
+
+		sermon = make_sermon("_Test Sharing Sermon", church=self.church, handout=shared.name)
+		self.assertEqual(sermon.handout, shared.name)
 
 	def test_a_shared_sermon_opens_from_any_church(self):
 		shared = make_sermon("_Test Shared Page Sermon", church=self.other_church, is_shared=1)
