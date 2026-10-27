@@ -92,9 +92,10 @@ def web_page_sources():
 	for page in frappe.get_all(
 		"Web Page",
 		filters={"published": 1, "dynamic_template": 1},
-		fields=["name", "title", "route", "main_section_html"],
+		fields=["name", "title", "route", "main_section_html", "members_only"],
 	):
-		source = {"title": page.title or page.name, "route": page.route or page.name, "access": PUBLIC}
+		access = MEMBERS if page.members_only else PUBLIC
+		source = {"title": page.title or page.name, "route": page.route or page.name, "access": access}
 		yield source, page.main_section_html or ""
 
 

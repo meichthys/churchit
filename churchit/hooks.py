@@ -134,6 +134,12 @@ website_redirects = [
 # One page per published sermon. A sermon name can hold a slash.
 website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
 
+# Members-only Web Pages send guests to the login page before Frappe's page cache runs.
+page_renderer = ["churchit.church_website.pages.MembersOnlyPage"]
+
+# A members-only Web Page stays out of guest search.
+extend_doctype_class = {"Web Page": ["churchit.church_website.pages.MembersOnlyWebPage"]}
+
 # website user home page (by Role)
 # role_home_page = {
 # 	"Role": "home_page"
@@ -407,6 +413,9 @@ override_whitelisted_methods = {
 	"frappe.website.doctype.web_form.web_form.accept": "frappe.website.doctype.web_form.web_form.accept",
 	"frappe.desk.notifications.get_open_count": "churchit.connections.get_open_count",
 	"frappe.core.doctype.data_import.data_import.download_template": "churchit.exports.download_template",
+	# Frappe's portal list API lists every published Web Page to any signed-in user; this one leaves
+	# out members-only pages for a non-member.
+	"frappe.www.list.get_list_data": "churchit.church_website.pages.get_list_data",
 }
 
 # A Person Link field also finds people by phone number or email address.
