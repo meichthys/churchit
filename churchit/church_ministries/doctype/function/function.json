@@ -236,7 +236,7 @@
   },
   {
    "default": "0",
-   "description": "The service was streamed live. Song Usage counts its songs for CCLI.",
+   "description": "The service is streamed live. The website calendar shows a Watch live link during it, and Song Usage counts its songs for CCLI.",
    "fieldname": "streamed",
    "fieldtype": "Check",
    "label": "Streamed"
@@ -631,7 +631,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-26 22:54:42.000000",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

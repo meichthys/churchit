@@ -4,11 +4,12 @@
 import re
 from datetime import timedelta
 from html import escape
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, add_months, getdate, set_request
+from frappe.utils import add_days, add_months, get_datetime, getdate, set_request
 from frappe.website.serve import get_response
 
 from churchit.church_website.published_fields import PUBLIC, published_field_map
@@ -389,3 +390,93 @@ class TestCalendarMeetingLink(RollbackEachTest):
 		)
 		self.assertEqual(events_today()[online.name]["meeting_url"], "https://meet.example.org/abc")
 		self.assertEqual(calendar_badge("Function", "meeting_url"), [PUBLIC])
+
+
+class TestCalendarWatchLive(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		force_single_church()
+		self.church = ensure_root_church()
+		frappe.db.set_value(
+			"Church", self.church, "live_stream_url", "https://stream.example.org/embed/video"
+		)
+		self.day = add_days(getdate(), 2)
+
+	def live_url_at(self, function, clock):
+		with patch("churchit.www.calendar.now_datetime", return_value=get_datetime(f"{self.day} {clock}")):
+			return {event["id"]: event for event in get_events(self.day, self.day)}[function.name]["live_url"]
+
+	def service(self, name, **values):
+		values = {"start_time": "10:00:00", "end_time": "11:00:00", "streamed": 1, **values}
+		return make_function(name, start_date=self.day, publish=1, **values)
+
+	def test_a_streamed_function_links_to_live_from_15_minutes_before_until_it_ends(self):
+		service = self.service("_Test Calendar Streamed")
+
+		for clock in ("09:45:00", "10:30:00", "11:00:00"):
+			self.assertEqual(self.live_url_at(service, clock), f"/live?{urlencode({'church': self.church})}")
+		for clock in ("09:44:59", "11:00:01"):
+			self.assertIsNone(self.live_url_at(service, clock), clock)
+
+	def test_an_all_day_streamed_function_is_live_all_day(self):
+		retreat = self.service("_Test Calendar Streamed Retreat", all_day=1)
+
+		self.assertIsNotNone(self.live_url_at(retreat, "00:00:00"))
+		self.assertIsNotNone(self.live_url_at(retreat, "23:59:59"))
+
+	def test_no_link_when_not_streamed_or_the_church_has_no_stream(self):
+		unstreamed = self.service("_Test Calendar Not Streamed", streamed=0)
+		self.assertIsNone(self.live_url_at(unstreamed, "10:30:00"))
+
+		streamed = self.service("_Test Calendar Streamed Without Link")
+		frappe.db.set_value("Church", self.church, "live_stream_url", None)
+		self.assertIsNone(self.live_url_at(streamed, "10:30:00"))
+
+	def test_streamed_carries_the_public_badge(self):
+		self.assertEqual(calendar_badge("Function", "streamed"), [PUBLIC])
+
+
+class TestCalendarWatchLiveOfBranches(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+		for church in (cls.root, cls.branch_a, cls.branch_b):
+			frappe.db.set_value("Church", church, {"publish": 1, "live_stream_url": None})
+		frappe.db.set_value("Church", cls.branch_a, "live_stream_url", "https://a.example.org/embed/video")
+
+	def setUp(self):
+		super().setUp()
+		frappe.local.form_dict = frappe._dict(church=self.root)
+
+	def tearDown(self):
+		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
+
+	def test_each_function_links_to_its_own_churchs_stream(self):
+		day = add_days(getdate(), 2)
+		values = {
+			"start_date": day,
+			"start_time": "10:00:00",
+			"end_time": "11:00:00",
+			"streamed": 1,
+			"publish": 1,
+		}
+		of_a = make_function("_Test Calendar Streamed At A", church=self.branch_a, **values)
+		of_b = make_function("_Test Calendar Streamed At B", church=self.branch_b, **values)
+
+		with patch("churchit.www.calendar.now_datetime", return_value=get_datetime(f"{day} 10:30:00")):
+			events = {event["id"]: event for event in get_events(day, day, include_branches="1")}
+		self.assertEqual(events[of_a.name]["live_url"], f"/live?{urlencode({'church': self.branch_a})}")
+		self.assertIsNone(events[of_b.name]["live_url"])
+
+	def test_a_shared_function_opened_by_its_link_uses_the_pages_church(self):
+		day = getdate()
+		shared = make_function(
+			"_Test Calendar Streamed Shared", start_date=day, all_day=1, streamed=1, publish=1, is_shared=1
+		)
+		frappe.db.set_value("Function", shared.name, "church", "")
+
+		event = request_feed(self, get_event, name=shared.name, church=self.branch_a)
+		self.assertEqual(event["live_url"], f"/live?{urlencode({'church': self.branch_a})}")

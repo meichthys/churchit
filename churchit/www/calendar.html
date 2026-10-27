@@ -16,6 +16,8 @@
 		--fc-list-event-hover-bg-color: var(--subtle-fg);
 	}
 	#church-calendar .fc-event { cursor: pointer; }
+	/* the view buttons wrap on a phone instead of widening the page */
+	#church-calendar .fc-header-toolbar { flex-wrap: wrap; gap: 8px; }
 	/* day numbers and event titles are links; follow the page text, not bootstrap's link colour */
 	#church-calendar .fc a { color: inherit; }
 	.event-modal-overlay {
@@ -167,6 +169,9 @@
 		if (details.meeting_url && /^https:\/\//i.test(details.meeting_url)) {
 			html.push('<p>' + link(details.meeting_url, 'Join online', 'btn btn-primary btn-sm') + '</p>');
 		}
+		if (details.live_url) {
+			html.push('<p>' + link(details.live_url, 'Watch live', 'btn btn-primary btn-sm') + '</p>');
+		}
 		if (details.description) {
 			html.push('<p><span class="label">Details:</span><br>' + escapeHtml(details.description).replace(/\n/g, '<br>') + '</p>');
 		}
@@ -195,7 +200,7 @@
 		frappe.call({
 			method: 'churchit.www.calendar.get_event',
 			type: 'GET',
-			args: { name: name }
+			args: churchit.with_church({ name: name })
 		}).then(function (r) {
 			var found = r.message;
 			if (!found) return;

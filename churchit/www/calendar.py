@@ -1,14 +1,14 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from datetime import date
+from datetime import date, datetime, time, timedelta
 from urllib.parse import urlencode
 
 import frappe
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_months, flt, get_time, get_url, getdate, sbool
+from frappe.utils import add_months, flt, get_time, get_url, getdate, now_datetime, sbool
 
-from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_foundations.doctype.church.church import inherited_value, selected_church_name
 from churchit.church_scope import church_filters, is_multi_church
 from churchit.church_website.footer import map_url
 
@@ -29,7 +29,11 @@ EVENT_FIELDS = [
 	"type",
 	"church",
 	"meeting_url",
+	"streamed",
 ]
+
+# A streamed Function shows Watch live from this long before it starts.
+LIVE_LEAD_TIME = timedelta(minutes=15)
 
 
 def get_context(context):
@@ -115,7 +119,7 @@ def get_published_branches(church: str | None) -> list[str]:
 def as_events(rows: list[dict]) -> list[dict]:
 	"""*rows* of Function as FullCalendar events, with their rooms, place and church."""
 	rooms = get_rooms(rows)
-	addresses, coordinates = {}, {}
+	addresses, coordinates, streams = {}, {}, {}
 	events = []
 	for r in rows:
 		address = _format_address(r.address, addresses)
@@ -133,10 +137,34 @@ def as_events(rows: list[dict]) -> list[dict]:
 				"rooms": rooms.get(r.name, []),
 				"church_name": r.church and frappe.get_cached_value("Church", r.church, "church_name"),
 				"meeting_url": r.meeting_url,
+				"live_url": get_live_url(r, streams),
 				"description": r.description,
 			}
 		)
 	return events
+
+
+def get_live_url(function: dict, streams: dict) -> str | None:
+	"""The /live link of a streamed *function* while it is live, if its church has a live stream link.
+
+	A Function with no church uses the selected church's stream. *streams* caches each church's link.
+	"""
+	if not function.streamed or not is_live(function, now_datetime()):
+		return None
+	church = function.church or selected_church_name()
+	if church not in streams:
+		streams[church] = church and inherited_value(church, "live_stream_url")
+	return f"/live?{urlencode({'church': church})}" if streams[church] else None
+
+
+def is_live(function: dict, now: datetime) -> bool:
+	"""Whether *now* is between 15 minutes before *function* starts and the moment it ends."""
+	timed = not function.all_day
+	start_time = get_time(function.start_time) if timed and function.start_time else time.min
+	end_time = get_time(function.end_time) if timed and function.end_time else time.max
+	start = datetime.combine(getdate(function.start_date), start_time)
+	end = datetime.combine(getdate(function.end_date or function.start_date), end_time)
+	return start - LIVE_LEAD_TIME <= now <= end
 
 
 def get_rooms(functions: list[dict]) -> dict[str, list[str]]:

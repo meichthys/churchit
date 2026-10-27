@@ -25,6 +25,7 @@
   "phone",
   "email",
   "website",
+  "live_stream_url",
   "mission_statement",
   "church_verse",
   "default_bible_translation",
@@ -118,6 +119,13 @@
    "options": "URL"
   },
   {
+   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube, Let's Church, PeerTube or Owncast player link plays on the page, and any other link opens directly. A branch without one uses its parent church's link.",
+   "fieldname": "live_stream_url",
+   "fieldtype": "Data",
+   "label": "Live Stream Link",
+   "options": "URL"
+  },
+  {
    "description": "The translation verses are printed in on bulletins and slides, and the one the Bible reader opens first. Branch churches without their own use this one.",
    "fieldname": "default_bible_translation",
    "fieldtype": "Link",
@@ -208,7 +216,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-26 22:54:42.000000",
+ "modified": "2026-10-27 13:53:00.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
