@@ -187,6 +187,24 @@ class TestPublishedFields(FrappeTestCase):
 		self.assertEqual(access["household"], MEMBERS)
 		self.assertEqual(access["directory"], MEMBERS)
 
+	def test_fields_shown_on_a_song_slide(self):
+		published = published_field_map()
+		for doctype, fieldname in (
+			("Song", "title"),
+			("Song", "copyright"),
+			("Song", "ccli"),
+			("Slide", "content"),
+			("Slide", "background_image"),
+			("Church", "ccli_license_number"),
+		):
+			self.assertIn(
+				{"title": "Sermon Presentation", "route": "sermon-presentation", "access": PUBLIC},
+				published[doctype][fieldname],
+				(doctype, fieldname),
+			)
+		for fieldname in ("arrangements", "media"):
+			self.assertNotIn("sermon-presentation", routes(published, "Song", fieldname), fieldname)
+
 	def test_fields_shown_on_my_household(self):
 		published = published_field_map()
 		for doctype, fieldname in (

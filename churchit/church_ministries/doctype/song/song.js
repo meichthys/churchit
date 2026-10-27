@@ -6,6 +6,7 @@ frappe.ui.form.on("Song", {
 		if (frm.is_new()) return;
 		add_chord_chart_button(frm);
 		add_make_slides_button(frm);
+		add_present_button(frm);
 	},
 });
 
@@ -117,4 +118,10 @@ function as_option(name) {
 
 function get_charted_arrangements(frm) {
 	return (frm.doc.arrangements || []).filter((row) => row.chordpro);
+}
+
+function add_present_button(frm) {
+	frm.add_custom_button(__("Present"), () => {
+		window.open(`/sermon_presentation?song=${encodeURIComponent(frm.doc.name)}`, "_blank");
+	});
 }

@@ -7,6 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import escape_html
 
+from churchit.church_scope import default_church
 from churchit.scripture import get_default_translation, get_passage, is_readable
 
 # Disable caching for sermon presentation page to ensure users always see up-to-date content
@@ -91,7 +92,7 @@ def scripture_slide(reference, translation):
 
 
 def get_public_slide(slide_type, name) -> dict | None:
-	"""The fields `/beliefs` and `/missions` show of a published Belief or Missionary, for any viewer."""
+	"""The fields `/beliefs` and `/missions` show of a published Belief or Missionary, and a public domain Song, for any viewer."""
 	if slide_type == "Belief":
 		return frappe.db.get_value(
 			"Belief",
@@ -106,11 +107,53 @@ def get_public_slide(slide_type, name) -> dict | None:
 			["title", "agency", "country", "photo", "website"],
 			as_dict=True,
 		)
+	if slide_type == "Song":
+		song = frappe.db.get_value(
+			"Song", {"name": name, "public_domain": 1}, ["title", "copyright", "ccli"], as_dict=True
+		)
+		if song:
+			# church-scope: the slides of the one public domain Song read above.
+			song["slides"] = frappe.get_all(
+				"Slide",
+				filters={"parenttype": "Song", "parent": name},
+				fields=["content", "background_image"],
+				order_by="idx",
+			)
+			for slide in song["slides"]:
+				# A guest cannot open a private file, and its name is not public.
+				if (slide.background_image or "").startswith("/private/"):
+					slide.background_image = None
+		return song
 	return None
 
 
-def record_slide(row):
-	"""A record slide's title and content: the whole record to a reader of it, else only its public fields."""
+def song_slides(song, church) -> list[dict]:
+	"""One slide for each of a Song's slides, then its copyright with the CCLI numbers of *church*."""
+	slides = [
+		{
+			"title": "",
+			"content": slide.get("content") or "",
+			"background_image": slide.get("background_image"),
+		}
+		for slide in song.get("slides")
+	]
+	credits = []
+	if song.get("copyright"):
+		credits.append(f"<p>{escape_html(song.get('copyright'))}</p>")
+	if song.get("ccli"):
+		license_number = frappe.db.get_value("Church", church, "ccli_license_number") if church else None
+		line = _("CCLI Song # {0}").format(song.get("ccli"))
+		if license_number:
+			line = _("CCLI Song # {0}, CCLI License # {1}").format(song.get("ccli"), license_number)
+		credits.append(f"<p>{escape_html(line)}</p>")
+	return [*slides, {"title": escape_html(song.get("title")), "content": "".join(credits)}]
+
+
+def record_slides(row, church) -> list[dict]:
+	"""A record's slides: the whole record to a reader of it, else only its public fields.
+
+	A Song with no fields picked shows its own slides.
+	"""
 	record = None
 	if frappe.db.exists(row.slide_type, row.slide):
 		record = frappe.get_doc(row.slide_type, row.slide)
@@ -119,18 +162,33 @@ def record_slide(row):
 		else:
 			record = get_public_slide(row.slide_type, row.slide)
 	if not record:
-		return {"title": "", "content": f"<p>{_('This slide is not public')}</p>"}
+		return [{"title": "", "content": f"<p>{_('This slide is not public')}</p>"}]
 
 	field_configs = _parse_display_fields(row.display_fields)
-	if not field_configs:
-		return {"title": record.get_title() if isinstance(record, Document) else record.title, "content": ""}
-	title, content = _build_content_from_selected_fields(
-		record, frappe.get_meta(row.slide_type), field_configs
-	)
-	return {"title": title or row.slide, "content": content}
+	if field_configs:
+		title, content = _build_content_from_selected_fields(
+			record, frappe.get_meta(row.slide_type), field_configs
+		)
+		return [{"title": title or row.slide, "content": content}]
+	if row.slide_type == "Song":
+		return song_slides(record, church)
+	return [{"title": record.get_title() if isinstance(record, Document) else record.title, "content": ""}]
 
 
 def get_context(context):
+	context.no_header = 1
+	context.no_sidebar = 1
+	context.no_breadcrumbs = 1
+
+	if frappe.form_dict.get("song"):
+		song = frappe.get_doc("Song", frappe.form_dict.get("song"))
+		frappe.has_permission("Song", "read", doc=song, throw=True)
+		song.apply_fieldlevel_read_permissions()
+		context.sermon_title = escape_html(song.title)
+		context.prepared_by = escape_html(song.authors or "")
+		context.slides = song_slides(song, default_church())
+		return
+
 	name = frappe.form_dict.get("name")
 	if not name:
 		frappe.throw(_("Please specify a sermon name"), frappe.exceptions.ValidationError)
@@ -139,6 +197,9 @@ def get_context(context):
 	if not sermon.publish and not frappe.has_permission("Sermon", doc=sermon):
 		frappe.throw(_("This sermon is not available."), frappe.PermissionError)
 
+	# get(): the published-field scan would read church as a field of every slide doctype.
+	# A shared sermon, and every record on a single-church site, stores no church.
+	church = sermon.get("church") or default_church()
 	slides = []
 	for row in sermon.get("slides", []):
 		# get(): the published-field scan reads an attribute named notes as Missionary notes.
@@ -146,7 +207,9 @@ def get_context(context):
 		if row.scripture:
 			slides.append({**slide_data, **scripture_slide(row.scripture, row.translation)})
 		else:
-			slides.append({**slide_data, **record_slide(row)})
+			first, *rest = record_slides(row, church)
+			slides.append({**slide_data, **first})
+			slides.extend({**slide_data, "notes": "", **slide} for slide in rest)
 
 	prepared_by_name = ""
 	if sermon.prepared_by:
@@ -155,6 +218,3 @@ def get_context(context):
 	context.sermon_title = sermon.title or sermon.name
 	context.prepared_by = prepared_by_name
 	context.slides = slides
-	context.no_header = 1
-	context.no_sidebar = 1
-	context.no_breadcrumbs = 1
