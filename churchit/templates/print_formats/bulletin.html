@@ -121,11 +121,11 @@
 
     <div class="bulletin-panel right">
       {%- if church_image %}
-      <div class="church-image"><img src="{{ church_image }}"></div>
+      <div class="church-image"><img src="{{ church_image | e }}"></div>
       {%- endif %}
       <div class="church-name">{{ contact.name | e }}</div>
       {%- if doc.cover_image %}
-      <div class="cover-image"><img src="{{ doc.cover_image }}"></div>
+      <div class="cover-image"><img src="{{ doc.cover_image | e }}"></div>
       {%- endif %}
       <h1 class="cover-title">{{ doc.function_name | e }}</h1>
       <div class="cover-date">{{ frappe.utils.formatdate(doc.function_date, "EEEE, MMMM d, yyyy") }}</div>
@@ -200,7 +200,7 @@
       {%- if missionary %}
       {{ section(_("Missionary of the Week")) }}
       <div class="missionary">
-        {%- if missionary.photo %}<img src="{{ missionary.photo }}">{% endif %}
+        {%- if missionary.photo %}<img src="{{ missionary.photo | e }}">{% endif %}
         <div class="entry-title">{{ missionary.title | e }}</div>
         {%- if missionary.where %}<div class="entry-detail">{{ missionary.where | e }}</div>{% endif %}
         {%- if missionary.mission_statement %}<p>{{ missionary.mission_statement | e }}</p>{% endif %}

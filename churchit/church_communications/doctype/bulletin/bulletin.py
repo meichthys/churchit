@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.utils import extract_images_from_doc
 from frappe.model.document import Document
 from frappe.utils import formatdate, getdate
 from frappe.utils.print_format import download_pdf as download_print_pdf
@@ -10,7 +11,7 @@ from frappe.utils.print_format import download_pdf as download_print_pdf
 from churchit.church_communications.doctype.bulletin.sections import BulletinSections
 from churchit.church_missions.doctype.missionary_status.missionary_status import INACTIVE
 from churchit.church_prayers.prayer_access import WHOLE_CHURCH, get_open_request_filters
-from churchit.church_scope import church_filters, refuse_another_churches_parent
+from churchit.church_scope import church_filters, has_church_access, refuse_another_churches_parent
 from churchit.scripture import format_reference
 
 PRINT_FORMAT = "Bulletin"
@@ -40,6 +41,7 @@ class Bulletin(BulletinSections, Document):
 		self.verse = format_reference(self.verse)
 		self.validate_missionary_is_printable()
 		self.validate_prayer_requests_are_printable()
+		self.validate_shared_announcements()
 
 	def validate_missionary_is_printable(self):
 		if not self.missionary or self.settings.include_sensitive_missionaries:
@@ -70,9 +72,28 @@ class Bulletin(BulletinSections, Document):
 					)
 				)
 
+	def validate_shared_announcements(self):
+		"""Keep shared announcements public: pasted images become public files, and a private file is refused."""
+		if not self.share_announcements:
+			return
+
+		extract_images_from_doc(self, "announcements", is_private=False)
+		if "/private/files/" in (self.announcements or ""):
+			frappe.throw(
+				_(
+					"The announcements link to a private file, which visitors to the website cannot open. "
+					"Remove it and add the image again, or untick Show Announcements on the Website."
+				)
+			)
+
 	def has_website_permission(self, ptype, user, verbose=False):
-		"""Signed-in portal users may read, and so download, published bulletins."""
-		return ptype == "read" and bool(self.publish) and user != "Guest"
+		"""Signed-in portal users may read, and so download, the published bulletins of their own church."""
+		return (
+			ptype == "read"
+			and bool(self.publish)
+			and user != "Guest"
+			and has_church_access(user, self.church)
+		)
 
 	def apply_defaults(self):
 		"""Switch on the sections Bulletin Settings prefers, and pick this week's missionary and prayer requests."""

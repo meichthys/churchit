@@ -10,6 +10,7 @@ from frappe.utils import add_days
 
 from churchit.church_communications.doctype.bulletin.bulletin import (
 	SECTION_FIELDS,
+	download_pdf,
 	get_defaults,
 	missionary_of_the_week,
 	supported_missionaries,
@@ -340,6 +341,17 @@ class TestBulletin(FrappeTestCase):
 		self.assertFalse(bulletin.has_website_permission("read", "Guest"))
 		self.assertFalse(bulletin.has_website_permission("write", "member@example.com"))
 
+	def test_shared_announcements_refuse_a_private_file(self):
+		file = frappe.get_doc(
+			{"doctype": "File", "file_name": "_test_flyer.txt", "content": "Flyer", "is_private": 1}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+		announcements = f'<p><a href="{file.file_url}">Flyer</a></p>'
+
+		self.make_bulletin(announcements=announcements)
+		with self.assertRaises(frappe.ValidationError):
+			self.make_bulletin(announcements=announcements, share_announcements=1)
+
 
 class TestBulletinChurches(RollbackEachTest):
 	@classmethod
@@ -348,6 +360,8 @@ class TestBulletinChurches(RollbackEachTest):
 		_root, cls.branch_a, cls.branch_b = make_two_churches()
 		cls.manager_a = ensure_user("_test_bulletin_a@example.com", "Editor", roles=("Church Manager",))
 		make_person("_Test Bulletin", "Editor", church=cls.branch_a, user=cls.manager_a)
+		cls.member_a = ensure_user("_test_bulletin_member_a@example.com", "Reader")
+		make_person("_Test Bulletin", "Reader", church=cls.branch_a, user=cls.member_a)
 		cls.function_a, cls.function_b = (
 			make_function(f"_Test Bulletin {key}", church=church, start_date=FUNCTION_DATE).name
 			for key, church in (("A", cls.branch_a), ("B", cls.branch_b))
@@ -372,3 +386,16 @@ class TestBulletinChurches(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			update_doc("Bulletin", theirs)
 		self.assertEqual(frappe.db.get_value("Bulletin", theirs, "function"), self.function_b)
+
+	def test_a_portal_member_reads_only_their_own_churchs_bulletins(self):
+		mine, theirs = (
+			frappe.new_doc("Bulletin", function=function, publish=1).insert()
+			for function in (self.function_a, self.function_b)
+		)
+
+		self.assertTrue(mine.has_website_permission("read", self.member_a))
+		self.assertFalse(theirs.has_website_permission("read", self.member_a))
+
+		frappe.set_user(self.member_a)
+		with self.assertRaises(frappe.PermissionError):
+			download_pdf(theirs.name)
