@@ -13,6 +13,7 @@
   "church",
   "status",
   "due_date",
+  "priority",
   "column_break_yrnx",
   "is_group",
   "parent_task",
@@ -91,6 +92,14 @@
    "label": "Due Date"
   },
   {
+   "default": "Medium",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "options": "Low\nMedium\nHigh\nUrgent"
+  },
+  {
    "fieldname": "column_break_yrnx",
    "fieldtype": "Column Break"
   },
@@ -154,7 +163,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 12:22:40.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",

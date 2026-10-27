@@ -334,6 +334,10 @@ doc_events = {
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
 	},
+	"ToDo": {
+		"after_insert": "churchit.church_operations.doctype.church_task.church_task.on_assignment",
+		"validate": "churchit.church_operations.doctype.church_task.church_task.refuse_moved_assignment",
+	},
 	"Web Form Request": {
 		"validate": "churchit.church_people.details_link.close_details_request",
 	},

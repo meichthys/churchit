@@ -114,3 +114,4 @@ churchit.patches.v1_0.build_sermon_library
 churchit.patches.v1_0.add_prayer_and_alms_notifications
 churchit.patches.v1_0.count_prayers_for_requests
 churchit.patches.v1_0.add_benevolence_note_category
+churchit.patches.v1_0.add_church_task_due_notification

@@ -20,6 +20,7 @@ from churchit.church_ministries.doctype.check_in_settings.check_in_settings impo
 from churchit.church_missions.doctype.missionary_status.missionary_status import (
 	DEFAULT_STATUSES as DEFAULT_MISSIONARY_STATUSES,
 )
+from churchit.church_operations.doctype.church_task.church_task import create_due_notification
 from churchit.church_operations.doctype.room_booking.room_booking import create_decided_notification
 from churchit.church_people.doctype.background_check_type.background_check_type import (
 	create_background_check_types,
@@ -54,6 +55,7 @@ def execute():
 	create_default_address_template()
 	create_unsynced_records()
 	create_decided_notification()
+	create_due_notification()
 	create_new_prayer_request_notifications()
 	create_new_alms_request_notification()
 

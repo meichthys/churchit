@@ -18,6 +18,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.alms_request import alms_request
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_operations.doctype.church_task import church_task
 from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.prayer_access import is_prayer_team_only
 from churchit.patches.v1_0 import add_prayer_and_alms_notifications
@@ -101,6 +102,31 @@ class TestShippedEmailTemplates(FrappeTestCase):
 					"message"
 				]
 				self.assertIn("<p>", message)
+
+
+class TestChurchTaskDueNotification(FrappeTestCase):
+	def test_the_seeded_message_names_the_task(self):
+		frappe.delete_doc_if_exists("Notification", church_task.DUE_NOTIFICATION)
+		church_task.create_due_notification()
+		notification = frappe.get_doc("Notification", church_task.DUE_NOTIFICATION)
+		task = frappe.get_doc(
+			{
+				"doctype": "Church Task",
+				"title": "_Test Notice Gutters",
+				"due_date": "2031-05-03 10:00:00",
+				"status": "Assigned",
+				"priority": "Urgent",
+			}
+		).insert(ignore_permissions=True)
+		context = get_context(task)
+
+		subject = frappe.render_template(notification.subject, context)
+		message = frappe.render_template(notification.message, context)
+
+		self.assertIn("_Test Notice Gutters", subject)
+		for value in ("_Test Notice Gutters", "Assigned", "Urgent", f"/desk/church-task/{task.name}"):
+			self.assertIn(value, message)
+		self.assertIn(frappe.utils.format_datetime("2031-05-03 10:00:00"), message)
 
 
 def church_user(email, roles, church):
