@@ -3,7 +3,6 @@
 
 import frappe
 from frappe import _
-from frappe.core.doctype.file.utils import extract_images_from_doc
 from frappe.model.document import Document
 from frappe.utils import formatdate, getdate
 from frappe.utils.print_format import download_pdf as download_print_pdf
@@ -73,12 +72,8 @@ class Bulletin(BulletinSections, Document):
 				)
 
 	def validate_shared_announcements(self):
-		"""Keep shared announcements public: pasted images become public files, and a private file is refused."""
-		if not self.share_announcements:
-			return
-
-		extract_images_from_doc(self, "announcements", is_private=False)
-		if "/private/files/" in (self.announcements or ""):
+		"""Keep shared announcements public: a link to a private file is refused."""
+		if self.share_announcements and "/private/files/" in (self.announcements or ""):
 			frappe.throw(
 				_(
 					"The announcements link to a private file, which visitors to the website cannot open. "

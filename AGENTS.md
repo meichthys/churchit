@@ -580,8 +580,9 @@ the `?church=` selection. `Bulletin.has_website_permission` also requires `has_c
 PDF and the digital bulletin at `/bulletins?name=<bulletin>` refuse another church's bulletin. The
 digital bulletin includes the print template, so a new bulletin section shows on the portal too.
 `/announcements` is public and shows only `announcements` from the selected church's 5 newest
-published bulletins with `share_announcements`. Images there are public files:
-`Bulletin.validate_shared_announcements` saves a pasted image as public and refuses a private file.
+published bulletins with `share_announcements`. Bulletin has `make_attachments_public`, so its uploads
+and pasted images are public files that members see on the digital bulletin without file access;
+`Bulletin.validate_shared_announcements` refuses a link to a private file in shared announcements.
 
 A Web Page with Members Only is served only to a signed-in active member (`is_directory_member`, the
 `/directory` rule) or a user who can edit Web Pages, dynamic routes included. A guest goes to the

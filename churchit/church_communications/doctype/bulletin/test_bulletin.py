@@ -28,6 +28,8 @@ from churchit.tests.helpers import (
 )
 
 FUNCTION_DATE = "2031-05-04"
+# A 1x1 PNG.
+PIXEL = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
 
 class TestBulletin(FrappeTestCase):
@@ -340,6 +342,15 @@ class TestBulletin(FrappeTestCase):
 		self.assertTrue(bulletin.has_website_permission("read", "member@example.com"))
 		self.assertFalse(bulletin.has_website_permission("read", "Guest"))
 		self.assertFalse(bulletin.has_website_permission("write", "member@example.com"))
+
+	def test_a_pasted_image_is_a_public_file(self):
+		bulletin = self.make_bulletin(welcome=f'<p><img src="data:image/png;base64,{PIXEL}"></p>')
+
+		file_url = frappe.db.get_value(
+			"File", {"attached_to_doctype": "Bulletin", "attached_to_name": bulletin.name}, "file_url"
+		)
+		self.assertTrue(file_url.startswith("/files/"), file_url)
+		self.assertIn(file_url, bulletin.welcome)
 
 	def test_shared_announcements_refuse_a_private_file(self):
 		file = frappe.get_doc(
