@@ -131,6 +131,9 @@ website_redirects = [
 	{"source": "/newsletter-subscription", "target": "/preferences"},
 ]
 
+# One page per published sermon. A sermon name can hold a slash.
+website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
+
 # website user home page (by Role)
 # role_home_page = {
 # 	"Role": "home_page"

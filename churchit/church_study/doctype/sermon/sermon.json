@@ -13,9 +13,12 @@
   "shared_by_church",
   "prepared_by",
   "series",
+  "sermon_date",
+  "scripture",
   "publish",
   "column_break_wnxx",
   "audio_recording",
+  "media_url",
   "handout",
   "section_break_zozg",
   "notes",
@@ -76,6 +79,20 @@
    "options": "Sermon Series"
   },
   {
+   "description": "The date the sermon was first preached. Left blank, it is set from the earliest date in Presentation History.",
+   "fieldname": "sermon_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Sermon Date",
+   "search_index": 1
+  },
+  {
+   "description": "The passage the sermon preaches on, such as John 3:16-21. Separate several passages with a semicolon.",
+   "fieldname": "scripture",
+   "fieldtype": "Data",
+   "label": "Scripture"
+  },
+  {
    "default": "0",
    "description": "Check this to show this sermon on the public website.",
    "fieldname": "publish",
@@ -86,6 +103,13 @@
    "fieldname": "audio_recording",
    "fieldtype": "Attach",
    "label": "Audio Recording"
+  },
+  {
+   "description": "An https link to the sermon video on Let's Church, YouTube or PeerTube. The sermon's web page plays it. Any other https link is shown as a link.",
+   "fieldname": "media_url",
+   "fieldtype": "Data",
+   "label": "Video Link",
+   "options": "URL"
   },
   {
    "description": "A fill-in-the-blank outline printed as the sermon notes insert of a Bulletin. Use the Create Handout button to start one from the notes below.",
@@ -133,7 +157,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",
@@ -175,9 +199,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "title"
 }

@@ -25,10 +25,10 @@
   {
    "fieldname": "series_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Series Name",
    "reqd": 1,
-   "unique": 1,
-   "in_list_view": 1
+   "unique": 1
   },
   {
    "depends_on": "eval:!doc.is_shared && !(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -62,15 +62,15 @@
   {
    "fieldname": "speaker",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Primary Speaker",
-   "options": "Person",
-   "in_list_view": 1
+   "options": "Person"
   },
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "Start Date",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "label": "Start Date"
   },
   {
    "fieldname": "column_break_1",
@@ -98,7 +98,8 @@
   {
    "fieldname": "image",
    "fieldtype": "Attach Image",
-   "label": "Series Image"
+   "label": "Series Image",
+   "make_attachment_public": 1
   }
  ],
  "grid_page_length": 50,
@@ -108,7 +109,7 @@
    "link_fieldname": "series"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Series",

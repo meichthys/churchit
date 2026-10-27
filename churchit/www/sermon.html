@@ -1,0 +1,47 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ sermon.title | e }}{% endblock %}
+{% block header %}<h1>{{ sermon.title | e }}</h1>{% endblock %}
+
+{% block page_content %}
+<div class="sermon-page">
+	<p class="text-muted">
+		{{- [
+			frappe.utils.formatdate(sermon.sermon_date) if sermon.sermon_date else "",
+			sermon.scripture,
+			preacher,
+			_("Series: {0}").format(series.series_name) if series else "",
+		] | select | map("e") | join(" &middot; ") -}}
+	</p>
+
+	{% if series and series.image and not series.image.startswith("/private/") %}
+	<img class="sermon-series-image" src="{{ series.image | e }}" alt="{{ series.series_name | e }}">
+	{% endif %}
+
+	{% if embed_url %}
+	<iframe src="{{ embed_url | e }}" class="sermon-video" title="{{ sermon.title | e }}"
+		allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+	{% elif sermon.media_url and sermon.media_url.startswith("https://") %}
+	<p><a href="{{ sermon.media_url | e }}" target="_blank" rel="noopener">{{ _("Watch the video") }}</a></p>
+	{% endif %}
+
+	{% if sermon.audio_recording and not sermon.audio_recording.startswith("/private/") %}
+	<audio controls class="sermon-audio" src="{{ sermon.audio_recording | e }}"></audio>
+	{% endif %}
+
+	{% if notes %}<div class="sermon-notes">{{ notes }}</div>{% endif %}
+
+	<p class="sermon-back"><a href="/sermons">&larr; {{ _("All sermons") }}</a></p>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+	.sermon-page { max-width: 48rem; margin: 0 auto; }
+	.sermon-series-image { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; }
+	.sermon-video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; margin-bottom: 1rem; }
+	.sermon-audio { width: 100%; margin-bottom: 1rem; }
+	.sermon-notes { margin-bottom: 2rem; }
+	.sermon-back { margin-top: 2rem; }
+</style>
+{% endblock %}

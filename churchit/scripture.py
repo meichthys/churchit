@@ -50,6 +50,7 @@ REFERENCE_FIELDS = {
 	"Bible Memory Item": ["bible_reference"],
 	"Bulletin": ["verse"],
 	"Church": ["church_verse"],
+	"Sermon": ["scripture"],
 	"Sermon Slide": ["scripture"],
 }
 

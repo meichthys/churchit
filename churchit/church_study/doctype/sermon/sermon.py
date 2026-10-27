@@ -5,12 +5,22 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
+from frappe.utils import getdate
 
 from churchit.scripture import format_reference
+from churchit.utils import validate_https_url
 
 
 class Sermon(Document):
 	def validate(self):
+		if not self.sermon_date:
+			self.sermon_date = min(
+				(getdate(row.date) for row in self.presentation_history if row.date), default=None
+			)
+		self.scripture = format_reference(self.scripture)
+		if self.media_url and self.has_value_changed("media_url"):
+			self.media_url = validate_https_url(self.media_url, "Video Link")
+
 		for slide in self.slides:
 			slide.scripture = format_reference(slide.scripture)
 			if not (slide.scripture or (slide.slide_type and slide.slide)):
