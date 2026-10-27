@@ -567,6 +567,9 @@ NAME_CHECK_EXEMPT = {
 	),
 	"churchit.church_ministries.member_ministry_team.answer_own_assignment": OWN_RECORD,
 	"churchit.church_ministries.member_ministry_team.remove_own_block": OWN_RECORD,
+	"churchit.church_ministries.member_ministry_team.set_own_frequency": (
+		"a portal member holds no right on the position; it writes only the session person's own roster row"
+	),
 	"churchit.church_ministries.songs.media.get_team_song_file": (
 		"a portal member holds no Song read; it sends a song file only through the session person's own "
 		"assignment that is not declined, at a recent function with the song on its schedule"

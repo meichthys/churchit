@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_days, format_time, get_url, getdate, now_datetime, nowdate, sbool
+from frappe.utils import add_days, cint, format_time, get_url, getdate, now_datetime, nowdate, sbool
 
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import ACCEPTED
@@ -64,14 +64,55 @@ def get_own_assignments(person: str, from_date: str | None = None) -> list[frapp
 
 
 def get_own_blocks(person: str) -> list[frappe._dict]:
-	"""*person*'s blocks that have not ended yet."""
+	"""*person*'s blocks that have not ended yet, and repeating blocks that still repeat."""
+	today = getdate()
 	# church-scope: the signed-in member's own blocks, by their person
-	return frappe.get_all(
+	blocks = frappe.get_all(
 		"Ministry Team Block",
-		filters={"person": person, "to_date": (">=", nowdate())},
-		fields=["name", "from_date", "to_date", "reason", "whole_household"],
+		filters={"person": person},
+		or_filters={"to_date": (">=", today), "repeat_frequency": ("is", "set")},
+		fields=[
+			"name",
+			"from_date",
+			"to_date",
+			"reason",
+			"whole_household",
+			"repeat_frequency",
+			"repeat_until",
+		],
 		order_by="from_date asc",
 	)
+	return [
+		block
+		for block in blocks
+		if block.to_date >= today or not block.repeat_until or block.repeat_until >= today
+	]
+
+
+def get_own_positions(person: str) -> list[frappe._dict]:
+	"""The positions *person* can fill, each with the most times a month they serve in it."""
+	# church-scope: the signed-in member's own roster rows, by their person
+	rows = frappe.get_all(
+		"Ministry Team Position Person",
+		filters={"person": person, "parenttype": "Ministry Team Position", "parentfield": "people"},
+		fields=["parent", "max_times_per_month"],
+	)
+	# church-scope: only the positions whose rosters name the signed-in member
+	titles = dict(
+		frappe.get_all(
+			"Ministry Team Position",
+			filters={"name": ("in", [row.parent for row in rows])},
+			fields=["name", "title"],
+			as_list=True,
+		)
+	)
+	positions = [
+		frappe._dict(
+			position=row.parent, title=titles[row.parent], max_times_per_month=row.max_times_per_month
+		)
+		for row in rows
+	]
+	return sorted(positions, key=lambda row: row.title)
 
 
 def get_calendar_links(person: str) -> frappe._dict | None:
@@ -153,8 +194,15 @@ def make_own_calendar_key():
 
 
 @frappe.whitelist(methods=["POST"])
-def add_own_block(from_date: str, to_date: str, reason: str | None = None, whole_household: str | int = 0):
-	"""Block the signed-in member from serving from *from_date* to *to_date*."""
+def add_own_block(
+	from_date: str,
+	to_date: str,
+	reason: str | None = None,
+	whole_household: str | int = 0,
+	repeat_frequency: str | None = None,
+	repeat_until: str | None = None,
+):
+	"""Block the signed-in member from serving from *from_date* to *to_date*, once or repeating."""
 	person = session_person()
 	if not person:
 		frappe.throw(_("Your account is not linked to a member record."), frappe.PermissionError)
@@ -169,6 +217,8 @@ def add_own_block(from_date: str, to_date: str, reason: str | None = None, whole
 			"to_date": to_date,
 			"reason": reason,
 			"whole_household": sbool(whole_household),
+			"repeat_frequency": repeat_frequency,
+			"repeat_until": repeat_until or None,
 		}
 	).insert(ignore_permissions=True)
 
@@ -180,3 +230,25 @@ def remove_own_block(block: str):
 	if not person or person != session_person():
 		frappe.throw(_("This block is not yours to remove."), frappe.PermissionError)
 	frappe.delete_doc("Ministry Team Block", block, ignore_permissions=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_own_frequency(position: str, max_times_per_month: str | int):
+	"""Set the most times a month the signed-in member serves in *position*. 0 means no limit."""
+	person = session_person()
+	if not person:
+		frappe.throw(_("Your account is not linked to a member record."), frappe.PermissionError)
+	value = cint(max_times_per_month)
+	if value < 0:
+		frappe.throw(_("Choose 0 or more times a month."))
+
+	position_doc = frappe.db.exists("Ministry Team Position", position) and frappe.get_doc(
+		"Ministry Team Position", position, for_update=True
+	)
+	row = position_doc and next((row for row in position_doc.people if row.person == person), None)
+	if not row:
+		frappe.throw(_("You are not on this position."), frappe.PermissionError)
+
+	row.max_times_per_month = value
+	# Members cannot write a position. The member changes only their own roster row.
+	position_doc.save(ignore_permissions=True)

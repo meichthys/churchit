@@ -34,6 +34,20 @@ class TestMinistryTeamPosition(RollbackEachTest):
 		position = make_team_position("_Test Sound", [person], ministry_name="_Test Worship")
 		self.assertEqual(position.title, "_Test Sound (_Test Worship)")
 
+	def test_roster_rows_from_the_old_multiselect_field_load_in_the_table(self):
+		person = make_person("_Test Roster", "Kept").name
+		position = make_team_position("_Test Kept Roster", [])
+		# A row as the Table MultiSelect field saved it, before Most Times a Month existed.
+		frappe.db.sql(
+			"""insert into `tabMinistry Team Position Person` (name, parent, parenttype, parentfield, idx, person)
+			values (%s, %s, %s, 'people', 1, %s)""",
+			(frappe.generate_hash(length=10), position.name, POSITION, person),
+		)
+		frappe.clear_cache(doctype=POSITION)
+
+		[row] = frappe.get_doc(POSITION, position.name).people
+		self.assertEqual((row.person, row.max_times_per_month), (person, 0))
+
 	def test_adding_someone_without_the_checks_warns_but_is_kept(self):
 		training = ensure("Background Check Type", {"type": "_Test Roster Training"})
 		trained = make_person("_Test Roster", "Trained").name

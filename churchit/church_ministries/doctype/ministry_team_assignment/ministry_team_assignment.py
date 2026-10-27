@@ -7,12 +7,10 @@ import frappe
 from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.model.document import Document
-from frappe.query_builder.functions import Coalesce
 from frappe.utils import format_date, format_time, get_url, get_url_to_form, getdate, now_datetime, nowdate
 
+from churchit.church_ministries import availability
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
-from churchit.church_ministries.doctype.ministry_team_block.ministry_team_block import get_blocks_covering
-from churchit.church_people.doctype.background_check import background_check
 from churchit.church_scope import refuse_another_churches_parent, refuse_another_churches_record, scoped
 from churchit.contacts import get_primary_email, get_primary_emails
 
@@ -83,17 +81,10 @@ class MinistryTeamAssignment(Document):
 	def refuse_without_checks(self):
 		if not self.position_doc.block_without_checks:
 			return
-		problem = self.get_check_problem(get_time_window(self.function_doc)[0].date())
+		start, _end = get_time_window(self.function_doc)
+		problem = availability.get_check_problem(self.person, self.position, start.date())
 		if problem:
 			frappe.throw(problem, title=_("Not cleared to serve"))
-
-	def get_check_problem(self, on_date) -> str | None:
-		"""Why the person lacks the checks the position needs on *on_date*, or None."""
-		position = self.position_doc
-		if not position.needs_background_check:
-			return None
-		required = [row.check_type for row in position.required_checks]
-		return background_check.get_check_problem(self.person, on_date, required, position.title)
 
 	def warn_about_conflicts(self):
 		warnings = self.get_warnings()
@@ -102,21 +93,7 @@ class MinistryTeamAssignment(Document):
 
 	def get_warnings(self) -> list[str]:
 		start, end = get_time_window(self.function_doc)
-		warnings = [
-			_("A Ministry Team Block from {0} to {1} covers this function{2}.").format(
-				format_date(block.from_date),
-				format_date(block.to_date),
-				f": {block.reason}" if block.reason else "",
-			)
-			for block in get_blocks_covering(self.person, start.date(), end.date())
-		]
-		warnings += [
-			_("{0} already serves at {1} at the same time.").format(self.person_name, other.title)
-			for other in self.get_overlapping_assignments(start, end)
-		]
-		check_problem = self.get_check_problem(start.date())
-		if check_problem:
-			warnings.append(check_problem)
+		warnings = availability.get_problems(self.person, start, end, self.position, self.function)
 		if not get_primary_email("Person", self.person):
 			warnings.append(
 				_("{0} has no email address, so the request shows only in their portal.").format(
@@ -124,34 +101,6 @@ class MinistryTeamAssignment(Document):
 				)
 			)
 		return warnings
-
-	def get_overlapping_assignments(self, start, end) -> list[frappe._dict]:
-		"""The person's other assignments, not declined, at functions that overlap *start* to *end*."""
-		Assignment = frappe.qb.DocType("Ministry Team Assignment")
-		Function = frappe.qb.DocType("Function")
-		# church-scope: the one person's own assignments, to warn about double booking
-		rows = (
-			frappe.qb.from_(Assignment)
-			.join(Function)
-			.on(Assignment.function == Function.name)
-			.select(
-				Assignment.title,
-				Function.start_date,
-				Function.start_time,
-				Function.end_date,
-				Function.end_time,
-				Function.all_day,
-			)
-			.where(
-				(Assignment.person == self.person)
-				& (Assignment.status != DECLINED)
-				& (Assignment.function != self.function)
-				& (Function.start_date <= end.date())
-				& (Coalesce(Function.end_date, Function.start_date) >= start.date())
-			)
-			.run(as_dict=True)
-		)
-		return [row for row in rows if overlaps(get_time_window(row), (start, end))]
 
 	def respond(self, status: str, reason: str | None = None):
 		"""Record the person's answer. The caller checks that whoever answers may."""
@@ -185,10 +134,6 @@ class MinistryTeamAssignment(Document):
 		email = coordinator and get_primary_email("Person", coordinator)
 		if email and can_send_email():
 			send_team_email(DECLINE_TEMPLATE, email, self.get_email_context(), self)
-
-
-def overlaps(first: tuple, second: tuple) -> bool:
-	return first[0] < second[1] and second[0] < first[1]
 
 
 def can_send_email() -> bool:

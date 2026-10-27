@@ -26,6 +26,7 @@
 	.calendar-link input { flex: 1 1 16rem; min-width: 0; }
 	.block-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 8px 16px;
 		align-items: end; }
+	.team-frequency-input { width: 5rem; }
 </style>
 {% endblock %}
 
@@ -81,7 +82,10 @@
 			{% for block in blocks %}
 			<li>
 				<span class="date"><span>{{ frappe.format(block.from_date, {"fieldtype": "Date"}) }}</span> {{ _("to") }} <span>{{ frappe.format(block.to_date, {"fieldtype": "Date"}) }}</span></span>
-				<span class="what">{{ (block.reason or "") | e }}{% if block.whole_household %}<small>{{ _("Whole household") }}</small>{% endif %}</span>
+				<span class="what">{{ (block.reason or "") | e }}
+					{% if block.repeat_frequency %}<small>{{ _(block.repeat_frequency) }}{% if block.repeat_until %} {{ _("until") }} {{ frappe.format(block.repeat_until, {"fieldtype": "Date"}) }}{% endif %}</small>{% endif %}
+					{% if block.whole_household %}<small>{{ _("Whole household") }}</small>{% endif %}
+				</span>
 				<span class="answer">
 					<button class="btn btn-sm btn-default team-unblock" data-block="{{ block.name | e }}">{{ _("Remove") }}</button>
 				</span>
@@ -93,11 +97,37 @@
 			<label>{{ _("From") }}<input class="form-control" type="date" name="from_date" required></label>
 			<label>{{ _("To") }}<input class="form-control" type="date" name="to_date" required></label>
 			<label>{{ _("Reason") }}<input class="form-control" type="text" name="reason" maxlength="140"></label>
+			<label>{{ _("Repeat") }}
+				<select class="form-control" name="repeat_frequency">
+					<option value="">{{ _("Does not repeat") }}</option>
+					<option value="Weekly">{{ _("Weekly") }}</option>
+					<option value="Every Other Week">{{ _("Every Other Week") }}</option>
+					<option value="Monthly on the Same Weekday">{{ _("Monthly on the Same Weekday") }}</option>
+				</select>
+			</label>
+			<label id="team-block-until" hidden>{{ _("Repeat until (optional)") }}<input class="form-control" type="date" name="repeat_until"></label>
 			<label class="d-flex align-items-center" style="gap: 8px;">
 				<input type="checkbox" name="whole_household"> {{ _("Whole household") }}
 			</label>
 			<button class="btn btn-default" type="submit">{{ _("Add") }}</button>
 		</form>
+
+		{% if positions %}
+		<h5 class="mt-5">{{ _("How often you serve") }}</h5>
+		<p class="text-muted">{{ _("Choose the most times a month you serve in each position. 0 means no limit.") }}</p>
+		<ul class="team-list">
+			{% for row in positions %}
+			<li>
+				<span class="what">{{ row.title | e }}</span>
+				<span class="answer">
+					<input class="form-control form-control-sm team-frequency-input" type="number" min="0" step="1"
+						value="{{ row.max_times_per_month or 0 }}" aria-label="{{ _('Most times a month as {0}').format(row.title) | e }}">
+					<button class="btn btn-sm btn-default team-frequency" data-position="{{ row.position | e }}">{{ _("Save") }}</button>
+				</span>
+			</li>
+			{% endfor %}
+		</ul>
+		{% endif %}
 
 		<h5 class="mt-5">{{ _("Your calendar") }}</h5>
 		<p class="text-muted">
@@ -182,16 +212,31 @@ frappe.ready(function () {
 
 	var blockForm = document.getElementById("team-block-form");
 	if (blockForm) {
+		blockForm.repeat_frequency.addEventListener("change", function () {
+			document.getElementById("team-block-until").hidden = !blockForm.repeat_frequency.value;
+		});
 		blockForm.addEventListener("submit", function (event) {
 			event.preventDefault();
+			var repeat = blockForm.repeat_frequency.value;
 			send("add_own_block", {
 				from_date: blockForm.from_date.value,
 				to_date: blockForm.to_date.value,
 				reason: blockForm.reason.value,
 				whole_household: blockForm.whole_household.checked ? 1 : 0,
+				repeat_frequency: repeat,
+				repeat_until: repeat ? blockForm.repeat_until.value : "",
 			}, blockForm.querySelector("button"));
 		});
 	}
+
+	document.querySelectorAll(".team-frequency").forEach(function (button) {
+		button.addEventListener("click", function () {
+			send("set_own_frequency", {
+				position: button.dataset.position,
+				max_times_per_month: button.parentElement.querySelector("input").value,
+			}, button);
+		});
+	});
 });
 </script>
 {% endblock %}

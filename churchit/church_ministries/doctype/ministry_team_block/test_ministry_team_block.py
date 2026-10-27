@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe.api.v1 import update_doc
 
-from churchit.church_ministries.doctype.ministry_team_block.ministry_team_block import get_blocks_covering
+from churchit.church_ministries.availability import get_blocks_covering
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 BLOCK = "Ministry Team Block"

@@ -4,8 +4,9 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import getdate
+from frappe.utils import date_diff, getdate
 
+from churchit.church_ministries.availability import REPEATS
 from churchit.church_scope import refuse_another_churches_parent
 
 
@@ -18,25 +19,21 @@ class MinistryTeamBlock(Document):
 		)
 		if getdate(self.to_date) < getdate(self.from_date):
 			frappe.throw(_("To Date cannot be before From Date."))
+		self.validate_repeat()
 
+	def validate_repeat(self):
+		if not self.repeat_frequency:
+			self.repeat_until = None
+			return
+		if self.repeat_frequency not in REPEATS:
+			frappe.throw(_("Choose a Repeat from the list."))
 
-def get_blocks_covering(person: str, from_date, to_date) -> list[frappe._dict]:
-	"""Blocks that keep *person* from serving on any day from *from_date* to *to_date*.
-
-	A block of someone in the same family counts when it covers the whole household.
-	"""
-	Block = frappe.qb.DocType("Ministry Team Block")
-	covers_person = Block.person == person
-	family = frappe.db.get_value("Person", person, "family")
-	if family:
-		household = frappe.get_all("Person", filters={"family": family}, pluck="name")
-		covers_person = covers_person | (Block.person.isin(household) & (Block.whole_household == 1))
-
-	# church-scope: blocks on the one person being scheduled, wherever their church is
-	return (
-		frappe.qb.from_(Block)
-		.select(Block.name, Block.person, Block.from_date, Block.to_date, Block.reason)
-		.where(covers_person & (Block.from_date <= to_date) & (Block.to_date >= from_date))
-		.orderby(Block.from_date)
-		.run(as_dict=True)
-	)
+		_frequency, _interval, most_days = REPEATS[self.repeat_frequency]
+		if date_diff(self.to_date, self.from_date) >= most_days:
+			frappe.throw(
+				_("A block that repeats {0} can last at most {1} days.").format(
+					frappe.bold(_(self.repeat_frequency)), most_days
+				)
+			)
+		if self.repeat_until and getdate(self.repeat_until) < getdate(self.to_date):
+			frappe.throw(_("Repeat Until cannot be before To Date."))

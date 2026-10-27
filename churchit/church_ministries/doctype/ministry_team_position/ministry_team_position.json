@@ -90,7 +90,7 @@
   {
    "description": "The people who can fill this position. Only they can be assigned to it.",
    "fieldname": "people",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "People",
    "options": "Ministry Team Position Person"
   },
@@ -115,7 +115,7 @@
    "link_fieldname": "position"
   }
  ],
- "modified": "2026-10-18 10:00:00.000000",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Position",
