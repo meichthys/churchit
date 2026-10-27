@@ -349,6 +349,21 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
+   "label": "Skills",
+   "link_to": "Skill",
+   "link_type": "DocType",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
    "label": "People Settings",
    "link_to": "People Settings",
    "link_type": "DocType",
@@ -1180,7 +1195,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-23 22:31:00.000000",
+ "modified": "2026-10-27 09:40:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

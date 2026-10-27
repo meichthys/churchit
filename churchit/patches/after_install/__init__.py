@@ -35,6 +35,7 @@ from churchit.church_people.doctype.people_settings.people_settings import (
 	store_defaults,
 	sync_directory_menu_item,
 )
+from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
 from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 
 # We define this here so we can import it from sample_data
@@ -107,11 +108,12 @@ def execute():
 	# Background Check Type lookups (referenced by Background Check)
 	create_background_check_types()
 
-	# Note Categories (referenced by Person Note), Communication Purposes (referenced by consent)
-	# and the interests a guest ticks on a Connection Card
+	# Note Categories (referenced by Person Note), Communication Purposes (referenced by consent),
+	# the interests a guest ticks on a Connection Card and the starting spiritual gifts
 	create_note_categories()
 	create_communication_purposes()
 	create_connection_card_interests()
+	create_spiritual_gifts()
 
 	# Cleanup
 	_clean_gender_options()

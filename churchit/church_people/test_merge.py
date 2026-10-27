@@ -489,3 +489,19 @@ class TestMergeFamilies(RollbackEachTest):
 		update_document_title(doctype="Family", docname=family.name, name=family.name, title="_Test Retitled")
 
 		self.assertEqual(frappe.db.get_value("Family", family.name, "family_name"), "_Test Retitled")
+
+
+class TestMergeSkills(RollbackEachTest):
+	def test_the_kept_person_has_each_skill_of_both_once(self):
+		teaching, mercy, giving = (
+			ensure("Skill", {"skill_name": name})
+			for name in ("_Test Teaching", "_Test Mercy", "_Test Giving")
+		)
+		kept = make_person("_Test Kept", "Skills", skills=[{"skill": teaching}, {"skill": giving}])
+		removed = make_person("_Test Removed", "Skills", skills=[{"skill": teaching}, {"skill": mercy}])
+
+		merge_people(kept.name, removed.name)
+
+		kept.reload()
+		self.assertEqual([row.skill for row in kept.skills], [teaching, giving, mercy])
+		self.assertFalse(frappe.db.exists("Person Skill", {"parent": removed.name}))

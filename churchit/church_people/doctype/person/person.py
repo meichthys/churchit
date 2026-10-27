@@ -54,6 +54,7 @@ MERGED_TABLES = {
 	"life_events": life_event_key,
 	"positions": lambda row: (row.position, cstr(row.start_date)),
 	"letters": lambda row: (cstr(row.date), row.file, row.content),
+	"skills": lambda row: row.skill,
 }
 
 

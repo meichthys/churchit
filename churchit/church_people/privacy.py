@@ -4,11 +4,11 @@
 """Remove a person's personal data and keep their record, so their giving and attendance still count.
 
 `anonymize` names the person Anonymized and clears what says who they are: names, contact details, letters,
-photo, medical notes, anniversary, the login and the IDs of an import. It also clears the church fields a
-System Manager added with Customize Form, on the person and on an anonymized family, because Churchit cannot
-tell which of them are personal. The login is disabled too, so signing in cannot add the person again. The
-person leaves their family and their spouse because named relatives would say who they are. A family left with
-no one in it is anonymized too, since its name and contact details were the person's; a family that keeps
+photo, medical notes, anniversary, skills, the login and the IDs of an import. It also clears the church
+fields a System Manager added with Customize Form, on the person and on an anonymized family, because Churchit
+cannot tell which of them are personal. The login is disabled too, so signing in cannot add the person again.
+The person leaves their family and their spouse because named relatives would say who they are. A family left
+with no one in it is anonymized too, since its name and contact details were the person's; a family that keeps
 members loses the person's first name from its name.
 
 A Birth life event goes, because a birth date identifies a person. The other life events keep their type and
@@ -74,7 +74,7 @@ PERSONAL_FIELDS = (
 	"legacy_id",
 )
 # Person tables whose every row is personal.
-PERSONAL_TABLES = ("emails", "phones", "addresses", "letters")
+PERSONAL_TABLES = ("emails", "phones", "addresses", "letters", "skills")
 # Records wholly about the person, by the field naming them, deleted rather than kept.
 PERSONAL_DOCTYPES = (
 	("Person Note", "person"),

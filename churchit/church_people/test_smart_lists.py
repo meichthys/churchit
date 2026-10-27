@@ -5,7 +5,14 @@ import frappe
 
 from churchit.church_people import smart_lists
 from churchit.church_people.doctype.follow_up_workflow.test_follow_up_workflow import make_smart_list
-from churchit.tests.helpers import RollbackEachTest, force_single_church, make_person, make_two_churches
+from churchit.church_people.summaries.test_serving import make_person_list
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	force_single_church,
+	make_person,
+	make_two_churches,
+)
 
 
 class TestSmartLists(RollbackEachTest):
@@ -47,3 +54,24 @@ class TestSmartListChurches(RollbackEachTest):
 		make_person("_Test Smart Theirs", "_Test Smart List", church=self.branch_b)
 
 		self.assertEqual(smart_lists.get_people(smart_list, self.branch_a), [mine])
+
+
+class TestSkillLists(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def test_a_list_on_a_skill_holds_the_people_of_the_church_who_have_it(self):
+		teaching, mercy = (
+			ensure("Skill", {"skill_name": name}) for name in ("_Test Teaching", "_Test Mercy")
+		)
+		smart_list = make_person_list("_Test Smart Teachers", [["Person Skill", "skill", "=", teaching]])
+		teacher = make_person(
+			"_Test Smart", "Teacher", church=self.branch_a, skills=[{"skill": mercy}, {"skill": teaching}]
+		)
+		make_person("_Test Smart", "Merciful", church=self.branch_a, skills=[{"skill": mercy}])
+		make_person("_Test Smart", "Other Teacher", church=self.branch_b, skills=[{"skill": teaching}])
+
+		self.assertEqual(smart_lists.get_people(smart_list.name, self.branch_a), [teacher.name])
