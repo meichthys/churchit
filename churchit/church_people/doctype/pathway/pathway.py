@@ -20,7 +20,7 @@ class Pathway(Document):
 			if not smart_lists.is_smart_list(row.smart_list):
 				frappe.throw(
 					_(
-						"Row {0}: choose a smart list, a saved report of people made with Report Builder."
+						"Row {0}: choose a smart list, a saved Report Builder list of people or a saved Attendance Count."
 					).format(row.idx)
 				)
 

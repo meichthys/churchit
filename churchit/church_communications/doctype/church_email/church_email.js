@@ -4,7 +4,7 @@
 frappe.ui.form.on("Church Email", {
 	setup(frm) {
 		frm.set_query("smart_list", () => ({
-			filters: { report_type: "Report Builder", ref_doctype: "Person" },
+			query: "churchit.church_people.smart_lists.search_smart_lists",
 		}));
 		frm.set_query("people", () => {
 			const filters = { is_deceased: 0 };

@@ -76,7 +76,7 @@
   },
   {
    "depends_on": "eval:doc.send_to==\"Smart List\"",
-   "description": "A saved list of people: a Report Builder report on Person.",
+   "description": "A smart list: a saved Report Builder list of people or a saved Attendance Count.",
    "fieldname": "smart_list",
    "fieldtype": "Link",
    "label": "Smart List",

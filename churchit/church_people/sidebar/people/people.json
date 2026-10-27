@@ -1094,6 +1094,22 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
+   "label": "Attendance Count",
+   "link_to": "Attendance Count",
+   "link_type": "Report",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "icon": "table",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
    "label": "Members by Last Visit",
    "link_to": "Members by Last Visit",
    "link_type": "Report",
@@ -1195,7 +1211,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-27 09:40:00.000000",
+ "modified": "2026-10-27 09:42:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

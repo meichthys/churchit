@@ -53,7 +53,9 @@ class ChurchEmail(Document):
 		self.refuse_another_churches_group()
 		self.refuse_another_churches_people()
 		if self.send_to == SMART_LIST and not smart_lists.is_smart_list(self.smart_list):
-			frappe.throw(_("Choose a smart list: a saved report of people made with Report Builder."))
+			frappe.throw(
+				_("Choose a smart list: a saved Report Builder list of people or a saved Attendance Count.")
+			)
 		self.validate_placeholders()
 		self.keep_status()
 

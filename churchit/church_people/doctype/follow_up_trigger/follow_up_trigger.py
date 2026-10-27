@@ -16,10 +16,10 @@ class FollowupTrigger(Document):
 		self.value_type = VALUE_TYPES.get(self.trigger)
 
 	def validate_smart_list(self):
-		"""On Smart List needs a smart list: a saved Report Builder report on Person."""
+		"""On Smart List needs a smart list: a saved Report Builder list of people or a saved Attendance Count."""
 		if not smart_lists.is_smart_list(self.value):
 			frappe.throw(
-				_("Row {0}: choose a smart list, a saved report of people made with Report Builder.").format(
-					self.idx
-				)
+				_(
+					"Row {0}: choose a smart list, a saved Report Builder list of people or a saved Attendance Count."
+				).format(self.idx)
 			)

@@ -4,7 +4,7 @@
 frappe.ui.form.on("Pathway", {
 	setup(frm) {
 		frm.set_query("smart_list", "steps", () => ({
-			filters: { report_type: "Report Builder", ref_doctype: "Person" },
+			query: "churchit.church_people.smart_lists.search_smart_lists",
 		}));
 	},
 	refresh(frm) {

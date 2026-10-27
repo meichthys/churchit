@@ -18,7 +18,7 @@ frappe.ui.form.on("Follow-up Workflow", {
 		frm.set_query("value", "triggers", (doc, cdt, cdn) => {
 			const row = locals[cdt][cdn];
 			if (row.trigger !== "On Smart List") return {};
-			return { filters: { report_type: "Report Builder", ref_doctype: "Person" } };
+			return { query: "churchit.church_people.smart_lists.search_smart_lists" };
 		});
 	},
 	refresh(frm) {
