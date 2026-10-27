@@ -82,6 +82,9 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - A guest Connection Card with a QR code, a one-time link for a person to update their details without a login, and new portal logins linked to their person
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
+- Members-only web pages: tick Members Only on a Web Page, and visitors go to the login page
+- Turn each shipped website page off in Church Features: the page answers "Page not found" and its menu, footer and portal links go
+- A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
 - Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
 
@@ -131,11 +134,15 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Presentation history tracking with date, presenter, and location
 - Audio/video recording support
 - Sermon handouts: fill-in-the-blank outlines started from the sermon notes, printed as bulletin inserts
+- A sermon library on /sermons, newest first, with a search by title or passage, series images and a page for each sermon with its video (Let's Church, YouTube or PeerTube plays on the page)
+- Listeners fill in the handout blanks and add their own notes on the sermon page; the notes stay in their browser
+- Sermon podcast: an RSS feed at /podcast.xml of each church's published sermons with audio, for Apple Podcasts, Spotify and other podcast apps
 
 ### Bulletins
 - Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
 - Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, church verse, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
-- Published bulletins downloadable as PDFs from the member portal
+- Published bulletins for members of the church, to read in the browser or download as a PDF
+- Public announcements: a bulletin can share its announcements, and nothing else, on the Announcements page
 
 ### Church Emails & Consent
 - One email or text to active people, active members, a Group, a smart list or chosen people, each person getting their own copy on their timeline
@@ -153,7 +160,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund management with automatic balance updates on submission
 - Fund transfers between accounts
 - Expense tracking by category
-- Alms request system for financial assistance (with web form)
+- Alms request system for financial assistance (with web form), with an email to the care team and Benevolence case notes that only the care team reads
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
@@ -178,16 +185,20 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Authenticated and anonymous web-form submissions
 - Who can see each request: private, the prayer team, or the whole church
 - Prayer recording with topics referencing requests, people, and other records
+- A prayed count on each request, shown on the Community Prayer Requests page
+- New request emails to the care team and, once a request is approved for the list, to the prayer team; Private requests reach the care team only
 
 ### Bible & Study
 - A Bible reader in the desk and on the website, one chapter at a time
 - Bible translations that keep their own text: the default one downloads at install, each other free translation downloads itself the first time someone opens it, and a translation that is not free takes an import of a licensed copy that only signed-in users can read
 - Downloads from a self-hosted copy of the Free Use Bible API when the site config key `free_use_bible_api_url` names one
 - Bible references typed as plain text (such as `Romans 8:28-30; Psalm 23`) on churches, bulletins, beliefs, sermon slides and Bible Memory, kept as typed rather than reordered or expanded into verses, with their text from the church's default translation
-- Bible Memory practice in the portal, with passages managers can assign to people and groups
+- Bible Memory practice in the portal, with passages managers can assign to people and groups, and a Bible Memory report of a group's progress
 
 ### Operations
-- Task tracking with document references
+- Task tracking with document references, assignees and a reminder to them the day before a task is due
+- Work orders for assets and rooms, with priority and requester, and an Open Work Orders report
+- Equipment loans: check equipment out and in on its booking, and an Assets on Loan report that shows late returns first
 - Asset tracking (location, details, status)
 - Room booking with approvers for each room, blocked times, and conflicts that an approver resolves by keeping one booking or sharing the room
 - Equipment booking (bookable Church Assets) with a room or on its own, and several rooms for a Function from one dialog. Each church names its rooms freely, so two campuses can each have a Sanctuary
@@ -203,6 +214,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Group attendance: meetings held, average attendance and attendance rate for each group
 - Function count by type
 - Room Usage: one row per room booking in a date range with its room, equipment, hours, status and requester
+- Weekly Metrics: a stored record of each week's attendance, first-time visitors, members, people in groups and serving, and giving, with charts on the Summary workspace
 - Church directory (printable, with photos, roles, family grouping, and other options)
 - Person letters, birthdays, current positions, and more
 
