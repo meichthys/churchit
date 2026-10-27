@@ -29,6 +29,7 @@ def get_context(context):
 			"memorized_on",
 			"times_memorized",
 			"assigned_by",
+			"group",
 		],
 		order_by="memorized asc, modified desc",
 	)
@@ -38,5 +39,10 @@ def get_context(context):
 			it["assigned_by_label"] = (
 				frappe.db.get_value("User", it["assigned_by"], "full_name") or it["assigned_by"]
 			)
+	# The groups the user's own items were assigned through.
+	context.groups = {
+		group: frappe.db.get_value("Group", group, "group_name") or group
+		for group in sorted({item["group"] for item in items if item["group"]})
+	}
 	context.items = items
 	context.translations = get_readable_translations()

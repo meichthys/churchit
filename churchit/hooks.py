@@ -331,6 +331,9 @@ doc_events = {
 	"Function Sign-Up": {
 		"on_update": "churchit.church_people.followup.on_sign_up",
 	},
+	"Group": {
+		"on_trash": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.clear_group",
+	},
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
 	},

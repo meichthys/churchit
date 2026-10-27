@@ -184,7 +184,7 @@ class TestAssignMemory(FrappeTestCase):
 		return frappe.get_all(
 			"Bible Memory Item",
 			filters={"translation": self.translation},
-			fields=["user", "bible_reference", "assigned_by"],
+			fields=["user", "bible_reference", "assigned_by", "group"],
 		)
 
 	def _group(self, name, *people):
@@ -208,6 +208,55 @@ class TestAssignMemory(FrappeTestCase):
 		self.assertEqual(result["created"], 1)
 		self.assertEqual(len(result["missing_users"]), 1)
 		self.assertIn(self.unlinked, result["missing_users"][0])
+
+	def test_a_group_assignment_files_its_members_items_under_the_group(self):
+		other = ensure_user("_test_named_learner@example.com", "_Test Named Learner")
+		make_person("_Test Assign", "Named", user=other)
+		group = self._group("_Test Stored Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, users=[other], group=group)
+		self.assertEqual(
+			{item.user: item.group for item in self._items()}, {self.learner: group, other: None}
+		)
+
+	def test_a_held_passage_keeps_its_group(self):
+		assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+		group = self._group("_Test Later Memory Group", self.linked)
+		self.assertEqual(assign_memory("Psalms 23:1", self.translation, group=group)["skipped"], 1)
+		self.assertEqual([item.group for item in self._items()], [None])
+
+	def test_only_assign_memory_sets_the_group(self):
+		group = self._group("_Test Hand Memory Group", self.linked)
+		frappe.set_user(self.learner)
+		item = {
+			"doctype": "Bible Memory Item",
+			"bible_reference": "Psalms 23:1",
+			"translation": self.translation,
+		}
+		with self.assertRaises(PermissionError):
+			frappe.get_doc({**item, "group": group}).insert()
+
+		mine = frappe.get_doc(item).insert()
+		mine.group = group
+		with self.assertRaises(PermissionError):
+			mine.save()
+
+	def test_deleting_a_group_clears_it_from_the_items(self):
+		group = self._group("_Test Deleted Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, group=group)
+		frappe.delete_doc("Group", group)
+		self.assertEqual([(item.user, item.group) for item in self._items()], [(self.learner, None)])
+
+	def test_a_duplicated_item_drops_the_group(self):
+		other = ensure_user("_test_copy_learner@example.com", "_Test Copy Learner")
+		make_person("_Test Assign", "Copy", user=other)
+		group = self._group("_Test Copied Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, group=group)
+		item = frappe.get_doc("Bible Memory Item", {"translation": self.translation})
+
+		copy = frappe.copy_doc(item, ignore_no_copy=False)
+		copy.user = other
+		self.assertIsNone(copy.group)
+		copy.insert()
 
 	def test_a_user_named_twice_is_assigned_once(self):
 		group = self._group("_Test Overlap Group", self.linked)

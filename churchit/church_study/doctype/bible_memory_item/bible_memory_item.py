@@ -44,6 +44,9 @@ class BibleMemoryItem(Document):
 		"""Apply the `assign_memory` checks to a save through the desk or REST."""
 		if self.flags.ignore_permissions:
 			return
+		before = self.get_doc_before_save()
+		if self.group != (before.group if before else None):
+			frappe.throw(_("Only a group assignment sets the group."), frappe.PermissionError)
 		if self.has_value_changed("translation") and not is_readable(self.translation):
 			frappe.throw(
 				_("You cannot read the translation {0}.").format(self.translation), frappe.PermissionError
@@ -167,6 +170,7 @@ def assign_memory(
 	"""Add a passage to the memory list of each user, and of each group member with a portal login.
 
 	Only managers may assign, and a user who already has the passage is skipped.
+	The items made for the group's members keep the group.
 	"""
 	# Before the group is read: its members' names come back in the result.
 	if not set(frappe.get_roles()) & ASSIGNING_ROLES:
@@ -175,10 +179,8 @@ def assign_memory(
 		frappe.throw(_("You cannot read the translation {0}.").format(translation), frappe.PermissionError)
 	users = as_list(users)
 	refuse_users_of_another_church(users)
-	missing_users = []
-	if group:
-		group_users, missing_users = get_group_users(group)
-		users += group_users
+	group_users, missing_users = get_group_users(group) if group else ([], [])
+	users += group_users
 	if not users:
 		frappe.throw(_("Choose a user, or a group with members who have a portal login."))
 
@@ -198,6 +200,7 @@ def assign_memory(
 				"bible_reference": reference,
 				"translation": translation,
 				"assigned_by": assigned_by,
+				"group": group if user in group_users else None,
 			}
 		).insert(ignore_permissions=True)
 		created += 1
@@ -240,6 +243,11 @@ def get_group_users(group):
 		if not member.user
 	]
 	return [member.user for member in members if member.user], missing
+
+
+def clear_group(doc, method=None):
+	"""Group on_trash: keep the members' items, so the link to the group does not block its deletion."""
+	frappe.db.set_value("Bible Memory Item", {"group": doc.name}, "group", None, update_modified=False)
 
 
 def as_list(value):

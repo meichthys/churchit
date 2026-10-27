@@ -1,6 +1,8 @@
 import frappe
 from frappe import _
+from pypika import Order
 
+from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -23,6 +25,7 @@ def get_columns():
 			"options": "Bible Translation",
 			"width": 160,
 		},
+		{"fieldname": "group", "fieldtype": "Link", "label": _("Group"), "options": "Group", "width": 160},
 		{"fieldname": "progress", "fieldtype": "Percent", "label": _("Progress"), "width": 100},
 		{"fieldname": "memorized", "fieldtype": "Check", "label": _("Memorized"), "width": 100},
 		{"fieldname": "memorized_on", "fieldtype": "Date", "label": _("Memorized On"), "width": 120},
@@ -36,27 +39,38 @@ def get_columns():
 
 
 def get_data(filters):
-	conditions = {}
+	"""Items of users whose Person is in a church the reader may see, and of users with no Person when unscoped."""
+	Item = frappe.qb.DocType("Bible Memory Item")
+	Person = frappe.qb.DocType("Person")
+	query = (
+		frappe.qb.from_(Item)
+		.left_join(Person)
+		.on(Person.user == Item.user)
+		.select(
+			Item.name,
+			Item.user,
+			Item.bible_reference,
+			Item.translation,
+			Item.group,
+			Item.progress,
+			Item.memorized,
+			Item.memorized_on,
+			Item.times_memorized,
+		)
+		.orderby(Item.memorized, order=Order.desc)
+		.orderby(Item.memorized_on, order=Order.desc)
+		.orderby(Item.modified, order=Order.desc)
+	)
+
 	memorized = filters.get("memorized")
 	if memorized in (1, "1", True, "Yes"):
-		conditions["memorized"] = 1
+		query = query.where(Item.memorized == 1)
 	elif memorized in (0, "0", False, "No"):
-		conditions["memorized"] = 0
+		query = query.where(Item.memorized == 0)
 	if filters.get("user"):
-		conditions["user"] = filters["user"]
+		query = query.where(Item.user == filters["user"])
+	if filters.get("group"):
+		frappe.has_permission("Group", doc=filters["group"], throw=True)
+		query = query.where(Item.group == filters["group"])
 
-	return frappe.get_all(
-		"Bible Memory Item",
-		filters=conditions,
-		fields=[
-			"name",
-			"user",
-			"bible_reference",
-			"translation",
-			"progress",
-			"memorized",
-			"memorized_on",
-			"times_memorized",
-		],
-		order_by="memorized desc, memorized_on desc, modified desc",
-	)
+	return scoped(query, Person, filters).run(as_dict=True)

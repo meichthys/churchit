@@ -1,5 +1,6 @@
 frappe.query_reports["Bible Memory"] = {
 	filters: [
+		...church.report_filters(),
 		{
 			fieldname: "memorized",
 			label: __("Memorized"),
@@ -12,6 +13,12 @@ frappe.query_reports["Bible Memory"] = {
 			label: __("User"),
 			fieldtype: "Link",
 			options: "User",
+		},
+		{
+			fieldname: "group",
+			label: __("Group"),
+			fieldtype: "Link",
+			options: "Group",
 		},
 	],
 };
