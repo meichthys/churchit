@@ -16,6 +16,9 @@
 	.team-list .status { font-weight: 600; white-space: nowrap; }
 	.decline-form { display: none; flex: 1 1 100%; gap: 8px; }
 	.decline-form.open { display: flex; }
+	.replace-form { display: none; flex: 1 1 100%; flex-wrap: wrap; align-items: center; gap: 8px; }
+	.replace-form.open { display: flex; }
+	.replace-form select { flex: 1 1 12rem; width: auto; }
 	.team-schedule { flex: 1 1 100%; }
 	.team-schedule summary { color: var(--text-muted, #6b7280); cursor: pointer; }
 	.team-schedule div { display: flex; gap: 16px; padding: 4px 0; }
@@ -55,11 +58,18 @@
 					<span class="status">{{ _(row.status) }}</span>
 					{# a started function, such as a retreat on its second day, takes no more answers #}
 					{% if not row.has_started %}
-						{% if row.status != "Accepted" %}
+						{% if row.replaced_by %}
+							<small class="text-muted">{{ _("Your place went to {0}.").format(row.replaced_by) | e }}</small>
+						{% elif row.status != "Accepted" %}
 							<button class="btn btn-sm btn-primary team-answer" data-assignment="{{ row.name | e }}" data-status="Accepted">{{ _("Accept") }}</button>
 						{% endif %}
 						{% if row.status != "Declined" %}
 							<button class="btn btn-sm btn-default team-decline" data-assignment="{{ row.name | e }}">{{ _("Decline") }}</button>
+						{% endif %}
+						{% if row.pending_replacement %}
+							<small class="text-muted">{{ _("You asked {0} to take your place. It passes to them when they accept.").format(row.pending_replacement) | e }}</small>
+						{% elif row.can_pass_on %}
+							<button class="btn btn-sm btn-default team-replace" data-assignment="{{ row.name | e }}">{{ _("Ask Someone Else") }}</button>
 						{% endif %}
 					{% endif %}
 				</span>
@@ -68,6 +78,13 @@
 					<input class="form-control form-control-sm" type="text" maxlength="140"
 						placeholder="{{ _('Reason (optional)') }}" aria-label="{{ _('Reason for declining') }}">
 					<button class="btn btn-sm btn-danger team-answer" data-assignment="{{ row.name | e }}" data-status="Declined">{{ _("Decline") }}</button>
+				</span>
+				{% endif %}
+				{% if not row.has_started and row.can_pass_on and not row.pending_replacement %}
+				<span class="replace-form" data-assignment="{{ row.name | e }}">
+					<select class="form-control form-control-sm" aria-label="{{ _('Person to ask') }}"></select>
+					<button class="btn btn-sm btn-primary team-ask" data-assignment="{{ row.name | e }}">{{ _("Ask") }}</button>
+					<small class="text-muted">{{ _("You serve until they accept.") }}</small>
 				</span>
 				{% endif %}
 				{% include "templates/includes/ministry_team_schedule.html" %}
@@ -180,6 +197,40 @@ frappe.ready(function () {
 				assignment: button.dataset.assignment,
 				status: button.dataset.status,
 				reason: form ? form.querySelector("input").value : null,
+			}, button);
+		});
+	});
+
+	document.querySelectorAll(".team-replace").forEach(function (button) {
+		button.addEventListener("click", function () {
+			var form = document.querySelector('.replace-form[data-assignment="' + button.dataset.assignment + '"]');
+			button.disabled = true;
+			frappe.call({
+				method: "churchit.church_ministries.member_ministry_team.get_replacement_candidates",
+				type: "GET",
+				args: { assignment: button.dataset.assignment },
+				callback: function (r) {
+					if (!r.message.length) {
+						frappe.msgprint(__("No one else on the team is free then."));
+						return;
+					}
+					var select = form.querySelector("select");
+					r.message.forEach(function (row) {
+						select.add(new Option(row.full_name, row.person));
+					});
+					form.classList.add("open");
+					button.hidden = true;
+				},
+				error: function () { button.disabled = false; },
+			});
+		});
+	});
+
+	document.querySelectorAll(".team-ask").forEach(function (button) {
+		button.addEventListener("click", function () {
+			send("ask_for_replacement", {
+				assignment: button.dataset.assignment,
+				replacement: button.closest(".replace-form").querySelector("select").value,
 			}, button);
 		});
 	});

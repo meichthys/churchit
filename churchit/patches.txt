@@ -105,3 +105,6 @@ churchit.patches.v1_0.add_room_request_to_portal
 churchit.patches.v1_0.remove_room_booking_pending_approval
 churchit.patches.v1_0.add_room_booking_decided_notification
 churchit.patches.v1_0.hide_link_only_functions_on_home_page
+churchit.patches.v1_0.add_serving_purpose
+churchit.patches.v1_0.add_ministry_team_replacement_template
+churchit.patches.v1_0.name_the_replacement_in_ministry_team_decline

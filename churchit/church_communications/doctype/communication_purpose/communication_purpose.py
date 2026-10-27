@@ -14,7 +14,9 @@ CHILD_SAFETY = "Child Safety"
 GROUP_MESSAGES = "Group Messages"
 # What a reminder of an event the person signed up for asks consent for.
 EVENT_REGISTRATIONS = "Event Registrations"
-USED_BY_THE_APP = (CHURCH_NEWS, CHILD_SAFETY, GROUP_MESSAGES, EVENT_REGISTRATIONS)
+# What a text asking a person to serve on a ministry team, or reminding them, asks consent for.
+SERVING = "Serving"
+USED_BY_THE_APP = (CHURCH_NEWS, CHILD_SAFETY, GROUP_MESSAGES, EVENT_REGISTRATIONS, SERVING)
 
 STARTER_PURPOSES = {
 	CHURCH_NEWS: "Church Emails: news, events and announcements sent to the congregation.",
@@ -22,6 +24,7 @@ STARTER_PURPOSES = {
 	CHILD_SAFETY: "Pages from the Check-In Station that ask a child's parents to come.",
 	GROUP_MESSAGES: "Messages from group leaders, join requests and their answers, and attendance reminders.",
 	EVENT_REGISTRATIONS: "Reminders of the events a person signed up for.",
+	SERVING: "Requests and reminders to serve on a ministry team.",
 }
 
 

@@ -566,6 +566,8 @@ NAME_CHECK_EXEMPT = {
 		"it loads only a function on the session member's own Attendance page"
 	),
 	"churchit.church_ministries.member_ministry_team.answer_own_assignment": OWN_RECORD,
+	"churchit.church_ministries.member_ministry_team.ask_for_replacement": OWN_RECORD,
+	"churchit.church_ministries.member_ministry_team.get_replacement_candidates": OWN_RECORD,
 	"churchit.church_ministries.member_ministry_team.remove_own_block": OWN_RECORD,
 	"churchit.church_ministries.member_ministry_team.set_own_frequency": (
 		"a portal member holds no right on the position; it writes only the session person's own roster row"

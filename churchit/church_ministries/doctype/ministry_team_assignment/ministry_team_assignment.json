@@ -15,6 +15,7 @@
   "column_break_assignment",
   "status",
   "decline_reason",
+  "replaces",
   "section_break_emails",
   "requested_on",
   "reminded_on",
@@ -91,13 +92,21 @@
    "label": "Decline Reason"
   },
   {
+   "description": "The assignment this one takes over. When this one is accepted, the other is declined.",
+   "fieldname": "replaces",
+   "fieldtype": "Link",
+   "label": "Replaces",
+   "options": "Ministry Team Assignment",
+   "read_only": 1
+  },
+  {
    "collapsible": 1,
    "fieldname": "section_break_emails",
    "fieldtype": "Section Break",
    "label": "Emails"
   },
   {
-   "description": "When the request email went out. A new assignment is sent once a day, or at once with Send Emails Now on the list.",
+   "description": "When the request went out by email or text. A new assignment is sent once a day, or at once with Send Requests Now on the list.",
    "fieldname": "requested_on",
    "fieldtype": "Datetime",
    "label": "Requested On",
@@ -154,7 +163,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-12 12:00:00.000000",
+ "modified": "2026-10-27 01:27:34.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Assignment",
