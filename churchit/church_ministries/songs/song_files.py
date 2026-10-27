@@ -4,7 +4,8 @@
 """Song files: import ChordPro and SongSelect `.usr` files as Songs.
 
 An imported file becomes a Song with one Default arrangement and its slides. A file is skipped when
-the importer already lists a Song with its CCLI number, or with its title when it has none.
+the importer already lists a Song with its CCLI number, or with its title when it has none. The
+public-domain hymns shipped in `hymns/` import the same way, and are never fetched at run time.
 """
 
 import os
@@ -31,6 +32,7 @@ THEME_DIRECTIVES = ("tag", "theme")
 # A theme becomes a Tag, which the desk list shows unescaped and splits on commas.
 PLAIN_THEME = re.compile(r"[\w .&/()-]+")
 SONGSELECT_CCLI = re.compile(r"\[S A?(\d+)\]")
+HYMNS_FOLDER = os.path.join(os.path.dirname(__file__), "hymns")
 
 
 @frappe.whitelist(methods=["POST"])
@@ -202,3 +204,39 @@ def songselect_chart(fields: dict) -> str:
 
 def split_list(value: str | None, separator: str) -> list[str]:
 	return [part.strip() for part in (value or "").split(separator) if part.strip()]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_public_domain_hymns() -> list[dict]:
+	"""The hymns shipped in `hymns/`, by title, for a checklist: `[{"file", "title", "authors"}]`."""
+	frappe.has_permission("Song", "create", throw=True)
+	hymns = []
+	for filename in get_hymn_files():
+		values = read_song_file(filename, read_hymn(filename))
+		hymns.append({"file": filename, "title": values.title, "authors": values.authors})
+	return sorted(hymns, key=lambda hymn: hymn["title"])
+
+
+@frappe.whitelist(methods=["POST"])
+def add_public_domain_hymns(files: str | list[str]) -> frappe._dict:
+	"""Import each shipped hymn as a public-domain Song: `{"imported": [{"file", "song"}], "skipped": [file]}`."""
+	frappe.has_permission("Song", "create", throw=True)
+	shipped, result = get_hymn_files(), frappe._dict(imported=[], skipped=[])
+	for filename in parse_names(files):
+		if filename not in shipped:
+			frappe.throw(_("{0} is not a shipped hymn.").format(frappe.bold(filename)))
+		song = import_song_text(filename, read_hymn(filename), public_domain=True)
+		if song:
+			result.imported.append({"file": filename, "song": song})
+		else:
+			result.skipped.append(filename)
+	return result
+
+
+def get_hymn_files() -> list[str]:
+	return sorted(name for name in os.listdir(HYMNS_FOLDER) if name.endswith(".cho"))
+
+
+def read_hymn(filename: str) -> str:
+	with open(os.path.join(HYMNS_FOLDER, filename), encoding="utf-8") as file:
+		return file.read()

@@ -4,6 +4,7 @@
 frappe.listview_settings["Song"] = {
 	onload(listview) {
 		add_song_import_button(listview);
+		add_public_domain_hymns_button(listview);
 	},
 };
 
@@ -53,4 +54,68 @@ function import_song_files(listview, files) {
 		}
 		frappe.msgprint({ title: __("Import Song Files"), message, indicator: "green" });
 	});
+}
+
+function add_public_domain_hymns_button(listview) {
+	if (!frappe.model.can_create("Song")) return;
+	listview.page.add_inner_button(__("Add Public-Domain Hymns"), () =>
+		frappe
+			.xcall(`${SONG_FILES}.get_public_domain_hymns`, {}, "GET")
+			.then((hymns) => choose_public_domain_hymns(listview, hymns))
+	);
+}
+
+function choose_public_domain_hymns(listview, hymns) {
+	const escape = frappe.utils.escape_html;
+	const titles = Object.fromEntries(hymns.map((hymn) => [hymn.file, escape(hymn.title)]));
+	const options = hymns.map((hymn) => {
+		const authors = `<span class="text-muted">${escape(hymn.authors)}</span>`;
+		return { value: hymn.file, label: `${titles[hymn.file]} ${authors}` };
+	});
+	const dialog = new frappe.ui.Dialog({
+		title: __("Add Public-Domain Hymns"),
+		size: "large",
+		fields: [
+			{
+				fieldname: "files",
+				fieldtype: "MultiCheck",
+				label: __("Hymns"),
+				description: __(
+					"Words and music published in 1930 or earlier. Each hymn becomes a public-domain song with its chord chart and slides. A hymn whose title your song list already shows is skipped."
+				),
+				select_all: 1,
+				columns: 2,
+				options,
+			},
+		],
+		primary_action_label: __("Add"),
+		primary_action: ({ files }) => {
+			if (!files?.length) return frappe.msgprint(__("Select at least one hymn."));
+			return frappe
+				.xcall(`${SONG_FILES}.add_public_domain_hymns`, { files }, "POST", {
+					freeze: true,
+				})
+				.then((result) => {
+					dialog.hide();
+					listview.refresh();
+					show_hymns_added(titles, result);
+				});
+		},
+	});
+	dialog.show();
+}
+
+function show_hymns_added(titles, { imported, skipped }) {
+	const links = imported.map(
+		(row) =>
+			`<a href="${frappe.utils.get_form_link("Song", row.song)}">${titles[row.file]}</a>`
+	);
+	let message = __("{0} hymns added.", [imported.length]) + items(links);
+	if (skipped.length) {
+		const reason = __("{0} hymns skipped: a song with the same title is listed.", [
+			skipped.length,
+		]);
+		message += reason + items(skipped.map((file) => titles[file]));
+	}
+	frappe.msgprint({ title: __("Add Public-Domain Hymns"), message, indicator: "green" });
 }
