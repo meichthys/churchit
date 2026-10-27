@@ -7,7 +7,7 @@
 person (a connection card, a first check-in, a life event, a membership change) reaches the
 workflows that start on it. The daily `start_smart_list_cards` reads the smart-list triggers
 itself. A workflow's actions (an email, a text, a group, a tag) run in `run_actions` when a card
-opens, reaches a step or closes.
+opens, reaches a step or closes, and the last two also start the workflows waiting for them.
 """
 
 import json
@@ -41,10 +41,11 @@ MEMBER_STATUS_BECOMES = "Member Status Becomes"
 ON_SMART_LIST = "On Smart List"
 SIGNED_UP = "Signed Up"
 FORM_SUBMITTED = "Form Submitted"
-# What happens to a card.
+# What happens to a card. The last two are also triggers that start another workflow.
 CARD_OPENED = "Card Opened"
 STEP_REACHED = "Step Reached"
 CARD_CLOSED = "Card Closed"
+CARD_TRIGGERS = (STEP_REACHED, CARD_CLOSED)
 # What a trigger row's "Which" value names. follow_up_workflow.js offers the same pickers.
 VALUE_TYPES = {
 	CONNECTION_CARD: "Connection Card Interest",
@@ -55,6 +56,8 @@ VALUE_TYPES = {
 	ON_SMART_LIST: "Report",
 	SIGNED_UP: "Function Type",
 	FORM_SUBMITTED: "Question Set",
+	STEP_REACHED: WORKFLOW,
+	CARD_CLOSED: WORKFLOW,
 }
 # A Follow-up Action Run's status.
 DONE = "Done"
@@ -113,11 +116,18 @@ def get_open_card(person: str, workflow: str, exclude: str = "") -> str | None:
 
 
 def start_cards(
-	trigger: str, person: str, church: str | None, value: str | None = None, source=None
+	trigger: str,
+	person: str,
+	church: str | None,
+	value: str | None = None,
+	source=None,
+	*,
+	step: str | None = None,
 ) -> list[str]:
 	"""Open a card for *person* on each active workflow of *church* that starts on *trigger*.
 
 	A trigger row with no value starts on every *value*; one with a value starts only on that one.
+	A row with a step starts only on that *step*.
 	"""
 	workflows = frappe.get_all(WORKFLOW, filters=church_filters(church, is_active=1), pluck="name")
 	if not workflows:
@@ -125,9 +135,15 @@ def start_cards(
 	rows = frappe.get_all(
 		TRIGGER,
 		filters={"parenttype": WORKFLOW, "parent": ("in", workflows), "trigger": trigger},
-		fields=["parent", "value"],
+		fields=["parent", "value", "step"],
 	)
-	starting = sorted({row.parent for row in rows if not row.value or row.value == value})
+	starting = sorted(
+		{
+			row.parent
+			for row in rows
+			if (not row.value or row.value == value) and (not row.step or row.step == step)
+		}
+	)
 	reason = describe_trigger(trigger, value)
 	return [add_card(person, workflow, reason=reason, source=source) for workflow in starting]
 
@@ -259,13 +275,18 @@ def queue_actions(card: Document, event: str) -> None:
 
 
 def has_actions(workflow: str, event: str) -> bool:
-	"""True when *workflow* has an action for *event*."""
-	# church-scope: the rows of one workflow, which its church alone may add
-	return bool(frappe.db.exists(ACTION, {"parenttype": WORKFLOW, "parent": workflow, "run_on": event}))
+	"""True when *workflow* has an action for *event*, or another workflow starts on it."""
+	# church-scope: the rows of one workflow, and the triggers naming it, which its church alone may add
+	if frappe.db.exists(ACTION, {"parenttype": WORKFLOW, "parent": workflow, "run_on": event}):
+		return True
+	return event in CARD_TRIGGERS and bool(
+		frappe.db.exists(TRIGGER, {"parenttype": WORKFLOW, "trigger": event, "value": workflow})
+	)
 
 
 def run_actions(card: str, run_on: str, step: str) -> None:
-	"""Background job: run the actions of *card*'s workflow for *run_on* (an event) at *step*.
+	"""Background job: run the actions of *card*'s workflow for *run_on* (an event) at *step*, then start the
+	workflows waiting for it.
 
 	It runs as the user who saved the card, Guest after a connection card, so it writes with
 	ignore_permissions. An action with no step runs at every step.
@@ -274,6 +295,8 @@ def run_actions(card: str, run_on: str, step: str) -> None:
 	for row in frappe.get_doc(WORKFLOW, doc.workflow).actions:
 		if row.run_on == run_on and not (run_on == STEP_REACHED and row.step and row.step != step):
 			run_action(doc, row, run_on, step)
+	if run_on in CARD_TRIGGERS:
+		start_cards(run_on, doc.person, doc.church, value=doc.workflow, step=step, source=doc)
 
 
 def run_action(card: Document, row: Document, event: str, step: str) -> None:

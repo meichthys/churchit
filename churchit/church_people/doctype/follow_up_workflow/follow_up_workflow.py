@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from churchit.church_people.followup import CARD, ON_SMART_LIST, OPEN
+from churchit.church_people.followup import CARD, CARD_TRIGGERS, ON_SMART_LIST, OPEN, STEP_REACHED
 from churchit.church_scope import default_church, has_church_access
 
 BOARD = "Kanban Board"
@@ -30,8 +30,12 @@ class FollowupWorkflow(Document):
 		self.validate_steps()
 		self.refuse_removing_steps_with_open_cards()
 		for row in self.triggers:
+			if row.trigger != STEP_REACHED:
+				row.step = None
 			if row.trigger == ON_SMART_LIST:
 				row.validate_smart_list()
+			elif row.trigger in CARD_TRIGGERS:
+				row.validate_workflow(self)
 		for row in self.actions:
 			row.validate_action(self)
 

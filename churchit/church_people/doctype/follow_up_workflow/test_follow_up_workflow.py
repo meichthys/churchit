@@ -6,7 +6,7 @@ import json
 import frappe
 
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
-from churchit.church_people.followup import ON_SMART_LIST, VALUE_TYPES, add_card
+from churchit.church_people.followup import CARD_CLOSED, ON_SMART_LIST, STEP_REACHED, VALUE_TYPES, add_card
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -100,14 +100,16 @@ class TestFollowupWorkflow(RollbackEachTest):
 			make_workflow("_Test Board Disabled", [("Call", user, 1)])
 
 	def test_each_trigger_row_names_what_its_value_is(self):
-		smart_list = make_smart_list("_Test Trigger List").name
+		before = make_workflow("_Test Board Before", [("Call", None, 1)]).name
+		values = {
+			ON_SMART_LIST: make_smart_list("_Test Trigger List").name,
+			STEP_REACHED: before,
+			CARD_CLOSED: before,
+		}
 		workflow = make_workflow(
 			"_Test Board Triggers",
 			[("Call", None, 1)],
-			triggers=[
-				{"trigger": trigger, "value": smart_list if trigger == ON_SMART_LIST else None}
-				for trigger in VALUE_TYPES
-			],
+			triggers=[{"trigger": trigger, "value": values.get(trigger)} for trigger in VALUE_TYPES],
 		)
 
 		self.assertEqual({row.trigger: row.value_type for row in workflow.triggers}, VALUE_TYPES)

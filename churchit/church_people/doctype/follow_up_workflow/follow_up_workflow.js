@@ -11,12 +11,19 @@ const VALUE_TYPES = {
 	"On Smart List": "Report",
 	"Signed Up": "Function Type",
 	"Form Submitted": "Question Set",
+	"Step Reached": "Follow-up Workflow",
+	"Card Closed": "Follow-up Workflow",
 };
 
 frappe.ui.form.on("Follow-up Workflow", {
 	setup(frm) {
 		frm.set_query("value", "triggers", (doc, cdt, cdn) => {
 			const row = locals[cdt][cdn];
+			if (VALUE_TYPES[row.trigger] === "Follow-up Workflow") {
+				const filters = { name: ["!=", doc.name] };
+				if (doc.church) filters.church = doc.church;
+				return { filters };
+			}
 			if (row.trigger !== "On Smart List") return {};
 			return { query: "churchit.church_people.smart_lists.search_smart_lists" };
 		});
@@ -34,6 +41,7 @@ frappe.ui.form.on("Follow-up Trigger", {
 		frappe.model.set_value(cdt, cdn, {
 			value_type: VALUE_TYPES[locals[cdt][cdn].trigger] || "",
 			value: "",
+			step: "",
 		});
 	},
 });

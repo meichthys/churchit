@@ -29,6 +29,7 @@ from churchit.church_people.followup import (
 	add_card,
 	close_repeated_cards,
 	run_actions,
+	start_cards,
 )
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -330,6 +331,89 @@ class TestFollowupActions(RollbackEachTest):
 		self.assertTrue(self.workflow(text))
 
 
+class TestCardTriggers(RollbackEachTest):
+	"""Step Reached and Card Closed: a card on one workflow starts a card on another."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		force_single_church()
+		cls.first = make_workflow("_Test Followup First", STEPS).name
+
+	def setUp(self):
+		super().setUp()
+		self.enterContext(patch.object(frappe.db, "commit"))
+		self.person = make_person("_Test Followup", "Trigger").name
+
+	def workflow_on(self, name, trigger, step=None, value=None):
+		rows = [{"trigger": trigger, "value": value or self.first, "step": step}]
+		return make_workflow(name, STEPS, triggers=rows).name
+
+	def cards_on(self, workflow):
+		return frappe.get_all(CARD, filters={"person": self.person, "workflow": workflow}, pluck="name")
+
+	def test_reaching_a_step_opens_one_card_on_the_workflow_waiting_for_it(self):
+		at_class = self.workflow_on("_Test Followup At Class", STEP_REACHED, "Class")
+		any_step = self.workflow_on("_Test Followup Any Step", STEP_REACHED)
+		card = add_card(self.person, self.first)
+
+		run_actions(card, STEP_REACHED, "Welcome")
+		self.assertEqual(self.cards_on(at_class), [])
+		self.assertEqual(len(self.cards_on(any_step)), 1)
+
+		move(card, "Class")
+		run_actions(card, STEP_REACHED, "Class")
+		run_actions(card, STEP_REACHED, "Class")
+		started = frappe.get_doc(CARD, self.cards_on(at_class)[0])
+		self.assertEqual(len(self.cards_on(at_class)), 1)
+		self.assertEqual((started.source_type, started.source_name), (CARD, card))
+		self.assertEqual(started.reason, f"Step Reached: {self.first}")
+
+	def test_a_card_queues_the_events_another_workflow_waits_for(self):
+		self.workflow_on("_Test Followup Waiting", CARD_CLOSED)
+		card = add_card(self.person, self.first)
+
+		self.assertEqual(queued_events(lambda: move(card, "Class")), [])
+		self.assertEqual(queued_events(lambda: move(card, status=CLOSED)), [(CARD_CLOSED, "Class")])
+
+	def test_closing_a_card_opens_one_card_on_the_workflow_waiting_for_it(self):
+		after = self.workflow_on("_Test Followup After", CARD_CLOSED)
+		card = add_card(self.person, self.first)
+
+		run_actions(card, STEP_REACHED, "Welcome")
+		self.assertEqual(self.cards_on(after), [])
+
+		move(card, status=CLOSED)
+		run_actions(card, CARD_CLOSED, "Welcome")
+		run_actions(card, CARD_CLOSED, "Welcome")
+		self.assertEqual(len(self.cards_on(after)), 1)
+
+	def test_a_trigger_row_with_a_step_starts_only_on_that_step(self):
+		at_class = self.workflow_on("_Test Followup Only Class", STEP_REACHED, "Class")
+
+		self.assertEqual(start_cards(STEP_REACHED, self.person, None, value=self.first, step="Done"), [])
+		self.assertEqual(
+			start_cards(STEP_REACHED, self.person, None, value=self.first, step="Class"),
+			self.cards_on(at_class),
+		)
+
+	def test_a_closed_trigger_keeps_no_step(self):
+		after = self.workflow_on("_Test Followup Closed Step", CARD_CLOSED, "Class")
+
+		self.assertIsNone(frappe.get_doc("Follow-up Workflow", after).triggers[0].step)
+
+	def test_a_workflow_must_name_another_workflow_and_one_of_its_steps(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.workflow_on("_Test Followup Lunch", STEP_REACHED, "Lunch")
+		with self.assertRaises(frappe.ValidationError):
+			make_workflow("_Test Followup Blank", STEPS, triggers=[{"trigger": CARD_CLOSED}])
+
+		workflow = frappe.get_doc("Follow-up Workflow", self.first)
+		workflow.append("triggers", {"trigger": CARD_CLOSED, "value": self.first})
+		with self.assertRaises(frappe.ValidationError):
+			workflow.save()
+
+
 class TestFollowupActionChurches(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):
@@ -342,10 +426,26 @@ class TestFollowupActionChurches(RollbackEachTest):
 		super().setUp()
 		self.enterContext(patch.object(frappe.db, "commit"))
 
-	def test_a_workflow_cannot_name_another_churches_group(self):
+	def test_a_workflow_cannot_name_another_churches_group_or_workflow(self):
 		join = {"run_on": CARD_OPENED, "action": "Add to Group", "group": self.group_b}
 		with self.assertRaises(frappe.PermissionError):
 			make_workflow("_Test Followup Their Group", STEPS, church=self.branch_a, actions=[join])
+
+		theirs = {"trigger": CARD_CLOSED, "value": self.workflow_b}
+		with self.assertRaises(frappe.PermissionError):
+			make_workflow("_Test Followup Their Workflow", STEPS, church=self.branch_a, triggers=[theirs])
+
+	def test_a_step_reached_starts_the_waiting_workflow_of_the_cards_church(self):
+		first = make_workflow("_Test Followup Church First", STEPS, church=self.branch_a).name
+		rows = [{"trigger": STEP_REACHED, "value": first, "step": "Class"}]
+		waiting = make_workflow("_Test Followup Church Next", STEPS, church=self.branch_a, triggers=rows).name
+		person = make_person("_Test Followup", "Church Step", church=self.branch_b).name
+		card = add_card(person, first)
+
+		run_actions(card, STEP_REACHED, "Class")
+
+		started = frappe.get_all(CARD, filters={"person": person, "workflow": waiting}, pluck="church")
+		self.assertEqual(started, [self.branch_a])
 
 	def test_a_church_reads_only_its_own_action_runs(self):
 		tag = {
