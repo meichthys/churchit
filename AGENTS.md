@@ -326,6 +326,13 @@ whole, so two check-ins at once lose no row and a stale desk save fails. `record
 (`STATUS_RANK`). A `Function.validate` check acts only when `has_value_changed` on its own field, or an
 attendance save trips it.
 
+Weekly Metrics rows are written only by `church_summary/metrics.py`, by the daily
+`record_recent_weeks` and the Church Manager backfill. Attendance, first-time visitors and giving are
+counted again from dated records on each run; active members, people in groups and people serving
+are the state on the day, so only the current week gets them. A shared Function counts once, for the
+church in `shared_by_church`. Giving stays at permlevel 2, and the Giving by Week chart has the
+roles Church Finance and Church Manager.
+
 Recurring Functions are made in `church_ministries/recurrence.py`. Deleting an occurrence adds its
 date to the template's Skip Dates (`Function.on_trash`), so the daily job does not make it again.
 
@@ -408,6 +415,15 @@ church may change, is inserted once as a record that is not standard, from `afte
 v1_0 patch, as `room_booking.create_decided_notification` does for Room Booking Decided. To tell
 staff that a record waits for them, assign it with `frappe.desk.form.assign_to`: the assignment
 sends its own email, so add no second Notification.
+
+New Prayer Request for the Prayer Team, New Private Prayer Request
+(`prayer_request.create_new_prayer_request_notifications`), New Alms Request
+(`alms_request.create_new_alms_request_notification`) and Church Task Due
+(`church_task.create_due_notification`) are inserted the same way. The Church Prayer Team recipient
+row has the condition `doc.approved_for_list`, so a guest's request reaches the team only through
+moderation. A Private request goes to Church Pastoral Care and Church Manager only, and its email
+leaves out the request, the title and the requester. Escape free text with `| e` in a Notification
+body: Frappe's Jinja does not escape, and guests write prayer requests.
 
 ## Public website and portal
 
@@ -530,6 +546,61 @@ The scan does not follow a method of a Single or its `self.` reads. A page that 
 through such a method imports the class as the type of its document
 (`settings: GivingSettings = frappe.get_cached_doc("Giving Settings")`), and the method reads the
 field as an attribute of a row (`wording.other_ways_to_give`), as `/give` does.
+
+`/sermon/<name>` (`www/sermon.py`, through `website_route_rules`) shows one published Sermon to
+anyone with the link, and 404 when the sermon's church is set and not published. It does not
+narrow to the selected church, so a shared link opens from any branch page, and it has no staff
+preview. Jinja has no autoescape there: escape every plain value with `| e`, and pass Text Editor
+HTML through `sanitize_html(..., always_sanitize=True)`. The page shows no Sermon Presentation row,
+because a presentation's notes are staff notes. A sermon with a Handout shows the handout in place
+of its notes, so the bracketed answers stay off the page. Listener notes stay in the browser's
+`localStorage`; add no field or method that sends them to the server.
+`church_study/media.py:get_embed_url` is the one list of players a page may put in an iframe; any
+other link, or one that is not https, gets a plain link.
+
+`/podcast.xml` (`www/podcast.py`) is the selected church's sermon podcast. It builds the XML with
+`xml.etree.ElementTree`; never join record text into XML by hand. It lists a published Sermon when
+its `audio_recording` File is public, else the newest Sermon Presentation row with a public
+recording. `Sermon.on_update` makes every recording public while the sermon is published and
+private otherwise, and writes the sermon's own `audio_recording` again after a move, because Frappe
+writes a moved grid row file's URL into the parent field of the same name. The `/sermons` head links
+the feed (`context._add_podcast_link`), and `podcast.get_feed_url` adds `?church=` in multi-church
+mode.
+
+`/live` plays the selected church's `live_stream_url`, or its nearest parent's (`inherited_value`),
+in an iframe when `get_embed_url` knows the link, and redirects (302) to any other link; no link
+gives 404. It sets `frappe.local.no_cache` first, so Frappe never stores that 404. The calendar
+sends `live_url` (`calendar.get_live_url`) for a Function with Streamed from 15 minutes before it
+starts until it ends, only when its church has a stream link. Do not add a second streamed flag on
+Function. `utils.validate_https_url` is the one check for a link that guests open
+(`Function.meeting_url`, `Sermon.media_url`, `Church.live_stream_url`).
+
+`/bulletins` is members-only and lists the reader's own churches (`church_query_filters({})`), never
+the `?church=` selection. `Bulletin.has_website_permission` also requires `has_church_access`, so the
+PDF and the digital bulletin at `/bulletins?name=<bulletin>` refuse another church's bulletin. The
+digital bulletin includes the print template, so a new bulletin section shows on the portal too.
+`/announcements` is public and shows only `announcements` from the selected church's 5 newest
+published bulletins with `share_announcements`. Images there are public files:
+`Bulletin.validate_shared_announcements` saves a pasted image as public and refuses a private file.
+
+A Web Page with Members Only is served only to a signed-in active member (`is_directory_member`, the
+`/directory` rule) or a user who can edit Web Pages, dynamic routes included. A guest goes to the
+login page and anyone else gets 403. The check is the `MembersOnlyPage` renderer in
+`church_website/pages.py`, which runs before Frappe's page cache. It matches an exact route in the
+database, because Frappe finds a Web Page by route case and accent insensitively; never compare a
+Web Page route in Python. `MembersOnlyWebPage` keeps such a page out of global search, and
+`pages.get_list_data` (an override of `frappe.www.list.get_list_data`) keeps it out of the portal
+list API for a non-member. The navbar, `/sitemap.xml` and `/portal?doctype=Web Page` still show its
+title and link. A new way to read Web Pages without permission checks must apply the same rule.
+
+A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
+entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
+module owns it). Every migrate adds its switch to Church Features (`sync_page_switches`). Do not add
+home, portal, manifest.json, sw.js, offline, preferences or a Frappe route. A switched-off page
+answers 404 from the `SwitchedOffPage` renderer, its web form refuses Frappe's web form APIs
+(`SwitchedOffWebForm`), and its navbar, footer and portal links go at render time. Never change the
+cached Website Settings rows: build new lists. A template that links to another shipped page asks
+`get_switched_off_pages()` first, as `sermons.html` does.
 
 ## Settings a church can differ on
 
@@ -1076,6 +1147,11 @@ document"). Only `church_access.has_every_church` users add or delete a Note Cat
 roles or Private. `tests/test_permission_hygiene.py` checks the reads, the share right and Track
 Changes.
 
+The shipped categories are General, Pastoral Care and Benevolence
+(`note_category.create_note_categories`). A patch that adds one passes its name, so it does not
+bring back a category a church deleted. Alms Request case notes are Benevolence notes on the
+recipient, or on a Family's primary contact (`alms_request.js`).
+
 ## Member portal
 
 A portal member reaches their own Person, and an Adult also reads and writes the living Children of
@@ -1244,7 +1320,8 @@ not from the assignment.
 | Requested | A new booking on a gated room, or a move of an Approved one by a user who is not an approver. |
 | Approved | A new booking on an open room or by an approver, a booking of equipment only, `approve`, `resolve_conflict`. |
 | Denied | `deny`, `resolve_conflict("keep")`, and a Blocked save over a Requested or Conflict booking. On a gated room, `validate_approver` refuses any other save to Denied, or out of Denied to a status other than Cancelled, by a user who is not an approver. |
-| Cancelled, Completed | A user who may write the booking. |
+| Cancelled | A user who may write the booking. |
+| Completed | A user who may write the booking, and `check_in`. |
 | Blocked | Only an approver of the room (`validate_blocked`), with a room and no requester. Changing, releasing or deleting it (`on_trash`) needs an approver too. Every other status needs a requester (`refuse_a_request_with_no_requester`, because Frappe checks `mandatory_depends_on` only in the form). |
 | Conflict | A clash saved with `request_anyway`, unless it clashes with a Blocked time. |
 
@@ -1264,16 +1341,27 @@ the user cannot access. A clash read crosses churches with a `# church-scope:` r
 so two saves at once cannot both pass. `check_conflicts` locks the Room row, then reads with a
 locking read. `check_asset_conflicts` locks the overlapping Room Booking rows, then each Church
 Asset row in name order, reads again, then locks the Room Booking Asset rows. Keep that order, and
-run the race tests in `test_room_booking.py` and `test_room_booking_assets.py` again after you add
-an index on Room Booking.
+run the race tests in `test_room_booking.py`, `test_room_booking_assets.py` and
+`test_room_booking_loans.py` again after you add an index on Room Booking.
 
 A booking reserves bookable Church Assets in its `assets` table (Room Booking Asset, labelled
 Equipment), with or without a room. A booking with no room is never gated and takes its church from
 `ensure_church`. A booking of a shared room judges its equipment against `shared_by_church`, the
 church that made it, so a recurrence copy that runs as Administrator keeps it. An equipment clash
 always refuses: Requested, Approved and Conflict bookings hold their equipment, Blocked ones do
-not. R10 loans build on this: a loan is a Room Booking with assets rows and normally no room, so
-add no single asset field.
+not.
+
+A loan is an Approved Room Booking with `assets` rows and normally no room; add no single asset
+field. `check_out` and `check_in` are POST doc methods for Church Manager and System Manager
+(`frappe.only_for(APPROVER_ROLES)`, reload, `check_permission("write")`, then `save()`). `check_out`
+sets `checked_out_on` once, on an Approved booking with equipment. `check_in` sets `returned_on` and
+Completed, once, after a check out. Only these two set the loan times:
+`refuse_a_loan_recorded_by_hand` refuses any other save that sets, changes or clears them (except
+under `ignore_permissions`), because read only on the form is not checked on the server.
+`refuse_equipment_still_on_loan` runs in `validate` after `check_asset_conflicts`, under its locks,
+and refuses equipment that another booking has out and has not returned, also after that booking's
+end. Completed bookings hold no room and no equipment, so `check_conflicts` and
+`check_asset_conflicts` skip them.
 
 `setup` is text that `validate_setup` checks against the room's Room Setup rows when the setup or
 the room changes, not a Link to the child table. A booking asks its room's Question Set
@@ -1287,6 +1375,25 @@ shared one (`Room.refuse_another_churches_question_set`).
 (`/desk/room-booking/view/calendar`, Room Calendar in the Operations sidebar) extends the list view,
 so it starts with the same filter, and both read through `get_list`. The Room Usage report scopes
 Room Booking with `scoped`, so a booking of a shared room shows for every church, as in the list.
+
+## Church tasks and work orders
+
+Church Task has no assignee field: Frappe's Assign To (ToDo) owns it. `church_task.on_assignment`
+(ToDo `after_insert`) refuses a user without write on the task, sets an Open task to Assigned with a
+real save and dates the ToDo from `due_date`. `church_task.refuse_moved_assignment` (ToDo
+`validate`) asks for the same write when a ToDo is moved onto a Church Task, because each assignee
+gets the task's reminder. `ChurchTask.on_update` moves open ToDo dates with `frappe.db.set_value`
+and closes every assignment when the task is Completed. Never save or insert a ToDo from the task's
+`on_update`, because the ToDo hook saves the task. Work order links (`requester`, `asset`, `room`)
+go through `refuse_another_churches_record` when the link or the task's church changes.
+
+## Bible memory
+
+Bible Memory Item `group` is set only by `assign_memory`, on the items it makes for the group's
+members. `validate` refuses any other change of `group`, and deleting a Group clears it from the
+items (`clear_group`, Group `on_trash`). The Bible Memory report joins Person on `user` and scopes
+Person, so a limited reader sees only users whose Person is in their churches. Bible Memory Item
+stays in `GLOBAL_DOCTYPES`, so its list view is not church scoped.
 
 ## Songs and worship planning
 
@@ -1475,6 +1582,15 @@ Visibility itself: `get_community_filters` for the community page, `has_webform_
 on the community list and in bulletins only while it is open, approved for the list and not past its
 end date (`prayer_access.get_open_request_filters`). A guest request starts with Approved for List
 off.
+
+Prayer Request `prayer_count` belongs to `prayer.recount_prayers`. Prayer locks every request that
+its old and new topics name, in name order, in `validate` (and `on_trash`), before it writes topic
+rows. `on_update` and `after_delete` count the distinct Prayers with a locking read, which the
+Prayer Topic `topic` index keeps to one request, and write the count with `update_modified=False`,
+so praying does not move a request up the lists that sort by `modified`. `PrayerRequest.validate`
+reads the count back with a lock, so a stale form cannot undo it. A desk save that adds a topic
+needs read on that request, because child tables skip User Permissions. Moderation uses only
+`approved_for_list` (permlevel 1), which Church Staff cannot set, also from the list Edit action.
 
 ## Follow-up cards
 
