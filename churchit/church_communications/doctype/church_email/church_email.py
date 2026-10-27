@@ -23,7 +23,7 @@ from churchit.church_communications.sending import (
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
 )
-from churchit.church_people import smart_lists
+from churchit.church_people import household, smart_lists
 from churchit.church_people.membership import ACTIVE, MEMBER, living_people_filter
 from churchit.church_scope import default_church, document_church, is_multi_church
 
@@ -39,6 +39,13 @@ ACTIVE_MEMBERS = "Active Members"
 GROUP = "Group"
 SMART_LIST = "Smart List"
 CHOSEN_PEOPLE = "Chosen People"
+
+# Household Members: the household roles each choice adds, None for every member
+HOUSEHOLD_ROLES = {
+	"Everyone": None,
+	"Adults": [household.ADULT],
+	"Adults and Other Adults": [household.ADULT, household.OTHER_ADULT],
+}
 
 # A delivery job lost to a worker restart is picked up again after this long.
 STALLED_AFTER_MINUTES = 15
@@ -205,6 +212,13 @@ class ChurchEmail(Document):
 
 	def get_people(self) -> list[str]:
 		"""The people this is for, worked out now so that nobody who died or left is included."""
+		people = self.get_audience()
+		if self.include_household:
+			people = list(dict.fromkeys(people + self.get_household_members(people)))
+		return people
+
+	def get_audience(self) -> list[str]:
+		"""The people Send To names, before their households are added."""
 		if self.send_to == GROUP:
 			return self.get_group_members()
 		if self.send_to == SMART_LIST:
@@ -220,6 +234,27 @@ class ChurchEmail(Document):
 			filters["church"] = self.own_church
 		# church-scope: the people of this message's own church; a Person is never shared
 		return frappe.get_all("Person", filters=[filters, living_people_filter(Person)], pluck="name")
+
+	def get_household_members(self, people: list[str]) -> list[str]:
+		"""The living members of *people*'s families who hold the roles Household Members picks.
+
+		On a multi-church site only this message's own church's people are added.
+		"""
+		if not people:
+			return []
+		# church-scope: the families of people this message already reaches
+		families = frappe.get_all(
+			"Person", filters={"name": ("in", people), "family": ("is", "set")}, pluck="family", distinct=True
+		)
+		roles = HOUSEHOLD_ROLES.get(self.household_roles)
+		added = [member for family in families for member in household.members(family, roles)]
+		if not added or not is_multi_church():
+			return added
+		# church-scope: keeps the added people of this message's own church; a Person is never shared
+		own = set(
+			frappe.get_all("Person", filters={"name": ("in", added), "church": self.own_church}, pluck="name")
+		)
+		return [person for person in added if person in own]
 
 	def get_group_members(self) -> list[str]:
 		Person = frappe.qb.DocType("Person")

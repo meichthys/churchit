@@ -27,6 +27,7 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 from churchit.church_communications.newsletter import UNSUBSCRIBE_METHOD, set_subscribed, unsubscribe
 from churchit.church_communications.sending import Delivery, Recipient
 from churchit.church_communications.test_sending import log_sms
+from churchit.church_people.test_household import born, label
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -34,6 +35,7 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_person,
+	make_primary_contact,
 	make_two_churches,
 )
 
@@ -732,3 +734,102 @@ class TestChurchEmailPerChurch(FrappeTestCase):
 		)
 		with self.assertRaisesRegex(frappe.ValidationError, "belong to another church"):
 			email.insert()
+
+
+class TestChurchEmailHouseholds(RollbackEachTest):
+	"""A group of church A holds a father and a single woman. The father's family holds his wife, a son of 10, his
+	mother of 70, his father who died, and a lodger of church B."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.church, other_church = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+		ensure("Member Status", {"status": "Active"})
+		ensure("Life Event Type", {"type": "Death"})
+		create_communication_purposes()
+
+		family = frappe.get_doc(
+			{"doctype": "Family", "family_name": "_Test Church Email Household", "church": cls.church}
+		).insert(ignore_permissions=True)
+		cls.father = make_primary_contact(make_reader("HouseFather", church=cls.church, family=family.name))
+		cls.mother = make_reader(
+			"HouseMother",
+			church=cls.church,
+			family=family.name,
+			gender="Female",
+			marital_status="Married",
+			spouse=cls.father.name,
+		)
+		cls.son = make_reader("HouseSon", church=cls.church, family=family.name, life_events=[born(10)])
+		cls.gran = make_reader("HouseGran", church=cls.church, family=family.name, life_events=[born(70)])
+		cls.late = make_reader(
+			"HouseLate",
+			church=cls.church,
+			family=family.name,
+			life_events=[born(75), {"event_type": "Death", "date": "2024-01-01"}],
+		)
+		cls.lodger = make_reader(
+			"HouseLodger", church=other_church, family=family.name, life_events=[born(40)]
+		)
+		label(
+			family.name,
+			{
+				cls.son.name: "Son",
+				cls.gran.name: "Mother",
+				cls.late.name: "Father",
+			},
+		)
+		cls.single = make_reader("HouseSingle", church=cls.church)
+		cls.group = frappe.get_doc(
+			{
+				"doctype": "Group",
+				"group_name": "_Test Church Email Household Group",
+				"church": cls.church,
+				"members": [{"person": cls.father.name}, {"person": cls.single.name}],
+			}
+		).insert(ignore_permissions=True)
+
+	def make_email(self, **values):
+		return frappe.get_doc(
+			{
+				"doctype": "Church Email",
+				"subject": "_Test Household",
+				"message": "Hi",
+				"church": self.church,
+				"send_to": "Group",
+				"group": self.group.name,
+				**values,
+			}
+		).insert()
+
+	def assertReaches(self, email, people):
+		self.assertEqual(sorted(addresses(email)), sorted(email_of(person) for person in people))
+
+	def test_the_adults_of_each_members_household_get_it_once_and_count(self):
+		email = self.make_email(include_household=1, household_roles="Adults")
+
+		self.assertReaches(email, [self.father, self.mother, self.single])
+		self.assertEqual(email.get_recipient_count(), 3)
+
+	def test_everyone_adds_the_living_household_of_the_messages_church(self):
+		self.assertReaches(
+			self.make_email(include_household=1),
+			[self.father, self.mother, self.son, self.gran, self.single],
+		)
+
+	def test_other_adults_come_with_the_adults_when_chosen(self):
+		self.assertReaches(
+			self.make_email(include_household=1, household_roles="Adults and Other Adults"),
+			[self.father, self.mother, self.gran, self.single],
+		)
+
+	def test_an_added_adult_who_withdrew_for_the_purpose_gets_nothing(self):
+		record([self.mother.name], EMAIL, WITHDRAWN, CHURCH_NEWS)
+
+		self.assertReaches(
+			self.make_email(include_household=1, household_roles="Adults"), [self.father, self.single]
+		)
+
+	def test_without_households_only_the_group_gets_it(self):
+		self.assertReaches(self.make_email(), [self.father, self.single])
