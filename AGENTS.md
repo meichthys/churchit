@@ -649,6 +649,30 @@ directly, or handles its own protocol or payment payloads: it breaks when the ot
 - **An outbound call runs on the long queue, from the server**, never from the browser, and is safe
   to run again.
 
+Web Push is a planned exception (Fit 3, High upkeep): it follows the Web Push protocol and the
+browsers' push services, so keep it small. `church_communications/push.py` owns it. `subscribe` and
+`unsubscribe` (POST, signed-in users) keep one Push Subscription per browser endpoint, and accept
+only an endpoint of a push service in `PUSH_SERVICES`, because the server posts to it; a new
+browser push service needs a line there. `subscribe` has a rate limit, and a user keeps at most
+`MAX_BROWSERS` subscriptions (a new browser replaces the one used longest ago). A deleted or disabled
+User loses its subscriptions (`delete_user_subscriptions`, User on_update and on_trash).
+`send_push(user, title, body, url)` queues one `deliver` job per subscription on the short queue
+after the commit, with a ttl of one day; `deliver` deletes a subscription on HTTP 404 or 410 and
+logs any other refusal or a timeout once, with a short message only: the locals of a traceback hold
+the endpoint, its keys and the signed header. pywebpush (2.5 or later, for
+`WebPushException.status_code`) does the VAPID signing and the encryption, so write no crypto code.
+The private key stays on the server: read it only with `get_password` in the job, and give a page
+only `get_public_key()`. A user reads and deletes only
+their own subscriptions (`has_subscription_permission`, `subscription_query_conditions`); System
+Manager reads all. A notification's url is a path or a URL of this site, and the service worker
+opens only a same-origin url. Ask `push.is_push_on()` before you offer or send push. A browser that
+changes its push service, iOS rules (Home Screen apps only, iOS 16.4 or later) and pywebpush or
+py_vapid upgrades can break it.
+
+Staff chat is Raven, which a System Manager installs beside Churchit (Manual: Communications, Staff
+Chat). Churchit has no Raven code: do not add a Raven hook, link or Document Notification to a
+Churchit doctype. Raven does not follow church scoping, so the manual gives Raven access by hand.
+
 ## The switch
 
 `Church Features.enable_multi_church` is off by default and a single-church site must notice nothing.
@@ -751,6 +775,15 @@ replaces `MapView.setup_view` (see the next section).
   holding a timestamp a rolled-back row no longer has, and the next save fails as stale. After a
   `frappe.db.set_value` on the Church use `frappe.clear_document_cache`, not `clear_cache(doctype=…)`,
   which only clears the meta.
+- **A dialog on a portal page shows each field's name.** Every control carries a `.tooltip-content`
+  span with its fieldname, and the website CSS hides it only inside a web form body. A
+  `frappe.ui.Dialog` sits outside it, so a portal page that opens one adds the
+  `.modal .tooltip-content` rule, as `portal_groups.js` and the Community Prayer Requests web form
+  do.
+- **Email open tracking is added at send time.** Email Queue `message` holds only
+  `<!--email_open_check-->`; `SendMailContext.build_message` puts in the image when the Email Account
+  has Track Email Status and the queue has a `communication`. A test builds the message the same way
+  (`church_communications/test_open_tracking.py`).
 
 ## Testing
 
@@ -1494,6 +1527,16 @@ and the copy apply. Giving statements are the exception: they are tax receipts, 
 Template, as Online Donation sends its receipt, with no consent check (a global unsubscribe still
 stops them; see "Giving and the fund ledger").
 
+`send(..., PUSH, ...)` sends a push notification: *subject* is the title and *text* the plain-text
+body (a push with no text is refused). A click opens *url*, a page of this site. Without it the
+click opens `source.get_url()`, the desk form, which members with only Church User cannot open, so a
+caller that pushes to members passes a member page. It reaches only people whose Person has a User
+with a subscribed browser while `push.is_push_on()`, and a copy no browser took is Error. A push
+copy is a Communication with medium Other. Push leaves after the commit, so a caller needs no commit
+for each person. Send email or a text to the people `send` did not return, as paging does. No
+feature sends push notifications yet; a caller adds Push on purpose (a leader's group message
+refuses it).
+
 Every group message goes through `send` with the purpose Group Messages
 (`communication_purpose.GROUP_MESSAGES`, which cannot be deleted): a leader's message, the daily
 attendance reminder, a join request to the leaders and the decision to the person. A leader's
@@ -1525,17 +1568,19 @@ purpose counts, and staff (System Users) are never dropped. An address or number
 when every Person holding it is refused. An unsubscribe link or an Email Unsubscribe withdraws every
 holder of the address. A Communication Preferences switch, and any Given, records only the person
 who chose it. An Email Unsubscribe made with `db_insert` runs no hooks, so call
-`consent.record_unsubscribe` after it, as `newsletter.set_subscribed` does. Texts are opt-in: with
-no record for SMS nobody gets texts, whatever the church's setting (`consent.default_statuses`).
+`consent.record_unsubscribe` after it, as `newsletter.set_subscribed` does. Texts and push
+notifications are opt-in: with no record for SMS or Push nobody gets them, whatever the church's
+setting (`consent.default_statuses`).
 
 An unsubscribe link carries the purpose and the recipient Person, signed (see
 `newsletter.unsubscribe`). The Consent Renewal notification asks `consent.is_due_for_renewal`, so
 each yes is asked about once, and its signed link (`consent_renewal_link`, a jinja method) runs
 `consent.renew`. The Communication Preferences page (`church_communications/preferences.py`) changes
-only the session's own Person and takes no person argument. Church News by email also goes through
-`newsletter.set_subscribed`, and a yes to any email purpose lifts the address's global Email
-Unsubscribe. Only `newsletter.py` writes Email Unsubscribe records. Ask `sending.can_send_texts()`
-wherever the question is whether this site can send texts.
+only the session's own Person and takes no person argument. Its Push column shows only while push
+is on and the member has a subscribed browser (`preferences.get_channels`). Church News by email
+also goes through `newsletter.set_subscribed`, and a yes to any email purpose lifts the address's
+global Email Unsubscribe. Only `newsletter.py` writes Email Unsubscribe records. Ask
+`sending.can_send_texts()` wherever the question is whether this site can send texts.
 
 `bounces.record_bounce` reads a bounce report's text, one pattern per format (the `bounces.py`
 docstring explains why); a new format needs a pattern and a real sample in `test_bounces.py`. Decide
