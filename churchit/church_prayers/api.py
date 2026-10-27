@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.permissions import has_permission
 from frappe.utils import now_datetime
 
 
@@ -15,7 +16,7 @@ def create_prayer(prayer_request: str, content: str | None = None):
 		frappe.throw(_("Please log in to pray."), frappe.PermissionError)
 
 	pr = frappe.get_doc("Prayer Request", prayer_request)
-	if not (pr.has_permission("read") or pr.has_webform_permission()):
+	if not (has_permission(pr.doctype, "read", pr, print_logs=False) or pr.has_webform_permission()):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	person = frappe.db.get_value("Person", {"user": frappe.session.user}, "name")

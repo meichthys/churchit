@@ -81,6 +81,15 @@ class TestPrayerApi(FrappeTestCase):
 			[("Prayer Request", self.request.name)],
 		)
 
+	def test_a_member_without_desk_read_gets_no_permission_message(self):
+		"""The web form check lets the member pray, so the denied desk check must not leave a message."""
+		frappe.set_user(self.user)
+		self.assertFalse(frappe.get_doc("Prayer Request", self.request.name).has_permission("read"))
+
+		frappe.local.message_log = []
+		self.assertTrue(create_prayer(self.request.name)["name"])
+		self.assertEqual(frappe.local.message_log, [])
+
 	def test_praying_takes_a_post(self):
 		"""Frappe checks the CSRF token only on a POST, and a GET from another site carries the session."""
 		frappe.set_user(self.user)
