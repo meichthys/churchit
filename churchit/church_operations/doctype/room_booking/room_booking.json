@@ -19,6 +19,8 @@
   "status",
   "request_anyway",
   "can_share_room",
+  "checked_out_on",
+  "returned_on",
   "section_break_1",
   "function",
   "notes",
@@ -129,6 +131,20 @@
    "label": "Can Share Room"
   },
   {
+   "fieldname": "checked_out_on",
+   "fieldtype": "Datetime",
+   "label": "Checked Out On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "returned_on",
+   "fieldtype": "Datetime",
+   "label": "Returned On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break"
   },
@@ -175,7 +191,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-26 15:41:12.000000",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",

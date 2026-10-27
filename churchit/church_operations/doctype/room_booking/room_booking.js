@@ -4,6 +4,7 @@
 frappe.ui.form.on("Room Booking", {
 	refresh(frm) {
 		show_decision_buttons(frm);
+		show_loan_buttons(frm);
 		set_setup_options(frm);
 		show_questions_button(frm);
 	},
@@ -43,6 +44,20 @@ function show_decision_buttons(frm) {
 			() => decide("resolve_conflict", { action: "share" }),
 			__("Resolve")
 		);
+	}
+}
+
+// A Church Manager lends the equipment of an Approved booking and takes it back.
+function show_loan_buttons(frm) {
+	const is_lender = frappe.user.has_role(["Church Manager", "System Manager"]);
+	if (frm.is_new() || !is_lender || !frm.perm[0]?.write) return;
+
+	const lend = (method) => frm.call(method).then(() => frm.reload_doc());
+	if (frm.doc.status === "Approved" && frm.doc.assets?.length && !frm.doc.checked_out_on) {
+		frm.add_custom_button(__("Check Out"), () => lend("check_out"));
+	}
+	if (frm.doc.checked_out_on && !frm.doc.returned_on) {
+		frm.add_custom_button(__("Check In"), () => lend("check_in"));
 	}
 }
 

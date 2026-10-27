@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.model.document import Document
-from frappe.utils import get_datetime
+from frappe.utils import get_datetime, now_datetime
 
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_scope import (
@@ -37,6 +37,7 @@ DECIDED_MESSAGE = """<p>Your room booking is {{ doc.status | lower }}.</p>
 
 class RoomBooking(Document):
 	def validate(self):
+		self.refuse_a_loan_recorded_by_hand()
 		refuse_another_churches_parent(
 			self, "room", _("{0} belongs to another church, so only that church can book it.")
 		)
@@ -66,6 +67,7 @@ class RoomBooking(Document):
 		self.set_room_answers()
 		self.check_conflicts()
 		self.check_asset_conflicts()
+		self.refuse_equipment_still_on_loan()
 
 	def on_update(self):
 		self.update_approver_assignments()
@@ -102,6 +104,18 @@ class RoomBooking(Document):
 		if self.room and inherits_a_shared_church(self):
 			return
 		refuse_another_churches_record(self, "Function", self.function)
+
+	def refuse_a_loan_recorded_by_hand(self):
+		"""Only check_out and check_in set the loan times: read only on the form is not checked on the server."""
+		if self.flags.recording_loan or self.flags.ignore_permissions:
+			return
+		before = self.get_doc_before_save()
+		for field in ("checked_out_on", "returned_on"):
+			if (self.get(field) or (before and before.get(field))) and self.has_value_changed(field):
+				frappe.throw(
+					_("Only Check Out and Check In can record when equipment goes out or comes back."),
+					frappe.PermissionError,
+				)
 
 	def refuse_a_room_that_is_not_bookable(self, is_bookable):
 		if not is_bookable and self.is_moved():
@@ -159,7 +173,7 @@ class RoomBooking(Document):
 
 		A Blocked time always wins, and only an Approved booking refuses a Blocked one.
 		"""
-		if not self.room or self.status in ("Denied", "Cancelled"):
+		if not self.room or self.status in ("Denied", "Cancelled", "Completed"):
 			return
 		# Under the Room lock, so two saves at once cannot both miss each other.
 		frappe.db.get_value("Room", self.room, "name", for_update=True)
@@ -294,7 +308,7 @@ class RoomBooking(Document):
 		Unlike a room, an asset is never shared between bookings and never requested anyway.
 		"""
 		assets = sorted({row.asset for row in self.assets})
-		if not assets or self.status in ("Denied", "Cancelled"):
+		if not assets or self.status in ("Denied", "Cancelled", "Completed"):
 			return
 		# Locks go in the order a save with a room takes them: the Room Booking rows (as check_conflicts does), each
 		# asset in one order, then the Room Booking Asset rows. So two saves at once neither deadlock nor both pass.
@@ -342,6 +356,73 @@ class RoomBooking(Document):
 			.for_update()
 			.run()
 		)
+
+	def refuse_equipment_still_on_loan(self):
+		"""Refuse to lend equipment that another booking has out, also after that booking's end.
+
+		It runs on a check out and when equipment is added to a loan that is out. It runs after
+		check_asset_conflicts, under its locks, so two check outs at once cannot both pass.
+		"""
+		if not self.checked_out_on or self.returned_on:
+			return
+		before = self.get_doc_before_save()
+		added = {row.asset for row in self.assets} - (
+			{row.asset for row in before.assets} if before else set()
+		)
+		if not (added or self.has_value_changed("checked_out_on")):
+			return
+		# church-scope: a shared asset is lent by several churches, so a loan of it has to be
+		# found across all of them, not only the lending church's own bookings
+		Booking = frappe.qb.DocType("Room Booking")
+		BookingAsset = frappe.qb.DocType("Room Booking Asset")
+		loans = (
+			frappe.qb.from_(Booking)
+			.join(BookingAsset)
+			.on((BookingAsset.parent == Booking.name) & (BookingAsset.parenttype == "Room Booking"))
+			.select(Booking.name, Booking.church)
+			.distinct()
+			.where(
+				(Booking.name != self.name)
+				& BookingAsset.asset.isin(sorted({row.asset for row in self.assets}))
+				& Booking.checked_out_on.isnotnull()
+				& Booking.returned_on.isnull()
+			)
+			.for_update()
+			.run()
+		)
+		if loans:
+			frappe.throw(
+				_("Equipment is still out on another loan ({0}). Check that loan in first.").format(
+					describe_clashes(sorted(loans))
+				)
+			)
+
+	@frappe.whitelist(methods=["POST"])
+	def check_out(self):
+		"""Lend the equipment of an Approved booking until check_in."""
+		frappe.only_for(APPROVER_ROLES)
+		self.reload()
+		self.check_permission("write")
+		if self.status != "Approved" or not self.assets:
+			frappe.throw(_("Only an Approved booking of equipment can be checked out."))
+		if self.checked_out_on:
+			frappe.throw(_("This booking is already checked out."))
+		self.checked_out_on = now_datetime()
+		self.flags.recording_loan = True
+		self.save()
+
+	@frappe.whitelist(methods=["POST"])
+	def check_in(self):
+		"""Take back the equipment of a checked out booking, which completes it."""
+		frappe.only_for(APPROVER_ROLES)
+		self.reload()
+		self.check_permission("write")
+		if not self.checked_out_on or self.returned_on:
+			frappe.throw(_("Only a checked out booking that is not returned can be checked in."))
+		self.returned_on = now_datetime()
+		self.status = "Completed"
+		self.flags.recording_loan = True
+		self.save()
 
 	def validate_blocked(self):
 		"""Let only an approver of the room block a time, or change a blocked time."""
