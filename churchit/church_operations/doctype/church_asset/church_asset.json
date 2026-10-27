@@ -102,8 +102,14 @@
  "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-10-26 17:36:32.000000",
+ "links": [
+  {
+   "group": "Work Orders",
+   "link_doctype": "Church Task",
+   "link_fieldname": "asset"
+  }
+ ],
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Asset",

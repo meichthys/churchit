@@ -129,8 +129,14 @@
   }
  ],
  "grid_page_length": 50,
- "links": [],
- "modified": "2026-10-26 15:41:12.000000",
+ "links": [
+  {
+   "group": "Work Orders",
+   "link_doctype": "Church Task",
+   "link_fieldname": "room"
+  }
+ ],
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room",

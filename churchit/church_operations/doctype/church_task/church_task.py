@@ -6,6 +6,10 @@ from frappe.desk.form.assign_to import close_all_assignments
 from frappe.utils import getdate
 from frappe.utils.nestedset import NestedSet
 
+from churchit.church_scope import refuse_another_churches_record
+
+LINKED_RECORDS = {"requester": "Person", "asset": "Church Asset", "room": "Room"}
+
 DUE_NOTIFICATION = "Church Task Due"
 DUE_MESSAGE = """<p>A task assigned to you is due {{ frappe.utils.format_datetime(doc.due_date) }}.</p>
 
@@ -20,6 +24,12 @@ DUE_MESSAGE = """<p>A task assigned to you is due {{ frappe.utils.format_datetim
 
 
 class ChurchTask(NestedSet):
+	def validate(self):
+		# A link checked once stays, so a later save does not fail when the record moves church.
+		for fieldname, doctype in LINKED_RECORDS.items():
+			if self.has_value_changed(fieldname) or self.has_value_changed("church"):
+				refuse_another_churches_record(self, doctype, self.get(fieldname))
+
 	def on_update(self):
 		super().on_update()
 		# Frappe's assignments (ToDo) own the assignee, and the task owns their date.
