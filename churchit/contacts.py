@@ -405,6 +405,18 @@ def get_other_holder(doc, child_doctype, value_field, value):
 	return next(iter(holders), None)
 
 
+def stop_sharing_from(doctype: str, name: str) -> None:
+	"""Let each record sharing an email or phone from *name* hold it alone from now on."""
+	for child_doctype in UNIQUE_VALUE_FIELDS:
+		frappe.db.set_value(
+			child_doctype,
+			{"shared_from_type": doctype, "shared_from": name},
+			"shared_from",
+			None,
+			update_modified=False,
+		)
+
+
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def search_holders(doctype, txt, searchfield, start, page_len, filters):

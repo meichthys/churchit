@@ -19,6 +19,7 @@ from churchit.church_people.derived import refresh_daily
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.person.person import SOURCE_IMPORT
 from churchit.church_people.merge import merge_people
+from churchit.church_people.test_merge import phone
 from churchit.patches.v1_0 import set_inactive_since_from_history
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -190,6 +191,22 @@ class TestPerson(FrappeTestCase):
 		person.delete()
 
 		self.assertFalse(frappe.db.exists("Person", person.name))
+
+	def test_deleting_a_person_whose_phone_a_household_member_shares(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "Sharing Household"}).insert(
+			ignore_permissions=True
+		)
+		person = self._make_person(first_name="Imported", family=family.name, phones=[phone("555-010-0417")])
+		member = self._make_person(
+			first_name="Staying",
+			family=family.name,
+			phones=[phone("555-010-0417", shared_from_type="Person", shared_from=person.name)],
+		)
+
+		person.delete()
+
+		self.assertFalse(frappe.db.exists("Person", person.name))
+		self.assertIsNone(frappe.db.get_value("Phone Number", {"parent": member.name}, "shared_from"))
 
 	def test_spouse_link_is_reciprocated(self):
 		wife = self._make_person(first_name="Jane", last_name="Doe", gender="Female")

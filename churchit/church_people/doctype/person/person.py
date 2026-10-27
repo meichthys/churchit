@@ -32,7 +32,7 @@ from churchit.church_people.merge import (
 	typed_fields,
 )
 from churchit.church_scope import has_church_access, is_multi_church, is_people_directory_private
-from churchit.contacts import primary_email, validate_contact_tables
+from churchit.contacts import primary_email, stop_sharing_from, validate_contact_tables
 
 # How a Person was first created; Desk is the field's default.
 SOURCE_IMPORT = "Import"
@@ -244,6 +244,7 @@ class Person(Document):
 		# A bulk delete takes the Family out first, and then there is no member row left to remove.
 		if self.family:
 			self.remove_from_family(self.family)
+		stop_sharing_from(self.doctype, self.name)
 		remove_relationships_with(self.name)
 
 	def before_rename(self, old, new, merge=False):

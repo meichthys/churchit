@@ -51,7 +51,7 @@ from churchit.church_people.doctype.person.person import (
 from churchit.church_people.followup import CARD, OPEN, close_quietly
 from churchit.church_people.membership import INACTIVE, living_people_filter
 from churchit.church_people.person_data_map import LinkedRecord, linked_records
-from churchit.contacts import CONTACT_TABLES, UNIQUE_VALUE_FIELDS
+from churchit.contacts import CONTACT_TABLES, stop_sharing_from
 from churchit.questions import clear_answers, get_answer_tables
 
 ANONYMIZED = "Anonymized"
@@ -145,15 +145,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	forget(doc.doctype, doc.name, addresses)
 	if family:
 		leave_family(family, first_name)
-	for child_doctype in UNIQUE_VALUE_FIELDS:
-		# Someone who shared this person's email or phone holds it alone from now on.
-		frappe.db.set_value(
-			child_doctype,
-			{"shared_from_type": "Person", "shared_from": person},
-			"shared_from",
-			None,
-			update_modified=False,
-		)
+	stop_sharing_from("Person", person)
 	forget_records_about(person)
 	forget_sign_up_details(person, emails)
 	records = linked_records(person)
