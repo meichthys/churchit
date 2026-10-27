@@ -34,11 +34,11 @@
  "links": [
   {
    "link_doctype": "Person",
-   "link_fieldname": "type",
+   "link_fieldname": "relation_type",
    "table_fieldname": "relationships"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 09:13:26",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Relation Type",

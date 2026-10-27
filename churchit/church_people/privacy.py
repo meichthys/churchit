@@ -7,9 +7,10 @@
 photo, medical notes, anniversary, skills, how they heard of the church, the login and the IDs of an import.
 It also clears the church fields a System Manager added with Customize Form, on the person and on an
 anonymized family, because Churchit cannot tell which of them are personal. The login is disabled too, so
-signing in cannot add the person again. The person leaves their family and their spouse because named
-relatives would say who they are. A family left with no one in it is anonymized too, since its name and
-contact details were the person's; a family that keeps members loses the person's first name from its name.
+signing in cannot add the person again. The person leaves their family and their spouse, and loses each
+relationship, on their record and on other people's, because named relatives would say who they are. A family
+left with no one in it is anonymized too, since its name and contact details were the person's; a family that
+keeps members loses the person's first name from its name.
 
 A Birth life event goes, because a birth date identifies a person. The other life events keep their type and
 date, so the number of baptisms or new members in a year stays right, and lose their location and notes.
@@ -42,7 +43,11 @@ from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.query_builder.functions import Coalesce, Lower
 
 from churchit.church_people.derived import BIRTH
-from churchit.church_people.doctype.person.person import UNKNOWN_GENDER, get_display_name
+from churchit.church_people.doctype.person.person import (
+	UNKNOWN_GENDER,
+	get_display_name,
+	remove_relationships_with,
+)
 from churchit.church_people.membership import INACTIVE, living_people_filter
 from churchit.church_people.person_data_map import LinkedRecord, linked_records
 from churchit.contacts import CONTACT_TABLES, UNIQUE_VALUE_FIELDS
@@ -75,7 +80,7 @@ PERSONAL_FIELDS = (
 	"how_heard",
 )
 # Person tables whose every row is personal.
-PERSONAL_TABLES = ("emails", "phones", "addresses", "letters", "skills")
+PERSONAL_TABLES = ("emails", "phones", "addresses", "letters", "skills", "relationships")
 # Records wholly about the person, by the field naming them, deleted rather than kept.
 PERSONAL_DOCTYPES = (
 	("Person Note", "person"),
@@ -135,6 +140,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 		frappe.db.set_value("Person", {"name": doc.spouse, "spouse": doc.name}, "spouse", None)
 	strip_person(doc)
 	doc.save(ignore_permissions=True)
+	remove_relationships_with(person)
 	forget(doc.doctype, doc.name, addresses)
 	if family:
 		leave_family(family, first_name)

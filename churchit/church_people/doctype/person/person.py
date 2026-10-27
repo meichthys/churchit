@@ -31,7 +31,7 @@ from churchit.church_people.merge import (
 	take_import_id,
 	typed_fields,
 )
-from churchit.church_scope import has_church_access, is_multi_church
+from churchit.church_scope import has_church_access, is_multi_church, is_people_directory_private
 from churchit.contacts import primary_email, validate_contact_tables
 
 # How a Person was first created; Desk is the field's default.
@@ -55,6 +55,7 @@ MERGED_TABLES = {
 	"positions": lambda row: (row.position, cstr(row.start_date)),
 	"letters": lambda row: (cstr(row.date), row.file, row.content),
 	"skills": lambda row: row.skill,
+	"relationships": lambda row: (row.relation_type, row.person),
 }
 
 
@@ -243,6 +244,7 @@ class Person(Document):
 		# A bulk delete takes the Family out first, and then there is no member row left to remove.
 		if self.family:
 			self.remove_from_family(self.family)
+		remove_relationships_with(self.name)
 
 	def before_rename(self, old, new, merge=False):
 		"""A person's ID changes only by a merge into another person, and the merge must lose no login or marriage."""
@@ -285,6 +287,7 @@ class Person(Document):
 		adopt_contact_rows(self, removed)
 		for fieldname, key in MERGED_TABLES.items():
 			adopt_rows(self, removed, fieldname, key)
+		remove_repeated_relationships(self.name)
 		frappe.db.set_value(
 			"Milestone",
 			{"reference_type": "Person", "reference_name": old},
@@ -324,6 +327,7 @@ class Person(Document):
 		self.share_family_with_spouse()
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
+		self.validate_relationships()
 
 	def refuse_another_churches_spouse(self):
 		"""Only a user who can see a new spouse's church links them: the spouse record changes and may join this family.
@@ -355,6 +359,49 @@ class Person(Document):
 				),
 				frappe.PermissionError,
 			)
+
+	def validate_relationships(self):
+		"""Refuse a new relationship with this person, with someone in their household, whose roster records it,
+		or, in a private directory, with a person of a church the user cannot see.
+		"""
+		before = self.get_doc_before_save()
+		self.refuse_repeated_relationships(before.relationships if before else [])
+		known = {row.person for row in before.relationships} if before else set()
+		for row in self.relationships:
+			if not row.person or row.person in known:
+				continue
+			if row.person == self.name:
+				frappe.throw(
+					_("Row {0}: a person cannot have a relationship with themselves.").format(row.idx)
+				)
+			other = frappe.db.get_value("Person", row.person, ["full_name", "family", "church"], as_dict=True)
+			if self.family and other.family == self.family:
+				frappe.throw(
+					_(
+						"{0} is in the same household. Record the relationship in the Family's Members table."
+					).format(frappe.bold(other.full_name))
+				)
+			if (
+				is_people_directory_private()
+				and not self.flags.ignore_permissions
+				and not has_church_access(frappe.session.user, other.church)
+			):
+				frappe.throw(
+					_("{0} belongs to another church, so you cannot record a relationship with them.").format(
+						frappe.bold(other.full_name)
+					),
+					frappe.PermissionError,
+				)
+
+	def refuse_repeated_relationships(self, stored: list) -> None:
+		"""Refuse a second row with the same relationship and person, unless the stored record already had it."""
+		pairs = [(row.relation_type, row.person) for row in self.relationships]
+		was = [(row.relation_type, row.person) for row in stored]
+		seen = set()
+		for row, pair in zip(self.relationships, pairs, strict=True):
+			if row.person and pair in seen and pairs.count(pair) > was.count(pair):
+				frappe.throw(_("Row {0}: this relationship is already in the table.").format(row.idx))
+			seen.add(pair)
 
 	def refuse_a_taken_envelope_number(self):
 		"""Staff find a giver by envelope number, so each number belongs to one person in a church."""
@@ -577,6 +624,31 @@ class Person(Document):
 			frappe.msgprint(
 				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a> already exists. User is now linked to this person."
 			)
+
+
+def remove_repeated_relationships(person: str) -> None:
+	"""After a merge into *person*, drop the relationships that now name *person* on their own record.
+
+	Frappe points every row that named the removed person at *person*, so another person can also hold one
+	relationship twice. The first row stays.
+	"""
+	rows = frappe.get_all(
+		"Person Relationship",
+		filters={"parenttype": "Person", "person": person},
+		fields=["name", "parent", "relation_type"],
+		order_by="parent, idx",
+	)
+	seen = set()
+	for row in rows:
+		key = (row.parent, row.relation_type)
+		if row.parent == person or key in seen:
+			frappe.db.delete("Person Relationship", row.name)
+		seen.add(key)
+
+
+def remove_relationships_with(person: str) -> None:
+	"""Delete the relationships other people recorded with *person*."""
+	frappe.db.delete("Person Relationship", {"parenttype": "Person", "person": person})
 
 
 def get_timeline_data(doctype: str, name: str) -> dict:
