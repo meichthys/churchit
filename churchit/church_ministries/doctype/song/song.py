@@ -12,6 +12,7 @@ from churchit.church_ministries.songs import chordpro
 class Song(Document):
 	def validate(self):
 		self.refuse_arrangements_with_one_name()
+		self.refuse_media_of_unknown_arrangements()
 
 	def refuse_arrangements_with_one_name(self):
 		names = set()
@@ -27,6 +28,16 @@ class Song(Document):
 					frappe.UniqueValidationError,
 				)
 			names.add(name)
+
+	def refuse_media_of_unknown_arrangements(self):
+		names = {row.arrangement_name for row in self.arrangements}
+		for row in self.media:
+			if row.arrangement and row.arrangement not in names:
+				frappe.throw(
+					_("Media row {0}: this song has no arrangement named {1}.").format(
+						row.idx, frappe.bold(row.arrangement)
+					)
+				)
 
 	def get_arrangement_with_chart(self, arrangement: str) -> Document:
 		"""The arrangement named *arrangement*, refused when it is missing or has no ChordPro chart."""

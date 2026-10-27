@@ -32,6 +32,7 @@ class Function(Document):
 		self.refuse_another_churches_question_set()
 		self.refuse_another_churches_sign_up_fund()
 		self.validate_meeting_url()
+		self.validate_schedule_songs()
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
@@ -48,6 +49,49 @@ class Function(Document):
 		if any(character.isspace() or not character.isprintable() for character in self.meeting_url):
 			frappe.throw(_("The Online Meeting Link must not contain spaces or line breaks."))
 		validate_url(self.meeting_url, throw=True, valid_schemes=("https",))
+
+	def validate_schedule_songs(self):
+		"""A Song row names a song the editor may read, and an arrangement of that song.
+
+		Only new and changed rows: an attendance save must not trip on a song edited since.
+		"""
+		if self.is_new() and self.source_template:
+			# The recurrence job copies the template's rows, checked when the template saved.
+			return
+
+		before = self.get_doc_before_save()
+		rows_before = before.schedule if before else []
+		stored = {row.name: (row.item_type, row.item, row.arrangement, row.song_key) for row in rows_before}
+		for row in self.schedule:
+			if row.item_type != "Song" or not row.item:
+				continue
+			if stored.get(row.name) == (row.item_type, row.item, row.arrangement, row.song_key):
+				continue
+			# Before the song is read: its media reach this Function's team.
+			if not frappe.has_permission("Song", "read", doc=row.item):
+				frappe.throw(
+					_("Schedule row {0}: you cannot use this song.").format(row.idx), frappe.PermissionError
+				)
+			self.set_schedule_song_key(row, stored.get(row.name))
+
+	def set_schedule_song_key(self, row, stored_row: tuple | None):
+		"""Refuse an arrangement *row*'s song does not have, and fill the key from it or the song."""
+		song = frappe.get_cached_doc("Song", row.item)
+		arrangement = next(
+			(option for option in song.arrangements if option.arrangement_name == row.arrangement), None
+		)
+		if row.arrangement and not arrangement:
+			frappe.throw(
+				_("Schedule row {0}: {1} has no arrangement named {2}.").format(
+					row.idx, frappe.bold(song.title), frappe.bold(row.arrangement)
+				)
+			)
+
+		# A key left as it was while the song or arrangement changed belongs to the old one.
+		if stored_row and stored_row[1:3] != (row.item, row.arrangement) and stored_row[3] == row.song_key:
+			row.song_key = None
+		if not row.song_key:
+			row.song_key = (arrangement.song_key if arrangement else None) or song.default_key
 
 	def refuse_another_churches_question_set(self):
 		"""The sign-up questions come from a Question Set of this church or a shared one."""
@@ -219,7 +263,7 @@ def get_time_window(function) -> tuple[datetime, datetime]:
 
 
 def get_schedule_rows(function) -> list[frappe._dict]:
-	"""*function*'s schedule as (time, title, detail) rows: a linked item's title, else the description."""
+	"""*function*'s schedule as (time, title, detail, is_header) rows: a linked item's title, else the description."""
 	rows = []
 	for item in function.schedule:
 		title = link_title(item.item_type, item.item) if item.item else None
@@ -228,9 +272,81 @@ def get_schedule_rows(function) -> list[frappe._dict]:
 				time=format_datetime(item.start, TIME_FORMAT) if item.start else None,
 				title=title or item.description,
 				detail=(item.description or item.item_type) if title else None,
+				is_header=cint(item.is_header),
 			)
 		)
 	return rows
+
+
+def get_team_schedule(function, person: str) -> frappe._dict:
+	"""*function*'s schedule as the Ministry Team page shows it to *person*, who serves at it.
+
+	The song keys and arrangements, team notes, need notes and song media come only with the
+	positions *person* has not declined. They are read here by doctype name, so the published-field
+	scan finds them.
+	"""
+	# Imported here: both modules import this one.
+	from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import DECLINED
+	from churchit.church_ministries.songs.media import get_media_link
+
+	rows = get_schedule_rows(function)
+	# church-scope: the person's own assignments at a function they serve at
+	assignments = frappe.get_all(
+		"Ministry Team Assignment",
+		filters={"function": function.name, "person": person, "status": ("!=", DECLINED)},
+		fields=["name", "position"],
+		order_by="creation asc",
+	)
+	if not assignments:
+		return frappe._dict(rows=rows, need_notes=[])
+
+	need_notes = frappe.get_all(
+		"Function Team Need",
+		filters={
+			"parenttype": "Function",
+			"parent": function.name,
+			"position": ("in", [row.position for row in assignments]),
+			"notes": ("is", "set"),
+		},
+		fields=["position", "notes"],
+		order_by="idx asc",
+	)
+	for note in need_notes:
+		note.position = link_title("Ministry Team Position", note.position)
+
+	team_details = {
+		item.name: item
+		for item in frappe.get_all(
+			"Function Schedule",
+			filters={"parenttype": "Function", "parent": function.name},
+			fields=["name", "item_type", "item", "song_key", "arrangement", "notes"],
+		)
+	}
+	songs = {item.item for item in team_details.values() if item.item_type == "Song" and item.item}
+	media = (
+		frappe.get_all(
+			"Song Media",
+			filters={"parenttype": "Song", "parent": ("in", list(songs))},
+			fields=["name", "parent", "media_type", "label", "file", "url"],
+			order_by="idx asc",
+		)
+		if songs
+		else []
+	)
+	for row, item in zip(rows, function.schedule, strict=True):
+		details = team_details[item.name]
+		is_song = details.item_type == "Song"
+		row.update(
+			key=details.song_key if is_song else None,
+			arrangement=details.arrangement if is_song else None,
+			notes=details.notes,
+			media=[
+				get_media_link(assignments[0].name, file)
+				for file in media
+				if is_song and file.parent == details.item and (file.file or file.url)
+			],
+		)
+	return frappe._dict(rows=rows, need_notes=need_notes)
 
 
 def refuse_a_source_that_is_not_a_template(source_name):

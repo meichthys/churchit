@@ -567,6 +567,10 @@ NAME_CHECK_EXEMPT = {
 	),
 	"churchit.church_ministries.member_ministry_team.answer_own_assignment": OWN_RECORD,
 	"churchit.church_ministries.member_ministry_team.remove_own_block": OWN_RECORD,
+	"churchit.church_ministries.songs.media.get_team_song_file": (
+		"a portal member holds no Song read; it sends a song file only through the session person's own "
+		"assignment that is not declined, at a recent function with the song on its schedule"
+	),
 	"churchit.church_ministries.page.check_in.check_in.add_visitor": (
 		"Check-In reads every family; it refuses a family whose church the user cannot see (has_church_access)"
 	),

@@ -28,6 +28,7 @@
   .rows td { vertical-align: top; padding: 2pt 4pt 2pt 0 !important; }
   .rows td.when { white-space: nowrap; color: #666; width: 1.1in; }
   .rows .entry-detail { color: #666; font-size: 9pt; }
+  .rows th { text-align: left; padding: 6pt 4pt 2pt 0 !important; }
   .role { margin-bottom: 4pt; }
   .role .entry-title { font-weight: bold; }
   .ministry { margin-bottom: 4pt; }
@@ -149,10 +150,14 @@
       {{ section(_("Order of Worship")) }}
       <table class="rows">
         {%- for item in order_of_worship %}
+        {%- if item.is_header %}
+        <tr><th colspan="2">{{ item.title | e }}</th></tr>
+        {%- else %}
         <tr>
           <td class="when">{{ item.time or "" }}</td>
           <td>{{ item.title | e }}{% if item.detail %}<div class="entry-detail">{{ item.detail | e }}</div>{% endif %}</td>
         </tr>
+        {%- endif %}
         {%- endfor %}
       </table>
       {%- endif %}

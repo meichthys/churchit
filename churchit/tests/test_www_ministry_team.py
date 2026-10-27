@@ -98,10 +98,10 @@ class TestMinistryTeamPages(RollbackEachTest):
 		frappe.set_user(self.email)
 		schedules = self.context(ministry_team).schedules
 		self.assertEqual(
-			[(row.time, row.title, row.detail) for row in schedules[function.name]],
+			[(row.time, row.title, row.detail) for row in schedules[function.name].rows],
 			[("10:00 AM", "Welcome", None), ("10:00 AM", "_Test Team Page Hymn", "Everyone stands")],
 		)
-		self.assertEqual(schedules[self.mine.function], [])
+		self.assertEqual(schedules[self.mine.function].rows, [])
 
 	def test_a_member_answers_their_own_assignment_and_no_one_elses(self):
 		frappe.set_user(self.email)

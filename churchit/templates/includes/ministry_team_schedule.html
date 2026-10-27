@@ -1,0 +1,28 @@
+{% set schedule = schedules[row.function] %}
+{% if schedule.rows or schedule.need_notes %}
+<details class="team-schedule">
+	<summary>{{ _("Schedule") }}</summary>
+	{% for note in schedule.need_notes %}
+	<div>
+		<span class="time"></span>
+		<span>{{ _("Note for {0}").format(note.position) | e }}<small>{{ note.notes | e }}</small></span>
+	</div>
+	{% endfor %}
+	{% for item in schedule.rows %}
+	<div>
+		<span class="time">{{ item.time or "" }}</span>
+		<span>
+			{% if item.is_header %}<strong>{{ (item.title or "") | e }}</strong>{% else %}{{ (item.title or "") | e }}{% endif %}
+			{% if item.arrangement or item.key %}
+			<small>{{ (item.arrangement or "") | e }}{% if item.arrangement and item.key %} · {% endif %}{% if item.key %}{{ _("Key of {0}").format(item.key) | e }}{% endif %}</small>
+			{% endif %}
+			{% if item.detail %}<small>{{ item.detail | e }}</small>{% endif %}
+			{% if item.notes %}<small>{{ item.notes | e }}</small>{% endif %}
+			{% if item.media %}
+			<small>{% for media in item.media %}<a href="{{ media.url | e }}">{{ media.label | e }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</small>
+			{% endif %}
+		</span>
+	</div>
+	{% endfor %}
+</details>
+{% endif %}

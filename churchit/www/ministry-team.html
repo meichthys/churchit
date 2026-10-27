@@ -21,6 +21,7 @@
 	.team-schedule div { display: flex; gap: 16px; padding: 4px 0; }
 	.team-schedule .time { flex: 0 0 5rem; color: var(--text-muted, #6b7280); white-space: nowrap; }
 	.team-schedule small { display: block; color: var(--text-muted, #6b7280); }
+	.team-schedule a { text-decoration: underline; }
 	.calendar-link { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 	.calendar-link input { flex: 1 1 16rem; min-width: 0; }
 	.block-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 8px 16px;
@@ -68,17 +69,7 @@
 					<button class="btn btn-sm btn-danger team-answer" data-assignment="{{ row.name | e }}" data-status="Declined">{{ _("Decline") }}</button>
 				</span>
 				{% endif %}
-				{% if schedules[row.function] %}
-				<details class="team-schedule">
-					<summary>{{ _("Schedule") }}</summary>
-					{% for item in schedules[row.function] %}
-					<div>
-						<span class="time">{{ item.time or "" }}</span>
-						<span>{{ (item.title or "") | e }}{% if item.detail %}<small>{{ item.detail | e }}</small>{% endif %}</span>
-					</div>
-					{% endfor %}
-				</details>
-				{% endif %}
+				{% include "templates/includes/ministry_team_schedule.html" %}
 			</li>
 			{% endfor %}
 		</ul>
