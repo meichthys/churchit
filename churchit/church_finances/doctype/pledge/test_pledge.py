@@ -180,7 +180,9 @@ class TestPledgeWebForm(RollbackEachTest):
 		force_single_church()
 		frappe.set_user(self.member)
 		options, _script = self.new_form()
-		self.assertEqual(options, {self.open_a, self.open_b})
+		# The site may hold other open campaigns, such as the sample data's.
+		self.assertLessEqual({self.open_a, self.open_b}, options)
+		self.assertNotIn(self.ended_a, options)
 
 	def test_a_member_pledges_for_themselves(self):
 		frappe.set_user(self.member)

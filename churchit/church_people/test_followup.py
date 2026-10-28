@@ -111,6 +111,14 @@ class TestFollowupTriggers(RollbackEachTest):
 		start_check_in_cards(check_in(attending.name, self.person))
 		self.assertIn(first_time, cards_of(self.person))
 
+	def test_an_imported_check_in_starts_no_card(self):
+		workflow_on("_Test First Check-In", ("First Check-In", None))
+		function = make_function("_Test Followup Imported")
+
+		frappe.flags.in_import = True
+		self.addCleanup(setattr, frappe.flags, "in_import", False)
+		self.assertIsNone(check_in(function.name, self.person, check_in_kind="Regular"))
+
 	def test_a_check_in_starts_only_the_workflows_for_its_function_type(self):
 		other = workflow_on(
 			"_Test First Check-In Other", ("First Check-In", ensure("Function Type", {"type": "_Test Other"}))

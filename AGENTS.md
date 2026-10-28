@@ -891,6 +891,12 @@ CI does not run it.
   sample data and creates it again, and the site keeps the result. Restore with
   `churchit.setup.sample_data.create_sample_data()`, which is idempotent, or run single modules while
   developing.
+- **`delete_sample_data` removes every sample record.** A new sample doctype needs a delete step (all
+  rows, or a filter for a shared lookup such as Skill), and a value the load sets on an existing record
+  (the Church, Website Settings) needs its undo. Insert a record that fires a Notification or starts a
+  follow-up card inside `_as_quiet_import`, as the sample check-ins are. `TestSampleDataRoundTrip`
+  fails when a load and a delete change a table's row count, a Series counter, a Singles value or a
+  field of the Church. It loads with an outgoing Email Account, so the emails the load queues count too.
 - Tests must set `frappe.local.form_dict`, never `frappe.form_dict`, which replaces the proxy for the
   rest of the process and breaks later tests.
 - Use `churchit/tests/helpers.py`: `ensure_root_church`, `make_branch`, `set_multi_church` and
@@ -1549,7 +1555,7 @@ locking read. MariaDB runs REPEATABLE READ, so a plain read after a lock answers
 snapshot: a read that decides a write after a lock is a locking read, and Function Check-In has an
 index on `function` so that read locks one Function's rows. `get_security_code` gives a household
 one code a day, unique on the site. A Volunteer check-in gets no code, does not count in a room, and
-starts no First Check-In card.
+starts no First Check-In card. Neither does a check-in saved under `frappe.flags.in_import`, which is history.
 
 `check_in_limits` owns who may check in. `get_bound_problem(function, person)` measures the
 Function's age and grade bounds on its start date, and an unknown age or grade fails a set bound:

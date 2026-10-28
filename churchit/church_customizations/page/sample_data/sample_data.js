@@ -12,7 +12,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 		<div class="sample-data-page" style="max-width: 600px; margin: 40px auto;">
 			<p style="font-size: var(--text-lg); color: var(--text-muted);">
 				${__(
-					"Sample data lets you explore the Church app with a pre-populated church, people, families, missionaries, funds, collections, expenses, prayer requests, functions, sermons, beliefs, and related Bible study data."
+					"Sample data lets you explore the Church app with a pre-populated church: people and families, groups, follow-up, missionaries, giving and pledges, expenses, prayer requests, functions with paid sign-ups, forms, songs, rooms and equipment, tasks, sermons with handouts, bulletins, a members-only web page, and related Bible study data."
 				)}
 			</p>
 			<div class="mt-3">
@@ -61,9 +61,9 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 							<p style="margin-bottom: 8px;"><strong>🛑 This cannot be undone.</strong></p>
 							<p style="margin-bottom: 8px;">This will permanently delete <strong>ALL</strong> records in:</p>
 							<p style="margin-bottom: 8px;">
-								Persons, Families, Missionaries, Prayer Requests, Functions,
-								Collections, Expenses, Funds, Bible Memory
-								<em>…and more.</em>
+								Persons, Families, Groups, Missionaries, Prayer Requests, Functions,
+								Question Sets, Collections, Pledges, Expenses, Funds, Sermon Handouts,
+								Bible Memory <em>…and more.</em>
 							</p>
 							<p style="margin-bottom: 0;">Any data you created after installation will <strong>also be deleted</strong>.</p>
 						</div>

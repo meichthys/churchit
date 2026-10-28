@@ -9,9 +9,12 @@ All inserts are idempotent, so they are safe to run more than once on the same s
 """
 
 import json
+from contextlib import contextmanager
 
 import frappe
 from frappe import _
+from frappe.model.delete_doc import delete_dynamic_links
+from frappe.model.naming import NamingSeries
 from frappe.utils import add_days, get_last_day, getdate
 
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
@@ -20,7 +23,9 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	WITHDRAWN,
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
+from churchit.church_ministries.doctype.function_sign_up.function_sign_up import get_seat_limits
 from churchit.church_people import summaries
+from churchit.church_people.doctype.background_check_type.background_check_type import CHILD_SAFETY_TRAINING
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
 from churchit.church_people.doctype.note_category.note_category import GENERAL, PASTORAL_CARE
 from churchit.church_people.followup import add_card
@@ -37,6 +42,11 @@ _PATHWAY_STEPS = [
 	("Baptized", "Baptized", [["Life Event", "event_type", "=", "Baptism"]]),
 	("Serving", "Serving", [["Person", "last_served_on", "is", "set"]]),
 ]
+# Skills the sample people have, beside the starting spiritual gifts: (name, description).
+_SKILLS = [
+	("Piano", "Plays the piano well enough to accompany the congregation."),
+	("Carpentry", "Builds and repairs things made of wood."),
+]
 _SMART_LIST_FIELDS = [
 	["name", "Person"],
 	["full_name", "Person"],
@@ -45,10 +55,7 @@ _SMART_LIST_FIELDS = [
 ]
 
 # Ordered deletion steps: (is_submittable, doctype, filters).
-# Prayer Request comments are handled separately after this list runs.
 _DELETE_STEPS = [
-	# A to-do updates the record it is about when deleted, so it goes before that record.
-	(False, "ToDo", {"reference_type": ["in", ["Follow-up Card", "Care Request"]]}),
 	# Leaf docs that link to functions / people / rooms. Delete these first.
 	(False, "Bulletin", {}),
 	(False, "Meeting Minutes", {}),
@@ -61,15 +68,19 @@ _DELETE_STEPS = [
 	(False, "Prayer", {}),
 	(True, "Fund Transfer", {}),
 	(False, "Ministry", {"ministry_name": ["!=", "General"]}),
+	(False, "Group Join Request", {}),
 	(False, "Group", {}),
 	(False, "Belief", {}),
 	(False, "Sermon", {}),
+	(False, "Sermon Handout", {}),
 	(False, "Sermon Series", {}),
 	(False, "Memory Session", {}),
 	(False, "Bible Memory Item", {}),
 	(False, "Function Sign-Up", {}),
 	(False, "Function Check-In", {}),
 	(False, "Function", {}),
+	(False, "Form Response", {}),
+	(False, "Question Set", {}),
 	(False, "Sign-Up Item", {}),
 	(False, "Visitation Log", {}),
 	(False, "Member Transfer", {}),
@@ -86,6 +97,8 @@ _DELETE_STEPS = [
 	(False, "Online Donation", {}),
 	(False, "Weekly Metrics", {}),
 	(True, "Collection", {}),
+	(False, "Pledge", {}),
+	(False, "Pledge Campaign", {}),
 	(False, "Fund", {}),
 	(False, "Missionary", {}),
 	(False, "Missionary Agency", {}),
@@ -98,8 +111,15 @@ _DELETE_STEPS = [
 	# A pathway names its smart lists, so it goes before them.
 	(False, "Pathway", {}),
 	(False, "Report", {"name": ["in", [smart_list for _step, smart_list, _filters in _PATHWAY_STEPS]]}),
+	(False, "Pickup Restriction", {}),
 	(False, "Family", {}),
 	(False, "Person", {}),
+	# Skills are shared lookups, so only the sample's own go.
+	(
+		False,
+		"Skill",
+		{"name": ["in", [name for name, _ in _SKILLS]], "description": ["in", [text for _, text in _SKILLS]]},
+	),
 ]
 
 # ---------------------------------------------------------------------------
@@ -153,6 +173,9 @@ def create_sample_data():
 	_assign_spouses(people)
 	_set_primary_contacts(people, families)
 	_create_person_letters(people)
+	_create_relationships(people)
+	_create_pickup_restriction(people)
+	_create_person_skills(people)
 
 	agencies = _create_missionary_agencies()
 	_create_missionaries(people, agencies)
@@ -166,6 +189,8 @@ def create_sample_data():
 	_create_expenses(expense_types)
 	_set_sample_fund_goal(funds)
 	_create_budget(expense_types)
+	_create_pledges(people, funds)
+	_create_form(people)
 
 	_create_prayer_requests(people)
 	_create_member_transfers(people)
@@ -176,19 +201,25 @@ def create_sample_data():
 	_create_alms_requests(people)
 
 	sign_up_items = _create_sign_up_items()
-	_create_functions(sign_up_items)
+	_create_functions(sign_up_items, funds)
 	_create_function_sign_ups(people, sign_up_items)
+	_create_paid_sign_ups(people)
 	_create_function_check_ins(people)
 	_create_meeting_minutes(people)
+	_create_bulletin()
+	_set_live_stream()
 
 	_create_bible_memory_items()
 
 	_create_beliefs()
 
 	sermon_series = _create_sermon_series(people)
-	_create_sermons(people, sermon_series)
+	_create_sermons(people, sermon_series, _create_sermon_handout())
+	_create_members_page()
 
+	_create_background_checks(people)
 	groups = _create_groups(people, group_roles)
+	_create_group_join_request(people, groups)
 
 	_create_ministries(groups)
 
@@ -202,11 +233,12 @@ def create_sample_data():
 	rooms = _create_rooms(locations)
 	_create_room_bookings(rooms, people)
 	_create_church_assets(locations)
+	_create_equipment_loan(people)
 
-	_create_church_tasks()
+	_create_church_tasks(people)
 	_create_assignments(people)
 
-	# After the check-ins, so the newcomer workflow does not start on them.
+	# The check-ins are imported, so the newcomer workflow starts no card on those members.
 	_create_follow_up(people)
 	_create_person_notes(people)
 	_create_consents(people)
@@ -225,19 +257,23 @@ def delete_sample_data():
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
 
+	# A workflow deletes its board on the way out, but keeps a copy in Deleted Document.
+	_delete_docs("Kanban Board", {"name": ["in", frappe.get_all("Follow-up Workflow", pluck="kanban_board")]})
 	for submittable, doctype, filters in _DELETE_STEPS:
 		if submittable:
 			_delete_submittable_docs(doctype, filters)
 		else:
 			_delete_docs(doctype, filters)
 
-	frappe.db.delete("Comment", {"reference_doctype": "Prayer Request"})
+	_delete_members_page()
+	_clear_live_stream()
 	# Address is shared with the church and other records, so only the sample homes go.
 	_delete_docs("Address", {"address_title": ["in", list(_HOME_ADDRESSES)]})
 	# Function Types survive; their template links point at deleted Functions.
 	frappe.db.set_value("Function Type", {"template_function": ["is", "set"]}, "template_function", None)
 
 	_delete_sample_users()
+	_reset_emptied_series()
 
 
 # ---------------------------------------------------------------------------
@@ -278,6 +314,21 @@ def _insert_if_missing(doctype, filters, **fields):
 	return doc.name
 
 
+@contextmanager
+def _as_quiet_import():
+	"""Insert the way Data Import does with Don't Send Emails: Frappe runs no Notification, and a check-in
+	starts no follow-up card.
+
+	That skips the field defaults too, so the record comes from `frappe.new_doc`.
+	"""
+	flags = frappe.flags.in_import, frappe.flags.mute_emails
+	frappe.flags.in_import = frappe.flags.mute_emails = True
+	try:
+		yield
+	finally:
+		frappe.flags.in_import, frappe.flags.mute_emails = flags
+
+
 def _backdate(doctype, name, date):
 	"""Date a record as entered on *date*, so the Summary's "since last year"
 	change, which compares with what existed then, has something to show."""
@@ -306,24 +357,79 @@ def _point_geojson(lat, lon):
 
 
 def _delete_docs(doctype, filters):
-	"""Delete all docs matching *filters* permanently."""
-	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+	"""Delete all docs matching *filters* permanently, with the rows Frappe keeps about them elsewhere.
+
+	Newest first, so each delete steps the Series counter back, and a tree's children before their parent.
+	"""
+	order_by = "lft desc" if frappe.get_meta(doctype).is_tree else "name desc"
+	records = frappe.get_all(doctype, filters=filters, fields=["name", "creation"], order_by=order_by)
+	if not records:
+		return
+
+	# A to-do updates the record it is about when deleted, so it goes before that record.
+	if doctype != "ToDo":
+		_delete_docs("ToDo", {"reference_type": doctype, "reference_name": ["in", [r.name for r in records]]})
+
+	for record in records:
+		deleted_at = frappe.utils.now()
 		try:
-			frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
+			frappe.delete_doc(
+				doctype, record.name, force=True, ignore_permissions=True, delete_permanently=True
+			)
 		except frappe.DoesNotExistError:
-			pass
+			continue
+		# Frappe queues this after the commit; run now, so the versions and comments go in this transaction.
+		delete_dynamic_links(doctype, record.name)
+		_delete_traces(doctype, record, deleted_at)
+
+
+def _delete_traces(doctype, record, deleted_at):
+	"""Remove the rows about a deleted record that Frappe's own clean-up keeps.
+
+	Its queued emails, milestones, permission changes and the note of the delete. Only rows made since the record was,
+	as a name can be used again.
+	"""
+	since = [">=", record.creation]
+	emails = frappe.get_all(
+		"Email Queue",
+		filters={"reference_doctype": doctype, "reference_name": record.name, "creation": since},
+		pluck="name",
+	)
+	if emails:
+		frappe.db.delete("Email Queue Recipient", {"parent": ["in", emails]})
+		frappe.db.delete("Email Queue", {"name": ["in", emails]})
+	frappe.db.delete(
+		"Milestone", {"reference_type": doctype, "reference_name": record.name, "creation": since}
+	)
+	frappe.db.delete(
+		"Permission Log", {"for_doctype": doctype, "for_document": record.name, "creation": since}
+	)
+	frappe.db.delete(
+		"Comment",
+		{
+			"comment_type": "Deleted",
+			"reference_doctype": doctype,
+			"subject": f"{_(doctype)} {record.name}",
+			"creation": [">=", deleted_at],
+		},
+	)
 
 
 def _delete_submittable_docs(doctype, filters):
-	"""Cancel and delete submittable docs matching *filters* permanently."""
-	for name in frappe.get_all(doctype, filters=filters, pluck="name"):
-		try:
-			doc = frappe.get_doc(doctype, name)
-			if doc.docstatus == 1:
-				doc.cancel()
-			frappe.delete_doc(doctype, name, force=True, ignore_permissions=True, delete_permanently=True)
-		except frappe.DoesNotExistError:
-			pass
+	"""Cancel the submitted docs matching *filters*, then delete them all."""
+	for name in frappe.get_all(
+		doctype, filters={**filters, "docstatus": 1}, order_by="name desc", pluck="name"
+	):
+		frappe.get_doc(doctype, name).cancel()
+	_delete_docs(doctype, filters)
+
+
+def _reset_emptied_series():
+	"""Number the next record of each doctype the delete emptied from 1 again. No Series row counts from 0."""
+	for doctype in {doctype for _submittable, doctype, _filters in _DELETE_STEPS}:
+		autoname = frappe.get_meta(doctype).autoname or ""
+		if ".#" in autoname and not frappe.db.count(doctype):
+			frappe.db.delete("Series", {"name": NamingSeries(autoname).get_prefix()})
 
 
 # ---------------------------------------------------------------------------
@@ -516,6 +622,20 @@ def _build_people():
 			[],
 			None,
 		),
+		(
+			"Noah",
+			"Thompson",
+			"Male",
+			0,
+			None,
+			0,
+			None,
+			_this_week_in(12, 2019),
+			None,
+			None,
+			[],
+			"Peanuts",
+		),
 	]
 
 
@@ -657,6 +777,8 @@ def _create_sample_users(people):
 				}
 			)
 			user.insert(ignore_permissions=True)
+			# An example.com address takes no mail, so Frappe emails the demo logins no assignment or mention.
+			frappe.db.set_value("Notification Settings", email, "enable_email_notifications", 0)
 
 		# Asserted on every run, not just when the User is new: the accounts outlive
 		# a delete/recreate of the sample people, which would otherwise leave the
@@ -669,10 +791,18 @@ def _create_sample_users(people):
 
 
 def _delete_sample_users():
-	"""Remove the demo login accounts."""
-	for email, _person, _role_profile in _SAMPLE_USERS:
-		if frappe.db.exists("User", email):
-			frappe.delete_doc("User", email, force=True, ignore_permissions=True, delete_permanently=True)
+	"""Remove the demo login accounts, with the contact, settings and defaults Frappe made for each."""
+	emails = [email for email, _person, _role_profile in _SAMPLE_USERS]
+	# Deleting a User keeps its Notification Settings in Deleted Document and only unlinks its Contact.
+	_delete_docs("Notification Settings", {"name": ["in", emails]})
+	# Only the Contact Frappe made with the login: an older Contact with that address is not ours.
+	for email, created in frappe.get_all(
+		"User", {"name": ["in", emails]}, ["name", "creation"], as_list=True
+	):
+		_delete_docs("Contact", {"user": email, "creation": [">=", created]})
+	_delete_docs("User", {"name": ["in", emails]})
+	for email in emails:
+		frappe.defaults.clear_default(parent=email)
 
 
 # ---------------------------------------------------------------------------
@@ -682,7 +812,7 @@ def _delete_sample_users():
 _FAMILIES = [
 	("Wilson - James", ["James Wilson", "Sarah Wilson"]),
 	("Johnson - Robert", ["Robert Johnson", "Mary Johnson"]),
-	("Thompson - David", ["David Thompson", "Lisa Thompson"]),
+	("Thompson - David", ["David Thompson", "Lisa Thompson", "Noah Thompson"]),
 ]
 
 # The primary contact is always the first member listed
@@ -830,6 +960,52 @@ def _create_person_letters(people):
 	frappe.flags.in_import = True
 	person.save(ignore_permissions=True)
 	frappe.flags.in_import = False
+
+
+def _create_relationships(people):
+	"""Noah is David's son, so the Family makes him a Child, and his grandmother Martha lives on her own."""
+	noah = frappe.get_doc("Person", people["Noah Thompson"])
+	family = frappe.get_doc("Family", noah.family)
+	row = next(row for row in family.members if row.member == noah.name)
+	if not row.relationship_to_primary_contact:
+		row.relationship_to_primary_contact = "Son"
+		family.save(ignore_permissions=True)
+
+	if not noah.relationships:
+		noah.append("relationships", {"relation_type": "Grandmother", "person": people["Martha Evans"]})
+		noah.save(ignore_permissions=True)
+
+
+def _create_pickup_restriction(people):
+	"""Someone outside the household who may not collect Noah from children's church."""
+	_insert_if_missing(
+		"Pickup Restriction",
+		{"child": people["Noah Thompson"]},
+		child=people["Noah Thompson"],
+		restricted_name="Kevin Marsh",
+		description="May not collect Noah. Call Lisa or David at once if he asks for him.",
+		reason="A family court order. The office keeps a copy.",
+		valid_until=_near_date(180),
+	)
+
+
+def _create_person_skills(people):
+	"""Skills and spiritual gifts on a few people, so a church can find who can help."""
+	for skill_name, description in _SKILLS:
+		_insert_if_missing(
+			"Skill", {"skill_name": skill_name}, skill_name=skill_name, description=description
+		)
+	for person, skills in (
+		("James Wilson", ["Teaching", "Shepherding"]),
+		("Rachel Cooper", ["Piano", "Encouragement"]),
+		("David Thompson", ["Carpentry", "Serving"]),
+		("Mary Johnson", ["Hospitality", "Administration"]),
+	):
+		doc = frappe.get_doc("Person", people[person])
+		if doc.skills:
+			continue
+		doc.set("skills", [{"skill": skill} for skill in skills if frappe.db.exists("Skill", skill)])
+		doc.save(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1267,6 +1443,76 @@ def _create_budget(expense_types):
 
 
 # ---------------------------------------------------------------------------
+# Pledges and forms
+# ---------------------------------------------------------------------------
+
+_PLEDGE_CAMPAIGN = "New Roof"
+_FORM = "Membership Class Interest"
+
+
+def _create_pledges(people, funds):
+	"""A campaign for the Building fund that the sample giving already counts toward."""
+	campaign = _insert_if_missing(
+		"Pledge Campaign",
+		{"title": _PLEDGE_CAMPAIGN},
+		title=_PLEDGE_CAMPAIGN,
+		fund=funds["Building"],
+		start_date=_near_date(-30),
+		end_date=_near_date(150),
+		goal_amount=25000,
+	)
+	for person, amount, frequency in (
+		("Robert Johnson", 1200, "Yearly"),
+		("James Wilson", 500, "One Time"),
+		("David Thompson", 50, "Monthly"),
+	):
+		_insert_if_missing(
+			"Pledge",
+			{"campaign": campaign, "person": people[person]},
+			campaign=campaign,
+			person=people[person],
+			amount=amount,
+			frequency=frequency,
+		)
+
+
+def _create_form(people):
+	"""A form on the website, and Rachel's answers to it."""
+	question_set = _insert_if_missing(
+		"Question Set",
+		{"title": _FORM},
+		title=_FORM,
+		description="Tell us you would like to join the next membership class.",
+		publish_as_form=1,
+		questions=[
+			{
+				"label": "Which class suits you?",
+				"fieldname": "class_time",
+				"question_type": "Select",
+				"options": "Sunday after the service\nWednesday evening",
+				"is_required": 1,
+			},
+			{"label": "Do you need childcare?", "fieldname": "childcare", "question_type": "Check"},
+			{"label": "Questions for the pastor", "fieldname": "questions", "question_type": "Small Text"},
+		],
+	)
+	rachel = frappe.db.get_value("Person", people["Rachel Cooper"], ["first_name", "last_name"], as_dict=True)
+	_insert_if_missing(
+		"Form Response",
+		{"question_set": question_set, "person": people["Rachel Cooper"]},
+		question_set=question_set,
+		person=people["Rachel Cooper"],
+		email=get_primary_email("Person", people["Rachel Cooper"]),
+		**rachel,
+		answers=[
+			{"question": "class_time", "answer": "Sunday after the service"},
+			{"question": "childcare", "answer": "0"},
+			{"question": "questions", "answer": "What does membership ask of me?"},
+		],
+	)
+
+
+# ---------------------------------------------------------------------------
 # Prayer Requests
 # ---------------------------------------------------------------------------
 
@@ -1337,8 +1583,8 @@ def _create_prayer_requests(people):
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Prayer Request", **req})
-		doc.insert(ignore_permissions=True)
+		with _as_quiet_import():
+			frappe.new_doc("Prayer Request").update(req).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1672,8 +1918,8 @@ def _create_alms_requests(people):
 		)
 		if existing:
 			continue
-		doc = frappe.get_doc({"doctype": "Alms Request", **req})
-		doc.insert(ignore_permissions=True)
+		with _as_quiet_import():
+			frappe.new_doc("Alms Request").update(req).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1681,11 +1927,20 @@ def _create_alms_requests(people):
 # ---------------------------------------------------------------------------
 
 
-def _create_functions(sign_up_items):
+_FAMILY_CAMP = "Family Camp"
+
+
+def _create_functions(sign_up_items, funds):
 	"""Create sample church functions."""
 	_ft = {
 		t: _resolve_link("Function Type", "type", t)
-		for t in ("Sunday Morning Service", "Prayer Meeting", "Sunday Evening Service", "Communion")
+		for t in (
+			"Sunday Morning Service",
+			"Prayer Meeting",
+			"Sunday Evening Service",
+			"Communion",
+			"Group Meeting",
+		)
 	}
 	functions = [
 		{
@@ -1697,6 +1952,7 @@ def _create_functions(sign_up_items):
 			"description": "Regular Sunday morning worship service with sermon, hymns, and fellowship.",
 			"allow_sign_ups": 0,
 			"publish": 1,
+			"streamed": 1,
 		},
 		{
 			"function_name": "Midweek Prayer",
@@ -1734,6 +1990,24 @@ def _create_functions(sign_up_items):
 				{"item": sign_up_items["Setup/Cleanup"], "quantity_needed": 2},
 				{"item": sign_up_items["Serving"], "quantity_needed": 2},
 			],
+		},
+		{
+			"function_name": _FAMILY_CAMP,
+			"type": _ft["Group Meeting"],
+			"start_date": _near_date(21),
+			"end_date": _near_date(23),
+			"all_day": 1,
+			"description": "A weekend at Lake Springfield Camp with Bible teaching, games and campfire worship.",
+			"allow_sign_ups": 1,
+			"publish": 1,
+			"capacity": 60,
+			"sign_ups_close_on": _near_datetime(14, "23:59:00"),
+			"sign_up_fund": funds["General"],
+			"selections": [
+				{"selection": "Adult", "price": 60, "description": "Meals and a bed in the lodge."},
+				{"selection": "Child", "price": 30, "description": "Ages 12 and under, in a family room."},
+			],
+			"discounts": [{"kind": "Code", "code": "FAMILY10", "percent": 10}],
 		},
 	]
 	for fn in functions:
@@ -1888,6 +2162,31 @@ def _create_function_sign_ups(people, sign_up_items):
 		doc.insert(ignore_permissions=True)
 
 
+def _create_paid_sign_ups(people):
+	"""Two households signed up for Family Camp and paid at the office, one with the family discount code."""
+	camp = frappe.db.get_value("Function", {"function_name": _FAMILY_CAMP}, "name")
+	sign_ups = [
+		("David Thompson", [("Lisa Thompson", "Adult"), ("Noah Thompson", "Child")], "FAMILY10"),
+		("James Wilson", [("Sarah Wilson", "Adult")], None),
+	]
+	for registrant, others, code in sign_ups:
+		if frappe.db.exists("Function Sign-Up", {"function": camp, "person": people[registrant]}):
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "Function Sign-Up",
+				"function": camp,
+				"person": people[registrant],
+				"discount_code": code,
+				"attendees": [
+					{"person": people[registrant], "selection": "Adult"},
+					*({"person": people[person], "selection": selection} for person, selection in others),
+				],
+			}
+		).insert(ignore_permissions=True)
+		doc.record_payment(doc.amount_to_pay, get_seat_limits(camp))
+
+
 def _create_function_check_ins(people):
 	"""Create sample check-in records against the Sunday Worship function."""
 	function = frappe.db.get_value("Function", {"function_name": "Sunday Worship"}, "name")
@@ -1908,16 +2207,17 @@ def _create_function_check_ins(people):
 			continue
 		if frappe.db.exists("Function Check-In", {"function": function, "person": person}):
 			continue
-		frappe.get_doc(
-			{
-				"doctype": "Function Check-In",
-				"function": function,
-				"function_type": function_doc.type,
-				"start_date": function_doc.start_date,
-				"start_time": function_doc.start_time,
-				"person": person,
-			}
-		).insert(ignore_permissions=True)
+		# These are long-time members, so the newcomer workflow must not follow them up.
+		with _as_quiet_import():
+			frappe.new_doc("Function Check-In").update(
+				{
+					"function": function,
+					"function_type": function_doc.type,
+					"start_date": function_doc.start_date,
+					"start_time": function_doc.start_time,
+					"person": person,
+				}
+			).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -2021,7 +2321,7 @@ def _create_bible_memory_items():
 # ---------------------------------------------------------------------------
 
 
-def _create_sermons(people, series_refs=None):
+def _create_sermons(people, series_refs=None, handout=None):
 	"""Create sample sermons with Scripture slides, and slides showing people,
 	missionaries, and beliefs."""
 
@@ -2036,6 +2336,9 @@ def _create_sermons(people, series_refs=None):
 			"title": "The Good Shepherd",
 			"prepared_by": people["James Wilson"],
 			"publish": 1,
+			"sermon_date": _near_date(-14),
+			"media_url": "https://lets.church/media/sample-the-good-shepherd",
+			"handout": handout,
 			"notes": (
 				"<p>A sermon on Psalm 23 exploring the intimate care that God, "
 				"our Shepherd, provides for His sheep.</p>"
@@ -2070,6 +2373,8 @@ def _create_sermons(people, series_refs=None):
 			"title": "Walking by Faith",
 			"prepared_by": people["James Wilson"],
 			"publish": 1,
+			"sermon_date": _near_date(-7),
+			"media_url": "https://lets.church/media/sample-walking-by-faith",
 			"notes": (
 				"<p>A study of Hebrews 11:1 and what it means to walk by faith "
 				"rather than by sight in our daily lives.</p>"
@@ -2096,6 +2401,7 @@ def _create_sermons(people, series_refs=None):
 			"title": "The Power of Prayer",
 			"prepared_by": people["Robert Johnson"],
 			"publish": 1,
+			"sermon_date": _near_date(-21),
 			"notes": (
 				"<p>An encouraging message on the privilege and power of prayer, "
 				"drawing from multiple passages throughout Scripture.</p>"
@@ -2246,8 +2552,10 @@ def _create_groups(people, group_roles):
 		{
 			"group_name": "Men's Bible Study",
 			"description": "A weekly men's group studying through the book of Romans.",
+			"group_type": "Small Group",
 			"public": 1,
 			"show_in_portal": 1,
+			"requires_approval": 1,
 			"members": [
 				{"person": people["Robert Johnson"], "group_role": group_roles["Leader"]},
 				{"person": people["David Thompson"], "group_role": group_roles["Member"]},
@@ -2261,6 +2569,28 @@ def _create_groups(people, group_roles):
 				{"person": people["David Thompson"], "group_role": group_roles["Leader"]},
 				{"person": people["Martha Evans"], "group_role": group_roles["Member"]},
 			],
+		},
+		{
+			"group_name": "Children's Church",
+			"description": "Bible lessons and songs for children during the Sunday sermon.",
+			"group_type": "Class",
+			# Every leader needs a cleared Child Safety Training before they are added.
+			"needs_background_check": 1,
+			"checks_apply_to": "Leaders",
+			"required_checks": [{"check_type": CHILD_SAFETY_TRAINING}],
+			"block_without_checks": 1,
+			"members": [
+				{"person": people["Lisa Thompson"], "group_role": group_roles["Leader"]},
+				{"person": people["Noah Thompson"], "group_role": group_roles["Member"]},
+			],
+		},
+		{
+			"group_name": _NEWCOMERS_CLASS,
+			"description": "A four-week class for new people about what the church believes and how to get involved.",
+			"group_type": "Class",
+			"public": 1,
+			"show_in_portal": 1,
+			"members": [{"person": people["James Wilson"], "group_role": group_roles["Leader"]}],
 		},
 	]
 	refs = {}
@@ -2277,6 +2607,30 @@ def _create_groups(people, group_roles):
 		doc.insert(ignore_permissions=True)
 		refs[grp["group_name"]] = doc.name
 	return refs
+
+
+def _create_background_checks(people):
+	"""Lisa finished the child safety course, so she may lead Children's Church."""
+	_insert_if_missing(
+		"Background Check",
+		{"person": people["Lisa Thompson"], "check_type": CHILD_SAFETY_TRAINING},
+		person=people["Lisa Thompson"],
+		check_type=CHILD_SAFETY_TRAINING,
+		status="Cleared",
+		requested_on=_near_date(-45),
+		completed_on=_near_date(-30),
+	)
+
+
+def _create_group_join_request(people, groups):
+	"""Samuel asked to join the Men's Bible Study, which approves each new member."""
+	_insert_if_missing(
+		"Group Join Request",
+		{"person": people["Samuel Brooks"], "group": groups["Men's Bible Study"]},
+		person=people["Samuel Brooks"],
+		group=groups["Men's Bible Study"],
+		message="I have been reading Romans on my own and would like to study it with others.",
+	)
 
 
 # ---------------------------------------------------------------------------
@@ -2453,6 +2807,36 @@ def _create_songs():
 		{
 			"title": "Amazing Grace",
 			"ccli": "4755360",
+			"default_key": "G",
+			"tempo": 72,
+			"arrangements": [
+				{
+					"arrangement_name": "Congregational",
+					"song_key": "G",
+					"tempo": 72,
+					"chordpro": (
+						"{title: Amazing Grace}\n"
+						"[G]Amazing [G7]grace! How [C]sweet the [G]sound\n"
+						"That saved a wretch like [D]me!\n"
+						"I [G]once was lost, but [G7]now am [C]found;\n"
+						"Was [G]blind, but [D]now I [G]see."
+					),
+				},
+				{
+					"arrangement_name": "Acoustic",
+					"song_key": "D",
+					"tempo": 66,
+					"notes": "Guitar and voice only.",
+				},
+			],
+			"media": [
+				{
+					"media_type": "Video",
+					"label": "Congregational singing",
+					"url": "https://lets.church/media/sample-amazing-grace",
+					"arrangement": "Congregational",
+				},
+			],
 			"slides": [
 				{
 					"content": "<p>Amazing grace! How sweet the sound<br>That saved a wretch like me!<br>I once was lost, but now am found;<br>Was blind, but now I see.</p>"
@@ -2575,13 +2959,32 @@ def _create_church_assets(locations):
 		doc.insert(ignore_permissions=True)
 
 
+def _create_equipment_loan(people):
+	"""The projector is out on loan: an approved booking of equipment only, already checked out."""
+	purpose = "Youth movie night at the Wilsons' home"
+	if frappe.db.exists("Room Booking", {"purpose": purpose}):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Room Booking",
+			"requester": people["Sarah Wilson"],
+			"purpose": purpose,
+			"assets": [{"asset": frappe.db.get_value("Church Asset", {"title": "Epson Projector"}, "name")}],
+			"start_datetime": _near_datetime(-1, "17:00:00"),
+			"end_datetime": _near_datetime(2, "12:00:00"),
+			"status": "Approved",
+			"checked_out_on": _near_datetime(-1, "16:30:00"),
+		}
+	).insert(ignore_permissions=True)
+
+
 # ---------------------------------------------------------------------------
 # Church Tasks (tree structure)
 # ---------------------------------------------------------------------------
 
 
-def _create_church_tasks():
-	"""Create sample church tasks with hierarchy."""
+def _create_church_tasks(people):
+	"""Create sample church tasks with hierarchy, and an open work order for the van."""
 	# Parent task (is_group)
 	parent_title = "Prepare for Upcoming Service"
 	parent_name = frappe.db.get_value(
@@ -2649,6 +3052,15 @@ def _create_church_tasks():
 			"status": "Open",
 			"due_date": _near_datetime(30),
 			"notes": "<p>We need 25 additional hymnals for the new pew section. Get quotes from at least two suppliers.</p>",
+		},
+		{
+			"title": "Replace worn tires on the van",
+			"task_type": "Work Order",
+			"status": "Open",
+			"asset": frappe.db.get_value("Church Asset", {"title": "15-Passenger Van"}, "name"),
+			"requester": people["David Thompson"],
+			"due_date": _near_datetime(10),
+			"notes": "<p>The front tires are below the safe tread depth. Replace them before the next youth trip.</p>",
 		},
 	]
 	for task in standalone_tasks:
@@ -2788,6 +3200,104 @@ def _create_meeting_minutes(people):
 	).insert(ignore_permissions=True)
 
 
+# ---------------------------------------------------------------------------
+# Website and media
+# ---------------------------------------------------------------------------
+
+_LIVE_STREAM_URL = "https://lets.church/media/sample-live-stream"
+_MEMBERS_PAGE = "members-corner"
+
+
+def _create_bulletin():
+	"""A published bulletin for Sunday Worship that shares its announcements on /announcements."""
+	function = frappe.db.get_value("Function", {"function_name": "Sunday Worship"}, "name")
+	if frappe.db.exists("Bulletin", {"function": function}):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Bulletin",
+			"function": function,
+			"publish": 1,
+			"share_announcements": 1,
+			"welcome": "<p>Welcome! If this is your first visit, please fill in a connection card.</p>",
+			"announcements": (
+				"<ul>"
+				"<li>Family Camp sign-ups close in two weeks. Use the code FAMILY10 for a family discount.</li>"
+				"<li>The New Roof campaign has started. Pledge cards are at the welcome desk.</li>"
+				"<li>The next membership class starts soon. Tell us on the Membership Class Interest form.</li>"
+				"</ul>"
+			),
+		}
+	).insert(ignore_permissions=True)
+
+
+def _set_live_stream():
+	"""Give the church a live stream link when it has none, so the streamed Sunday Worship shows Watch Live."""
+	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
+	if not frappe.db.get_value("Church", church, "live_stream_url"):
+		frappe.db.set_value("Church", church, "live_stream_url", _LIVE_STREAM_URL, update_modified=False)
+		frappe.clear_document_cache("Church", church)
+
+
+def _clear_live_stream():
+	"""Take the sample link off the church, and leave a link the church set itself."""
+	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
+	if frappe.db.get_value("Church", church, "live_stream_url") == _LIVE_STREAM_URL:
+		frappe.db.set_value("Church", church, "live_stream_url", None, update_modified=False)
+		frappe.clear_document_cache("Church", church)
+
+
+def _create_members_page():
+	"""A published Web Page that only signed-in members open. Publishing it adds it to the website menu."""
+	if frappe.db.exists("Web Page", {"route": _MEMBERS_PAGE}):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Web Page",
+			"title": "Members' Corner",
+			"route": _MEMBERS_PAGE,
+			"published": 1,
+			"members_only": 1,
+			"content_type": "Rich Text",
+			"main_section": "<p>News for members: the annual business meeting is next month.</p>",
+		}
+	).insert(ignore_permissions=True)
+
+
+def _delete_members_page():
+	"""Delete the members page, which takes its menu link with it, and the two saves of Website Settings."""
+	created = frappe.db.get_value("Web Page", {"route": _MEMBERS_PAGE}, "creation")
+	if not created:
+		return
+	_delete_docs("Web Page", {"route": _MEMBERS_PAGE})
+	frappe.db.delete(
+		"Version",
+		{
+			"ref_doctype": "Website Settings",
+			"creation": [">=", created],
+			"data": ["like", f'%"/{_MEMBERS_PAGE}"%'],
+		},
+	)
+
+
+def _create_sermon_handout():
+	"""A fill-in-the-blanks handout: each [bracketed phrase] prints as a blank. Returns its name."""
+	title = "The Good Shepherd"
+	return _insert_if_missing(
+		"Sermon Handout",
+		{"title": title},
+		title=title,
+		content=(
+			"<h3>The Good Shepherd (Psalm 23)</h3>"
+			"<ol>"
+			"<li>The Lord is my [shepherd]; I shall not [want] (v. 1).</li>"
+			"<li>He leads me beside still [waters] and restores my [soul] (vv. 2 to 3).</li>"
+			"<li>Even in the valley I will fear no [evil], for You are [with me] (v. 4).</li>"
+			"</ol>"
+		),
+	)
+
+
 def _create_sermon_series(people):
 	"""Create a sample sermon series. Returns dict mapping title → name."""
 	refs = {}
@@ -2821,6 +3331,7 @@ def _create_rooms(locations):
 			"capacity": 300,
 			"is_bookable": 1,
 			"requires_approval": 1,
+			"approvers": [{"user": _CHURCH_MANAGER_EMAIL}],
 			"description": "The main worship space.",
 		},
 		{
@@ -2876,7 +3387,8 @@ def _create_room_bookings(rooms, people):
 			"purpose": "Special prayer service",
 			"start_datetime": _near_datetime(10, "19:00:00"),
 			"end_datetime": _near_datetime(10, "20:30:00"),
-			"status": "Approved",
+			# Waits for Mary, the room's approver.
+			"status": "Requested",
 			"function": a_function,
 		},
 	]
@@ -2893,6 +3405,7 @@ def _create_room_bookings(rooms, people):
 # ---------------------------------------------------------------------------
 
 _NEWCOMER_WORKFLOW = "Newcomer Follow-up"
+_NEWCOMERS_CLASS = "Newcomers Class"
 
 
 def _create_follow_up(people):
@@ -2913,6 +3426,14 @@ def _create_follow_up(people):
 					{"step": "Connect to a Group", "due_in_days": 14},
 				],
 				"triggers": [{"trigger": "First Check-In"}, {"trigger": "Connection Card"}],
+				"actions": [
+					{
+						"run_on": "Step Reached",
+						"step": "Connect to a Group",
+						"action": "Add to Group",
+						"group": frappe.db.get_value("Group", {"group_name": _NEWCOMERS_CLASS}, "name"),
+					}
+				],
 			}
 		).insert(ignore_permissions=True)
 

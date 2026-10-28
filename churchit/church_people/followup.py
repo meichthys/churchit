@@ -211,8 +211,9 @@ def on_check_in(doc, method=None) -> None:
 
 	The cards start after the check-in commits, so a follow-up problem never stops the Check-In Station.
 	A volunteer who serves is not a newcomer, so a Volunteer check-in neither starts a card nor counts.
+	An imported check-in (Data Import, sample data) is attendance history, so it starts no card either.
 	"""
-	if doc.check_in_kind == VOLUNTEER:
+	if doc.check_in_kind == VOLUNTEER or frappe.flags.in_import:
 		return
 	# church-scope: a first check-in is the first at any church
 	if frappe.db.exists(
