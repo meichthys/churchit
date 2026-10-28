@@ -15,6 +15,7 @@ from frappe.desk.doctype.number_card.number_card import calculate_previous_resul
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
+from churchit.church_people import household
 from churchit.church_people.report.person_anniversaries_this_month import (
 	person_anniversaries_this_month as anniversaries_this_month,
 )
@@ -149,6 +150,23 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		super().setUpClass()
 		sample_data.delete_sample_data()
 		sample_data.create_sample_data()
+		sample_families = frappe.get_all(
+			"Family",
+			{"family_name": ["in", [name for name, _members in sample_data._FAMILIES]]},
+			pluck="name",
+		)
+		cls.spouse_roles = frappe.get_all(
+			"Family Members",
+			filters={
+				"parenttype": "Family",
+				"parent": ["in", sample_families],
+				"relationship_to_primary_contact": ["in", ["Husband", "Wife"]],
+			},
+			pluck="household_role",
+		)
+		cls.johnson_salutation = household.salutation(
+			frappe.db.get_value("Family", {"family_name": "Johnson - Robert"})
+		)
 		cls.home_addresses = frappe.get_all(
 			"Address", {"address_title": ["in", list(sample_data._HOME_ADDRESSES)]}, pluck="name"
 		)
@@ -194,6 +212,12 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		function_type = frappe.get_all("Function Type", limit=1, pluck="name")[0]
 		frappe.db.set_value("Function Type", function_type, "template_function", function)
 		return function_type
+
+	def test_both_spouses_of_a_sample_household_are_adults(self):
+		"""Setting the primary contact before the spouse link made each wife an Other Adult."""
+		self.assertEqual(len(self.spouse_roles), 2 * len(sample_data._SPOUSES))
+		self.assertEqual(set(self.spouse_roles), {household.ADULT})
+		self.assertEqual(self.johnson_salutation, "Robert & Mary Johnson")
 
 	def test_delete_removes_what_create_made(self):
 		# Ministry is the one step with a filter: the General ministry predates the

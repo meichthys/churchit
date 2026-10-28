@@ -148,6 +148,7 @@ def create_sample_data():
 	families = _create_families()
 	_assign_families(people, families)
 	_assign_spouses(people)
+	_set_primary_contacts(people, families)
 	_create_person_letters(people)
 
 	agencies = _create_missionary_agencies()
@@ -743,7 +744,7 @@ def _get_home_address_rows(key):
 
 
 def _assign_families(people, families):
-	"""Link people to their families and set each family's primary contact."""
+	"""Link people to their families."""
 	for family_name, members in _FAMILIES:
 		family_doc_name = families.get(family_name)
 		if not family_doc_name:
@@ -757,6 +758,14 @@ def _assign_families(people, families):
 				continue
 			person.family = family_doc_name
 			person.save(ignore_permissions=True)
+
+
+def _set_primary_contacts(people, families):
+	"""Set each family's primary contact after the spouse links, so the Family makes both spouses Adults."""
+	for family_name, _members in _FAMILIES:
+		family_doc_name = families.get(family_name)
+		if not family_doc_name:
+			continue
 		family = frappe.get_doc("Family", family_doc_name)
 		if not family.primary_contact:
 			family.primary_contact = people.get(_PRIMARY_CONTACTS[family_name])
