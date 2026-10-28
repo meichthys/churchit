@@ -60,9 +60,10 @@ frappe.ui.form.on("Alms Request", {
 });
 
 // Benevolence case notes are Person Notes on the recipient, or on a Family's primary contact.
-// The note's category decides who reads it, so Church Finance, which reads no Person Note, gets no button.
+// The server says whether the user may read or add a Benevolence note.
 function add_case_note_buttons(frm) {
-	if (frm.is_new() || !frm.doc.recipient || !frappe.model.can_read("Person Note")) return;
+	const onload = frm.doc.__onload || {};
+	if (frm.is_new() || !frm.doc.recipient || !onload.can_read_case_notes) return;
 	const group = __("Case Notes");
 	frm.add_custom_button(
 		__("View Case Notes"),
@@ -72,7 +73,7 @@ function add_case_note_buttons(frm) {
 		},
 		group
 	);
-	if (!frappe.model.can_create("Person Note")) return;
+	if (!onload.can_add_case_notes) return;
 	frm.add_custom_button(
 		__("Add Case Note"),
 		async () => {

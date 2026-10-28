@@ -11,6 +11,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.alms_request.alms_request import create_expense
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_people.doctype.note_category.note_category import BENEVOLENCE
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -182,3 +183,50 @@ class TestAlmsRequestAcrossChurches(RollbackEachTest):
 		# Every role that creates an Expense also writes Alms Requests, so the refusal must name the request.
 		self.assertIn("Alms Request", frappe.local.message_log[-1]["message"])
 		self.assertFalse(frappe.db.get_value("Alms Request", alms.name, "associated_expense"))
+
+
+class TestCaseNoteButtons(RollbackEachTest):
+	"""The form shows the Case Notes buttons to whoever may read or add a Benevolence note."""
+
+	def case_note_rights(self, user):
+		person = make_person("_Test Alms", "Case Notes").name
+		alms = frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": person,
+				"requestor": person,
+				"description": "_Test case notes",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user(user)
+		frappe.local.message_log = []
+		alms.run_method("onload")
+		onload = alms.get_onload()
+		return onload.can_read_case_notes, onload.can_add_case_notes
+
+	def test_finance_staff_get_no_case_note_buttons(self):
+		"""Church Staff reads General notes, but not a Benevolence note, so it gets no button."""
+		finance = ensure_user(
+			"_test_alms_finance_staff@example.com", "Finance Staff", roles=("Church Finance", "Church Staff")
+		)
+		self.assertEqual(self.case_note_rights(finance), (False, False))
+		# A refused check must not reach the form as a message dialog on every load and save.
+		self.assertEqual(frappe.local.message_log, [])
+
+	def test_managers_and_the_care_team_get_the_case_note_buttons(self):
+		for role in ("Church Manager", "Church Pastoral Care"):
+			user = ensure_user(f"_test_alms_{frappe.scrub(role)}@example.com", role, roles=(role,))
+			with self.subTest(role=role):
+				self.assertEqual(self.case_note_rights(user), (True, True))
+
+	def test_the_buttons_follow_the_benevolence_category(self):
+		"""A church that lets finance read case notes gives it View Case Notes, and still no Add Case Note."""
+		category = frappe.get_doc("Note Category", BENEVOLENCE)
+		category.append("view_roles", {"role": "Church Finance"})
+		category.save(ignore_permissions=True)
+		finance = ensure_user(
+			"_test_alms_finance_staff@example.com", "Finance Staff", roles=("Church Finance", "Church Staff")
+		)
+		self.assertEqual(self.case_note_rights(finance), (True, False))

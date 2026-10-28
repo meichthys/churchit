@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
+from churchit.church_people.doctype.note_category.note_category import BENEVOLENCE, PASTORAL_ROLES
 from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
 from churchit.church_scope import refuse_another_churches_parent
 from churchit.utils import resolve_link_titles
@@ -29,6 +29,14 @@ ALMS_MESSAGE = """<p>A new alms request was added{% if church_name(doc) %} at {{
 
 
 class AlmsRequest(Document):
+	def onload(self):
+		# The Case Notes buttons follow the rights on a Benevolence note, not on Person Note.
+		# frappe.has_permission, not note.has_permission, which msgprints each refusal into the response.
+		note = frappe.new_doc("Person Note", category=BENEVOLENCE, owner=frappe.session.user)
+		has_category = bool(frappe.db.exists("Note Category", BENEVOLENCE))
+		for key, ptype in (("can_read_case_notes", "read"), ("can_add_case_notes", "create")):
+			self.set_onload(key, has_category and frappe.has_permission("Person Note", ptype, note))
+
 	def validate(self):
 		# Before the pin: `church` came from the requestor as sent, and the pin does not change it.
 		refuse_another_churches_parent(
