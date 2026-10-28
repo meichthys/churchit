@@ -32,6 +32,8 @@ QUERIED_DOCTYPE = re.compile(r'(?:DocType|get_all|get_list|db\.count)\(\s*"([^"]
 # Lists churches themselves through frappe.get_list, so it is scoped by user permissions.
 SCOPE_EXEMPT_REPORTS = {"church_foundations/report/churches/churches.py"}
 COUNTED_TYPES_OWNER = "church_ministries/attendance.py"
+# Every role profile that holds these also holds Church Staff (AGENTS.md "Roles").
+ADD_ON_ROLES = {"Church Pastoral Care", "Church Finance", "Church People Editor"}
 
 
 def _walk_report_python_files():
@@ -117,4 +119,36 @@ class TestReportsHygiene(FrappeTestCase):
 		assert not copies, (
 			"These files list the counted attendance types themselves. Import COUNTED_TYPES from "
 			"churchit.church_ministries.attendance instead: " + ", ".join(sorted(copies))
+		)
+
+	def test_each_report_role_may_open_it(self):
+		"""Frappe opens a report only for a role with report permission on its reference doctype.
+
+		A role listed on the report without it sees the report in the sidebar and gets
+		"You don't have permission to get a report on" when it opens.
+		"""
+		import json
+
+		import frappe
+
+		closed = []
+		for path in glob.glob(os.path.join(REPORTS_DIR, "*", "report", "*", "*.json")):
+			with open(path) as fh:
+				report = json.load(fh)
+			if report.get("report_type") not in ("Script Report", "Query Report"):
+				continue
+			meta = frappe.get_meta(report["ref_doctype"])
+			reporting = {
+				perm.role
+				for perm in meta.permissions
+				if perm.report and not perm.permlevel and not perm.if_owner and not meta.istable
+			}
+			for role in {row["role"] for row in report.get("roles", [])} - reporting:
+				if role in ADD_ON_ROLES and "Church Staff" in reporting:
+					continue
+				closed.append(f"{report['name']} ({report['ref_doctype']}): {role}")
+		assert not closed, (
+			"These report roles cannot open the report. Give the role report permission on the "
+			"reference doctype, point the report at a parent doctype, or drop the role: "
+			+ ", ".join(sorted(closed))
 		)
