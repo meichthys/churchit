@@ -360,7 +360,11 @@ doc_events = {
 }
 
 # Desk: whether multi-church is on and whether the user may include branches.
-extend_bootinfo = ["churchit.church_scope.extend_bootinfo", "churchit.scripture.extend_bootinfo"]
+extend_bootinfo = [
+	"churchit.church_scope.extend_bootinfo",
+	"churchit.scripture.extend_bootinfo",
+	"churchit.church_communications.staff_chat.extend_bootinfo",
+]
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed.
