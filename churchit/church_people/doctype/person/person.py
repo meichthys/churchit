@@ -170,8 +170,12 @@ class Person(Document):
 		if frappe.flags.in_import:
 			self.source = SOURCE_IMPORT
 
-	def before_save(self):
+	def _validate_links(self):
+		# Frappe checks links before any controller method runs, so the stored summary rows must be back first.
 		summaries.keep_stored_values(self)
+		super()._validate_links()
+
+	def before_save(self):
 		# We set this here since virtual fields do not work with
 		#   View Settings -> Title Field as of 2025-08-26
 		self.full_name = f"{self.first_name}" + ((" " + self.last_name) if self.last_name else "")

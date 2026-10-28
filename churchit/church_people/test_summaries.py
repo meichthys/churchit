@@ -121,6 +121,24 @@ class TestSummaryEngine(RollbackEachTest):
 		self.assertEqual((person.times_attended_90d, person.group_count), (1, 1))
 		self.assertEqual([row.group for row in person.groups], [group.name])
 
+	def test_a_form_opened_before_a_record_it_names_is_deleted_saves(self):
+		"""Frappe checks the links the form sent before any controller method, so the stored rows go back first."""
+		group = make_group("_Test Summary Stale Delete", [self.person]).name
+		position = make_team_position("_Test Summary Stale Delete", [self.person], "_Test Summary Ministry")
+		summaries.refresh([self.person])
+		opened = frappe.get_doc("Person", self.person).as_dict()
+		with mock.patch("frappe.enqueue"):
+			frappe.delete_doc("Group", group)
+			frappe.delete_doc("Ministry Team Position", position.name)
+
+		opened.nickname = "_Test Stale Delete"
+		savedocs(frappe.as_json(opened), "Save")
+
+		person = frappe.get_doc("Person", self.person)
+		self.assertEqual(person.nickname, "_Test Stale Delete")
+		self.assertEqual((person.groups, person.team_positions), ([], []))
+		self.assertEqual([row.ministry for row in person.ministry_teams], [position.ministry])
+
 
 class TestSummariesStayInTheirChurch(RollbackEachTest):
 	@classmethod

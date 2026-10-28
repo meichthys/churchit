@@ -188,10 +188,11 @@ def store_table(person: str, df, names: list[str]) -> None:
 
 
 def keep_stored_values(person) -> None:
-	"""Person before_save: give a saved Person its stored summary fields back, and keep the save off their tables.
+	"""Person `_validate_links`: give a saved Person its stored summary fields back, and keep the save off their tables.
 
 	This module is their only writer. A refresh leaves `modified` alone, so a form opened before it passes
-	Frappe's check for a stale copy and would write the old figures and rows back.
+	Frappe's check for a stale copy and would write the old figures and rows back. It runs before Frappe's link
+	check, so a form opened before a record it names was deleted still saves.
 	"""
 	before = person.get_doc_before_save()
 	if not before:
