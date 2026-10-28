@@ -3,7 +3,9 @@
 
 // An import keeps no records, so its list is the Collections it made.
 frappe.listview_settings["Giving Import"] = {
-	onload() {
+	// In refresh, after the import list has used the route options, so the target list gets the filter.
+	refresh() {
+		frappe.route_flags.replace_route = true;
 		frappe.set_route("List", "Collection", { import_batch: ["is", "set"] });
 	},
 };
