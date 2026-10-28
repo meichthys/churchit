@@ -22,6 +22,7 @@ from churchit.church_website.context import before_request, update_website_conte
 from churchit.church_website.pages import SwitchedOffPage, is_link_off, is_page_off, sync_page_switches
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
+from churchit.patches.v1_0 import hide_sermons_on_the_home_page
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, force_single_church, make_person
 
 MEMBERS_ROUTE = "_test-members-only"
@@ -488,3 +489,66 @@ class TestSwitchedOffPage(RollbackEachTest):
 			frappe.local.path = "bulletins"
 			self.assertEqual(serve("about", "Guest").status_code, 200)
 			self.assertEqual(serve("bulletins", "Guest").status_code, 404)
+
+	def set_home_page(self, html):
+		frappe.db.set_value("Web Page", "home", "main_section_html", html)
+
+	def home_page(self):
+		return frappe.db.get_value("Web Page", "home", "main_section_html")
+
+	def test_the_home_page_shows_sermons_only_while_the_sermons_page_is_on(self):
+		force_single_church()
+		self.set_home_page(read_template("home.html"))
+		frappe.get_doc({"doctype": "Sermon", "title": "_Test Home Sermon", "publish": 1}).insert()
+		parts = ("_Test Home Sermon", 'href="/sermons"', "Sermons online")
+		html = serve("home", "Guest").get_data(as_text=True)
+		for part in parts:
+			self.assertIn(part, html)
+
+		frappe.set_user("Administrator")
+		self.set_module("enable_study", 0)
+		html = serve("home", "Guest").get_data(as_text=True)
+		for part in parts:
+			self.assertNotIn(part, html)
+		self.assertIn("Get in touch", html)
+
+		frappe.set_user("Administrator")
+		self.set_module("enable_study", 1)
+		self.switch("sermons", 0)
+		self.assertNotIn("_Test Home Sermon", serve("home", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		self.switch("sermons", 1)
+		html = serve("home", "Guest").get_data(as_text=True)
+		for part in parts:
+			self.assertIn(part, html)
+
+	def test_the_patch_fixes_the_shipped_sermon_query_and_count_only(self):
+		patch_module = hide_sermons_on_the_home_page
+		shipped = (
+			read_template("home.html")
+			.replace(patch_module.SERMONS_ON, "")
+			.replace(patch_module.QUERY_END_ON, patch_module.QUERY_END)
+			.replace(patch_module.COUNT_ON, patch_module.COUNT)
+		)
+		self.assertNotIn("sermons_on", shipped)
+
+		self.set_home_page(shipped)
+		patch_module.execute()
+		self.assertEqual(self.home_page(), read_template("home.html"))
+		modified = frappe.db.get_value("Web Page", "home", "modified")
+		patch_module.execute()
+		self.assertEqual(frappe.db.get_value("Web Page", "home", "modified"), modified)
+
+		self.set_home_page(shipped.replace("Get in touch", "Say hello"))
+		patch_module.execute()
+		self.assertEqual(self.home_page(), read_template("home.html").replace("Get in touch", "Say hello"))
+
+		# An edited events query that now ends like the sermon query keeps its events.
+		self.set_home_page(shipped.replace("limit=4,", "limit=1,"))
+		patch_module.execute()
+		self.assertEqual(self.home_page(), read_template("home.html").replace("limit=4,", "limit=1,"))
+
+		self.set_home_page("<p>Our own page</p>")
+		patch_module.execute()
+		self.assertEqual(self.home_page(), "<p>Our own page</p>")

@@ -116,3 +116,4 @@ churchit.patches.v1_0.count_prayers_for_requests
 churchit.patches.v1_0.add_benevolence_note_category
 churchit.patches.v1_0.add_church_task_due_notification
 churchit.patches.v1_0.add_prayer_request_approved_notification
+churchit.patches.v1_0.hide_sermons_on_the_home_page
