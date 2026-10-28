@@ -1,15 +1,20 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import re
+from urllib.parse import quote
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.utils import getdate
+from frappe.website.utils import clear_cache as clear_website_cache
 
 from churchit.church_scope import refuse_another_churches_record
 from churchit.scripture import format_reference
 from churchit.utils import validate_https_url
+from churchit.www.sermon import get_published_sermon
 
 
 class Sermon(Document):
@@ -34,6 +39,52 @@ class Sermon(Document):
 		if not self.is_new() and self.has_value_changed("title") and self.title != self.name:
 			rename_doc(self.doctype, self.name, self.title, merge=False)
 			self.name = self.title
+
+	def after_rename(self, old: str, new: str, merge: bool = False):
+		"""Send the old /sermon link to the new one in one hop, while the public can open the sermon.
+
+		Only the Website Settings redirect rows are written: a full save runs unrelated Website
+		Settings checks and clears the whole site cache.
+		"""
+		old_source, new_source = (f"sermon/{re.escape(name)}" for name in (old, new))
+		old_target, new_target = (f"/sermon/{quote(name)}" for name in (old, new))
+		rows = {
+			"parenttype": "Website Settings",
+			"parent": "Website Settings",
+			"parentfield": "route_redirects",
+		}
+		# The new name is a live page again, so a redirect away from it must go.
+		frappe.db.delete("Website Route Redirect", {**rows, "source": new_source})
+
+		# A redirect from a draft's old links would show its new title to a Guest.
+		if self.is_public:
+			frappe.db.set_value(
+				"Website Route Redirect", {**rows, "target": old_target}, "target", new_target
+			)
+			frappe.get_doc(
+				{
+					"doctype": "Website Route Redirect",
+					**rows,
+					"idx": frappe.db.count("Website Route Redirect", rows) + 1,
+					"source": old_source,
+					"target": new_target,
+					"redirect_http_status": 301,
+					"forward_query_parameters": 1,
+				}
+			).db_insert()
+
+		# Bumps `modified`, so a Website Settings form opened before the rename must reload to save.
+		frappe.db.set_single_value("Website Settings", {})
+		clear_website_cache()
+
+	@property
+	def is_public(self) -> bool:
+		"""True when a Guest can open the sermon page, by the rule of `get_published_sermon`."""
+		try:
+			get_published_sermon(self.name)
+		except frappe.PageDoesNotExistError:
+			return False
+		return True
 
 	def on_update(self):
 		"""Keep every recording public exactly while the sermon is published, so the podcast can play it.

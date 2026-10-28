@@ -1,17 +1,25 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from urllib.parse import quote, urlencode
+import re
+from urllib.parse import parse_qsl, quote, urlencode
 
 import frappe
 from frappe.utils import set_request
 from frappe.website.serve import get_response
+from frappe.website.utils import clear_cache as clear_website_cache
 
 from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
 from churchit.church_website.published_fields import PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import build_sermon_library
-from churchit.tests.helpers import RollbackEachTest, force_single_church, make_two_churches
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_root_church,
+	ensure_user,
+	force_single_church,
+	make_two_churches,
+)
 
 HANDOUT = "<p>God so loved the [world] that he gave his [only Son], so that we [believe].</p>"
 
@@ -221,6 +229,170 @@ class TestSermonPageChurches(RollbackEachTest):
 
 		self.assertEqual(frappe.db.get_value("Sermon", shared.name, "church"), "")
 		self.assertEqual(serve_sermon(shared.name, church=self.church).status_code, 200)
+
+
+def follow(location):
+	"""The response a Guest gets for the link *location*, matched on the decoded path as a browser request is."""
+	path, _, query = location.partition("?")
+	frappe.set_user("Guest")
+	set_request(method="GET", path=path, query_string=query)
+	frappe.local.form_dict = frappe._dict(parse_qsl(query))
+	try:
+		return get_response()
+	finally:
+		frappe.set_user("Administrator")
+
+
+def link(name):
+	return f"/sermon/{quote(name)}"
+
+
+def rename(sermon, title):
+	sermon.title = title
+	sermon.save()
+	return sermon.name
+
+
+class TestSermonRedirect(RollbackEachTest):
+	"""A renamed sermon's old link leads to its new name in one hop, through Website Settings."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		force_single_church()
+
+	def setUp(self):
+		super().setUp()
+		# The redirect cache in Redis outlives the rollback.
+		self.addCleanup(clear_website_cache)
+
+	def tearDown(self):
+		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
+
+	def assert_redirects(self, old, new):
+		response = follow(link(old))
+		self.assertEqual(response.status_code, 301, old)
+		self.assertEqual(response.headers["Location"], link(new))
+		self.assertEqual(follow(response.headers["Location"]).status_code, 200)
+
+	def assert_not_redirected(self, old):
+		response = follow(link(old))
+		self.assertEqual(response.status_code, 404, old)
+		self.assertNotIn("Location", response.headers)
+		self.assertFalse(frappe.db.exists("Website Route Redirect", {"source": f"sermon/{re.escape(old)}"}))
+
+	def test_an_old_link_leads_to_the_renamed_sermon(self):
+		sermon = make_sermon("_Test Redirect One")
+		old = sermon.name
+
+		new = rename(sermon, "_Test Redirect Two")
+
+		self.assertEqual(new, "_Test Redirect Two")
+		self.assert_redirects(old, new)
+
+	def test_every_old_link_takes_one_hop_and_never_loops(self):
+		sermon = make_sermon("_Test Loop A")
+		first = sermon.name
+		rename(sermon, "_Test Loop B")
+		rename(sermon, "_Test Loop C")
+		live = rename(sermon, "_Test Loop A")
+
+		for old in (first, "_Test Loop B", "_Test Loop C"):
+			with self.subTest(old=old):
+				self.assert_redirects(old, live)
+		self.assertEqual(follow(link(live)).status_code, 200)
+
+	def test_a_title_with_regex_characters_redirects(self):
+		sermon = make_sermon("_Test Plain Title")
+		old = sermon.name
+
+		new = rename(sermon, r"_Test Why? (John 3:16) + more. [1] \d")
+
+		self.assert_redirects(old, new)
+
+	def test_the_church_query_follows_the_redirect(self):
+		church = ensure_root_church()
+		sermon = make_sermon("_Test Query One")
+		old = sermon.name
+		new = rename(sermon, "_Test Query Two")
+
+		response = follow(f"{link(old)}?church={quote(church)}")
+
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers["Location"], f"{link(new)}?church={quote(church)}")
+
+	def test_a_church_manager_can_rename_a_sermon(self):
+		manager = ensure_user("_test_sermon_manager@example.com", "Manager", roles=("Church Manager",))
+		sermon = make_sermon("_Test Manager One")
+		old = sermon.name
+
+		frappe.set_user(manager)
+		try:
+			new = rename(frappe.get_doc("Sermon", old), "_Test Manager Two")
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assert_redirects(old, new)
+
+	def test_a_church_redirect_is_kept(self):
+		settings = frappe.get_single("Website Settings")
+		settings.append("route_redirects", {"source": "_test-old", "target": "/about"})
+		settings.save()
+		sermon = make_sermon("_Test Kept One")
+
+		rename(sermon, "_Test Kept Two")
+
+		rows = {(row.source, row.target) for row in frappe.get_single("Website Settings").route_redirects}
+		self.assertIn(("_test-old", "/about"), rows)
+
+	def test_a_draft_rename_shows_no_title_to_a_guest(self):
+		draft = make_sermon("_Test Draft Redirect One", publish=0)
+		old = draft.name
+
+		rename(draft, "_Test Draft Redirect Two")
+
+		self.assert_not_redirected(old)
+
+	def test_an_unpublished_rename_keeps_older_links_off_the_new_title(self):
+		sermon = make_sermon("_Test Unpublished Redirect One")
+		first = sermon.name
+		public = rename(sermon, "_Test Unpublished Redirect Two")
+		sermon.publish = 0
+		sermon.save()
+
+		draft = rename(sermon, "_Test Unpublished Redirect Secret")
+
+		response = follow(link(first))
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers["Location"], link(public))
+		self.assertNotIn(quote(draft), response.headers["Location"])
+		self.assert_not_redirected(public)
+
+	def test_a_rename_in_a_church_that_is_not_published_shows_no_title(self):
+		self.addCleanup(frappe.clear_cache)
+		_root, church, other_church = make_two_churches()
+		frappe.db.set_value("Church", church, "publish", 1)
+		frappe.db.set_value("Church", other_church, "publish", 0)
+		hidden = make_sermon("_Test Closed Redirect One", church=other_church)
+		shown = make_sermon("_Test Open Redirect One", church=church)
+		hidden_old, shown_old = hidden.name, shown.name
+
+		rename(hidden, "_Test Closed Redirect Two")
+		shown_new = rename(shown, "_Test Open Redirect Two")
+
+		self.assert_not_redirected(hidden_old)
+		self.assert_redirects(shown_old, shown_new)
+
+	def test_a_rename_ignores_unrelated_website_settings_errors(self):
+		frappe.db.set_single_value("Website Settings", "enable_google_indexing", 1)
+		frappe.db.set_single_value("Google Settings", "enable", 0)
+		sermon = make_sermon("_Test Settings One")
+		old = sermon.name
+
+		new = rename(sermon, "_Test Settings Two")
+
+		self.assert_redirects(old, new)
 
 
 class TestSermonsPage(RollbackEachTest):
