@@ -1,12 +1,11 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from unittest import mock
-
 import frappe
 from frappe.utils import add_days, getdate, today
 
 from churchit.church_people.summaries import attendance, refresh
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person
 
 
@@ -59,8 +58,6 @@ class TestAttendanceSummary(RollbackEachTest):
 		function.attendance = []
 		function.append("attendance", {"person": other, "attendance_type": "Checked-In"})
 
-		with mock.patch("frappe.enqueue") as enqueue:
-			function.save(ignore_permissions=True)
+		queued = queued_people(lambda: function.save(ignore_permissions=True))
 
-		queued = [call.kwargs["people"] for call in enqueue.call_args_list if "people" in call.kwargs]
 		self.assertEqual(queued, [sorted([self.person, other])])

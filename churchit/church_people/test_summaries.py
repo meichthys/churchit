@@ -10,6 +10,7 @@ from frappe.utils import add_days, today
 from churchit.church_people import summaries
 from churchit.church_people.summaries import attendance, groups
 from churchit.church_people.summaries.test_groups import make_group
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -31,9 +32,8 @@ class TestSummaryEngine(RollbackEachTest):
 		self.person = make_person("_Test Summary", "Engine").name
 
 	def queued(self, doc, method="on_update"):
-		with mock.patch("frappe.enqueue") as enqueue:
-			summaries.on_change(doc, method)
-		return enqueue.call_args.kwargs["people"] if enqueue.called else None
+		queued = queued_people(lambda: summaries.on_change(doc, method))
+		return queued[0] if queued else None
 
 	def test_every_area_in_the_package_is_found(self):
 		self.assertIn(attendance, summaries.areas())
@@ -57,6 +57,16 @@ class TestSummaryEngine(RollbackEachTest):
 
 	def test_a_record_no_area_reads_queues_nothing(self):
 		self.assertIsNone(self.queued(frappe.get_doc({"doctype": "ToDo", "description": "_Test summaries"})))
+
+	def test_a_rolled_back_change_queues_nothing(self):
+		function = make_function("_Test Rolled Back", start_date=today())
+		function.append("attendance", {"person": self.person, "attendance_type": "Checked-In"})
+
+		def change_and_roll_back():
+			summaries.on_change(function, "on_update")
+			frappe.db.after_rollback.run()
+
+		self.assertEqual(queued_people(change_and_roll_back), [])
 
 	def test_patches_queue_nothing(self):
 		function = make_function("_Test In Patch", start_date=today())

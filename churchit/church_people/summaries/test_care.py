@@ -1,12 +1,11 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from unittest import mock
-
 import frappe
 from frappe.utils import add_days, getdate, today
 
 from churchit.church_people.summaries import care, refresh
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
 
 
@@ -127,10 +126,8 @@ class TestCareSummary(RollbackEachTest):
 		):
 			with self.subTest(record.doctype):
 				record.person = other
-				with mock.patch("frappe.enqueue") as enqueue:
-					record.save(ignore_permissions=True)
+				queued = queued_people(lambda: record.save(ignore_permissions=True))
 
-				queued = [call.kwargs["people"] for call in enqueue.call_args_list if "people" in call.kwargs]
 				self.assertEqual(queued, [sorted([self.person, other])])
 
 

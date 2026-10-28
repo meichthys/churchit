@@ -143,7 +143,7 @@ class OnlineDonation(Document):
 
 		before = self.get_doc_before_save() or frappe._dict()
 		people = {before.get("person"), self.person} - {None, ""}
-		frappe.enqueue(summaries.refresh, queue="short", enqueue_after_commit=True, people=sorted(people))
+		summaries.queue_refresh(people)
 
 	def send_acknowledgment(self):
 		"""Email the giver a receipt using the shipped "Donation Acknowledgment"

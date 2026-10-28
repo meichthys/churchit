@@ -1,8 +1,6 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from unittest.mock import patch
-
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_year_ending, get_year_start, nowdate
@@ -10,6 +8,7 @@ from frappe.utils import get_year_ending, get_year_start, nowdate
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
 from churchit.church_finances.doctype.online_donation.online_donation import alert_unrecorded_gifts
 from churchit.church_people import summaries
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -309,16 +308,15 @@ class TestLinkingAGiftToAPerson(RollbackEachTest):
 		frappe.set_user(user)
 		gift = frappe.get_doc("Online Donation", gift.name)
 		gift.person = self.person
-		with patch("frappe.enqueue") as enqueue:
-			gift.save()
+		queued = queued_people(gift.save)
 		frappe.set_user("Administrator")
-		return enqueue
+		return queued
 
 	def test_finance_links_a_paid_guest_gift_to_a_person(self):
 		gift = self.paid_guest_gift()
 		comments = self.comments_on(gift.collection)
 
-		enqueue = self.link(gift, self.finance)
+		queued = self.link(gift, self.finance)
 
 		row = frappe.get_all(
 			"Donation", filters={"parent": gift.collection}, fields=["person", "person_email"]
@@ -331,9 +329,7 @@ class TestLinkingAGiftToAPerson(RollbackEachTest):
 		self.assertEqual(comment.comment_type, "Info")
 		self.assertIn(frappe.db.get_value("Person", self.person, "full_name"), comment.content)
 		self.assertNotIn(self.person, comment.content)
-		enqueue.assert_any_call(
-			summaries.refresh, queue="short", enqueue_after_commit=True, people=[self.person]
-		)
+		self.assertEqual(queued, [[self.person]])
 
 		summaries.refresh([self.person])
 		self.assertTrue(frappe.db.get_value("Person", self.person, "last_gift_on"))
@@ -347,11 +343,11 @@ class TestLinkingAGiftToAPerson(RollbackEachTest):
 		gift = make_gift(self.fund, 40, church=self.branch_a, donor_name="Guest", email="guest@example.com")
 		comments = frappe.db.count("Comment", {"reference_doctype": "Collection"})
 
-		enqueue = self.link(gift, self.finance)
+		queued = self.link(gift, self.finance)
 
 		self.assertEqual(frappe.db.get_value("Online Donation", gift.name, "person"), self.person)
 		self.assertEqual(frappe.db.count("Comment", {"reference_doctype": "Collection"}), comments)
-		self.assertNotIn(summaries.refresh, [call.args[0] for call in enqueue.call_args_list])
+		self.assertEqual(queued, [])
 
 	def test_a_gift_cannot_move_to_another_collection(self):
 		"""A REST update can send a read only field, and a new person would rewrite that Collection's rows."""

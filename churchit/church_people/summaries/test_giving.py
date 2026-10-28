@@ -1,13 +1,12 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from unittest import mock
-
 import frappe
 from frappe.utils import add_days, getdate, today
 
 from churchit.church_finances.doctype.online_donation.test_online_donation import log_charge
 from churchit.church_people.summaries import giving, refresh
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
 
 NO_GIFTS = {"first_gift_on": None, "last_gift_on": None, "is_lapsed_giver": 0}
@@ -30,12 +29,6 @@ def give(person, date, fund, church=None):
 	collection = make_collection(person, date, fund, church)
 	collection.submit()
 	return collection
-
-
-def queued_people(action):
-	with mock.patch("frappe.enqueue") as enqueue:
-		action()
-	return [call.kwargs["people"] for call in enqueue.call_args_list if "people" in call.kwargs]
 
 
 class TestGivingSummary(RollbackEachTest):

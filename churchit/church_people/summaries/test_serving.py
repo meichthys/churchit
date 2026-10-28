@@ -22,10 +22,13 @@ from churchit.tests.helpers import (
 NOTHING = {"last_served_on": None, "times_served_90d": 0}
 
 
-def queued_people(save):
-	"""The people each summary refresh queued by *save* names."""
+def queued_people(action):
+	"""The people in the one summary refresh that *action*'s transaction queues."""
+	with mock.patch("frappe.enqueue"):
+		summaries.enqueue_queued()  # drops what the test's setup queued
 	with mock.patch("frappe.enqueue") as enqueue:
-		save()
+		action()
+		summaries.enqueue_queued()
 	return [call.kwargs["people"] for call in enqueue.call_args_list if "people" in call.kwargs]
 
 

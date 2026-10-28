@@ -18,9 +18,9 @@ from churchit.church_ministries.doctype.function_check_in.function_check_in impo
 from churchit.church_ministries.report.church_attendance import church_attendance
 from churchit.church_ministries.report.function_attendance_by_person import function_attendance_by_person
 from churchit.church_ministries.report.function_attendance_by_type import function_attendance_by_type
-from churchit.church_people import summaries
 from churchit.church_people.report.inactive_members import inactive_members
 from churchit.church_people.report.visitor_log import visitor_log
+from churchit.church_people.summaries.test_serving import queued_people
 from churchit.dashboard import count_weekly_attendance
 from churchit.patches.v1_0 import zero_future_attendance_totals
 from churchit.tests.helpers import (
@@ -168,13 +168,9 @@ class TestAttendanceWriters(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Function", self.function, "attendance_total"), 2)
 
 	def test_a_change_refreshes_the_persons_summaries(self):
-		with patch.object(frappe, "enqueue") as enqueue:
-			record(self.first, self.function, "Confirmed")
+		queued = queued_people(lambda: record(self.first, self.function, "Confirmed"))
 
-		refreshed = [
-			call.kwargs["people"] for call in enqueue.call_args_list if call.args == (summaries.refresh,)
-		]
-		self.assertIn([self.first], refreshed)
+		self.assertEqual(queued, [[self.first]])
 
 	def test_record_saves_a_function_that_holds_a_value_a_later_check_refuses(self):
 		"""A later Function.validate check acts only when its own field changes, as the R1 contract says."""

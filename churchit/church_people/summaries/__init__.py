@@ -50,7 +50,7 @@ def sources() -> dict[str, tuple]:
 
 
 def on_change(doc, method=None) -> None:
-	"""doc_events for every doctype: queue a refresh of the people whose summaries a save, cancel or delete changes.
+	"""doc_events for every doctype: add the people whose summaries a save, cancel or delete changes to the refresh.
 
 	A person who moves church is refreshed too, because `same_church` counts their new church's records. A deleted
 	record's summary rows go at once.
@@ -65,8 +65,27 @@ def on_change(doc, method=None) -> None:
 	if doc.doctype == "Person" and method == "on_update" and doc.has_value_changed("church"):
 		people.add(doc.name)
 	people.discard(None)
-	if people:
-		frappe.enqueue(refresh, queue="short", enqueue_after_commit=True, people=sorted(people))
+	queue_refresh(people)
+
+
+def queue_refresh(people: set[str]) -> None:
+	"""Refresh *people* after the commit, in one job with everyone else this transaction changes.
+
+	A rollback drops them, because the changes that named them are gone.
+	"""
+	if not people:
+		return
+	if not frappe.flags.summary_people:
+		frappe.flags.summary_people = set()
+		frappe.db.after_commit.add(enqueue_queued)
+		frappe.db.after_rollback.add(lambda: frappe.flags.pop("summary_people", None))
+	frappe.flags.summary_people.update(people)
+
+
+def enqueue_queued() -> None:
+	"""After the commit: queue one refresh of the people this transaction changed."""
+	if people := frappe.flags.pop("summary_people", None):
+		frappe.enqueue(refresh, queue="short", people=sorted(people))
 
 
 def delete_rows_naming(doc) -> None:

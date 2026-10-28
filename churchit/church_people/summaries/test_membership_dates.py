@@ -5,7 +5,7 @@ import frappe
 from frappe.utils import getdate, today
 
 from churchit.church_people import smart_lists
-from churchit.church_people.membership import MEMBER, VISITOR
+from churchit.church_people.membership import ACTIVE, MEMBER, VISITOR
 from churchit.church_people.summaries import refresh
 from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, force_single_church, make_person, make_smart_list
@@ -53,7 +53,19 @@ class TestMembershipDatesSummary(RollbackEachTest):
 		person = make_person("_Test Dates", "Queued", membership=VISITOR)
 		person.membership = MEMBER
 
-		self.assertIn([person.name], queued_people(lambda: person.save(ignore_permissions=True)))
+		self.assertEqual(queued_people(lambda: person.save(ignore_permissions=True)), [[person.name]])
+
+	def test_a_new_person_queues_one_refresh(self):
+		"""The Person and each Milestone it adds change the summaries, but one transaction is one job."""
+		people = []
+
+		queued = queued_people(
+			lambda: people.append(
+				make_person("_Test Dates", "Once", membership=MEMBER, membership_status=ACTIVE).name
+			)
+		)
+
+		self.assertEqual(queued, [people])
 
 	def test_a_list_finds_the_people_who_became_members_in_a_year(self):
 		joined = make_person("_Test Dates Joined", "_Test Dates List", membership=MEMBER).name
