@@ -325,7 +325,9 @@ def check_placeholders(source: str | None, label: str, extra: tuple[str, ...] = 
 		frappe.throw(_("{0} cannot be filled in for each person: {1}").format(label, error.message))
 	if unknown:
 		frappe.throw(
-			_("{0} uses {1}, which a Church Email cannot fill in. Use only these placeholders: {2}.").format(
+			_(
+				"{0} uses {1}, which cannot be filled in for each person. Use only these placeholders: {2}."
+			).format(
 				label,
 				", ".join(f"{{{{ {name} }}}}" for name in sorted(unknown)),
 				", ".join(f"{{{{ {field} }}}}" for field in (*PLACEHOLDERS, *extra)),

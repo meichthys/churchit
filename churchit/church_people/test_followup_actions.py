@@ -330,6 +330,19 @@ class TestFollowupActions(RollbackEachTest):
 		}
 		self.assertTrue(self.workflow(text))
 
+	def test_a_placeholder_refusal_names_the_row_not_a_church_email(self):
+		text = {
+			"run_on": CARD_OPENED,
+			"action": "Send Text",
+			"purpose": CHURCH_NEWS,
+			"message": "{{ pastor }}",
+		}
+		with self.assertRaisesRegex(
+			frappe.ValidationError,
+			r"Row 1: Text Message uses \{\{ pastor \}\}, which cannot be filled in for each person",
+		):
+			self.workflow(text)
+
 
 class TestCardTriggers(RollbackEachTest):
 	"""Step Reached and Card Closed: a card on one workflow starts a card on another."""
