@@ -7,14 +7,18 @@ Both fail silently. A number card, chart, quick list or custom block names its w
 workspace's row, so a row relabelled without its block leaves an empty space. Frappe 16.50 drops
 the last condition of a list whose conditions carry a fifth part (frappe.utils.cleanup_filters
 in public/js/frappe/utils/utils.js), so a list filtered on one condition shows every record. The same
-four-part rule holds for shortcut counts and Web Form conditions.
+four-part rule holds for shortcut counts and Web Form conditions. A manual link to a desk page that
+was renamed or deleted opens "Page not found".
 """
 
 import glob
 import json
 import os
+import re
+from urllib.parse import unquote, urlsplit
 
 import frappe
+from frappe.desk.utils import slug
 from frappe.tests.utils import FrappeTestCase
 
 # Which workspace rows each kind of block looks its widget up in.
@@ -39,6 +43,27 @@ def has_five_parts(condition_json: str | None) -> bool:
 	# The filter is a JS expression; this is the only one it uses.
 	conditions = json.loads((condition_json or "[]").replace("frappe.session.user", '""'))
 	return isinstance(conditions, list) and any(len(condition) != 4 for condition in conditions)
+
+
+def get_desk_link_problem(href: str, doctypes: dict, pages: set) -> str | None:
+	"""Why a manual's desk link does not open its page, or None. Links off the desk are not checked."""
+	if href.startswith(("http://app/", "https://app/")):
+		return "not a site path"
+	url = urlsplit(href)
+	if url.scheme or url.netloc or not url.path.startswith(("/app/", "/desk/")):
+		return None
+
+	route, *rest = [unquote(part) for part in url.path.split("/")[2:] if part]
+	if route == "query-report":
+		is_report = frappe.db.exists("Report", {"name": rest[0], "report_type": ["!=", "Report Builder"]})
+		return None if is_report else "no such report"
+	if route not in doctypes and route not in pages:
+		return "no such page"
+
+	if rest[:2] == ["view", "report"] and len(rest) > 2:
+		saved = {"name": rest[2], "report_type": "Report Builder", "ref_doctype": doctypes.get(route)}
+		return None if frappe.db.exists("Report", saved) else "no such saved report"
+	return None
 
 
 class TestWorkspaceHygiene(FrappeTestCase):
@@ -70,3 +95,18 @@ class TestWorkspaceHygiene(FrappeTestCase):
 			form["name"] for form in shipped("web_form") if has_five_parts(form.get("condition_json"))
 		]
 		self.assertEqual(five_part, [])
+
+	def test_manual_links_open_a_desk_page(self):
+		doctypes = {slug(name): name for name in frappe.get_all("DocType", pluck="name")}
+		pages = set(frappe.get_all("Page", pluck="name")) | {
+			slug(name) for name in frappe.get_all("Workspace", pluck="name")
+		}
+		broken = []
+		for workspace in shipped_workspaces():
+			if not workspace["name"].startswith("Manual: "):
+				continue
+			for block in json.loads(workspace["content"]):
+				for href in re.findall(r'href="([^"]*)"', block["data"].get("text", "")):
+					if problem := get_desk_link_problem(href, doctypes, pages):
+						broken.append((workspace["name"], href, problem))
+		self.assertEqual(broken, [])

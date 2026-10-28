@@ -20,10 +20,12 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	WITHDRAWN,
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
+from churchit.church_people import summaries
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
 from churchit.church_people.doctype.note_category.note_category import GENERAL, PASTORAL_CARE
 from churchit.church_people.followup import add_card
 from churchit.church_people.membership import MEMBER, REGULAR_ATTENDER
+from churchit.church_summary import metrics
 from churchit.contacts import get_primary_email
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 
@@ -82,6 +84,7 @@ _DELETE_STEPS = [
 	(False, "Expense Type", {}),
 	(False, "Giving Statement", {}),
 	(False, "Online Donation", {}),
+	(False, "Weekly Metrics", {}),
 	(True, "Collection", {}),
 	(False, "Fund", {}),
 	(False, "Missionary", {}),
@@ -209,6 +212,11 @@ def create_sample_data():
 	_create_consents(people)
 	_create_connection_cards(people)
 	_create_pathway()
+
+	# After the collections and check-ins, so the Summary charts have weeks to show. The queued
+	# summary refresh runs after the commit, too late for this week's group and serving counts.
+	summaries.refresh(list(people.values()))
+	metrics.record_recent_weeks()
 
 
 def delete_sample_data():
@@ -457,9 +465,9 @@ def _build_people():
 			"Cooper",
 			"Female",
 			1,
-			"2015-06-22",
+			_near_date(-20),  # a new member, so the New Members chart and card have one
 			1,
-			"2015-01-05",
+			_near_date(-60),
 			"1992-02-28",
 			"+1 202-555-0601",
 			"rachel.cooper@example.com",

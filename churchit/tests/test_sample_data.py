@@ -11,17 +11,21 @@ records violate surfaces here rather than on a new user's first install.
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.dashboard_chart import dashboard_chart
 from frappe.desk.doctype.number_card.number_card import calculate_previous_result
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_first_day_of_week, today
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
 from churchit.church_people import household
+from churchit.church_people.dashboard_chart_source.life_events import life_events
 from churchit.church_people.report.person_anniversaries_this_month import (
 	person_anniversaries_this_month as anniversaries_this_month,
 )
 from churchit.church_people.report.person_positions_ending_this_month import (
 	person_positions_ending_this_month as positions_ending_this_month,
 )
+from churchit.dashboard import count_people
 from churchit.setup import sample_data
 from churchit.tests.helpers import ensure_root_church
 
@@ -49,6 +53,7 @@ SEEDED_DOCTYPES = (
 	"Church Task",
 	"Song",
 	"Meeting Minutes",
+	"Weekly Metrics",
 )
 
 
@@ -130,6 +135,15 @@ class TestSampleDataLoader(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Collection", {"docstatus": 1}))
 		self.assertTrue(any(frappe.get_all("Fund", pluck="balance")))
 
+	def test_both_members_cards_count_the_same_people(self):
+		"""The Summary card counted every active person, Regular Attenders too."""
+		people_card, summary_card = (
+			count_people(frappe.db.get_value("Number Card", card, "filters_json"))["value"]
+			for card in ("Members", "Total Members")
+		)
+		self.assertTrue(people_card)
+		self.assertEqual(summary_card, people_card)
+
 
 class TestSampleDataRoundTrip(FrappeTestCase):
 	"""A wipe, one load and one wipe for the whole class, then what the wipe had to leave behind.
@@ -164,6 +178,13 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 			},
 			pluck="household_role",
 		)
+		cls.charts_with_data = cls.get_charts_with_data()
+		cls.this_week = frappe.get_all(
+			"Weekly Metrics",
+			{"week_start": get_first_day_of_week(today())},
+			["people_in_groups"],
+		)
+		cls.people_in_groups = frappe.db.count("Person", {"group_count": [">", 0]})
 		cls.johnson_salutation = household.salutation(
 			frappe.db.get_value("Family", {"family_name": "Johnson - Robert"})
 		)
@@ -189,6 +210,21 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		)
 
 		sample_data.delete_sample_data()
+
+	@classmethod
+	def get_charts_with_data(cls) -> list[str]:
+		charts = []
+		for name in ("Members", "Baptisms by Year"):
+			chart = frappe.get_doc("Dashboard Chart", name)
+			data = life_events.get(
+				filters=chart.filters_json, timespan=chart.timespan, time_interval=chart.time_interval
+			)
+			if any(data["datasets"][0]["values"]):
+				charts.append(name)
+		for name in ("Attendance by Week", "Giving by Week"):
+			if any(dashboard_chart.get(chart_name=name, refresh=1)["datasets"][0]["values"]):
+				charts.append(name)
+		return charts
 
 	@classmethod
 	def add_records_a_user_would_make(cls):
@@ -218,6 +254,17 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		self.assertEqual(len(self.spouse_roles), 2 * len(sample_data._SPOUSES))
 		self.assertEqual(set(self.spouse_roles), {household.ADULT})
 		self.assertEqual(self.johnson_salutation, "Robert & Mary Johnson")
+
+	def test_the_people_and_summary_charts_have_data(self):
+		"""Membership and baptism dates in 2015 and no Weekly Metrics left these charts empty."""
+		self.assertEqual(
+			self.charts_with_data, ["Members", "Baptisms by Year", "Attendance by Week", "Giving by Week"]
+		)
+
+	def test_this_weeks_metrics_count_the_people_in_groups(self):
+		"""The week was written before the queued summary refresh filled the group counts it reads."""
+		self.assertGreater(self.people_in_groups, 0)
+		self.assertEqual(sum(row.people_in_groups for row in self.this_week), self.people_in_groups)
 
 	def test_delete_removes_what_create_made(self):
 		# Ministry is the one step with a filter: the General ministry predates the
