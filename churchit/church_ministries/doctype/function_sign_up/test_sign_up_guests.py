@@ -175,6 +175,14 @@ class TestLinkRegistrantRace(FrappeTestCase):
 			frappe.db.delete(
 				"Comment", {"reference_doctype": SIGN_UP, "reference_name": ("in", sign_ups or [""])}
 			)
+			# With an outgoing account the sign-ups queued confirmations, which the commit kept.
+			emails = frappe.get_all(
+				"Email Queue",
+				filters={"reference_doctype": SIGN_UP, "reference_name": ("in", sign_ups or [""])},
+				pluck="name",
+			)
+			frappe.db.delete("Email Queue Recipient", {"parent": ("in", emails or [""])})
+			frappe.db.delete("Email Queue", {"name": ("in", emails or [""])})
 			for doctype, name in [
 				*((SIGN_UP, name) for name in sign_ups),
 				("Function", function),
