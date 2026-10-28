@@ -897,6 +897,10 @@ CI does not run it.
   follow-up card inside `_as_quiet_import`, as the sample check-ins are. `TestSampleDataRoundTrip`
   fails when a load and a delete change a table's row count, a Series counter, a Singles value or a
   field of the Church. It loads with an outgoing Email Account, so the emails the load queues count too.
+  For each doctype the delete empties, `_clear_history` also deletes every row that refers to its
+  records (the tables in `_HISTORY`, Communications, ToDos, Files, Email Queue), a church's own included,
+  because the emptied Series gives the next record an old name. Add a new Frappe table that stores a
+  doctype and a name to `_HISTORY`.
 - Tests must set `frappe.local.form_dict`, never `frappe.form_dict`, which replaces the proxy for the
   rest of the process and breaks later tests.
 - Use `churchit/tests/helpers.py`: `ensure_root_church`, `make_branch`, `set_multi_church` and

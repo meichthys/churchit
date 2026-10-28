@@ -52,7 +52,7 @@ RAW_NOTE_READS = {
 	"setup/sample_data.py:_delete_docs": "deletes the demo data, for a System Manager",
 	"setup/sample_data.py:_delete_submittable_docs": "deletes the demo data, for a System Manager",
 	"setup/sample_data.py:_insert_if_missing": "makes the demo data once, for a System Manager",
-	"setup/sample_data.py:_reset_emptied_series": "counts the rows left after the delete; it returns no note",
+	"setup/sample_data.py:delete_sample_data": "counts the rows a delete empties, for a System Manager; it returns no note",
 }
 
 # Reads of Person Note that apply neither of its permission hooks.

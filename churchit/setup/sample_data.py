@@ -257,6 +257,17 @@ def delete_sample_data():
 	if not church:
 		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
 
+	# The doctypes this delete empties. Their history goes first: deleting a record unlinks the old
+	# Communications about its name, which would then be found by nothing.
+	emptied = sorted(
+		{
+			doctype
+			for _submittable, doctype, filters in _DELETE_STEPS
+			if frappe.db.count(doctype, filters) == frappe.db.count(doctype)
+		}
+	)
+	_clear_history(emptied)
+
 	# A workflow deletes its board on the way out, but keeps a copy in Deleted Document.
 	_delete_docs("Kanban Board", {"name": ["in", frappe.get_all("Follow-up Workflow", pluck="kanban_board")]})
 	for submittable, doctype, filters in _DELETE_STEPS:
@@ -273,7 +284,10 @@ def delete_sample_data():
 	frappe.db.set_value("Function Type", {"template_function": ["is", "set"]}, "template_function", None)
 
 	_delete_sample_users()
-	_reset_emptied_series()
+	# Again, for what a cascade of the steps left, and only for doctypes that really are empty now.
+	emptied = [doctype for doctype in emptied if not frappe.db.count(doctype)]
+	_clear_history(emptied)
+	_reset_series(emptied)
 
 
 # ---------------------------------------------------------------------------
@@ -424,12 +438,116 @@ def _delete_submittable_docs(doctype, filters):
 	_delete_docs(doctype, filters)
 
 
-def _reset_emptied_series():
-	"""Number the next record of each doctype the delete emptied from 1 again. No Series row counts from 0."""
-	for doctype in {doctype for _submittable, doctype, _filters in _DELETE_STEPS}:
+def _reset_series(emptied):
+	"""Number the next record of each emptied doctype from 1 again. No Series row counts from 0."""
+	for doctype in emptied:
 		autoname = frappe.get_meta(doctype).autoname or ""
-		if ".#" in autoname and not frappe.db.count(doctype):
+		if ".#" in autoname:
 			frappe.db.delete("Series", {"name": NamingSeries(autoname).get_prefix()})
+
+
+# Tables that keep rows about the records of another doctype: (doctype, the field that names that doctype).
+# Each is a log, a share, a follow or a link row that means nothing once its record is gone.
+_HISTORY = (
+	("Version", "ref_doctype"),
+	("Comment", "reference_doctype"),
+	("Notification Log", "document_type"),
+	("DocShare", "share_doctype"),
+	("Deleted Document", "deleted_doctype"),
+	("Permission Log", "for_doctype"),
+	("Permission Log", "reference_type"),
+	("Activity Log", "reference_doctype"),
+	("Access Log", "export_from"),
+	("Milestone", "reference_type"),
+	("Document Follow", "ref_doctype"),
+	("View Log", "reference_doctype"),
+	("Tag Link", "document_type"),
+	("Email Unsubscribe", "reference_doctype"),
+	("Document Share Key", "reference_doctype"),
+	("Submission Queue", "ref_doctype"),
+	("Workflow Action", "reference_doctype"),
+	("Reminder", "reminder_doctype"),
+	("Auto Repeat", "reference_doctype"),
+	("Automation Run", "reference_doctype"),
+	# The links of an Address or Contact; the Address or Contact stays.
+	("Dynamic Link", "link_doctype"),
+	("Energy Point Log", "reference_doctype"),
+)
+# A row that is about another record and only mentions one of the emptied doctype loses the mention.
+_MENTIONS = (
+	("Activity Log", "timeline_doctype", "timeline_name"),
+	("Activity Log", "link_doctype", "link_name"),
+)
+
+
+def _clear_history(emptied):
+	"""Delete every row that refers to a record of a doctype the delete empties, the sample's and a church's own.
+
+	Its next record gets number 1 again, and must not take over the history of an old record with that name.
+	"""
+	if not emptied:
+		return
+
+	_delete_communications(emptied)
+	_delete_docs("ToDo", {"reference_type": ["in", emptied]})
+	# Through the File controller, so the file on disk goes too.
+	_delete_docs(
+		"File", {"attached_to_doctype": ["in", emptied], "attached_to_name": ["is", "set"], "is_folder": 0}
+	)
+	# Through its controller, which drops the user's cached permissions.
+	_delete_docs("User Permission", {"allow": ["in", emptied]})
+	emails = frappe.get_all("Email Queue", filters={"reference_doctype": ["in", emptied]}, pluck="name")
+	frappe.db.delete("Email Queue Recipient", {"parent": ["in", emails or [""]]})
+	frappe.db.delete("Email Queue", {"name": ["in", emails or [""]]})
+
+	for doctype, field in _HISTORY:
+		if frappe.db.table_exists(doctype):
+			frappe.db.delete(doctype, {field: ["in", emptied]})
+	for doctype, type_field, name_field in _MENTIONS:
+		frappe.db.set_value(
+			doctype,
+			{type_field: ["in", emptied]},
+			{type_field: None, name_field: None},
+			update_modified=False,
+		)
+
+
+def _delete_communications(emptied):
+	"""Delete each Communication that is only about records of the emptied doctypes.
+
+	One that an email account or a kept record still holds (its reference or a timeline link) is mail of
+	that account or record: it stays, and loses only its reference and links to the emptied records.
+	"""
+	linked = frappe.get_all(
+		"Communication Link",
+		filters={"parenttype": "Communication", "link_doctype": ["in", emptied]},
+		pluck="parent",
+	)
+	referring = frappe.get_all("Communication", filters={"reference_doctype": ["in", emptied]}, pluck="name")
+	only_about_emptied = []
+	for name in set(linked) | set(referring):
+		reference_doctype, email_account = frappe.db.get_value(
+			"Communication", name, ["reference_doctype", "email_account"]
+		)
+		kept_link = frappe.db.exists(
+			"Communication Link",
+			{"parenttype": "Communication", "parent": name, "link_doctype": ["not in", emptied]},
+		)
+		if not (email_account or kept_link or (reference_doctype and reference_doctype not in emptied)):
+			only_about_emptied.append(name)
+			continue
+		if reference_doctype in emptied:
+			frappe.db.set_value(
+				"Communication",
+				name,
+				{"reference_doctype": None, "reference_name": None},
+				update_modified=False,
+			)
+		frappe.db.delete(
+			"Communication Link",
+			{"parenttype": "Communication", "parent": name, "link_doctype": ["in", emptied]},
+		)
+	_delete_docs("Communication", {"name": ["in", only_about_emptied or [""]]})
 
 
 # ---------------------------------------------------------------------------

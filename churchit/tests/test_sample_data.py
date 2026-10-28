@@ -125,6 +125,16 @@ class QueuedJobs:
 	def __init__(self):
 		self.jobs = deque()
 
+	@classmethod
+	def start(cls, case) -> "QueuedJobs":
+		"""Hold the jobs queued while the test class *case* runs."""
+		jobs = cls()
+		for target in ("frappe.enqueue", "frappe.utils.background_jobs.enqueue"):
+			enqueue = patch(target, jobs.enqueue)
+			enqueue.start()
+			case.addClassCleanup(enqueue.stop)
+		return jobs
+
 	def enqueue(self, method, **kwargs):
 		if kwargs.get("now"):
 			return self.enqueue_now(method, **kwargs)
@@ -239,11 +249,7 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.jobs = QueuedJobs()
-		for target in ("frappe.enqueue", "frappe.utils.background_jobs.enqueue"):
-			enqueue = patch(target, cls.jobs.enqueue)
-			enqueue.start()
-			cls.addClassCleanup(enqueue.stop)
+		cls.jobs = QueuedJobs.start(cls)
 		# With an outgoing account the load queues registrant emails; none is sent.
 		send = patch.object(EmailQueue, "send")
 		send.start()
@@ -422,6 +428,79 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		self.assertTrue(self.draft_expense, "the sample data seeded no draft expense to wipe")
 		self.assertTrue(self.submitted_expense, "the sample data seeded no submitted expense to wipe")
 		self.assertEqual(frappe.db.count("Expense"), 0)
+
+
+# Tables that keep rows about a Person: (doctype, the field naming the doctype, the field naming the record).
+PERSON_HISTORY = (
+	("Version", "ref_doctype", "docname"),
+	("Comment", "reference_doctype", "reference_name"),
+	("Communication", "reference_doctype", "reference_name"),
+	("Deleted Document", "deleted_doctype", "deleted_name"),
+)
+
+
+class TestDeleteClearsOldHistory(FrappeTestCase):
+	"""A Person the church deleted before the load leaves rows that would attach to the next PRSN-0001."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.jobs = QueuedJobs.start(cls)
+		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.old_person, cls.kept, cls.dropped = cls.delete_a_churchs_person()
+
+		sample_data.create_sample_data()
+		cls.jobs.run()
+		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.person_rows = {
+			doctype: frappe.db.count(doctype, {type_field: "Person"})
+			for doctype, type_field, _ in PERSON_HISTORY
+		}
+		cls.new_person = make_person("_Test New Person").name
+
+	@classmethod
+	def delete_a_churchs_person(cls) -> tuple[str, str, str]:
+		person = make_person("_Test Old Person")
+		person.alergies = "Pollen"
+		# Frappe keeps no Version of a save in a test unless asked.
+		person.save(ignore_permissions=True, ignore_version=False)
+		person.add_comment("Comment", "Asked about the membership class.")
+		church_link = [{"link_doctype": "Church", "link_name": ensure_root_church()}]
+		kept, dropped = (
+			frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_medium": "Email",
+					"subject": subject,
+					"reference_doctype": "Person",
+					"reference_name": person.name,
+					"timeline_links": links,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+			for subject, links in (("_Test Also The Church's", church_link), ("_Test Only The Person's", []))
+		)
+		# As on a site where Frappe's clean-up job for the delete never ran.
+		with patch("frappe.enqueue"):
+			frappe.delete_doc("Person", person.name, force=True, ignore_permissions=True)
+		for doctype, type_field, name_field in PERSON_HISTORY:
+			assert frappe.db.exists(doctype, {type_field: "Person", name_field: person.name}), doctype
+		return person.name, kept, dropped
+
+	def test_the_next_person_takes_the_old_number(self):
+		self.assertEqual(self.new_person, self.old_person)
+
+	def test_no_row_of_the_old_person_is_left(self):
+		self.assertEqual(self.person_rows, dict.fromkeys(self.person_rows, 0))
+
+	def test_a_communication_a_kept_record_holds_stays_without_the_person(self):
+		self.assertFalse(frappe.db.exists("Communication", self.dropped))
+		self.assertIsNone(frappe.db.get_value("Communication", self.kept, "reference_name"))
+		links = frappe.get_all("Communication Link", {"parent": self.kept}, pluck="link_doctype")
+		self.assertEqual(links, ["Church"])
 
 
 class TestSetupWizardHook(FrappeTestCase):
