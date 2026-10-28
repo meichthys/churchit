@@ -5,6 +5,7 @@
 
 import copy
 from pathlib import Path
+from urllib.parse import unquote
 
 import frappe
 from frappe import _
@@ -14,7 +15,12 @@ from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_scope import is_multi_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
-from churchit.church_website.pages import get_switched_off_pages, is_link_off
+from churchit.church_website.pages import (
+	get_hidden_pages,
+	get_members_only_routes,
+	get_switched_off_pages,
+	is_link_off,
+)
 from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
@@ -35,17 +41,20 @@ def update_website_context(context):
 	_add_theme_mode_script(context)
 	_add_leaflet(context)
 	_add_podcast_link(context)
-	_hide_switched_off_links(context)
+	_hide_closed_links(context)
 
 
 def before_request():
-	"""Keep signed-in visitors off the shared page cache once branches exist.
+	"""Keep signed-in visitors off the shared page cache once branches or members-only pages exist.
 
 	Frappe caches a rendered page by path alone. A member's pages show their
-	own church, so serving them the cached guest copy (or caching theirs for
-	guests) would show the wrong church.
+	own church, and their menu links the members-only pages, so serving them the
+	cached guest copy (or caching theirs for guests) would show the wrong church
+	or links. An API call reads no page cache, so it skips the check.
 	"""
-	if is_multi_church() and frappe.session.user != "Guest":
+	if frappe.session.user == "Guest" or frappe.request.path.startswith("/api/"):
+		return
+	if is_multi_church() or get_members_only_routes():
 		frappe.local.no_cache = 1
 
 
@@ -160,13 +169,13 @@ def _add_podcast_link(context):
 	context["head_html"] += f'<link rel="alternate" type="application/rss+xml" title="{title}" href="{href}">'
 
 
-def _hide_switched_off_links(context):
-	"""Drop navbar, footer and sidebar links to pages that are switched off.
+def _hide_closed_links(context):
+	"""Drop navbar, footer, sidebar and sitemap links to the pages this visitor must not see.
 
 	The menu rows are Website Settings' cached rows, so this builds new lists and copies a row
 	before it changes the row's children.
 	"""
-	off_pages = get_switched_off_pages()
+	off_pages = get_hidden_pages()
 	if not off_pages:
 		return
 
@@ -176,6 +185,11 @@ def _hide_switched_off_links(context):
 	if context.get("sidebar_items"):
 		context["sidebar_items"] = [
 			item for item in context["sidebar_items"] if not is_link_off(item.get("route"), off_pages)
+		]
+	# Frappe's sitemap has no hook of its own; each loc is a full, quoted URL.
+	if context.get("path") == "sitemap.xml" and context.get("links"):
+		context["links"] = [
+			link for link in context["links"] if not is_link_off(unquote(link["loc"]), off_pages)
 		]
 
 

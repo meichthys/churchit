@@ -7,7 +7,7 @@ import frappe
 from frappe.desk.form.load import run_onload
 from frappe.handler import execute_cmd
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
+from frappe.utils import get_url, set_request
 from frappe.utils.global_search import update_global_search
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.doctype.website_settings.website_settings import modify_header_footer_items
@@ -17,13 +17,14 @@ from frappe.website.utils import WEBSITE_PAGE_CACHE_PREFIX, clear_website_cache
 
 from churchit.church_people.membership import MEMBER, VISITOR
 from churchit.church_setup.doctype.church_features.church_features import MODULE_FIELDS
-from churchit.church_website.context import update_website_context
+from churchit.church_website.context import before_request, update_website_context
 from churchit.church_website.pages import SwitchedOffPage, is_link_off, is_page_off, sync_page_switches
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, force_single_church, make_person
 
 MEMBERS_ROUTE = "_test-members-only"
+MEMBERS_LINK = f'href="/{MEMBERS_ROUTE}"'
 SECRET = "_Test words for members"
 
 
@@ -32,6 +33,13 @@ def serve(path, user):
 	frappe.local.form_dict = frappe._dict()
 	set_request(method="GET", path=path)
 	return get_response(path)
+
+
+def serve_fresh(path, user):
+	"""Serve *path* and drop its page cache, so the next viewer gets their own copy."""
+	response = serve(path, user)
+	frappe.cache.delete_value(WEBSITE_PAGE_CACHE_PREFIX + path)
+	return response
 
 
 def make_web_page(title, **values):
@@ -163,6 +171,109 @@ class TestMembersOnlyPage(FrappeTestCase):
 		self.assertNotIn(
 			{"title": "_Test Members Fields", "route": "_test-members-fields", "access": PUBLIC}, sources
 		)
+
+	def test_its_menu_link_shows_only_to_those_who_can_open_it(self):
+		for user in ("Guest", self.stranger, self.visitor):
+			html = serve_fresh("_test-open-page", user).get_data(as_text=True)
+			self.assertNotIn(MEMBERS_LINK, html, user)
+			self.assertNotIn("_Test Members Only", html, user)
+
+		for user in (self.member, "Administrator"):
+			self.assertIn(MEMBERS_LINK, serve_fresh("_test-open-page", user).get_data(as_text=True), user)
+
+	def test_its_footer_sidebar_and_dropdown_links_show_only_to_those_who_can_open_it(self):
+		make_web_page(
+			"_Test Members Pattern", route="_test-members-pattern/<item>", dynamic_route=1, members_only=1
+		)
+
+		def links(user):
+			frappe.set_user(user)
+			menu = [
+				{"label": "_Test Members", "url": f"/{MEMBERS_ROUTE}"},
+				{"label": "_Test Dropdown"},
+				{
+					"label": "_Test Child",
+					"url": f"/{MEMBERS_ROUTE.upper()}",
+					"parent_label": "_Test Dropdown",
+				},
+				{"label": "_Test Open", "url": "/_test-open-page"},
+				{"label": "_Test Full URL", "url": get_url(f"/{MEMBERS_ROUTE}")},
+				{"label": "_Test Pattern", "url": "/_test-members-pattern/alpha"},
+			]
+			context = frappe._dict(
+				top_bar_items=modify_header_footer_items([frappe._dict(row) for row in menu]),
+				footer_items=modify_header_footer_items([frappe._dict(menu[0]), frappe._dict(menu[3])]),
+				sidebar_items=[{"route": MEMBERS_ROUTE}, {"route": "/_test-open-page"}],
+				web_include_js=[],
+				web_include_css=[],
+			)
+			update_website_context(context)
+			labels = [item.label for item in context.top_bar_items if item.label.startswith("_Test")]
+			return labels, [item.label for item in context.footer_items], context.sidebar_items
+
+		self.assertEqual(links("Guest"), (["_Test Open"], ["_Test Open"], [{"route": "/_test-open-page"}]))
+		self.assertEqual(links(self.stranger), links("Guest"))
+		labels, footer, sidebar = links(self.member)
+		self.assertEqual(
+			labels,
+			[
+				"_Test Members",
+				"_Test Dropdown",
+				"_Test Child",
+				"_Test Open",
+				"_Test Full URL",
+				"_Test Pattern",
+			],
+		)
+		self.assertEqual(footer, ["_Test Members", "_Test Open"])
+		self.assertEqual(len(sidebar), 2)
+
+	def test_a_signed_in_visitor_skips_the_page_cache_while_a_members_only_page_exists(self):
+		self.addCleanup(setattr, frappe.local, "no_cache", 0)
+		with patch("churchit.church_website.context.is_multi_church", return_value=False):
+			for user, path, skips in (
+				(self.member, "/_test-open-page", True),
+				(self.stranger, "/_test-open-page", True),
+				("Guest", "/_test-open-page", False),
+				(self.member, "/api/method/ping", False),
+			):
+				frappe.set_user(user)
+				set_request(method="GET", path=path)
+				frappe.local.no_cache = 0
+				before_request()
+				self.assertEqual(bool(frappe.local.no_cache), skips, (user, path))
+
+	def test_ticking_members_only_takes_its_link_off_the_cached_pages(self):
+		self.addCleanup(frappe.db.set_value, "Web Page", self.page.name, "members_only", 1)
+		self.addCleanup(frappe.cache.delete_value, WEBSITE_PAGE_CACHE_PREFIX + "_test-open-page")
+		page = frappe.get_doc("Web Page", self.page.name)
+		page.members_only = 0
+		page.save()
+		self.assertIn(MEMBERS_LINK, serve("_test-open-page", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		page.members_only = 1
+		page.save()
+		self.assertNotIn(MEMBERS_LINK, serve("_test-open-page", "Guest").get_data(as_text=True))
+
+	def test_the_sitemap_leaves_out_a_members_only_page(self):
+		for user in ("Guest", self.stranger):
+			sitemap = serve_fresh("sitemap.xml", user).get_data(as_text=True)
+			self.assertNotIn(get_url(f"/{MEMBERS_ROUTE}"), sitemap, user)
+			self.assertIn(get_url("/_test-open-page"), sitemap, user)
+
+		sitemap = serve_fresh("sitemap.xml", self.member).get_data(as_text=True)
+		self.assertIn(get_url(f"/{MEMBERS_ROUTE}"), sitemap)
+
+	def test_the_portal_lists_no_web_page(self):
+		self.addCleanup(frappe.cache.delete_value, WEBSITE_PAGE_CACHE_PREFIX + "portal")
+		for user in ("Guest", self.stranger):
+			frappe.set_user(user)
+			frappe.local.form_dict = frappe._dict(doctype="Web Page")
+			set_request(method="GET", path="/portal", query_string="doctype=Web+Page")
+			html = get_response("portal").get_data(as_text=True)
+			self.assertNotIn(MEMBERS_LINK, html, user)
+			self.assertNotIn("_Test Members Only", html, user)
 
 
 def resolve(path):
@@ -333,3 +444,28 @@ class TestSwitchedOffPage(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			accept(form, frappe.as_json(data))
 		self.assertEqual(frappe.db.count("Prayer Request"), before)
+
+	def test_the_sitemap_leaves_out_a_switched_off_page(self):
+		about = f"<loc>{get_url('/about')}</loc>"
+		self.assertIn(about, serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		self.switch("about", 0)
+		self.assertNotIn(about, serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		self.switch("about", 1)
+		self.assertIn(about, serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+	def test_the_sitemap_leaves_out_the_pages_of_a_module_that_is_off(self):
+		self.assertIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		self.set_module("enable_communications", 0)
+		sitemap = serve("sitemap.xml", "Guest").get_data(as_text=True)
+		self.assertNotIn(get_url("/announcements"), sitemap)
+		self.assertIn(f"<loc>{get_url('/about')}</loc>", sitemap)
+
+		frappe.set_user("Administrator")
+		self.set_module("enable_communications", 1)
+		self.assertIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))

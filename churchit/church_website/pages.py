@@ -3,14 +3,15 @@
 
 """Page renderers that turn shipped pages off and keep members-only Web Pages from guests."""
 
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, get_url
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.router import evaluate_dynamic_routes
+from frappe.website.utils import clear_cache
 from frappe.www import list as portal_list
 from werkzeug.routing import Rule
 
@@ -103,7 +104,13 @@ def is_page_off(route: str | None, off_pages: set[str]) -> bool:
 
 
 def is_link_off(url: str | None, off_pages: set[str]) -> bool:
-	"""Whether a menu or sidebar link points at a switched-off page. A sidebar route may lack its "/"."""
+	"""Whether a menu or sidebar link points at one of *off_pages*.
+
+	A sidebar route may lack its "/", and a menu link may be a full URL to this site.
+	"""
+	parts = urlsplit(url or "")
+	if parts.netloc == urlsplit(get_url()).netloc:
+		url = parts.path
 	if url and not url.startswith("/"):
 		url = "/" + url
 	return is_page_off(get_route(url), off_pages)
@@ -178,6 +185,27 @@ def is_members_only(route: str) -> bool:
 	return bool(rules and evaluate_dynamic_routes(rules, route))
 
 
+def get_members_only_routes() -> set[str]:
+	"""The routes of the published members-only Web Pages, in lower case.
+
+	A dynamic route counts from its fixed start, so "members/<name>" hides /members and every link under it.
+	"""
+	# Before migrate adds the field, no page is members-only.
+	if not frappe.get_meta("Web Page").has_field("members_only"):
+		return set()
+	routes = frappe.get_all("Web Page", filters={"published": 1, "members_only": 1}, pluck="route")
+	return {route.split("<")[0].strip("/").lower() for route in routes if route} - {""}
+
+
+def get_hidden_pages() -> set[str]:
+	"""The pages whose links this visitor must not see: switched-off pages, and members-only pages they cannot open."""
+	hidden = get_switched_off_pages()
+	members_only = get_members_only_routes()
+	if members_only and not can_open_members_only_pages():
+		hidden |= members_only
+	return hidden
+
+
 def can_open_members_only_pages() -> bool:
 	"""True for an active, living member who is not a visitor or contact, and for a Web Page editor."""
 	if frappe.has_permission("Web Page", "write"):
@@ -211,6 +239,13 @@ class MembersOnlyWebPage:
 		if self.published and not self.route:
 			self.route = self.make_route()
 		super().set_route()
+
+	def on_update(self):
+		super().on_update()
+		# Every cached page holds the menu, and Frappe clears only this page's own route.
+		if self.has_value_changed("members_only"):
+			clear_cache()
+			frappe.db.after_commit.add(clear_cache)
 
 	def onload(self):
 		super().onload()

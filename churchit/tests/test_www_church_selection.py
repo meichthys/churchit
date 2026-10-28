@@ -5,7 +5,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, getdate
+from frappe.utils import add_days, getdate, set_request
 
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_scope import church_filters, selected_church_filters
@@ -174,6 +174,8 @@ class TestWebsiteChurchSelection(FrappeTestCase):
 		self.assertEqual(request.church, self.root)
 
 	def test_signed_in_visitors_skip_the_shared_page_cache(self):
+		set_request(method="GET", path="/about")
+		self.addCleanup(delattr, frappe.local, "request")
 		frappe.set_user("Guest")
 		before_request()
 		self.assertFalse(getattr(frappe.local, "no_cache", 0))
