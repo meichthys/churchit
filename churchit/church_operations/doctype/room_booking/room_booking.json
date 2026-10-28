@@ -40,7 +40,8 @@
    "label": "Room",
    "link_filters": "[[\"Room\",\"is_bookable\",\"=\",1]]",
    "mandatory_depends_on": "eval:!(doc.assets && doc.assets.length)",
-   "options": "Room"
+   "options": "Room",
+   "search_index": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -191,7 +192,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-10-27 23:35:17.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",

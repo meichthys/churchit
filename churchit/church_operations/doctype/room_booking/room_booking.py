@@ -69,6 +69,19 @@ class RoomBooking(Document):
 		self.check_asset_conflicts()
 		self.refuse_equipment_still_on_loan()
 
+	def load_doc_before_save(self, *, raise_exception: bool = False):
+		"""Lock the room and the equipment before Frappe locks this booking's row, so two saves that share one wait in turn."""
+		self.lock_room_and_assets()
+		super().load_doc_before_save(raise_exception=raise_exception)
+
+	def lock_room_and_assets(self) -> None:
+		"""Lock the Room row, then each Church Asset row in name order: the clash checks read under these locks."""
+		if self.room:
+			frappe.db.get_value("Room", self.room, "name", for_update=True)
+		# Before the mandatory check, so a row may have no asset yet.
+		for asset in sorted({row.asset for row in self.assets if row.asset}):
+			frappe.db.get_value("Church Asset", asset, "name", for_update=True)
+
 	def on_update(self):
 		self.update_approver_assignments()
 		self.deny_requests_a_block_overlaps()
@@ -171,12 +184,11 @@ class RoomBooking(Document):
 	def check_conflicts(self):
 		"""Refuse a booking that clashes, or mark it Conflict when the requester asks anyway.
 
-		A Blocked time always wins, and only an Approved booking refuses a Blocked one.
+		A Blocked time always wins, and only an Approved booking refuses a Blocked one. The read runs under the Room
+		lock that lock_room_and_assets takes, so two saves at once cannot both miss each other.
 		"""
 		if not self.room or self.status in ("Denied", "Cancelled", "Completed"):
 			return
-		# Under the Room lock, so two saves at once cannot both miss each other.
-		frappe.db.get_value("Room", self.room, "name", for_update=True)
 		clashes = [clash for clash in self.get_room_clashes() if self.is_clash(clash)]
 		if not clashes:
 			return
@@ -240,7 +252,7 @@ class RoomBooking(Document):
 		self.load_stored_for_an_approver()
 		if self.status != "Conflict" or action not in ("keep", "share"):
 			frappe.throw(_("Only a Conflict booking can be resolved, by keep or share."))
-		frappe.db.get_value("Room", self.room, "name", for_update=True)
+		self.lock_room_and_assets()
 		for clash in self.get_room_clashes():
 			is_shared = self.can_share_room and clash.can_share_room
 			if action == "keep" and clash.status in ("Requested", "Conflict") and not is_shared:
@@ -305,50 +317,36 @@ class RoomBooking(Document):
 	def check_asset_conflicts(self):
 		"""Refuse a booking of an asset that another booking holds at an overlapping time.
 
-		Unlike a room, an asset is never shared between bookings and never requested anyway.
+		Unlike a room, an asset is never shared between bookings and never requested anyway. The read runs under
+		the Church Asset locks that lock_room_and_assets takes.
 		"""
 		assets = sorted({row.asset for row in self.assets})
 		if not assets or self.status in ("Denied", "Cancelled", "Completed"):
 			return
-		# Locks go in the order a save with a room takes them: the Room Booking rows (as check_conflicts does), each
-		# asset in one order, then the Room Booking Asset rows. So two saves at once neither deadlock nor both pass.
-		self.get_overlapping_bookings()
-		for asset in assets:
-			frappe.db.get_value("Church Asset", asset, "name", for_update=True)
-		# Read again: a save that held an asset's lock may have committed since.
-		bookings = dict(self.get_overlapping_bookings())
-		if not bookings:
-			return
-		BookingAsset = frappe.qb.DocType("Room Booking Asset")
-		clashes = (
-			frappe.qb.from_(BookingAsset)
-			.select(BookingAsset.parent)
-			.distinct()
-			.where(
-				(BookingAsset.parenttype == "Room Booking")
-				& BookingAsset.parent.isin(list(bookings))
-				& BookingAsset.asset.isin(assets)
-			)
-			.for_update()
-			.run(pluck=True)
-		)
+		clashes = self.get_equipment_clashes(assets)
 		if clashes:
 			frappe.throw(
 				_("Equipment is already booked at that time (conflicts with: {0}).").format(
-					describe_clashes([(name, bookings[name]) for name in sorted(clashes)])
+					describe_clashes(sorted(clashes))
 				)
 			)
 
-	def get_overlapping_bookings(self) -> list[tuple[str, str]]:
-		"""(name, church) of the other bookings that hold their equipment at an overlapping time, read with a lock."""
+	def get_equipment_clashes(self, assets: list[str]) -> list[tuple[str, str]]:
+		"""(name, church) of the other bookings that hold one of *assets* at an overlapping time, read with a lock."""
 		# church-scope: a shared asset is booked by several churches, so a clash has to be
 		# found across all of them, not only the booking church's own diary
 		Booking = frappe.qb.DocType("Room Booking")
+		BookingAsset = frappe.qb.DocType("Room Booking Asset")
 		return (
-			frappe.qb.from_(Booking)
+			frappe.qb.from_(BookingAsset)
+			.join(Booking)
+			.on(Booking.name == BookingAsset.parent)
 			.select(Booking.name, Booking.church)
+			.distinct()
 			.where(
-				(Booking.name != (self.name or ""))
+				(BookingAsset.parenttype == "Room Booking")
+				& BookingAsset.asset.isin(assets)
+				& (Booking.name != (self.name or ""))
 				& Booking.status.isin(["Requested", "Approved", "Conflict"])
 				& (Booking.start_datetime < self.end_datetime)
 				& (Booking.end_datetime > self.start_datetime)
@@ -360,8 +358,8 @@ class RoomBooking(Document):
 	def refuse_equipment_still_on_loan(self):
 		"""Refuse to lend equipment that another booking has out, also after that booking's end.
 
-		It runs on a check out and when equipment is added to a loan that is out. It runs after
-		check_asset_conflicts, under its locks, so two check outs at once cannot both pass.
+		It runs on a check out and when equipment is added to a loan that is out. It runs under the Church Asset
+		locks that lock_room_and_assets takes, so two check outs at once cannot both pass.
 		"""
 		if not self.checked_out_on or self.returned_on:
 			return

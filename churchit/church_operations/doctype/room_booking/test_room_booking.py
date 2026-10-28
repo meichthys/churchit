@@ -687,6 +687,9 @@ class TestRoomBookingRace(FrappeTestCase):
 		try:
 			results = race_for_the_room(room.name, requester)
 			self.assertEqual(len([result for result in results if isinstance(result, str)]), 1, results)
+			self.assertIsInstance(
+				next(result for result in results if not isinstance(result, str)), ValidationError
+			)
 			self.assertEqual(frappe.db.count("Room Booking", {"room": room.name}), 1)
 		finally:
 			frappe.db.rollback()

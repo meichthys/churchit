@@ -232,6 +232,10 @@ class TestRoomBookingLoanRace(FrappeTestCase):
 		try:
 			results = check_out_at_once(bookings)
 			self.assertEqual(sum(result is None for result in results), 1, results)
+			# The guard refuses the loser, not a deadlock.
+			self.assertIsInstance(
+				next(result for result in results if result is not None), frappe.ValidationError
+			)
 			out = frappe.get_all(
 				"Room Booking", filters={"name": ["in", bookings], "checked_out_on": ["is", "set"]}
 			)

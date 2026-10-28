@@ -190,6 +190,9 @@ class TestRoomBookingAssetRace(FrappeTestCase):
 		try:
 			results = race_for_asset(asset, requester)
 			self.assertEqual(sum(isinstance(result, str) for result in results), 1, results)
+			self.assertIsInstance(
+				next(result for result in results if not isinstance(result, str)), frappe.ValidationError
+			)
 		finally:
 			frappe.db.rollback()
 			delete_bookings([asset])
@@ -218,6 +221,54 @@ class TestRoomBookingAssetRace(FrappeTestCase):
 				frappe.delete_doc("Church Asset", asset, force=True, ignore_permissions=True)
 			frappe.delete_doc("Person", requester, force=True, ignore_permissions=True)
 			frappe.db.commit()
+
+
+class TestRoomBookingEditRace(FrappeTestCase):
+	"""Two edits of stored bookings at once, each with its own connection. Commits real data, deleted at the end."""
+
+	def setUp(self):
+		self.assets = [make_asset("_Test Edit Race 1"), make_asset("_Test Edit Race 2")]
+		self.rooms = [
+			frappe.get_doc(
+				{"doctype": "Room", "room_name": f"_Test Edit Race Room {number}", "is_bookable": 1}
+			)
+			.insert(ignore_permissions=True)
+			.name
+			for number in (1, 2)
+		]
+		self.requester = make_person("_Test Edit", "Racer").name
+
+	def tearDown(self):
+		frappe.db.rollback()
+		for name in frappe.get_all("Room Booking", {"room": ["in", self.rooms]}, pluck="name"):
+			frappe.delete_doc("Room Booking", name, force=True, ignore_permissions=True)
+		delete_bookings(self.assets)
+		for name in self.rooms:
+			frappe.delete_doc("Room", name, force=True, ignore_permissions=True)
+		for name in self.assets:
+			frappe.delete_doc("Church Asset", name, force=True, ignore_permissions=True)
+		frappe.delete_doc("Person", self.requester, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
+	def book(self, assets=(), room=None, hour=9):
+		booking = make_booking(list(assets), hour, room=room, requester=self.requester)
+		return booking.insert(ignore_permissions=True).name
+
+	def assert_both_save(self, bookings):
+		frappe.db.commit()
+		self.assertEqual(edit_at_once(bookings), [None, None])
+
+	def test_edits_of_bookings_of_other_equipment_at_once_both_save(self):
+		self.assert_both_save([self.book([self.assets[0]]), self.book([self.assets[1]])])
+
+	def test_edits_of_two_bookings_of_one_asset_at_once_both_save(self):
+		self.assert_both_save([self.book([self.assets[0]], hour=9), self.book([self.assets[0]], hour=11)])
+
+	def test_edits_of_bookings_of_other_rooms_at_once_both_save(self):
+		self.assert_both_save([self.book(room=self.rooms[0]), self.book(room=self.rooms[1])])
+
+	def test_edits_of_two_bookings_of_one_room_at_once_both_save(self):
+		self.assert_both_save([self.book(room=self.rooms[0], hour=9), self.book(room=self.rooms[0], hour=11)])
 
 
 def move_and_book_at_once(room_booking: str, asset: str, requester: str) -> list:
@@ -295,3 +346,43 @@ def race_for_asset(asset: str, requester: str) -> list:
 	for thread in threads:
 		thread.join(timeout=60)
 	return results
+
+
+def edit_at_once(bookings: list[str]) -> list:
+	"""Edit the purpose of each of *bookings* in its own thread and connection. Returns None, the error or "not finished" for each.
+
+	Each save waits in validate, up to 2 seconds, for the others to reach validate too, so that each holds
+	its own row (Frappe locks it before validate) when the clash checks run.
+	"""
+	site, sites_path = frappe.local.site, frappe.local.sites_path
+	in_validate = {name: threading.Event() for name in bookings}
+	validate = RoomBooking.validate
+	results = {}
+
+	def validate_in_turn(booking):
+		in_validate[booking.name].set()
+		for event in in_validate.values():
+			event.wait(2)
+		validate(booking)
+
+	def edit(name):
+		frappe.init(site, sites_path=sites_path)
+		frappe.connect()
+		try:
+			booking = frappe.get_doc("Room Booking", name)
+			booking.purpose = "_Test edited at once"
+			booking.save(ignore_permissions=True)
+			frappe.db.commit()
+			results[name] = None
+		except Exception as error:
+			results[name] = error
+		finally:
+			frappe.destroy()
+
+	with patch.object(RoomBooking, "validate", validate_in_turn):
+		threads = [threading.Thread(target=edit, args=(name,)) for name in bookings]
+		for thread in threads:
+			thread.start()
+		for thread in threads:
+			thread.join(timeout=60)
+	return [results.get(name, "not finished") for name in bookings]
