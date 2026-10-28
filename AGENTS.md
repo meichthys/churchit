@@ -416,14 +416,18 @@ v1_0 patch, as `room_booking.create_decided_notification` does for Room Booking 
 staff that a record waits for them, assign it with `frappe.desk.form.assign_to`: the assignment
 sends its own email, so add no second Notification.
 
-New Prayer Request for the Prayer Team, New Private Prayer Request
-(`prayer_request.create_new_prayer_request_notifications`), New Alms Request
+New Prayer Request for the Prayer Team, Approved Prayer Request for the Prayer Team, New Private
+Prayer Request (`prayer_request.create_new_prayer_request_notifications`), New Alms Request
 (`alms_request.create_new_alms_request_notification`) and Church Task Due
-(`church_task.create_due_notification`) are inserted the same way. The Church Prayer Team recipient
-row has the condition `doc.approved_for_list`, so a guest's request reaches the team only through
-moderation. A Private request goes to Church Pastoral Care and Church Manager only, and its email
-leaves out the request, the title and the requester. Escape free text with `| e` in a Notification
-body: Frappe's Jinja does not escape, and guests write prayer requests.
+(`church_task.create_due_notification`) are inserted the same way. A patch that adds a new one to
+existing sites inserts only that one (`create_new_prayer_request_notifications(names=...)`), so a
+Notification a church deleted stays deleted. The Church Prayer Team recipient
+row has the condition `doc.approved_for_list`. Approved Prayer Request for the Prayer Team (Value
+Change on `approved_for_list`, not Private) tells the team when staff approve a request later.
+Frappe does not run Value Change on insert, so a request approved at creation sends one email. A
+Private request goes to Church Pastoral Care and Church Manager only, and its email leaves out the
+request, the title and the requester. Escape free text with `| e` in a Notification body: Frappe's
+Jinja does not escape, and guests write prayer requests.
 
 ## Public website and portal
 
@@ -454,7 +458,8 @@ cookie would be invisible to that cache; do not swap the parameter for one.
 
 Frappe caches rendered pages by path alone, shared between guests and users, so
 `church_website.context.before_request` disables the cache for signed-in visitors in multi-church
-mode. Do not remove that without replacing it.
+mode and while a members-only Web Page exists, because the menu then differs per visitor. It skips
+`/api/` requests, which read no page cache. Do not remove that without replacing it.
 
 Some portal surfaces read past document permissions by design and apply the member's church by
 hand: the community prayer request list (`get_community_filters`), the Join a public group picker
@@ -548,15 +553,23 @@ through such a method imports the class as the type of its document
 field as an attribute of a row (`wording.other_ways_to_give`), as `/give` does.
 
 `/sermon/<name>` (`www/sermon.py`, through `website_route_rules`) shows one published Sermon to
-anyone with the link, and 404 when the sermon's church is set and not published. It does not
-narrow to the selected church, so a shared link opens from any branch page, and it has no staff
-preview. Jinja has no autoescape there: escape every plain value with `| e`, and pass Text Editor
-HTML through `sanitize_html(..., always_sanitize=True)`. The page shows no Sermon Presentation row,
+anyone with the link, and 404 when the sermon's church is set and not published. It does not narrow
+to the selected church, so a shared link opens from any branch page, and it has no staff preview.
+Jinja has no autoescape there: escape every plain value with `| e`, and pass Text Editor HTML
+through `sanitize_html(..., always_sanitize=True)`. The page shows no Sermon Presentation row,
 because a presentation's notes are staff notes. A sermon with a Handout shows the handout in place
 of its notes, so the bracketed answers stay off the page. Listener notes stay in the browser's
 `localStorage`; add no field or method that sends them to the server.
 `church_study/media.py:get_embed_url` is the one list of players a page may put in an iframe; any
-other link, or one that is not https, gets a plain link.
+other link, or one that is not https, gets a plain link. A sermon is renamed to its title, so
+`Sermon.after_rename` adds a Website Route Redirect row in Website Settings from the old
+`/sermon/<name>` to the new one, only while a Guest can open the sermon (`get_published_sermon`), so
+a draft's new title never shows in a Location header. Under the same rule it retargets older rows
+to the new name; a sermon a Guest cannot open leaves them on its last public name. It removes a row
+whose source is the new name, so every old link takes one hop and none loops. It writes only the
+redirect rows and clears the website cache; it does not save Website Settings. A
+page whose route follows a record name uses the same Route Redirect rows; do not add a second
+redirect store.
 
 `/podcast.xml` (`www/podcast.py`) is the selected church's sermon podcast. It builds the XML with
 `xml.etree.ElementTree`; never join record text into XML by hand. It lists a published Sermon when
@@ -591,17 +604,26 @@ login page and anyone else gets 403. The check is the `MembersOnlyPage` renderer
 database, because Frappe finds a Web Page by route case and accent insensitively; never compare a
 Web Page route in Python. `MembersOnlyWebPage` keeps such a page out of global search, and
 `pages.get_list_data` (an override of `frappe.www.list.get_list_data`) keeps it out of the portal
-list API for a non-member. The navbar, `/sitemap.xml` and `/portal?doctype=Web Page` still show its
-title and link. A new way to read Web Pages without permission checks must apply the same rule.
+list API for a non-member. `pages.get_hidden_pages` is the one list of pages whose links a visitor
+must not see: switched-off pages, and members-only pages the visitor cannot open. The menu, footer,
+sidebar and `/sitemap.xml` filter on it at render time. A link matches by lower case route, as a
+site path or a full URL to this site, and a dynamic route matches from its fixed start
+(`members/<name>` hides `/members` and every link under it). An accent variant is not matched; the
+gate is still the renderer. Ticking or clearing Members Only clears the whole website cache
+(`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal?doctype=Web
+Page` lists nothing, because `www/portal.html` shadows Frappe's portal page and has no `portal.py`;
+do not add one. A new way to read Web Pages without permission checks must apply the same rule.
 
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
 module owns it). Every migrate adds its switch to Church Features (`sync_page_switches`). Do not add
 home, portal, manifest.json, sw.js, offline, preferences or a Frappe route. A switched-off page
 answers 404 from the `SwitchedOffPage` renderer, its web form refuses Frappe's web form APIs
-(`SwitchedOffWebForm`), and its navbar, footer and portal links go at render time. Never change the
-cached Website Settings rows: build new lists. A template that links to another shipped page asks
-`get_switched_off_pages()` first, as `sermons.html` does.
+(`SwitchedOffWebForm`), and its navbar, footer, portal and sitemap links go at render time
+(`get_hidden_pages`). `SwitchedOffPage` reads the request path, not `frappe.local.path`, which only
+Frappe's own resolver sets (Frappe Builder's does not). Never change the cached Website Settings
+rows: build new lists. A template that links to another shipped page asks `get_switched_off_pages()`
+first, as `sermons.html` and `home.html` do.
 
 ## Settings a church can differ on
 
@@ -742,8 +764,11 @@ changes its push service, iOS rules (Home Screen apps only, iOS 16.4 or later) a
 py_vapid upgrades can break it.
 
 Staff chat is Raven, which a System Manager installs beside Churchit (Manual: Communications, Staff
-Chat). Churchit has no Raven code: do not add a Raven hook, link or Document Notification to a
-Churchit doctype. Raven does not follow church scoping, so the manual gives Raven access by hand.
+Chat). Churchit's only Raven code is the Staff Chat link to `/raven` in the Communications sidebar:
+`church_communications.staff_chat.extend_bootinfo` drops it when the Apps screen does not offer Raven
+to the user (not installed, or Raven's own permission check refuses). Do not add a Raven hook or
+Document Notification to a Churchit doctype. Raven does not follow church scoping, so the manual
+gives Raven access by hand.
 
 ## The switch
 
@@ -950,6 +975,8 @@ Write the manuals for a church volunteer or secretary, not for a developer. Say 
 what happens, name the doctype the way its form does (a Function, not an "event record"), and keep
 one name for one thing across every manual. Explain a term the first time a manual uses it. Leave
 class names, hook names, field types and file paths out: they belong in this file or in a docstring.
+A link in a manual is a site path such as `/app/person`, never `http://app/person`;
+`test_workspace_hygiene` checks that each desk link in a manual opens.
 
 ## House style
 
@@ -987,6 +1014,12 @@ carries read-only summary fields (attendance, groups, serving, giving, care, mem
 `church_people/summaries/`, whose docstring is the contract. To add a figure, add a read-only Person
 field and an area module; do not add a hook.
 
+A save, cancel or delete adds its people with `summaries.queue_refresh`. Each transaction queues one
+refresh job for all its people after the commit, and a rollback queues none. Queue a summary refresh
+only through `queue_refresh`; call `summaries.refresh` directly only where the figures must be right
+before the request ends, as `Person.merge` does. A test reads what a change queues with
+`queued_people` in `summaries/test_serving.py`.
+
 An area counts only the person's own church's records and shared ones (`summaries.same_church`). The
 directory is shared, so a stored figure would otherwise show one church what a person did at
 another. Giving and care figures carry permlevels 2 and 3 for the same reason, and
@@ -1000,9 +1033,10 @@ the timeline. Only a user who sees both churches can put a person into another c
 church that must keep them apart ticks Keep People and Families Private to Each Church. A new figure
 that counts one church's records inherits the gap; say so in the manuals.
 
-`summaries.keep_stored_values` (first in `Person.before_save`) puts the stored figures and `groups`
-rows back on every save, because a refresh leaves `modified` alone. Never set a summary field
-through a Person save.
+`summaries.keep_stored_values` (in `Person._validate_links`, before Frappe's link check) puts the
+stored figures and summary rows back on every save, because a refresh and a delete leave `modified`
+alone. A form opened before a group or position was deleted therefore still saves. Never set a
+summary field through a Person save.
 
 A summary Table MultiSelect names other records, so add its child doctype to
 `ignore_links_on_delete` in `hooks.py`: otherwise Frappe refuses to delete a record that a stored
@@ -1130,8 +1164,11 @@ directly, because a row makes a Donation, not a Person. It finds the giver by `l
 `legacy_id`, else by the only holder of the email in the importer's churches, and adds the Donation
 (Gift ID in `legacy_id`) to the draft Collection of the row's `import_batch` and date. It refuses a
 Gift ID already on a Collection that is not cancelled, and a row that matches an Online Donation the
-gateway charged. Finance submits the drafts, so nothing reaches the funds before a person checks
-it. The Donation Acknowledgment notification skips a Collection with an `import_batch`.
+gateway charged. Finance submits the drafts, so nothing reaches the funds before a person checks it.
+The Donation Acknowledgment notification skips a Collection with an `import_batch`. An import
+DocType keeps no records, so its list script sends the user to the records it made. It does that in
+`listview_settings.refresh` with `frappe.route_flags.replace_route`, never in `onload`: in `onload`
+the import list takes the route options before the target list can use them.
 
 ## Person Notes
 
@@ -1151,7 +1188,10 @@ Changes.
 The shipped categories are General, Pastoral Care and Benevolence
 (`note_category.create_note_categories`). A patch that adds one passes its name, so it does not
 bring back a category a church deleted. Alms Request case notes are Benevolence notes on the
-recipient, or on a Family's primary contact (`alms_request.js`).
+recipient, or on a Family's primary contact (`alms_request.js`). The form shows the Case Notes
+buttons from `__onload.can_read_case_notes` and `can_add_case_notes`, which `AlmsRequest.onload`
+takes from the rights on an unsaved Benevolence note. Do not decide them from the Person Note
+DocType rights in JS: Church Staff holds those, but not the Benevolence category.
 
 ## Member portal
 
@@ -1339,11 +1379,16 @@ stored Blocked booking clashes with every request, a Conflict booking holds no r
 bookings with Can Share Room do not clash. A clash message names bookings only through
 `describe_clashes`, from (name, church) pairs, which counts but does not name a booking whose church
 the user cannot access. A clash read crosses churches with a `# church-scope:` reason, under locks
-so two saves at once cannot both pass. `check_conflicts` locks the Room row, then reads with a
-locking read. `check_asset_conflicts` locks the overlapping Room Booking rows, then each Church
-Asset row in name order, reads again, then locks the Room Booking Asset rows. Keep that order, and
-run the race tests in `test_room_booking.py`, `test_room_booking_assets.py` and
-`test_room_booking_loans.py` again after you add an index on Room Booking.
+so two saves at once cannot both pass. Frappe locks a booking's own row before `validate`, so
+`RoomBooking.load_doc_before_save` first calls `lock_room_and_assets`: the Room row, then each
+Church Asset row in name order. Two saves that share a room or an asset then wait in turn and do not
+deadlock; `resolve_conflict` takes the same locks. Under them, `check_conflicts`
+(`get_room_clashes`) and `check_asset_conflicts` (`get_equipment_clashes`, from Room Booking Asset)
+each make one locking read. The indexes on Room Booking `room` and Room Booking Asset `asset` keep
+each read to the rows of one room or one asset; without them two saves of other bookings deadlock.
+Take a new lock for a booking save only in `lock_room_and_assets`, and run the race tests in
+`test_room_booking.py`, `test_room_booking_assets.py` and `test_room_booking_loans.py` again after
+you change a clash read or one of these indexes.
 
 A booking reserves bookable Church Assets in its `assets` table (Room Booking Asset, labelled
 Equipment), with or without a room. A booking with no room is never gated and takes its church from
@@ -1359,10 +1404,10 @@ sets `checked_out_on` once, on an Approved booking with equipment. `check_in` se
 Completed, once, after a check out. Only these two set the loan times:
 `refuse_a_loan_recorded_by_hand` refuses any other save that sets, changes or clears them (except
 under `ignore_permissions`), because read only on the form is not checked on the server.
-`refuse_equipment_still_on_loan` runs in `validate` after `check_asset_conflicts`, under its locks,
-and refuses equipment that another booking has out and has not returned, also after that booking's
-end. Completed bookings hold no room and no equipment, so `check_conflicts` and
-`check_asset_conflicts` skip them.
+`refuse_equipment_still_on_loan` runs in `validate` under the Church Asset locks of
+`lock_room_and_assets`, and refuses equipment that another booking has out and has not returned,
+also after that booking's end. Completed bookings hold no room and no equipment, so
+`check_conflicts` and `check_asset_conflicts` skip them.
 
 `setup` is text that `validate_setup` checks against the room's Room Setup rows when the setup or
 the room changes, not a Link to the child table. A booking asks its room's Question Set
