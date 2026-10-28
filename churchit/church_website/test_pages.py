@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.form.load import run_onload
 from frappe.handler import execute_cmd
+from frappe.tests.classes.context_managers import patch_hooks
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_url, set_request
 from frappe.utils.global_search import update_global_search
@@ -40,6 +41,11 @@ def serve_fresh(path, user):
 	response = serve(path, user)
 	frappe.cache.delete_value(WEBSITE_PAGE_CACHE_PREFIX + path)
 	return response
+
+
+def resolve_without_local_path(path):
+	"""A website path resolver that, like Frappe Builder's for its own pages, sets no frappe.local.path."""
+	return path
 
 
 def make_web_page(title, **values):
@@ -469,3 +475,16 @@ class TestSwitchedOffPage(RollbackEachTest):
 		frappe.set_user("Administrator")
 		self.set_module("enable_communications", 1)
 		self.assertIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+	def test_a_page_renders_when_a_path_resolver_sets_no_local_path(self):
+		self.switch("bulletins", 0)
+		self.addCleanup(setattr, frappe.local, "path", None)
+		resolver = "churchit.church_website.test_pages.resolve_without_local_path"
+		with patch_hooks({"website_path_resolver": [resolver]}):
+			del frappe.local.path
+			self.assertEqual(serve("about", "Guest").status_code, 200)
+
+			# A value an earlier call left behind must not turn this page off.
+			frappe.local.path = "bulletins"
+			self.assertEqual(serve("about", "Guest").status_code, 200)
+			self.assertEqual(serve("bulletins", "Guest").status_code, 404)
