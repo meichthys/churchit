@@ -13,6 +13,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import frappe
+from frappe.client import set_value
 from frappe.email.doctype.notification.notification import clear_notification_cache, get_context
 from frappe.tests.utils import FrappeTestCase
 
@@ -21,7 +22,7 @@ from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations.doctype.church_task import church_task
 from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.prayer_access import is_prayer_team_only
-from churchit.patches.v1_0 import add_prayer_and_alms_notifications
+from churchit.patches.v1_0 import add_prayer_and_alms_notifications, add_prayer_request_approved_notification
 from churchit.tests.helpers import ensure, ensure_user, make_person, make_two_churches
 
 
@@ -170,6 +171,16 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		frappe.set_user("Administrator")
 		return {recipient for call in sendmail.call_args_list for recipient in call.kwargs["recipients"]}
 
+	def approval_emails(self, name, user="Administrator"):
+		"""Every recipient, once per email, when *user* approves the request *name* for the list."""
+		frappe.set_user(user)
+		request = frappe.get_doc("Prayer Request", name)
+		with patch("frappe.sendmail") as sendmail:
+			request.approved_for_list = 1
+			request.save(ignore_permissions=True)
+		frappe.set_user("Administrator")
+		return [recipient for call in sendmail.call_args_list for recipient in call.kwargs["recipients"]]
+
 	def prayer_request(self, **values):
 		return frappe.get_doc(
 			{
@@ -204,6 +215,35 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		self.assertIn(self.care_a, emailed)
 		self.assertFalse({self.team_a, self.team_b, self.care_b} & emailed)
 
+	def test_a_guests_request_reaches_the_prayer_team_when_it_is_approved(self):
+		request = self.prayer_request(visibility="Whole Church")
+		self.emailed(request, user="Guest")
+
+		emailed = self.approval_emails(request.name, user=self.care_a)
+
+		self.assertEqual(emailed.count(self.team_a), 1)
+		self.assertFalse({self.team_b, self.care_a, self.care_b} & set(emailed))
+
+	def test_a_request_approved_at_creation_reaches_the_prayer_team_once(self):
+		request = self.prayer_request(visibility="Whole Church", request="_Test Notice first")
+		self.assertIn(self.team_a, self.emailed(request))
+
+		with patch("frappe.sendmail") as sendmail:
+			edited = frappe.get_doc("Prayer Request", request.name)
+			edited.request = "_Test Notice second"
+			edited.save(ignore_permissions=True)
+			set_value("Prayer Request", request.name, "approved_for_list", 1)
+
+		sendmail.assert_not_called()
+
+	def test_approving_a_private_request_reaches_no_prayer_team(self):
+		request = self.prayer_request(visibility="Private")
+		self.emailed(request, user="Guest")
+
+		emailed = self.approval_emails(request.name, user=self.care_a)
+
+		self.assertFalse({self.team_a, self.team_b} & set(emailed))
+
 	def test_an_alms_request_reaches_the_care_team_of_its_church_only(self):
 		alms = frappe.get_doc(
 			{
@@ -234,6 +274,36 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Notification", alms_request.ALMS_NOTIFICATION, "subject"), "_Test edited"
 		)
+
+	def test_the_approved_patch_adds_the_missing_notification_once_and_keeps_a_churchs_edit(self):
+		approved = prayer_request.APPROVED_NOTIFICATION
+		frappe.delete_doc("Notification", approved, ignore_permissions=True)
+		frappe.db.set_value(
+			"Notification", prayer_request.PRAYER_TEAM_NOTIFICATION, "subject", "_Test edited"
+		)
+
+		add_prayer_request_approved_notification.execute()
+		add_prayer_request_approved_notification.execute()
+
+		self.assertEqual(
+			frappe.get_all("Notification", {"name": approved}, ["event", "value_changed"], as_list=True),
+			(("Value Change", "approved_for_list"),),
+		)
+		self.assertEqual(
+			frappe.db.get_value("Notification", prayer_request.PRAYER_TEAM_NOTIFICATION, "subject"),
+			"_Test edited",
+		)
+
+	def test_the_approved_patch_leaves_a_deleted_notification_deleted(self):
+		deleted = (prayer_request.PRAYER_TEAM_NOTIFICATION, prayer_request.PRIVATE_NOTIFICATION)
+		self.addCleanup(prayer_request.create_new_prayer_request_notifications)
+		for name in deleted:
+			frappe.delete_doc("Notification", name, ignore_permissions=True)
+
+		add_prayer_request_approved_notification.execute()
+
+		self.assertFalse(frappe.db.count("Notification", {"name": ("in", deleted)}))
+		self.assertTrue(frappe.db.exists("Notification", prayer_request.APPROVED_NOTIFICATION))
 
 	def test_the_prayer_team_message_names_every_field(self):
 		recipient = make_person("_Test Notice", "Sick", church=self.church_a)

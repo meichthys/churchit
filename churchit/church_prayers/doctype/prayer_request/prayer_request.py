@@ -32,6 +32,7 @@ PRAYER_TEAM_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif
 {% else %}<p>It waits for approval before it shows on Community Prayer Requests.</p>
 {% endif %}<p>Staff can <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">open it in the desk</a>.</p>
 """
+APPROVED_NOTIFICATION = "Approved Prayer Request for the Prayer Team"
 PRIVATE_NOTIFICATION = "New Private Prayer Request"
 PRIVATE_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} private prayer request"
 # The request stays out of the email: only the care team and Church Managers read a Private one.
@@ -105,11 +106,14 @@ def get_list_context(context):
 	return context
 
 
-def create_new_prayer_request_notifications() -> None:
+def create_new_prayer_request_notifications(names: tuple[str, ...] | None = None) -> None:
 	"""Insert the Notifications that tell the prayer team and the care team of a new request, once each.
 
+	With *names*, only those: a patch must not bring back a record that a church deleted.
+
 	They are not standard, because production cannot enable a shipped one, and a church may change them.
-	The prayer team hears only of a request approved for the list, so a guest's request waits for moderation.
+	The prayer team hears of a request when it is approved for the list: at creation, or later when staff
+	approve a guest's request. Frappe does not run Value Change on insert, so the team gets one email.
 	"""
 	staff = [{"receiver_by_role": role} for role in PASTORAL_ROLES]
 	notifications = (
@@ -124,6 +128,15 @@ def create_new_prayer_request_notifications() -> None:
 			"message": PRAYER_TEAM_MESSAGE,
 		},
 		{
+			"name": APPROVED_NOTIFICATION,
+			"event": "Value Change",
+			"value_changed": "approved_for_list",
+			"subject": PRAYER_TEAM_SUBJECT,
+			"condition": 'doc.approved_for_list and doc.visibility != "Private"',
+			"recipients": [{"receiver_by_role": PRAYER_TEAM_ROLE}],
+			"message": PRAYER_TEAM_MESSAGE,
+		},
+		{
 			"name": PRIVATE_NOTIFICATION,
 			"subject": PRIVATE_SUBJECT,
 			"condition": 'doc.visibility == "Private"',
@@ -132,6 +145,8 @@ def create_new_prayer_request_notifications() -> None:
 		},
 	)
 	for notification in notifications:
+		if names is not None and notification["name"] not in names:
+			continue
 		if frappe.db.exists("Notification", notification["name"]):
 			continue
 		frappe.get_doc(
