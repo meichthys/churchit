@@ -20,7 +20,6 @@ from churchit.church_people.doctype.follow_up_card.test_follow_up_card import ma
 from churchit.church_people.followup import CARD, CARD_CLOSED, CLOSED, add_card
 from churchit.church_people.privacy import ANONYMIZED, anonymize_person, remove_due_personal_data
 from churchit.church_people.smart_lists import get_people
-from churchit.church_people.summaries.test_serving import make_person_list
 from churchit.church_people.test_followup_actions import queued_events
 from churchit.church_people.test_merge import email, life_event, make_family, phone
 from churchit.tests.helpers import (
@@ -30,6 +29,7 @@ from churchit.tests.helpers import (
 	make_address,
 	make_person,
 	make_primary_contact,
+	make_smart_list,
 	make_two_churches,
 )
 
@@ -348,7 +348,7 @@ class TestChurchFields(RollbackEachTest):
 		self.assertEqual(fields.index(CHURCH_FIELD), fields.index("church_fields_tab") + 1)
 
 	def test_a_smart_list_filters_on_the_field(self):
-		smart_list = make_person_list("_Test Smart Shirts", [["Person", CHURCH_FIELD, "=", "_Test Large"]])
+		smart_list = make_smart_list("_Test Smart Shirts", [["Person", CHURCH_FIELD, "=", "_Test Large"]])
 		large = make_person("_Test Shirt", "Large", **{CHURCH_FIELD: "_Test Large"})
 		make_person("_Test Shirt", "Small", **{CHURCH_FIELD: "_Test Small"})
 

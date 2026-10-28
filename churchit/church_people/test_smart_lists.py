@@ -5,10 +5,8 @@ import frappe
 
 from churchit.church_people import smart_lists
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
-from churchit.church_people.doctype.follow_up_workflow.test_follow_up_workflow import make_smart_list
 from churchit.church_people.followup import CARD, start_smart_list_cards
 from churchit.church_people.report.attendance_count.test_attendance_count import attend, make_attendance_list
-from churchit.church_people.summaries.test_serving import make_person_list
 from churchit.dashboard import count_people_in_list
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -16,6 +14,7 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_person,
+	make_smart_list,
 	make_two_churches,
 )
 
@@ -28,7 +27,9 @@ class TestSmartLists(RollbackEachTest):
 
 	def test_a_smart_list_is_a_report_builder_report_on_person(self):
 		self.assertTrue(smart_lists.is_smart_list(make_smart_list("_Test Smart People").name))
-		self.assertFalse(smart_lists.is_smart_list(make_smart_list("_Test Smart Families", "Family").name))
+		self.assertFalse(
+			smart_lists.is_smart_list(make_smart_list("_Test Smart Families", ref_doctype="Family").name)
+		)
 		self.assertFalse(smart_lists.is_smart_list(None))
 
 	def test_the_people_on_a_list_are_the_living_ones_it_matches(self):
@@ -41,7 +42,7 @@ class TestSmartLists(RollbackEachTest):
 		self.assertEqual(smart_lists.get_people(smart_list, None), [listed])
 
 	def test_another_report_is_refused(self):
-		families = make_smart_list("_Test Smart Other", "Family").name
+		families = make_smart_list("_Test Smart Other", ref_doctype="Family").name
 		with self.assertRaisesRegex(frappe.ValidationError, "not a smart list"):
 			smart_lists.get_people(families, None)
 
@@ -78,7 +79,7 @@ class TestLifeEventSmartLists(RollbackEachTest):
 		baptized = self.baptize("_Test Smart Baptized", baptism, "2025-04-20")
 		self.baptize("_Test Smart Earlier", baptism, "2024-04-20")
 		self.baptize("_Test Smart Married", wedding, "2025-04-20")
-		smart_list = make_person_list(
+		smart_list = make_smart_list(
 			"_Test Smart Baptized 2025",
 			[
 				["Life Event", "event_type", "=", baptism],
@@ -98,7 +99,7 @@ class TestLifeEventSmartLists(RollbackEachTest):
 				{"event_type": baptism, "date": "2025-03-01"},
 			],
 		).name
-		smart_list = make_person_list("_Test Smart Twice", [["Life Event", "event_type", "=", baptism]])
+		smart_list = make_smart_list("_Test Smart Twice", [["Life Event", "event_type", "=", baptism]])
 
 		self.assertEqual(smart_lists.get_people(smart_list.name, None), [person])
 
@@ -114,7 +115,7 @@ class TestSkillLists(RollbackEachTest):
 		teaching, mercy = (
 			ensure("Skill", {"skill_name": name}) for name in ("_Test Teaching", "_Test Mercy")
 		)
-		smart_list = make_person_list("_Test Smart Teachers", [["Person Skill", "skill", "=", teaching]])
+		smart_list = make_smart_list("_Test Smart Teachers", [["Person Skill", "skill", "=", teaching]])
 		teacher = make_person(
 			"_Test Smart", "Teacher", church=self.branch_a, skills=[{"skill": mercy}, {"skill": teaching}]
 		)
@@ -210,7 +211,7 @@ class TestAttendanceSmartLists(RollbackEachTest):
 				{"event_type": baptism, "date": "2025-03-01"},
 			],
 		)
-		smart_list = make_person_list(
+		smart_list = make_smart_list(
 			"_Test Smart Card Twice",
 			[
 				["Life Event", "event_type", "=", baptism],
@@ -222,7 +223,7 @@ class TestAttendanceSmartLists(RollbackEachTest):
 
 	def test_the_picker_offers_lists_of_people_and_saved_counts_only(self):
 		people = make_smart_list("_Test Pick People").name
-		make_smart_list("_Test Pick Families", "Family")
+		make_smart_list("_Test Pick Families", ref_doctype="Family")
 		make_attendance_list("_Test Pick Count", from_date="2026-09-01")
 
 		offered = [

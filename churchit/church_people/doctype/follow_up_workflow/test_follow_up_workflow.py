@@ -13,6 +13,7 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_person,
+	make_smart_list,
 	make_two_churches,
 )
 
@@ -22,19 +23,6 @@ def board_columns(workflow):
 		"Kanban Board", frappe.db.get_value("Follow-up Workflow", workflow, "kanban_board")
 	)
 	return [(column.column_name, column.status) for column in board.columns]
-
-
-def make_smart_list(name, ref_doctype="Person", report_type="Report Builder"):
-	return frappe.get_doc(
-		{
-			"doctype": "Report",
-			"report_name": name,
-			"ref_doctype": ref_doctype,
-			"report_type": report_type,
-			"is_standard": "No",
-			"json": json.dumps({"filters": [["Person", "last_name", "=", "_Test Smart List"]]}),
-		}
-	).insert(ignore_permissions=True)
 
 
 class TestFollowupWorkflow(RollbackEachTest):

@@ -7,8 +7,8 @@ from frappe.utils import getdate, today
 from churchit.church_people import smart_lists
 from churchit.church_people.membership import MEMBER, VISITOR
 from churchit.church_people.summaries import refresh
-from churchit.church_people.summaries.test_serving import make_person_list, queued_people
-from churchit.tests.helpers import RollbackEachTest, force_single_church, make_person
+from churchit.church_people.summaries.test_serving import queued_people
+from churchit.tests.helpers import RollbackEachTest, force_single_church, make_person, make_smart_list
 
 
 def date_milestones(person, field, when):
@@ -63,7 +63,7 @@ class TestMembershipDatesSummary(RollbackEachTest):
 		visitor = make_person("_Test Dates Visitor", "_Test Dates List", membership=VISITOR).name
 		date_milestones(visitor, "membership", "2025-06-15 09:00:00")
 		refresh([joined, earlier, visitor])
-		smart_list = make_person_list(
+		smart_list = make_smart_list(
 			"_Test Dates Joined 2025",
 			[
 				["Person", "last_name", "=", "_Test Dates List"],

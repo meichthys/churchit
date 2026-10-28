@@ -1,45 +1,31 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
-
 import frappe
 
-from churchit.church_people.doctype.follow_up_workflow.test_follow_up_workflow import make_smart_list
 from churchit.church_people.report.pathway_progress.pathway_progress import execute
-from churchit.tests.helpers import RollbackEachTest, force_single_church, make_person, make_two_churches
-
-
-def make_step_list(name, mark):
-	"""A smart list of the test people whose middle name holds *mark*."""
-	return frappe.get_doc(
-		{
-			"doctype": "Report",
-			"report_name": name,
-			"ref_doctype": "Person",
-			"report_type": "Report Builder",
-			"is_standard": "No",
-			"json": json.dumps(
-				{
-					"filters": [
-						["Person", "last_name", "=", "_Test Pathway"],
-						["Person", "middle_name", "like", f"%{mark}%"],
-					]
-				}
-			),
-		}
-	).insert(ignore_permissions=True)
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	force_single_church,
+	make_person,
+	make_smart_list,
+	make_two_churches,
+)
 
 
 def make_pathway(name="_Test Next Steps", church=None):
+	# Each step lists the test people whose middle name holds its mark.
+	people = ["Person", "last_name", "=", "_Test Pathway"]
+	came_back = make_smart_list(f"{name} Came Back", [people, ["Person", "middle_name", "like", "%1%"]])
+	joined = make_smart_list(f"{name} Group", [people, ["Person", "middle_name", "like", "%2%"]])
 	return frappe.get_doc(
 		{
 			"doctype": "Pathway",
 			"pathway_name": name,
 			"church": church,
 			"steps": [
-				{"step": "Came Back", "smart_list": make_step_list(f"{name} Came Back", "1").name},
-				{"step": "Joined a Group", "smart_list": make_step_list(f"{name} Group", "2").name},
+				{"step": "Came Back", "smart_list": came_back.name},
+				{"step": "Joined a Group", "smart_list": joined.name},
 			],
 		}
 	).insert()
@@ -52,7 +38,7 @@ class TestPathway(RollbackEachTest):
 		force_single_church()
 
 	def test_each_step_needs_a_smart_list_and_its_own_name(self):
-		families = make_smart_list("_Test Pathway Families", "Family").name
+		families = make_smart_list("_Test Pathway Families", ref_doctype="Family").name
 		with self.assertRaisesRegex(frappe.ValidationError, "Row 1: choose a smart list"):
 			frappe.get_doc(
 				{

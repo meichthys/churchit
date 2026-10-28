@@ -1,7 +1,6 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
 from unittest import mock
 
 import frappe
@@ -36,6 +35,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_person,
 	make_primary_contact,
+	make_smart_list,
 	make_two_churches,
 )
 
@@ -77,20 +77,6 @@ def call_from_browser(method, doc, **args):
 	finally:
 		del frappe.local.request
 	return frappe.response.pop("message", None)
-
-
-def make_people_list(name, **filters):
-	"""A smart list of the people whose fields match *filters*."""
-	return frappe.get_doc(
-		{
-			"doctype": "Report",
-			"report_name": name,
-			"ref_doctype": "Person",
-			"report_type": "Report Builder",
-			"is_standard": "No",
-			"json": json.dumps({"filters": [["Person", key, "=", value] for key, value in filters.items()]}),
-		}
-	).insert(ignore_permissions=True)
 
 
 def copies_of(email):
@@ -210,8 +196,9 @@ class TestChurchEmail(ChurchEmailTestCase):
 		self.assertEqual(sorted(addresses(email)), sorted([email_of(self.member), email_of(self.inactive)]))
 
 	def test_a_smart_list_email_goes_to_the_living_people_on_the_list(self):
-		smart_list = make_people_list(
-			"_Test Church Email Members", last_name="_Test Church Email", membership="Member"
+		smart_list = make_smart_list(
+			"_Test Church Email Members",
+			[["Person", "last_name", "=", "_Test Church Email"], ["Person", "membership", "=", "Member"]],
 		)
 		email = self.make_email(send_to="Smart List", smart_list=smart_list.name)
 		self.assertEqual(sorted(addresses(email)), sorted([email_of(self.member), email_of(self.inactive)]))
@@ -703,7 +690,9 @@ class TestChurchEmailPerChurch(FrappeTestCase):
 	def test_a_smart_list_reaches_only_its_own_churchs_people(self):
 		mine = make_reader("ListedMine", church=self.branch_a)
 		theirs = make_reader("ListedTheirs", church=self.branch_b)
-		smart_list = make_people_list("_Test Church Email Branch List", last_name="_Test Church Email")
+		smart_list = make_smart_list(
+			"_Test Church Email Branch List", [["Person", "last_name", "=", "_Test Church Email"]]
+		)
 		email = frappe.get_doc(
 			{
 				"doctype": "Church Email",

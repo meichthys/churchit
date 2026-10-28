@@ -12,6 +12,7 @@ an email or phone may be on one Person only.
 
 import csv
 import io
+import json
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -64,6 +65,20 @@ def ensure_user(email, first_name, roles=("Church User",)):
 def make_person(first_name, last_name=None, **values):
 	return frappe.get_doc(
 		{"doctype": "Person", "first_name": first_name, "last_name": last_name, **values}
+	).insert(ignore_permissions=True)
+
+
+def make_smart_list(name, filters=(("Person", "last_name", "=", "_Test Smart List"),), ref_doctype="Person"):
+	"""A saved Report Builder report on *ref_doctype* with *filters*; on Person it is a smart list."""
+	return frappe.get_doc(
+		{
+			"doctype": "Report",
+			"report_name": name,
+			"ref_doctype": ref_doctype,
+			"report_type": "Report Builder",
+			"is_standard": "No",
+			"json": json.dumps({"filters": filters}),
+		}
 	).insert(ignore_permissions=True)
 
 

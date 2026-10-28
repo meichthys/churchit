@@ -8,7 +8,6 @@ from unittest.mock import patch
 import frappe
 
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
-from churchit.church_people.doctype.follow_up_workflow.test_follow_up_workflow import make_smart_list
 from churchit.church_people.followup import (
 	CARD,
 	CLOSED,
@@ -23,6 +22,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_function,
 	make_person,
+	make_smart_list,
 	make_two_churches,
 )
 

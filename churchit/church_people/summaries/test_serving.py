@@ -1,7 +1,6 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
 from unittest import mock
 
 import frappe
@@ -14,26 +13,13 @@ from churchit.tests.helpers import (
 	ensure,
 	make_function,
 	make_person,
+	make_smart_list,
 	make_team_assignment,
 	make_team_position,
 	make_two_churches,
 )
 
 NOTHING = {"last_served_on": None, "times_served_90d": 0}
-
-
-def make_person_list(name, filters):
-	"""A smart list: a saved Report Builder report on Person with *filters*."""
-	return frappe.get_doc(
-		{
-			"doctype": "Report",
-			"report_name": name,
-			"ref_doctype": "Person",
-			"report_type": "Report Builder",
-			"is_standard": "No",
-			"json": json.dumps({"filters": filters}),
-		}
-	).insert(ignore_permissions=True)
 
 
 def queued_people(save):
@@ -158,10 +144,10 @@ class TestTeamPositionsSummary(RollbackEachTest):
 		position = make_team_position("_Test Team Listed", [self.person], "_Test Team Listed Ministry")
 		make_team_position("_Test Team Not Listed", [other])
 		refresh([self.person, other])
-		by_team = make_person_list(
+		by_team = make_smart_list(
 			"_Test Team List", [["Person Ministry Team", "ministry", "=", position.ministry]]
 		)
-		by_position = make_person_list(
+		by_position = make_smart_list(
 			"_Test Position List", [["Person Team Position", "position", "=", position.name]]
 		)
 
