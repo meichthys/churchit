@@ -1,0 +1,244 @@
+{% extends "templates/web.html" %}
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
+{% block title %}{{ _("My Household") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.household-family { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 8px; }
+	.household-family .family-name { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }
+	.household-list { list-style: none; padding: 0; margin: 0 0 16px; }
+	/* wraps on narrow screens: the name above, the role, age and Edit below */
+	.household-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 14px 0;
+		border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.household-list .member-name { flex: 1 1 10rem; min-width: 0; overflow-wrap: anywhere; }
+	.household-list .member-role { flex: 0 0 6.5rem; }
+	.household-list .member-note { flex: 0 0 4rem; color: var(--text-muted, #6b7280); white-space: nowrap; }
+	.household-list .member-edit { flex: 0 0 3.5rem; text-align: right; }
+	.add-child { max-width: 420px; margin: 16px 0; }
+	.pre-check-in-person { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 0; font-weight: normal; }
+	.pre-check-in select { max-width: 420px; margin: 8px 0; }
+	/* white behind the code, so a scanner reads it in dark mode too */
+	.pre-check-in-code img { display: block; width: 260px; max-width: 100%; height: auto; margin: 16px 0 8px; padding: 8px; background: #fff; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-4">{{ _("My Household") }}</h3>
+
+	{% if not person %}
+		<p class="text-muted">
+			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+		</p>
+	{% else %}
+		{% if family %}
+			<div class="household-family">
+				{{ avatar(full_name=family_title, image=family.photo, size="avatar-xl") }}
+				<div class="family-name">
+					<h4 class="mb-1">{{ family_title | e }}</h4>
+					{% if address %}<div class="text-muted">{{ address | e }}</div>{% endif %}
+				</div>
+				{% if can_change_photo %}
+					<button type="button" class="btn btn-default btn-sm" id="change-household-photo"
+						data-family="{{ family.name | e }}">{{ _("Change photo") }}</button>
+				{% endif %}
+			</div>
+		{% endif %}
+
+		<ul class="household-list">
+			{% for member in members %}
+			<li>
+				<span class="member-name">{{ member.display_name | e }}</span>
+				<span class="member-role">{{ _(member.household_role) | e if member.household_role }}</span>
+				<span class="member-note">
+					{%- if member.name == person -%}
+						{{ _("(you)") }}
+					{%- elif member.age is not none -%}
+						{{ _("age {0}").format(member.age) }}
+					{%- endif -%}
+				</span>
+				<span class="member-edit">
+					{%- if member.can_edit -%}
+						<a class="btn btn-default btn-xs" href="/personal-details/{{ member.name | urlencode }}/edit"
+							aria-label="{{ _('Edit {0}').format(member.display_name) | e }}">{{ _("Edit") }}</a>
+					{%- endif -%}
+				</span>
+			</li>
+			{% endfor %}
+		</ul>
+		{% if add_child %}
+		<p class="text-muted">{{ _("To add an adult or remove someone, contact the church office.") }}</p>
+		<button type="button" class="btn btn-default btn-sm" id="show-add-child"
+			aria-controls="add-child" aria-expanded="false">{{ _("Add a Child") }}</button>
+		<form class="add-child" id="add-child" hidden>
+			<h4 class="mb-1">{{ _("Add a Child") }}</h4>
+			<p class="text-muted">{{ _("Add a child under {0} who lives in your household.").format(add_child.adult_age) }}</p>
+			<div class="form-group">
+				<label for="add-child-first-name">{{ _("First Name") }}</label>
+				<input class="form-control" id="add-child-first-name" name="first_name" maxlength="140" required>
+			</div>
+			<div class="form-group">
+				<label for="add-child-last-name">{{ _("Last Name") }}</label>
+				<input class="form-control" id="add-child-last-name" name="last_name" maxlength="140"
+					value="{{ (add_child.last_name or '') | e }}">
+			</div>
+			<div class="form-group">
+				<label for="add-child-birthday">{{ _("Birthday") }}</label>
+				<input class="form-control" type="date" id="add-child-birthday" name="birthday"
+					max="{{ add_child.today }}" required>
+			</div>
+			<div class="form-group">
+				<label for="add-child-gender">{{ _("Gender") }}</label>
+				<select class="form-control" id="add-child-gender" name="gender" required>
+					<option value="">{{ _("Choose") }}</option>
+					<option value="Female">{{ _("Female") }}</option>
+					<option value="Male">{{ _("Male") }}</option>
+				</select>
+			</div>
+			<p class="add-child-error text-danger" role="alert"></p>
+			<button type="submit" class="btn btn-primary btn-sm">{{ _("Add Child") }}</button>
+			<button type="button" class="btn btn-default btn-sm" id="cancel-add-child">{{ _("Cancel") }}</button>
+		</form>
+		{% else %}
+		<p class="text-muted">{{ _("To add or remove someone, contact the church office.") }}</p>
+		{% endif %}
+
+		{% set check_in_people = members | selectattr("can_edit") | list %}
+		{% if check_in_functions and check_in_people %}
+		<section class="pre-check-in" id="pre-check-in">
+			<h4 class="mt-5 mb-1">{{ _("Check In Before You Arrive") }}</h4>
+			<p class="text-muted">{{ _("Choose who is coming and where. Then show the code at the Check-In Station or the kiosk.") }}</p>
+			{% for member in check_in_people %}
+			<label class="pre-check-in-person">
+				<input type="checkbox" name="person" value="{{ member.name | e }}"> {{ member.display_name | e }}
+			</label>
+			{% endfor %}
+			<select class="form-control" name="function" aria-label="{{ _('Function') }}">
+				{% for function in check_in_functions %}
+				<option value="{{ function.name | e }}">
+					{{ function.function_name | e }}{% if function.start_time %}, {{ frappe.format(function.start_time, {"fieldtype": "Time"}) }}{% endif %}
+				</option>
+				{% endfor %}
+			</select>
+			<p class="pre-check-in-error text-danger" role="alert"></p>
+			<button type="button" class="btn btn-primary btn-sm" id="get-check-in-code">{{ _("Get Check-In Code") }}</button>
+			<div class="pre-check-in-code" hidden>
+				<img alt="{{ _('Check-in code') }}">
+				<p class="text-muted"></p>
+			</div>
+		</section>
+		{% endif %}
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	var button = document.getElementById("change-household-photo");
+	if (!button) return;
+	button.addEventListener("click", function () {
+		var family = button.dataset.family;
+		frappe.require(["controls.bundle.js", "dialog.bundle.js"], function () {
+			new frappe.ui.FileUploader({
+				doctype: "Family",
+				docname: family,
+				fieldname: "photo",
+				dialog_title: "{{ _('Change photo') }}",
+				allow_multiple: false,
+				make_attachments_public: true,
+				allow_toggle_private: false,
+				disable_file_browser: true,
+				allow_web_link: false,
+				allow_take_photo: false,
+				allow_google_drive: false,
+				restrictions: { allowed_file_types: ["image/*"], max_number_of_files: 1 },
+				on_success: function (file) {
+					frappe.call({
+						method: "frappe.client.set_value",
+						args: { doctype: "Family", name: family, fieldname: "photo", value: file.file_url },
+						callback: function () {
+							window.location.reload();
+						},
+					});
+				},
+			});
+		});
+	});
+});
+
+frappe.ready(function () {
+	var form = document.getElementById("add-child");
+	if (!form) return;
+	var show = document.getElementById("show-add-child");
+	var error = form.querySelector(".add-child-error");
+	function toggle(open) {
+		form.hidden = !open;
+		show.hidden = open;
+		show.setAttribute("aria-expanded", open);
+		if (open) form.elements.first_name.focus();
+	}
+	show.addEventListener("click", function () {
+		toggle(true);
+	});
+	document.getElementById("cancel-add-child").addEventListener("click", function () {
+		toggle(false);
+	});
+	form.addEventListener("submit", function (event) {
+		event.preventDefault();
+		error.textContent = "";
+		frappe
+			.call({
+				method: "churchit.church_people.member_access.add_household_child",
+				args: {
+					first_name: form.elements.first_name.value,
+					last_name: form.elements.last_name.value,
+					birthday: form.elements.birthday.value,
+					gender: form.elements.gender.value,
+				},
+				btn: form.querySelector("button[type='submit']"),
+				error_msg: error,
+				statusCode: {},
+			})
+			.done(function () {
+				window.location.reload();
+			});
+	});
+});
+
+frappe.ready(function () {
+	var section = document.getElementById("pre-check-in");
+	if (!section) return;
+	var button = document.getElementById("get-check-in-code");
+	var error = section.querySelector(".pre-check-in-error");
+	var code = section.querySelector(".pre-check-in-code");
+	button.addEventListener("click", function () {
+		var persons = Array.from(section.querySelectorAll("input[name='person']:checked")).map(function (box) {
+			return box.value;
+		});
+		error.textContent = "";
+		code.hidden = true;
+		if (!persons.length) {
+			error.textContent = __("Choose who is coming.");
+			return;
+		}
+		frappe
+			.call({
+				method: "churchit.church_ministries.pre_check_in.get_pre_check_in_code",
+				args: { function: section.querySelector("select[name='function']").value, persons: persons },
+				btn: button,
+				error_msg: error,
+				statusCode: {},
+			})
+			.done(function (r) {
+				code.querySelector("img").src = r.message.qr_code;
+				code.querySelector("p").textContent = __("Show this code when you arrive. It works until {0}.", [
+					r.message.valid_until,
+				]);
+				code.hidden = false;
+			});
+	});
+});
+</script>
+{% endblock %}

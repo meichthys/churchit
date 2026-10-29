@@ -12,47 +12,48 @@ frappe.ui.form.on("Group", {
 			grid.grid_buttons
 		);
 
-		// Create a reusable Frappe Email Group (newsletter list) from the members
-		if (!frm.is_new()) {
+		if (!frm.is_new() && frappe.model.can_create("Church Email")) {
 			frm.add_custom_button(
-				__("Create Email Group"),
-				() => create_email_group(frm),
+				__("Send Church Email"),
+				() =>
+					frappe.new_doc("Church Email", {
+						send_to: "Group",
+						group: frm.doc.name,
+						church: frm.doc.church,
+					}),
+				__("Actions")
+			);
+		}
+
+		if (!frm.is_new() && frappe.model.can_create("Function")) {
+			frm.add_custom_button(
+				__("Set Up Meetings"),
+				() =>
+					frappe.new_doc("Function", {
+						function_name: frm.doc.group_name,
+						group: frm.doc.name,
+						type: "Group Meeting",
+						auto_repeat: 1,
+						church: frm.doc.church,
+					}),
 				__("Actions")
 			);
 		}
 	},
-});
 
-function create_email_group(frm) {
-	if (!(frm.doc.members || []).length) {
-		frappe.msgprint(__("No members in this group."));
-		return;
-	}
-	frappe.call({
-		method: "churchit.church_people.doctype.group.group.create_email_group",
-		args: { group: frm.doc.name },
-		freeze: true,
-		freeze_message: __("Creating email group…"),
-		callback(r) {
-			if (!r.message) return;
-			const m = r.message;
-			const link = `/app/email-group/${encodeURIComponent(m.email_group)}`;
-			let msg = __("Email group {0} now has {1} subscriber(s).", [
-				`<a href="${link}"><b>${frappe.utils.escape_html(m.email_group)}</b></a>`,
-				m.total_members,
-			]);
-			if (m.missing && m.missing.length) {
-				msg +=
-					"<br><br>" +
-					__("⚠️ Skipped {0} member(s) with no email address:", [m.missing.length]) +
-					"<ul>" +
-					m.missing.map((n) => `<li>${frappe.utils.escape_html(n)}</li>`).join("") +
-					"</ul>";
-			}
-			frappe.msgprint({ title: __("Email Group Ready"), indicator: "green", message: msg });
-		},
-	});
-}
+	group_type(frm) {
+		// A copy the user can change: the server copies nothing, as an unticked box looks unset.
+		if (!frm.doc.group_type) return;
+		frappe.db
+			.get_value("Group Type", frm.doc.group_type, [
+				"public",
+				"show_in_portal",
+				"requires_approval",
+				"capacity",
+			])
+			.then(({ message }) => message && frm.set_value(message));
+	},
+});
 
 function email_members(frm, selected_only) {
 	const grid = frm.fields_dict.members.grid;

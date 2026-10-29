@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "autoname": "GRPF-.#####",
+ "creation": "2026-10-23 22:01:52.000000",
+ "description": "A file that a group's leaders share with its members. Only the members of the group and church staff can open it.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "group",
+  "group_name",
+  "church",
+  "attached_file"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Group",
+   "options": "Group",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "group.group_name",
+   "fieldname": "group_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Group Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "group.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "description": "Upload it as private. Only the group's members and church staff can open it.",
+   "fieldname": "attached_file",
+   "fieldtype": "Attach",
+   "label": "File",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-23 22:01:52.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Group File",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Church User",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

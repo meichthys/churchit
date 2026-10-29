@@ -74,8 +74,7 @@ class TestMultiChurch(FrappeTestCase):
 		self.assertEqual(allowed_churches(user), [self.root])
 
 	def test_two_churches_cannot_share_an_abbreviation(self):
-		"""The member Email Group is named after the church, but a shared abbreviation
-		once merged two congregations' recipient lists."""
+		"""A shared abbreviation once merged two congregations' member email lists."""
 		branch = make_branch("_Test Abbreviation Owner", "TAO")
 		abbreviation = frappe.db.get_value("Church", branch, "abbreviation")
 

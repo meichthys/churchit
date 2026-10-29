@@ -1,7 +1,10 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
+
 import frappe
+from frappe.api.v1 import update_doc
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 
@@ -10,7 +13,15 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	get_function_items,
 	get_item_status,
 )
-from churchit.tests.helpers import make_function
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_user,
+	make_function,
+	make_person,
+	make_two_churches,
+)
+
+SIGN_UP = "Function Sign-Up"
 
 
 def _ensure(doctype, filters, values):
@@ -213,3 +224,43 @@ class TestFunctionSignUpItems(FrappeTestCase):
 		rows = get_function_items("Sign-Up Item", "Dish", "name", 0, 20, {"function": self.function.name})
 		self.assertEqual([row[0] for row in rows], [self.item])
 		self.assertEqual(get_function_items("Sign-Up Item", "", "name", 0, 20, {}), [])
+
+
+class TestFunctionSignUpChurches(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.editor_a = ensure_user("_test_signup_a@example.com", "Editor", roles=("Church People Editor",))
+		make_person("_Test Signup", "Editor", church=cls.branch_a, user=cls.editor_a)
+		cls.function_a, cls.function_b = (
+			make_function(f"_Test Signup {key}", church=church, allow_sign_ups=1).name
+			for key, church in (("A", cls.branch_a), ("B", cls.branch_b))
+		)
+		# Both in A, so the editor may read them whether or not the directory is private.
+		cls.first, cls.second = (
+			make_person("_Test Signup", name, church=cls.branch_a).name for name in ("First", "Second")
+		)
+
+	def tearDown(self):
+		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
+
+	def test_only_the_functions_church_signs_people_up_or_moves_a_sign_up(self):
+		"""Frappe checks the church the caller sends, before the sign-up takes the function's church."""
+		theirs = frappe.new_doc(SIGN_UP, function=self.function_b, person=self.second).insert().name
+		frappe.set_user(self.editor_a)
+
+		with self.assertRaises(frappe.PermissionError):
+			frappe.new_doc(SIGN_UP, function=self.function_b, person=self.first).insert()
+		self.assertEqual(
+			frappe.new_doc(SIGN_UP, function=self.function_a, person=self.first).insert().church,
+			self.branch_a,
+		)
+
+		frappe.local.form_dict = frappe._dict(
+			data=json.dumps({"function": self.function_a, "church": self.branch_a})
+		)
+		with self.assertRaises(frappe.PermissionError):
+			update_doc(SIGN_UP, theirs)
+		self.assertEqual(frappe.db.get_value(SIGN_UP, theirs, "function"), self.function_b)

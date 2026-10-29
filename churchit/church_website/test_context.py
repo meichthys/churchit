@@ -137,3 +137,33 @@ class TestNavbarSwitch(FrappeTestCase):
 			html.index("theme-switch"), html.index("btn-login-area"), "frappe's own block follows"
 		)
 		self.assertIn("#icon-moon", html)
+
+
+class TestLeafletOnMissions(FrappeTestCase):
+	def context_for(self, path):
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.local.path = path
+		hooks = frappe.get_hooks()
+		context = frappe._dict(web_include_js=hooks.web_include_js, web_include_css=hooks.web_include_css)
+		update_website_context(context)
+		return context
+
+	def test_missions_loads_leaflet_before_its_map_script(self):
+		context = self.context_for("missions")
+		update_website_context(context)
+
+		scripts = context.web_include_js
+		self.assertEqual(scripts.count("leaflet.bundle.js"), 1)
+		self.assertLess(
+			scripts.index("leaflet.bundle.js"), scripts.index("/assets/churchit/js/missions_map.js")
+		)
+		self.assertEqual(context.web_include_css.count("leaflet.bundle.css"), 1)
+		self.assertNotIn("leaflet.bundle.js", frappe.get_hooks("web_include_js"))
+
+	def test_the_calendar_loads_leaflet_for_its_event_map(self):
+		context = self.context_for("calendar")
+		self.assertEqual(context.web_include_js.count("leaflet.bundle.js"), 1)
+		self.assertEqual(context.web_include_css.count("leaflet.bundle.css"), 1)
+
+	def test_other_pages_do_not_load_leaflet(self):
+		self.assertNotIn("leaflet.bundle.js", self.context_for("about").web_include_js)

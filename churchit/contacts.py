@@ -243,8 +243,10 @@ def primary_address_query(parent, parenttype="Person"):
 def validate_contact_tables(doc):
 	"""Keep the three contact tables internally consistent.
 
-	Trims values, rejects duplicates within a record, and makes sure each table
-	has exactly one primary row (and, for addresses, at most one mailing row).
+	Trims values, rejects duplicates within a record, makes sure each table
+	has exactly one primary row (and, for addresses, at most one mailing row),
+	keeps each phone number's digits, and unticks Email Bounced on an email
+	row whose address changed.
 	Flags are corrected rather than rejected so that data imports and the sample
 	data loader never fail on a missing checkbox.
 	"""
@@ -269,7 +271,11 @@ def validate_contact_tables(doc):
 		_flagged_before(before, ADDRESS_FIELD, "is_mailing_address"),
 		default_to_first=False,
 	)
-	sync_notification_addresses(doc.get(EMAIL_FIELD) or [])
+	emails = doc.get(EMAIL_FIELD) or []
+	sync_notification_addresses(emails)
+	clear_bounced_on_change(emails, before)
+	for row in doc.get(PHONE_FIELD) or []:
+		row.digits = phone_digits(row.phone_number)
 
 
 def _flagged_before(before, fieldname, flag):
@@ -293,6 +299,15 @@ def sync_notification_addresses(rows):
 		row.set("notification_address", row.get("email_address") if row.get("is_primary") else None)
 
 
+def clear_bounced_on_change(rows, before):
+	"""Untick Email Bounced on each email row whose address is not the one saved last time."""
+	saved = _saved_values(before, EMAIL_FIELD, EMAIL_DOCTYPE, "email_address")
+	for row in rows:
+		key = contact_key(EMAIL_DOCTYPE, row.get("email_address") or "")
+		if row.get("is_bounced") and row.name in saved and saved[row.name][0] != key:
+			row.is_bounced = 0
+
+
 def _trim_values(rows, value_field):
 	for row in rows:
 		value = row.get(value_field)
@@ -300,10 +315,15 @@ def _trim_values(rows, value_field):
 			row.set(value_field, value.strip())
 
 
+def phone_digits(value: str | None) -> str:
+	"""The digits of a phone number, which Phone Number keeps in `digits` so it can be found however it was typed."""
+	return re.sub(r"\D", "", value or "")
+
+
 def contact_key(child_doctype, value):
 	"""Comparison key for a contact value: a phone number by its digits, anything else case-insensitively."""
 	if child_doctype == PHONE_DOCTYPE:
-		digits = re.sub(r"\D", "", value)
+		digits = phone_digits(value)
 		if digits:
 			return digits
 	return value.lower()
@@ -385,6 +405,18 @@ def get_other_holder(doc, child_doctype, value_field, value):
 	return next(iter(holders), None)
 
 
+def stop_sharing_from(doctype: str, name: str) -> None:
+	"""Let each record sharing an email or phone from *name* hold it alone from now on."""
+	for child_doctype in UNIQUE_VALUE_FIELDS:
+		frappe.db.set_value(
+			child_doctype,
+			{"shared_from_type": doctype, "shared_from": name},
+			"shared_from",
+			None,
+			update_modified=False,
+		)
+
+
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def search_holders(doctype, txt, searchfield, start, page_len, filters):
@@ -415,15 +447,15 @@ def search_holders(doctype, txt, searchfield, start, page_len, filters):
 def get_holders(parenttype, child_doctype, value_field, value, **filters):
 	"""Names of the *parenttype* records holding *value*, oldest row first.
 
-	Phone numbers match however they are formatted, the way check-in search does:
-	the query finds every number with the same digits in order, and the key
-	comparison then drops the ones with extra digits.
+	Phone numbers match on their stored digits, however they are formatted.
 	"""
 	key = contact_key(child_doctype, value)
-	candidate = ("like", "%" + "%".join(key) + "%") if key.isdigit() else value
+	field, candidate = (
+		("digits", key) if child_doctype == PHONE_DOCTYPE and key.isdigit() else (value_field, value)
+	)
 	rows = frappe.get_all(
 		child_doctype,
-		filters={"parenttype": parenttype, value_field: candidate, **filters},
+		filters={"parenttype": parenttype, field: candidate, **filters},
 		fields=["parent", value_field],
 		order_by="creation asc",
 	)

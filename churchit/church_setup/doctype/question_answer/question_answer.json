@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "creation": "2026-10-22 17:13:03.000000",
+ "description": "An answer to a question of a `Question Set`, kept on the record it was asked for",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "answer",
+  "question",
+  "attendee"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "description": "The question as it was asked.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Question",
+   "read_only": 1
+  },
+  {
+   "columns": 6,
+   "fieldname": "answer",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Answer"
+  },
+  {
+   "description": "The Answer Name of the question.",
+   "fieldname": "question",
+   "fieldtype": "Data",
+   "label": "Answer Name",
+   "read_only": 1
+  },
+  {
+   "description": "The attendee row that this answer is about.",
+   "fieldname": "attendee",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Attendee",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-24 00:03:35.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Question Answer",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

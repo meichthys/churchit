@@ -8,6 +8,7 @@ import tempfile
 from unittest import mock
 
 import frappe
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.naming import NamingSeries
 from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
@@ -23,17 +24,29 @@ from churchit.patches.v1_0 import (
 	add_ministry_teams,
 	add_missionary_map_to_missions_page,
 	add_missionary_statuses,
+	add_personal_details_and_care_requests_to_portal,
+	add_pledges_to_portal,
 	add_unsynced_default_records,
+	clear_unknown_person_sources,
 	list_missionary_people_in_a_table,
+	mark_check_in_walk_ins_as_visitors,
 	move_copied_function_schedules,
 	move_email_template_bodies_to_html,
 	move_to_the_apps_screen_and_dock,
 	redesign_home_page,
+	remove_avery_label_format,
+	remove_duplicate_new_members_chart,
+	remove_email_group_onboarding,
 	remove_knowledge_base,
+	remove_permlevel_fields_from_person_versions,
+	remove_private_fields_from_versions,
 	rename_agency_logo_field,
+	restamp_shared_fund_transfers,
+	restore_shipped_people_charts,
 	scope_website_pages_to_church,
 	seed_naming_series_counters,
 	set_church_website,
+	set_display_names,
 	setup_bulletins,
 	split_membership_from_member_status,
 	update_default_navbar,
@@ -48,6 +61,7 @@ from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
 	ensure_root_church,
+	ensure_user,
 	make_address,
 	make_function,
 	make_person,
@@ -104,7 +118,6 @@ class TestAfterInstall(FrappeTestCase):
 
 		self.assertEqual(frappe.db.count("Church", {"parent_church": ("is", "not set")}), 1)
 		self.assertTrue(frappe.db.exists("Bible Translation", {"source": "Free Use Bible API"}))
-		self.assertTrue(frappe.db.exists("Email Group", "Church Members"))
 		self.assertTrue(frappe.db.exists("Module Profile", "Church"))
 		self.assertEqual(frappe.get_doc("Website Settings").home_page, "home")
 		self.assertEqual(frappe.get_doc("Website Settings").website_theme, "Churchit")
@@ -130,6 +143,7 @@ class TestAfterInstall(FrappeTestCase):
 				"Missionary Support Frequency",
 				"Group Role",
 				"Group Status",
+				"Group Type",
 				"Bible Translation",
 				"Web Page",
 				"Visit Type",
@@ -253,7 +267,7 @@ class TestVersionedPatches(FrappeTestCase):
 		)
 
 	def test_portal_menu_items_are_added_once(self):
-		for patch in (portal_patch, add_attendance_to_portal):
+		for patch in (portal_patch, add_attendance_to_portal, add_pledges_to_portal):
 			with self.subTest(patch.ROUTE):
 				settings = frappe.get_doc("Portal Settings")
 				settings.menu = [row for row in settings.menu if row.route != patch.ROUTE]
@@ -266,6 +280,87 @@ class TestVersionedPatches(FrappeTestCase):
 				self.assertEqual(len(rows), 1)
 				self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
 				self.assertTrue(rows[0].enabled)
+
+	def test_personal_details_and_care_requests_are_added_to_the_portal_once(self):
+		routes = [item["route"] for item in add_personal_details_and_care_requests_to_portal.ITEMS]
+		settings = frappe.get_doc("Portal Settings")
+		settings.menu = [row for row in settings.menu if row.route not in routes]
+		settings.save(ignore_permissions=True)
+
+		add_personal_details_and_care_requests_to_portal.execute()
+		add_personal_details_and_care_requests_to_portal.execute()
+
+		menu = frappe.get_doc("Portal Settings").menu
+		for route in routes:
+			rows = [row for row in menu if row.route == route]
+			self.assertEqual(len(rows), 1, route)
+			self.assertEqual(rows[0].role, "Church User", "members, not staff, reach it from the portal")
+
+	def test_the_install_time_people_charts_give_way_to_the_shipped_ones(self):
+		"""Install's own Members chart counted Life Event rows, which carry no church."""
+		frappe.db.set_value(
+			"Dashboard Chart", "Members", {"is_standard": 0, "chart_type": "Count", "source": None}
+		)
+
+		restore_shipped_people_charts.execute()
+
+		chart = frappe.get_doc("Dashboard Chart", "Members")
+		self.assertEqual((chart.is_standard, chart.chart_type, chart.source), (1, "Custom", "Life Events"))
+
+	def test_the_duplicate_new_members_chart_goes_unless_a_dashboard_uses_it(self):
+		def make_chart():
+			return frappe.get_doc(
+				{
+					"doctype": "Dashboard Chart",
+					"chart_name": remove_duplicate_new_members_chart.CHART,
+					"chart_type": "Count",
+					"document_type": "Person",
+					"based_on": "creation",
+					"filters_json": "[]",
+					"timeseries": 1,
+					"time_interval": "Monthly",
+					"timespan": "Last Year",
+				}
+			).insert(ignore_permissions=True)
+
+		make_chart()
+		remove_duplicate_new_members_chart.execute()
+		self.assertFalse(frappe.db.exists("Dashboard Chart", remove_duplicate_new_members_chart.CHART))
+
+		frappe.get_doc(
+			{
+				"doctype": "Dashboard",
+				"dashboard_name": "_Test New Members Dashboard",
+				"charts": [{"chart": make_chart().name}],
+			}
+		).insert(ignore_permissions=True)
+		remove_duplicate_new_members_chart.execute()
+		self.assertTrue(frappe.db.exists("Dashboard Chart", remove_duplicate_new_members_chart.CHART))
+
+	def test_the_email_group_onboarding_is_taken_out(self):
+		frappe.get_doc(
+			{
+				"doctype": "Onboarding Step",
+				"__newname": remove_email_group_onboarding.NAME,
+				"title": remove_email_group_onboarding.NAME,
+				"action": "Go to Page",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		frappe.get_doc(
+			{
+				"doctype": "Form Tour",
+				"name": remove_email_group_onboarding.NAME,
+				"title": remove_email_group_onboarding.NAME,
+				"reference_doctype": "Email Group",
+				"steps": [{"fieldname": "title", "title": "Group Name", "description": "_Test"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		remove_email_group_onboarding.execute()
+		remove_email_group_onboarding.execute()
+
+		for doctype in ("Onboarding Step", "Form Tour"):
+			self.assertFalse(frappe.db.exists(doctype, remove_email_group_onboarding.NAME), doctype)
 
 	def test_knowledge_base_is_taken_out_of_the_app(self):
 		settings = frappe.get_doc("Portal Settings")
@@ -973,3 +1068,140 @@ class TestReplaceHeadOfHouseholdWithPrimaryContact(RollbackEachTest):
 			frappe.db.get_value("Notification", "Anniversary Greeting", "condition"),
 			"doc.emails and doc.is_primary_contact",
 		)
+
+
+class TestPersonProfilePatches(RollbackEachTest):
+	def test_existing_people_get_the_display_name_they_go_by(self):
+		person = make_person("_Test Robert", "Patch", nickname="Bob", suffix="Jr.")
+		frappe.db.set_value("Person", person.name, "display_name", None, update_modified=False)
+
+		set_display_names.execute()
+
+		self.assertEqual(frappe.db.get_value("Person", person.name, "display_name"), "Bob Patch Jr.")
+
+	def test_existing_people_have_no_source_rather_than_a_guessed_one(self):
+		"""The new column gave everyone its default, Desk, though nobody knows how they were added."""
+		person = make_person("_Test Unknown", "Source")
+		self.assertEqual(person.source, "Desk")
+
+		clear_unknown_person_sources.execute()
+
+		self.assertIsNone(frappe.db.get_value("Person", person.name, "source"))
+
+
+class TestRemoveAveryLabelFormat(RollbackEachTest):
+	def test_the_format_and_a_family_default_naming_it_are_removed(self):
+		name = remove_avery_label_format.AVERY_LABELS
+		if not frappe.db.exists("Print Format", name):
+			frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": name,
+					"doc_type": "Family",
+					"module": "Church People",
+					"standard": "No",
+					"custom_format": 1,
+					"print_format_type": "Jinja",
+					"html": "<div>{{ doc.family_name }}</div>",
+				}
+			).insert(ignore_permissions=True)
+		make_property_setter("Family", None, "default_print_format", name, "Data", for_doctype=True)
+
+		remove_avery_label_format.execute()
+
+		self.assertFalse(frappe.db.exists("Print Format", name))
+		self.assertFalse(frappe.db.exists("Property Setter", {"doc_type": "Family", "value": name}))
+
+
+class TestMarkCheckInWalkInsAsVisitors(RollbackEachTest):
+	def test_a_walk_in_becomes_a_visitor_who_shares_nothing(self):
+		walk_in = make_person("_Test Walk", "In", source="Check-In", membership=None, share_phone=1)
+		member = make_person("_Test Walk", "Member", source="Check-In", membership="Member", share_phone=1)
+		login = ensure_user("_test_walk_in_login@example.com", "WalkInLogin")
+		chose = make_person(
+			"_Test Walk", "Chose", source="Check-In", membership=None, share_phone=1, user=login
+		)
+
+		mark_check_in_walk_ins_as_visitors.execute()
+
+		def state(person):
+			return frappe.db.get_value("Person", person.name, ["membership", "share_phone"])
+
+		self.assertEqual(state(walk_in), ("Visitor", 0))
+		self.assertEqual(state(member), ("Member", 1))
+		self.assertEqual(state(chose), (None, 1), "a portal login may have chosen to share")
+
+
+class TestRestampSharedFundTransfers(RollbackEachTest):
+	def test_a_shared_transfer_takes_the_church_of_whoever_made_it(self):
+		church = ensure_root_church()
+		transfer = frappe.get_doc(
+			{"doctype": "Fund Transfer", "from_fund": "_Test Shared", "to_fund": "_Test Own", "amount": 1}
+		)
+		transfer.db_insert()
+		with (
+			mock.patch.object(restamp_shared_fund_transfers, "is_multi_church", return_value=True),
+			mock.patch.object(restamp_shared_fund_transfers, "default_church", return_value=church) as maker,
+		):
+			restamp_shared_fund_transfers.execute()
+
+		self.assertEqual(frappe.db.get_value("Fund Transfer", transfer.name, "church"), church)
+		maker.assert_any_call(transfer.owner)
+
+
+class TestRemovePrivateFieldsFromVersions(RollbackEachTest):
+	def test_private_changes_leave_the_versions_once(self):
+		def version(ref_doctype, **diff):
+			return frappe.get_doc(
+				{
+					"doctype": "Version",
+					"ref_doctype": ref_doctype,
+					"docname": "_Test Private Fields",
+					"data": frappe.as_json(
+						{"changed": [], "added": [], "removed": [], "row_changed": [], **diff}
+					),
+				}
+			).insert(ignore_permissions=True)
+
+		pickup = ["authorized_pickups", {"person": "PRSN-X", "notes": "_Test gate code"}]
+		mixed = version("Family", changed=[["family_name", "Old", "New"]], added=[pickup])
+		only_pickups = version("Family", removed=[pickup], row_changed=[["authorized_pickups", 0, "row", []]])
+		key = ["team_calendar_key", None, "_test_key"]
+		merged = version("Person", changed=[key, ["gender", "Unknown", "Female"]])
+		only_key = version("Person", changed=[key])
+
+		remove_private_fields_from_versions.execute()
+		remove_private_fields_from_versions.execute()
+
+		data = frappe.parse_json(frappe.db.get_value("Version", mixed.name, "data"))
+		self.assertEqual((data.changed, data.added), ([["family_name", "Old", "New"]], []))
+		self.assertFalse(frappe.db.exists("Version", only_pickups.name))
+		data = frappe.parse_json(frappe.db.get_value("Version", merged.name, "data"))
+		self.assertEqual(data.changed, [["gender", "Unknown", "Female"]])
+		self.assertFalse(frappe.db.exists("Version", only_key.name))
+
+
+class TestRemovePermlevelFieldsFromPersonVersions(RollbackEachTest):
+	def test_medical_notes_leave_the_person_versions_once(self):
+		def version(*changed):
+			return frappe.get_doc(
+				{
+					"doctype": "Version",
+					"ref_doctype": "Person",
+					"docname": "_Test Medical Versions",
+					"data": frappe.as_json(
+						{"changed": list(changed), "added": [], "removed": [], "row_changed": []}
+					),
+				}
+			).insert(ignore_permissions=True)
+
+		notes = ["medical_notes", None, "_Test Diabetic"]
+		renamed = version(notes, ["first_name", "Old", "New"])
+		only_notes = version(notes, ["open_care_requests", 0, 1])
+
+		remove_permlevel_fields_from_person_versions.execute()
+		remove_permlevel_fields_from_person_versions.execute()
+
+		data = frappe.parse_json(frappe.db.get_value("Version", renamed.name, "data"))
+		self.assertEqual(data.changed, [["first_name", "Old", "New"]])
+		self.assertFalse(frappe.db.exists("Version", only_notes.name))

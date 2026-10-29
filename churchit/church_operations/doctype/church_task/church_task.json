@@ -11,11 +11,18 @@
   "section_break_fgnk",
   "title",
   "church",
+  "task_type",
   "status",
   "due_date",
+  "priority",
   "column_break_yrnx",
   "is_group",
   "parent_task",
+  "section_break_work_order",
+  "requester",
+  "column_break_work_order",
+  "asset",
+  "room",
   "section_break_kwag",
   "task_items",
   "section_break_ysry",
@@ -81,6 +88,15 @@
    "options": "Church"
   },
   {
+   "default": "Task",
+   "fieldname": "task_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "Task\nWork Order"
+  },
+  {
    "allow_in_quick_entry": 1,
    "fieldname": "due_date",
    "fieldtype": "Datetime",
@@ -89,6 +105,14 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Due Date"
+  },
+  {
+   "default": "Medium",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "options": "Low\nMedium\nHigh\nUrgent"
   },
   {
    "fieldname": "column_break_yrnx",
@@ -125,6 +149,36 @@
    "options": "Church Task"
   },
   {
+   "depends_on": "eval:doc.task_type=='Work Order'",
+   "fieldname": "section_break_work_order",
+   "fieldtype": "Section Break",
+   "label": "Work Order"
+  },
+  {
+   "fieldname": "requester",
+   "fieldtype": "Link",
+   "label": "Requested By",
+   "options": "Person"
+  },
+  {
+   "fieldname": "column_break_work_order",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "asset",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Asset",
+   "options": "Church Asset"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Room",
+   "options": "Room"
+  },
+  {
    "fieldname": "section_break_kwag",
    "fieldtype": "Section Break"
   },
@@ -154,7 +208,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",

@@ -1,0 +1,245 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2026-10-17 19:00:00.000000",
+ "description": "A Planning Center People export, for Data Import. Its fields are the export's columns, so the file maps as it is. It keeps no records: each row adds or updates a Person, their Family and their Address.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "legacy_id",
+  "household_id",
+  "household_name",
+  "is_primary_contact",
+  "prefix",
+  "first_name",
+  "nickname",
+  "middle_name",
+  "last_name",
+  "suffix",
+  "birth_date",
+  "anniversary",
+  "gender",
+  "is_child",
+  "marital_status",
+  "membership",
+  "membership_status",
+  "inactive_reason",
+  "medical_notes",
+  "home_email",
+  "work_email",
+  "other_email",
+  "mobile_phone",
+  "home_phone",
+  "work_phone",
+  "other_phone",
+  "address_line1",
+  "address_line2",
+  "city",
+  "state",
+  "pincode",
+  "country"
+ ],
+ "fields": [
+  {
+   "fieldname": "legacy_id",
+   "fieldtype": "Data",
+   "label": "Person ID"
+  },
+  {
+   "fieldname": "household_id",
+   "fieldtype": "Data",
+   "label": "Household ID"
+  },
+  {
+   "fieldname": "household_name",
+   "fieldtype": "Data",
+   "label": "Household Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_primary_contact",
+   "fieldtype": "Check",
+   "label": "Household Primary Contact"
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Link",
+   "label": "Name Prefix",
+   "options": "Salutation"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nickname",
+   "fieldtype": "Data",
+   "label": "Nickname"
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "suffix",
+   "fieldtype": "Select",
+   "label": "Name Suffix",
+   "options": "\nJr.\nSr.\nII\nIII\nIV"
+  },
+  {
+   "description": "A birth year of 1885 means Planning Center does not know the year.",
+   "fieldname": "birth_date",
+   "fieldtype": "Date",
+   "label": "Birthdate"
+  },
+  {
+   "fieldname": "anniversary",
+   "fieldtype": "Date",
+   "label": "Anniversary"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nM\nF\nMale\nFemale"
+  },
+  {
+   "description": "Yes, true or Child makes the person a Child of their household. Everyone else in it is an Adult.",
+   "fieldname": "is_child",
+   "fieldtype": "Data",
+   "label": "Child"
+  },
+  {
+   "fieldname": "marital_status",
+   "fieldtype": "Link",
+   "label": "Marital Status",
+   "options": "Marital Status"
+  },
+  {
+   "fieldname": "membership",
+   "fieldtype": "Link",
+   "label": "Membership",
+   "options": "Membership Type"
+  },
+  {
+   "fieldname": "membership_status",
+   "fieldtype": "Link",
+   "label": "Status",
+   "options": "Member Status"
+  },
+  {
+   "description": "Deceased also adds a Death life event.",
+   "fieldname": "inactive_reason",
+   "fieldtype": "Link",
+   "label": "Inactive Reason",
+   "options": "Inactive Reason"
+  },
+  {
+   "fieldname": "medical_notes",
+   "fieldtype": "Small Text",
+   "label": "Medical Notes"
+  },
+  {
+   "fieldname": "home_email",
+   "fieldtype": "Data",
+   "label": "Home Email"
+  },
+  {
+   "fieldname": "work_email",
+   "fieldtype": "Data",
+   "label": "Work Email"
+  },
+  {
+   "fieldname": "other_email",
+   "fieldtype": "Data",
+   "label": "Other Email"
+  },
+  {
+   "fieldname": "mobile_phone",
+   "fieldtype": "Data",
+   "label": "Mobile Phone Number"
+  },
+  {
+   "fieldname": "home_phone",
+   "fieldtype": "Data",
+   "label": "Home Phone Number"
+  },
+  {
+   "fieldname": "work_phone",
+   "fieldtype": "Data",
+   "label": "Work Phone Number"
+  },
+  {
+   "fieldname": "other_phone",
+   "fieldtype": "Data",
+   "label": "Other Phone Number"
+  },
+  {
+   "fieldname": "address_line1",
+   "fieldtype": "Data",
+   "label": "Home Address Street Line 1"
+  },
+  {
+   "fieldname": "address_line2",
+   "fieldtype": "Data",
+   "label": "Home Address Street Line 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "Home Address City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "Home Address State"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Home Address Zip Code"
+  },
+  {
+   "description": "A country code such as US, or a country name. The site's country when blank.",
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Home Address Country Code"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2026-10-17 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Planning Center Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Church Manager"
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

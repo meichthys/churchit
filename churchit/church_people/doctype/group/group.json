@@ -10,12 +10,24 @@
  "field_order": [
   "section_break_x4tp",
   "group_name",
+  "group_type",
   "church",
   "description",
+  "meets",
   "column_break_details",
   "status",
   "public",
   "show_in_portal",
+  "show_in_directory",
+  "requires_approval",
+  "capacity",
+  "close_enrollment_on",
+  "section_break_requirements",
+  "needs_background_check",
+  "checks_apply_to",
+  "column_break_requirements",
+  "required_checks",
+  "block_without_checks",
   "section_break_members",
   "members"
  ],
@@ -43,6 +55,14 @@
    "label": "Description"
   },
   {
+   "description": "When and where the group meets, from its recurring Function. Set Up Meetings changes it.",
+   "fieldname": "meets",
+   "fieldtype": "Small Text",
+   "label": "Meets",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_members",
    "fieldtype": "Section Break",
    "label": "Members"
@@ -58,6 +78,15 @@
    "fieldname": "group_name",
    "fieldtype": "Data",
    "label": "Name"
+  },
+  {
+   "description": "Choosing a type fills in its defaults below. You can change them.",
+   "fieldname": "group_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Group Type",
+   "options": "Group Type"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -81,6 +110,78 @@
    "fieldname": "show_in_portal",
    "fieldtype": "Check",
    "label": "Show in Portal"
+  },
+  {
+   "default": "0",
+   "description": "List this group's members in the Church Directory. This works only when the directory's Group List and Group Members options are ticked.",
+   "fieldname": "show_in_directory",
+   "fieldtype": "Check",
+   "label": "Show in Directory"
+  },
+  {
+   "default": "0",
+   "depends_on": "public",
+   "description": "A person who joins from the portal sends a request, and a leader approves it. Untick to let people join at once.",
+   "fieldname": "requires_approval",
+   "fieldtype": "Check",
+   "label": "Requires Approval"
+  },
+  {
+   "default": "0",
+   "description": "The most members the group takes. When it is full, nobody can join from the portal. 0 means no limit.",
+   "fieldname": "capacity",
+   "fieldtype": "Int",
+   "label": "Capacity",
+   "non_negative": 1
+  },
+  {
+   "description": "After this date nobody can join or request to join from the portal.",
+   "fieldname": "close_enrollment_on",
+   "fieldtype": "Date",
+   "label": "Close Enrollment On"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "needs_background_check",
+   "fieldname": "section_break_requirements",
+   "fieldtype": "Section Break",
+   "label": "Requirements"
+  },
+  {
+   "default": "0",
+   "description": "Tick this when the group's leaders, or all its members, need a current, cleared Background Check, for example in a youth group.",
+   "fieldname": "needs_background_check",
+   "fieldtype": "Check",
+   "label": "Needs Background Check"
+  },
+  {
+   "default": "Leaders",
+   "depends_on": "needs_background_check",
+   "description": "Who needs the checks: the people in a role that leads the group, or every member.",
+   "fieldname": "checks_apply_to",
+   "fieldtype": "Select",
+   "label": "Checks Apply To",
+   "options": "Leaders\nEveryone"
+  },
+  {
+   "fieldname": "column_break_requirements",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "needs_background_check",
+   "description": "The checks the group needs, such as Child Safety Training. Each one must be cleared and current. Leave it blank to accept any cleared check.",
+   "fieldname": "required_checks",
+   "fieldtype": "Table MultiSelect",
+   "label": "Required Checks",
+   "options": "Group Required Check"
+  },
+  {
+   "default": "0",
+   "depends_on": "needs_background_check",
+   "description": "Refuse to add someone without the checks, instead of only warning.",
+   "fieldname": "block_without_checks",
+   "fieldtype": "Check",
+   "label": "Block People Without Checks"
   }
  ],
  "grid_page_length": 50,
@@ -90,9 +191,24 @@
    "group": "Ministry",
    "link_doctype": "Ministry",
    "link_fieldname": "group"
+  },
+  {
+   "group": "Meetings",
+   "link_doctype": "Function",
+   "link_fieldname": "group"
+  },
+  {
+   "group": "Members",
+   "link_doctype": "Group Join Request",
+   "link_fieldname": "group"
+  },
+  {
+   "group": "Files",
+   "link_doctype": "Group File",
+   "link_fieldname": "group"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",

@@ -1,0 +1,98 @@
+{
+  "allow_comments": 0,
+  "allow_delete": 0,
+  "allow_edit": 1,
+  "allow_incomplete": 0,
+  "allow_multiple": 1,
+  "allow_print": 0,
+  "anonymous": 0,
+  "apply_document_permissions": 1,
+  "button_label": "Pledge",
+  "condition_json": "[]",
+  "creation": "2026-10-23 01:13:41",
+  "doc_type": "Pledge",
+  "docstatus": 0,
+  "doctype": "Web Form",
+  "idx": 0,
+  "introduction_text": "<div class=\"ql-editor read-mode\"><p>Choose a campaign and tell us how much you plan to give in total. Give as usual: your gifts to the campaign's fund count toward your pledge.</p></div>",
+  "is_standard": 1,
+  "list_columns": [
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "label": "Pledge"
+    },
+    {
+      "fieldname": "amount",
+      "fieldtype": "Currency",
+      "label": "Pledged Amount"
+    },
+    {
+      "fieldname": "frequency",
+      "fieldtype": "Select",
+      "label": "Frequency"
+    }
+  ],
+  "list_title": "Your Pledges",
+  "login_required": 1,
+  "max_attachment_size": 0,
+  "modified": "2026-10-23 01:13:41",
+  "modified_by": "Administrator",
+  "module": "Church Finances",
+  "name": "pledge",
+  "owner": "Administrator",
+  "published": 1,
+  "route": "pledge",
+  "show_attachments": 0,
+  "show_list": 1,
+  "show_sidebar": 1,
+  "title": "Pledge",
+  "web_form_fields": [
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "campaign",
+      "fieldtype": "Link",
+      "hidden": 0,
+      "label": "Campaign",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "Pledge Campaign",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "description": "The total you plan to give for the whole campaign.",
+      "fieldname": "amount",
+      "fieldtype": "Currency",
+      "hidden": 0,
+      "label": "Pledged Amount",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "default": "One Time",
+      "description": "How often you plan to give.",
+      "fieldname": "frequency",
+      "fieldtype": "Select",
+      "hidden": 0,
+      "label": "Frequency",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "One Time\nWeekly\nMonthly\nQuarterly\nYearly",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    }
+  ],
+  "website_sidebar": ""
+}

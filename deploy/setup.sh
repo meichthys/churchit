@@ -40,14 +40,14 @@ curl -fsSL "$RAW/Caddyfile"          -o Caddyfile
 if [ ! -f .env ]; then
   curl -fsSL "$RAW/.env.example" -o .env
   say "First-time setup:"
-  printf '  Enter the domain name for this server — just the name, with no\n'
+  printf '  Enter the domain name for this server: just the name, with no\n'
   printf '  "http://" or "https://" and no trailing slash (e.g. church.example.org).\n'
   printf '  Or press Enter to use the default of churchit.localhost: '
   read -r DOMAIN </dev/tty || DOMAIN=""
   DOMAIN="${DOMAIN:-churchit.localhost}"
   # Be forgiving if someone pastes a full URL: keep only the bare host name.
   DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
-  # Web ports. Standard is 80/443 — change only if those are already used on
+  # Web ports. Standard is 80/443. Change them only if those are already used on
   # this machine (another web server, or local testing alongside other apps).
   printf '  HTTP port  (press Enter for 80): '
   read -r HTTP_PORT_IN </dev/tty || HTTP_PORT_IN=""
@@ -73,12 +73,12 @@ if [ ! -f .env ]; then
 fi
 
 # 4) Launch -----------------------------------------------------------
-say "Pulling images and starting up (first run downloads ~1–2 GB)…"
+say "Pulling images and starting up (first run downloads about 1 to 2 GB)…"
 docker compose pull
 docker compose up -d
 
 # 5) Wait for site creation + migrations to finish -------------------
-say "Setting up your site (database + migrations) — a couple of minutes…"
+say "Setting up your site (database + migrations). This takes a couple of minutes…"
 docker compose wait migrate >/dev/null 2>&1 || true
 
 # 6) Summary ----------------------------------------------------------

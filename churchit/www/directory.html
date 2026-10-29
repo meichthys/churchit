@@ -1,0 +1,90 @@
+{% extends "templates/web.html" %}
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
+{% block title %}{{ _("Member Directory") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.directory-list { list-style: none; padding: 0; margin: 0; }
+	.directory-list li { display: flex; align-items: flex-start; gap: 16px; padding: 14px 0;
+		border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.directory-list .avatar { flex: 0 0 auto; }
+	.directory-list .entry-details { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+	.directory-list .entry-name { font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-4">{{ _("Member Directory") }}</h3>
+
+	{% if not person %}
+		<p class="text-muted">
+			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+		</p>
+	{% elif not is_directory_member %}
+		<p class="text-muted">
+			{{ _("Only members of the church can see the member directory. If you are a member, please contact the church office.") }}
+		</p>
+	{% elif not entries %}
+		<p class="text-muted">{{ _("No one is listed in the member directory yet.") }}</p>
+	{% else %}
+		<input type="search" class="form-control mb-3" id="directory-search"
+			placeholder="{{ _('Search names...') }}" aria-label="{{ _('Search names') }}">
+		<ul class="directory-list">
+			{% for entry in entries %}
+			<li class="directory-entry" data-search="{{ entry.search | e }}">
+				{{ avatar(full_name=entry.title, image=entry.photo, size="avatar-large") }}
+				<div class="entry-details">
+					<div class="entry-name">{{ entry.title | e }}</div>
+					{% if entry.emails or entry.phones %}
+						<div>
+							{%- for email in entry.emails -%}
+								{{ " · " if not loop.first }}<a href="mailto:{{ email | e }}">{{ email | e }}</a>
+							{%- endfor -%}
+							{%- for phone in entry.phones -%}
+								{{ " · " if entry.emails or not loop.first }}<a href="tel:{{ phone.replace(' ', '') | e }}">{{ phone | e }}</a>
+							{%- endfor -%}
+						</div>
+					{% endif %}
+					{% for address in entry.addresses %}
+						<div class="text-muted">{{ address | e }}</div>
+					{% endfor %}
+					{% if entry.birthdays %}
+						<div class="text-muted">
+							{{ _("Birthdays") if entry.birthdays | length > 1 else _("Birthday") }}: {{ entry.birthdays | join(", ") | e }}
+						</div>
+					{% endif %}
+					<a class="btn btn-default btn-xs mt-2" href="data:text/vcard;charset=utf-8,{{ entry.vcard | urlencode }}"
+						download="{{ entry.title | e }}.vcf">{{ _("Save contact") }}</a>
+				</div>
+			</li>
+			{% endfor %}
+		</ul>
+		<p class="text-muted d-none" id="directory-no-match">{{ _("No one matches your search.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	var search = document.getElementById("directory-search");
+	if (!search) return;
+	var entries = document.querySelectorAll(".directory-entry");
+	var no_match = document.getElementById("directory-no-match");
+	search.addEventListener("input", function () {
+		var words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+		var shown = 0;
+		entries.forEach(function (entry) {
+			var matches = words.every(function (word) {
+				return entry.dataset.search.indexOf(word) !== -1;
+			});
+			entry.classList.toggle("d-none", !matches);
+			if (matches) shown++;
+		});
+		no_match.classList.toggle("d-none", shown > 0);
+	});
+});
+</script>
+{% endblock %}

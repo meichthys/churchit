@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "autoname": "field:workflow_name",
+ "creation": "2026-10-17 21:00:00.000000",
+ "description": "A follow-up process: the steps a person moves through, and who handles each one. Cards can start on it by themselves.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "workflow_name",
+  "church",
+  "is_active",
+  "column_break_workflow",
+  "description",
+  "kanban_board",
+  "section_break_steps",
+  "steps",
+  "section_break_triggers",
+  "triggers",
+  "section_break_actions",
+  "actions"
+ ],
+ "fields": [
+  {
+   "fieldname": "workflow_name",
+   "fieldtype": "Data",
+   "label": "Workflow Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Active"
+  },
+  {
+   "fieldname": "column_break_workflow",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "description": "Kept in step with the steps below whenever you save.",
+   "fieldname": "kanban_board",
+   "fieldtype": "Link",
+   "label": "Board",
+   "options": "Kanban Board",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_steps",
+   "fieldtype": "Section Break",
+   "label": "Steps"
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Follow-up Step",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_triggers",
+   "fieldtype": "Section Break",
+   "label": "Start a Card When"
+  },
+  {
+   "description": "A card starts by itself when one of these happens to a person. A person has one open card on a workflow at a time.",
+   "fieldname": "triggers",
+   "fieldtype": "Table",
+   "label": "Triggers",
+   "options": "Follow-up Trigger"
+  },
+  {
+   "fieldname": "section_break_actions",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "description": "Each action runs once for each card and event. It is never retried.",
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "Follow-up Action"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-27 08:45:50.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Follow-up Workflow",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Follow-up",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

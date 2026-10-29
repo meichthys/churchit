@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 
+from churchit.church_ministries.attendance import record
 from churchit.church_scope import session_person
 
 CHECKED_IN = "Checked-In"
@@ -48,7 +49,7 @@ def get_member_choices():
 	return ()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def change_own_attendance(function: str, attendance_type: str):
 	"""Set the signed-in member's attendance type on one function their Attendance page lists."""
 	if attendance_type not in get_member_choices():
@@ -61,9 +62,5 @@ def change_own_attendance(function: str, attendance_type: str):
 	if listed[function] == CHECKED_IN:
 		frappe.throw(_("You were checked in at this function."), frappe.PermissionError)
 
-	function_doc = frappe.get_doc("Function", function)
-	for row in function_doc.attendance:
-		if row.person == person:
-			row.attendance_type = attendance_type
 	# Members cannot write a Function. The checks above confine this save to their own row.
-	function_doc.save(ignore_permissions=True)
+	record(person, function, attendance_type)

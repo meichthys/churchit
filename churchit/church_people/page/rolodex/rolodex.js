@@ -49,6 +49,8 @@ class Rolodex {
 			group: new Set(),
 			position: new Set(),
 		};
+		// Names picked in the Person list's Open in Rolodex, or null to show everyone.
+		this.only = null;
 		this.set_saved([]);
 		this.flipped = new Set();
 		this.make();
@@ -98,7 +100,7 @@ class Rolodex {
 				label.toggleAttribute("hidden", !label.textContent.toLowerCase().includes(text));
 			}
 		});
-		this.$chips.on("click", ".rolodex-chip", (e) => {
+		this.$chips.on("click", ".rolodex-chip[data-facet]", (e) => {
 			const { facet, value } = e.currentTarget.dataset;
 			this.set_filter(facet, value, false);
 		});
@@ -179,14 +181,16 @@ class Rolodex {
 		});
 	}
 
-	// The Person and Family lists open the Rolodex in their own view. Read once the
-	// directory is in, and only then cleared, so a first visit does not lose it.
+	// The Person and Family lists open the Rolodex in their own view, and Open in Rolodex
+	// with only the people picked. Read once the directory is in, and only then cleared,
+	// so a first visit does not lose it. The router hands a list over as JSON text.
 	apply_route_options() {
 		if (!this.people) return;
-		const wanted = frappe.route_options && frappe.route_options.view;
+		const { view, people } = frappe.route_options || {};
 		frappe.route_options = null;
-		if (["people", "households"].includes(wanted) && wanted !== this.view)
-			this.set_view(wanted);
+		if (people) this.only = new Set(typeof people === "string" ? JSON.parse(people) : people);
+		if (["people", "households"].includes(view) && view !== this.view) this.set_view(view);
+		else if (people) this.render();
 	}
 
 	set_directory({ people, families, choices }) {
@@ -236,6 +240,7 @@ class Rolodex {
 		const { church, membership, status, group, position } = this.filters;
 		return (
 			this.matches_query(person) &&
+			(!this.only || this.only.has(person.name)) &&
 			(!church.size || church.has(person.church)) &&
 			(!membership.size || membership.has(person.membership || NOT_SET)) &&
 			(!status.size || status.has(person.membership_status || NOT_SET)) &&
@@ -333,7 +338,7 @@ class Rolodex {
 				__("Groups"),
 				person.groups.map((name) => e(this.group_titles[name] || name)).join(", "),
 			],
-			[__("Birthday"), person.birthday && with_age(person)],
+			[__("Birthday"), birthday_text(person)],
 			[
 				__("Anniversary"),
 				person.anniversary && frappe.datetime.str_to_user(person.anniversary),
@@ -409,7 +414,8 @@ class Rolodex {
 	}
 
 	empty_html() {
-		const filtered = this.query || Object.values(this.filters).some((values) => values.size);
+		const filtered =
+			this.query || this.only || Object.values(this.filters).some((values) => values.size);
 		const clear = filtered
 			? `<button type="button" class="btn btn-default btn-sm" data-action="clear-all">${__(
 					"Clear search and filters"
@@ -500,6 +506,9 @@ class Rolodex {
 				)}${icon("x")}</button>`
 			)
 		);
+		if (this.only)
+			chips.unshift(`<button type="button" class="rolodex-chip" data-action="show-everyone"
+				aria-label="${__("Show everyone")}">${__("Picked in the list")}${icon("x")}</button>`);
 		const clear = `<button type="button" class="btn btn-link btn-xs" data-action="clear-filters">${__(
 			"Clear all"
 		)}</button>`;
@@ -559,6 +568,10 @@ class Rolodex {
 			"toggle-filters": () => this.toggle_filters(),
 			"clear-filters": () => this.clear_filters(),
 			"clear-all": () => this.clear_filters(true),
+			"show-everyone": () => {
+				this.only = null;
+				this.render();
+			},
 			"save-shown": () => this.save_all(shown),
 			"email-shown": () => this.email(shown),
 			"print-shown": () =>
@@ -597,6 +610,7 @@ class Rolodex {
 	}
 
 	clear_filters(with_search = false) {
+		this.only = null;
 		Object.values(this.filters).forEach((values) => values.clear());
 		this.$facets.find("input[type=checkbox]").prop("checked", false);
 		if (with_search) {
@@ -964,8 +978,14 @@ function membership_text(person) {
 	return [person.membership, status].filter(Boolean).join(" · ");
 }
 
-function with_age(person) {
-	const born = frappe.datetime.str_to_user(person.birthday);
+// A birthday whose year is unknown shows its month and day only, with no age.
+function birthday_text(person) {
+	if (!person.birth_date) {
+		return person.birth_month
+			? `${moment.months(person.birth_month - 1)} ${person.birth_day}`
+			: "";
+	}
+	const born = frappe.datetime.str_to_user(person.birth_date);
 	return person.age ? `${born} · ${__("age {0}", [person.age])}` : born;
 }
 

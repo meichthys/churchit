@@ -4,7 +4,7 @@ from frappe.query_builder.functions import Coalesce, Max
 from frappe.utils import cint
 from pypika import Interval
 
-from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
+from churchit.church_prayers.prayer_access import CLOSED_STATUSES
 from churchit.church_scope import scoped
 from churchit.contacts import get_primary_email, get_primary_phone
 from churchit.query import CurDate

@@ -19,7 +19,7 @@ def get_columns():
 		{"fieldname": "fund", "fieldtype": "Data", "label": _("Fund"), "width": 200},
 		{"fieldname": "amount", "fieldtype": "Currency", "label": _("Amount"), "width": 120},
 		{"fieldname": "notes", "fieldtype": "Data", "label": _("Notes"), "width": 300},
-		{"fieldname": "creation", "fieldtype": "Datetime", "label": _("Date"), "width": 150},
+		{"fieldname": "date", "fieldtype": "Datetime", "label": _("Date"), "width": 150},
 	]
 
 
@@ -35,15 +35,15 @@ def get_data(filters):
 		frappe.qb.from_(Fund)
 		.join(Transaction)
 		.on(Transaction.parent == Fund.name)
-		.select(Fund.fund, Transaction.amount, Transaction.notes, Transaction.creation)
+		.select(Fund.fund, Transaction.amount, Transaction.notes, Transaction.date)
 		.where(Transaction.parenttype == "Fund")
 		.orderby(Fund.fund)
-		.orderby(Transaction.creation, order=Order.desc)
+		.orderby(Transaction.date, order=Order.desc)
 	)
 
 	if from_date:
-		query = query.where(Date(Transaction.creation) >= from_date)
+		query = query.where(Date(Transaction.date) >= from_date)
 	if to_date:
-		query = query.where(Date(Transaction.creation) <= to_date)
+		query = query.where(Date(Transaction.date) <= to_date)
 
 	return scoped(query, Fund, filters).run(as_dict=True)

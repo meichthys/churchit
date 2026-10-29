@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder import Order
-from frappe.query_builder.functions import Count, Max
+from frappe.query_builder.functions import Count, Max, Sum
 
 from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
@@ -24,11 +24,19 @@ def get_columns():
 		{"fieldname": "ccli", "fieldtype": "Data", "label": _("CCLI #"), "width": 120},
 		{"fieldname": "times_used", "fieldtype": "Int", "label": _("Times Used"), "width": 110},
 		{"fieldname": "last_used", "fieldtype": "Date", "label": _("Last Used"), "width": 120},
+		{"fieldname": "displayed", "fieldtype": "Int", "label": _("Displayed"), "width": 100},
+		{"fieldname": "printed", "fieldtype": "Int", "label": _("Printed"), "width": 100},
+		{"fieldname": "streamed", "fieldtype": "Int", "label": _("Streamed"), "width": 100},
+		{"fieldname": "recorded", "fieldtype": "Int", "label": _("Recorded"), "width": 100},
 	]
 
 
 def get_data(filters):
-	"""How often each song is on the schedule of a function dated in the range, most used first."""
+	"""How often each song is on the schedule of a function dated in the range, most used first.
+
+	The copy types count the uses that displayed or printed the song, or were at a streamed or
+	recorded function, for the church to report to CCLI.
+	"""
 	Schedule = frappe.qb.DocType("Function Schedule")
 	Function = frappe.qb.DocType("Function")
 	Song = frappe.qb.DocType("Song")
@@ -44,6 +52,10 @@ def get_data(filters):
 			Song.ccli,
 			times_used.as_("times_used"),
 			Max(Function.start_date).as_("last_used"),
+			Sum(Schedule.displayed).as_("displayed"),
+			Sum(Schedule.printed).as_("printed"),
+			Sum(Function.streamed).as_("streamed"),
+			Sum(Function.recorded).as_("recorded"),
 		)
 		.where(
 			(Schedule.parenttype == "Function")

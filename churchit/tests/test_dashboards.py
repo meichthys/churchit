@@ -110,6 +110,9 @@ class TestFinanceChartSources(FrappeTestCase):
 			],
 		)
 
+		years = [start.year for start, _end in time_buckets("Last 5 Years", "Yearly", None, None)]
+		self.assertEqual(years, list(range(getdate().year - 5, getdate().year + 1)))
+
 		self.assertEqual(bucket_label(date(2030, 4, 1), "Quarterly"), "Q2 2030")
 		self.assertEqual(bucket_label(date(2030, 4, 1), "Yearly"), "2030")
 		self.assertEqual(bucket_label(date(2030, 4, 1), "Monthly"), "Apr 2030")

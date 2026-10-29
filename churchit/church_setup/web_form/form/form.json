@@ -1,0 +1,76 @@
+{
+ "allow_comments": 0,
+ "allow_delete": 0,
+ "allow_edit": 0,
+ "allow_incomplete": 0,
+ "allow_multiple": 1,
+ "allow_print": 0,
+ "anonymous": 0,
+ "apply_document_permissions": 0,
+ "button_label": "Send",
+ "condition_json": "[]",
+ "creation": "2026-10-24 00:19:37.000000",
+ "doc_type": "Form Response",
+ "docstatus": 0,
+ "doctype": "Web Form",
+ "idx": 0,
+ "is_standard": 1,
+ "list_columns": [],
+ "login_required": 0,
+ "max_attachment_size": 0,
+ "modified": "2026-10-24 00:19:37.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "form",
+ "owner": "Administrator",
+ "published": 1,
+ "route": "form",
+ "show_attachments": 0,
+ "show_list": 0,
+ "show_sidebar": 0,
+ "success_message": "Thank you. Your answers have been sent.",
+ "success_title": "Thank You",
+ "title": "Form",
+ "web_form_fields": [
+  {
+   "fieldname": "question_set",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Question Set",
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_name",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_answers",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Question Answer"
+  }
+ ]
+}

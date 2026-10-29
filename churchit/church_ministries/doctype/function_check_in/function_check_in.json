@@ -16,9 +16,18 @@
   "start_time",
   "person_section",
   "person",
+  "check_in_kind",
   "column_break_lwzu",
   "security_code",
   "notes",
+  "pickup_section",
+  "collected_by",
+  "collected_by_name",
+  "column_break_pickup",
+  "collected_at",
+  "released_by",
+  "override_reason",
+  "overridden_by",
   "hidden_fields_section",
   "title"
  ],
@@ -45,7 +54,8 @@
    "in_standard_filter": 1,
    "label": "Function",
    "options": "Function",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -105,6 +115,69 @@
    "reqd": 1
   },
   {
+   "default": "Regular",
+   "description": "Guest: a visitor added at the station. Volunteer: someone who serves at the Function. A volunteer gets no pickup code and starts no follow-up card.",
+   "fieldname": "check_in_kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kind",
+   "options": "Regular\nGuest\nVolunteer",
+   "set_only_once": 1
+  },
+  {
+   "collapsible": 0,
+   "depends_on": "eval:doc.collected_by",
+   "fieldname": "pickup_section",
+   "fieldtype": "Section Break",
+   "label": "Pickup"
+  },
+  {
+   "fieldname": "collected_by",
+   "fieldtype": "Link",
+   "label": "Collected By",
+   "options": "Person",
+   "read_only": 1
+  },
+  {
+   "fieldname": "collected_by_name",
+   "fieldtype": "Data",
+   "label": "Collected By Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pickup",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "collected_at",
+   "fieldtype": "Datetime",
+   "label": "Collected At",
+   "read_only": 1
+  },
+  {
+   "description": "The volunteer who released the person at Verify Pickup.",
+   "fieldname": "released_by",
+   "fieldtype": "Link",
+   "label": "Released By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "description": "Why a Church Manager released the person to someone a Pickup Restriction names.",
+   "fieldname": "override_reason",
+   "fieldtype": "Small Text",
+   "label": "Override Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overridden_by",
+   "fieldtype": "Link",
+   "label": "Overridden By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
    "fieldname": "hidden_fields_section",
    "fieldtype": "Section Break",
    "label": "Hidden Fields"
@@ -132,7 +205,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 00:21:04.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",

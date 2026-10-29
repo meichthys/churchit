@@ -16,7 +16,9 @@
 		<dd>{{ request.date }}{% if request.time %}, {{ request.time }}{% endif %}</dd>
 	</dl>
 
-	{% if request.status != "Pending" %}
+	{% if replaced_by %}
+		<p><b>{{ _("Your place went to {0}.").format(replaced_by | e) }}</b></p>
+	{% elif request.status != "Pending" %}
 		<p><b>{{ _("You accepted.") if request.status == "Accepted" else _("You declined.") }}</b></p>
 	{% endif %}
 
@@ -24,7 +26,7 @@
 		<p class="text-muted">{{ _("This function has already started, so the answer can no longer change.") }}</p>
 	{% else %}
 		<div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
-			{% if request.status != "Accepted" %}
+			{% if request.status != "Accepted" and not replaced_by %}
 				<button class="btn btn-primary team-answer" data-status="Accepted">{{ _("Accept") }}</button>
 			{% endif %}
 			{% if request.status != "Declined" %}
@@ -33,6 +35,20 @@
 				<button class="btn btn-default team-answer" data-status="Declined">{{ _("Decline") }}</button>
 			{% endif %}
 		</div>
+
+		{% if pending_replacement %}
+			<p class="mt-4">{{ _("You asked {0} to take your place. It passes to them when they accept.").format(pending_replacement | e) }}</p>
+		{% elif can_pass_on %}
+			<div class="mt-4">
+				<p>{{ _("Cannot come? Ask someone else on the team to take your place. You serve until they accept.") }}</p>
+				<button class="btn btn-default" id="team-replacement-find">{{ _("Ask Someone Else") }}</button>
+				<div class="d-flex flex-wrap align-items-center" style="gap: 8px;" id="team-replacement-form" hidden>
+					<select class="form-control" style="flex: 1 1 12rem;" id="team-replacement" aria-label="{{ _('Person to ask') }}"></select>
+					<button class="btn btn-primary" id="team-replacement-ask">{{ _("Ask") }}</button>
+				</div>
+				<p class="text-muted" id="team-replacement-none" hidden>{{ _("No one else on the team is free then.") }}</p>
+			</div>
+		{% endif %}
 	{% endif %}
 </div>
 {% endblock %}
@@ -52,6 +68,38 @@ frappe.ready(function () {
 			});
 		});
 	});
+
+	var find = document.getElementById("team-replacement-find");
+	if (find) {
+		find.addEventListener("click", function () {
+			find.disabled = true;
+			frappe.call({
+				method: "churchit.church_ministries.member_ministry_team.get_replacement_candidates_by_key",
+				type: "GET",
+				args: { key: "{{ key }}" },
+				callback: function (r) {
+					var select = document.getElementById("team-replacement");
+					r.message.forEach(function (row) {
+						select.add(new Option(row.full_name, row.person));
+					});
+					find.hidden = true;
+					document.getElementById(r.message.length ? "team-replacement-form" : "team-replacement-none").hidden = false;
+				},
+				error: function () { find.disabled = false; },
+			});
+		});
+
+		var ask = document.getElementById("team-replacement-ask");
+		ask.addEventListener("click", function () {
+			ask.disabled = true;
+			frappe.call({
+				method: "churchit.church_ministries.member_ministry_team.ask_for_replacement_by_key",
+				args: { key: "{{ key }}", replacement: document.getElementById("team-replacement").value },
+				callback: function () { window.location.reload(); },
+				error: function () { ask.disabled = false; },
+			});
+		});
+	}
 });
 </script>
 {% endblock %}

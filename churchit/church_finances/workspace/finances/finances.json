@@ -25,7 +25,7 @@
    "label": "Weekly Giving"
   }
  ],
- "content": "[{\"id\":\"GF0ykBf4ar\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Finances\",\"col\":12}},{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and count the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"nc01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collections\",\"col\":3}},{\"id\":\"nc02\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses\",\"col\":3}},{\"id\":\"nc03\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Alms Requests\",\"col\":3}},{\"id\":\"3RDswhPDV_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Last 7-Day Collections\",\"col\":3}},{\"id\":\"pe01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Expenses\",\"col\":3}},{\"id\":\"bud01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Budgets\",\"col\":3}},{\"id\":\"sp01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"wg52\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Weekly Giving\",\"col\":12}},{\"id\":\"ch02\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving by Fund\",\"col\":6}},{\"id\":\"ch03\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Expenses\",\"col\":6}},{\"id\":\"WmFCfAUdWf\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Budget Summary\",\"col\":12}},{\"id\":\"sp02\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch04\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Balances\",\"col\":12}},{\"id\":\"ch05\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Goal Progress\",\"col\":12}},{\"id\":\"sp03\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yscGDkihb9\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"al01\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"bg01\",\"type\":\"card\",\"data\":{\"card_name\":\"Budgets\",\"col\":4}},{\"id\":\"sp04\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iavQ4D6r7w\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"L903_mCFqf\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"GF0ykBf4ar\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Finances\",\"col\":12}},{\"id\":\"mncYXd3Fp_\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Which of you, wishing to build a tower, does not first sit down and count the cost to see if he has the resources to complete it?\\\"</i>\",\"col\":12}},{\"id\":\"nc01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Collections\",\"col\":3}},{\"id\":\"nc02\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Expenses\",\"col\":3}},{\"id\":\"nc03\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Alms Requests\",\"col\":3}},{\"id\":\"3RDswhPDV_\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Last 7-Day Collections\",\"col\":3}},{\"id\":\"pe01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Expenses\",\"col\":3}},{\"id\":\"bud01\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Budgets\",\"col\":3}},{\"id\":\"gnp01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Gifts with No Person\",\"col\":3}},{\"id\":\"sp01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"wg52\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Weekly Giving\",\"col\":12}},{\"id\":\"ch02\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving by Fund\",\"col\":6}},{\"id\":\"ch03\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Expenses\",\"col\":6}},{\"id\":\"WmFCfAUdWf\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Budget Summary\",\"col\":12}},{\"id\":\"sp02\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ch04\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Balances\",\"col\":12}},{\"id\":\"ch05\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Fund Goal Progress\",\"col\":12}},{\"id\":\"sp03\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yscGDkihb9\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"id\":\"Xwvf2HyJiA\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"hN4s7iuMS3\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"lFJ3k1PnBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Funds\",\"col\":4}},{\"id\":\"al01\",\"type\":\"card\",\"data\":{\"card_name\":\"Alms\",\"col\":4}},{\"id\":\"bg01\",\"type\":\"card\",\"data\":{\"card_name\":\"Budgets\",\"col\":4}},{\"id\":\"pl01\",\"type\":\"card\",\"data\":{\"card_name\":\"Pledges\",\"col\":4}},{\"id\":\"sp04\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iavQ4D6r7w\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"m34hRRgTkK\",\"type\":\"card\",\"data\":{\"card_name\":\"Collection Reports\",\"col\":4}},{\"id\":\"L903_mCFqf\",\"type\":\"card\",\"data\":{\"card_name\":\"Expense Reports\",\"col\":4}},{\"id\":\"gl01\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.652775",
  "custom_blocks": [],
  "docstatus": 0,
@@ -216,6 +216,74 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Pledges",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pledge Campaigns",
+   "link_count": 0,
+   "link_to": "Pledge Campaign",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pledges",
+   "link_count": 0,
+   "link_to": "Pledge",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Pledge Progress",
+   "link_count": 0,
+   "link_to": "Pledge Progress",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Accounting",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "GL Account Mappings",
+   "link_count": 0,
+   "link_to": "GL Account Mapping",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "GL Journal",
+   "link_count": 0,
+   "link_to": "GL Journal",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Collection Reports",
    "link_count": 6,
    "link_type": "DocType",
@@ -260,6 +328,17 @@
    "link_to": "First-Time Givers",
    "link_type": "Report",
    "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Lapsed Givers",
+   "link_count": 0,
+   "link_to": "Lapsed Givers",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Person",
    "type": "Link"
   },
   {
@@ -312,7 +391,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-23 17:47:17.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",
@@ -365,6 +444,15 @@
    "label": "Fund Goals",
    "link_to": "Fund Goals",
    "type": "Dashboard"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "format": "{} to link",
+   "label": "Gifts with No Person",
+   "link_to": "Online Donation",
+   "stats_filter": "[[\"Online Donation\", \"status\", \"=\", \"Paid\"], [\"Online Donation\", \"person\", \"is\", \"not set\"]]",
+   "type": "DocType"
   }
  ],
  "standard": 1,

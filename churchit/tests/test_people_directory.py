@@ -75,16 +75,17 @@ class TestPeopleDirectory(FrappeTestCase):
 		person.alergies = "_Test Directory Edit"
 		person.save()
 
-	def test_a_person_can_join_another_churchs_family(self):
-		"""The roster follows the person, so editing the person is the right that counts."""
+	def test_reading_another_churchs_family_does_not_let_a_person_join_it(self):
+		"""A household Adult may collect its children, so only a user who sees both churches joins them."""
 		frappe.set_user(self.manager_b)
 		person = frappe.get_doc("Person", self.person_b)
 		person.family = self.family_a.name
-		person.save()
+		with self.assertRaises(frappe.PermissionError):
+			person.save()
 		frappe.set_user("Administrator")
 
 		members = [row.member for row in frappe.get_doc("Family", self.family_a.name).members]
-		self.assertIn(self.person_b, members)
+		self.assertNotIn(self.person_b, members)
 
 	def test_editing_the_church_field_cannot_take_a_person_over(self):
 		frappe.set_user(self.manager_b)

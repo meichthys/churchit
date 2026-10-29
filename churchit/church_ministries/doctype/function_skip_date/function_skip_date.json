@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "creation": "2026-10-22 17:25:00.000000",
+ "description": "A date a recurring Function does not happen on.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reason"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-22 17:25:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Function Skip Date",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,157 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ sermon.title | e }}{% endblock %}
+{% block header %}<h1>{{ sermon.title | e }}</h1>{% endblock %}
+
+{% block page_content %}
+<div class="sermon-page">
+	<p class="text-muted">
+		{{- [
+			frappe.utils.formatdate(sermon.sermon_date) if sermon.sermon_date else "",
+			sermon.scripture,
+			preacher,
+			_("Series: {0}").format(series.series_name) if series else "",
+		] | select | map("e") | join(" &middot; ") -}}
+	</p>
+
+	{% if series and series.image and not series.image.startswith("/private/") %}
+	<img class="sermon-series-image" src="{{ series.image | e }}" alt="{{ series.series_name | e }}">
+	{% endif %}
+
+	{% if embed_url %}
+	<iframe src="{{ embed_url | e }}" class="sermon-video" title="{{ sermon.title | e }}"
+		allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+	{% elif sermon.media_url and sermon.media_url.startswith("https://") %}
+	<p><a href="{{ sermon.media_url | e }}" target="_blank" rel="noopener">{{ _("Watch the video") }}</a></p>
+	{% endif %}
+
+	{% if sermon.audio_recording and not sermon.audio_recording.startswith("/private/") %}
+	<audio controls class="sermon-audio" src="{{ sermon.audio_recording | e }}"></audio>
+	{% endif %}
+
+	{% if notes %}<div class="sermon-notes">{{ notes }}</div>{% endif %}
+
+	{% if handout %}
+	<section class="listener-notes" data-sermon-notes="{{ sermon.name | e }}">
+		<h2>{{ _("Sermon Notes") }}</h2>
+		<div class="listener-outline">{{ handout }}</div>
+		<label for="listener-notes-text">{{ _("My Notes") }}</label>
+		<textarea id="listener-notes-text" class="form-control" rows="6"></textarea>
+		<div class="listener-notes-print"></div>
+		<p class="small text-muted">{{ _("Your notes stay in this browser. They are not sent to the church.") }}</p>
+		<div class="listener-actions">
+			<button type="button" class="btn btn-default btn-sm" data-notes-print>{{ _("Print") }}</button>
+			<button type="button" class="btn btn-default btn-sm" data-notes-copy>{{ _("Copy") }}</button>
+		</div>
+	</section>
+	{% endif %}
+
+	{% if "sermons" not in get_switched_off_pages() %}
+	<p class="sermon-back"><a href="/sermons">&larr; {{ _("All sermons") }}</a></p>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+	.sermon-page { max-width: 48rem; margin: 0 auto; }
+	.sermon-series-image { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; }
+	.sermon-video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; margin-bottom: 1rem; }
+	.sermon-audio { width: 100%; margin-bottom: 1rem; }
+	.sermon-notes { margin-bottom: 2rem; }
+	.listener-notes { border-top: 1px solid var(--border-color, #ddd); padding-top: 1.5rem; margin-bottom: 2rem; }
+	.listener-notes h2 { font-size: 1.5rem; margin-top: 0; }
+	.listener-outline { line-height: 2; margin-bottom: 1rem; }
+	.listener-outline .handout-blank { width: auto; max-width: 100%; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; padding: 0 4px; }
+	.listener-actions { display: flex; gap: 8px; margin-top: 8px; }
+	.sermon-back { margin-top: 2rem; }
+	.listener-notes-print { display: none; white-space: pre-wrap; }
+	@media print {
+		/* Hide all but the notes and the elements that hold them, so no blank page is left. */
+		body *:not(:has(.listener-notes)):not(.listener-notes):not(.listener-notes *) { display: none; }
+		.listener-notes { border: 0; }
+		/* Paper is white in every theme, so the dark theme's light text must not print. */
+		.listener-notes, .listener-notes * { color: #000 !important; }
+		.listener-notes .small, .listener-actions, .listener-notes textarea { display: none; }
+		/* A textarea does not grow on paper, so its text prints from a copy. */
+		.listener-notes .listener-notes-print { display: block; }
+	}
+</style>
+{% endblock %}
+
+{% block script %}
+{% if handout %}
+<script>
+(function () {
+	var box = document.querySelector("[data-sermon-notes]");
+	var key = "churchit:sermon-notes:" + box.getAttribute("data-sermon-notes");
+	var blanks = box.querySelectorAll(".handout-blank");
+	var text = box.querySelector("textarea");
+	var printed = box.querySelector(".listener-notes-print");
+
+	function load() {
+		try {
+			return JSON.parse(localStorage.getItem(key)) || {};
+		} catch (e) {
+			return {};
+		}
+	}
+
+	function save() {
+		var entries = {
+			blanks: Array.prototype.map.call(blanks, function (input) { return input.value; }),
+			notes: text.value,
+		};
+		try {
+			localStorage.setItem(key, JSON.stringify(entries));
+		} catch (e) {
+			// Private windows can refuse storage; the page still works for this visit.
+		}
+	}
+
+	function as_text() {
+		var outline = box.querySelector(".listener-outline").cloneNode(true);
+		outline.querySelectorAll(".handout-blank").forEach(function (input, index) {
+			input.replaceWith(blanks[index].value || "____");
+		});
+		// innerText keeps the line breaks only for an element on the page.
+		outline.style.cssText = "position: absolute; left: -9999px;";
+		document.body.appendChild(outline);
+		var lines = outline.innerText.trim();
+		outline.remove();
+		return [lines, text.value.trim()].filter(Boolean).join("\n\n");
+	}
+
+	var saved = load();
+	(saved.blanks || []).forEach(function (value, index) {
+		if (blanks[index]) blanks[index].value = value;
+	});
+	text.value = saved.notes || "";
+	printed.textContent = text.value;
+	box.addEventListener("input", function () {
+		printed.textContent = text.value;
+		save();
+	});
+
+	box.querySelector("[data-notes-print]").addEventListener("click", function () {
+		window.print();
+	});
+	box.querySelector("[data-notes-copy]").addEventListener("click", function (event) {
+		var button = event.currentTarget;
+		try {
+			navigator.clipboard.writeText(as_text()).then(
+				function () {
+					button.textContent = {{ _("Copied") | tojson }};
+				},
+				function () {
+					button.textContent = {{ _("Copy failed") | tojson }};
+				}
+			);
+		} catch (e) {
+			button.textContent = {{ _("Copy failed") | tojson }};
+		}
+	});
+})();
+</script>
+{% endif %}
+{% endblock %}

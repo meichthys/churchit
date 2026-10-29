@@ -16,8 +16,10 @@ update_website_context = "churchit.church_website.context.update_website_context
 before_request = ["churchit.church_website.context.before_request"]
 
 fixtures = [
-	{"dt": "Custom DocPerm", "filters": [["Role", "like", "Church%"]]},
-	{"dt": "Custom Field", "filters": [["dt", "in", ["Contact Us Settings", "Portal Settings"]]]},
+	{
+		"dt": "Custom Field",
+		"filters": [["dt", "in", ["Communication", "Contact Us Settings", "Portal Settings"]]],
+	},
 	{
 		"dt": "Property Setter",
 		"filters": [
@@ -27,7 +29,6 @@ fixtures = [
 				[
 					"About Us Settings",
 					"Contact Us Settings",
-					"Newsletter",
 					"Website Settings",
 				],
 			]
@@ -73,6 +74,8 @@ app_include_js = [
 	"/assets/churchit/js/contact_tables.js",
 	"/assets/churchit/js/name_tags.js",
 	"/assets/churchit/js/bible_reference.js",
+	"/assets/churchit/js/questions.js",
+	"/assets/churchit/js/merge_choices.js",
 ]
 
 # include js, css files in header of web template
@@ -85,6 +88,7 @@ web_include_js = [
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
 	"/assets/churchit/js/pwa.js",
+	"/assets/churchit/js/questions.js",
 ]
 
 # include js, css files in header of web form
@@ -100,6 +104,8 @@ doctype_js = {
 	"Payment Gateway": "public/js/payment_gateway.js",
 	# Offers to un-publish the Web Page behind a removed navbar/footer link.
 	"Website Settings": "public/js/website_settings.js",
+	# A QR code of a web form's address, to print on a bulletin or a welcome card.
+	"Web Form": "public/js/web_form_qr.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -118,10 +124,28 @@ app_include_icons = ["/assets/churchit/icons/church.svg"]
 
 website_redirects = [
 	{"source": "/index", "target": "/home"},
-	# Newsletters are member-only, managed via the portal (/newsletter-subscription)
+	# Newsletters are member-only, managed via the portal (/preferences)
 	# and delivered by email. Keep the public Frappe newsletter web view off the site.
 	{"source": r"/newsletters.*", "target": "/home"},
+	# The preferences page replaced the newsletter subscription page.
+	{"source": "/newsletter-subscription", "target": "/preferences"},
 ]
+
+# One page per published sermon. A sermon name can hold a slash.
+website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
+
+# Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
+# cache run, and members-only Web Pages send guests to the login page.
+page_renderer = [
+	"churchit.church_website.pages.SwitchedOffPage",
+	"churchit.church_website.pages.MembersOnlyPage",
+]
+
+# A members-only Web Page stays out of guest search, and a switched-off web form takes no submission.
+extend_doctype_class = {
+	"Web Page": ["churchit.church_website.pages.MembersOnlyWebPage"],
+	"Web Form": ["churchit.church_website.pages.SwitchedOffWebForm"],
+}
 
 # website user home page (by Role)
 # role_home_page = {
@@ -139,19 +163,27 @@ website_redirects = [
 
 jinja = {
 	"methods": [
+		"churchit.church_communications.consent.consent_renewal_link",
 		"churchit.church_finances.doctype.giving_statement.giving_statement.statement_header",
 		"churchit.church_foundations.doctype.church.church.church_name",
 		"churchit.church_foundations.doctype.church.church.get_church",
 		"churchit.church_foundations.doctype.church.church.get_letterhead_church",
+		"churchit.church_people.household.salutation",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		"churchit.church_website.pages.get_switched_off_pages",
 		"churchit.scripture.get_passage_text",
+		"churchit.www.podcast.get_feed_url",
+		# The Member QR Card print format draws its code with Frappe's own QR function.
+		"frappe.utils.print_format_generator.get_qr_code",
 	]
 }
 
 # Installation
 # ------------
 
+# Frappe keeps one doctype per name, so refuse a site where another app shares one of ours.
+before_install = "churchit.church_setup.app_clashes.refuse_clashing_installed_apps"
 after_install = "churchit.patches.after_install.execute"
 
 # Workspaces ship as standard records, so migrate re-imports them and resets the
@@ -160,8 +192,12 @@ after_migrate = ["churchit.church_setup.doctype.church_features.church_features.
 
 # Frappe collects the login notes on `on_login`, which runs before the session
 # is the user's, so it stores them for Guest and the desk shows none. Collect
-# them again once the session belongs to the user.
-on_session_creation = ["frappe.desk.doctype.note.note._get_unseen_notes"]
+# them again once the session belongs to the user. A Website User's first login
+# also links the account to their Person.
+on_session_creation = [
+	"frappe.desk.doctype.note.note._get_unseen_notes",
+	"churchit.church_people.accounts.link_portal_user",
+]
 
 setup_wizard_requires = "/assets/churchit/js/setup_wizard.js"
 
@@ -180,8 +216,7 @@ setup_wizard_complete = [
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "churchit.utils.before_app_install"
-# after_app_install = "churchit.utils.after_app_install"
+before_app_install = "churchit.church_setup.app_clashes.refuse_clashing_app"
 
 # Integration Cleanup
 # -------------------
@@ -219,26 +254,104 @@ has_permission = {
 		"churchit.church_scope.refuse_changing_another_churches_people",
 		"churchit.church_people.member_access.refuse_other_people_to_members",
 	],
-	"Family": "churchit.church_scope.refuse_changing_another_churches_people",
+	"Family": [
+		"churchit.church_scope.refuse_changing_another_churches_people",
+		"churchit.church_people.member_access.refuse_other_families_to_members",
+	],
+	"Person Note": "churchit.church_people.notes.has_note_permission",
+	"Prayer Request": "churchit.church_prayers.prayer_access.has_prayer_permission",
+	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
+	"Group File": "churchit.church_people.member_access.has_group_file_permission",
+	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
 }
 
-# A portal member lists only their own Person. Church scoping never uses this.
+# A portal member lists only their own Person, a Note Category limits who reads its
+# notes, the follow-up role lists only the cards assigned to it, and a portal member
+# lists only the files of their own groups, and a user lists only their own push
+# subscriptions. Church scoping never uses this.
 permission_query_conditions = {
 	"Person": "churchit.church_people.member_access.person_query_conditions",
+	"Family": "churchit.church_people.member_access.family_query_conditions",
+	"Prayer Request": "churchit.church_prayers.prayer_access.prayer_query_conditions",
+	"Person Note": "churchit.church_people.notes.note_query_conditions",
+	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
+	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
+	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 }
 
-# Every doctype with a `church` Link gets it defaulted (or refused) on save, a
+# A person's notes show on their timeline, to the users who may read them.
+additional_timeline_content = {"Person": ["churchit.church_people.notes.get_timeline_notes"]}
+
+# Follow-up workflows that start when a person's membership changes or a life event is added.
+churchit_people_events = {
+	"membership_changed": ["churchit.church_people.followup.on_membership_changed"],
+	"life_event_added": ["churchit.church_people.followup.on_life_event_added"],
+}
+
+# Every doctype with a `church` Link gets it defaulted (or refused) on save, and
+# only a user who can see a record's stored church saves, cancels or updates it, a
 # new login is scoped to the church it was created in rather than seeing them all,
-# a desk user opens Summary after login, and publishing, un-publishing or deleting
-# a Web Page adds it to or removes it from the menu.
+# a desk user opens Summary after login, publishing, un-publishing or deleting
+# a Web Page adds it to or removes it from the menu, a saved or deleted record
+# queues a refresh of the person summary fields it changes, a deleted person
+# takes their Possible Duplicate pairs along, an approved data deletion request
+# anonymizes the member's Person, a church's record is never shared (or assigned,
+# which shares it) with a user outside that church, and a bounce report that reaches
+# the inbox marks the address it names.
 doc_events = {
 	"*": {
 		"validate": "churchit.church_scope.ensure_church",
-		"on_trash": "churchit.church_scope.refuse_deleting_another_churches_record",
+		"before_cancel": "churchit.church_scope.refuse_changing_another_churches_record",
+		"before_update_after_submit": "churchit.church_scope.refuse_changing_another_churches_record",
+		"on_update": "churchit.church_people.summaries.on_change",
+		"on_cancel": "churchit.church_people.summaries.on_change",
+		"on_trash": [
+			"churchit.church_scope.refuse_deleting_another_churches_record",
+			"churchit.church_people.summaries.on_change",
+		],
+	},
+	"Address": {
+		"on_update": "churchit.church_people.geocoding.queue_geocode",
+	},
+	"Communication": {
+		"after_insert": "churchit.church_communications.bounces.record_bounce",
+	},
+	"DocShare": {
+		"validate": "churchit.church_foundations.church_access.refuse_sharing_outside_the_church",
+	},
+	"Email Unsubscribe": {
+		"after_insert": "churchit.church_communications.consent.record_unsubscribe",
+	},
+	"File": {
+		"before_insert": "churchit.church_people.member_access.make_group_files_private",
+	},
+	"Function Check-In": {
+		"after_insert": "churchit.church_people.followup.on_check_in",
+	},
+	"Function Sign-Up": {
+		"on_update": "churchit.church_people.followup.on_sign_up",
+	},
+	"Group": {
+		"on_trash": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.clear_group",
+	},
+	"Person": {
+		"on_trash": "churchit.church_people.duplicates.drop_pairs",
+	},
+	"ToDo": {
+		"after_insert": "churchit.church_operations.doctype.church_task.church_task.on_assignment",
+		"validate": "churchit.church_operations.doctype.church_task.church_task.refuse_moved_assignment",
+	},
+	"Web Form Request": {
+		"validate": "churchit.church_people.details_link.close_details_request",
+	},
+	"Personal Data Deletion Request": {
+		"on_change": "churchit.church_people.privacy.anonymize_on_data_deletion",
 	},
 	"User": {
 		"validate": "churchit.church_summary.home.land_on_summary",
 		"after_insert": "churchit.church_foundations.church_access.scope_new_user",
+		"on_update": "churchit.church_communications.push.delete_user_subscriptions",
+		"on_trash": "churchit.church_communications.push.delete_user_subscriptions",
 	},
 	"Web Page": {
 		"on_update": "churchit.church_website.menu.sync_web_page",
@@ -247,7 +360,11 @@ doc_events = {
 }
 
 # Desk: whether multi-church is on and whether the user may include branches.
-extend_bootinfo = ["churchit.church_scope.extend_bootinfo", "churchit.scripture.extend_bootinfo"]
+extend_bootinfo = [
+	"churchit.church_scope.extend_bootinfo",
+	"churchit.scripture.extend_bootinfo",
+	"churchit.church_communications.staff_chat.extend_bootinfo",
+]
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed.
@@ -273,12 +390,28 @@ standard_navbar_items = [
 
 scheduler_events = {
 	"daily": [
-		"churchit.church_ministries.doctype.function.function.create_scheduled_functions",
-		"churchit.church_communications.newsletter.sync_member_email_group",
+		"churchit.church_ministries.recurrence.create_scheduled_functions",
+		"churchit.church_ministries.attendance.refresh_started_totals",
+		"churchit.church_finances.doctype.online_donation.online_donation.alert_unrecorded_gifts",
 		"churchit.church_missions.doctype.missionary.missionary.create_missionary_expenses",
 		"churchit.church_people.doctype.background_check.background_check.expire_background_checks",
+		"churchit.church_people.derived.refresh_daily",
+		"churchit.church_people.summaries.refresh_daily",
 		"churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment.send_team_emails",
+		"churchit.church_people.followup.wake_snoozed_cards",
+		"churchit.church_people.followup.start_smart_list_cards",
+		"churchit.church_people.privacy.remove_due_personal_data",
+		"churchit.church_people.group_meetings.send_attendance_reminders",
+		"churchit.church_ministries.doctype.function_sign_up.function_sign_up.send_reminders",
+		"churchit.church_summary.metrics.record_recent_weeks",
 	],
+	"weekly_long": ["churchit.church_people.duplicates.scan"],
+	"cron": {
+		"*/5 * * * *": [
+			"churchit.church_communications.doctype.church_email.church_email.send_scheduled",
+			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.release_expired_holds",
+		],
+	},
 }
 
 
@@ -289,11 +422,35 @@ scheduler_events = {
 
 # Overriding Methods
 # ------------------------------
-#
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "churchit.event.get_events"
-# }
-#
+
+# Connection counts on a form cover only the records the reader may see, and Data Import's
+# Export Data writes an Access Log entry like Frappe's other exports.
+override_whitelisted_methods = {
+	# The payments app replaces Frappe's web form save with an older copy that ignores Web Form
+	# Request keys, skips the form's own checks and inserts whatever doctype the browser names.
+	# The last installed app wins, so this puts Frappe's own back. No Churchit web form takes payment.
+	# Remove it once frappe/payments#276 is fixed; the steps are in #272.
+	"frappe.website.doctype.web_form.web_form.accept": "frappe.website.doctype.web_form.web_form.accept",
+	"frappe.desk.notifications.get_open_count": "churchit.connections.get_open_count",
+	"frappe.core.doctype.data_import.data_import.download_template": "churchit.exports.download_template",
+	# Frappe's portal list API lists every published Web Page to any signed-in user; this one leaves
+	# out members-only pages for a non-member.
+	"frappe.www.list.get_list_data": "churchit.church_website.pages.get_list_data",
+}
+
+# A Person Link field also finds people by phone number or email address.
+standard_queries = {"Person": "churchit.church_people.search.search_people"}
+
+# Data Import targets that read another system's people export, or Churchit's own spreadsheet,
+# and build Address, Family and Person records from each row.
+data_import_providers = {
+	"People Import": "churchit.church_people.imports.people.PeopleImportProvider",
+	"Planning Center Import": "churchit.church_people.imports.planning_center.PlanningCenterImportProvider",
+	"Rock RMS Import": "churchit.church_people.imports.rock_rms.RockRMSImportProvider",
+	"Breeze Import": "churchit.church_people.imports.breeze.BreezeImportProvider",
+	"Giving Import": "churchit.church_finances.imports.giving.GivingImportProvider",
+}
+
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
@@ -306,7 +463,7 @@ override_doctype_dashboards = {"User": "churchit.church_people.doctype.person.pe
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+ignore_links_on_delete = ["Person Group", "Person Ministry Team", "Person Team Position"]
 
 # Request Events
 # ----------------
@@ -321,26 +478,12 @@ override_doctype_dashboards = {"User": "churchit.church_people.doctype.person.pe
 # User Data Protection
 # --------------------
 
-# user_data_fields = [
-# 	{
-# 		"doctype": "{doctype_1}",
-# 		"filter_by": "{filter_by}",
-# 		"redact_fields": ["{field_1}", "{field_2}"],
-# 		"partial": 1,
-# 	},
-# 	{
-# 		"doctype": "{doctype_2}",
-# 		"filter_by": "{filter_by}",
-# 		"partial": 1,
-# 	},
-# 	{
-# 		"doctype": "{doctype_3}",
-# 		"strict": False,
-# 	},
-# 	{
-# 		"doctype": "{doctype_4}"
-# 	}
-# ]
+# A member's data download includes their Person. Their email rows are left out: Frappe matches a row by the
+# address alone, so it would download, and a deletion would redact, a spouse's or a family's row of a shared
+# address. A deletion request anonymizes the whole Person through doc_events instead.
+user_data_fields = [
+	{"doctype": "Person", "filter_by": "user"},
+]
 
 # Authentication and authorization
 # --------------------------------

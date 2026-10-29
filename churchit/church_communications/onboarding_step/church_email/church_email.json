@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Write a Church Email",
+ "creation": "2026-10-16 00:00:00.000000",
+ "description": "Send one email to everyone whose Status is Active, to the active members only, or to a Group. Each person gets their own copy with a link to unsubscribe, and who receives it is worked out when you send it.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Church Email",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Church Email",
+ "owner": "Administrator",
+ "reference_document": "Church Email",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Church Emails",
+ "validate_action": 1
+}

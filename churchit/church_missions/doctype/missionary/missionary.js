@@ -39,28 +39,26 @@ frappe.ui.form.on("Missionary", {
 		}).appendTo(grid.grid_buttons);
 	},
 
-	// Same nominatim geocoding pattern as Location.address (church_operations/doctype/location/location.js).
+	// The server looks the country up, so People Settings can turn it off, as for Location.address.
 	// Only fills an empty pin, so a manually placed one is never overwritten.
 	country(frm) {
 		if (!frm.doc.country || frm.doc.geolocation) return;
 
-		const query = encodeURIComponent(frm.doc.country);
-		fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-			headers: { "Accept-Language": "en" },
-		})
-			.then((r) => r.json())
-			.then((results) => {
-				if (!results.length || frm.doc.geolocation) return;
-				const { lat, lon } = results[0];
+		frappe
+			.xcall(
+				"churchit.church_missions.doctype.missionary.missionary.get_country_coordinates",
+				{
+					country: frm.doc.country,
+				}
+			)
+			.then(([latitude, longitude]) => {
+				if ((!latitude && !longitude) || frm.doc.geolocation) return;
 				const geojson = JSON.stringify({
 					type: "FeatureCollection",
 					features: [
 						{
 							type: "Feature",
-							geometry: {
-								type: "Point",
-								coordinates: [parseFloat(lon), parseFloat(lat)],
-							},
+							geometry: { type: "Point", coordinates: [longitude, latitude] },
 							properties: {},
 						},
 					],

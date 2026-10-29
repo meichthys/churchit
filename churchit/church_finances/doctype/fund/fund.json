@@ -14,6 +14,7 @@
   "shared_by_church",
   "description",
   "allow_giving",
+  "is_tax_deductible",
   "column_break_ojjy",
   "start_date",
   "end_date",
@@ -75,6 +76,13 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Allow giving to this fund"
+  },
+  {
+   "default": "1",
+   "description": "Untick for a fund whose gifts are not tax deductible, for example a pass-through collection. Its gifts are left off giving statements.",
+   "fieldname": "is_tax_deductible",
+   "fieldtype": "Check",
+   "label": "Tax Deductible"
   },
   {
    "fieldname": "column_break_ojjy",
@@ -141,7 +149,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-24 00:07:42.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",
@@ -183,6 +191,10 @@
    "role": "Church Finance",
    "select": 1,
    "write": 1
+  },
+  {
+   "role": "Church People Editor",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

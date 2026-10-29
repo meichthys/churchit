@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.web_form.web_form import has_link_option, process_link_field
+from frappe.website.doctype.web_form.web_form import accept, has_link_option, process_link_field
 
 from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
 	get_function_sign_up_items,
@@ -57,6 +57,60 @@ class TestPortalMembers(FrappeTestCase):
 		person.membership_status = "Inactive"
 		with self.assertRaises(frappe.PermissionError):
 			person.save()
+
+	def test_a_member_neither_reads_nor_changes_their_medical_notes(self):
+		frappe.db.set_value("Person", self.own.name, "medical_notes", "_Test Private")
+		frappe.set_user(self.member)
+		person = frappe.get_doc("Person", self.own.name)
+		person.medical_notes = "_Test Changed"
+		person.save()
+		self.assertEqual(frappe.db.get_value("Person", self.own.name, "medical_notes"), "_Test Private")
+
+		person.reload()
+		person.apply_fieldlevel_read_permissions()
+		self.assertIsNone(person.get("medical_notes"))
+
+	def test_the_personal_details_page_sends_only_its_own_fields(self):
+		"""Frappe gives a signed-in visitor's page the whole record, the office's fields included."""
+		frappe.db.set_value(
+			"Person", self.own.name, {"legacy_id": "_Test Office ID", "medical_notes": "_Test Private"}
+		)
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.set_user(self.member)
+		frappe.local.form_dict = frappe._dict(name=self.own.name, is_edit=1)
+		frappe.local.path = f"personal-details/{self.own.name}/edit"
+
+		context = frappe._dict()
+		frappe.get_doc("Web Form", "personal-details").get_context(context)
+
+		self.assertEqual(context.reference_doc["name"], self.own.name)
+		self.assertIn("first_name", context.reference_doc)
+		self.assertNotIn("legacy_id", context.reference_doc)
+		self.assertNotIn("medical_notes", context.reference_doc)
+
+	def test_a_member_cannot_add_a_person(self):
+		"""Frappe's web form saves a new record without checking the member's rights."""
+		frappe.set_user(self.member)
+		before = frappe.db.count("Person")
+
+		with self.assertRaises(frappe.PermissionError):
+			accept(
+				"personal-details",
+				frappe.as_json({"doctype": "Person", "first_name": "_Test", "last_name": "Newcomer"}),
+			)
+		self.assertEqual(frappe.db.count("Person"), before)
+
+	def test_personal_details_opens_the_members_own_record_instead_of_a_new_one(self):
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.set_user(self.member)
+		frappe.local.form_dict = frappe._dict(is_new=1)
+		frappe.local.path = "personal-details/new"
+		web_form = frappe.get_doc("Web Form", "personal-details")
+
+		self.assertFalse(web_form.allow_multiple)
+		with self.assertRaises(frappe.Redirect):
+			web_form.get_context(frappe._dict())
+		self.assertEqual(frappe.local.flags.redirect_location, f"/personal-details/{self.own.name}/edit")
 
 	def test_the_recipient_search_offers_names_from_the_members_church(self):
 		frappe.set_user(self.member)
@@ -122,6 +176,21 @@ class TestPortalMembers(FrappeTestCase):
 			name
 			for name in forms
 			if has_link_option(frappe.get_doc("Web Form", name).web_form_fields, "Person")
+		]
+		self.assertEqual(linking, [])
+
+	def test_no_guest_form_links_to_a_church_or_person(self):
+		"""A guest form renders every record of a linked doctype, unpublished churches included."""
+		forms = frappe.get_all(
+			"Web Form", filters={"login_required": 0, "module": ("like", "Church%")}, pluck="name"
+		)
+		linking = [
+			name
+			for name in forms
+			if any(
+				has_link_option(frappe.get_doc("Web Form", name).web_form_fields, doctype)
+				for doctype in ("Church", "Person")
+			)
 		]
 		self.assertEqual(linking, [])
 

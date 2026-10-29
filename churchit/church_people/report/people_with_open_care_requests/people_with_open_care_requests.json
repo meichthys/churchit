@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-10-18 10:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{\"filters\": [[\"Person\", \"is_deceased\", \"=\", 0], [\"Person\", \"open_care_requests\", \">\", 0]], \"fields\": [[\"name\", \"Person\"], [\"docstatus\", \"Person\"], [\"full_name\", \"Person\"], [\"family\", \"Person\"], [\"membership\", \"Person\"], [\"open_care_requests\", \"Person\"], [\"last_visited_on\", \"Person\"], [\"last_attended_on\", \"Person\"]], \"order_by\": \"`tabPerson`.`last_visited_on` asc, `tabPerson`.`name` asc\", \"add_totals_row\": 0, \"page_length\": 100, \"column_widths\": {\"name\": 120, \"full_name\": 120, \"family\": 120, \"membership\": 120, \"open_care_requests\": 120, \"last_visited_on\": 120, \"last_attended_on\": 120}, \"group_by\": null}",
+ "letterhead": null,
+ "modified": "2026-10-18 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "People with Open Care Requests",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Person",
+ "report_name": "People with Open Care Requests",
+ "report_type": "Report Builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Pastoral Care"
+  }
+ ],
+ "timeout": 0
+}

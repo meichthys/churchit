@@ -1,11 +1,10 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce, Count
-from pypika.terms import LiteralValue
 
+from churchit.church_people.derived import has_known_age
 from churchit.church_people.membership import is_active_member
 from churchit.church_scope import scoped
-from churchit.query import CurDate, TimestampDiff
 
 AGE_BUCKETS = (
 	("0-12 (Children)", 0, 12),
@@ -18,7 +17,7 @@ AGE_BUCKETS = (
 
 
 def execute(filters=None):
-	return get_columns(), get_data()
+	return get_columns(), get_data(filters)
 
 
 def get_columns():
@@ -43,34 +42,22 @@ def _tally(label, counts_by_gender):
 
 def get_data(filters=None):
 	Person = frappe.qb.DocType("Person")
-	LifeEvent = frappe.qb.DocType("Life Event")
-
-	birth_event = (
-		(LifeEvent.parent == Person.name)
-		& (LifeEvent.parenttype == "Person")
-		& (LifeEvent.event_type == "Birth")
-	)
-	age = TimestampDiff(LiteralValue("YEAR"), LifeEvent.date, CurDate())
 	gender_counts = (Coalesce(Person.gender, "Other").as_("gender"), Count("*").as_("cnt"))
 
 	rows = []
 	for label, low, high in AGE_BUCKETS:
 		bucket = (
 			frappe.qb.from_(Person)
-			.join(LifeEvent)
-			.on(birth_event)
 			.select(*gender_counts)
-			.where(is_active_member(Person) & LifeEvent.date.isnotnull() & age[low:high])
+			.where(is_active_member(Person) & has_known_age(Person) & Person.age[low:high])
 			.groupby(Person.gender)
 		)
 		rows.append(_tally(label, scoped(bucket, Person, filters).run(as_dict=True)))
 
 	unknown_query = (
 		frappe.qb.from_(Person)
-		.left_join(LifeEvent)
-		.on(birth_event)
 		.select(*gender_counts)
-		.where(is_active_member(Person) & LifeEvent.date.isnull())
+		.where(is_active_member(Person) & ~has_known_age(Person))
 		.groupby(Person.gender)
 	)
 	unknown = scoped(unknown_query, Person, filters).run(as_dict=True)

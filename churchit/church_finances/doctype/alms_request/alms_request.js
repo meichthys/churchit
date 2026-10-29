@@ -13,38 +13,19 @@ frappe.ui.form.on("Alms Request", {
 		}
 	},
 	refresh(frm) {
-		// Add a custom button that creates an Expense from the Alms Request, for whoever keeps the books
-		if (!frm.is_new() && frappe.model.can_create("Expense")) {
+		// One expense per request, for whoever keeps the books
+		if (!frm.is_new() && !frm.doc.associated_expense && frappe.model.can_create("Expense")) {
 			frm.add_custom_button(__("Create Expense"), function () {
-				if (frm.doc.associated_expense) {
-					frappe.db
-						.get_value("Expense", frm.doc.associated_expense, "title")
-						.then((r) => {
-							const title = r.message.title || frm.doc.associated_expense;
-							frappe.confirm(
-								`An expense (<a href="/app/expense/${frm.doc.associated_expense}" target="_blank">${title}</a>) already exists for this alms request. Create another?`,
-								function () {
-									frappe.call({
-										method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-										args: { alms_request_name: frm.doc.name },
-										callback: function () {
-											frm.reload_doc();
-										},
-									});
-								}
-							);
-						});
-				} else {
-					frappe.call({
-						method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-						args: { alms_request_name: frm.doc.name },
-						callback: function () {
-							frm.reload_doc();
-						},
-					});
-				}
+				frappe.call({
+					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
+					args: { alms_request_name: frm.doc.name },
+					callback: function () {
+						frm.reload_doc();
+					},
+				});
 			});
 		}
+		add_case_note_buttons(frm);
 	},
 	onload: function (frm) {
 		// Pre-populate the requestor field with the current user's name
@@ -77,3 +58,41 @@ frappe.ui.form.on("Alms Request", {
 		}
 	},
 });
+
+// Benevolence case notes are Person Notes on the recipient, or on a Family's primary contact.
+// The server says whether the user may read or add a Benevolence note.
+function add_case_note_buttons(frm) {
+	const onload = frm.doc.__onload || {};
+	if (frm.is_new() || !frm.doc.recipient || !onload.can_read_case_notes) return;
+	const group = __("Case Notes");
+	frm.add_custom_button(
+		__("View Case Notes"),
+		async () => {
+			const person = await get_case_note_person(frm);
+			frappe.set_route("List", "Person Note", { person, category: "Benevolence" });
+		},
+		group
+	);
+	if (!onload.can_add_case_notes) return;
+	frm.add_custom_button(
+		__("Add Case Note"),
+		async () => {
+			const note = frappe.model.get_new_doc("Person Note");
+			note.person = await get_case_note_person(frm);
+			note.category = "Benevolence";
+			const set_category_query = (dialog) => {
+				dialog.fields_dict.category.get_query = () => ({
+					query: "churchit.church_people.notes.search_categories_to_add",
+				});
+			};
+			frappe.ui.form.make_quick_entry("Person Note", null, set_category_query, note, true);
+		},
+		group
+	);
+}
+
+async function get_case_note_person(frm) {
+	if (frm.doc.recipient_type === "Person") return frm.doc.recipient;
+	const { message } = await frappe.db.get_value("Family", frm.doc.recipient, "primary_contact");
+	return message?.primary_contact || frm.doc.requestor;
+}

@@ -20,10 +20,6 @@
 			if (link.hasAttribute("download")) return;
 			link.search = "?church=" + encodeURIComponent(church);
 		});
-		// A guest has no church of their own, so a form they submit belongs to the
-		// church whose page took it. Members keep their own; the field is absent there.
-		if (frappe.web_form && frappe.web_form.fields_dict.church) {
-			frappe.web_form.set_value("church", church);
-		}
+		// A web form's own `church` field needs nothing here: Frappe fills fields from the query string.
 	});
 })();

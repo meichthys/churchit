@@ -1,0 +1,7 @@
+Breeze ID,First Name,Last Name,Middle Name,Nickname,Street Address,City,State,Zip,Home,Mobile,Work,Email,Status,Gender,Birthdate,Marital Status,Family,Family Role,Grade
+31003,Micah,Hartwell,,,14 Juniper Lane,Cody,WY,82414,(307) 555-0230,,,,Member,Male,03/22/2015,,8801,Child,5
+31001,Samuel,Hartwell,Lee,Sam,14 Juniper Lane,Cody,WY,82414,(307) 555-0230,(307) 555-0231,(307) 555-0239,sam.hartwell@example.com,Member,Male,11/02/1981,Married,8801,Head of Household,
+31002,Leah,Hartwell,,,14 Juniper Lane,Cody,WY,82414,(307) 555-0230,(307) 555-0232,,leah.hartwell@example.com,Member,Female,07/19/1983,Married,8801,Spouse,
+31010,Owen,Hartwell,,,3 Sagebrush Court,Cody,WY,82414,,(307) 555-0240,,owen.hartwell@example.com,Visitor,Male,01/30/1990,Single,8802,Head of Household,
+31011,Ivy,Hartwell,,,3 Sagebrush Court,Cody,WY,82414,,,,,Visitor,Female,09/05/2018,,8802,Child,1
+31012,Hazel,Hartwell,,,3 Sagebrush Court,Cody,WY,82414,,,,,Visitor,Female,04/14/1950,Widowed,8802,Unassigned,

@@ -1,0 +1,35 @@
+{
+ "actions": [],
+ "creation": "2026-10-23 21:47:05.000000",
+ "description": "A Background Check Type that a Group requires.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "check_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "check_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Check Type",
+   "options": "Background Check Type",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-23 21:47:05.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Group Required Check",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -244,3 +244,12 @@ church.set_church_doctype_query = function (frm, fieldname, child_table) {
 	patched._churchTitlePatched = true;
 	frappe.form.formatters.Link = patched;
 })();
+
+// Frappe 16.50: ListView sets this.load_lib to a Promise, which hides MapView.load_lib(),
+// so every Map view fails (frappe/frappe#44810). Load Leaflet here until Frappe fixes it.
+frappe.views.MapView.prototype.setup_view = function () {
+	return Promise.all([
+		frappe.require("leaflet.bundle.js"),
+		frappe.require("leaflet.bundle.css"),
+	]).then(() => this.setup_map());
+};

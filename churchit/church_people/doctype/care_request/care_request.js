@@ -3,8 +3,8 @@
 
 frappe.ui.form.on("Care Request", {
 	person(frm) {
-		if (!frm.doc.person || frm.doc.assigned_to) return;
-		// If the person has a current care assignment, pre-fill Assigned To
+		if (!frm.doc.person || frm.doc.caregiver) return;
+		// If the person has a current care assignment, pre-fill Caregiver
 		// with their assigned deacon. An assignment is current when it has
 		// started and has no end date (or the end date is in the future).
 		const today = frappe.datetime.nowdate();
@@ -19,7 +19,7 @@ frappe.ui.form.on("Care Request", {
 				if (!rows || !rows.length) return;
 				const row = rows[0];
 				if (row.deacon && (!row.end_date || row.end_date >= today)) {
-					frm.set_value("assigned_to", row.deacon);
+					frm.set_value("caregiver", row.deacon);
 				}
 			});
 	},

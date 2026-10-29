@@ -10,17 +10,18 @@ rather than recreating keeps everyone who unsubscribed unsubscribed.
 
 import frappe
 
-from churchit.church_communications.newsletter import MEMBER_EMAIL_GROUP, member_email_group
 from churchit.church_scope import is_multi_church
+
+MEMBER_EMAIL_GROUP = "Church Members"
 
 
 def execute():
 	if not is_multi_church():
 		return
 
-	for church in frappe.get_all("Church", fields=["name", "abbreviation"]):
+	for church in frappe.get_all("Church", fields=["name", "abbreviation", "church_name"]):
 		old_title = f"{MEMBER_EMAIL_GROUP} - {church.abbreviation}"
-		new_title = member_email_group(church.name)
+		new_title = f"{MEMBER_EMAIL_GROUP} - {church.church_name}"
 		if old_title == new_title or not frappe.db.exists("Email Group", old_title):
 			continue
 		if frappe.db.exists("Email Group", new_title):

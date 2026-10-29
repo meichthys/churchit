@@ -109,7 +109,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Function Reports",
-   "link_count": 6,
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -160,6 +160,16 @@
    "label": "Function Sign-Up Items",
    "link_count": 0,
    "link_to": "Function Sign-Up Items",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Function Registrations",
+   "link_count": 0,
+   "link_to": "Function Registrations",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -286,7 +296,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Ministry Teams",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -330,9 +340,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Ministry Team Grid",
+   "link_count": 0,
+   "link_to": "Ministry Team Grid",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-10-13 12:00:00.000000",
+ "modified": "2026-10-27 00:31:52.000000",
  "modified_by": "mary.johnson@example.com",
  "module": "Church Ministries",
  "name": "Ministries",

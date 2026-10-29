@@ -10,9 +10,15 @@
  "field_order": [
   "item_type",
   "item",
+  "song_key",
+  "arrangement",
+  "displayed",
+  "printed",
   "start",
   "end",
-  "description"
+  "description",
+  "is_header",
+  "notes"
  ],
  "fields": [
   {
@@ -42,6 +48,19 @@
    "width": "2"
   },
   {
+   "default": "0",
+   "description": "Show this row as a heading that starts a part of the service, such as Worship or Response.",
+   "fieldname": "is_header",
+   "fieldtype": "Check",
+   "label": "Header"
+  },
+  {
+   "description": "Only the team sees these notes, on the Ministry Team page. The bulletin never prints them.",
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Team Notes"
+  },
+  {
    "fieldname": "item_type",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -60,13 +79,44 @@
    "in_standard_filter": 1,
    "label": "Item",
    "options": "item_type"
+  },
+  {
+   "depends_on": "eval:doc.item_type==\"Song\"",
+   "description": "Leave empty to use the arrangement's key or the song's default key.",
+   "fieldname": "song_key",
+   "fieldtype": "Select",
+   "label": "Key",
+   "options": "\nC\nDb\nD\nEb\nE\nF\nF#\nG\nAb\nA\nBb\nB\nCm\nC#m\nDm\nEbm\nEm\nFm\nF#m\nGm\nG#m\nAm\nBbm\nBm"
+  },
+  {
+   "depends_on": "eval:doc.item_type==\"Song\"",
+   "description": "The name of one of the song's arrangements.",
+   "fieldname": "arrangement",
+   "fieldtype": "Data",
+   "label": "Arrangement"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.item_type==\"Song\"",
+   "description": "The words were shown on a screen. Song Usage counts it for CCLI.",
+   "fieldname": "displayed",
+   "fieldtype": "Check",
+   "label": "Displayed"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.item_type==\"Song\"",
+   "description": "The words were printed, such as in a bulletin. Song Usage counts it for CCLI.",
+   "fieldname": "printed",
+   "fieldtype": "Check",
+   "label": "Printed"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-15 18:34:25.083023",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Schedule",

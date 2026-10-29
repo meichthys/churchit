@@ -27,7 +27,7 @@
 		return _published;
 	}
 
-	function describe(open_to_all, members_only) {
+	function describe(open_to_all, members_only, link_holders) {
 		const titles = (sources) => sources.map((s) => s.title).join(", ");
 		const lines = [];
 		if (open_to_all.length) {
@@ -35,6 +35,9 @@
 		}
 		if (members_only.length) {
 			lines.push(__("Shown to signed-in members: {0}", [titles(members_only)]));
+		}
+		if (link_holders.length) {
+			lines.push(__("Shown to whoever opens an emailed link: {0}", [titles(link_holders)]));
 		}
 		return lines.join("\n");
 	}
@@ -48,10 +51,11 @@
 			if (!field || !field.$wrapper) continue;
 
 			const sources = published[fieldname];
-			const open_to_all = sources.filter((s) => s.access !== "members");
+			const open_to_all = sources.filter((s) => s.access === "public");
 			const tooltip = describe(
 				open_to_all,
-				sources.filter((s) => s.access === "members")
+				sources.filter((s) => s.access === "members"),
+				sources.filter((s) => s.access === "link holders")
 			);
 			// Link to a page anyone can open when there is one, else the first source.
 			const route = "/" + (open_to_all[0] || sources[0]).route;

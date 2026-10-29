@@ -75,21 +75,27 @@ class Budget(Document):
 
 	@frappe.whitelist()
 	def get_progress(self, comparison: str | None = None):
-		"""Per-line spending against this budget, optionally beside a comparison window."""
-		start, end = getdate(self.start_date), getdate(self.end_date)
+		"""Per-line spending against this budget as saved, optionally beside a comparison window.
+
+		The form sends its own copy, whose church a caller can blank to total every church. Reloading
+		`self` instead would send the saved copy back over the form's unsaved edits.
+		"""
+		saved = frappe.get_doc(self.doctype, self.name)
+		saved.check_permission("read")
+		start, end = getdate(saved.start_date), getdate(saved.end_date)
 		elapsed = get_elapsed_fraction(start, end)
 		bounds = get_expense_type_bounds()
-		branches = bool(cint(self.include_branches))
-		actuals = get_expense_totals(start, end, church=self.church, include_branches=branches)
-		pending = get_expense_totals(start, end, docstatus=0, church=self.church, include_branches=branches)
+		branches = bool(cint(saved.include_branches))
+		actuals = get_expense_totals(start, end, church=saved.church, include_branches=branches)
+		pending = get_expense_totals(start, end, docstatus=0, church=saved.church, include_branches=branches)
 		window = get_comparison_window(start, end, comparison)
 		window_actuals = (
-			get_expense_totals(*window, church=self.church, include_branches=branches) if window else {}
+			get_expense_totals(*window, church=saved.church, include_branches=branches) if window else {}
 		)
 		scale = get_window_scale(window, start, end)
 
 		rows = []
-		for line in self.lines or []:
+		for line in saved.lines or []:
 			budgeted = line.budgeted_amount or 0
 			actual = roll_up(actuals, line.expense_type, bounds)
 			window_budget = budgeted * scale
@@ -134,6 +140,7 @@ class Budget(Document):
 @frappe.whitelist()
 def get_current_budget(filters: str | list | dict | None = None):
 	"""The budget covering today, else the most recently started one, within the church scope."""
+	frappe.has_permission("Budget", "read", throw=True)
 	today = nowdate()
 	scope = church_query_filters(filters)
 	covering = frappe.get_all(

@@ -1,6 +1,6 @@
 // Renders the missionary map on the public /missions page. A loaded-everywhere
 // script guarded by path, like portal_groups.js, since Web Page content has no
-// per-page script hook.
+// per-page script hook. Leaflet comes from church_website/context.py on this path.
 (function () {
 	const path = window.location.pathname.replace(/\/$/, "");
 	if (path !== "/missions") return;
@@ -9,12 +9,6 @@
 	if (!mapEl) return;
 
 	const FALLBACK_PHOTO = "/assets/frappe/images/default-avatar.png";
-
-	// The desk bundle carries leaflet.css; the website bundle does not.
-	const link = document.createElement("link");
-	link.rel = "stylesheet";
-	link.href = "/assets/frappe/js/lib/leaflet/leaflet.css";
-	document.head.appendChild(link);
 
 	function markerIcon(photo) {
 		return L.divIcon({

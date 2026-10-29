@@ -11,7 +11,10 @@
   "payment_gateway",
   "label",
   "is_default",
-  "church"
+  "church",
+  "offer_fee_cover",
+  "fee_percent",
+  "fee_fixed"
  ],
  "fields": [
   {
@@ -45,12 +48,33 @@
    "in_list_view": 1,
    "label": "Church",
    "options": "Church"
+  },
+  {
+   "default": "0",
+   "description": "Let the giver add the processing fee to the gift, worked out from the two fee fields.",
+   "fieldname": "offer_fee_cover",
+   "fieldtype": "Check",
+   "label": "Offer Fee Cover"
+  },
+  {
+   "depends_on": "offer_fee_cover",
+   "description": "The card rate this gateway charges, for example 2.9.",
+   "fieldname": "fee_percent",
+   "fieldtype": "Percent",
+   "label": "Fee Percent"
+  },
+  {
+   "depends_on": "offer_fee_cover",
+   "description": "The fixed fee per charge, for example 0.30.",
+   "fieldname": "fee_fixed",
+   "fieldtype": "Currency",
+   "label": "Fixed Fee"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-26 11:00:00.000000",
+ "modified": "2026-10-23 01:04:02.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Gateway",

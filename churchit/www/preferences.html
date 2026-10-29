@@ -1,0 +1,217 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Communication Preferences") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.preferences-table { width: 100%; border-collapse: collapse; }
+	.preferences-table th, .preferences-table td { padding: 14px 0; vertical-align: middle;
+		border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.preferences-table thead th { padding-top: 0; font-weight: 600; color: var(--text-muted, #6b7280); }
+	.preferences-table .channel { width: 4.5rem; text-align: center; }
+	.preferences-table .purpose { padding-right: 12px; text-align: left; overflow-wrap: anywhere; }
+	.preferences-table .purpose-name { font-weight: 600; }
+	/* the switch draws its track in its own left padding, so it centres as one inline block */
+	.preferences-table .custom-switch { display: inline-block; min-height: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-1">{{ _("Communication Preferences") }}</h3>
+	<p class="text-muted">
+		{{ _("Choose how {0} may contact you.").format(church_name or _("your church")) | e }}
+	</p>
+
+	{% if not person %}
+		<p class="text-muted">
+			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+		</p>
+	{% else %}
+		{% if email or phone %}
+			<p class="mb-4">{{ email | e if email }}{{ " · " if email and phone }}{{ phone | e if phone }}</p>
+		{% endif %}
+
+		{% if not email %}
+			<div class="alert alert-warning">
+				{{ _("There is no email address on file for you, so you cannot choose emails here. Please contact the church office to add one.") }}
+			</div>
+		{% elif is_globally_unsubscribed %}
+			<div class="alert alert-info" id="preferences-stopped">
+				{{ _("You stopped every email to {0}. When you turn on an email switch, emails to this address start again.").format(email) | e }}
+			</div>
+		{% endif %}
+
+		{% if channels %}
+			<table class="preferences-table">
+				<thead>
+					<tr>
+						<th scope="col" class="purpose"><span class="sr-only">{{ _("Purpose") }}</span></th>
+						{% for channel in channels %}
+							<th scope="col" class="channel">{{ channel_labels[channel] }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in purposes %}
+						{% set row_index = loop.index %}
+						<tr>
+							<th scope="row" class="purpose">
+								<div class="purpose-name">{{ _(row.purpose) | e }}</div>
+								{% if row.description %}
+									<div class="small text-muted">{{ _(row.description) | e }}</div>
+								{% endif %}
+							</th>
+							{% for channel in channels %}
+								<td class="channel">
+									<div class="custom-control custom-switch">
+										<input type="checkbox" class="custom-control-input preference-switch"
+											id="preference-{{ row_index }}-{{ loop.index }}"
+											data-channel="{{ channel | e }}" data-purpose="{{ row.purpose | e }}"
+											{{ "checked" if row.allowed[channel] }}>
+										<label class="custom-control-label" for="preference-{{ row_index }}-{{ loop.index }}">
+											<span class="sr-only">{{ _("{0} by {1}").format(_(row.purpose), channel_labels[channel]) | e }}</span>
+										</label>
+									</div>
+								</td>
+							{% endfor %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% endif %}
+
+		{% if push_public_key %}
+			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}"
+				data-has-push-column="{{ 1 if 'Push' in channels else 0 }}">
+				<h5>{{ _("Notifications on this device") }}</h5>
+				<p class="text-muted">{{ _("Let {0} show notifications on this phone or computer.").format(church_name or _("your church")) | e }}</p>
+				<button type="button" class="btn btn-primary btn-sm d-none" id="allow-notifications">{{ _("Allow notifications") }}</button>
+				<p class="d-none" id="notifications-on">
+					{{ _("Notifications are on for this device.") }}
+					<button type="button" class="btn btn-default btn-sm ml-2" id="stop-notifications">{{ _("Turn off") }}</button>
+					<span class="d-block small text-muted mt-2">{{ _("Choose in the Push column which messages you get as a notification.") }}</span>
+				</p>
+				<p class="d-none" id="notifications-unsupported">{{ _("This browser cannot show notifications.") }}</p>
+				<p class="d-none" id="notifications-failed">{{ _("Notifications could not be turned on. Try again later.") }}</p>
+				<p class="d-none" id="notifications-blocked">{{ _("This browser blocks notifications from this site. Allow them in the browser's site settings.") }}</p>
+				<p class="small text-muted mt-2">{{ _("On an iPhone or iPad (iOS 16.4 or later), first add this site to the Home Screen, then open it from there.") }}</p>
+			</div>
+		{% endif %}
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	document.querySelectorAll(".preference-switch").forEach(function (input) {
+		input.addEventListener("change", function () {
+			input.disabled = true;
+			frappe.call({
+				method: "churchit.church_communications.preferences.set_preference",
+				args: {
+					channel: input.dataset.channel,
+					purpose: input.dataset.purpose,
+					allow: input.checked ? 1 : 0,
+				},
+				callback: function (r) {
+					input.disabled = false;
+					frappe.show_alert({ message: r.message.message, indicator: input.checked ? "green" : "blue" });
+					var stopped = document.getElementById("preferences-stopped");
+					if (stopped && !r.message.is_globally_unsubscribed) stopped.remove();
+				},
+				error: function () {
+					input.disabled = false;
+					input.checked = !input.checked;
+				},
+			});
+		});
+	});
+
+	setup_push_notifications();
+});
+
+// The Allow notifications button: the browser asks for permission only after a click.
+function setup_push_notifications() {
+	var section = document.getElementById("push-notifications");
+	var supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+	if (!section) return;
+
+	var states = [
+		"allow-notifications",
+		"notifications-on",
+		"notifications-unsupported",
+		"notifications-failed",
+		"notifications-blocked",
+	];
+	function show(id) {
+		states.forEach(function (state) {
+			document.getElementById(state).classList.toggle("d-none", state !== id);
+		});
+	}
+	if (!supported) return show("notifications-unsupported");
+
+	// The first browser a member subscribes adds the Push column, which shows after a reload.
+	function show_on() {
+		if (section.dataset.hasPushColumn !== "1") return window.location.reload();
+		show("notifications-on");
+	}
+
+	function save(subscription) {
+		return frappe.call({
+			method: "churchit.church_communications.push.subscribe",
+			args: { subscription: JSON.stringify(subscription) },
+		});
+	}
+
+	navigator.serviceWorker.ready.then(function (registration) {
+		registration.pushManager.getSubscription().then(function (subscription) {
+			if (Notification.permission === "denied") return show("notifications-blocked");
+			if (!subscription) return show("allow-notifications");
+			show("notifications-on");
+			save(subscription).then(show_on);
+		});
+
+		document.getElementById("allow-notifications").addEventListener("click", function () {
+			Notification.requestPermission().then(function (permission) {
+				if (permission === "denied") return show("notifications-blocked");
+				if (permission !== "granted") return;
+				registration.pushManager
+					.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(section.dataset.publicKey) })
+					.then(save)
+					.then(show_on)
+					.catch(function () {
+						// A subscription the site refused is dropped, so the next visit does not send it again.
+						registration.pushManager.getSubscription().then(function (subscription) {
+							if (subscription) subscription.unsubscribe();
+						});
+						show("notifications-failed");
+					});
+			});
+		});
+
+		document.getElementById("stop-notifications").addEventListener("click", function () {
+			registration.pushManager.getSubscription().then(function (subscription) {
+				if (!subscription) return show("allow-notifications");
+				frappe.call({
+					method: "churchit.church_communications.push.unsubscribe",
+					args: { endpoint: subscription.endpoint },
+				});
+				subscription.unsubscribe().then(function () {
+					show("allow-notifications");
+				});
+			});
+		});
+	});
+}
+
+// The public key as the bytes pushManager.subscribe takes: base64url to a Uint8Array.
+function key_bytes(key) {
+	var base64 = (key + "=".repeat((4 - (key.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
+	return Uint8Array.from(atob(base64), function (character) {
+		return character.charCodeAt(0);
+	});
+}
+</script>
+{% endblock %}

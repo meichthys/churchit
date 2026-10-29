@@ -1,0 +1,25 @@
+{#- A mailing label, one to a page, for a roll of 3.5 by 1.125 inch address labels such as DYMO
+    30252 or Brother DK-1201, so Print on a list gives one label for each record picked. The Print
+    Format sets `addressee` before it includes this. An address whose mail came back is skipped, and a
+    person with no other address of their own is mailed at their family's. Names and addresses are
+    typed in, so they are escaped. -#}
+{%- set rows = doc.addresses | rejectattr("is_returned_mail") | list -%}
+{%- set rows = rows or ((frappe.get_doc("Family", doc.family).addresses | rejectattr("is_returned_mail") | list) if doc.doctype == "Person" and doc.family else []) -%}
+{%- set row = (rows | selectattr("is_mailing_address") | first) or (rows | selectattr("is_primary") | first) or (rows | first) -%}
+{%- set address = frappe.db.get_value("Address", row.address, ["address_line1", "address_line2", "city", "state", "pincode", "country"], as_dict=True) if row else None -%}
+<style>
+  .print-format { page-width: 3.5in; page-height: 1.125in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
+  @page { size: 3.5in 1.125in; margin: 0; }
+  .mailing-label { width: 3.5in; height: 1.125in; box-sizing: border-box; padding: 0.1in 0.15in; overflow: hidden; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.25; color: #000; background: #fff; }
+  .mailing-label div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mailing-label .addressee { font-weight: 700; }
+</style>
+<div class="mailing-label">
+  <div class="addressee">{{ addressee|e }}</div>
+  {%- if address %}
+  <div>{{ (address.address_line1 or "")|e }}</div>
+  {%- if address.address_line2 %}<div>{{ address.address_line2|e }}</div>{% endif %}
+  <div>{{ [address.city, [address.state, address.pincode]|select|join(" ")]|select|join(", ")|e }}</div>
+  {%- if address.country and address.country != frappe.db.get_default("country") %}<div>{{ address.country|e }}</div>{% endif %}
+  {%- endif %}
+</div>

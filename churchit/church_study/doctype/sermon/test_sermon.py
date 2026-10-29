@@ -52,3 +52,42 @@ class TestSermon(FrappeTestCase):
 		sermon.publish = 0
 		sermon.save(ignore_permissions=True)
 		self.assertTrue(frappe.db.get_value("File", audio.name, "is_private"))
+
+	def test_a_blank_sermon_date_comes_from_the_first_presentation(self):
+		history = [{"date": "2031-03-01"}, {"date": "2030-01-05"}]
+
+		sermon = self._sermon("_Test Dated Sermon", presentation_history=history)
+		self.assertEqual(str(sermon.sermon_date), "2030-01-05")
+
+		sermon.sermon_date = "2029-12-25"
+		sermon.save(ignore_permissions=True)
+		self.assertEqual(str(sermon.sermon_date), "2029-12-25")
+
+		self.assertIsNone(self._sermon("_Test Undated Sermon").sermon_date)
+
+	def test_the_scripture_is_tidied_on_save(self):
+		sermon = self._sermon("_Test Scripture Sermon", scripture="jn 3:16; ps 23")
+		self.assertEqual(sermon.scripture, "John 3:16; Psalms 23")
+
+	def test_the_video_link_must_be_one_https_link(self):
+		for url in ("javascript:alert(1)", "http://x.org", "https://x.org/a b"):
+			with self.subTest(url=url), self.assertRaises(frappe.ValidationError):
+				self._sermon("_Test Video Sermon", media_url=url)
+
+		sermon = self._sermon("_Test Video Sermon", media_url=" https://lets.church/media/abc ")
+		self.assertEqual(sermon.media_url, "https://lets.church/media/abc")
+
+	def test_the_outline_prints_the_newest_presentation(self):
+		sermon = self._sermon(
+			"_Test Outlined Sermon",
+			presentation_history=[
+				{"date": "2031-03-01", "location": "_Test Newer Hall"},
+				{"date": "2030-01-05", "location": "_Test Older Hall"},
+			],
+		)
+
+		html = frappe.get_print("Sermon", sermon.name, print_format="Sermon Outline")
+
+		self.assertIn(frappe.utils.formatdate("2031-03-01"), html)
+		self.assertIn("_Test Newer Hall", html)
+		self.assertNotIn("_Test Older Hall", html)

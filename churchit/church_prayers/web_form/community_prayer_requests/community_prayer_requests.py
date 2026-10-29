@@ -1,6 +1,6 @@
 import frappe
 
-from churchit.church_scope import church_filters, default_church, session_church
+from churchit.church_prayers.prayer_access import get_community_filters, get_open_request_filters
 from churchit.utils import resolve_link_titles
 
 
@@ -17,21 +17,21 @@ def get_list_context(context):
 
 	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
 		if isinstance(filters, dict):
-			filters = [[k, "=", v] for k, v in filters.items()]
+			# The web list sends the form's condition as {field: [operator, value]}.
+			filters = [[k, *v] if isinstance(v, list) else [k, "=", v] for k, v in filters.items()]
 		filters = list(filters or [])
-		# Force is_private = 0 so private requests never leak, regardless of client input.
-		filters.append(["is_private", "=", 0])
-		# This list ignores permissions, so the member's own church is applied by hand.
-		# church_filters rather than an equality: it admits shared records, which a
-		# hand-written `church == x` would drop the day a request can be shared.
-		scope = church_filters(session_church() or default_church())
-		filters += [[field, *condition] for field, condition in scope.items()]
+		# This list ignores permissions, so the member's church, visibilities and open requests are applied
+		# here, after the browser's filters, which can only narrow them.
+		open_filters, or_filters = get_open_request_filters()
+		conditions = {**get_community_filters(), **open_filters}
+		filters += [[field, *condition] for field, condition in conditions.items()]
 
 		rows = frappe.get_list(
 			doctype,
 			fields="*",
 			distinct=True,
 			filters=filters,
+			or_filters=or_filters,
 			limit_start=limit_start,
 			limit_page_length=limit_page_length,
 			order_by="modified desc",

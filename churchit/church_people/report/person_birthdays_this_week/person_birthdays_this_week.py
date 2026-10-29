@@ -1,8 +1,10 @@
 import frappe
 from frappe import _
 
+from churchit.church_people.celebrations import get_birthday_rows
+from churchit.church_people.membership import living_people_filter
 from churchit.church_scope import scoped
-from churchit.query import DayOfWeek, falls_this_week
+from churchit.query import month_day_this_week, this_week
 from churchit.utils import set_report_link_titles
 
 
@@ -17,24 +19,16 @@ def get_columns():
 	return [
 		{"fieldname": "name", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 200},
 		{"fieldname": "birthday", "fieldtype": "Date", "label": _("Birthday"), "width": 120},
+		{"fieldname": "age", "fieldtype": "Int", "label": _("Turning"), "width": 80},
 	]
 
 
 def get_data(filters=None):
 	Person = frappe.qb.DocType("Person")
-	LifeEvent = frappe.qb.DocType("Life Event")
-
 	query = (
 		frappe.qb.from_(Person)
-		.join(LifeEvent)
-		.on(
-			(LifeEvent.parent == Person.name)
-			& (LifeEvent.parenttype == "Person")
-			& (LifeEvent.event_type == "Birth")
-		)
-		.select(Person.name, LifeEvent.date.as_("birthday"))
-		.where(LifeEvent.date.isnotnull() & falls_this_week(LifeEvent.date))
-		.orderby(DayOfWeek(LifeEvent.date))
-		.orderby(Person.full_name)
+		.select(Person.name, Person.full_name, Person.birth_month, Person.birth_day, Person.birth_date)
+		.where(month_day_this_week(Person.birth_month, Person.birth_day))
+		.where(living_people_filter(Person))
 	)
-	return scoped(query, Person, filters).run(as_dict=True)
+	return get_birthday_rows(scoped(query, Person, filters).run(as_dict=True), *this_week())

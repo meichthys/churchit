@@ -4,11 +4,44 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import flt
+
+# Gateways whose checkout takes an Online Donation and whose callback reaches on_payment_authorized.
+# Braintree is not here: its checkout loads the reference as a Payment Request.
+SUPPORTED_GATEWAY_SETTINGS = ("Stripe Settings", "PayPal Settings")
+
+
+def is_supported_gateway(payment_gateway: str) -> bool:
+	settings = frappe.get_cached_value("Payment Gateway", payment_gateway, "gateway_settings")
+	return settings in SUPPORTED_GATEWAY_SETTINGS
 
 
 class GivingSettings(Document):
 	def validate(self):
+		self.refuse_unsupported_gateways()
+		self.refuse_bad_fee_rates()
 		self.normalize_default_gateway()
+
+	def refuse_unsupported_gateways(self):
+		for row in self.gateways:
+			if not is_supported_gateway(row.payment_gateway):
+				frappe.throw(
+					_("Row {0}: {1} cannot take gifts. Online giving works with Stripe and PayPal.").format(
+						row.idx, frappe.bold(row.payment_gateway)
+					)
+				)
+
+	def refuse_bad_fee_rates(self):
+		"""The covered fee divides by (1 - fee percent), so a rate of 100 or more has no fee."""
+		for row in self.gateways:
+			if not row.offer_fee_cover:
+				continue
+			if not 0 <= flt(row.fee_percent) < 100:
+				frappe.throw(
+					_("Row {0}: the fee percent must be at least 0 and less than 100.").format(row.idx)
+				)
+			if flt(row.fee_fixed) < 0:
+				frappe.throw(_("Row {0}: the fixed fee cannot be less than 0.").format(row.idx))
 
 	def normalize_default_gateway(self):
 		"""Keep at most one default gateway, and ensure one is chosen when any
@@ -31,9 +64,11 @@ class GivingSettings(Document):
 		with one account keeps.
 		"""
 		rows = [row for row in self.gateways if not row.church or row.church == church]
-		# A church with its own gateways uses only those; otherwise the shared ones stand in.
+		# A church with its own gateways uses only those, even when none of them is supported;
+		# otherwise the shared ones stand in.
 		own = [row for row in rows if row.church]
-		return sorted(own or rows, key=lambda row: 0 if row.is_default else 1)
+		supported = [row for row in own or rows if is_supported_gateway(row.payment_gateway)]
+		return sorted(supported, key=lambda row: 0 if row.is_default else 1)
 
 	def get_offered_gateways(self, church=None):
 		"""Return the gateways offered to *church* as ``[{"name", "label"}]``, default first."""
@@ -54,8 +89,26 @@ class GivingSettings(Document):
 		"""This church's acknowledgment wording, else the site-wide text."""
 		return self.wording_for(church).get("statement_acknowledgment") or self.statement_acknowledgment
 
+	def get_other_ways_to_give(self, church=None):
+		"""This church's bank, standing order or mailing details, else the site-wide text."""
+		# An attribute read, so the published-field scan of /give badges the field.
+		return self.wording_for(church).other_ways_to_give or self.other_ways_to_give
+
 	def wording_for(self, church=None):
 		"""The wording row for *church*, or an empty row when it has none."""
 		if not church:
 			return frappe._dict()
 		return next((row for row in self.church_wording if row.church == church), frappe._dict())
+
+	def get_gateway(self, church=None, payment_gateway=None):
+		"""The gateway row that takes a payment for *church*: *payment_gateway* when offered, else the default."""
+		rows = self.gateways_for(church)
+		if not rows:
+			frappe.throw(_("No payment gateway is configured. Please contact the church office."))
+		if not payment_gateway:
+			return rows[0]
+
+		row = next((row for row in rows if row.payment_gateway == payment_gateway), None)
+		if not row:
+			frappe.throw(_("Please choose a valid payment method."))
+		return row

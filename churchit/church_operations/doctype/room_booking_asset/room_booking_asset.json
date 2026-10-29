@@ -1,0 +1,37 @@
+{
+ "actions": [],
+ "creation": "2026-10-26 15:41:12.000000",
+ "description": "A piece of equipment a booking reserves.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-operations",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "asset"
+ ],
+ "fields": [
+  {
+   "fieldname": "asset",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Asset",
+   "link_filters": "[[\"Church Asset\",\"is_bookable\",\"=\",1]]",
+   "options": "Church Asset",
+   "reqd": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-27 23:35:17.000000",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Room Booking Asset",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

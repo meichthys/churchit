@@ -12,6 +12,8 @@ organisation is a guard that says who may take it away.
 """
 
 import frappe
+import frappe.share
+from frappe.desk.form import assign_to
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import nowdate
 
@@ -22,7 +24,6 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	get_item_status,
 )
 from churchit.church_ministries.page.check_in.check_in import get_check_ins, search_people
-from churchit.church_people.doctype.group.group import create_email_group
 from churchit.church_people.group_api import join_group
 from churchit.church_prayers.number_card.prayer_request_comments import prayer_request_comments
 from churchit.church_scope import SHARED
@@ -188,8 +189,8 @@ class TestChurchBoundary(FrappeTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			get_item_status(function.name, item)
 
-	def test_an_email_group_cannot_be_built_from_another_churchs_group(self):
-		"""The members' email addresses would land in an Email Group with no church."""
+	def test_a_church_email_cannot_go_to_another_churchs_group(self):
+		"""The other church's members would be emailed in this church's name."""
 		member = make_person("_Test Boundary Member", "One", church=self.branch_a)
 		member.append("emails", {"email_address": "_test_boundary_member@example.com", "is_primary": 1})
 		member.save(ignore_permissions=True)
@@ -203,8 +204,12 @@ class TestChurchBoundary(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		frappe.set_user(self.manager_b)
-		with self.assertRaises(frappe.PermissionError):
-			create_email_group(group.name)
+		email = frappe.get_doc(
+			{"doctype": "Church Email", "subject": "_Test Boundary", "message": "Hi", "send_to": "Group"}
+		)
+		email.group = group.name
+		with self.assertRaisesRegex(frappe.ValidationError, "belongs to another church"):
+			email.insert()
 
 	def test_the_comment_card_counts_only_the_readers_prayer_requests(self):
 		"""Comment carries no church, so the count is anchored to the request."""
@@ -314,6 +319,50 @@ class TestChurchBoundary(FrappeTestCase):
 			frappe.get_doc(
 				{"doctype": "Function Sign-Up", "function": function.name, "person": theirs}
 			).insert()
+
+	def care_request_in(self, church):
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Care Request",
+					"person": make_person("_Test Boundary", "Cared", church=church).name,
+					"category": ensure("Care Request Type", {"type": "_Test Boundary Care"}),
+					"description": "_Test Boundary",
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
+	def test_a_record_cannot_be_assigned_to_another_churchs_user(self):
+		"""Frappe shares a record with an assignee who cannot read it, which used to cross churches."""
+		request = self.care_request_in(self.branch_b)
+
+		frappe.set_user(self.manager_b)
+		with self.assertRaises(frappe.PermissionError):
+			assign_to.add({"assign_to": [self.manager_a], "doctype": "Care Request", "name": request})
+		with self.assertRaises(frappe.PermissionError):
+			frappe.share.add("Care Request", request, self.manager_a)
+
+		frappe.set_user(self.manager_a)
+		self.assertFalse(frappe.has_permission("Care Request", "read", doc=request))
+
+	def test_a_record_is_still_shared_with_an_assignee_in_its_church(self):
+		request = self.care_request_in(self.branch_b)
+		staff = ensure_user("_test_boundary_staff_b@example.com", "BoundaryStaff", roles=("Church Staff",))
+		make_person("BoundaryStaff", "Member", church=self.branch_b, user=staff)
+
+		frappe.set_user(self.manager_b)
+		assign_to.add({"assign_to": [staff], "doctype": "Care Request", "name": request})
+
+		frappe.set_user(staff)
+		self.assertTrue(frappe.has_permission("Care Request", "read", doc=request))
+
+	def test_a_churchs_record_cannot_be_shared_with_everyone(self):
+		request = self.care_request_in(self.branch_b)
+
+		with self.assertRaises(frappe.PermissionError):
+			frappe.share.add("Care Request", request, everyone=1)
 
 	def test_a_shared_service_station_finds_and_checks_in_every_churchs_people(self):
 		"""Even with a private directory, a joint service's station has to find whoever walks in."""

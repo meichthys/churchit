@@ -9,12 +9,11 @@ from zoneinfo import ZoneInfo
 import frappe
 from frappe.utils import add_days, get_system_timezone, getdate
 
+from churchit.church_foundations.church_access import set_user_church
 from churchit.church_ministries.member_ministry_team import (
 	add_own_block,
 	answer_by_key,
 	answer_own_assignment,
-	calendar_text,
-	calendar_times,
 	get_team_calendar,
 	make_own_calendar_key,
 	remove_own_block,
@@ -26,7 +25,9 @@ from churchit.tests.helpers import (
 	make_person,
 	make_team_assignment,
 	make_team_position,
+	make_two_churches,
 )
+from churchit.tests.test_ics import request_feed, unfold
 from churchit.www import ministry_team, ministry_team_response
 
 
@@ -97,10 +98,10 @@ class TestMinistryTeamPages(RollbackEachTest):
 		frappe.set_user(self.email)
 		schedules = self.context(ministry_team).schedules
 		self.assertEqual(
-			[(row.time, row.title, row.detail) for row in schedules[function.name]],
+			[(row.time, row.title, row.detail) for row in schedules[function.name].rows],
 			[("10:00 AM", "Welcome", None), ("10:00 AM", "_Test Team Page Hymn", "Everyone stands")],
 		)
-		self.assertEqual(schedules[self.mine.function], [])
+		self.assertEqual(schedules[self.mine.function].rows, [])
 
 	def test_a_member_answers_their_own_assignment_and_no_one_elses(self):
 		frappe.set_user(self.email)
@@ -140,11 +141,9 @@ class TestMinistryTeamPages(RollbackEachTest):
 		remove_own_block(block.name)
 		self.assertEqual(self.context(ministry_team).blocks, [])
 
-	def calendar(self, key):
+	def calendar(self, key, etag=None):
 		frappe.set_user("Guest")
-		get_team_calendar(key)
-		self.assertEqual(frappe.response.content_type, "text/calendar")
-		return frappe.response.filecontent
+		return request_feed(self, get_team_calendar, etag=etag, key=key)
 
 	def test_a_member_subscribes_to_a_calendar_of_what_they_accepted(self):
 		day = add_days(getdate(), 8)
@@ -160,7 +159,9 @@ class TestMinistryTeamPages(RollbackEachTest):
 		key = calendar.url.partition("key=")[2]
 		self.assertTrue(calendar.webcal.startswith("webcal://"))
 
-		feed = self.calendar(key)
+		response = self.calendar(key)
+		self.assertEqual(response.mimetype, "text/calendar")
+		feed = unfold(response)
 		start = datetime.combine(day, time(9, 30))
 		utc_start = start.replace(tzinfo=ZoneInfo(get_system_timezone())).astimezone(UTC)
 		self.assertIn(f"DTSTART:{utc_start:%Y%m%dT%H%M%SZ}", feed)
@@ -178,14 +179,20 @@ class TestMinistryTeamPages(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			self.calendar("")
 
-	def test_an_all_day_function_fills_whole_days_and_text_is_escaped(self):
-		retreat = frappe._dict(start_date="2031-05-02", end_date="2031-05-04", all_day=1)
-		self.assertEqual(
-			calendar_times(retreat), ["DTSTART;VALUE=DATE:20310502", "DTEND;VALUE=DATE:20310505"]
-		)
-		self.assertEqual(
-			calendar_text("Ushers, Greeters; Doors\\Halls\nTwo"), "Ushers\\, Greeters\\; Doors\\\\Halls\\nTwo"
-		)
+	def test_an_unchanged_team_feed_keeps_its_etag_and_answers_304(self):
+		accepted = make_function("_Test Team Page Etag", start_date=add_days(getdate(), 9))
+		make_team_assignment(accepted.name, self.position.name, self.member.name, status="Accepted")
+		frappe.set_user(self.email)
+		make_own_calendar_key()
+		key = frappe.db.get_value("Person", self.member.name, "team_calendar_key")
+
+		first = self.calendar(key)
+		self.assertIn("_Test Team Page Etag", unfold(first))
+		self.assertEqual(first.get_etag(), self.calendar(key).get_etag())
+
+		cached = self.calendar(key, etag=f'"{first.get_etag()[0]}"')
+		self.assertEqual(cached.status_code, 304)
+		self.assertEqual(cached.get_data(), b"")
 
 	def test_a_member_cannot_remove_someone_elses_block(self):
 		theirs = frappe.get_doc(
@@ -199,3 +206,33 @@ class TestMinistryTeamPages(RollbackEachTest):
 		frappe.set_user(self.email)
 		with self.assertRaises(frappe.PermissionError):
 			remove_own_block(theirs.name)
+
+
+class TestCalendarKeyPermission(RollbackEachTest):
+	"""Only the member and System Manager reach a calendar key; staff of any church do not."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, branch_a, branch_b = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+		cls.person = make_person("_Test Calendar Key", "Holder", church=branch_a).name
+		frappe.db.set_value("Person", cls.person, "team_calendar_key", "_test_calendar_key")
+		cls.managers = []
+		for email, church in (
+			("_test_key_manager_a@example.com", branch_a),
+			("_test_key_manager_b@example.com", branch_b),
+		):
+			cls.managers.append(ensure_user(email, "Key Manager", roles=("Church Manager",)))
+			set_user_church(email, church)
+
+	def test_staff_cannot_read_a_calendar_key(self):
+		for manager in self.managers:
+			frappe.set_user(manager)
+			person = frappe.get_doc("Person", self.person)
+			person.apply_fieldlevel_read_permissions()
+			self.assertIsNone(person.get("team_calendar_key"), manager)
+			rows = frappe.get_list(
+				"Person", filters={"name": self.person}, fields=["name", "team_calendar_key"]
+			)
+			self.assertEqual([row.get("team_calendar_key") for row in rows], [None], manager)

@@ -1,0 +1,149 @@
+{
+ "actions": [],
+ "autoname": "PKR-.####",
+ "creation": "2026-10-22 22:18:03.000000",
+ "description": "Someone who may not collect a child at the Check-In Station, even an Adult of the child's household. Verify Pickup refuses them and shows the volunteer what to do. Only Church Managers and Church People Editors can open a restriction, because the reason and the court order are private.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "child",
+  "church",
+  "child_name",
+  "column_break_dates",
+  "valid_until",
+  "restricted_section",
+  "restricted_person",
+  "restricted_name",
+  "description",
+  "reason_section",
+  "reason",
+  "court_order"
+ ],
+ "fields": [
+  {
+   "description": "The child that the restricted person may not collect.",
+   "fieldname": "child",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Child",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fetch_from": "child.church",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "child.full_name",
+   "fieldname": "child_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Child Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The last day of the restriction. Leave it empty when it has no end.",
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Valid Until"
+  },
+  {
+   "fieldname": "restricted_section",
+   "fieldtype": "Section Break",
+   "label": "Restricted Person"
+  },
+  {
+   "description": "The person who may not collect the child, when they are in the directory. Verify Pickup refuses to release the child to them.",
+   "fieldname": "restricted_person",
+   "fieldtype": "Link",
+   "label": "Restricted Person",
+   "options": "Person"
+  },
+  {
+   "description": "The name the volunteer sees. Type it when the person is not in the directory.",
+   "fetch_from": "restricted_person.full_name",
+   "fieldname": "restricted_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Restricted Name",
+   "read_only_depends_on": "eval:doc.restricted_person"
+  },
+  {
+   "description": "What the check-in volunteer reads at Verify Pickup, such as how to know the person and whom to call. Do not write the reason here.",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "What the Volunteer Sees",
+   "reqd": 1
+  },
+  {
+   "description": "The Check-In Station never shows this section.",
+   "fieldname": "reason_section",
+   "fieldtype": "Section Break",
+   "label": "Reason"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason"
+  },
+  {
+   "description": "Attach it as a private file.",
+   "fieldname": "court_order",
+   "fieldtype": "Attach",
+   "label": "Court Order"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-22 22:18:03.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Pickup Restriction",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "child_name,restricted_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "child_name",
+ "track_changes": 1
+}

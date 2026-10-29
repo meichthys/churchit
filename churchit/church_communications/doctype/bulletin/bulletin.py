@@ -4,13 +4,13 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import formatdate, getdate, now_datetime
+from frappe.utils import formatdate, getdate
 from frappe.utils.print_format import download_pdf as download_print_pdf
 
 from churchit.church_communications.doctype.bulletin.sections import BulletinSections
 from churchit.church_missions.doctype.missionary_status.missionary_status import INACTIVE
-from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
-from churchit.church_scope import church_filters
+from churchit.church_prayers.prayer_access import WHOLE_CHURCH, get_open_request_filters
+from churchit.church_scope import church_filters, has_church_access, refuse_another_churches_parent
 from churchit.scripture import format_reference
 
 PRINT_FORMAT = "Bulletin"
@@ -33,10 +33,14 @@ SECTION_FIELDS = (
 
 class Bulletin(BulletinSections, Document):
 	def validate(self):
+		refuse_another_churches_parent(
+			self, "function", _("{0} belongs to another church, so only that church can make its bulletin.")
+		)
 		self.title = f"{self.function_name} ({formatdate(self.function_date)})"
 		self.verse = format_reference(self.verse)
 		self.validate_missionary_is_printable()
 		self.validate_prayer_requests_are_printable()
+		self.validate_shared_announcements()
 
 	def validate_missionary_is_printable(self):
 		if not self.missionary or self.settings.include_sensitive_missionaries:
@@ -51,14 +55,40 @@ class Bulletin(BulletinSections, Document):
 
 	def validate_prayer_requests_are_printable(self):
 		for row in self.prayer_requests:
-			if frappe.db.get_value("Prayer Request", row.prayer_request, "is_private"):
+			visibility, approved = frappe.db.get_value(
+				"Prayer Request", row.prayer_request, ["visibility", "approved_for_list"]
+			)
+			if visibility != WHOLE_CHURCH:
 				frappe.throw(
-					_("{0} is a private prayer request and cannot be printed.").format(frappe.bold(row.title))
+					_("{0} is not shared with the whole church and cannot be printed.").format(
+						frappe.bold(row.title)
+					)
+				)
+			if not approved:
+				frappe.throw(
+					_("{0} is not approved for the prayer list and cannot be printed.").format(
+						frappe.bold(row.title)
+					)
 				)
 
+	def validate_shared_announcements(self):
+		"""Keep shared announcements public: a link to a private file is refused."""
+		if self.share_announcements and "/private/files/" in (self.announcements or ""):
+			frappe.throw(
+				_(
+					"The announcements link to a private file, which visitors to the website cannot open. "
+					"Remove it and add the image again, or untick Show Announcements on the Website."
+				)
+			)
+
 	def has_website_permission(self, ptype, user, verbose=False):
-		"""Signed-in portal users may read, and so download, published bulletins."""
-		return ptype == "read" and bool(self.publish) and user != "Guest"
+		"""Signed-in portal users may read, and so download, the published bulletins of their own church."""
+		return (
+			ptype == "read"
+			and bool(self.publish)
+			and user != "Guest"
+			and has_church_access(user, self.church)
+		)
 
 	def apply_defaults(self):
 		"""Switch on the sections Bulletin Settings prefers, and pick this week's missionary and prayer requests."""
@@ -96,11 +126,12 @@ def supported_missionaries(on_date, include_sensitive=False, church=None):
 
 
 def open_prayer_requests(church=None):
-	"""Rows for every request that is neither private, closed, nor past its end date, urgent ones first."""
+	"""Rows for every open Whole Church request approved for the list, urgent ones first."""
+	filters, or_filters = get_open_request_filters()
 	return frappe.get_all(
 		"Prayer Request",
-		filters=church_filters(church, is_private=0, status=("not in", CLOSED_STATUSES)),
-		or_filters=[["end_date", "is", "not set"], ["end_date", ">=", now_datetime()]],
+		filters=church_filters(church, visibility=WHOLE_CHURCH, **filters),
+		or_filters=or_filters,
 		fields=["name as prayer_request", "title", "recipient_name"],
 		order_by="urgent desc, creation desc",
 	)

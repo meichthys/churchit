@@ -1,0 +1,222 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2026-10-17 19:00:00.000000",
+ "description": "A Rock RMS person report exported to Excel, for Data Import. Name the report's columns as Rock's own CSV Import names them: these fields. It keeps no records: each row adds or updates a Person, their Family and their Address.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "legacy_id",
+  "household_id",
+  "household_name",
+  "household_role",
+  "prefix",
+  "first_name",
+  "nickname",
+  "middle_name",
+  "last_name",
+  "suffix",
+  "gender",
+  "birth_date",
+  "anniversary",
+  "marital_status",
+  "membership",
+  "membership_status",
+  "inactive_reason",
+  "is_deceased",
+  "home_email",
+  "mobile_phone",
+  "home_phone",
+  "work_phone",
+  "address_line1",
+  "address_line2",
+  "city",
+  "state",
+  "pincode",
+  "country"
+ ],
+ "fields": [
+  {
+   "fieldname": "legacy_id",
+   "fieldtype": "Data",
+   "label": "Id"
+  },
+  {
+   "description": "The person's Primary Family Id. People with the same Family Id share a Family.",
+   "fieldname": "household_id",
+   "fieldtype": "Data",
+   "label": "Family Id"
+  },
+  {
+   "fieldname": "household_name",
+   "fieldtype": "Data",
+   "label": "Family Name"
+  },
+  {
+   "description": "The first Adult of a family becomes its Primary Contact.",
+   "fieldname": "household_role",
+   "fieldtype": "Select",
+   "label": "Family Role",
+   "options": "\nAdult\nChild\nUnknown"
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Link",
+   "label": "Title",
+   "options": "Salutation"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nickname",
+   "fieldtype": "Data",
+   "label": "Nick Name"
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "suffix",
+   "fieldtype": "Select",
+   "label": "Suffix",
+   "options": "\nJr.\nSr.\nII\nIII\nIV"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nMale\nFemale\nUnknown"
+  },
+  {
+   "fieldname": "birth_date",
+   "fieldtype": "Date",
+   "label": "Birthdate"
+  },
+  {
+   "fieldname": "anniversary",
+   "fieldtype": "Date",
+   "label": "Anniversary Date"
+  },
+  {
+   "fieldname": "marital_status",
+   "fieldtype": "Link",
+   "label": "Marital Status",
+   "options": "Marital Status"
+  },
+  {
+   "fieldname": "membership",
+   "fieldtype": "Link",
+   "label": "Connection Status",
+   "options": "Membership Type"
+  },
+  {
+   "fieldname": "membership_status",
+   "fieldtype": "Link",
+   "label": "Record Status",
+   "options": "Member Status"
+  },
+  {
+   "fieldname": "inactive_reason",
+   "fieldtype": "Link",
+   "label": "Inactive Reason",
+   "options": "Inactive Reason"
+  },
+  {
+   "default": "0",
+   "description": "Adds a Death life event.",
+   "fieldname": "is_deceased",
+   "fieldtype": "Check",
+   "label": "Is Deceased"
+  },
+  {
+   "fieldname": "home_email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "mobile_phone",
+   "fieldtype": "Data",
+   "label": "Mobile Phone"
+  },
+  {
+   "fieldname": "home_phone",
+   "fieldtype": "Data",
+   "label": "Home Phone"
+  },
+  {
+   "fieldname": "work_phone",
+   "fieldtype": "Data",
+   "label": "Work Phone"
+  },
+  {
+   "fieldname": "address_line1",
+   "fieldtype": "Data",
+   "label": "Home Address Street 1"
+  },
+  {
+   "fieldname": "address_line2",
+   "fieldtype": "Data",
+   "label": "Home Address Street 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "Home Address City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "Home Address State"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Home Address Postal Code"
+  },
+  {
+   "description": "A country code such as US, or a country name. The site's country when blank.",
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Home Address Country"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2026-10-17 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Rock RMS Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Church Manager"
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

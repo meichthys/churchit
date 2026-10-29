@@ -1,5 +1,6 @@
 import frappe
 from frappe.query_builder.functions import Coalesce, Sum
+from frappe.utils import add_days
 
 from churchit.church_scope import scoped
 from churchit.dashboard import bucket_label, time_buckets
@@ -41,6 +42,6 @@ def _sum_in_range(doctype, date_field, amount_field, start, end):
 	query = (
 		frappe.qb.from_(table)
 		.select(Coalesce(Sum(table[amount_field]), 0))
-		.where((table.docstatus == 1) & table[date_field].between(start, end))
+		.where((table.docstatus == 1) & (table[date_field] >= start) & (table[date_field] < add_days(end, 1)))
 	)
 	return float(scoped(query, table, {}).run()[0][0] or 0)

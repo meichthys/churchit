@@ -6,10 +6,20 @@ from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 
 
+def make_gateway(name, settings="Stripe Settings"):
+	"""A Payment Gateway called *name* that runs on the *settings* doctype."""
+	gateway = frappe.new_doc("Payment Gateway")
+	if frappe.db.exists("Payment Gateway", name):
+		gateway = frappe.get_doc("Payment Gateway", name)
+	gateway.update({"gateway": name, "gateway_settings": settings})
+	return gateway.save(ignore_permissions=True).name
+
+
 def make_settings(*gateways):
 	"""An unsaved Giving Settings with these gateways: (name, is_default[, church])."""
 	settings = frappe.new_doc("Giving Settings")
 	for name, is_default, *church in gateways:
+		make_gateway(name)
 		settings.append(
 			"gateways",
 			{"payment_gateway": name, "is_default": is_default, "church": church[0] if church else None},
@@ -35,6 +45,22 @@ class TestGivingSettings(FrappeTestCase):
 		settings.normalize_default_gateway()
 		self.assertEqual(settings.get_offered_gateways(), [])
 		self.assertIsNone(settings.get_default_gateway())
+
+	def test_a_fee_cover_rate_must_leave_a_fee(self):
+		"""The /give fee divides by (1 - fee percent), so 100 would fail and more would charge less than the gift."""
+		for fee_percent, fee_fixed in ((100, 0), (150, 0), (-1, 0), (2.9, -0.3)):
+			settings = make_settings(("Stripe", 1))
+			settings.gateways[0].update(
+				{"offer_fee_cover": 1, "fee_percent": fee_percent, "fee_fixed": fee_fixed}
+			)
+			with (
+				self.subTest(fee_percent=fee_percent, fee_fixed=fee_fixed),
+				self.assertRaises(ValidationError),
+			):
+				settings.refuse_bad_fee_rates()
+
+		settings.gateways[0].update({"fee_percent": 2.9, "fee_fixed": 0.3})
+		settings.refuse_bad_fee_rates()
 
 	def test_offered_gateways_put_the_default_first_with_label_fallback(self):
 		settings = make_settings(("PayPal", 0), ("Stripe", 1))

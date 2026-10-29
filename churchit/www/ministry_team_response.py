@@ -3,7 +3,11 @@
 
 import frappe
 
-from churchit.church_ministries.member_ministry_team import get_assignment_by_key
+from churchit.church_ministries.member_ministry_team import (
+	can_pass_on,
+	get_assignment_by_key,
+	get_pending_replacement,
+)
 
 no_cache = 1
 
@@ -17,3 +21,6 @@ def get_context(context):
 	context.key = assignment.response_key
 	context.request = assignment.get_email_context()
 	context.has_started = assignment.has_started
+	context.can_pass_on = can_pass_on(assignment)
+	context.pending_replacement = get_pending_replacement(assignment)
+	context.replaced_by = assignment.replaced_by

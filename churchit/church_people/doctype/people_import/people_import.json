@@ -1,0 +1,246 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2026-10-17 19:00:00.000000",
+ "description": "Churchit's own people spreadsheet, one row per person, for Data Import. Download its template from a new Data Import. It keeps no records: each row adds or updates a Person, their Family and their Address.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "legacy_system",
+  "legacy_id",
+  "household_id",
+  "household_name",
+  "is_primary_contact",
+  "household_role",
+  "prefix",
+  "first_name",
+  "middle_name",
+  "last_name",
+  "nickname",
+  "suffix",
+  "previous_last_name",
+  "gender",
+  "birth_date",
+  "anniversary",
+  "marital_status",
+  "membership",
+  "membership_status",
+  "envelope_number",
+  "medical_notes",
+  "home_email",
+  "work_email",
+  "mobile_phone",
+  "home_phone",
+  "work_phone",
+  "address_line1",
+  "address_line2",
+  "city",
+  "state",
+  "pincode",
+  "country"
+ ],
+ "fields": [
+  {
+   "description": "The system the people come from. Spreadsheet when blank.",
+   "fieldname": "legacy_system",
+   "fieldtype": "Data",
+   "label": "Imported From"
+  },
+  {
+   "description": "The person's ID in that system. A later import of the same ID updates the person.",
+   "fieldname": "legacy_id",
+   "fieldtype": "Data",
+   "label": "Person ID"
+  },
+  {
+   "description": "People with the same Household ID share a Family.",
+   "fieldname": "household_id",
+   "fieldtype": "Data",
+   "label": "Household ID"
+  },
+  {
+   "description": "The Family's name. When blank, the first member's last and first name.",
+   "fieldname": "household_name",
+   "fieldtype": "Data",
+   "label": "Household Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_primary_contact",
+   "fieldtype": "Check",
+   "label": "Primary Contact"
+  },
+  {
+   "fieldname": "household_role",
+   "fieldtype": "Select",
+   "label": "Household Role",
+   "options": "\nAdult\nOther Adult\nChild"
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Link",
+   "label": "Prefix",
+   "options": "Salutation"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "nickname",
+   "fieldtype": "Data",
+   "label": "Nickname"
+  },
+  {
+   "fieldname": "suffix",
+   "fieldtype": "Select",
+   "label": "Suffix",
+   "options": "\nJr.\nSr.\nII\nIII\nIV"
+  },
+  {
+   "fieldname": "previous_last_name",
+   "fieldtype": "Data",
+   "label": "Previous Last Name"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nFemale\nMale\nUnknown"
+  },
+  {
+   "fieldname": "birth_date",
+   "fieldtype": "Date",
+   "label": "Birth Date"
+  },
+  {
+   "fieldname": "anniversary",
+   "fieldtype": "Date",
+   "label": "Anniversary"
+  },
+  {
+   "fieldname": "marital_status",
+   "fieldtype": "Link",
+   "label": "Marital Status",
+   "options": "Marital Status"
+  },
+  {
+   "fieldname": "membership",
+   "fieldtype": "Link",
+   "label": "Membership",
+   "options": "Membership Type"
+  },
+  {
+   "fieldname": "membership_status",
+   "fieldtype": "Link",
+   "label": "Status",
+   "options": "Member Status"
+  },
+  {
+   "fieldname": "envelope_number",
+   "fieldtype": "Data",
+   "label": "Envelope Number"
+  },
+  {
+   "fieldname": "medical_notes",
+   "fieldtype": "Small Text",
+   "label": "Medical Notes"
+  },
+  {
+   "fieldname": "home_email",
+   "fieldtype": "Data",
+   "label": "Home Email"
+  },
+  {
+   "fieldname": "work_email",
+   "fieldtype": "Data",
+   "label": "Work Email"
+  },
+  {
+   "fieldname": "mobile_phone",
+   "fieldtype": "Data",
+   "label": "Mobile Phone"
+  },
+  {
+   "fieldname": "home_phone",
+   "fieldtype": "Data",
+   "label": "Home Phone"
+  },
+  {
+   "fieldname": "work_phone",
+   "fieldtype": "Data",
+   "label": "Work Phone"
+  },
+  {
+   "fieldname": "address_line1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Postal Code"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2026-10-23 01:04:02.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "People Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Church Manager"
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

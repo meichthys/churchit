@@ -14,6 +14,7 @@
   "abbreviation",
   "legal_name",
   "tax_id",
+  "ccli_license_number",
   "founding_date",
   "image",
   "is_group",
@@ -24,9 +25,11 @@
   "phone",
   "email",
   "website",
+  "live_stream_url",
   "mission_statement",
   "church_verse",
   "default_bible_translation",
+  "contact_only_with_consent",
   "section_break_nxne",
   "about",
   "hidden_fields_section",
@@ -54,6 +57,12 @@
    "fieldname": "tax_id",
    "fieldtype": "Data",
    "label": "Tax ID"
+  },
+  {
+   "description": "The church's CCLI Church Copyright License number. Song slides show it under the copyright.",
+   "fieldname": "ccli_license_number",
+   "fieldtype": "Data",
+   "label": "CCLI License Number"
   },
   {
    "fieldname": "founding_date",
@@ -110,11 +119,25 @@
    "options": "URL"
   },
   {
+   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube video link, a youtube.com/channel/<channel ID>/live link, or a Let's Church, PeerTube or Owncast player link plays on the page. A youtube.com/@name/live link and any other link open directly. A branch without one uses its parent church's link.",
+   "fieldname": "live_stream_url",
+   "fieldtype": "Data",
+   "label": "Live Stream Link",
+   "options": "URL"
+  },
+  {
    "description": "The translation verses are printed in on bulletins and slides, and the one the Bible reader opens first. Branch churches without their own use this one.",
    "fieldname": "default_bible_translation",
    "fieldtype": "Link",
    "label": "Default Bible Translation",
    "options": "Bible Translation"
+  },
+  {
+   "default": "0",
+   "description": "Tick this where people must agree before the church contacts them, as in the UK and the EU. When it is not ticked, the church may contact people until they ask it to stop.",
+   "fieldname": "contact_only_with_consent",
+   "fieldtype": "Check",
+   "label": "Contact People Only With Their Consent"
   },
   {
    "default": "0",
@@ -193,7 +216,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-11 10:34:19.925447",
+ "modified": "2026-10-28 16:16:30.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
@@ -207,6 +230,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1
@@ -217,6 +241,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "Church Manager",
    "select": 1,
    "share": 1,

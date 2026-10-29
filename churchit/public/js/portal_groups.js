@@ -24,7 +24,14 @@
 					});
 					return;
 				}
-				const labels = groups.map((g) => g.group_name);
+				// A group whose leaders decide says so, and one already asked for says that.
+				const label = (g) =>
+					g.requested
+						? __("{0} (request sent)", [g.group_name])
+						: g.requires_approval
+						? __("{0} (a leader approves)", [g.group_name])
+						: g.group_name;
+				const labels = groups.map(label);
 				const dialog = new frappe.ui.Dialog({
 					title: __("Join a public group"),
 					fields: [
@@ -38,7 +45,7 @@
 					],
 					primary_action_label: __("Join"),
 					primary_action(values) {
-						const chosen = groups.find((g) => g.group_name === values.group);
+						const chosen = groups.find((g) => label(g) === values.group);
 						if (!chosen) return;
 						frappe
 							.call({
@@ -46,14 +53,20 @@
 								args: { group: chosen.name },
 							})
 							.then((rr) => {
-								if (rr && !rr.exc) {
+								if (!rr || rr.exc) return;
+								dialog.hide();
+								if (rr.message && rr.message.requested) {
 									frappe.show_alert(
-										{ message: __("Joined!"), indicator: "green" },
-										3
+										{ message: __("Request sent"), indicator: "blue" },
+										5
 									);
-									dialog.hide();
-									setTimeout(() => window.location.reload(), 700);
+									return;
 								}
+								frappe.show_alert(
+									{ message: __("Joined!"), indicator: "green" },
+									3
+								);
+								setTimeout(() => window.location.reload(), 700);
 							});
 					},
 				});

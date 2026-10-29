@@ -36,7 +36,7 @@
    "link_fieldname": "marital_status"
   }
  ],
- "modified": "2026-10-12 00:10:00.000000",
+ "modified": "2026-10-21 21:30:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Marital Status",
@@ -75,6 +75,10 @@
    "report": 1,
    "role": "Church Staff",
    "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
   }
  ],
  "quick_entry": 1,

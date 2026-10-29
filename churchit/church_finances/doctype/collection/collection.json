@@ -13,6 +13,7 @@
   "date",
   "function",
   "notes",
+  "import_batch",
   "column_break_ijpy",
   "expected_total",
   "total_amount",
@@ -121,6 +122,14 @@
    "label": "Notes"
   },
   {
+   "description": "The batch of a giving import that made this Collection.",
+   "fieldname": "import_batch",
+   "fieldtype": "Data",
+   "label": "Import Batch",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -143,7 +152,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 01:04:02.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Collection",

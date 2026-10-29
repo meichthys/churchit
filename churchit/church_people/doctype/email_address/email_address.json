@@ -10,6 +10,7 @@
   "email_address",
   "email_type",
   "is_primary",
+  "is_bounced",
   "shared_from",
   "shared_from_type",
   "notification_address"
@@ -22,7 +23,8 @@
    "in_list_view": 1,
    "label": "Email Address",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "columns": 2,
@@ -42,6 +44,13 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Primary"
+  },
+  {
+   "default": "0",
+   "description": "Email sent to this address came back. Churchit ticks it when a bounce reaches the church's inbox, and clears it when the address changes. Church Emails skip this address.",
+   "fieldname": "is_bounced",
+   "fieldtype": "Check",
+   "label": "Email Bounced"
   },
   {
    "columns": 2,
@@ -77,7 +86,7 @@
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-08 00:00:00.000000",
+ "modified": "2026-10-20 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Email Address",

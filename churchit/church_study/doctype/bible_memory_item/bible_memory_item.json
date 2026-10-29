@@ -11,6 +11,7 @@
   "bible_reference",
   "translation",
   "assigned_by",
+  "group",
   "column_break_main",
   "progress",
   "memorized",
@@ -63,6 +64,16 @@
    "read_only": 1
   },
   {
+   "description": "Set when a manager assigns the passage to a group.",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Group",
+   "no_copy": 1,
+   "options": "Group",
+   "read_only": 1
+  },
+  {
    "fieldname": "column_break_main",
    "fieldtype": "Column Break"
   },
@@ -111,7 +122,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-30 00:00:00",
+ "modified": "2026-10-28 16:16:30.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",
@@ -163,6 +174,10 @@
    "role": "Church Staff",
    "select": 1,
    "write": 1
+  },
+  {
+   "report": 1,
+   "role": "Church Staff"
   }
  ],
  "row_format": "Dynamic",

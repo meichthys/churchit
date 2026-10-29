@@ -26,6 +26,7 @@ STAFF_PROFILES = (
 	"Church Care Team",
 	"Church Treasurer",
 	"Church Check-In Volunteer",
+	"Church Follow-up Team",
 )
 
 
@@ -47,24 +48,35 @@ def can_fill_in(doctype, roles):
 	return any(row.write or row.create for row in permission_rows(doctype, roles))
 
 
+def can_create(doctype, roles):
+	return any(row.create for row in permission_rows(doctype, roles))
+
+
 def can_pick(doctype, roles):
 	return any(row.read or row.select for row in permission_rows(doctype, roles))
 
 
-def pickable_links(doctype):
-	"""(fieldname, target) for every Link a user picks on the form, child tables included."""
+def pickable_links(doctype, creating):
+	"""(fieldname, target) for every Link a user picks on the form, child tables included.
+
+	A user who only changes existing records never picks a field that is set once.
+	"""
 	meta = frappe.get_meta(doctype)
 	for field in meta.fields:
 		if field.fieldtype in ("Table", "Table MultiSelect"):
 			for child in frappe.get_meta(field.options).fields:
-				if is_picked(child):
+				if is_picked(child, creating):
 					yield f"{field.fieldname}.{child.fieldname}", child.options
-		elif is_picked(field):
+		elif is_picked(field, creating):
 			yield field.fieldname, field.options
 
 
-def is_picked(field):
-	return field.fieldtype == "Link" and not (field.hidden or field.read_only or field.fetch_from)
+def is_picked(field, creating):
+	return (
+		field.fieldtype == "Link"
+		and not (field.hidden or field.read_only or field.fetch_from)
+		and (creating or not field.set_only_once)
+	)
 
 
 class TestRoleHygiene(FrappeTestCase):
@@ -77,7 +89,7 @@ class TestRoleHygiene(FrappeTestCase):
 			for doctype in sorted(ours):
 				if frappe.get_meta(doctype).istable or not can_fill_in(doctype, roles):
 					continue
-				for fieldname, target in pickable_links(doctype):
+				for fieldname, target in pickable_links(doctype, can_create(doctype, roles)):
 					if target in ours and not can_pick(target, roles):
 						unpickable.append(f"{profile}: {doctype}.{fieldname} -> {target}")
 		self.assertEqual(unpickable, [], "Give the profile read or select on these targets")

@@ -14,6 +14,17 @@
   "shared_by_church",
   "column_break_odyq",
   "ccli",
+  "authors",
+  "copyright",
+  "public_domain",
+  "column_break_song_music",
+  "default_key",
+  "tempo",
+  "time_signature",
+  "section_break_arrangements",
+  "arrangements",
+  "section_break_media",
+  "media",
   "section_break_btjs",
   "slides"
  ],
@@ -58,6 +69,7 @@
    "read_only": 1
   },
   {
+   "description": "The song's number in CCLI SongSelect.",
    "fieldname": "ccli",
    "fieldtype": "Data",
    "in_filter": 1,
@@ -67,14 +79,86 @@
    "label": "CCLI #"
   },
   {
+   "description": "The writers of the words and the music, for example John Newton.",
+   "fieldname": "authors",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Authors"
+  },
+  {
+   "description": "The copyright line of the song, as the publisher gives it.",
+   "fieldname": "copyright",
+   "fieldtype": "Small Text",
+   "label": "Copyright"
+  },
+  {
+   "default": "0",
+   "description": "The words and music are free of copyright. Guests can see the slides of a public domain song in a presentation.",
+   "fieldname": "public_domain",
+   "fieldtype": "Check",
+   "label": "Public Domain"
+  },
+  {
+   "fieldname": "column_break_song_music",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The key the team usually plays the song in. Each arrangement can have its own key.",
+   "fieldname": "default_key",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Default Key",
+   "options": "\nC\nDb\nD\nEb\nE\nF\nF#\nG\nAb\nA\nBb\nB\nCm\nC#m\nDm\nEbm\nEm\nFm\nF#m\nGm\nG#m\nAm\nBbm\nBm"
+  },
+  {
+   "description": "Beats per minute.",
+   "fieldname": "tempo",
+   "fieldtype": "Int",
+   "label": "Tempo (BPM)",
+   "non_negative": 1
+  },
+  {
+   "description": "For example 4/4 or 6/8.",
+   "fieldname": "time_signature",
+   "fieldtype": "Data",
+   "label": "Time Signature"
+  },
+  {
    "fieldname": "column_break_odyq",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_btjs",
-   "fieldtype": "Section Break"
+   "fieldname": "section_break_arrangements",
+   "fieldtype": "Section Break",
+   "label": "Arrangements"
   },
   {
+   "description": "Each way the team plays the song. The ChordPro chart is the source of the chord chart and the slides.",
+   "fieldname": "arrangements",
+   "fieldtype": "Table",
+   "label": "Arrangements",
+   "options": "Song Arrangement"
+  },
+  {
+   "fieldname": "section_break_media",
+   "fieldtype": "Section Break",
+   "label": "Rehearsal Media"
+  },
+  {
+   "description": "Charts and recordings for rehearsal. Volunteers serving at a function with this song see them on their Ministry Team page.",
+   "fieldname": "media",
+   "fieldtype": "Table",
+   "label": "Media",
+   "options": "Song Media"
+  },
+  {
+   "fieldname": "section_break_btjs",
+   "fieldtype": "Section Break",
+   "label": "Slides"
+  },
+  {
+   "description": "The lyrics on screen. Make Slides from ChordPro replaces them with an arrangement's lyrics.",
    "fieldname": "slides",
    "fieldtype": "Table",
    "label": "Slides",
@@ -89,7 +173,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 00:31:37.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",

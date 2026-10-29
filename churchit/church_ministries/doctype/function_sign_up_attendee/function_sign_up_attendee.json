@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "creation": "2026-10-24 00:03:35.000000",
+ "description": "A person a sign-up brings to the function: a Person, or a name a guest typed.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "person",
+  "attendee_name",
+  "selection"
+ ],
+ "fields": [
+  {
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Person",
+   "options": "Person"
+  },
+  {
+   "fieldname": "attendee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Attendee Name"
+  },
+  {
+   "description": "One of the function's Selections.",
+   "fieldname": "selection",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Selection"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-24 00:03:35.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Function Sign-Up Attendee",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

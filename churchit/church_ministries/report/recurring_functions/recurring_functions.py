@@ -55,6 +55,8 @@ def get_data(filters):
 			Function.repeat_frequency,
 			Function.repeat_day_of_week,
 			Function.repeat_month_day,
+			Function.repeat_monthly_by,
+			Function.repeat_week_of_month,
 			Function.repeat_until,
 		)
 		.where(Function.auto_repeat == 1)
@@ -72,6 +74,8 @@ def get_data(filters):
 	for row in rows:
 		if row["repeat_frequency"] == "Weekly":
 			row["repeat_schedule"] = row.get("repeat_day_of_week") or ""
+		elif row["repeat_frequency"] == "Monthly" and row.get("repeat_monthly_by") == "Weekday":
+			row["repeat_schedule"] = f"{row.get('repeat_week_of_month')} {row.get('repeat_day_of_week')}"
 		elif row["repeat_frequency"] == "Monthly":
 			day = row.get("repeat_month_day")
 			row["repeat_schedule"] = f"Day {day}" if day else ""

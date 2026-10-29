@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-23 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Giving Statement",
+ "owner": "Administrator",
+ "reference_doctype": "Giving Statement",
+ "response_html": "<p>Dear {{ addressee }},</p>\n\n<p>Thank you for your giving. Your contribution statement for {{ period }} is attached. Please keep it with your tax records.</p>\n\n<p>If something on it looks wrong, reply to this email and we will correct it.</p>\n\n<p>With gratitude,<br>{{ church_name }}</p>",
+ "subject": "Your contribution statement for {{ period }}",
+ "use_html": 1
+}

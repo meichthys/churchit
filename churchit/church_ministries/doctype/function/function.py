@@ -1,39 +1,166 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from calendar import monthrange
-from datetime import date, datetime, time, timedelta
+from datetime import datetime, time, timedelta
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (
-	add_days,
-	add_months,
-	add_years,
-	date_diff,
-	format_datetime,
-	get_datetime,
-	getdate,
-	now_datetime,
-)
+from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
 
-from churchit.utils import link_title
+from churchit.church_ministries.attendance import get_attendance_total
+from churchit.church_ministries.sign_up_amounts import is_freely_given
+from churchit.church_scope import refuse_another_churches_fund, refuse_another_churches_record
+from churchit.utils import link_title, validate_https_url
 
 TIME_FORMAT = "h:mm a"
 
-WEEKDAY_INDEX = {
-	"Monday": 0,
-	"Tuesday": 1,
-	"Wednesday": 2,
-	"Thursday": 3,
-	"Friday": 4,
-	"Saturday": 5,
-	"Sunday": 6,
-}
-
 
 class Function(Document):
+	def validate(self):
+		# Only the recurrence job links an occurrence, so a user cannot write into another template.
+		if (
+			self.source_template
+			and self.has_value_changed("source_template")
+			and not self.flags.ignore_permissions
+		):
+			frappe.throw(_("Only the recurring functions job sets Source Template."), frappe.PermissionError)
+
+		self.refuse_new_group_associations()
+		if any(self.has_value_changed(field) for field in ("group", "church", "is_shared")):
+			self.validate_group()
+		self.refuse_another_churches_question_set()
+		self.refuse_another_churches_sign_up_fund()
+		self.validate_meeting_url()
+		self.validate_schedule_songs()
+
+	def on_update(self):
+		self.promote_waitlist_when_capacity_grows()
+		self.settle_payment_holds_when_prices_change()
+
+	def validate_meeting_url(self):
+		"""Guests open the meeting link, so it must be one https link."""
+		if self.meeting_url and self.has_value_changed("meeting_url"):
+			self.meeting_url = validate_https_url(self.meeting_url, "Online Meeting Link")
+
+	def validate_schedule_songs(self):
+		"""A Song row names a song the editor may read, and an arrangement of that song.
+
+		Only new and changed rows: an attendance save must not trip on a song edited since.
+		"""
+		if self.is_new() and self.source_template:
+			# The recurrence job copies the template's rows, checked when the template saved.
+			return
+
+		before = self.get_doc_before_save()
+		rows_before = before.schedule if before else []
+		stored = {row.name: (row.item_type, row.item, row.arrangement, row.song_key) for row in rows_before}
+		for row in self.schedule:
+			if row.item_type != "Song" or not row.item:
+				continue
+			if stored.get(row.name) == (row.item_type, row.item, row.arrangement, row.song_key):
+				continue
+			# Before the song is read: its media reach this Function's team.
+			if not frappe.has_permission("Song", "read", doc=row.item):
+				frappe.throw(
+					_("Schedule row {0}: you cannot use this song.").format(row.idx), frappe.PermissionError
+				)
+			self.set_schedule_song_key(row, stored.get(row.name))
+
+	def set_schedule_song_key(self, row, stored_row: tuple | None):
+		"""Refuse an arrangement *row*'s song does not have, and fill the key from it or the song."""
+		song = frappe.get_cached_doc("Song", row.item)
+		arrangement = next(
+			(option for option in song.arrangements if option.arrangement_name == row.arrangement), None
+		)
+		if row.arrangement and not arrangement:
+			frappe.throw(
+				_("Schedule row {0}: {1} has no arrangement named {2}.").format(
+					row.idx, frappe.bold(song.title), frappe.bold(row.arrangement)
+				)
+			)
+
+		# A key left as it was while the song or arrangement changed belongs to the old one.
+		if stored_row and stored_row[1:3] != (row.item, row.arrangement) and stored_row[3] == row.song_key:
+			row.song_key = None
+		if not row.song_key:
+			row.song_key = (arrangement.song_key if arrangement else None) or song.default_key
+
+	def refuse_another_churches_question_set(self):
+		"""The sign-up questions come from a Question Set of this church or a shared one."""
+		# Only when they change: an attendance save of the Function must not trip it.
+		if any(self.has_value_changed(field) for field in ("question_set", "church", "is_shared")):
+			refuse_another_churches_record(self, "Question Set", self.question_set)
+
+	def refuse_another_churches_sign_up_fund(self):
+		"""Sign-up payments go to a fund of the payment church or a shared one, and a price needs a fund.
+
+		A function that is freely given for good takes no payment, so it needs none.
+		"""
+		priced = any(flt(row.price) for row in (*self.selections, *self.table_cxhh))
+		if not self.sign_up_fund and priced and not is_freely_given(self.discounts):
+			frappe.throw(_("Choose a Sign-Up Fund on the Registration tab to take the sign-up payments."))
+		# Only when they change: an attendance save of the Function must not trip it.
+		if any(self.has_value_changed(field) for field in ("sign_up_fund", "church", "is_shared")):
+			refuse_another_churches_fund(self, self.sign_up_fund)
+
+	def promote_waitlist_when_capacity_grows(self):
+		"""A raised capacity, or a selection's, gives the new seats to the waitlist."""
+
+		def get_limits(doc):
+			selections = sorted((row.selection, cint(row.capacity)) for row in doc.selections)
+			items = sorted(
+				(row.item, cint(row.quantity_needed), cint(row.is_limited)) for row in doc.table_cxhh
+			)
+			return cint(doc.capacity), selections, items
+
+		before = self.get_doc_before_save()
+		if before and get_limits(before) != get_limits(self):
+			# After the commit: the promoted sign-ups save this Function's attendance, which would leave
+			# the copy the form gets back stale.
+			frappe.enqueue(
+				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.promote_waitlist",
+				function=self.name,
+				enqueue_after_commit=True,
+			)
+
+	def settle_payment_holds_when_prices_change(self):
+		"""A lower price or a new discount, such as Offer It Freely, reaches the sign-ups that wait to pay."""
+
+		def get_prices(doc):
+			selections = sorted((row.selection, flt(row.price)) for row in doc.selections)
+			items = sorted((row.item, flt(row.price)) for row in doc.table_cxhh)
+			discounts = sorted(
+				(row.kind, row.code or "", flt(row.amount), flt(row.percent), str(row.valid_until or ""))
+				for row in doc.discounts
+			)
+			return selections, items, discounts
+
+		before = self.get_doc_before_save()
+		if before and get_prices(before) != get_prices(self):
+			frappe.enqueue(
+				"churchit.church_ministries.doctype.function_sign_up.function_sign_up.settle_payment_holds",
+				function=self.name,
+				enqueue_after_commit=True,
+			)
+
+	def validate_group(self):
+		"""A group belongs to one church, so its meetings do too."""
+		if self.group and self.is_shared:
+			frappe.throw(_("A Function with a Group cannot be shared with all churches."))
+		refuse_another_churches_record(self, "Group", self.group)
+
+	def refuse_new_group_associations(self):
+		"""A Function names its group in Group. Rows kept from before that field stay as they are."""
+		if self.is_new() and self.source_template:
+			return  # An occurrence keeps the rows its template has.
+		before = self.get_doc_before_save()
+		rows_before = before.associations if before else []
+		kept = {row.association for row in rows_before if row.association_type == "Group"}
+		for row in self.associations:
+			if row.association_type == "Group" and row.association not in kept:
+				frappe.throw(_("Choose the group in the Group field, not in Associations."))
+
 	def before_save(self):
 		name = self.function_name or ""
 		if self.start_date:
@@ -41,14 +168,26 @@ class Function(Document):
 		else:
 			self.title = name
 
-		counted_types = frappe.get_all(
-			"Function Attendance Type",
-			filters={"type": ["in", ["Confirmed", "Assumed", "Checked-In"]]},
-			pluck="name",
-		)
-		self.attendance_total = sum(
-			1 for row in (self.attendance or []) if row.attendance_type in counted_types
-		)
+		self.attendance_total = get_attendance_total(self.attendance or [], self.start_date, self.headcount)
+
+	def on_trash(self):
+		"""Keep a deleted occurrence deleted: its template skips the date from now on."""
+		if not self.source_template:
+			return
+		# Its copied bookings go with it, or they would block the delete.
+		# church-scope: only the bookings of this occurrence
+		for booking in frappe.get_all("Room Booking", filters={"function": self.name}, pluck="name"):
+			frappe.delete_doc("Room Booking", booking, ignore_permissions=True)
+		if not frappe.db.exists("Function", self.source_template):
+			return
+		# Locked, so a second delete waits for the first one's skip date instead of a timestamp clash.
+		template = frappe.get_doc("Function", self.source_template, for_update=True)
+		if template.church != self.church:
+			return
+		if getdate(self.start_date) in {getdate(row.date) for row in template.skip_dates}:
+			return
+		template.append("skip_dates", {"date": self.start_date, "reason": _("Occurrence deleted")})
+		template.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
@@ -67,7 +206,18 @@ def apply_template(source_name: str, start_date: str | None = None):
 	copied_doc = {}
 
 	# Specify which fields to include (whitelist approach)
-	include_fields = ["address", "all_day", "description", "associated_ministry"]
+	include_fields = [
+		"address",
+		"meeting_url",
+		"all_day",
+		"description",
+		"associated_ministry",
+		"group",
+		"min_age",
+		"max_age",
+		"min_grade",
+		"max_grade",
+	]
 
 	# Copy normal fields
 	for field in include_fields:
@@ -106,7 +256,7 @@ def get_time_window(function) -> tuple[datetime, datetime]:
 
 
 def get_schedule_rows(function) -> list[frappe._dict]:
-	"""*function*'s schedule as (time, title, detail) rows: a linked item's title, else the description."""
+	"""*function*'s schedule as (time, title, detail, is_header) rows: a linked item's title, else the description."""
 	rows = []
 	for item in function.schedule:
 		title = link_title(item.item_type, item.item) if item.item else None
@@ -115,9 +265,81 @@ def get_schedule_rows(function) -> list[frappe._dict]:
 				time=format_datetime(item.start, TIME_FORMAT) if item.start else None,
 				title=title or item.description,
 				detail=(item.description or item.item_type) if title else None,
+				is_header=cint(item.is_header),
 			)
 		)
 	return rows
+
+
+def get_team_schedule(function, person: str) -> frappe._dict:
+	"""*function*'s schedule as the Ministry Team page shows it to *person*, who serves at it.
+
+	The song keys and arrangements, team notes, need notes and song media come only with the
+	positions *person* has not declined. They are read here by doctype name, so the published-field
+	scan finds them.
+	"""
+	# Imported here: both modules import this one.
+	from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import DECLINED
+	from churchit.church_ministries.songs.media import get_media_link
+
+	rows = get_schedule_rows(function)
+	# church-scope: the person's own assignments at a function they serve at
+	assignments = frappe.get_all(
+		"Ministry Team Assignment",
+		filters={"function": function.name, "person": person, "status": ("!=", DECLINED)},
+		fields=["name", "position"],
+		order_by="creation asc",
+	)
+	if not assignments:
+		return frappe._dict(rows=rows, need_notes=[])
+
+	need_notes = frappe.get_all(
+		"Function Team Need",
+		filters={
+			"parenttype": "Function",
+			"parent": function.name,
+			"position": ("in", [row.position for row in assignments]),
+			"notes": ("is", "set"),
+		},
+		fields=["position", "notes"],
+		order_by="idx asc",
+	)
+	for note in need_notes:
+		note.position = link_title("Ministry Team Position", note.position)
+
+	team_details = {
+		item.name: item
+		for item in frappe.get_all(
+			"Function Schedule",
+			filters={"parenttype": "Function", "parent": function.name},
+			fields=["name", "item_type", "item", "song_key", "arrangement", "notes"],
+		)
+	}
+	songs = {item.item for item in team_details.values() if item.item_type == "Song" and item.item}
+	media = (
+		frappe.get_all(
+			"Song Media",
+			filters={"parenttype": "Song", "parent": ("in", list(songs))},
+			fields=["name", "parent", "media_type", "label", "file", "url"],
+			order_by="idx asc",
+		)
+		if songs
+		else []
+	)
+	for row, item in zip(rows, function.schedule, strict=True):
+		details = team_details[item.name]
+		is_song = details.item_type == "Song"
+		row.update(
+			key=details.song_key if is_song else None,
+			arrangement=details.arrangement if is_song else None,
+			notes=details.notes,
+			media=[
+				get_media_link(assignments[0].name, file)
+				for file in media
+				if is_song and file.parent == details.item and (file.file or file.url)
+			],
+		)
+	return frappe._dict(rows=rows, need_notes=need_notes)
 
 
 def refuse_a_source_that_is_not_a_template(source_name):
@@ -145,89 +367,6 @@ def readable_attendance(rows):
 	return [row for row in rows if row.get("person") in readable]
 
 
-def create_scheduled_functions():
-	"""Daily scheduler: for every Function template with auto_repeat=1, create the
-	next occurrence once the most recent occurrence has ended."""
-	today = getdate()
-	# church-scope: scheduled daily job, site-wide by design; each copy takes its template's church
-	templates = frappe.get_all(
-		"Function",
-		filters={"auto_repeat": 1},
-		fields=["name", "repeat_until"],
-	)
-	for template in templates:
-		if template.repeat_until and getdate(template.repeat_until) < today:
-			continue
-		try:
-			_create_next_occurrence(template.name, today)
-		except Exception:
-			frappe.log_error(
-				title=f"Auto-create next Function failed for {template.name}",
-				message=frappe.get_traceback(),
-			)
-
-
-def _create_next_occurrence(template_name, today):
-	# Find the most recent occurrence already created from this template
-	# church-scope: scheduled daily job, site-wide by design; each copy takes its template's church
-	latest = frappe.get_all(
-		"Function",
-		filters={"source_template": template_name},
-		fields=["name", "start_date", "end_date", "end_time", "start_time"],
-		order_by="start_date desc, start_time desc",
-		limit=1,
-	)
-	last = latest[0] if latest else None
-
-	# If there is already a future occurrence queued, nothing to do
-	if last and getdate(last.start_date) >= today:
-		return
-
-	# If the most recent occurrence hasn't ended yet, wait
-	if last and not _has_ended(last, today):
-		return
-
-	template = frappe.get_doc("Function", template_name)
-	reference_date = getdate(last.start_date) if last else getdate(template.start_date or today)
-	next_date = _compute_next_date(template, reference_date, today)
-	if not next_date:
-		return
-	if template.repeat_until and next_date > getdate(template.repeat_until):
-		return
-
-	new_doc_data = apply_template(template_name, str(next_date))
-	new_doc_data["doctype"] = "Function"
-	new_doc_data["function_name"] = template.function_name
-	new_doc_data["type"] = template.type
-	new_doc_data["start_date"] = next_date
-	# A multi-day function, such as a weekend retreat, keeps its length.
-	new_doc_data["end_date"] = (
-		add_days(next_date, date_diff(template.end_date, template.start_date)) if template.end_date else None
-	)
-	if not template.all_day:
-		new_doc_data["start_time"] = template.start_time
-		new_doc_data["end_time"] = template.end_time
-	new_doc_data["source_template"] = template_name
-	new_doc_data["auto_repeat"] = 0
-	new_doc_data["church"] = template.church
-
-	new_function = frappe.get_doc(new_doc_data)
-	new_function.insert(ignore_permissions=True)
-
-
-def _has_ended(occurrence, today):
-	end_date = getdate(occurrence.end_date or occurrence.start_date)
-	if end_date < today:
-		return True
-	if end_date > today:
-		return False
-	# end_date == today: only "ended" if end_time has passed
-	if not occurrence.end_time:
-		return False
-	end_dt = datetime.combine(end_date, _as_time(occurrence.end_time))
-	return now_datetime() >= end_dt
-
-
 def _as_time(value):
 	if hasattr(value, "hour"):
 		return value
@@ -237,45 +376,3 @@ def _as_time(value):
 		return (datetime.min + timedelta(seconds=total)).time()
 	# string fallback
 	return datetime.strptime(str(value), "%H:%M:%S").time()
-
-
-def _compute_next_date(template, reference_date, today):
-	freq = template.repeat_frequency
-	# Always advance past today so we never schedule in the past
-	candidate = reference_date
-	if freq == "Daily":
-		candidate = add_days(reference_date, 1)
-		while getdate(candidate) < today:
-			candidate = add_days(candidate, 1)
-		return getdate(candidate)
-
-	if freq == "Weekly":
-		target_idx = WEEKDAY_INDEX.get(template.repeat_day_of_week)
-		if target_idx is None:
-			return None
-		candidate = add_days(reference_date, 1)
-		# Walk forward to the next matching weekday, at least one day past reference
-		while getdate(candidate).weekday() != target_idx or getdate(candidate) < today:
-			candidate = add_days(candidate, 1)
-		return getdate(candidate)
-
-	if freq == "Monthly":
-		day = template.repeat_month_day or getdate(reference_date).day
-		candidate = _month_day(add_months(reference_date, 1), day)
-		while getdate(candidate) < today:
-			candidate = _month_day(add_months(candidate, 1), day)
-		return getdate(candidate)
-
-	if freq == "Yearly":
-		candidate = add_years(reference_date, 1)
-		while getdate(candidate) < today:
-			candidate = add_years(candidate, 1)
-		return getdate(candidate)
-
-	return None
-
-
-def _month_day(any_date_in_month, desired_day):
-	d = getdate(any_date_in_month)
-	last_day = monthrange(d.year, d.month)[1]
-	return date(d.year, d.month, min(desired_day, last_day))

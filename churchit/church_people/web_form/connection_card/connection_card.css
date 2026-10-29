@@ -1,0 +1,30 @@
+/* This source code is freely given for the sake of the gospel (Matthew 10:8)
+   and is licensed under MIT No Attribution (MIT-0). */
+
+/* The honeypot: robots fill in what they find, people never see it. */
+.frappe-control[data-fieldname="website"] {
+	position: absolute;
+	left: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+/* The interests show as checkboxes (connection_card.js) instead of the table rows Frappe draws. */
+.frappe-control[data-fieldname="interests"] .form-grid-container,
+.frappe-control[data-fieldname="interests"] .grid-footer {
+	display: none !important;
+}
+
+.connection-card-interest {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm, 8px);
+	margin-bottom: var(--margin-sm, 8px);
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.connection-card-interest input {
+	margin: 0;
+}

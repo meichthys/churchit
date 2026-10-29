@@ -10,6 +10,8 @@ dynamic = ["version"]
 dependencies = [
     # frappe is installed and managed by bench.
     "pythonbible>=0.15",
+    # Web Push for the member app (R8 X8): VAPID signing and payload encryption.
+    "pywebpush>=2.5",
 ]
 
 [tool.bench.frappe-dependencies]

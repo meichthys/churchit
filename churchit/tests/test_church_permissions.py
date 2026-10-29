@@ -22,9 +22,9 @@ from churchit.church_foundations.church_access import (
 	user_church_permissions,
 )
 from churchit.church_foundations.doctype.church.church import church_name
-from churchit.church_ministries.doctype.function.function import create_scheduled_functions
 from churchit.church_ministries.doctype.ministry_team_assignment import ministry_team_assignment
 from churchit.church_ministries.page.check_in import check_in as check_in_station
+from churchit.church_ministries.recurrence import create_scheduled_functions
 from churchit.church_missions.doctype.missionary.missionary import create_missionary_expenses
 from churchit.church_people.group_api import joinable_public_groups
 from churchit.church_people.report.church_directory_report import church_directory_report as directory
@@ -294,10 +294,32 @@ class TestChurchPermissions(FrappeTestCase):
 			auto_repeat=1,
 			repeat_frequency="Weekly",
 			repeat_day_of_week="Sunday",
+			repeat_horizon_weeks=1,
 		)
 		create_scheduled_functions()
 		occurrences = frappe.get_all("Function", filters={"source_template": template.name}, pluck="church")
-		self.assertEqual(occurrences, [self.branch_b])
+		self.assertEqual(set(occurrences), {self.branch_b})
+
+	def test_a_manager_cannot_link_or_skip_another_churches_template(self):
+		template = make_function("_Test Branch B Template", church=self.branch_b, auto_repeat=1)
+		foreign = make_function("_Test Foreign Occurrence", church=self.branch_a, start_date="2031-05-08")
+		frappe.db.set_value("Function", foreign.name, "source_template", template.name)
+
+		frappe.set_user(self.manager_a)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_doc(
+				{
+					"doctype": "Function",
+					"function_name": "_Test Linked Occurrence",
+					"type": foreign.type,
+					"start_date": "2031-05-15",
+					"source_template": template.name,
+				}
+			).insert()
+		frappe.delete_doc("Function", foreign.name)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.get_doc("Function", template.name).skip_dates, [])
 
 	def test_missionary_expenses_keep_the_missionarys_church(self):
 		fund = ensure(
@@ -380,6 +402,18 @@ class TestChurchPermissions(FrappeTestCase):
 		self.assertIn(family.name, by_family)
 		self.assertEqual(by_family[family.name]["member_count"], 1)
 		self.assertIn(moved.name, [row["person"] for row in directory.execute({"group_by_family": 0})[1]])
+
+	def test_directory_lists_only_the_readers_groups(self):
+		for name, church in (
+			("_Test Listed Group A", self.branch_a),
+			("_Test Listed Group B", self.branch_b),
+		):
+			ensure("Group", {"group_name": name}, {"group_name": name, "church": church})
+
+		frappe.set_user(self.manager_a)
+		names = [group.group_name for group in directory.get_directory_groups({})]
+		self.assertIn("_Test Listed Group A", names)
+		self.assertNotIn("_Test Listed Group B", names)
 
 	def test_a_requested_church_narrows_like_a_list_filter(self):
 		"""With branches included, a blank filter shows them all; a picked church shows only itself."""
@@ -780,7 +814,7 @@ class TestChurchPermissions(FrappeTestCase):
 						"person": person.name,
 						"fund": fund,
 						"amount": 50,
-						"payment_type": frappe.db.get_value("Payment Type", {}, "name"),
+						"payment_type": frappe.db.get_value("Payment Type", {"is_non_cash": 0}, "name"),
 					}
 				],
 			}

@@ -1,0 +1,172 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Lead a Group") }}{% endblock %}
+
+{% block head_include %}
+<style>
+	.leader-group { margin-bottom: 3rem; }
+	.leader-list { list-style: none; padding: 0; margin: 0 0 2rem; }
+	/* wraps on narrow screens: the name above, the role and contact details below */
+	.leader-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding: 10px 0;
+		border-bottom: 1px solid var(--border-color, #e5e7eb); }
+	.leader-list .who { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+	.leader-list .who small { display: block; color: var(--text-muted, #6b7280); }
+	.leader-list .contact { display: flex; flex-wrap: wrap; gap: 4px 16px; overflow-wrap: anywhere; }
+	.leader-list .choice { display: flex; gap: 16px; white-space: nowrap; }
+	.leader-list .choice label { display: flex; align-items: center; gap: 4px; margin: 0; }
+	.leader-meeting { border-bottom: 1px solid var(--border-color, #e5e7eb); padding: 12px 0; }
+	.leader-meeting summary { cursor: pointer; }
+	.leader-meeting summary small { color: var(--text-muted, #6b7280); margin-left: 8px; }
+	.leader-meeting .leader-list { margin-bottom: 1rem; }
+	.leader-meeting .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+	.leader-meeting .actions label { display: flex; align-items: center; gap: 4px; margin: 0; }
+	.message-form { display: grid; gap: 8px; max-width: 40rem; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="my-account-container">
+	<h3 class="my-account-header mb-4">{{ _("Lead a Group") }}</h3>
+
+	{% if not person %}
+		<p class="text-muted">
+			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
+		</p>
+	{% elif not groups %}
+		<p class="text-muted">{{ _("You do not lead a group.") }}</p>
+	{% endif %}
+
+	{% for group in groups %}
+	<section class="leader-group">
+		<h4>{{ group_names[group] | e }}</h4>
+
+		<h5 class="mt-4">{{ _("Members") }}</h5>
+		<ul class="leader-list">
+			{% for member in rosters[group] %}
+			<li>
+				<span class="who">{{ member.full_name | e }}<small>{{ _(member.group_role or "") | e }}</small></span>
+				<span class="contact">
+					{% if member.email %}<a href="mailto:{{ member.email | e }}">{{ member.email | e }}</a>{% endif %}
+					{% if member.phone %}<a href="tel:{{ member.phone | e }}">{{ member.phone | e }}</a>{% endif %}
+				</span>
+			</li>
+			{% endfor %}
+		</ul>
+
+		{% include "churchit/templates/includes/group_join_requests.html" %}
+
+		<h5 class="mt-4">{{ _("Meetings") }}</h5>
+		{% if not meetings[group] %}
+			<p class="text-muted">{{ _("The group has no meetings in the last 8 weeks.") }}</p>
+		{% endif %}
+		{% for meeting in meetings[group] %}
+		<details class="leader-meeting" {{ "open" if not meeting.attendance_recorded_on }}>
+			<summary>
+				{{ frappe.format(meeting.start_date, {"fieldtype": "Date"}) }} {{ meeting.function_name | e }}
+				<small>
+					{% if meeting.did_not_meet %}{{ _("Did not meet") }}
+					{% elif meeting.attendance_recorded_on %}{{ _("Recorded") }}
+					{% else %}{{ _("Not recorded yet") }}{% endif %}
+				</small>
+			</summary>
+			<form class="meeting-form" data-function="{{ meeting.name | e }}">
+				<ul class="leader-list">
+					{% for member in rosters[group] %}
+					{% set status = meeting.attendance.get(member.name) %}
+					<li>
+						<span class="who">{{ member.full_name | e }}</span>
+						{% if status == "Checked-In" %}
+							<span class="choice">{{ _("Checked in") }}</span>
+						{% else %}
+						<span class="choice">
+							<label><input type="radio" name="{{ member.name | e }}" value="present" data-person="{{ member.name | e }}"
+								{{ "checked" if status in ("Confirmed", "Assumed") }}> {{ _("Present") }}</label>
+							<label><input type="radio" name="{{ member.name | e }}" value="absent" data-person="{{ member.name | e }}"
+								{{ "checked" if status == "Absent" }}> {{ _("Absent") }}</label>
+						</span>
+						{% endif %}
+					</li>
+					{% endfor %}
+				</ul>
+				<div class="actions">
+					<label><input type="checkbox" name="did_not_meet" {{ "checked" if meeting.did_not_meet }}> {{ _("The group did not meet") }}</label>
+					<button class="btn btn-sm btn-primary" type="submit">{{ _("Save") }}</button>
+				</div>
+			</form>
+		</details>
+		{% endfor %}
+
+		<h5 class="mt-5">{{ _("Message the group") }}</h5>
+		<p class="text-muted">{{ _("Each member who agreed to get group messages gets a copy that names you.") }}</p>
+		<form class="message-form" data-group="{{ group | e }}">
+			{% if can_send_texts %}
+			<select class="form-control" name="channel" aria-label="{{ _('Send by') }}">
+				<option value="Email">{{ _("Email") }}</option>
+				<option value="SMS">{{ _("Text message") }}</option>
+			</select>
+			{% endif %}
+			<input class="form-control" type="text" name="subject" maxlength="140" required
+				placeholder="{{ _('Subject') }}" aria-label="{{ _('Subject') }}">
+			<textarea class="form-control" name="message" rows="5" required
+				placeholder="{{ _('Message') }}" aria-label="{{ _('Message') }}"></textarea>
+			<div><button class="btn btn-default" type="submit">{{ _("Send") }}</button></div>
+		</form>
+	</section>
+	{% endfor %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	function submit(form, method, args, callback) {
+		var button = form.querySelector("button[type=submit]");
+		button.disabled = true;
+		frappe.call({
+			method: method,
+			args: args,
+			callback: function (response) {
+				button.disabled = false;
+				callback(response);
+			},
+			error: function () { button.disabled = false; },
+		});
+	}
+
+	document.querySelectorAll(".meeting-form").forEach(function (form) {
+		form.addEventListener("submit", function (event) {
+			event.preventDefault();
+			var present = [];
+			var absent = [];
+			form.querySelectorAll("input[type=radio]:checked").forEach(function (input) {
+				(input.value === "present" ? present : absent).push(input.dataset.person);
+			});
+			submit(form, "churchit.church_people.group_meetings.record_group_attendance", {
+				function: form.dataset.function,
+				present: JSON.stringify(present),
+				absent: JSON.stringify(absent),
+				did_not_meet: form.elements.did_not_meet.checked ? 1 : 0,
+			}, function () { window.location.reload(); });
+		});
+	});
+
+	document.querySelectorAll(".message-form").forEach(function (form) {
+		form.addEventListener("submit", function (event) {
+			event.preventDefault();
+			submit(form, "churchit.church_people.group_api.message_group", {
+				group: form.dataset.group,
+				subject: form.elements.subject.value,
+				message: form.elements.message.value,
+				channel: form.elements.channel ? form.elements.channel.value : "Email",
+			}, function (response) {
+				form.reset();
+				frappe.show_alert({
+					message: "{{ _('Sent to {0} people.') }}".replace("{0}", response.message),
+					indicator: "green",
+				});
+			});
+		});
+	});
+});
+</script>
+{% endblock %}

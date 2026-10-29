@@ -3,8 +3,10 @@
 
 """Give existing sites the default Background Check Types new installs now get."""
 
-from churchit.patches.after_install import create_default_background_check_types
+from churchit.church_people.doctype.background_check_type.background_check_type import (
+	create_background_check_types,
+)
 
 
 def execute():
-	create_default_background_check_types()
+	create_background_check_types()

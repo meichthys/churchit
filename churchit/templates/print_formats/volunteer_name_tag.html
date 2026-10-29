@@ -1,0 +1,30 @@
+{#- Name tag for a Volunteer check-in. Check-In Settings renders it with itself as `settings` and the
+    volunteer's accepted team `position`; the standard Print view passes only `doc`, so it prints no
+    position. A volunteer has no security code and no pickup tag. Names are typed by members, so
+    they are escaped. -#}
+{%- set settings = settings or frappe.get_doc("Check-In Settings") -%}
+{%- set width = settings.label_width or 4 -%}
+{%- set height = settings.label_height or 2 -%}
+{%- set person = frappe.db.get_value("Person", doc.person, ["first_name", "nickname", "last_name"], as_dict=True) if doc.person else None -%}
+{%- set function = frappe.db.get_value("Function", doc.function, ["function_name", "start_date"], as_dict=True) if doc.function else None -%}
+{%- set first_name = ((person.nickname or person.first_name) if person else "") or "" -%}
+{%- set last_name = (person.last_name if person else "") or "" -%}
+{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date, "MMM d, yyyy") if function and function.start_date else ""]|select|join(" · ") -%}
+{%- set first_size = (height * 0.28) if first_name|length <= 9 else (height * 0.28 * 9 / first_name|length) -%}
+<style>
+  .print-format { page-width: {{ width }}in; page-height: {{ height }}in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
+  @page { size: {{ width }}in {{ height }}in; margin: 0; }
+  .name-tag.volunteer { width: {{ width }}in; height: {{ height }}in; box-sizing: border-box; padding: {{ height * 0.06 }}in {{ width * 0.05 }}in; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden; page-break-before: always; break-before: page; page-break-inside: avoid; break-inside: avoid; font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; }
+  .name-tag.volunteer .role { font-size: {{ height * 0.09 }}in; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+  .name-tag.volunteer .first-name { font-weight: 700; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; }
+  .name-tag.volunteer .last-name { font-size: {{ height * 0.12 }}in; line-height: 1.3; white-space: nowrap; }
+  .name-tag.volunteer .position { font-size: {{ height * 0.1 }}in; line-height: 1.3; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .name-tag.volunteer .footer { margin-top: auto; width: 100%; font-size: {{ height * 0.08 }}in; color: #333; text-align: left; }
+</style>
+<div class="name-tag volunteer">
+  <div class="role">Volunteer</div>
+  <div class="first-name" style="font-size: {{ first_size|round(2) }}in">{{ first_name|e }}</div>
+  <div class="last-name">{{ last_name|e }}</div>
+  {% if position %}<div class="position">{{ position|e }}</div>{% endif %}
+  <div class="footer">{{ footer|e }}</div>
+</div>

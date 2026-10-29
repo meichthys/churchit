@@ -13,6 +13,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import nowdate
 
+from churchit.church_finances.report.budget_vs_actual import budget_vs_actual
 from churchit.church_finances.report.expenses import expenses as expenses_report
 from churchit.church_finances.report.fund_balances import fund_balances
 from churchit.church_finances.report.income_statement import income_statement
@@ -120,6 +121,33 @@ class TestFinanceChurchOwnership(FrappeTestCase):
 					"church": self.branch,
 				}
 			).insert(ignore_permissions=True)
+
+	def test_a_transfer_out_of_a_shared_fund_keeps_the_church_that_moved_it(self):
+		"""The shared fund has no church to give it, and an empty church would share the transfer."""
+		frappe.set_user(self.branch_manager)
+		transfer = frappe.get_doc(
+			{
+				"doctype": "Fund Transfer",
+				"from_fund": self.shared_fund.name,
+				"to_fund": self.branch_fund.name,
+				"amount": 5,
+				"date": nowdate(),
+			}
+		).insert()
+
+		self.assertEqual(transfer.church, self.branch)
+
+	def test_budget_vs_actual_refuses_another_churchs_budget(self):
+		"""The report reads whichever budget its filter names, so it checks that budget first."""
+		budget = frappe.get_doc(
+			{"doctype": "Budget", "church": self.root, "start_date": "2001-01-01", "end_date": "2001-12-31"}
+		)
+		budget.append("lines", {"expense_type": self.root_type, "budgeted_amount": 100})
+		budget.insert(ignore_permissions=True)
+
+		frappe.set_user(self.branch_manager)
+		with self.assertRaises(frappe.PermissionError):
+			budget_vs_actual.execute({"budget": budget.name})
 
 	def test_an_online_gift_keeps_the_church_of_the_page_it_came_from(self):
 		"""A shared fund names no church, so the gift cannot take one from it."""

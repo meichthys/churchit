@@ -90,7 +90,7 @@ services:
     command:
       - >
         if [ -d "sites/${SITE_NAME}" ]; then
-          echo "Site ${SITE_NAME} already exists — nothing to do.";
+          echo "Site ${SITE_NAME} already exists. Nothing to do.";
           exit 0;
         fi;
         bench new-site
@@ -107,9 +107,9 @@ services:
     # Temp container: runs on every `up`. Installs any app that is in the image
     # (deploy/apps.json -> sites/apps.txt) but not yet on this site, then runs
     # migrations. This is what makes existing sites pick up churchit upgrades and
-    # newly-added apps automatically — the app list comes from the image, which
+    # newly-added apps automatically. The app list comes from the image, which
     # is what gets pulled, not from this compose file. The Administrator password
-    # is intentionally NOT touched here — create-site sets it once at creation and
+    # is intentionally NOT touched here: create-site sets it once at creation and
     # after that it is owned by the user (changeable in the web UI).
     <<: *backend
     restart: "no"
@@ -120,7 +120,7 @@ services:
     command:
       - >
         if [ ! -d "sites/${SITE_NAME}" ]; then
-          echo "Site ${SITE_NAME} not found — skipping migrate.";
+          echo "Site ${SITE_NAME} not found. Skipping migrate.";
           exit 0;
         fi;
         installed="$$(bench --site ${SITE_NAME} list-apps 2>/dev/null)";

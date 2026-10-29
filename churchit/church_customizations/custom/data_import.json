@@ -1,0 +1,43 @@
+{
+  "custom_fields": [],
+  "custom_perms": [
+    {
+      "parent": "Data Import",
+      "role": "System Manager",
+      "permlevel": 0,
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "share": 1,
+      "write": 1
+    },
+    {
+      "parent": "Data Import",
+      "role": "Church Manager",
+      "permlevel": 0,
+      "if_owner": 1,
+      "create": 1,
+      "delete": 1,
+      "read": 1,
+      "write": 1
+    },
+    {
+      "parent": "Data Import",
+      "role": "Church Finance",
+      "permlevel": 0,
+      "if_owner": 1,
+      "create": 1,
+      "delete": 1,
+      "read": 1,
+      "write": 1
+    }
+  ],
+  "doctype": "Data Import",
+  "links": [],
+  "property_setters": [],
+  "sync_on_migrate": 1
+}

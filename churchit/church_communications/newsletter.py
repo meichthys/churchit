@@ -1,139 +1,122 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import contextlib
-
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils.verified_command import verify_request
 
-from churchit.church_scope import is_multi_church, session_church, session_person
-from churchit.contacts import get_primary_email, get_primary_emails
+from churchit.church_communications.doctype.communication_consent.communication_consent import (
+	DESK,
+	EMAIL,
+	GIVEN,
+	UNSUBSCRIBE_LINK,
+	WITHDRAWN,
+	record,
+)
+from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
+from churchit.church_scope import is_multi_church, root_church
+from churchit.contacts import primary_email
 
-MEMBER_EMAIL_GROUP = "Church Members"
-
-
-def member_email_group(church=None):
-	"""The Email Group a church's members belong to: one per church once branches exist.
-
-	Named after the church rather than its abbreviation, which is a free-form
-	label two churches may share: an Email Group is keyed by its title, so a
-	repeated abbreviation silently merged two congregations' recipient lists.
-	"""
-	if not is_multi_church() or not church:
-		return MEMBER_EMAIL_GROUP
-	return f"{MEMBER_EMAIL_GROUP} - {frappe.db.get_value('Church', church, 'church_name')}"
-
-
-@frappe.whitelist()
-def sync_member_email_group():
-	"""Pull email addresses from Person records into the church newsletter
-	Email Group so the recipient list never has to be maintained by hand.
-
-	Each Person contributes the one address marked primary in their Emails
-	table, since a member's work address is not newsletter material unless they
-	made it their primary. Re-running only adds addresses that are not already in
-	the group, so anyone who unsubscribed via a newsletter link stays unsubscribed.
-	In multi-church mode each church has its own group, created on first sync.
-	"""
-	if not is_multi_church():
-		# church-scope: one church on the site, so its one group holds everyone
-		if frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
-			add_members(MEMBER_EMAIL_GROUP, frappe.get_all("Person", pluck="name"))
-		return
-
-	for church in frappe.get_all("Church", pluck="name"):
-		# church-scope: scheduled daily job building one group per church, filtered to
-		# the church whose group it is. Not church_filters: a shared Person cannot
-		# exist, and admitting the empty church would put strangers in every group.
-		people = frappe.get_all("Person", filters={"church": church}, pluck="name")
-		if people:
-			add_members(ensure_email_group(member_email_group(church)), people)
+# Who stopped a church's emails is kept as Frappe's own Email Unsubscribe, made against the church.
+UNSUBSCRIBE_REFERENCE = "Church"
+UNSUBSCRIBE_METHOD = "/api/method/churchit.church_communications.newsletter.unsubscribe"
 
 
-def add_members(group, people):
-	"""Add the primary email of each person to the group, skipping addresses already in it."""
-	emails = set(get_primary_emails("Person", people).values())
-	if not emails:
-		return
+def email_church(church: str | None) -> str | None:
+	"""The church a Church Email goes out in and whose unsubscribes apply: the root church on a single-church site."""
+	return church if church and is_multi_church() else root_church()
 
-	existing = set(
-		frappe.get_all(
-			"Email Group Member",
-			filters={"email_group": group, "email": ("in", list(emails))},
-			pluck="email",
-		)
+
+def unsubscribed_emails(church: str) -> set[str]:
+	"""Addresses that stopped *church*'s emails, or every email the site sends."""
+	stopped = frappe.get_all(
+		"Email Unsubscribe",
+		filters={"reference_doctype": UNSUBSCRIBE_REFERENCE, "reference_name": church},
+		pluck="email",
 	)
-
-	for email in sorted(emails - existing):
-		with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
-			frappe.get_doc({"doctype": "Email Group Member", "email_group": group, "email": email}).insert(
-				ignore_permissions=True
-			)
+	everything = frappe.get_all("Email Unsubscribe", filters={"global_unsubscribe": 1}, pluck="email")
+	return set(stopped) | set(everything)
 
 
-def ensure_email_group(title):
-	if not frappe.db.exists("Email Group", title):
-		frappe.get_doc({"doctype": "Email Group", "title": title}).insert(ignore_permissions=True)
-	return title
+def is_subscribed(email: str, church: str) -> bool:
+	return not frappe.db.exists("Email Unsubscribe", unsubscribe_filters(email, church))
 
 
-def _current_subscriber_email():
-	"""Return the email address to manage for the logged-in user.
+def set_subscribed(email: str, church: str, subscribed: bool):
+	"""Start or stop *church*'s emails to *email*.
 
-	Prefers the linked Person's primary email, falling back to the User's own
-	email. Returns ``None`` for guests or users with no email on file.
+	Stopping them withdraws Church News from each of the church's people holding the address.
+	Starting them again records no consent here: the caller records the one person who asked.
 	"""
-	user = frappe.session.user
-	if user == "Guest":
-		return None
-	person = session_person()
-	email = get_primary_email("Person", person) if person else None
-	return email or frappe.db.get_value("User", user, "email")
+	from churchit.church_communications import consent  # consent imports this module
+
+	filters = unsubscribe_filters(email, church)
+	if subscribed:
+		frappe.db.delete("Email Unsubscribe", filters)
+	elif not frappe.db.exists("Email Unsubscribe", filters):
+		# Saved the usual way, an Email Unsubscribe writes the address onto the Church's timeline.
+		unsubscribe = frappe.get_doc({"doctype": "Email Unsubscribe", **filters})
+		unsubscribe.set_user_and_timestamp()
+		unsubscribe.db_insert()
+		# db_insert runs no hooks, so the consent hook is run here.
+		consent.record_unsubscribe(unsubscribe)
 
 
-@frappe.whitelist()
-def get_subscription_status():
-	"""Return the logged-in member's church-newsletter subscription status."""
-	email = _current_subscriber_email()
-	group = member_email_group(session_church())
-	subscribed = False
-	if email and frappe.db.exists("Email Group", group):
-		member = frappe.db.get_value(
-			"Email Group Member",
-			{"email_group": group, "email": email},
-			["unsubscribed"],
-			as_dict=True,
-		)
-		subscribed = bool(member) and not member.unsubscribed
-	return {"email": email, "subscribed": subscribed, "newsletter": group}
+def lift_global_unsubscribe(email: str):
+	"""Let every email reach *email* again, for a member who asked for one in the portal."""
+	frappe.db.delete("Email Unsubscribe", {"email": email, "global_unsubscribe": 1})
 
 
-@frappe.whitelist()
-def set_subscription(subscribed: bool):
-	"""Subscribe or unsubscribe the logged-in member to the church newsletter.
+def unsubscribe_filters(email, church):
+	return {"email": email, "reference_doctype": UNSUBSCRIBE_REFERENCE, "reference_name": church}
 
-	Backed by the Email Group Member ``unsubscribed`` flag rather than deleting
-	the row, so the daily Person sync never silently re-subscribes someone who
-	opted out.
+
+@frappe.whitelist(allow_guest=True)
+def unsubscribe(
+	email: str, church: str, purpose: str | None = None, person: str | None = None, **signed_params
+):
+	"""The link at the foot of every Church Email: stop that church's emails, or those for one purpose.
+
+	A link with no purpose, or Church News, stops all of the church's emails to the address, as links
+	always have. A purpose that no longer exists does the same, so the opt-out is still kept. *person*,
+	signed into links sent since, is the person the copy went to, whatever their church.
 	"""
-	email = _current_subscriber_email()
-	if not email:
-		frappe.throw(_("No email address is on file for your account. Please contact the church office."))
+	if not frappe.in_test and not verify_request():
+		return
 
-	subscribe = bool(cint(subscribed))
-	group = ensure_email_group(member_email_group(session_church()))
-
-	name = frappe.db.get_value("Email Group Member", {"email_group": group, "email": email}, "name")
-	if name:
-		frappe.db.set_value("Email Group Member", name, "unsubscribed", 0 if subscribe else 1)
+	church_name = frappe.db.get_value("Church", church, "church_name") or church
+	if purpose and purpose != CHURCH_NEWS and frappe.db.exists("Communication Purpose", purpose):
+		withdraw_purpose(email, church, purpose, person)
+		message = _("{0} will no longer receive {1} emails from {2}.").format(email, _(purpose), church_name)
 	else:
-		frappe.get_doc(
-			{
-				"doctype": "Email Group Member",
-				"email_group": group,
-				"email": email,
-				"unsubscribed": 0 if subscribe else 1,
-			}
-		).insert(ignore_permissions=True)
-	return {"subscribed": subscribe}
+		set_subscribed(email, church, False)
+		message = _("{0} will no longer receive emails from {1}.").format(email, church_name)
+	frappe.db.commit()
+	frappe.respond_as_web_page(_("Unsubscribed"), message, indicator_color="green")
+
+
+def withdraw_purpose(email: str, church: str, purpose: str, person: str | None = None):
+	"""Withdraw Email for *purpose* from *person* and each of *church*'s people holding *email* who still allow it.
+
+	A Group may hold another church's people, so the person the copy went to is named.
+	"""
+	from churchit.church_communications import consent  # consent imports this module
+
+	people = consent.people_with_email(email, church)
+	if person and person not in people:
+		people.append(person)
+	allowed = consent.allowed_people(people, EMAIL, purpose)
+	record([holder for holder in people if holder in allowed], EMAIL, WITHDRAWN, purpose, UNSUBSCRIBE_LINK)
+
+
+def has_unsubscribed(person) -> bool:
+	"""Whether the church's emails no longer reach the loaded *person*'s primary email."""
+	email = primary_email(person)
+	return bool(email) and not is_subscribed(email, email_church(person.church))
+
+
+def resubscribe(person):
+	"""Let the church email the loaded *person* again, for someone who cannot do it in the portal."""
+	if email := primary_email(person):
+		set_subscribed(email, email_church(person.church), True)
+		record([person.name], EMAIL, GIVEN, CHURCH_NEWS, DESK)

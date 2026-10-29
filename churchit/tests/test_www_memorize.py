@@ -54,6 +54,21 @@ class TestMemorizePages(RollbackEachTest):
 		self.assertEqual(items[self.item.name]["assigned_by_label"], "_Test Page Other")
 		self.assertIn(self.translation, [translation.name for translation in context["translations"]])
 
+	def test_index_offers_the_groups_of_the_users_items(self):
+		group = frappe.get_doc({"doctype": "Group", "group_name": "_Test Page Memory Group"})
+		group = group.insert(ignore_permissions=True).name
+		frappe.db.set_value("Bible Memory Item", self.item.name, "group", group)
+
+		context = frappe._dict()
+		index.get_context(context)
+		self.assertEqual(context.groups, {group: "_Test Page Memory Group"})
+		self.assertEqual([item["group"] for item in context["items"]], [group])
+
+	def test_index_offers_no_group_filter_without_groups(self):
+		context = frappe._dict()
+		index.get_context(context)
+		self.assertEqual(context.groups, {})
+
 	def test_index_hides_other_users_items(self):
 		frappe.set_user(self.other)
 		context = frappe._dict()

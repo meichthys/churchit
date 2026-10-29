@@ -8,21 +8,28 @@ these double as an integration check: a validation added anywhere that the sampl
 records violate surfaces here rather than on a new user's first install.
 """
 
+from collections import deque
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.dashboard_chart import dashboard_chart
 from frappe.desk.doctype.number_card.number_card import calculate_previous_result
+from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import background_jobs, get_first_day_of_week, today
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
+from churchit.church_people import household
+from churchit.church_people.dashboard_chart_source.life_events import life_events
 from churchit.church_people.report.person_anniversaries_this_month import (
 	person_anniversaries_this_month as anniversaries_this_month,
 )
 from churchit.church_people.report.person_positions_ending_this_month import (
 	person_positions_ending_this_month as positions_ending_this_month,
 )
+from churchit.dashboard import count_people
 from churchit.setup import sample_data
-from churchit.tests.helpers import ensure_root_church
+from churchit.tests.helpers import ensure_root_church, make_person
 
 # One or two doctypes per module, enough to prove each section of the loader ran.
 SEEDED_DOCTYPES = (
@@ -48,11 +55,97 @@ SEEDED_DOCTYPES = (
 	"Church Task",
 	"Song",
 	"Meeting Minutes",
+	"Weekly Metrics",
+	"Pledge Campaign",
+	"Pledge",
+	"Question Set",
+	"Form Response",
+	"Function Sign-Up",
+	"Group Join Request",
+	"Pickup Restriction",
+	"Background Check",
+	"Sermon Handout",
+	"Bulletin",
 )
 
 
 def counts():
 	return {doctype: frappe.db.count(doctype) for doctype in SEEDED_DOCTYPES}
+
+
+def get_database_state() -> dict:
+	"""Every table's row count, the Series counters, the Singles values and the default Church."""
+	church = frappe.db.get_value("Church", ensure_root_church(), "*", as_dict=True)
+	return {
+		"rows": {
+			table: frappe.db.sql(f"select count(*) from `{table}`")[0][0]
+			for table in frappe.db.get_tables(cached=False)
+		},
+		"series": dict(frappe.db.sql("select name, current from tabSeries")),
+		"singles": {
+			(doctype, field): value
+			for doctype, field, value in frappe.db.sql("select doctype, field, value from tabSingles")
+			if field not in ("modified", "modified_by")
+		},
+		"church": {key: value for key, value in church.items() if key not in ("modified", "modified_by")},
+	}
+
+
+def get_changes(before: dict, after: dict) -> dict:
+	return {
+		key: (before.get(key), after.get(key))
+		for key in before.keys() | after.keys()
+		if before.get(key) != after.get(key)
+	}
+
+
+def add_outgoing_email_account():
+	frappe.get_doc(
+		{
+			"doctype": "Email Account",
+			"email_account_name": "_Test Sample Data Outgoing",
+			"email_id": "_test_sample_outgoing@example.com",
+			"enable_outgoing": 1,
+			"default_outgoing": 1,
+			"smtp_server": "localhost",
+			"no_smtp_authentication": 1,
+		}
+	).insert(ignore_permissions=True)
+
+
+class QueuedJobs:
+	"""Holds what `frappe.enqueue` queues, to run it the way a worker does after a commit.
+
+	In a test, enqueue pushes a job to the real queue at once, where a worker runs it
+	against the committed database, and a job queued after commit never runs at all.
+	"""
+
+	enqueue_now = staticmethod(background_jobs.enqueue)
+
+	def __init__(self):
+		self.jobs = deque()
+
+	@classmethod
+	def start(cls, case) -> "QueuedJobs":
+		"""Hold the jobs queued while the test class *case* runs."""
+		jobs = cls()
+		for target in ("frappe.enqueue", "frappe.utils.background_jobs.enqueue"):
+			enqueue = patch(target, jobs.enqueue)
+			enqueue.start()
+			case.addClassCleanup(enqueue.stop)
+		return jobs
+
+	def enqueue(self, method, **kwargs):
+		if kwargs.get("now"):
+			return self.enqueue_now(method, **kwargs)
+		self.jobs.append((method, kwargs))
+
+	def run(self):
+		"""Stand in for a commit: its callbacks, then every queued job, and the jobs those queue."""
+		frappe.db.after_commit.run()
+		while self.jobs:
+			method, kwargs = self.jobs.popleft()
+			self.enqueue_now(method, **{**kwargs, "now": True})
 
 
 class TestSampleDataLoader(FrappeTestCase):
@@ -129,6 +222,15 @@ class TestSampleDataLoader(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Collection", {"docstatus": 1}))
 		self.assertTrue(any(frappe.get_all("Fund", pluck="balance")))
 
+	def test_both_members_cards_count_the_same_people(self):
+		"""The Summary card counted every active person, Regular Attenders too."""
+		people_card, summary_card = (
+			count_people(frappe.db.get_value("Number Card", card, "filters_json"))["value"]
+			for card in ("Members", "Total Members")
+		)
+		self.assertTrue(people_card)
+		self.assertEqual(summary_card, people_card)
+
 
 class TestSampleDataRoundTrip(FrappeTestCase):
 	"""A wipe, one load and one wipe for the whole class, then what the wipe had to leave behind.
@@ -147,8 +249,47 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.jobs = QueuedJobs.start(cls)
+		# With an outgoing account the load queues registrant emails; none is sent.
+		send = patch.object(EmailQueue, "send")
+		send.start()
+		cls.addClassCleanup(send.stop)
+		add_outgoing_email_account()
+
 		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.before = get_database_state()
+		# A church's own record from before the load, which the delete takes with the rest of its doctype.
+		cls.own_person = make_person("_Test Own Person").name
+
 		sample_data.create_sample_data()
+		cls.jobs.run()
+		cls.queued_emails = frappe.db.count("Email Queue") - cls.before["rows"]["tabEmail Queue"]
+		cls.check_in_cards = frappe.db.count("Follow-up Card", {"source_type": "Function Check-In"})
+		sample_families = frappe.get_all(
+			"Family",
+			{"family_name": ["in", [name for name, _members in sample_data._FAMILIES]]},
+			pluck="name",
+		)
+		cls.spouse_roles = frappe.get_all(
+			"Family Members",
+			filters={
+				"parenttype": "Family",
+				"parent": ["in", sample_families],
+				"relationship_to_primary_contact": ["in", ["Husband", "Wife"]],
+			},
+			pluck="household_role",
+		)
+		cls.charts_with_data = cls.get_charts_with_data()
+		cls.this_week = frappe.get_all(
+			"Weekly Metrics",
+			{"week_start": get_first_day_of_week(today())},
+			["people_in_groups"],
+		)
+		cls.people_in_groups = frappe.db.count("Person", {"group_count": [">", 0]})
+		cls.johnson_salutation = household.salutation(
+			frappe.db.get_value("Family", {"family_name": "Johnson - Robert"})
+		)
 		cls.home_addresses = frappe.get_all(
 			"Address", {"address_title": ["in", list(sample_data._HOME_ADDRESSES)]}, pluck="name"
 		)
@@ -171,6 +312,23 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		)
 
 		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.after = get_database_state()
+
+	@classmethod
+	def get_charts_with_data(cls) -> list[str]:
+		charts = []
+		for name in ("Members", "Baptisms by Year"):
+			chart = frappe.get_doc("Dashboard Chart", name)
+			data = life_events.get(
+				filters=chart.filters_json, timespan=chart.timespan, time_interval=chart.time_interval
+			)
+			if any(data["datasets"][0]["values"]):
+				charts.append(name)
+		for name in ("Attendance by Week", "Giving by Week"):
+			if any(dashboard_chart.get(chart_name=name, refresh=1)["datasets"][0]["values"]):
+				charts.append(name)
+		return charts
 
 	@classmethod
 	def add_records_a_user_would_make(cls):
@@ -194,6 +352,43 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		function_type = frappe.get_all("Function Type", limit=1, pluck="name")[0]
 		frappe.db.set_value("Function Type", function_type, "template_function", function)
 		return function_type
+
+	def test_both_spouses_of_a_sample_household_are_adults(self):
+		"""Setting the primary contact before the spouse link made each wife an Other Adult."""
+		self.assertEqual(len(self.spouse_roles), 2 * len(sample_data._SPOUSES))
+		self.assertEqual(set(self.spouse_roles), {household.ADULT})
+		self.assertEqual(self.johnson_salutation, "Robert & Mary Johnson")
+
+	def test_the_people_and_summary_charts_have_data(self):
+		"""Membership and baptism dates in 2015 and no Weekly Metrics left these charts empty."""
+		self.assertEqual(
+			self.charts_with_data, ["Members", "Baptisms by Year", "Attendance by Week", "Giving by Week"]
+		)
+
+	def test_this_weeks_metrics_count_the_people_in_groups(self):
+		"""The week was written before the queued summary refresh filled the group counts it reads."""
+		self.assertGreater(self.people_in_groups, 0)
+		self.assertEqual(sum(row.people_in_groups for row in self.this_week), self.people_in_groups)
+
+	def test_delete_leaves_every_table_as_it_was(self):
+		"""Rows the load made through Frappe (versions, comments, milestones, logs) go with the records."""
+		for part in ("rows", "series", "singles", "church"):
+			with self.subTest(part):
+				self.assertEqual(get_changes(self.before[part], self.after[part]), {})
+
+	def test_the_round_trip_covers_queued_emails(self):
+		self.assertTrue(self.queued_emails, "the load queued no email, so the delete was not tested on any")
+
+	def test_the_sample_check_ins_start_no_newcomer_card(self):
+		"""The people checked in are long-time members, not newcomers."""
+		self.assertEqual(self.check_in_cards, 0)
+
+	def test_an_emptied_doctype_numbers_its_next_record_from_one(self):
+		self.assertTrue(self.own_person.endswith("-0001"), self.own_person)
+		frappe.db.savepoint("next_person")
+		next_person = make_person("_Test After Delete").name
+		frappe.db.rollback(save_point="next_person")
+		self.assertEqual(next_person, self.own_person)
 
 	def test_delete_removes_what_create_made(self):
 		# Ministry is the one step with a filter: the General ministry predates the
@@ -233,6 +428,79 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		self.assertTrue(self.draft_expense, "the sample data seeded no draft expense to wipe")
 		self.assertTrue(self.submitted_expense, "the sample data seeded no submitted expense to wipe")
 		self.assertEqual(frappe.db.count("Expense"), 0)
+
+
+# Tables that keep rows about a Person: (doctype, the field naming the doctype, the field naming the record).
+PERSON_HISTORY = (
+	("Version", "ref_doctype", "docname"),
+	("Comment", "reference_doctype", "reference_name"),
+	("Communication", "reference_doctype", "reference_name"),
+	("Deleted Document", "deleted_doctype", "deleted_name"),
+)
+
+
+class TestDeleteClearsOldHistory(FrappeTestCase):
+	"""A Person the church deleted before the load leaves rows that would attach to the next PRSN-0001."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.jobs = QueuedJobs.start(cls)
+		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.old_person, cls.kept, cls.dropped = cls.delete_a_churchs_person()
+
+		sample_data.create_sample_data()
+		cls.jobs.run()
+		sample_data.delete_sample_data()
+		cls.jobs.run()
+		cls.person_rows = {
+			doctype: frappe.db.count(doctype, {type_field: "Person"})
+			for doctype, type_field, _ in PERSON_HISTORY
+		}
+		cls.new_person = make_person("_Test New Person").name
+
+	@classmethod
+	def delete_a_churchs_person(cls) -> tuple[str, str, str]:
+		person = make_person("_Test Old Person")
+		person.alergies = "Pollen"
+		# Frappe keeps no Version of a save in a test unless asked.
+		person.save(ignore_permissions=True, ignore_version=False)
+		person.add_comment("Comment", "Asked about the membership class.")
+		church_link = [{"link_doctype": "Church", "link_name": ensure_root_church()}]
+		kept, dropped = (
+			frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_medium": "Email",
+					"subject": subject,
+					"reference_doctype": "Person",
+					"reference_name": person.name,
+					"timeline_links": links,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+			for subject, links in (("_Test Also The Church's", church_link), ("_Test Only The Person's", []))
+		)
+		# As on a site where Frappe's clean-up job for the delete never ran.
+		with patch("frappe.enqueue"):
+			frappe.delete_doc("Person", person.name, force=True, ignore_permissions=True)
+		for doctype, type_field, name_field in PERSON_HISTORY:
+			assert frappe.db.exists(doctype, {type_field: "Person", name_field: person.name}), doctype
+		return person.name, kept, dropped
+
+	def test_the_next_person_takes_the_old_number(self):
+		self.assertEqual(self.new_person, self.old_person)
+
+	def test_no_row_of_the_old_person_is_left(self):
+		self.assertEqual(self.person_rows, dict.fromkeys(self.person_rows, 0))
+
+	def test_a_communication_a_kept_record_holds_stays_without_the_person(self):
+		self.assertFalse(frappe.db.exists("Communication", self.dropped))
+		self.assertIsNone(frappe.db.get_value("Communication", self.kept, "reference_name"))
+		links = frappe.get_all("Communication Link", {"parent": self.kept}, pluck="link_doctype")
+		self.assertEqual(links, ["Church"])
 
 
 class TestSetupWizardHook(FrappeTestCase):

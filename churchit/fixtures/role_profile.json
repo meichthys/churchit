@@ -34,12 +34,6 @@
     "parent": "Church Manager",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Newsletter Manager"
-   },
-   {
-    "parent": "Church Manager",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
     "role": "Report Manager"
    },
    {
@@ -74,7 +68,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-09-28 12:00:00",
+  "modified": "2026-10-17 16:00:00",
   "name": "Church Staff",
   "role_profile": "Church Staff",
   "roles": [
@@ -83,13 +77,19 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Church Staff"
+   },
+   {
+    "parent": "Church Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-09-28 12:00:00",
+  "modified": "2026-10-17 16:00:00",
   "name": "Church Office",
   "role_profile": "Church Office",
   "roles": [
@@ -104,13 +104,19 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Church People Editor"
+   },
+   {
+    "parent": "Church Office",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-09-28 12:00:00",
+  "modified": "2026-10-17 16:00:00",
   "name": "Church Care Team",
   "role_profile": "Church Care Team",
   "roles": [
@@ -125,13 +131,19 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Church Pastoral Care"
+   },
+   {
+    "parent": "Church Care Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-09-28 12:00:00",
+  "modified": "2026-10-17 16:00:00",
   "name": "Church Treasurer",
   "role_profile": "Church Treasurer",
   "roles": [
@@ -146,13 +158,19 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Church Finance"
+   },
+   {
+    "parent": "Church Treasurer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-09-28 12:00:00",
+  "modified": "2026-10-17 16:00:00",
   "name": "Church Check-In Volunteer",
   "role_profile": "Church Check-In Volunteer",
   "roles": [
@@ -161,6 +179,33 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Church Check-In"
+   },
+   {
+    "parent": "Church Check-In Volunteer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-10-17 21:00:00",
+  "name": "Church Follow-up Team",
+  "role_profile": "Church Follow-up Team",
+  "roles": [
+   {
+    "parent": "Church Follow-up Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Church Follow-up"
+   },
+   {
+    "parent": "Church Follow-up Team",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Inbox User"
    }
   ]
  }

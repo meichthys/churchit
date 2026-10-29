@@ -23,7 +23,7 @@ DASH_ENTITIES = [f"&{prefix}dash;" for prefix in ("m", "n")]
 DASH_ESCAPES = r"\\u201[34]"
 DASHES = re.compile("|".join([DASH_CHARACTERS, DASH_ESCAPES, *DASH_ENTITIES]))
 
-SCANNED = (".py", ".md", ".html", ".js", ".json", ".txt", ".css", ".scss")
+SCANNED = (".py", ".md", ".html", ".js", ".json", ".txt", ".css", ".scss", ".sh", ".yml", ".yaml", ".example")
 SKIPPED_DIRS = {".git", "node_modules", "__pycache__", ".venv", "env"}
 
 

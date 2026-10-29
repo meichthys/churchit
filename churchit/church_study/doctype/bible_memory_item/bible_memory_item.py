@@ -9,7 +9,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import escape_html, today
 
-from churchit.scripture import format_reference
+from churchit.church_scope import has_church_access, is_multi_church
+from churchit.scripture import format_reference, is_readable
 
 ASSIGNING_ROLES = {"Church Manager", "System Manager", "Administrator"}
 
@@ -20,6 +21,7 @@ class BibleMemoryItem(Document):
 			self.user = frappe.session.user
 
 	def validate(self):
+		self.refuse_what_the_user_may_not_assign()
 		self.bible_reference = format_reference(self.bible_reference)
 		duplicate = frappe.db.exists(
 			"Bible Memory Item",
@@ -38,10 +40,27 @@ class BibleMemoryItem(Document):
 			self.memorized = 0
 			self.memorized_on = None
 
+	def refuse_what_the_user_may_not_assign(self):
+		"""Apply the `assign_memory` checks to a save through the desk or REST."""
+		if self.flags.ignore_permissions:
+			return
+		before = self.get_doc_before_save()
+		if self.group != (before.group if before else None):
+			frappe.throw(_("Only a group assignment sets the group."), frappe.PermissionError)
+		if self.has_value_changed("translation") and not is_readable(self.translation):
+			frappe.throw(
+				_("You cannot read the translation {0}.").format(self.translation), frappe.PermissionError
+			)
+		if self.user == frappe.session.user or not self.has_value_changed("user"):
+			return
+		if not set(frappe.get_roles()) & ASSIGNING_ROLES:
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+		refuse_users_of_another_church([self.user])
+
 	def on_trash(self):
 		frappe.db.delete("Memory Session", {"bible_memory_item": self.name})
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def record_mistake(self, word_index: int):
 		self._require_self()
 		mistakes = self._load_word_mistakes()
@@ -52,7 +71,7 @@ class BibleMemoryItem(Document):
 		self.save(ignore_permissions=False)
 		return {"progress": self.progress, "word_mistakes": mistakes}
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def complete_session(
 		self, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
 	):
@@ -144,22 +163,24 @@ class BibleMemoryItem(Document):
 		return out
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def assign_memory(
 	reference: str, translation: str, users: str | list[str] | None = None, group: str | None = None
 ):
 	"""Add a passage to the memory list of each user, and of each group member with a portal login.
 
 	Only managers may assign, and a user who already has the passage is skipped.
+	The items made for the group's members keep the group.
 	"""
 	# Before the group is read: its members' names come back in the result.
 	if not set(frappe.get_roles()) & ASSIGNING_ROLES:
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if not is_readable(translation):
+		frappe.throw(_("You cannot read the translation {0}.").format(translation), frappe.PermissionError)
 	users = as_list(users)
-	missing_users = []
-	if group:
-		group_users, missing_users = get_group_users(group)
-		users += group_users
+	refuse_users_of_another_church(users)
+	group_users, missing_users = get_group_users(group) if group else ([], [])
+	users += group_users
 	if not users:
 		frappe.throw(_("Choose a user, or a group with members who have a portal login."))
 
@@ -179,10 +200,27 @@ def assign_memory(
 				"bible_reference": reference,
 				"translation": translation,
 				"assigned_by": assigned_by,
+				"group": group if user in group_users else None,
 			}
 		).insert(ignore_permissions=True)
 		created += 1
 	return {"created": created, "skipped": skipped, "missing_users": missing_users}
+
+
+def refuse_users_of_another_church(users):
+	"""Refuse a user whose Person is in a church the caller cannot see, or who has no Person on a multi-church site."""
+	# church-scope: each user's church is checked against the caller's below
+	churches = dict(
+		frappe.get_all("Person", filters={"user": ["in", users]}, fields=["user", "church"], as_list=True)
+	)
+	for user in users:
+		allowed = (
+			has_church_access(frappe.session.user, churches[user])
+			if user in churches
+			else not is_multi_church()
+		)
+		if not allowed:
+			frappe.throw(_("{0} belongs to another church.").format(user), frappe.PermissionError)
 
 
 def get_group_users(group):
@@ -207,6 +245,11 @@ def get_group_users(group):
 	return [member.user for member in members if member.user], missing
 
 
+def clear_group(doc, method=None):
+	"""Group on_trash: keep the members' items, so the link to the group does not block its deletion."""
+	frappe.db.set_value("Bible Memory Item", {"group": doc.name}, "group", None, update_modified=False)
+
+
 def as_list(value):
 	"""A JSON list, one value or nothing, as a list."""
 	if isinstance(value, str):
@@ -214,14 +257,14 @@ def as_list(value):
 	return list(value or [])
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def record_mistake(name: str, word_index: int):
 	"""Module-level wrapper for BibleMemoryItem.record_mistake"""
 	doc = frappe.get_doc("Bible Memory Item", name)
 	return doc.record_mistake(word_index)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def complete_session(
 	name: str, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
 ):

@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.utils import escape_html
 
 from churchit.church_scope import scoped
 
@@ -55,7 +56,7 @@ def get_data(filters=None):
 		.on(SignUp.name == SignUpItem.parent)
 		.inner_join(Function)
 		.on(SignUp.function == Function.name)
-		.inner_join(Person)
+		.left_join(Person)
 		.on(SignUp.person == Person.name)
 		.select(
 			SignUp.name,
@@ -65,6 +66,7 @@ def get_data(filters=None):
 			SignUpItem.item,
 			SignUp.person,
 			Person.full_name,
+			SignUp.registrant_name,
 			SignUpItem.my_quantity,
 		)
 		.orderby(SignUp.name)
@@ -81,10 +83,18 @@ def get_data(filters=None):
 
 	rows = scoped(query, Function, filters).run(as_dict=True)
 
-	# Format as clickable links with titles
+	# Format as clickable links with titles. A guest typed the registrant name, so every label is escaped.
 	for row in rows:
-		row["sign_up_display"] = f'<a href="/app/function-sign-up/{row["name"]}">{row["title"]}</a>'
-		row["function_display"] = f'<a href="/app/function/{row["function"]}">{row["function_name"]}</a>'
-		row["person_display"] = f'<a href="/app/person/{row["person"]}">{row["full_name"]}</a>'
+		row["sign_up_display"] = (
+			f'<a href="/app/function-sign-up/{row["name"]}">{escape_html(row["title"])}</a>'
+		)
+		row["function_display"] = (
+			f'<a href="/app/function/{row["function"]}">{escape_html(row["function_name"])}</a>'
+		)
+		row["person_display"] = (
+			f'<a href="/app/person/{row["person"]}">{escape_html(row["full_name"])}</a>'
+			if row["person"]
+			else escape_html(row["registrant_name"])
+		)
 
 	return rows

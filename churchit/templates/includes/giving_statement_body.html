@@ -39,7 +39,11 @@
 				{%- endif -%}
 				<td>{{ frappe.db.get_value("Fund", line.fund, "fund") or line.fund or "" }}</td>
 				<td>{{ line.payment_type or "" }}{% if line.check_number %} #{{ line.check_number }}{% endif %}</td>
+				{%- if line.description and not line.amount %}
+				<td class="gift-description">{{ line.description | e }}</td>
+				{%- else %}
 				<td class="num">{{ frappe.format(line.amount, {"fieldtype": "Currency"}) }}</td>
+				{%- endif %}
 			</tr>
 			{%- endfor %}
 		</tbody>

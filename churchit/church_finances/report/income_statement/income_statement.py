@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Sum
+from frappe.utils import add_days
 
 from churchit.church_scope import scoped
 from churchit.utils import set_report_link_titles
@@ -35,7 +36,11 @@ def get_data(filters=None):
 		.join(Collection)
 		.on(Collection.name == Donation.parent)
 		.select(Donation.fund, Sum(Donation.amount).as_("total"))
-		.where((Collection.docstatus == 1) & Collection.date[from_date:to_date])
+		.where(
+			(Collection.docstatus == 1)
+			& (Collection.date >= from_date)
+			& (Collection.date < add_days(to_date, 1))
+		)
 		.groupby(Donation.fund)
 	)
 	income = {r["fund"]: r["total"] for r in scoped(income_query, Collection, filters).run(as_dict=True)}
@@ -43,7 +48,7 @@ def get_data(filters=None):
 	expense_query = (
 		frappe.qb.from_(Expense)
 		.select(Expense.associated_fund.as_("fund"), Sum(Expense.amount).as_("total"))
-		.where((Expense.docstatus == 1) & Expense.date[from_date:to_date])
+		.where((Expense.docstatus == 1) & (Expense.date >= from_date) & (Expense.date < add_days(to_date, 1)))
 		.groupby(Expense.associated_fund)
 	)
 	expenses = {r["fund"]: r["total"] for r in scoped(expense_query, Expense, filters).run(as_dict=True)}

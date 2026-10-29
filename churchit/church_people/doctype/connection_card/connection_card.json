@@ -1,0 +1,257 @@
+{
+ "actions": [],
+ "autoname": "CONN-.#####",
+ "creation": "2026-10-17 21:00:00.000000",
+ "description": "What a guest filled in on the Connection Card form. Churchit finds or adds the person and starts their follow-up.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "first_name",
+  "last_name",
+  "full_name",
+  "church",
+  "column_break_name",
+  "email",
+  "phone",
+  "section_break_visit",
+  "visit",
+  "how_heard",
+  "column_break_visit",
+  "interests",
+  "message",
+  "email_consent",
+  "sms_consent",
+  "website",
+  "section_break_household",
+  "household_members",
+  "section_break_processing",
+  "status",
+  "column_break_processing",
+  "person",
+  "processed_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "fieldname": "column_break_name",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "section_break_visit",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "First-Time Guest",
+   "description": "What the guest said about themselves. A person added from the card is a Visitor whatever they picked.",
+   "fieldname": "visit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "I Am",
+   "options": "First-Time Guest\nReturning Guest\nRegular Attender\nMember"
+  },
+  {
+   "fieldname": "how_heard",
+   "fieldtype": "Data",
+   "label": "How Did You Hear About Us?"
+  },
+  {
+   "fieldname": "column_break_visit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "interests",
+   "fieldtype": "Table MultiSelect",
+   "label": "I Would Like To",
+   "options": "Connection Card Interest Row"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Small Text",
+   "label": "Anything Else?"
+  },
+  {
+   "default": "0",
+   "description": "The guest agreed to get Church News by email.",
+   "fieldname": "email_consent",
+   "fieldtype": "Check",
+   "label": "Email Me Church News and Events"
+  },
+  {
+   "default": "0",
+   "description": "The guest agreed to get Church News by text message.",
+   "fieldname": "sms_consent",
+   "fieldtype": "Check",
+   "label": "Text Me Church News and Events"
+  },
+  {
+   "description": "Hidden from people on the web form. Only robots fill it in.",
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Website"
+  },
+  {
+   "fieldname": "section_break_household",
+   "fieldtype": "Section Break",
+   "label": "Who Is With You?"
+  },
+  {
+   "fieldname": "household_members",
+   "fieldtype": "Table",
+   "label": "Household Members",
+   "options": "Connection Card Household Member"
+  },
+  {
+   "fieldname": "section_break_processing",
+   "fieldtype": "Section Break",
+   "label": "Follow-up"
+  },
+  {
+   "default": "New",
+   "description": "New until Churchit finds or adds the person. Spam when the form's hidden Website box was filled in, which only robots do. A Spam card is kept but not processed.",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "New\nProcessed\nSpam",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_processing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The person this card was matched to, or the Visitor added for it. Churchit never changes an existing person from a card.",
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "label": "Person",
+   "no_copy": 1,
+   "options": "Person",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed_on",
+   "fieldtype": "Datetime",
+   "label": "Processed On",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-21 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Connection Card",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care",
+   "select": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Follow-up",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name",
+ "track_changes": 1
+}

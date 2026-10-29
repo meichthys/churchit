@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "autoname": "field:category_name",
+ "creation": "2026-10-17 21:00:00.000000",
+ "description": "A kind of note about a person, and which roles may read and add it.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "category_name",
+  "is_private",
+  "column_break_category",
+  "description",
+  "section_break_roles",
+  "view_roles",
+  "column_break_roles",
+  "create_roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Category",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "Only the person who writes a note in this category can read it.",
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Private"
+  },
+  {
+   "fieldname": "column_break_category",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_roles",
+   "fieldtype": "Section Break",
+   "label": "Who Can Use It"
+  },
+  {
+   "description": "Leave blank to let everyone who can read notes read this category.",
+   "fieldname": "view_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles That Read Notes",
+   "options": "Note Category Role"
+  },
+  {
+   "fieldname": "column_break_roles",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave blank to let everyone who can add notes use this category.",
+   "fieldname": "create_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles That Add Notes",
+   "options": "Note Category Role"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-17 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Note Category",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church People Editor",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Pastoral Care",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

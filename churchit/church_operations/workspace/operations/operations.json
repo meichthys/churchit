@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"9adGE55P2Z\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Operations\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}}]",
+ "content": "[{\"id\":\"9adGE55P2Z\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Operations\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}},{\"id\":\"rOpsRprt01\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.744443",
  "custom_blocks": [],
  "docstatus": 0,
@@ -17,7 +17,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Operations Documents",
-   "link_count": 3,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -81,9 +81,50 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operations Reports",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Room Usage",
+   "link_count": 0,
+   "link_to": "Room Usage",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Open Work Orders",
+   "link_count": 0,
+   "link_to": "Open Work Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Church Task",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Assets on Loan",
+   "link_count": 0,
+   "link_to": "Assets on Loan",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Room Booking",
+   "type": "Link"
   }
  ],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-27 14:34:13.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",

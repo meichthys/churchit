@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder import Criterion
-from frappe.query_builder.functions import GroupConcat, Max
+from frappe.query_builder.functions import GroupConcat
 from frappe.utils import nowdate
 
 from churchit.church_people.membership import is_active_member
@@ -49,7 +49,6 @@ def get_data(filters=None):
 	Position = frappe.qb.DocType("Position")
 	PositionType = frappe.qb.DocType("Position Type")
 	LifeEvent = frappe.qb.DocType("Life Event")
-	BirthEvent = frappe.qb.DocType("Life Event").as_("birth_event")
 
 	roles = GroupConcat(PositionType.position).distinct().as_("roles")
 
@@ -71,12 +70,6 @@ def get_data(filters=None):
 		)
 		.left_join(PositionType)
 		.on(PositionType.name == Position.position)
-		.left_join(BirthEvent)
-		.on(
-			(BirthEvent.parent == Person.name)
-			& (BirthEvent.parenttype == "Person")
-			& (BirthEvent.event_type == "Birth")
-		)
 		.select(
 			Person.name,
 			Person.full_name,
@@ -84,7 +77,7 @@ def get_data(filters=None):
 			Person.membership_status,
 			Person.family,
 			Family.family_name,
-			Max(BirthEvent.date).as_("birthday"),
+			Person.birth_date.as_("birthday"),
 			roles,
 			Person.name.isin(is_baptized_subq).as_("is_baptized"),
 		)

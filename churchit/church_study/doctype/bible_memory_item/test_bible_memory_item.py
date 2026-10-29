@@ -2,20 +2,29 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.exceptions import PermissionError, ValidationError
+from frappe.handler import execute_cmd, run_doc_method
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_foundations.church_access import set_user_church
 from churchit.church_study.doctype.bible_memory_item.bible_memory_item import (
 	BibleMemoryItem,
 	assign_memory,
 	complete_session,
 	record_mistake,
 )
-from churchit.tests.helpers import ensure_user, make_person, make_translation
+from churchit.tests.helpers import ensure_user, make_person, make_translation, make_two_churches
 
 REFERENCE = "John 1:1"
+MODULE = "churchit.church_study.doctype.bible_memory_item.bible_memory_item"
+
+
+def as_get():
+	"""A GET, which another site can start with the session cookie and Frappe checks for no CSRF token."""
+	return patch.object(frappe.local, "request", frappe._dict(method="GET"), create=True)
 
 
 class TestBibleMemoryItem(FrappeTestCase):
@@ -130,6 +139,22 @@ class TestBibleMemoryItem(FrappeTestCase):
 		with self.assertRaises(PermissionError):
 			complete_session(item.name, "blur")
 
+	def test_practice_takes_a_post(self):
+		item = self._item(progress=10)
+		attempts = {"record_mistake": {"word_index": 0}, "complete_session": {"mode": "blur"}}
+
+		with as_get():
+			for method, args in attempts.items():
+				with (
+					patch.object(frappe.local, "form_dict", frappe._dict(name=item.name, **args)),
+					self.assertRaises(PermissionError, msg=method),
+				):
+					execute_cmd(f"{MODULE}.{method}")
+				with self.assertRaises(PermissionError, msg=f"BibleMemoryItem.{method}"):
+					run_doc_method(method, dt=item.doctype, dn=item.name, args=frappe.as_json(args))
+
+		self.assertEqual(frappe.db.get_value("Bible Memory Item", item.name, "progress"), 10)
+
 	def test_parse_indices_tolerates_bad_input(self):
 		parse = BibleMemoryItem._parse_indices
 		self.assertEqual(parse(None), [])
@@ -159,7 +184,7 @@ class TestAssignMemory(FrappeTestCase):
 		return frappe.get_all(
 			"Bible Memory Item",
 			filters={"translation": self.translation},
-			fields=["user", "bible_reference", "assigned_by"],
+			fields=["user", "bible_reference", "assigned_by", "group"],
 		)
 
 	def _group(self, name, *people):
@@ -184,6 +209,55 @@ class TestAssignMemory(FrappeTestCase):
 		self.assertEqual(len(result["missing_users"]), 1)
 		self.assertIn(self.unlinked, result["missing_users"][0])
 
+	def test_a_group_assignment_files_its_members_items_under_the_group(self):
+		other = ensure_user("_test_named_learner@example.com", "_Test Named Learner")
+		make_person("_Test Assign", "Named", user=other)
+		group = self._group("_Test Stored Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, users=[other], group=group)
+		self.assertEqual(
+			{item.user: item.group for item in self._items()}, {self.learner: group, other: None}
+		)
+
+	def test_a_held_passage_keeps_its_group(self):
+		assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+		group = self._group("_Test Later Memory Group", self.linked)
+		self.assertEqual(assign_memory("Psalms 23:1", self.translation, group=group)["skipped"], 1)
+		self.assertEqual([item.group for item in self._items()], [None])
+
+	def test_only_assign_memory_sets_the_group(self):
+		group = self._group("_Test Hand Memory Group", self.linked)
+		frappe.set_user(self.learner)
+		item = {
+			"doctype": "Bible Memory Item",
+			"bible_reference": "Psalms 23:1",
+			"translation": self.translation,
+		}
+		with self.assertRaises(PermissionError):
+			frappe.get_doc({**item, "group": group}).insert()
+
+		mine = frappe.get_doc(item).insert()
+		mine.group = group
+		with self.assertRaises(PermissionError):
+			mine.save()
+
+	def test_deleting_a_group_clears_it_from_the_items(self):
+		group = self._group("_Test Deleted Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, group=group)
+		frappe.delete_doc("Group", group)
+		self.assertEqual([(item.user, item.group) for item in self._items()], [(self.learner, None)])
+
+	def test_a_duplicated_item_drops_the_group(self):
+		other = ensure_user("_test_copy_learner@example.com", "_Test Copy Learner")
+		make_person("_Test Assign", "Copy", user=other)
+		group = self._group("_Test Copied Memory Group", self.linked)
+		assign_memory("Psalms 23:1", self.translation, group=group)
+		item = frappe.get_doc("Bible Memory Item", {"translation": self.translation})
+
+		copy = frappe.copy_doc(item, ignore_no_copy=False)
+		copy.user = other
+		self.assertIsNone(copy.group)
+		copy.insert()
+
 	def test_a_user_named_twice_is_assigned_once(self):
 		group = self._group("_Test Overlap Group", self.linked)
 		result = assign_memory("Psalms 23:1", self.translation, users=json.dumps([self.learner]), group=group)
@@ -202,6 +276,66 @@ class TestAssignMemory(FrappeTestCase):
 		frappe.set_user(self.learner)
 		with self.assertRaises(PermissionError):
 			assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+
+	def test_assigning_takes_a_post(self):
+		form = frappe._dict(reference="Psalms 23:1", translation=self.translation, users=self.learner)
+		with (
+			as_get(),
+			patch.object(frappe.local, "form_dict", form),
+			self.assertRaises(PermissionError),
+		):
+			execute_cmd(f"{MODULE}.assign_memory")
+
+		self.assertEqual(self._items(), [])
+
+	def test_assign_refuses_a_user_of_another_church(self):
+		_root, branch_a, branch_b = make_two_churches()
+		self.addCleanup(frappe.clear_cache)
+		frappe.db.set_value("Person", self.linked, "church", branch_a)
+		manager_b = ensure_user("_test_memory_manager_b@example.com", "Manager B", roles=("Church Manager",))
+		set_user_church(manager_b, branch_b)
+		no_person = ensure_user("_test_memory_no_person@example.com", "No Person")
+
+		frappe.set_user(manager_b)
+		for user in (self.learner, no_person):
+			with self.assertRaises(PermissionError):
+				assign_memory("Psalms 23:1", self.translation, users=[user])
+		self.assertEqual(self._items(), [])
+
+		frappe.db.set_value("Person", self.linked, "church", branch_b)
+		self.assertEqual(assign_memory("Psalms 23:1", self.translation, users=[self.learner])["created"], 1)
+
+	def test_assign_refuses_an_unreadable_translation(self):
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Downloading")
+		self.addCleanup(frappe.db.set_value, "Bible Translation", self.translation, "status", "Ready")
+		with self.assertRaises(PermissionError):
+			assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+		self.assertEqual(self._items(), [])
+
+	def test_a_desk_save_gets_the_same_checks(self):
+		_root, branch_a, branch_b = make_two_churches()
+		self.addCleanup(frappe.clear_cache)
+		frappe.db.set_value("Person", self.linked, "church", branch_a)
+		manager_b = ensure_user("_test_memory_manager_b@example.com", "Manager B", roles=("Church Manager",))
+		set_user_church(manager_b, branch_b)
+		other = ensure_user("_test_other_learner@example.com", "_Test Other Learner")
+
+		def insert(session_user, **values):
+			frappe.set_user(session_user)
+			item = {"doctype": "Bible Memory Item", "bible_reference": "Psalms 23:1"}
+			return frappe.get_doc({**item, "translation": self.translation, **values}).insert()
+
+		for user, values in ((manager_b, {"user": self.learner}), (other, {"user": self.learner})):
+			with self.assertRaises(PermissionError):
+				insert(user, **values)
+		self.assertEqual(self._items(), [])
+
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Downloading")
+		self.addCleanup(frappe.db.set_value, "Bible Translation", self.translation, "status", "Ready")
+		with self.assertRaises(PermissionError):
+			insert(self.learner)
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Ready")
+		self.assertEqual(insert(self.learner).user, self.learner)
 
 	def test_non_manager_cannot_list_a_groups_members(self):
 		group = self._group("_Test Private Memory Group", self.unlinked)

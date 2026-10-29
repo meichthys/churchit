@@ -18,8 +18,10 @@ deliberate choice from an oversight.
 
 import ast
 import os
+import re
 
 import frappe
+from frappe.modules import get_doc_path, scrub
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_scope import SHAREABLE_DOCTYPES, scoped_doctypes
@@ -34,18 +36,23 @@ GLOBAL_DOCTYPES = {
 		"Background Check Type",
 		"Care Request Type",
 		"Case Type",
+		"Communication Purpose",
+		"Connection Card Interest",
 		"Email Type",
 		"Expense Type",
 		"Function Attendance Type",
 		"Function Type",
 		"Group Role",
 		"Group Status",
+		"Group Type",
+		"Inactive Reason",
 		"Life Event Type",
 		"Marital Status",
 		"Member Status",
 		"Membership Type",
 		"Missionary Status",
 		"Missionary Support Frequency",
+		"Note Category",
 		"Payment Type",
 		"Person Relation Type",
 		"Phone Type",
@@ -53,6 +60,7 @@ GLOBAL_DOCTYPES = {
 		"Prayer Request Status",
 		"Prayer Request Type",
 		"Sign-Up Item",
+		"Skill",
 		"Visit Type",
 	},
 	"reference data that reads the same in every church": {
@@ -62,8 +70,24 @@ GLOBAL_DOCTYPES = {
 	"belongs to one person rather than one church": {
 		"Bible Memory Item",
 		"Memory Session",
+		"Push Subscription",
 	},
 	"the church tree itself": {"Church"},
+	"virtual import targets that store nothing; the records they make take the importer's church": {
+		"Breeze Import",
+		"Giving Import",
+		"People Import",
+		"Planning Center Import",
+		"Rock RMS Import",
+	},
+}
+
+# Doctypes that fetch `church` from a link but guard it their own way, not with
+# church_scope.refuse_another_churches_parent.
+PARENT_GUARD_EXCEPTIONS = {
+	"Communication Consent": "its person is set once, so it checks the person's church on every save",
+	"Giving Statement": "it stays in the issuer's church for a giver of another church, so it checks its own church",
+	"Possible Duplicate": "a pair has two people, so it checks a change of either against its church",
 }
 
 # Reads that carry no permission filter of their own. frappe.get_list is left
@@ -239,3 +263,33 @@ class TestScopedReads(FrappeTestCase):
 				if PRAGMA in line and len(line.split(PRAGMA, 1)[1].strip()) < 15:
 					bare.append(f"{os.path.relpath(path, APP_DIR)}:{number}")
 		self.assertEqual(bare, [], "Scope pragmas that do not explain themselves")
+
+
+class TestParentGuards(FrappeTestCase):
+	def test_every_fetched_church_is_guarded(self):
+		"""Frappe checks the create right before `fetch_from` fills `church`, so the link needs the guard."""
+		unguarded = []
+		for doctype in scoped_doctypes():
+			meta = frappe.get_meta(doctype)
+			fetch_from = meta.get_field("church").fetch_from
+			if not fetch_from or doctype in PARENT_GUARD_EXCEPTIONS:
+				continue
+			link_field = fetch_from.split(".")[0]
+			path = os.path.join(get_doc_path(meta.module, "DocType", doctype), f"{scrub(doctype)}.py")
+			call = rf'refuse_another_churches_parent\(\s*self,\s*"{link_field}"'
+			if not re.search(call, open(path).read()):
+				unguarded.append(f"{doctype} ({link_field})")
+		self.assertEqual(
+			unguarded,
+			[],
+			"These doctypes fetch `church` from a link and never call refuse_another_churches_parent on it. "
+			"Call it from `validate`, or add the doctype to PARENT_GUARD_EXCEPTIONS with the reason",
+		)
+
+	def test_every_exception_still_fetches_its_church(self):
+		stale = [
+			doctype
+			for doctype in PARENT_GUARD_EXCEPTIONS
+			if not frappe.get_meta(doctype).get_field("church").fetch_from
+		]
+		self.assertEqual(stale, [], "PARENT_GUARD_EXCEPTIONS names doctypes that no longer fetch `church`")

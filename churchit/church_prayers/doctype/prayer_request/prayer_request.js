@@ -3,10 +3,15 @@
 
 frappe.ui.form.on("Prayer Request", {
 	refresh(frm) {
-		if (frm.doc.is_private) {
+		if (frm.doc.visibility === "Private") {
 			frm.set_intro(
-				"⚠️ This prayer request is marked as private and should not be shared with the full church body.",
+				__("This request is private. Do not share it with the prayer team or the church."),
 				"yellow"
+			);
+		} else if (frm.doc.visibility === "Prayer Team") {
+			frm.set_intro(
+				__("Only the prayer team may see this request. Do not share it with the church."),
+				"blue"
 			);
 		}
 	},

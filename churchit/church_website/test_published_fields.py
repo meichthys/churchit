@@ -104,8 +104,8 @@ class TestPublishedFields(FrappeTestCase):
 	def test_a_page_template_and_its_python_are_one_route(self):
 		pages = www_routes(www_directory())
 		self.assertEqual(
-			{path.name for path in pages["newsletter-subscription"]},
-			{"newsletter_subscription.py", "newsletter-subscription.html"},
+			{path.name for path in pages["ministry-team"]},
+			{"ministry_team.py", "ministry-team.html"},
 		)
 
 	def test_fields_shown_by_a_published_web_form(self):
@@ -120,11 +120,10 @@ class TestPublishedFields(FrappeTestCase):
 		self.assertIn("statements", routes(published, "Church", "tax_id"))
 
 	def test_fields_read_through_an_imported_helper(self):
-		# www/newsletter-subscription reads the subscription through church_communications.newsletter.
-		self.assertIn(
-			"newsletter-subscription",
-			routes(published_field_map(), "Email Group Member", "unsubscribed"),
-		)
+		# www/preferences reads each purpose and the church's name through church_communications.preferences.
+		published = published_field_map()
+		self.assertIn("preferences", routes(published, "Church", "church_name"))
+		self.assertIn("preferences", routes(published, "Communication Purpose", "description"))
 
 	def test_every_www_page_is_scanned(self):
 		"""A page added under www/ later is scanned without touching the scanner."""
@@ -148,6 +147,7 @@ class TestPublishedFields(FrappeTestCase):
 		access = {source["route"]: source["access"] for source, _ in code_sources()}
 		self.assertEqual(access["statements"], MEMBERS)
 		self.assertEqual(access["memorize"], MEMBERS)
+		self.assertEqual(access["preferences"], MEMBERS)
 		self.assertEqual(access["calendar"], PUBLIC)
 		# /give sends guests to login only while anonymous giving is off, so it still serves them.
 		self.assertEqual(access["give"], PUBLIC)
@@ -181,3 +181,68 @@ class TestPublishedFields(FrappeTestCase):
 					f"{source['route']} reads records with {unscannable}, which the published-field "
 					"scanner cannot follow; use frappe.get_all/get_list or extend it",
 				)
+
+	def test_my_household_and_the_member_directory_are_members_only(self):
+		access = {source["route"]: source["access"] for source, _ in code_sources()}
+		self.assertEqual(access["household"], MEMBERS)
+		self.assertEqual(access["directory"], MEMBERS)
+
+	def test_fields_shown_on_a_song_slide(self):
+		published = published_field_map()
+		for doctype, fieldname in (
+			("Song", "title"),
+			("Song", "copyright"),
+			("Song", "ccli"),
+			("Slide", "content"),
+			("Slide", "background_image"),
+			("Church", "ccli_license_number"),
+		):
+			self.assertIn(
+				{"title": "Sermon Presentation", "route": "sermon-presentation", "access": PUBLIC},
+				published[doctype][fieldname],
+				(doctype, fieldname),
+			)
+		for fieldname in ("arrangements", "media"):
+			self.assertNotIn("sermon-presentation", routes(published, "Song", fieldname), fieldname)
+
+	def test_fields_shown_on_my_household(self):
+		published = published_field_map()
+		for doctype, fieldname in (
+			("Family", "family_name"),
+			("Family", "photo"),
+			("Person", "display_name"),
+			("Person", "age"),
+			("Address", "address_line1"),
+			("Address", "city"),
+		):
+			self.assertIn("household", routes(published, doctype, fieldname), (doctype, fieldname))
+
+	def test_fields_shown_in_the_member_directory(self):
+		published = published_field_map()
+		for doctype, fieldname in (
+			("Person", "first_name"),
+			("Person", "nickname"),
+			("Person", "last_name"),
+			("Person", "photo"),
+			("Person", "birth_month"),
+			("Person", "birth_day"),
+			("Family", "photo"),
+			("Email Address", "email_address"),
+			("Phone Number", "phone_number"),
+			("Address", "address_line1"),
+			("Address", "city"),
+		):
+			self.assertIn("directory", routes(published, doctype, fieldname), (doctype, fieldname))
+
+	def test_the_birthday_and_directory_choices_show_on_personal_details(self):
+		published = published_field_map()
+		for fieldname in ("birthday", "hide_from_directory", "share_email", "share_birthday"):
+			self.assertIn("personal-details", routes(published, "Person", fieldname), fieldname)
+
+	def test_a_key_only_web_form_shows_its_record_to_the_link_holder_only(self):
+		from churchit.church_website.published_fields import LINK_HOLDERS, web_form_access
+
+		access = {source["route"]: source["access"] for source, _, _ in web_form_entries()}
+		self.assertEqual(access["update-your-details"], LINK_HOLDERS)
+		self.assertEqual(web_form_access(frappe._dict(login_required=1, key_required=1)), MEMBERS)
+		self.assertIn("update-your-details", routes(published_field_map(), "Person", "alergies"))

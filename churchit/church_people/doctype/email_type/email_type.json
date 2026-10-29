@@ -14,7 +14,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-21 21:30:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Email Type",
@@ -58,6 +58,10 @@
    "report": 1,
    "role": "Church Staff",
    "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
   }
  ],
  "quick_entry": 1,

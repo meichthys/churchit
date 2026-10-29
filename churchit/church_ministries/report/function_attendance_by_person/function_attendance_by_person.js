@@ -14,6 +14,12 @@ frappe.query_reports["Function Attendance by Person"] = {
 			options: "Function Type",
 		},
 		{
+			fieldname: "group",
+			label: __("Group"),
+			fieldtype: "Link",
+			options: "Group",
+		},
+		{
 			fieldname: "start",
 			label: __("Start Date"),
 			fieldtype: "Date",

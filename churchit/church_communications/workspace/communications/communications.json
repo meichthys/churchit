@@ -17,7 +17,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Communications Documents",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -45,9 +45,19 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Email Groups",
+   "label": "Church Emails",
    "link_count": 0,
-   "link_to": "Email Group",
+   "link_to": "Church Email",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Push Settings",
+   "link_count": 0,
+   "link_to": "Push Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -92,7 +102,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-27 02:45:02.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",

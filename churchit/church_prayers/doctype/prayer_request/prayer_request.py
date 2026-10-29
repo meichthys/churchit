@@ -4,16 +4,51 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
 from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
+from churchit.church_prayers.prayer_access import (
+	PRAYER_REQUEST,
+	PRAYER_TEAM_ROLE,
+	get_community_filters,
+	get_open_request_filters,
+)
 from churchit.utils import resolve_link_titles
 
-CLOSED_STATUSES = ("Answered", "Archived", "Closed")
+PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
+PRAYER_TEAM_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} prayer request: {{ doc.title }}"
+PRAYER_TEAM_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
+
+<ul>
+  <li><strong>Title:</strong> {{ doc.title | e }}</li>
+  {% if doc.requestor %}<li><strong>From:</strong> {{ frappe.db.get_value("Person", doc.requestor, "full_name") | e }}</li>{% elif doc.owner == "Guest" %}<li><strong>From:</strong> A guest on the website</li>{% endif %}
+  {% if doc.recipient_name %}<li><strong>For:</strong> {{ doc.recipient_name | e }}</li>{% endif %}
+  <li><strong>Type:</strong> {{ doc.type | e }}</li>
+  <li><strong>Visibility:</strong> {{ doc.visibility }}</li>
+</ul>
+
+<p style="white-space: pre-line">{{ doc.request | e }}</p>
+
+{% if doc.approved_for_list %}<p><a href="{{ frappe.utils.get_url("/community-prayer-requests/" ~ doc.name) }}">Pray for this request on Community Prayer Requests</a></p>
+{% else %}<p>It waits for approval before it shows on Community Prayer Requests.</p>
+{% endif %}<p>Staff can <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">open it in the desk</a>.</p>
+"""
+APPROVED_NOTIFICATION = "Approved Prayer Request for the Prayer Team"
+PRIVATE_NOTIFICATION = "New Private Prayer Request"
+PRIVATE_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} private prayer request"
+# The request stays out of the email: only the care team and Church Managers read a Private one.
+PRIVATE_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new private prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
+
+<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the request</a> to read it.</p>
+"""
 
 
 class PrayerRequest(Document):
 	def before_insert(self):
 		if not self.status:
 			self.status = frappe.db.get_value("Prayer Request Status", {"status": "Requested"}, "name")
+		# The web form saves with ignore_permissions, so Frappe keeps the permlevel 1 default for a guest.
+		if frappe.session.user == "Guest":
+			self.approved_for_list = 0
 
 	def validate(self):
 		self.validate_public_church()
@@ -32,6 +67,10 @@ class PrayerRequest(Document):
 		else:
 			self.recipient_name = None
 
+		if not self.is_new():
+			# Only prayer.recount_prayers writes the count, so a form opened before a prayer cannot undo it.
+			self.prayer_count = frappe.db.get_value(self.doctype, self.name, "prayer_count", for_update=True)
+
 	def validate_public_church(self):
 		"""Keep a website request to a church the site actually offers.
 
@@ -44,10 +83,12 @@ class PrayerRequest(Document):
 			self.church = None
 
 	def has_webform_permission(self):
-		# Invoked by web forms with apply_document_permissions=0
-		# (the community-prayer-requests form) to grant read access to non-private
-		# requests, without loosening the standard DocPerm (owner-only) used elsewhere.
-		return frappe.session.user != "Guest" and not self.is_private
+		"""Community Prayer Requests reads past the DocPerms: a member opens what that page lists them."""
+		if frappe.session.user == "Guest":
+			return False
+		filters, or_filters = get_open_request_filters()
+		filters = {"name": self.name, **get_community_filters(), **filters}
+		return bool(frappe.get_all(PRAYER_REQUEST, filters=filters, or_filters=or_filters, limit=1))
 
 
 def get_list_context(context):
@@ -63,3 +104,62 @@ def get_list_context(context):
 
 	context.get_list = get_list
 	return context
+
+
+def create_new_prayer_request_notifications(names: tuple[str, ...] | None = None) -> None:
+	"""Insert the Notifications that tell the prayer team and the care team of a new request, once each.
+
+	With *names*, only those: a patch must not bring back a record that a church deleted.
+
+	They are not standard, because production cannot enable a shipped one, and a church may change them.
+	The prayer team hears of a request when it is approved for the list: at creation, or later when staff
+	approve a guest's request. Frappe does not run Value Change on insert, so the team gets one email.
+	"""
+	staff = [{"receiver_by_role": role} for role in PASTORAL_ROLES]
+	notifications = (
+		{
+			"name": PRAYER_TEAM_NOTIFICATION,
+			"subject": PRAYER_TEAM_SUBJECT,
+			"condition": 'doc.visibility != "Private"',
+			"recipients": [
+				{"receiver_by_role": PRAYER_TEAM_ROLE, "condition": "doc.approved_for_list"},
+				*staff,
+			],
+			"message": PRAYER_TEAM_MESSAGE,
+		},
+		{
+			"name": APPROVED_NOTIFICATION,
+			"event": "Value Change",
+			"value_changed": "approved_for_list",
+			"subject": PRAYER_TEAM_SUBJECT,
+			"condition": 'doc.approved_for_list and doc.visibility != "Private"',
+			"recipients": [{"receiver_by_role": PRAYER_TEAM_ROLE}],
+			"message": PRAYER_TEAM_MESSAGE,
+		},
+		{
+			"name": PRIVATE_NOTIFICATION,
+			"subject": PRIVATE_SUBJECT,
+			"condition": 'doc.visibility == "Private"',
+			"recipients": staff,
+			"message": PRIVATE_MESSAGE,
+		},
+	)
+	for notification in notifications:
+		if names is not None and notification["name"] not in names:
+			continue
+		if frappe.db.exists("Notification", notification["name"]):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"document_type": PRAYER_REQUEST,
+				"event": "New",
+				"condition_type": "Python",
+				"channel": "Email",
+				"enabled": 1,
+				"is_standard": 0,
+				"send_system_notification": 1,
+				"message_type": "HTML",
+				**notification,
+			}
+		).insert(ignore_permissions=True)

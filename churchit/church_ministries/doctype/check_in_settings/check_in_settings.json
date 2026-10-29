@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-09-16 00:00:00",
- "description": "How the Check-In Station prints name tags: which printer path to use, the label size, and whether tags carry a pickup code.",
+ "description": "How the Check-In Station prints name tags: which printer path to use, the label size, and whether tags carry a pickup code and the person's allergies.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "editable_grid": 1,
@@ -18,9 +18,15 @@
   "label_dpi",
   "tags_section",
   "security_codes",
+  "print_allergies",
   "column_break_tags",
   "name_tag_format",
   "zpl_format",
+  "tag_formats",
+  "limits_section",
+  "capacity_mode",
+  "column_break_limits",
+  "check_in_opens_minutes",
   "church_printers_section",
   "printers"
  ],
@@ -102,6 +108,13 @@
    "label": "Print Security Codes"
   },
   {
+   "default": "0",
+   "description": "Print the person's allergies under their name, from the Allergies field on the Person. Tags for people with no allergies stay as they are.",
+   "fieldname": "print_allergies",
+   "fieldtype": "Check",
+   "label": "Print Allergies on Name Tags"
+  },
+  {
    "fieldname": "column_break_tags",
    "fieldtype": "Column Break"
   },
@@ -124,6 +137,38 @@
    "options": "Print Format"
   },
   {
+   "description": "A different name tag for Guest or Volunteer check-ins. A kind with no row uses the formats above.",
+   "fieldname": "tag_formats",
+   "fieldtype": "Table",
+   "label": "Tag Formats by Kind",
+   "options": "Check-In Tag Format"
+  },
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Rooms and Self Check-In"
+  },
+  {
+   "default": "Warn",
+   "description": "What check-in does when the rooms booked for a Function are full. Capacity is the sum of the Capacity of each Room in the Function's approved Room Bookings. Off: no check. Warn: the station shows a warning. Block: check-in is refused.",
+   "fieldname": "capacity_mode",
+   "fieldtype": "Select",
+   "label": "Room Capacity",
+   "options": "Off\nWarn\nBlock"
+  },
+  {
+   "fieldname": "column_break_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "description": "How many minutes before a Function starts the self check-in kiosk and pre check-in codes accept it. They stop when the Function ends.",
+   "fieldname": "check_in_opens_minutes",
+   "fieldtype": "Int",
+   "label": "Self Check-In Opens (Minutes Before Start)",
+   "non_negative": 1
+  },
+  {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
    "fieldname": "church_printers_section",
    "fieldtype": "Section Break",
@@ -140,7 +185,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-22 21:48:34.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Check-In Settings",

@@ -10,7 +10,12 @@ from churchit.utils import set_report_link_titles
 
 def execute(filters=None):
 	filters = filters or {}
-	budget_name = filters.get("budget") or get_current_budget(filters)
+	budget_name = filters.get("budget")
+	if budget_name:
+		# A report checks only its role, and a caller can name any church's budget.
+		frappe.has_permission("Budget", doc=budget_name, throw=True)
+	else:
+		budget_name = get_current_budget(filters)
 	if not budget_name:
 		return get_columns(None), [], _("No budget found. Create a budget to track spending against it.")
 

@@ -1,0 +1,160 @@
+{
+ "actions": [],
+ "autoname": "format:{church}-{week_start}",
+ "creation": "2026-10-27 12:22:41.000000",
+ "description": "A stored snapshot of one church's figures for one week. A scheduled job writes it every day for this week and last week.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-foundations",
+ "engine": "InnoDB",
+ "field_order": [
+  "week_start",
+  "church",
+  "column_break_week",
+  "attendance",
+  "first_time_visitors",
+  "active_members",
+  "people_in_groups",
+  "people_serving",
+  "section_break_giving",
+  "giving_total",
+  "givers"
+ ],
+ "fields": [
+  {
+   "fieldname": "week_start",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Week Starting",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_week",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "attendance",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Attendance",
+   "read_only": 1
+  },
+  {
+   "description": "People of this church whose first attendance falls in this week.",
+   "fieldname": "first_time_visitors",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "First-Time Visitors",
+   "read_only": 1
+  },
+  {
+   "description": "A count on the day the row was written. Rows made by a backfill leave it 0.",
+   "fieldname": "active_members",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Active Members",
+   "read_only": 1
+  },
+  {
+   "fieldname": "people_in_groups",
+   "fieldtype": "Int",
+   "label": "People in Groups",
+   "read_only": 1
+  },
+  {
+   "fieldname": "people_serving",
+   "fieldtype": "Int",
+   "label": "People Serving",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_giving",
+   "fieldtype": "Section Break",
+   "label": "Giving",
+   "permlevel": 2
+  },
+  {
+   "fieldname": "giving_total",
+   "fieldtype": "Currency",
+   "label": "Giving",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "givers",
+   "fieldtype": "Int",
+   "label": "Givers",
+   "permlevel": 2,
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-10-27 13:53:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Summary",
+ "name": "Weekly Metrics",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager"
+  },
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance"
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "Church Manager"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "Church Finance"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "week_start",
+ "sort_order": "DESC",
+ "states": []
+}

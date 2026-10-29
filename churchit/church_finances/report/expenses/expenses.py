@@ -35,7 +35,7 @@ def get_data(filters=None):
 	query = (
 		frappe.qb.from_(Expense)
 		.select(Expense.name, Expense.type, Expense.notes, Expense.date, Expense.amount)
-		.where(Expense.docstatus < 2)
+		.where(Expense.docstatus == 1)
 		.orderby(Expense.date, order=Order.desc)
 	)
 	return scoped(query, Expense, filters).run(as_dict=True)

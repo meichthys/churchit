@@ -2,9 +2,11 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 from frappe.exceptions import ValidationError
+from frappe.handler import run_doc_method
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_years, getdate, nowdate
 
@@ -13,6 +15,8 @@ from churchit.church_finances.doctype.budget.budget import (
 	get_current_budget,
 	get_window_scale,
 )
+from churchit.church_finances.report.budget_vs_actual.budget_vs_actual import execute as budget_vs_actual
+from churchit.tests.helpers import ensure_user
 
 
 def _ensure(doctype, filters, values):
@@ -144,6 +148,25 @@ class TestBudget(FrappeTestCase):
 		# The window is the same length as the period, so the budget is not scaled down.
 		self.assertEqual(row["comparison_budget"], 1000)
 
+	def test_progress_counts_the_saved_budget_and_hands_the_form_its_copy_back(self):
+		"""The form calls it on refresh with its own copy, which may hold unsaved edits."""
+		budget = self._make_budget(
+			add_days(nowdate(), -30), add_days(nowdate(), 30), [(self.other_type, 100)]
+		)
+		copy = budget.as_dict()
+		copy.notes = "_Test unsaved"
+		copy.lines[0].budgeted_amount = 999
+		response = frappe._dict(docs=[])
+
+		with (
+			patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True),
+			patch.object(frappe.local, "response", response),
+		):
+			run_doc_method("get_progress", docs=frappe.as_json(copy))
+
+		self.assertEqual(response.message["rows"][0]["budgeted"], 100)
+		self.assertEqual(response.docs[0].notes, "_Test unsaved")
+
 	def test_current_budget_prefers_the_budget_covering_today(self):
 		with self._other_budgets_hidden():
 			self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
@@ -155,6 +178,23 @@ class TestBudget(FrappeTestCase):
 			self._make_budget(add_years(nowdate(), -3), add_years(nowdate(), -2))
 			latest = self._make_budget(add_years(nowdate(), -2), add_years(nowdate(), -1))
 			self.assertEqual(get_current_budget(), latest.name)
+
+	def test_a_portal_member_cannot_get_the_current_budget(self):
+		member = ensure_user("_test_budget_member@example.com", "_Test Budget Member")
+		finance = ensure_user("_test_budget_finance@example.com", "_Test Finance", roles=("Church Finance",))
+		with self._other_budgets_hidden():
+			current = self._make_budget(add_days(nowdate(), -1), add_days(nowdate(), 1))
+			try:
+				frappe.set_user(member)
+				with self.assertRaises(frappe.PermissionError):
+					get_current_budget()
+
+				frappe.set_user(finance)
+				self.assertEqual(get_current_budget(), current.name)
+				message = budget_vs_actual(frappe._dict())[2]
+				self.assertNotIn("No budget found", message)
+			finally:
+				frappe.set_user("Administrator")
 
 	@contextmanager
 	def _other_budgets_hidden(self):

@@ -19,6 +19,7 @@
   "total_amount",
   "column_break_contact",
   "email",
+  "emailed_on",
   "section_break_lines",
   "lines"
  ],
@@ -103,6 +104,14 @@
    "read_only": 1
   },
   {
+   "description": "When the statement was last emailed. A rebuild that changes any line clears it, so the next run sends the new statement.",
+   "fieldname": "emailed_on",
+   "fieldtype": "Datetime",
+   "label": "Emailed On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_lines",
    "fieldtype": "Section Break",
    "label": "Contributions"
@@ -116,7 +125,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 17:46:05.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Statement",

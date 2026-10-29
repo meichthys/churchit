@@ -10,6 +10,7 @@
  "field_order": [
   "type",
   "template_function",
+  "allow_self_check_in",
   "section_break_pepr",
   "description"
  ],
@@ -34,9 +35,16 @@
    "description": "Select an existing function here to use it as a template for creating future functions of the same type.",
    "fieldname": "template_function",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Template Function",
-   "options": "Function",
-   "ignore_user_permissions": 1
+   "options": "Function"
+  },
+  {
+   "default": "0",
+   "description": "Members may check themselves in to Functions of this type at a self check-in kiosk or with a pre check-in code.",
+   "fieldname": "allow_self_check_in",
+   "fieldtype": "Check",
+   "label": "Allow Self Check-In"
   },
   {
    "fieldname": "section_break_pepr",
@@ -51,7 +59,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-22 21:48:34.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",

@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "creation": "2026-10-27 01:49:09.000000",
+ "description": "Notifications the member app shows on a phone or computer, sent from this site with Web Push. No outside push service is needed.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-communications",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "vapid_subject",
+  "column_break_keys",
+  "vapid_public_key",
+  "vapid_private_key"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "description": "Let members allow notifications on the Preferences page, and send them.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "description": "A mailto: address that push services can write to about this site, such as mailto:office@example.org.",
+   "fieldname": "vapid_subject",
+   "fieldtype": "Data",
+   "label": "Contact Address"
+  },
+  {
+   "fieldname": "column_break_keys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Made by Generate Keys. Browsers use it to subscribe.",
+   "fieldname": "vapid_public_key",
+   "fieldtype": "Data",
+   "label": "Public Key",
+   "read_only": 1
+  },
+  {
+   "description": "Made by Generate Keys. It signs each notification.",
+   "fieldname": "vapid_private_key",
+   "fieldtype": "Password",
+   "label": "Private Key",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-27 01:49:09.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Push Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

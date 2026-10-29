@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:room_name",
+ "autoname": "ROOM-.####",
  "creation": "2026-05-29 00:00:00.000000",
  "description": "A bookable room or facility (sanctuary, classroom, fellowship hall).",
  "doctype": "DocType",
@@ -17,17 +17,20 @@
   "column_break_1",
   "is_bookable",
   "requires_approval",
+  "approvers",
+  "question_set",
   "section_break_1",
-  "description"
+  "description",
+  "section_break_setups",
+  "setups"
  ],
  "fields": [
   {
    "fieldname": "room_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Room Name",
-   "reqd": 1,
-   "unique": 1,
-   "in_list_view": 1
+   "reqd": 1
   },
   {
    "depends_on": "eval:!doc.is_shared && !(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -61,32 +64,47 @@
   {
    "fieldname": "location",
    "fieldtype": "Link",
-   "label": "Location",
-   "options": "Location",
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Location",
+   "options": "Location"
   },
   {
    "fieldname": "capacity",
    "fieldtype": "Int",
-   "label": "Capacity",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "label": "Capacity"
   },
   {
    "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
   {
+   "default": "1",
    "fieldname": "is_bookable",
    "fieldtype": "Check",
-   "label": "Bookable",
-   "default": "1",
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Bookable"
   },
   {
    "fieldname": "requires_approval",
    "fieldtype": "Check",
    "label": "Requires Approval"
+  },
+  {
+   "depends_on": "requires_approval",
+   "description": "The users who approve this room's bookings. Each needs the Church Staff or Church Manager role. Leave empty to let every Church Manager of the room's church approve.",
+   "fieldname": "approvers",
+   "fieldtype": "Table MultiSelect",
+   "label": "Approvers",
+   "options": "Room Approver"
+  },
+  {
+   "description": "Questions a person answers when they book this room.",
+   "fieldname": "question_set",
+   "fieldtype": "Link",
+   "label": "Question Set",
+   "options": "Question Set"
   },
   {
    "fieldname": "section_break_1",
@@ -96,15 +114,33 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "section_break_setups",
+   "fieldtype": "Section Break",
+   "label": "Setups"
+  },
+  {
+   "description": "The ways this room can be set up. A booking can name one.",
+   "fieldname": "setups",
+   "fieldtype": "Table",
+   "label": "Setups",
+   "options": "Room Setup"
   }
  ],
  "grid_page_length": 50,
- "links": [],
- "modified": "2026-09-28 13:00:00",
+ "links": [
+  {
+   "group": "Work Orders",
+   "link_doctype": "Church Task",
+   "link_fieldname": "room"
+  }
+ ],
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

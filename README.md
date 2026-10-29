@@ -43,53 +43,115 @@ If you would like to test out the current state of the application, you can try 
 The following features have been implemented in this app (see the [🗺️ Roadmap](#-feature-roadmap) below for future plans):
 
 ### People & Families
-- Comprehensive person profiles with contact info, photos, notes, etc.
+- Comprehensive person profiles with contact info, photos, life events, school grade and an engagement panel (attendance heatmap, groups, serving, giving)
 - Membership tracking: how each person is connected (Member, Regular Attender, Visitor, Contact), an Active or Inactive status with a reason, and baptism records
-- Family/household management with head-of-household relationship tracking
-- Spouse tracking with automatic bidirectional sync
+- Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
-- Background check tracking: record checks from any screening provider with status, expiry, and the report; cleared checks expire automatically
+- Person Notes in categories that decide who reads them, with alert notes at the top of the form
+- Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event, a smart list, or a card of another workflow that reaches a step or closes
+- Follow-up workflows send emails and texts, add people to groups and tags, and start other workflows by themselves
+- Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
+- Smart lists filter on skills, ministry teams and team positions, when the membership changed, life events by date, and how many times a person attended since a date (the Attendance Count report)
+- Skills, interests and spiritual gifts on each person, with twelve starting spiritual gifts
+- Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
+- Relationships to people in other households, such as grandparents, shown on both people's forms
+- Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
+- Care requests with a caregiver and due date, and background checks a position or a group can require
+- Duplicate warnings, merging with a choice of the value to keep for each detail, and imports from Planning Center, Rock RMS, Breeze or a spreadsheet
+- Envelope numbers, unique in each church, that find the giver in a gift's Person field
+- Remove Personal Data on request or after a set number of inactive years
+- A Map of Addresses
 - Portal invitations: invite people to a self-service portal
+
+### Groups
+- Group types (Small Group, Class, Support Group, Youth Group) that fill in a new group's defaults
+- Group meetings are Functions: Set Up Meetings makes a group's recurring schedule, and the group shows when and where it meets
+- A capacity, a closing date and leader approval for each group; members ask to join from the portal or from the public Find a Group page
+- Find a Group: a public page with a map and type and day filters, which shows the city of each group's meeting place but never the street
+- Lead a Group: on the portal, leaders see their members, record attendance, approve or deny join requests and message their group. They get a reminder the day after a meeting with no attendance recorded
+- Group files: leaders share private files with the members of their group on the portal
+- Background checks that a group can require of its leaders or of every member
+- A Group Attendance report, and a group filter on the attendance reports
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, prayer requests, alms requests, function sign-ups, attendance history, giving statements, and bulletin PDFs
+- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
+- Household adults add their children on My Household
+- Save contact on each Member Directory entry: a contact card with only the details the entry shows
+- Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
+- A guest Connection Card with a QR code, a one-time link for a person to update their details without a login, and new portal logins linked to their person
 - Anonymous prayer request submission (no login required)
 - Publishable beliefs/statement of faith
+- Members-only web pages: tick Members Only on a Web Page, and visitors go to the login page
+- Turn each shipped website page off in Church Features: the page answers "Page not found" and its menu, footer and portal links go
+- A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
 - Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
-- Check-In Station: search by name or phone number, check whole families in with a tap, add first-time visitors on the spot, undo and reprint from the live list
-- Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag. Both label layouts are Print Formats a church can copy and customize
-- Recurring functions: Functions are automatically created based on a given frequency.
-- Calendar view (Private & Public)
+- Event registration: guests and members register on the public Register page between open and close dates (the page is not in the website menu until you add it), and bring their household or others they name
+- A capacity for each function and each selection (such as Adult or Child), limited sign-up items, a waitlist that fills freed seats, and sign-up approval by staff
+- Prices for selections and items, discount codes, early bird and group discounts, a one-click Freely Given discount that makes a function free, and online payment with a Pay now link; Finance records offline payments and refunds
+- Registration questions for each attendee, a confirmation email with a calendar file, and reminders by email and text before the event
+- Check-In Station: search by name or phone number or scan a Member QR Card, check whole families in with a tap, and add first-time visitors on the spot after the station offers people already on file. Each person shows their grade and allergies, and check-in volunteers also see medical notes and an emergency contact
+- A live list at the station that shows the check-ins and checkouts of other stations within seconds, with photos, the booked rooms and a name or code filter. From it, undo, reprint, check out people who have no pickup tag, and page a child's parents by text or email
+- Pickup: verify a pickup code, typed or scanned from the QR code on the pickup tag, and record who collected each child. Authorized Pickups and Pickup Restrictions say who may and who may not collect a child, and only a Church Manager can override a restriction
+- Age and grade limits on a function, room capacity from its room bookings (warn or block), and a headcount for people in the room who are not checked in by name: the attendance total uses the larger count
+- Volunteer check-in from a Team tab that lists the function's accepted ministry team, with the position on the volunteer's name tag
+- Self check-in kiosk: a family types its phone number on a tablet at the door, picks who to check in, and takes its name tags. Only Function types that allow self check-in, and only from a set number of minutes before the start to the end
+- Pre check-in: a member picks who is coming to today's function on My Household and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
+- Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag; a household keeps one code for the day. Each kind of check-in (Regular, Guest, Volunteer) can print its own tag. The label layouts are Print Formats a church can copy and customize
+- Recurring functions: every n days, weeks, months or years, on a day of the month or a weekday of the month (the second Sunday), created weeks ahead for the calendar, with skip dates and room bookings
+- Calendar view (Private & Public). The public calendar shows the rooms, a map, an online meeting link and a link to open each function, and it can include the functions of branch churches
+- A public calendar feed that visitors subscribe to in their phone or computer calendar, for the whole church or one published ministry, with Subscribe and Download .ics links on the Calendar page
+- Link-only functions that do not show on the calendar, the feed, the home page or the Register list, but open from their link
 - Attendance types (Confirmed, Assumed, Absent, etc.)
-- Song tracking for worship services, and a Song Usage report with CCLI numbers for CCLI reporting
+- Songs with authors, copyright, key, tempo and themes as tags, and a Song Usage report that counts displayed, printed, streamed and recorded uses to copy into CCLI
+- Song arrangements with ChordPro chord charts in any key, and slides made from the chart
+- Rehearsal charts, recordings and links on each song, which only the people serving at a function with the song can open
+- Import ChordPro and SongSelect (.usr) song files, add any of 33 public-domain hymns with chord charts and slides, and export songs as OpenLyrics (FreeShow, OpenLP, Quelea) or ChordPro
+- Service plans with song keys, arrangements, section headers and notes for the team
 - Reports: attendance by function, attendance by person, function count by type
 
 ### Ministry Teams
 - Ministry team positions (e.g. Greeter, Usher, Nursery Worker) with the people who can fill each one, and an optional background check rule
 - Team needs on each function, copied to recurring functions from their template
-- Assignments that ask one person to fill one position, with warnings for blocked dates, double booking, missing background checks and missing email addresses
-- Request and reminder emails with accept and decline links that work without signing in, and an email to the ministry's coordinator for each decline
-- A portal page where members answer their requests, see the schedule of each function they serve at, and block out the dates they cannot serve
+- Assignments that ask one person to fill one position, with warnings for blocked dates, double booking, missing background checks, the monthly limit and missing email addresses
+- Fill Open Needs: one click asks free people from each position's roster, those who served longest ago first
+- Request and reminder emails with accept and decline links that work without signing in, texts to people who agreed to get them, and an email to the ministry's coordinator for each decline
+- Volunteers who cannot come ask someone else on the team to take their place, from the portal or the request email
+- A portal page where members answer their requests, see the plan, notes and rehearsal media of each function they serve at, block out dates once or on repeat (weekly, every other week, or monthly on the same weekday), and set how many times a month they serve in each position
 - A calendar link that shows each member the functions they accepted in their phone or computer calendar
 - Email the Team on a function: one email, in BCC, to everyone asked to serve who has not declined
 - Ministry Team Schedule report: what each function needs, who is asked, and which places are still open
+- Ministry Team Grid report: several weeks of positions and functions in one grid, with a click to fill an open place
 
 ### Sermons & Presentations
 - Sermon management with slides referencing any church document
 - Presentation mode with configurable field display per slide
+- Present a song on its own or inside a sermon, one slide for each part and a last slide with the copyright and the CCLI numbers. Visitors see only public-domain songs
 - Presentation history tracking with date, presenter, and location
 - Audio/video recording support
 - Sermon handouts: fill-in-the-blank outlines started from the sermon notes, printed as bulletin inserts
+- A sermon library on /sermons, newest first, with a search by title or passage, series images and a page for each sermon with its video (Let's Church, YouTube or PeerTube plays on the page)
+- Listeners fill in the handout blanks and add their own notes on the sermon page; the notes stay in their browser
+- Sermon podcast: an RSS feed at /podcast.xml of each church's published sermons with audio, for Apple Podcasts, Spotify and other podcast apps
 
 ### Bulletins
 - Printed bulletins per function: a half-fold Letter sheet with a cover image, verse of the week, welcome and announcements
 - Sections switched on per bulletin, with defaults in Bulletin Settings: contact information, church verse, order of worship, church leadership by configurable roles, upcoming functions, ministries, missionary of the week (rotated weekly, with override), picked prayer requests, birthdays and anniversaries, and a 2-up sermon handout insert
-- Published bulletins downloadable as PDFs from the member portal
+- Published bulletins for members of the church, to read in the browser or download as a PDF
+- Public announcements: a bulletin can share its announcements, and nothing else, on the Announcements page
+
+### Church Emails & Consent
+- One email or text to active people, active members, a Group, a smart list or chosen people, each person getting their own copy on their timeline
+- Include Their Households: send to the whole household of each recipient, or only its adults
+- Email templates, name placeholders, a preview, a test send and a scheduled send time
+- Consent per channel and purpose: texts and push notifications need a yes, every email has an unsubscribe link for its purpose, and churches that ask first can send consent renewal reminders
+- Bounced addresses and refused texts are marked, and later emails skip them
+- See who opened each email copy (Read on the person's timeline) while the sending Email Account tracks it
+- Push notifications on members' phones and computers: members allow them per device on Communication Preferences and choose Push for each purpose, and the site sends them itself with Web Push (no outside push service). No feature sends them yet
 
 ### Finances
 - Collection and donation tracking with fund allocation
@@ -98,7 +160,19 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund management with automatic balance updates on submission
 - Fund transfers between accounts
 - Expense tracking by category
-- Alms request system for financial assistance (with web form)
+- Alms request system for financial assistance (with web form), with an email to the care team and Benevolence case notes that only the care team reads
+- Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
+- Give links and QR codes for a fund, which open /give with the fund and an amount filled in
+- Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
+- Other ways to give (bank transfer, standing order, mailed check) on /give, per church
+- Event registration fees and form payments recorded as collections at the event's church, off giving statements
+- Finance can link a guest's online gift to a person, and a cancelled gift Collection marks the gift Refunded
+- Non-cash gifts (donated property) recorded with a description and no value
+- Funds that are not tax deductible stay off giving statements
+- Email every giving statement with its PDF in one step
+- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received
+- Import giving history from another system, a spreadsheet or a payment processor's export into draft collections
+- GL export: map funds, payment types, expense types and the church to accounts, and export a balanced GL Journal as CSV
 
 ### Missions
 - Missionary profiles with contact info, location, and support details
@@ -109,31 +183,44 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Prayer
 - Prayer request management with status tracking and types
 - Authenticated and anonymous web-form submissions
-- Privacy options (private vs. shared with congregation)
+- Who can see each request: private, the prayer team, or the whole church
 - Prayer recording with topics referencing requests, people, and other records
+- A prayed count on each request, shown on the Community Prayer Requests page
+- New request emails to the care team and, once a request is approved for the list, to the prayer team; Private requests reach the care team only
 
 ### Bible & Study
 - A Bible reader in the desk and on the website, one chapter at a time
 - Bible translations that keep their own text: the default one downloads at install, each other free translation downloads itself the first time someone opens it, and a translation that is not free takes an import of a licensed copy that only signed-in users can read
+- Downloads from a self-hosted copy of the Free Use Bible API when the site config key `free_use_bible_api_url` names one
 - Bible references typed as plain text (such as `Romans 8:28-30; Psalm 23`) on churches, bulletins, beliefs, sermon slides and Bible Memory, kept as typed rather than reordered or expanded into verses, with their text from the church's default translation
-- Bible Memory practice in the portal, with passages managers can assign to people and groups
+- Bible Memory practice in the portal, with passages managers can assign to people and groups, and a Bible Memory report of a group's progress
 
 ### Operations
-- Task tracking with document references
+- Task tracking with document references, assignees and a reminder to them the day before a task is due
+- Work orders for assets and rooms, with priority and requester, and an Open Work Orders report
+- Equipment loans: check equipment out and in on its booking, and an Assets on Loan report that shows late returns first
 - Asset tracking (location, details, status)
+- Room booking with approvers for each room, blocked times, and conflicts that an approver resolves by keeping one booking or sharing the room
+- Equipment booking (bookable Church Assets) with a room or on its own, and several rooms for a Function from one dialog. Each church names its rooms freely, so two campuses can each have a Sanctuary
+- Room setups (such as Banquet or Theatre) and room questions on each booking, and a Setup Sheet to print for the people who set up the room
+- A room calendar in the desk, a Room Usage report, and a Book a Room page where members ask for a room
 - Letter tracking from people and missionaries
 
 ### Reports
 - Churches overview (people and family counts)
 - People report (filterable by name, family, role, membership, baptism)
-- Function attendance by type and by person
+- Function attendance by type and by person, with a group filter
+- Function Registrations: one row per attendee with the status, the payment and a column for each question
+- Group attendance: meetings held, average attendance and attendance rate for each group
 - Function count by type
+- Room Usage: one row per room booking in a date range with its room, equipment, hours, status and requester
+- Weekly Metrics: a stored record of each week's attendance, first-time visitors, members, people in groups and serving, and giving, with charts on the Summary workspace
 - Church directory (printable, with photos, roles, family grouping, and other options)
 - Person letters, birthdays, current positions, and more
 
 ### Administration
-- Role-based access: a Church Manager, desk roles for staff (Staff, People Editor, Pastoral Care, Finance, Check-In) bundled into role profiles, and Church User for portal members
-- Optional multi-church mode: branch or satellite churches under one main church, with every record and user scoped to a church (parent-church users can include branches), per-church newsletters and notifications, and a Locations switcher on the public website
+- Role-based access: a Church Manager, desk roles for staff (Staff, People Editor, Pastoral Care, Finance, Check-In) bundled into role profiles, Church User for portal members, and Church Check-In Kiosk for a self check-in device
+- Optional multi-church mode: branch or satellite churches under one main church, with every record and user scoped to a church (parent-church users can include branches), per-church emails and notifications, and a Locations switcher on the public website
 - A people directory shared by every church: any church can look up a person or family, only their own church can change them, and a Church Features option keeps each church's people private instead
 - Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
 - Built-in documentation for each module
@@ -196,6 +283,8 @@ pilot -b church setup production
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
 
+Churchit cannot share a site with an app that has a doctype of the same name. Today this includes ERPNext (Budget, Location), Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared doctypes.
+
 To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 ### First steps after installing
@@ -248,8 +337,9 @@ The public pages (Home, Beliefs, Sermons, Missions, Ministries) are `Web Page` r
 
 Hopefully this roadmap will help avoid too much scope creep and provide a sense of where this project is headed. The items below are listed in order of current priority.
 
-- Additional portal pages
-  - Allow members to update their own attendance status(?)
+- AI features, such as building a smart list from a sentence
+- Reading STOP and START replies to text messages
+- Read-only access for AI assistants (MCP)
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/YxpdU6qM5w) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
@@ -301,7 +391,7 @@ See `AGENTS.md` for the cross-cutting rules that are easy to miss, especially ch
   - Add fields for the doctype (if necessary add field descriptions).
   - Add permissions to the doctype for `Church Manager` and for the desk role that owns its area, and read for `Church Staff` if staff look it up. Give `Church User` only `if_owner` rights, for records a member makes on the portal. See "Roles" in `AGENTS.md`. (Not necessary for child tables)
   - If the records belong to one church, add a `church` Link to `Church` (`hidden: 1`, `in_standard_filter: 0`; `fetch_from` the parent link with `read_only: 1` when the record hangs off another church-scoped record). `Church Features` reveals it in multi-church mode and `churchit.church_scope.ensure_church` fills it. Reports over the doctype must go through `churchit.church_scope` and spread `church.report_filters()` into their filters.
-  - Read church-scoped records with `frappe.get_list`, which applies the reader's church for you. `frappe.qb`, `frappe.get_all` and `frappe.db.count` carry no permission filter, so scope those yourself with `churchit.church_scope` (`scoped()` for query builder, `church_query_filters()` for the reader's churches, `church_filters()` for one known church). `tests/test_reports_hygiene.py` fails on an unscoped one until it is either scoped or listed in `SCOPE_EXEMPT_MODULES` with the reason it is safe.
+  - Read church-scoped records with `frappe.get_list`, which applies the reader's church for you. `frappe.qb`, `frappe.get_all` and `frappe.db.count` carry no permission filter, so scope those yourself with `churchit.church_scope` (`scoped()` for query builder, `church_query_filters()` for the reader's churches, `church_filters()` for one known church). `tests/test_church_scope_hygiene.py` fails on an unscoped one until it is scoped or the function holding it carries a `# church-scope:` comment with the reason it is safe. See "Reading data" in `AGENTS.md`.
   - Add the doctype to the relevant workspace and to its module's sidebar in `churchit/<module>/sidebar/`. (not necessary for child tables)
   - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
   - Set the doctype's `Documentation Link` (Settings tab) to that manual, e.g. `/app/manual%3A-people`. The form's help icon opens it, and `churchit/tests/test_doctype_documentation.py` fails if it is missing.

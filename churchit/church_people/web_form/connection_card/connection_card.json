@@ -1,0 +1,134 @@
+{
+ "allow_comments": 0,
+ "allow_delete": 0,
+ "allow_edit": 0,
+ "allow_incomplete": 0,
+ "allow_multiple": 1,
+ "allow_print": 0,
+ "anonymous": 0,
+ "apply_document_permissions": 0,
+ "button_label": "Send",
+ "condition_json": "[]",
+ "creation": "2026-10-18 09:00:00.000000",
+ "doc_type": "Connection Card",
+ "docstatus": 0,
+ "doctype": "Web Form",
+ "idx": 0,
+ "introduction_text": "<p>We are glad you are here. Tell us a little about yourself so we can get to know you.</p>",
+ "is_standard": 1,
+ "list_columns": [],
+ "login_required": 0,
+ "max_attachment_size": 0,
+ "modified": "2026-10-21 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "connection-card",
+ "owner": "Administrator",
+ "published": 1,
+ "route": "connection-card",
+ "show_attachments": 0,
+ "show_list": 0,
+ "show_sidebar": 0,
+ "success_message": "Thank you for letting us know you were here. Someone from the church will be in touch soon.",
+ "success_title": "Thank You",
+ "title": "Connection Card",
+ "web_form_fields": [
+  {
+   "fieldname": "church",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Church"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_name",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "section_break_visit",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "First-Time Guest",
+   "fieldname": "visit",
+   "fieldtype": "Select",
+   "label": "I Am",
+   "options": "First-Time Guest\nReturning Guest\nRegular Attender\nMember"
+  },
+  {
+   "fieldname": "how_heard",
+   "fieldtype": "Data",
+   "label": "How Did You Hear About Us?"
+  },
+  {
+   "fieldname": "section_break_household",
+   "fieldtype": "Section Break",
+   "label": "Who Is With You?"
+  },
+  {
+   "fieldname": "household_members",
+   "fieldtype": "Table",
+   "label": "Household Members",
+   "options": "Connection Card Household Member"
+  },
+  {
+   "fieldname": "section_break_interests",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "interests",
+   "fieldtype": "Table",
+   "label": "I Would Like To",
+   "options": "Connection Card Interest Row"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Small Text",
+   "label": "Anything Else?"
+  },
+  {
+   "fieldname": "section_break_consent",
+   "fieldtype": "Section Break",
+   "label": "Stay in Touch"
+  },
+  {
+   "fieldname": "email_consent",
+   "fieldtype": "Check",
+   "label": "Email Me Church News and Events"
+  },
+  {
+   "depends_on": "eval:doc.phone",
+   "fieldname": "sms_consent",
+   "fieldtype": "Check",
+   "label": "Text Me Church News and Events"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website"
+  }
+ ]
+}

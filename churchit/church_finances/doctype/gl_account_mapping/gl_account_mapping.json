@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "autoname": "GLAM-.####",
+ "creation": "2026-10-23 01:31:07",
+ "description": "The account in your accounting system for a fund, payment type, expense type or church. The GL Journal report posts each gift, expense and fund transfer to these accounts.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "engine": "InnoDB",
+ "field_order": [
+  "mapping_for",
+  "record",
+  "column_break_account",
+  "account",
+  "church"
+ ],
+ "fields": [
+  {
+   "description": "A Fund and an Expense Type take the account their money goes to, a Payment Type the account the money comes into, and your Church the account that pays expenses.",
+   "fieldname": "mapping_for",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Mapping For",
+   "options": "Fund\nPayment Type\nExpense Type\nChurch",
+   "reqd": 1
+  },
+  {
+   "fieldname": "record",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Record",
+   "options": "mapping_for",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_account",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The account number or name exactly as your accounting system shows it.",
+   "fieldname": "account",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-23 01:31:07",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "GL Account Mapping",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "select": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "account",
+ "track_changes": 1
+}

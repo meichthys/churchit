@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "creation": "2026-10-16 15:00:00.000000",
+ "description": "Settings for the People module that apply to every church on the site.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "adult_age",
+  "match_threshold",
+  "directory_section",
+  "member_directory",
+  "directory_share_email",
+  "directory_share_phone",
+  "directory_share_address",
+  "directory_share_birthday",
+  "school_section",
+  "school_year_start_month",
+  "map_section",
+  "look_up_addresses",
+  "retention_section",
+  "remove_inactive_after_years"
+ ],
+ "fields": [
+  {
+   "default": "18",
+   "description": "A person without a household role is an Adult from this age, and a Child before it.",
+   "fieldname": "adult_age",
+   "fieldtype": "Int",
+   "label": "Adult Age",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "80",
+   "description": "How alike two people must be, from 0 to 100, before Churchit warns that a new person may already exist or lists them as a possible duplicate.",
+   "fieldname": "match_threshold",
+   "fieldtype": "Int",
+   "label": "Duplicate Match Threshold"
+  },
+  {
+   "fieldname": "directory_section",
+   "fieldtype": "Section Break",
+   "label": "Member Directory"
+  },
+  {
+   "default": "0",
+   "description": "Members see the people of their church on the Member Directory page in the portal. A person shows with only what they chose to share, and people who hide from the directory are left out.",
+   "fieldname": "member_directory",
+   "fieldtype": "Check",
+   "label": "Member Directory"
+  },
+  {
+   "default": "1",
+   "fieldname": "directory_share_email",
+   "fieldtype": "Check",
+   "label": "New People Show Their Email"
+  },
+  {
+   "default": "1",
+   "fieldname": "directory_share_phone",
+   "fieldtype": "Check",
+   "label": "New People Show Their Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "directory_share_address",
+   "fieldtype": "Check",
+   "label": "New People Show Their Address"
+  },
+  {
+   "default": "1",
+   "description": "What a person added from now on shares until they change it. People already on file keep their own choice.",
+   "fieldname": "directory_share_birthday",
+   "fieldtype": "Check",
+   "label": "New People Show Their Birthday"
+  },
+  {
+   "fieldname": "school_section",
+   "fieldtype": "Section Break",
+   "label": "School Grades"
+  },
+  {
+   "default": "August",
+   "description": "Grades move up on the first day of this month.",
+   "fieldname": "school_year_start_month",
+   "fieldtype": "Select",
+   "label": "School Year Starts In",
+   "options": "January\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+  },
+  {
+   "fieldname": "map_section",
+   "fieldtype": "Section Break",
+   "label": "Map of Addresses"
+  },
+  {
+   "default": "1",
+   "description": "Send the text of each new or changed address, without a name, to the OpenStreetMap search service (Nominatim), so it shows on the Map of Addresses. Turn this off to keep every address on this site. Addresses not on the map yet then stay off it.",
+   "fieldname": "look_up_addresses",
+   "fieldtype": "Check",
+   "label": "Look Up Addresses for the Map"
+  },
+  {
+   "fieldname": "retention_section",
+   "fieldtype": "Section Break",
+   "label": "Personal Data"
+  },
+  {
+   "default": "0",
+   "description": "Remove the personal data of people who have been Inactive for this many years, as Remove Personal Data does. Their giving and attendance still count. 0 never removes anything. People who have died are kept.",
+   "fieldname": "remove_inactive_after_years",
+   "fieldtype": "Int",
+   "label": "Remove Personal Data After (Years Inactive)",
+   "non_negative": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-21 21:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "People Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

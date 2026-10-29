@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-23 22:01:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-23 22:01:00.000000",
+ "modified_by": "Administrator",
+ "name": "Group Join Decision",
+ "owner": "Administrator",
+ "reference_doctype": "Group Join Request",
+ "response_html": "<p>Dear {{ first_name }},</p>\n\n{% if approved %}<p>Your request to join {{ group_name }} is approved. You are now a member of the group.</p>\n\n<p><a href=\"{{ link }}\">See your groups</a></p>{% else %}<p>Your request to join {{ group_name }} was not approved. If you have a question, please contact the group's leaders or the church office.</p>{% endif %}",
+ "subject": "{% if approved %}Welcome to {{ group_name }}{% else %}Your request to join {{ group_name }}{% endif %}",
+ "use_html": 1
+}

@@ -1,0 +1,130 @@
+{
+  "allow_comments": 0,
+  "allow_delete": 0,
+  "allow_edit": 1,
+  "allow_incomplete": 0,
+  "allow_multiple": 1,
+  "allow_print": 0,
+  "anonymous": 0,
+  "apply_document_permissions": 1,
+  "button_label": "Send Request",
+  "condition_json": "[]",
+  "creation": "2026-10-26 15:52:34",
+  "doc_type": "Room Booking",
+  "docstatus": 0,
+  "doctype": "Web Form",
+  "idx": 0,
+  "introduction_text": "<div class=\"ql-editor read-mode\"><p>Ask to use a room of the church. Choose the room, the start and the end, and tell us what it is for. When the room needs approval, your request waits until an approver approves it. The list shows the status of each of your requests.</p></div>",
+  "is_standard": 1,
+  "list_columns": [
+    {
+      "fieldname": "purpose",
+      "fieldtype": "Data",
+      "label": "Purpose"
+    },
+    {
+      "fieldname": "start_datetime",
+      "fieldtype": "Datetime",
+      "label": "Start"
+    },
+    {
+      "fieldname": "end_datetime",
+      "fieldtype": "Datetime",
+      "label": "End"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status"
+    }
+  ],
+  "list_title": "Your Room Requests",
+  "login_required": 1,
+  "max_attachment_size": 0,
+  "modified": "2026-10-26 15:52:34",
+  "modified_by": "Administrator",
+  "module": "Church Operations",
+  "name": "room-request",
+  "owner": "Administrator",
+  "published": 1,
+  "route": "room-request",
+  "show_attachments": 0,
+  "show_list": 1,
+  "show_sidebar": 1,
+  "success_message": "Thank you. We have your request.",
+  "success_title": "Request Sent",
+  "title": "Room Request",
+  "website_sidebar": "",
+  "web_form_fields": [
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "room",
+      "fieldtype": "Link",
+      "hidden": 0,
+      "label": "Room",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "Room",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "start_datetime",
+      "fieldtype": "Datetime",
+      "hidden": 0,
+      "label": "Start",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "end_datetime",
+      "fieldtype": "Datetime",
+      "hidden": 0,
+      "label": "End",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "purpose",
+      "fieldtype": "Data",
+      "hidden": 0,
+      "label": "Purpose",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "notes",
+      "fieldtype": "Text",
+      "hidden": 0,
+      "label": "Notes",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 0,
+      "show_in_filter": 0
+    }
+  ]
+}

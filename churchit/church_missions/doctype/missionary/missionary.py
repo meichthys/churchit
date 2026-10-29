@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, today
 
 from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_people.geocoding import get_coordinates, is_address_lookup_on
 from churchit.church_scope import church_filters
 from churchit.contacts import validate_contact_tables
 
@@ -83,6 +84,18 @@ def get_public_map_markers() -> dict:
 		"Missionary", church_filters(church, geolocation=["is", "set"], publish=1, sensitive=1)
 	)
 	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
+
+
+@frappe.whitelist()
+def get_country_coordinates(country: str) -> tuple[float, float]:
+	"""(latitude, longitude) of *country* for an empty map pin, or (0, 0) while address lookups are off.
+
+	The form asks here rather than asking Nominatim itself, so the setting, the lock and the User-Agent hold.
+	"""
+	frappe.has_permission("Missionary", "write", throw=True)
+	if not is_address_lookup_on() or not frappe.db.exists("Country", country):
+		return 0, 0
+	return get_coordinates(country)
 
 
 def _build_markers(missionaries, include_name=False) -> list[dict]:

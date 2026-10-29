@@ -7,13 +7,16 @@ import frappe
 from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.model.document import Document
-from frappe.query_builder.functions import Coalesce
 from frappe.utils import format_date, format_time, get_url, get_url_to_form, getdate, now_datetime, nowdate
+from requests import RequestException
 
+from churchit.church_communications.consent import allowed_people
+from churchit.church_communications.doctype.communication_consent.communication_consent import SMS
+from churchit.church_communications.doctype.communication_purpose.communication_purpose import SERVING
+from churchit.church_communications.sending import can_send_texts, send
+from churchit.church_ministries import availability
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
-from churchit.church_ministries.doctype.ministry_team_block.ministry_team_block import get_blocks_covering
-from churchit.church_people.doctype.background_check.background_check import is_cleared
-from churchit.church_scope import refuse_another_churches_record, scoped
+from churchit.church_scope import refuse_another_churches_parent, refuse_another_churches_record, scoped
 from churchit.contacts import get_primary_email, get_primary_emails
 
 PENDING = "Pending"
@@ -24,6 +27,15 @@ ANSWERS = (ACCEPTED, DECLINED)
 REQUEST_TEMPLATE = "Ministry Team Request"
 REMINDER_TEMPLATE = "Ministry Team Reminder"
 DECLINE_TEMPLATE = "Ministry Team Decline"
+REPLACEMENT_TEMPLATE = "Ministry Team Replacement"
+REQUEST_TEXT = (
+	"{{ first_name }}, can you serve as {{ position }} at {{ function }} on {{ date }}? "
+	"Please answer here: {{ response_link }}"
+)
+REMINDER_TEXT = (
+	"{{ first_name }}, a reminder: you serve as {{ position }} at {{ function }} on {{ date }}"
+	"{% if time %} at {{ time }}{% endif %}. If you cannot come, answer here: {{ response_link }}"
+)
 
 
 class MinistryTeamAssignment(Document):
@@ -32,9 +44,16 @@ class MinistryTeamAssignment(Document):
 
 	def validate(self):
 		if self.is_new():
+			refuse_another_churches_parent(
+				self,
+				"function",
+				_("{0} belongs to another church, so only that church can schedule people for it."),
+			)
 			self.refuse_a_person_not_on_the_position()
 			self.refuse_a_repeat()
 			refuse_another_churches_record(self, "Ministry Team Position", self.position)
+			self.refuse_without_checks()
+			self.validate_replacement()
 			self.warn_about_conflicts()
 
 		self.title = f"{self.person_name} as {self.position_doc.position_name} at {self.function_doc.title}"
@@ -42,7 +61,16 @@ class MinistryTeamAssignment(Document):
 			self.responded_on = now_datetime()
 
 	def on_update(self):
-		if self.status == DECLINED and self.has_value_changed("status"):
+		before = self.get_doc_before_save()
+		if before and (before.replaces or None) != (self.replaces or None):
+			frappe.throw(_("An assignment cannot change the assignment it replaces."))
+		if self.status not in ANSWERS or not self.has_value_changed("status"):
+			return
+
+		original = self.get_replaced_assignment()
+		if original:
+			self.answer_for(original)
+		elif self.status == DECLINED:
 			self.tell_the_coordinator()
 
 	@property
@@ -56,6 +84,11 @@ class MinistryTeamAssignment(Document):
 	@property
 	def has_started(self) -> bool:
 		return get_time_window(self.function_doc)[0] <= now_datetime()
+
+	@property
+	def replaced_by(self) -> str | None:
+		"""The name of the person who accepted this assignment's place."""
+		return frappe.db.get_value(self.doctype, {"replaces": self.name, "status": ACCEPTED}, "person_name")
 
 	def refuse_a_person_not_on_the_position(self):
 		if self.person not in {row.person for row in self.position_doc.people}:
@@ -74,6 +107,19 @@ class MinistryTeamAssignment(Document):
 				_("{0} is already assigned to this position at this function.").format(self.person_name)
 			)
 
+	def refuse_without_checks(self):
+		if not self.position_doc.block_without_checks:
+			return
+		start, _end = get_time_window(self.function_doc)
+		problem = availability.get_check_problem(self.person, self.position, start.date())
+		if problem:
+			frappe.throw(problem, title=_("Not cleared to serve"))
+
+	def validate_replacement(self):
+		"""Only `member_ministry_team.ask_replacement` sets Replaces, after its checks."""
+		if self.replaces and not self.flags.is_replacement_request:
+			frappe.throw(_("Ask for a replacement on the Ministry Team page."))
+
 	def warn_about_conflicts(self):
 		warnings = self.get_warnings()
 		if warnings:
@@ -81,24 +127,7 @@ class MinistryTeamAssignment(Document):
 
 	def get_warnings(self) -> list[str]:
 		start, end = get_time_window(self.function_doc)
-		warnings = [
-			_("A Ministry Team Block from {0} to {1} covers this function{2}.").format(
-				format_date(block.from_date),
-				format_date(block.to_date),
-				f": {block.reason}" if block.reason else "",
-			)
-			for block in get_blocks_covering(self.person, start.date(), end.date())
-		]
-		warnings += [
-			_("{0} already serves at {1} at the same time.").format(self.person_name, other.title)
-			for other in self.get_overlapping_assignments(start, end)
-		]
-		if self.position_doc.needs_background_check and not is_cleared(self.person, start.date()):
-			warnings.append(
-				_("{0} needs a current, cleared Background Check, and {1} has none.").format(
-					self.position_doc.title, self.person_name
-				)
-			)
+		warnings = availability.get_problems(self.person, start, end, self.position, self.function)
 		if not get_primary_email("Person", self.person):
 			warnings.append(
 				_("{0} has no email address, so the request shows only in their portal.").format(
@@ -107,40 +136,14 @@ class MinistryTeamAssignment(Document):
 			)
 		return warnings
 
-	def get_overlapping_assignments(self, start, end) -> list[frappe._dict]:
-		"""The person's other assignments, not declined, at functions that overlap *start* to *end*."""
-		Assignment = frappe.qb.DocType("Ministry Team Assignment")
-		Function = frappe.qb.DocType("Function")
-		# church-scope: the one person's own assignments, to warn about double booking
-		rows = (
-			frappe.qb.from_(Assignment)
-			.join(Function)
-			.on(Assignment.function == Function.name)
-			.select(
-				Assignment.title,
-				Function.start_date,
-				Function.start_time,
-				Function.end_date,
-				Function.end_time,
-				Function.all_day,
-			)
-			.where(
-				(Assignment.person == self.person)
-				& (Assignment.status != DECLINED)
-				& (Assignment.function != self.function)
-				& (Function.start_date <= end.date())
-				& (Coalesce(Function.end_date, Function.start_date) >= start.date())
-			)
-			.run(as_dict=True)
-		)
-		return [row for row in rows if overlaps(get_time_window(row), (start, end))]
-
 	def respond(self, status: str, reason: str | None = None):
 		"""Record the person's answer. The caller checks that whoever answers may."""
 		if status not in ANSWERS:
 			frappe.throw(_("Answer with Accepted or Declined."))
 		if self.has_started:
 			frappe.throw(_("{0} has already started.").format(self.function_doc.function_name))
+		if status == ACCEPTED and self.replaced_by:
+			frappe.throw(_("Your place went to {0}.").format(self.replaced_by))
 		self.status = status
 		self.decline_reason = reason if status == DECLINED else None
 
@@ -166,11 +169,31 @@ class MinistryTeamAssignment(Document):
 		coordinator = frappe.db.get_value("Ministry", self.position_doc.ministry, "team_coordinator")
 		email = coordinator and get_primary_email("Person", coordinator)
 		if email and can_send_email():
-			send_team_email(DECLINE_TEMPLATE, email, self.get_email_context(), self)
+			context = self.get_email_context()
+			context.update(replaced_by=self.flags.replaced_by or "")
+			send_team_email(DECLINE_TEMPLATE, email, context, self)
 
+	def get_replaced_assignment(self) -> Document | None:
+		"""The assignment this one replaces, locked, while its person still serves."""
+		if not self.replaces:
+			return None
+		original = frappe.get_doc(self.doctype, self.replaces, for_update=True)
+		return original if original.status != DECLINED else None
 
-def overlaps(first: tuple, second: tuple) -> bool:
-	return first[0] < second[1] and second[0] < first[1]
+	def answer_for(self, original: Document):
+		"""An accepted replacement takes *original*'s place. Either answer tells its person."""
+		if self.status == ACCEPTED:
+			original.status = DECLINED
+			original.decline_reason = _("Replaced by {0}").format(self.person_name)
+			# The person asked for this. The decline emails the coordinator and names who takes the place.
+			original.flags.replaced_by = self.person_name
+			original.save(ignore_permissions=True)
+
+		email = get_primary_email("Person", original.person)
+		if email and can_send_email():
+			context = original.get_email_context()
+			context.update(replacement_name=self.person_name, has_accepted=self.status == ACCEPTED)
+			send_team_email(REPLACEMENT_TEMPLATE, email, context, original)
 
 
 def can_send_email() -> bool:
@@ -188,23 +211,72 @@ def send_team_email(template: str, recipient: str, context: dict, assignment: Do
 	)
 
 
+class TeamTexts:
+	"""The texts of one run: on when the site sends texts and the user passes SMS Settings Allowed Roles.
+
+	When the site sends texts but the user may not, the people who allow them wait for the daily job, so
+	their texts are not lost. A gateway failure is logged and turns the texts off, so the emails still go.
+	"""
+
+	def __init__(self):
+		from churchit.church_ministries.page.check_in.paging import can_text  # paging imports this module
+
+		self.is_on = can_text()
+		self.is_held = not self.is_on and can_send_texts()
+
+	def is_waiting(self, person: str) -> bool:
+		"""Whether *person* allows texts for Serving that the user may not send, so the daily job asks them."""
+		return self.is_held and bool(allowed_people([person], SMS, SERVING))
+
+	def send_about(self, assignment: Document, key: str, text: str) -> int:
+		"""Text the person about *assignment* if they allow texts for Serving, and return how many left.
+
+		A text leaves at once, so the caller commits as soon as it marks the assignment sent.
+		"""
+		if not self.is_on:
+			return 0
+
+		frappe.db.savepoint("team_text")
+		try:
+			sent = send(
+				[assignment.person],
+				SMS,
+				SERVING,
+				assignment,
+				key=key,
+				text=text,
+				context=assignment.get_email_context(),
+			)
+		except RequestException:
+			frappe.db.rollback(save_point="team_text")  # the copy of a text that did not leave
+			frappe.log_error(
+				title=f"Could not text the ministry team {key} for {assignment.name}",
+				reference_doctype=assignment.doctype,
+				reference_name=assignment.name,
+			)
+			self.is_on = False
+			return 0
+		return len(sent)
+
+
 def send_team_emails() -> int:
 	"""Daily scheduler: ask people about new assignments, then remind them as each function nears.
 
-	Waits while the site has no outgoing email account, so nothing is marked as sent that was not.
-	Returns the number of emails sent.
+	Emails go when the site has an outgoing email account, texts when it can send texts. With neither,
+	it waits, so nothing is marked as sent that was not. Returns the number of emails and texts sent.
 	"""
-	if not can_send_email():
+	texts = TeamTexts()
+	if not (can_send_email() or texts.is_on):
 		return 0
-	return send_requests() + send_reminders()
+	return send_requests(texts) + send_reminders(texts)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def send_team_emails_now() -> int:
 	"""Send what the daily job would send next, for the churches the user may see."""
 	frappe.has_permission("Ministry Team Assignment", "create", throw=True)
-	if not can_send_email():
-		frappe.throw(_("Set up an outgoing Email Account first."))
+	if not (can_send_email() or TeamTexts().is_on):
+		frappe.throw(_("Set up an outgoing Email Account or SMS Settings first."))
 	return send_team_emails()
 
 
@@ -258,43 +330,61 @@ def get_upcoming_assignments() -> list[frappe._dict]:
 	return scoped(query, Assignment, {}).run(as_dict=True)
 
 
-def send_requests() -> int:
-	"""One email per person, listing every assignment they have not been asked about yet."""
+def send_requests(texts: TeamTexts) -> int:
+	"""One email per person, listing every assignment they have not been asked about yet, and a text for each.
+
+	Without an email account, only an assignment whose text left is marked as asked.
+	"""
 	sent = 0
+	is_emailing = can_send_email()
 	by_person = defaultdict(list)
 	for row in get_upcoming_assignments():
 		if row.status == PENDING and not row.requested_on:
 			by_person[row.person].append(frappe.get_doc("Ministry Team Assignment", row.name))
 
 	for person, assignments in by_person.items():
-		email = get_primary_email("Person", person)
+		if texts.is_waiting(person):
+			continue
+		email = is_emailing and get_primary_email("Person", person)
 		if email:
 			contexts = [assignment.get_email_context() for assignment in assignments]
 			context = {"first_name": contexts[0]["first_name"], "assignments": contexts}
 			send_team_email(REQUEST_TEMPLATE, email, context, assignments[0])
 			sent += 1
 		for assignment in assignments:
-			assignment.db_set("requested_on", now_datetime(), update_modified=False)
+			texted = texts.send_about(assignment, "request", REQUEST_TEXT)
+			if is_emailing or texted:
+				assignment.db_set("requested_on", now_datetime(), update_modified=False)
+			if texted:
+				frappe.db.commit()
+			sent += texted
 	return sent
 
 
-def send_reminders() -> int:
+def send_reminders(texts: TeamTexts) -> int:
 	"""Remind each person serving, the ministry's Remind Days Before ahead of the function.
 
-	A request sent today already says it all, so its reminder waits for the next day.
+	A request sent today already says it all, so its reminder waits for the next day. Without an email
+	account, only an assignment whose text left is marked as reminded.
 	"""
 	sent = 0
 	today = getdate()
+	is_emailing = can_send_email()
 	for row in get_upcoming_assignments():
-		if not is_due_for_a_reminder(row, today):
+		if not is_due_for_a_reminder(row, today) or texts.is_waiting(row.person):
 			continue
 
 		assignment = frappe.get_doc("Ministry Team Assignment", row.name)
-		email = get_primary_email("Person", row.person)
+		email = is_emailing and get_primary_email("Person", row.person)
 		if email:
 			send_team_email(REMINDER_TEMPLATE, email, assignment.get_email_context(), assignment)
 			sent += 1
-		assignment.db_set("reminded_on", now_datetime(), update_modified=False)
+		texted = texts.send_about(assignment, "reminder", REMINDER_TEXT)
+		if is_emailing or texted:
+			assignment.db_set("reminded_on", now_datetime(), update_modified=False)
+		if texted:
+			frappe.db.commit()
+		sent += texted
 	return sent
 
 

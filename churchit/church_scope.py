@@ -5,6 +5,7 @@
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.nestedset import get_descendants_of
 
@@ -49,6 +50,7 @@ SHAREABLE_DOCTYPES = (
 	"Location",
 	"Meeting Minutes",
 	"Ministry",
+	"Question Set",
 	"Room",
 	"Sermon",
 	"Sermon Handout",
@@ -129,6 +131,14 @@ def allowed_churches(user=None):
 	if not permissions:
 		return None
 	return sorted({permission.get("doc") for permission in permissions})
+
+
+def has_church_access(user, church):
+	"""True when *user* may see *church*'s records: always for a shared record, or a user holding no church."""
+	if not church:
+		return True
+	allowed = allowed_churches(user)
+	return allowed is None or church in allowed
 
 
 def requested_church():
@@ -355,8 +365,8 @@ def restamp_dependents(doc):
 		)
 
 
-def refuse_another_churches_record(doc, doctype, name):
-	"""Refuse *doc* when it points at a *doctype* record belonging to a different church.
+def refuse_another_churches_record(doc, doctype, name, church=None):
+	"""Refuse *doc* when it points at a *doctype* record belonging to a different church than *church*.
 
 	Money carries the church that gave or spent it, and the fund it lands in has
 	to be one that church may use: its own, or one shared with every church. The
@@ -369,12 +379,13 @@ def refuse_another_churches_record(doc, doctype, name):
 
 	The church a new record is about to take is resolved here rather than read off
 	the document: ``ensure_church`` settles it on the same ``validate``, and a
-	doc_events handler runs after the controller's own method.
+	doc_events handler runs after the controller's own method. A shared record has
+	no church of its own, so its caller passes the church it acts for.
 	"""
 	if not is_multi_church() or not name:
 		return
 	owner = frappe.db.get_value(doctype, name, CHURCH_FIELD)
-	church = document_church(doc) or default_church()
+	church = church or document_church(doc) or default_church()
 	if not owner or not church or owner == church:
 		return
 
@@ -388,6 +399,52 @@ def refuse_another_churches_record(doc, doctype, name):
 		),
 		frappe.PermissionError,
 	)
+
+
+def refuse_another_churches_fund(doc: Document, fund: str | None) -> None:
+	"""Refuse *fund* unless it is shared or belongs to the church that takes *doc*'s payments.
+
+	That church is *doc*'s own, or the church that shared *doc*. `refuse_another_churches_record` reads a
+	shared record's empty church as the editor's default church, so it cannot judge a shared Function.
+	"""
+	if not is_multi_church() or not fund:
+		return
+	owner = frappe.db.get_value("Fund", fund, CHURCH_FIELD)
+	church = doc.get(CHURCH_FIELD) or doc.get(SHARED_BY_FIELD) or default_church()
+	if not owner or owner == church:
+		return
+
+	frappe.throw(
+		_("Fund {0} belongs to another church. Choose a fund of {1} or a shared one.").format(
+			frappe.bold(fund), frappe.db.get_value("Church", church, "church_name") or church
+		),
+		frappe.PermissionError,
+	)
+
+
+def refuse_another_churches_parent(doc: Document, link_field: str, message: str) -> None:
+	"""Refuse a change of *link_field* to or from a record of a church the user cannot see.
+
+	For a doctype whose `church` comes from *link_field* through `fetch_from`: Frappe checks
+	the create right before `church` is fetched, and the write right on the record as sent,
+	so it sees neither whose record the link names nor whose record this was. *message* gets
+	the title of the record the caller linked as {0}. A stored record of another church is
+	refused without its title, so a guessed name tells the caller nothing. Writes with
+	ignore_permissions are the app's own.
+	"""
+	if doc.flags.ignore_permissions or not doc.has_value_changed(link_field):
+		return
+	before = doc.get_doc_before_save()
+	if before and not has_church_access(frappe.session.user, before.get(CHURCH_FIELD)):
+		frappe.throw(_("This {0} belongs to another church.").format(_(doc.doctype)), frappe.PermissionError)
+
+	doctype = doc.meta.get_field(link_field).options
+	link = doc.get(link_field)
+	if not link or has_church_access(frappe.session.user, frappe.db.get_value(doctype, link, CHURCH_FIELD)):
+		return
+	title_field = frappe.get_meta(doctype).title_field
+	title = (title_field and frappe.db.get_value(doctype, link, title_field)) or link
+	frappe.throw(message.format(title), frappe.PermissionError)
 
 
 def refuse_changing_another_churches_people(doc, ptype=None, user=None):
@@ -413,6 +470,29 @@ def refuse_changing_another_churches_people(doc, ptype=None, user=None):
 	return not churches - set(allowed) - {None, SHARED}
 
 
+def refuse_changing_another_churches_record(doc, method=None):
+	"""Refuse a save, cancel or update of a record whose stored church the user cannot see.
+
+	Frappe measures User Permissions on the document as the caller sent it, so a caller
+	who names their own church passes that check on another church's record and moves it.
+	Saves with ``ignore_permissions`` are the app's own.
+	"""
+	if doc.flags.ignore_permissions or doc.is_new() or not is_multi_church() or not is_scoped(doc.meta):
+		return
+	if allowed_churches() is None:
+		return
+	stored = frappe.db.get_value(doc.doctype, doc.name, CHURCH_FIELD)
+	if has_church_access(frappe.session.user, stored):
+		return
+
+	frappe.throw(
+		_("{0} {1} belongs to another church, so only that church can change it.").format(
+			_(doc.doctype), doc.name
+		),
+		frappe.PermissionError,
+	)
+
+
 def ensure_church(doc, method=None):
 	"""doc_events validate hook: settle which church a record belongs to, or refuse to save it.
 
@@ -423,6 +503,8 @@ def ensure_church(doc, method=None):
 	"""
 	if not is_multi_church() or not is_scoped(doc.meta):
 		return
+
+	refuse_changing_another_churches_record(doc)
 
 	if is_shareable(doc):
 		refuse_unsharing_by_another_church(doc)

@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2026-10-26 22:54:42.000000",
+ "description": "One way a song is played: its key, tempo and ChordPro chart.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "arrangement_name",
+  "song_key",
+  "tempo",
+  "chordpro",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "arrangement_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Arrangement Name",
+   "reqd": 1
+  },
+  {
+   "description": "The key the chart is written in. The Chord Chart moves the chords from this key.",
+   "fieldname": "song_key",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Key",
+   "options": "\nC\nDb\nD\nEb\nE\nF\nF#\nG\nAb\nA\nBb\nB\nCm\nC#m\nDm\nEbm\nEm\nFm\nF#m\nGm\nG#m\nAm\nBbm\nBm"
+  },
+  {
+   "fieldname": "tempo",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Tempo (BPM)",
+   "non_negative": 1
+  },
+  {
+   "description": "The chart in ChordPro: chords in square brackets before the syllable, such as [G]Amazing [D/F#]grace, and sections such as {start_of_verse} and {end_of_verse}.",
+   "fieldname": "chordpro",
+   "fieldtype": "Code",
+   "label": "ChordPro"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-27 00:31:37.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Song Arrangement",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

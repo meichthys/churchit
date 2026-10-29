@@ -196,6 +196,27 @@ class TestValidateContactTables(RollbackEachTest):
 		)
 		self.assertEqual([row.notification_address for row in person.emails], [None, "b@example.com"])
 
+	def test_a_new_address_on_a_bounced_row_unticks_email_bounced(self):
+		person = self._person("Bounced", emails=[{"email_address": "old@example.com"}])
+		frappe.db.set_value("Email Address", person.emails[0].name, "is_bounced", 1)
+		person.reload()
+
+		person.emails[0].email_address = "new@example.com"
+		person.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.get_value("Email Address", person.emails[0].name, "is_bounced"), 0)
+
+	def test_email_bounced_stays_while_the_address_is_the_same(self):
+		person = self._person("Kept", emails=[{"email_address": "kept@example.com"}])
+		frappe.db.set_value("Email Address", person.emails[0].name, "is_bounced", 1)
+		person.reload()
+
+		person.emails[0].email_address = "KEPT@example.com"
+		person.append("emails", {"email_address": "second@example.com", "is_bounced": 1})
+		person.save(ignore_permissions=True)
+
+		self.assertEqual([row.is_bounced for row in person.emails], [1, 1])
+
 
 class TestContactDetailsBelongToOneRecord(RollbackEachTest):
 	"""An unshared email or phone may sit on one record of each doctype only."""
@@ -322,7 +343,11 @@ class TestContactDetailsBelongToOneRecord(RollbackEachTest):
 		self.assertEqual(search("Spouse", "new-person-1"), [spouse.name])
 
 	def test_the_holder_is_not_named_to_someone_who_may_not_read_it(self):
-		frappe.set_user(ensure_user("_test_contact_nobody@example.com", "_Test Nobody", roles=()))
+		# A desk user who cannot read people; a portal member may not add a person at all.
+		treasurer = ensure_user(
+			"_test_contact_treasurer@example.com", "_Test Treasurer", roles=("Church Finance",)
+		)
+		frappe.set_user(treasurer)
 		with self.assertRaises(ValidationError) as caught:
 			self._person_with("Copy", email_address="unique.holder@example.com")
 		self.assertNotIn(self.holder.full_name, str(caught.exception))
@@ -340,3 +365,25 @@ class TestDefaultContactTypes(FrappeTestCase):
 		)
 		for doctype, name in (("Email Type", "Home"), ("Phone Type", "Mobile"), ("Address Type", "Other")):
 			self.assertTrue(frappe.db.exists(doctype, name))
+
+
+class TestPhoneDigits(RollbackEachTest):
+	def test_each_phone_keeps_its_digits(self):
+		person = make_person("_Test Digits", "Kept", phones=[{"phone_number": "+1 (217) 555-0210"}])
+		self.assertEqual(person.phones[0].digits, "12175550210")
+
+		person.phones[0].phone_number = "217.555.0211"
+		person.save()
+		self.assertEqual(frappe.db.get_value("Phone Number", person.phones[0].name, "digits"), "2175550211")
+
+	def test_the_patch_fills_the_digits_saved_before_they_were_kept(self):
+		from churchit.patches.v1_0 import fill_phone_digits
+
+		person = make_person("_Test Digits", "Patched", phones=[{"phone_number": "(217) 555-0212"}])
+		row = person.phones[0].name
+		frappe.db.set_value("Phone Number", row, "digits", None)
+
+		fill_phone_digits.execute()
+		fill_phone_digits.execute()
+
+		self.assertEqual(frappe.db.get_value("Phone Number", row, "digits"), "2175550212")

@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import get_link_to_form
 
+from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
 from churchit.church_scope import refuse_another_churches_record
 
 
@@ -44,25 +45,11 @@ class Expense(Document):
 			frappe.throw(_("❌ You must cancel this Expense before deleting it."))
 
 	def on_cancel(self):
-		# The fund this expense debited, even if its type names another one by now.
-		fund_name = self.associated_fund or frappe.db.get_value("Expense Type", self.type, "fund")
-		if not fund_name:
-			frappe.throw(_("⚠️ No fund linked to the selected Expense Type."))
-
-		fund = frappe.get_doc("Fund", fund_name)
-
-		# Remove transaction that matches this expense
-		updated_transactions = []
-		for transaction in fund.transactions:
-			if not (transaction.source_type == "Expense" and transaction.source == self.name):
-				updated_transactions.append(transaction)
-			else:
-				frappe.msgprint(
-					f"💰 Associated {get_link_to_form('Fund', fund.name, fund.fund)} fund has been increased by ${-transaction.amount}"
-				)
-		fund.transactions = updated_transactions
-		fund.save(ignore_permissions=True)
-		fund.reload()
+		for fund_name in remove_transactions("Expense", self.name):
+			label = frappe.db.get_value("Fund", fund_name, "fund")
+			frappe.msgprint(
+				f"💰 Associated {get_link_to_form('Fund', fund_name, label)} fund has been increased by ${self.amount}"
+			)
 
 		if self.ministry:
 			_update_ministry_total(self.ministry)
@@ -73,23 +60,10 @@ class Expense(Document):
 		if not fund_name:
 			frappe.throw(_("⚠️ No fund linked to the selected Expense Type."))
 
-		fund = frappe.get_doc("Fund", fund_name)
-
-		# Add new row to fund's transactions table
-		fund.append(
-			"transactions",
-			{
-				"amount": -self.amount,
-				"source_type": "Expense",
-				"source": self.name,
-				"date": self.date,
-				"notes": self.notes,
-			},
-		)
-		fund.save(ignore_permissions=True)
-		fund.reload()
+		add_transaction(fund_name, -self.amount, "Expense", self.name, self.date, notes=self.notes)
+		label = frappe.db.get_value("Fund", fund_name, "fund")
 		frappe.msgprint(
-			f"💸 Associated {get_link_to_form('Fund', fund.name, fund.fund)} fund has been reduced by ${self.amount}"
+			f"💸 Associated {get_link_to_form('Fund', fund_name, label)} fund has been reduced by ${self.amount}"
 		)
 
 		if self.ministry:

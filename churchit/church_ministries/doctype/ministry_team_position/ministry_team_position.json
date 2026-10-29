@@ -13,6 +13,8 @@
   "church",
   "column_break_position",
   "needs_background_check",
+  "required_checks",
+  "block_without_checks",
   "description",
   "section_break_people",
   "people",
@@ -54,11 +56,27 @@
   },
   {
    "default": "0",
-   "description": "Warn when someone without a current, cleared Background Check is assigned to this position.",
+   "description": "Tick this when the person needs a current, cleared Background Check to fill this position, for example to serve children. You are warned when you assign someone who has none.",
    "fieldname": "needs_background_check",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Needs Background Check"
+  },
+  {
+   "depends_on": "eval:doc.needs_background_check",
+   "description": "The checks this position needs, such as Criminal Background and Child Safety Training. Each one must be cleared and current on the day of the function. Leave it blank to accept any cleared check.",
+   "fieldname": "required_checks",
+   "fieldtype": "Table MultiSelect",
+   "label": "Required Checks",
+   "options": "Ministry Team Position Check"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.needs_background_check",
+   "description": "Refuse to assign someone without the checks, instead of only warning.",
+   "fieldname": "block_without_checks",
+   "fieldtype": "Check",
+   "label": "Block People Without Checks"
   },
   {
    "fieldname": "description",
@@ -72,7 +90,7 @@
   {
    "description": "The people who can fill this position. Only they can be assigned to it.",
    "fieldname": "people",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "People",
    "options": "Ministry Team Position Person"
   },
@@ -97,7 +115,7 @@
    "link_fieldname": "position"
   }
  ],
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Position",

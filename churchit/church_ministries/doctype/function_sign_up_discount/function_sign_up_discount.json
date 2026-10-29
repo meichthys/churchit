@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "creation": "2026-10-24 00:03:35.000000",
+ "description": "A discount on a function's sign-ups: a code, an early bird date or a group size. A sign-up gets only the largest discount that applies.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-ministries",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kind",
+  "code",
+  "amount",
+  "percent",
+  "valid_until",
+  "min_attendees"
+ ],
+ "fields": [
+  {
+   "description": "A Freely Given discount comes off every sign-up. With Percent 100 the function is free, and its prices still show what it costs.",
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Kind",
+   "options": "Code\nEarly Bird\nGroup\nFreely Given",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.kind=='Code'",
+   "description": "Registrants type it. Capitals do not matter.",
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code"
+  },
+  {
+   "description": "An amount off the sign-up.",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount"
+  },
+  {
+   "description": "A percent off the sign-up, when Amount is empty.",
+   "fieldname": "percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Percent"
+  },
+  {
+   "description": "The last day the discount applies.",
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "label": "Valid Until"
+  },
+  {
+   "depends_on": "eval:doc.kind=='Group'",
+   "description": "A group discount applies to a sign-up with at least this many attendees.",
+   "fieldname": "min_attendees",
+   "fieldtype": "Int",
+   "label": "Minimum Attendees",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-26 00:36:10.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Function Sign-Up Discount",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

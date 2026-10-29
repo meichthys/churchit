@@ -1,0 +1,168 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Find a Group") }}{% endblock %}
+{% block header %}<h1>{{ _("Find a Group") }}</h1>{% endblock %}
+
+{% block head_include %}
+<style>
+	.find-group-filters { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; }
+	.find-group-filters select { width: auto; }
+	#find-a-group-map { height: 320px; margin-bottom: 24px; border-radius: 8px; }
+	.find-group-card { scroll-margin-top: 80px; }
+	.find-group-card.is-chosen { border-color: var(--primary, #2490ef); }
+</style>
+{% endblock %}
+
+{% block page_content %}
+{% if not groups %}
+<p class="text-muted">{{ _("No groups are open to visitors right now. Please check back soon.") }}</p>
+{% else %}
+<div class="find-group-filters">
+	{% if group_types %}
+	<select class="form-control form-control-sm" id="find-group-type" aria-label="{{ _('Type') }}">
+		<option value="">{{ _("Every type") }}</option>
+		{% for group_type in group_types %}
+		<option value="{{ group_type | e }}">{{ _(group_type) | e }}</option>
+		{% endfor %}
+	</select>
+	{% endif %}
+	{% if weekdays %}
+	<select class="form-control form-control-sm" id="find-group-day" aria-label="{{ _('Day') }}">
+		<option value="">{{ _("Any day") }}</option>
+		{% for day in weekdays %}
+		<option value="{{ day }}">{{ _(day) }}</option>
+		{% endfor %}
+	</select>
+	{% endif %}
+</div>
+
+{% if pins %}
+<div id="find-a-group-map"></div>
+{% endif %}
+
+<div class="row" data-is-guest="{{ 1 if is_guest else 0 }}" id="find-group-list">
+	{% for group in groups %}
+	<div class="col-md-6 mb-4 find-group" data-group="{{ group.name | e }}" data-type="{{ (group.group_type or '') | e }}" data-days="{{ group.days | join(' ') }}">
+		<div class="card h-100 find-group-card" id="group-{{ group.name | e }}">
+			<div class="card-body">
+				<h5 class="card-title mb-1">{{ group.group_name | e }}</h5>
+				{% if group.group_type %}<div class="small text-muted mb-2">{{ _(group.group_type) | e }}</div>{% endif %}
+				{% if group.description %}<p class="card-text">{{ group.description | e }}</p>{% endif %}
+				{% if group.when or group.city %}
+				<p class="small mb-0">{{ group.when | e }}{% if group.when and group.city %}, {% endif %}{{ (group.city or "") | e }}</p>
+				{% endif %}
+			</div>
+			<div class="card-footer find-group-action">
+				{% if group.join_state == "full" %}
+				<span class="badge badge-secondary">{{ _("Full") }}</span>
+				{% elif group.join_state == "closed" %}
+				<span class="badge badge-secondary">{{ _("Closed") }}</span>
+				{% elif is_guest %}
+				<a class="btn btn-primary btn-sm" href="{{ group.login_link | e }}">{{ _("Join") }}</a>
+				{% else %}
+				<button type="button" class="btn btn-primary btn-sm find-group-join">{{ _("Ask to Join") if group.requires_approval else _("Join") }}</button>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function () {
+	var list = document.getElementById("find-group-list");
+	if (!list) return;
+	var cards = Array.prototype.slice.call(list.querySelectorAll(".find-group"));
+	var markers = {};
+	var map = null;
+	var pins = {{ pins | tojson }};
+	var mapElement = document.getElementById("find-a-group-map");
+
+	if (mapElement && window.L) {
+		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
+		map = L.map(mapElement, { scrollWheelZoom: false });
+		var tile = frappe.utils.map_defaults.tiles.default_tile;
+		L.tileLayer(tile.url, tile.options).addTo(map);
+		pins.forEach(function (pin) {
+			markers[pin.name] = L.marker(pin.pin)
+				.bindPopup(
+					'<a href="#group-' + encodeURIComponent(pin.name) + '">' +
+						frappe.utils.escape_html(pin.group_name) + "</a>"
+				)
+				.addTo(map);
+		});
+		var points = pins.map(function (pin) { return pin.pin; });
+		if (points.length > 1) map.fitBounds(points, { padding: [30, 30], maxZoom: 13 });
+		else map.setView(points[0], 12);
+	}
+
+	function applyFilters() {
+		var type = (document.getElementById("find-group-type") || {}).value || "";
+		var day = (document.getElementById("find-group-day") || {}).value || "";
+		cards.forEach(function (card) {
+			var shown = (!type || card.dataset.type === type) &&
+				(!day || card.dataset.days.split(" ").indexOf(day) !== -1);
+			card.hidden = !shown;
+			var marker = markers[card.dataset.group];
+			if (marker && map) {
+				if (shown) marker.addTo(map);
+				else marker.remove();
+			}
+		});
+	}
+	document.querySelectorAll(".find-group-filters select").forEach(function (select) {
+		select.addEventListener("change", applyFilters);
+	});
+
+	function markRequested(card) {
+		card.querySelector(".find-group-action").innerHTML =
+			'<span class="badge badge-info">{{ _("Requested") }}</span>';
+	}
+
+	// A guest signs in first and comes back with ?group= for the group they chose.
+	var chosen = new URLSearchParams(window.location.search).get("group");
+	cards.forEach(function (card) {
+		if (card.dataset.group !== chosen) return;
+		card.querySelector(".find-group-card").classList.add("is-chosen");
+		card.scrollIntoView();
+	});
+
+	if (list.dataset.isGuest === "1") return;
+	frappe.call({
+		method: "churchit.church_people.group_api.joinable_public_groups",
+		callback: function (r) {
+			var requested = (r.message || []).filter(function (g) { return g.requested; })
+				.map(function (g) { return g.name; });
+			cards.forEach(function (card) {
+				if (requested.indexOf(card.dataset.group) !== -1) markRequested(card);
+			});
+		},
+	});
+	list.addEventListener("click", function (event) {
+		var button = event.target.closest(".find-group-join");
+		if (!button) return;
+		var card = button.closest(".find-group");
+		button.disabled = true;
+		frappe.call({
+			method: "churchit.church_people.group_api.join_group",
+			args: { group: card.dataset.group },
+			callback: function (r) {
+				if (r.message.requested) {
+					markRequested(card);
+					frappe.show_alert({ message: "{{ _('Request sent') }}", indicator: "blue" });
+					return;
+				}
+				card.querySelector(".find-group-action").innerHTML =
+					'<span class="badge badge-success">{{ _("Joined") }}</span>';
+			},
+			error: function () {
+				button.disabled = false;
+			},
+		});
+	});
+});
+</script>
+{% endblock %}

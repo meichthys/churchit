@@ -8,9 +8,13 @@
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "type",
   "function_name",
   "associated_ministry",
+  "group",
+  "did_not_meet",
+  "attendance_recorded_on",
   "all_day",
   "start_date",
   "start_time",
@@ -18,24 +22,37 @@
   "end_time",
   "column_break_bkje",
   "publish",
-  "allow_sign_ups",
+  "is_link_only",
   "attendance_total",
+  "headcount",
   "address",
+  "meeting_url",
+  "streamed",
+  "recorded",
   "description",
   "section_break_bkwy",
   "schedule",
-  "section_break_qbbr",
-  "table_cxhh",
   "section_break_team",
   "team_needs",
   "section_break_dlpa",
   "attendance",
+  "section_break_check_in_limits",
+  "min_age",
+  "max_age",
+  "column_break_check_in_limits",
+  "min_grade",
+  "max_grade",
   "section_break_recurrence",
   "auto_repeat",
   "repeat_frequency",
+  "repeat_interval",
+  "repeat_monthly_by",
+  "repeat_week_of_month",
   "repeat_day_of_week",
   "repeat_month_day",
   "repeat_until",
+  "repeat_horizon_weeks",
+  "skip_dates",
   "section_break_assoc",
   "associations",
   "hidden_fields_section",
@@ -43,35 +60,31 @@
   "church",
   "is_shared",
   "shared_by_church",
-  "source_template"
+  "source_template",
+  "registration_tab",
+  "allow_sign_ups",
+  "allow_guest_sign_ups",
+  "sign_up_requires_approval",
+  "column_break_registration",
+  "sign_ups_open_on",
+  "sign_ups_close_on",
+  "capacity",
+  "reminder_days",
+  "section_break_selections",
+  "selections",
+  "sign_up_fund",
+  "section_break_discounts",
+  "discounts",
+  "section_break_questions",
+  "question_set",
+  "section_break_qbbr",
+  "table_cxhh"
  ],
  "fields": [
   {
-   "default": "0",
-   "description": "Allow people to sign up for this function via the portal.",
-   "fieldname": "allow_sign_ups",
-   "fieldtype": "Check",
-   "label": "Allow Sign-Ups"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "default": "0",
-   "fieldname": "all_day",
-   "fieldtype": "Check",
-   "label": "All-Day ?"
-  },
-  {
-   "fieldname": "column_break_bkje",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "function_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Name",
-   "reqd": 1
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
   },
   {
    "allow_in_quick_entry": 1,
@@ -86,6 +99,15 @@
   },
   {
    "allow_in_quick_entry": 1,
+   "fieldname": "function_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
    "description": "Optionally link this function to a Ministry. Required if this function should appear in a Ministry's Recurring Functions list.",
    "fieldname": "associated_ministry",
    "fieldtype": "Link",
@@ -95,25 +117,38 @@
    "search_index": 1
   },
   {
-   "default": "0",
-   "description": "Check this to show this function on the public website calendar.",
-   "fieldname": "publish",
-   "fieldtype": "Check",
-   "label": "Publish",
+   "description": "The Group this function is a meeting of. Its leaders record the attendance.",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Group",
+   "options": "Group",
    "search_index": 1
   },
   {
-   "fieldname": "address",
-   "fieldtype": "Link",
-   "in_preview": 1,
-   "label": "Address",
-   "options": "Address"
+   "default": "0",
+   "depends_on": "group",
+   "description": "The group did not meet this time. It records no attendance and gets no reminder.",
+   "fieldname": "did_not_meet",
+   "fieldtype": "Check",
+   "label": "Did Not Meet",
+   "no_copy": 1
   },
   {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "in_preview": 1,
-   "label": "Description"
+   "depends_on": "group",
+   "description": "When a leader last saved this meeting's attendance.",
+   "fieldname": "attendance_recorded_on",
+   "fieldtype": "Datetime",
+   "label": "Attendance Recorded On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "fieldname": "all_day",
+   "fieldtype": "Check",
+   "label": "All-Day ?"
   },
   {
    "allow_in_quick_entry": 1,
@@ -151,38 +186,73 @@
    "label": "End Time"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.attendance && doc.attendance.length",
-   "fieldname": "section_break_dlpa",
-   "fieldtype": "Section Break",
-   "label": "Attendance"
+   "fieldname": "column_break_bkje",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "attendance",
-   "fieldtype": "Table",
-   "label": "Attendance",
-   "options": "Function Attendance"
+   "default": "0",
+   "description": "Check this to show this function on the public website calendar.",
+   "fieldname": "publish",
+   "fieldtype": "Check",
+   "label": "Publish",
+   "search_index": 1
   },
   {
-   "description": "Includes `Confirmed`, `Assumed` attendance.",
+   "default": "0",
+   "depends_on": "publish",
+   "description": "Leave this function off the calendar, the feed and the home page. People with its link can still open it. Function names are a counter, so someone could guess the link: do not use this to hide private events.",
+   "fieldname": "is_link_only",
+   "fieldtype": "Check",
+   "label": "Link Only"
+  },
+  {
+   "description": "Counts Confirmed, Assumed and Checked-In attendance, from the day the function starts.",
    "fieldname": "attendance_total",
    "fieldtype": "Int",
    "label": "Attendance Total",
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.associations && doc.associations.length",
-   "fieldname": "section_break_assoc",
-   "fieldtype": "Section Break",
-   "label": "Associations"
+   "description": "People counted in the room, named or not. The attendance total is the larger of this and the named count.",
+   "fieldname": "headcount",
+   "fieldtype": "Int",
+   "label": "Headcount",
+   "no_copy": 1,
+   "non_negative": 1
   },
   {
-   "description": "Associate this function with other church documents (e.g. Ministry, Group, Sermon, etc).",
-   "fieldname": "associations",
-   "fieldtype": "Table",
-   "label": "Associations",
-   "options": "Function Association"
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "description": "An https link to join online. Guests see it on the public calendar when the function is published.",
+   "fieldname": "meeting_url",
+   "fieldtype": "Data",
+   "label": "Online Meeting Link",
+   "options": "URL"
+  },
+  {
+   "default": "0",
+   "description": "The service is streamed live. The website calendar shows a Watch live link during it, and Song Usage counts its songs for CCLI.",
+   "fieldname": "streamed",
+   "fieldtype": "Check",
+   "label": "Streamed"
+  },
+  {
+   "default": "0",
+   "description": "The service was recorded. Song Usage counts its songs for CCLI.",
+   "fieldname": "recorded",
+   "fieldtype": "Check",
+   "label": "Recorded"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_preview": 1,
+   "label": "Description"
   },
   {
    "collapsible": 1,
@@ -197,6 +267,173 @@
    "fieldtype": "Table",
    "label": "Schedule",
    "options": "Function Schedule"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.team_needs && doc.team_needs.length",
+   "fieldname": "section_break_team",
+   "fieldtype": "Section Break",
+   "label": "Ministry Team"
+  },
+  {
+   "description": "The Ministry Team Positions this function needs filled, and how many people each needs. Ask people with a Ministry Team Assignment.",
+   "fieldname": "team_needs",
+   "fieldtype": "Table",
+   "label": "Team Needs",
+   "options": "Function Team Need"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.attendance && doc.attendance.length",
+   "fieldname": "section_break_dlpa",
+   "fieldtype": "Section Break",
+   "label": "Attendance"
+  },
+  {
+   "fieldname": "attendance",
+   "fieldtype": "Table",
+   "label": "Attendance",
+   "options": "Function Attendance"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_check_in_limits",
+   "fieldtype": "Section Break",
+   "label": "Age and Grade"
+  },
+  {
+   "description": "Youngest age, in years on the start date, that may check in. A person with no birth date does not pass a set limit.",
+   "fieldname": "min_age",
+   "fieldtype": "Int",
+   "label": "Minimum Age",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "max_age",
+   "fieldtype": "Int",
+   "label": "Maximum Age",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_check_in_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Lowest school grade on the start date that may check in. A person with no graduation year does not pass a set limit.",
+   "fieldname": "min_grade",
+   "fieldtype": "Select",
+   "label": "Minimum Grade",
+   "options": "\nKindergarten\nGrade 1\nGrade 2\nGrade 3\nGrade 4\nGrade 5\nGrade 6\nGrade 7\nGrade 8\nGrade 9\nGrade 10\nGrade 11\nGrade 12"
+  },
+  {
+   "fieldname": "max_grade",
+   "fieldtype": "Select",
+   "label": "Maximum Grade",
+   "options": "\nKindergarten\nGrade 1\nGrade 2\nGrade 3\nGrade 4\nGrade 5\nGrade 6\nGrade 7\nGrade 8\nGrade 9\nGrade 10\nGrade 11\nGrade 12"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.auto_repeat",
+   "fieldname": "section_break_recurrence",
+   "fieldtype": "Section Break",
+   "label": "Recurrence"
+  },
+  {
+   "default": "0",
+   "description": "When checked, this function acts as a template: its next occurrences are created ahead of time, up to Create Weeks Ahead, by the rule below.",
+   "fieldname": "auto_repeat",
+   "fieldtype": "Check",
+   "label": "Automatically Recreate"
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat",
+   "fieldname": "repeat_frequency",
+   "fieldtype": "Select",
+   "label": "Repeat Frequency",
+   "mandatory_depends_on": "eval:doc.auto_repeat",
+   "options": "\nDaily\nWeekly\nMonthly\nYearly"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.auto_repeat",
+   "description": "1 repeats every day, week, month or year. 2 repeats every second one, and so on.",
+   "fieldname": "repeat_interval",
+   "fieldtype": "Int",
+   "label": "Repeat Every",
+   "non_negative": 1
+  },
+  {
+   "default": "Day of Month",
+   "depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly'",
+   "description": "Repeat on a day of the month (the 15th), or on a weekday of the month (the second Sunday).",
+   "fieldname": "repeat_monthly_by",
+   "fieldtype": "Select",
+   "label": "Repeat Monthly By",
+   "options": "Day of Month\nWeekday"
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by == 'Weekday'",
+   "fieldname": "repeat_week_of_month",
+   "fieldtype": "Select",
+   "label": "Repeat Week of Month",
+   "mandatory_depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by == 'Weekday'",
+   "options": "\nFirst\nSecond\nThird\nFourth\nLast"
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat && (doc.repeat_frequency == 'Weekly' || (doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by == 'Weekday'))",
+   "description": "Day of the week the occurrences fall on.",
+   "fieldname": "repeat_day_of_week",
+   "fieldtype": "Select",
+   "label": "Repeat Day of Week",
+   "mandatory_depends_on": "eval:doc.auto_repeat && (doc.repeat_frequency == 'Weekly' || (doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by == 'Weekday'))",
+   "options": "\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by != 'Weekday'",
+   "description": "Day of the month (1 to 31) the occurrences fall on. If the month has fewer days, the last day of the month is used.",
+   "fieldname": "repeat_month_day",
+   "fieldtype": "Int",
+   "label": "Repeat Day of Month",
+   "mandatory_depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly' && doc.repeat_monthly_by != 'Weekday'",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat",
+   "description": "Optional. Stop auto-creating new occurrences after this date.",
+   "fieldname": "repeat_until",
+   "fieldtype": "Date",
+   "label": "Repeat Until"
+  },
+  {
+   "default": "8",
+   "depends_on": "eval:doc.auto_repeat",
+   "description": "How many weeks ahead the occurrences are created, so they show on the calendar.",
+   "fieldname": "repeat_horizon_weeks",
+   "fieldtype": "Int",
+   "label": "Create Weeks Ahead",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.auto_repeat",
+   "description": "Dates with no occurrence. Deleting an occurrence adds its date here.",
+   "fieldname": "skip_dates",
+   "fieldtype": "Table",
+   "label": "Skip Dates",
+   "options": "Function Skip Date"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.associations && doc.associations.length",
+   "fieldname": "section_break_assoc",
+   "fieldtype": "Section Break",
+   "label": "Associations"
+  },
+  {
+   "description": "Associate this function with other church documents (e.g. Ministry, Group, Sermon, etc).",
+   "fieldname": "associations",
+   "fieldtype": "Table",
+   "label": "Associations",
+   "options": "Function Association"
   },
   {
    "fieldname": "hidden_fields_section",
@@ -247,52 +484,125 @@
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Source Template",
+   "no_copy": 1,
    "options": "Function",
    "read_only": 1
   },
   {
+   "fieldname": "registration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Registration"
+  },
+  {
    "default": "0",
-   "description": "When checked, this function acts as a template: after each occurrence ends, the next one is automatically created based on the frequency below.",
-   "fieldname": "auto_repeat",
+   "description": "Allow people to sign up for this function via the portal.",
+   "fieldname": "allow_sign_ups",
    "fieldtype": "Check",
-   "label": "Automatically Recreate"
+   "label": "Allow Sign-Ups"
   },
   {
-   "depends_on": "eval:doc.auto_repeat",
-   "fieldname": "repeat_frequency",
-   "fieldtype": "Select",
-   "label": "Repeat Frequency",
-   "mandatory_depends_on": "eval:doc.auto_repeat",
-   "options": "\nDaily\nWeekly\nMonthly\nYearly"
+   "default": "0",
+   "depends_on": "allow_sign_ups",
+   "description": "Let people who are not signed in sign up on the public Register page. Publish the function too.",
+   "fieldname": "allow_guest_sign_ups",
+   "fieldtype": "Check",
+   "label": "Allow Guest Sign-Ups"
   },
   {
-   "depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Weekly'",
-   "description": "Day of the week the next occurrence should fall on.",
-   "fieldname": "repeat_day_of_week",
-   "fieldtype": "Select",
-   "label": "Repeat Day of Week",
-   "mandatory_depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Weekly'",
-   "options": "\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+   "default": "0",
+   "depends_on": "allow_sign_ups",
+   "description": "A sign-up stays Pending, and keeps its seats, until a Church Manager or Church People Editor approves it.",
+   "fieldname": "sign_up_requires_approval",
+   "fieldtype": "Check",
+   "label": "Sign-Ups Need Approval"
   },
   {
-   "depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly'",
-   "description": "Day of the month (1-31) the next occurrence should fall on. If the month has fewer days, the last day of the month is used.",
-   "fieldname": "repeat_month_day",
+   "fieldname": "column_break_registration",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "allow_sign_ups",
+   "description": "Leave blank to open sign-ups at once.",
+   "fieldname": "sign_ups_open_on",
+   "fieldtype": "Datetime",
+   "label": "Sign-Ups Open On"
+  },
+  {
+   "depends_on": "allow_sign_ups",
+   "description": "Leave blank to keep sign-ups open. Staff can still add a sign-up in the desk.",
+   "fieldname": "sign_ups_close_on",
+   "fieldtype": "Datetime",
+   "label": "Sign-Ups Close On"
+  },
+  {
+   "default": "0",
+   "depends_on": "allow_sign_ups",
+   "description": "The most attendees, from every sign-up. When it is full, new sign-ups wait on the waitlist. 0 means no limit.",
+   "fieldname": "capacity",
    "fieldtype": "Int",
-   "label": "Repeat Day of Month",
-   "mandatory_depends_on": "eval:doc.auto_repeat && doc.repeat_frequency == 'Monthly'",
+   "label": "Capacity",
    "non_negative": 1
   },
   {
-   "depends_on": "eval:doc.auto_repeat",
-   "description": "Optional. Stop auto-creating new occurrences after this date.",
-   "fieldname": "repeat_until",
-   "fieldtype": "Date",
-   "label": "Repeat Until"
+   "default": "0",
+   "depends_on": "allow_sign_ups",
+   "description": "Email a reminder to each confirmed registrant this many days before the function. 0 means no reminder.",
+   "fieldname": "reminder_days",
+   "fieldtype": "Int",
+   "label": "Reminder Days",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "allow_sign_ups",
+   "fieldname": "section_break_selections",
+   "fieldtype": "Section Break",
+   "label": "Choices and Prices"
+  },
+  {
+   "description": "Choices for each attendee, such as Adult and Child, each with a price and a capacity. Leave empty for one free choice.",
+   "fieldname": "selections",
+   "fieldtype": "Table",
+   "label": "Selections",
+   "options": "Function Sign-Up Selection"
+  },
+  {
+   "description": "The fund that sign-up payments go to. A function with a price needs one.",
+   "fieldname": "sign_up_fund",
+   "fieldtype": "Link",
+   "label": "Sign-Up Fund",
+   "options": "Fund"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "allow_sign_ups",
+   "fieldname": "section_break_discounts",
+   "fieldtype": "Section Break",
+   "label": "Discounts"
+  },
+  {
+   "description": "\"Freely you have received; freely give\" (Matthew 10:8). Before you charge, consider a Freely Given discount of 100 percent: the function is then free, and needs no Sign-Up Fund.",
+   "fieldname": "discounts",
+   "fieldtype": "Table",
+   "label": "Discounts",
+   "options": "Function Sign-Up Discount"
+  },
+  {
+   "depends_on": "allow_sign_ups",
+   "fieldname": "section_break_questions",
+   "fieldtype": "Section Break",
+   "label": "Questions"
+  },
+  {
+   "description": "Questions each attendee answers when they sign up.",
+   "fieldname": "question_set",
+   "fieldtype": "Link",
+   "label": "Question Set",
+   "options": "Question Set"
   },
   {
    "collapsible": 1,
    "collapsible_depends_on": "eval: doc.table_cxhh && doc.table_cxhh.length",
+   "depends_on": "allow_sign_ups",
    "fieldname": "section_break_qbbr",
    "fieldtype": "Section Break",
    "label": "Sign-Up Items"
@@ -303,27 +613,6 @@
    "fieldtype": "Table",
    "label": "Sign-Up Items",
    "options": "Function Sign-Up Item"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.team_needs && doc.team_needs.length",
-   "fieldname": "section_break_team",
-   "fieldtype": "Section Break",
-   "label": "Ministry Team"
-  },
-  {
-   "description": "The Ministry Team Positions this function needs filled, and how many people each needs. Ask people with a Ministry Team Assignment.",
-   "fieldname": "team_needs",
-   "fieldtype": "Table",
-   "label": "Team Needs",
-   "options": "Function Team Need"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.auto_repeat",
-   "fieldname": "section_break_recurrence",
-   "fieldtype": "Section Break",
-   "label": "Recurrence"
   }
  ],
  "grid_page_length": 50,
@@ -342,7 +631,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-27 12:22:41.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

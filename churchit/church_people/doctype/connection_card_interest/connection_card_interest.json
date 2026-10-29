@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "autoname": "field:interest",
+ "creation": "2026-10-17 21:00:00.000000",
+ "description": "Something a guest can tick on the Connection Card form, such as Joining a Group. A follow-up workflow can start a card for it.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "interest",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "interest",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Interest",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-17 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Connection Card Interest",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church People Editor",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Pastoral Care",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

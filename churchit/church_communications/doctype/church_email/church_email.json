@@ -1,0 +1,235 @@
+{
+ "actions": [],
+ "autoname": "EML-.####",
+ "creation": "2026-10-16 00:11:05.011530",
+ "description": "A message the church sends to many people at once, by email or by text: everyone whose Status is Active, only the active members, the members of one Group, a smart list or people you choose. Each person gets their own copy, and only people who allow its Purpose get it. An email has a link to stop the church's emails, and files attached to it are sent with it.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-communications",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "channel",
+  "subject",
+  "church",
+  "send_to",
+  "group",
+  "smart_list",
+  "people",
+  "include_household",
+  "household_roles",
+  "purpose",
+  "email_template",
+  "column_break_status",
+  "status",
+  "send_after",
+  "recipients",
+  "sent_on",
+  "section_break_message",
+  "message",
+  "text_message"
+ ],
+ "fields": [
+  {
+   "default": "Email",
+   "description": "A text message goes through the SMS Settings, only to people who agreed to get texts.",
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Send As",
+   "options": "Email\nText Message",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.channel!=\"Text Message\"",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subject",
+   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "Active People",
+   "description": "Active People is everyone whose Status is Active. Active Members is only those whose Membership is Member. People who have died, and anyone who does not allow the Purpose, are always left out.",
+   "fieldname": "send_to",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Send To",
+   "options": "Active People\nActive Members\nGroup\nSmart List\nChosen People",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.send_to==\"Group\"",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "label": "Group",
+   "mandatory_depends_on": "eval:doc.send_to==\"Group\"",
+   "options": "Group"
+  },
+  {
+   "depends_on": "eval:doc.send_to==\"Smart List\"",
+   "description": "A smart list: a saved Report Builder list of people or a saved Attendance Count.",
+   "fieldname": "smart_list",
+   "fieldtype": "Link",
+   "label": "Smart List",
+   "mandatory_depends_on": "eval:doc.send_to==\"Smart List\"",
+   "options": "Report"
+  },
+  {
+   "depends_on": "eval:doc.send_to==\"Chosen People\"",
+   "fieldname": "people",
+   "fieldtype": "Table MultiSelect",
+   "label": "People",
+   "mandatory_depends_on": "eval:doc.send_to==\"Chosen People\"",
+   "options": "Church Email Person"
+  },
+  {
+   "default": "0",
+   "description": "Also send to the people in each recipient's Family. Each person gets one copy.",
+   "fieldname": "include_household",
+   "fieldtype": "Check",
+   "label": "Include Their Households"
+  },
+  {
+   "default": "Everyone",
+   "depends_on": "include_household",
+   "fieldname": "household_roles",
+   "fieldtype": "Select",
+   "label": "Household Members",
+   "options": "Everyone\nAdults\nAdults and Other Adults"
+  },
+  {
+   "default": "Church News",
+   "description": "What the message is about. Only people who allow this purpose get it.",
+   "fieldname": "purpose",
+   "fieldtype": "Link",
+   "label": "Purpose",
+   "options": "Communication Purpose",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.channel!=\"Text Message\"",
+   "description": "Fills in the Subject and Message. You can change them after.",
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nScheduled\nSending\nSent",
+   "read_only": 1
+  },
+  {
+   "description": "Leave empty to send it when you click Send. Pick a time to have it sent then instead.",
+   "fieldname": "send_after",
+   "fieldtype": "Datetime",
+   "label": "Send At"
+  },
+  {
+   "depends_on": "eval:doc.status==\"Sent\"",
+   "description": "How many people it was sent to.",
+   "fieldname": "recipients",
+   "fieldtype": "Int",
+   "label": "Sent To",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status==\"Sent\"",
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_message",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.channel!=\"Text Message\"",
+   "description": "Placeholders such as {{ first_name }} are filled in for each person: first_name, last_name, display_name and full_name.",
+   "fieldname": "message",
+   "fieldtype": "Text Editor",
+   "label": "Message",
+   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
+  },
+  {
+   "depends_on": "eval:doc.channel==\"Text Message\"",
+   "description": "Placeholders such as {{ first_name }} are filled in for each person. Up to 160 characters is one text.",
+   "fieldname": "text_message",
+   "fieldtype": "Small Text",
+   "label": "Text",
+   "mandatory_depends_on": "eval:doc.channel==\"Text Message\""
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-27 08:45:50.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Church Email",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "subject",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "subject",
+ "track_changes": 1
+}

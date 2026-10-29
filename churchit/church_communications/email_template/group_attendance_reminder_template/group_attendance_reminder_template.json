@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-23 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Group Attendance Reminder",
+ "owner": "Administrator",
+ "reference_doctype": "Function",
+ "response_html": "<p>Dear {{ first_name }},</p>\n\n<p>{{ group_name }} met on {{ date }}. Please record who was there, or mark that the group did not meet.</p>\n\n<p><a href=\"{{ link }}\">Record the attendance</a></p>\n\n<p>Thank you for leading the group!</p>",
+ "subject": "Please record the attendance of {{ group_name }}",
+ "use_html": 1
+}

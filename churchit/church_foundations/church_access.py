@@ -8,7 +8,14 @@ from frappe import _
 from frappe.permissions import add_user_permission
 from frappe.utils import sbool
 
-from churchit.church_scope import EXPAND_FILTER_DEFAULT, is_multi_church
+from churchit.church_scope import (
+	CHURCH_FIELD,
+	EXPAND_FILTER_DEFAULT,
+	allowed_churches,
+	has_church_access,
+	is_multi_church,
+	is_scoped,
+)
 
 UNSCOPED_USERS = ("Administrator", "Guest")
 
@@ -19,6 +26,18 @@ def user_church_permissions(user):
 		filters={"user": user, "allow": "Church"},
 		fields=["name", "for_value", "hide_descendants"],
 	)
+
+
+def has_every_church(user: str) -> bool:
+	"""True when *user* reaches every church: unrestricted, or holding each church that has no parent.
+
+	Holding the main church reaches its branches even while they are hidden, because the
+	user may include them at will.
+	"""
+	if allowed_churches(user) is None:
+		return True
+	held = {permission.for_value for permission in user_church_permissions(user)}
+	return set(frappe.get_all("Church", filters={"parent_church": ("is", "not set")}, pluck="name")) <= held
 
 
 def set_user_church(user, church):
@@ -80,6 +99,31 @@ def scope_new_user(doc, method=None):
 		)
 
 
+def refuse_sharing_outside_the_church(doc, method=None):
+	"""validate on DocShare: a church's record is shared only with users who can see that church.
+
+	Frappe shares a record with an assignee who cannot read it, so without this an
+	assignment, or the Share menu, handed one church's record to another church's user.
+	"""
+	if not is_multi_church() or not is_scoped(frappe.get_meta(doc.share_doctype)):
+		return
+	church = frappe.db.get_value(doc.share_doctype, doc.share_name, CHURCH_FIELD)
+	if doc.everyone and church:
+		frappe.throw(
+			_("{0} {1} belongs to one church, so it cannot be shared with everyone.").format(
+				_(doc.share_doctype), doc.share_name
+			),
+			frappe.PermissionError,
+		)
+	if doc.user and not has_church_access(doc.user, church):
+		frappe.throw(
+			_("{0} cannot see records of {1}, so {2} {3} cannot be shared with or assigned to them.").format(
+				doc.user, church, _(doc.share_doctype), doc.share_name
+			),
+			frappe.PermissionError,
+		)
+
+
 def include_branches_state(user):
 	"""True or False for a user whose church has branches to include; None for everyone else."""
 	if not is_multi_church() or user in UNSCOPED_USERS:
@@ -95,14 +139,14 @@ def has_branches(church):
 	return (right or 0) - (left or 0) > 1
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_church_filter_expansion(expand: bool):
 	"""Remember whether a church picked in a report filter should bring its branches along."""
 	frappe.defaults.set_user_default(EXPAND_FILTER_DEFAULT, "1" if sbool(expand) else "0")
 	return bool(sbool(expand))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_include_branches(include: bool):
 	"""Flip branch visibility on the caller's own Church permission."""
 	user = frappe.session.user

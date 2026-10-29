@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "amount",
+  "fee_amount",
   "fund",
   "church",
   "status",
@@ -35,6 +36,14 @@
    "reqd": 1
   },
   {
+   "description": "The processing fee the giver chose to cover. It is part of the gift.",
+   "fieldname": "fee_amount",
+   "fieldtype": "Currency",
+   "label": "Covered Fee",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
    "fieldname": "fund",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -55,12 +64,13 @@
   },
   {
    "default": "Pending",
+   "description": "Needs Review means the payment gateway charged a different amount or currency than the gift, so the gift was not recorded. Check the payment in the gateway. Refunded means Finance cancelled the gift's Collection after a refund at the processor.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pending\nPaid\nFailed\nCancelled"
+   "options": "Pending\nPaid\nNeeds Review\nFailed\nCancelled\nRefunded"
   },
   {
    "fieldname": "column_break_giver",
@@ -136,7 +146,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 01:04:02.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Online Donation",

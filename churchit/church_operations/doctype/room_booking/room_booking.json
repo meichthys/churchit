@@ -9,6 +9,7 @@
  "field_order": [
   "room",
   "church",
+  "assets",
   "shared_by_church",
   "requester",
   "purpose",
@@ -16,19 +17,31 @@
   "start_datetime",
   "end_datetime",
   "status",
+  "request_anyway",
+  "can_share_room",
+  "checked_out_on",
+  "returned_on",
   "section_break_1",
   "function",
-  "notes"
+  "notes",
+  "section_break_setup",
+  "setup",
+  "setup_notes",
+  "section_break_answers",
+  "answers"
  ],
  "fields": [
   {
+   "description": "Leave empty for a booking of equipment only.",
    "fieldname": "room",
    "fieldtype": "Link",
-   "label": "Room",
-   "options": "Room",
-   "reqd": 1,
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Room",
+   "link_filters": "[[\"Room\",\"is_bookable\",\"=\",1]]",
+   "mandatory_depends_on": "eval:!(doc.assets && doc.assets.length)",
+   "options": "Room",
+   "search_index": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -40,6 +53,13 @@
    "label": "Church",
    "options": "Church",
    "read_only": 1
+  },
+  {
+   "description": "Bookable Church Assets this booking reserves.",
+   "fieldname": "assets",
+   "fieldtype": "Table MultiSelect",
+   "label": "Equipment",
+   "options": "Room Booking Asset"
   },
   {
    "description": "The church that shared this record. It returns here if sharing is switched off.",
@@ -54,18 +74,18 @@
   {
    "fieldname": "requester",
    "fieldtype": "Link",
-   "label": "Requester",
-   "options": "Person",
-   "reqd": 1,
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Requester",
+   "mandatory_depends_on": "eval:doc.status!='Blocked'",
+   "options": "Person"
   },
   {
    "fieldname": "purpose",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Purpose",
-   "reqd": 1,
-   "in_list_view": 1
+   "reqd": 1
   },
   {
    "fieldname": "column_break_1",
@@ -74,26 +94,56 @@
   {
    "fieldname": "start_datetime",
    "fieldtype": "Datetime",
-   "label": "Start",
-   "reqd": 1,
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Start",
+   "reqd": 1
   },
   {
    "fieldname": "end_datetime",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "End",
-   "reqd": 1,
-   "in_list_view": 1
+   "reqd": 1
   },
   {
+   "default": "Requested",
+   "description": "Blocked keeps the room free: it refuses every request at that time. Conflict waits for an approver to choose between bookings at the same time.",
    "fieldname": "status",
    "fieldtype": "Select",
-   "label": "Status",
-   "options": "Requested\nApproved\nDenied\nCancelled\nCompleted",
-   "default": "Requested",
    "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Requested\nApproved\nDenied\nCancelled\nCompleted\nBlocked\nConflict"
+  },
+  {
+   "default": "0",
+   "description": "Save a booking that clashes with another one as Conflict, so an approver can choose between them.",
+   "fieldname": "request_anyway",
+   "fieldtype": "Check",
+   "label": "Request Anyway",
+   "no_copy": 1
+  },
+  {
+   "default": "0",
+   "description": "Another booking that can also share the room may use it at the same time.",
+   "fieldname": "can_share_room",
+   "fieldtype": "Check",
+   "label": "Can Share Room"
+  },
+  {
+   "fieldname": "checked_out_on",
+   "fieldtype": "Datetime",
+   "label": "Checked Out On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "returned_on",
+   "fieldtype": "Datetime",
+   "label": "Returned On",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "section_break_1",
@@ -109,11 +159,40 @@
    "fieldname": "notes",
    "fieldtype": "Text",
    "label": "Notes"
+  },
+  {
+   "depends_on": "room",
+   "fieldname": "section_break_setup",
+   "fieldtype": "Section Break",
+   "label": "Setup"
+  },
+  {
+   "description": "One of the room's setups.",
+   "fieldname": "setup",
+   "fieldtype": "Autocomplete",
+   "label": "Setup"
+  },
+  {
+   "fieldname": "setup_notes",
+   "fieldtype": "Small Text",
+   "label": "Setup Notes"
+  },
+  {
+   "depends_on": "eval:doc.answers && doc.answers.length",
+   "fieldname": "section_break_answers",
+   "fieldtype": "Section Break",
+   "label": "Questions"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Question Answer"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 23:35:17.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",

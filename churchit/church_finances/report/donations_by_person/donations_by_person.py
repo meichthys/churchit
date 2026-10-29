@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Sum
+from frappe.utils import add_days
 from pypika import Order
 
 from churchit.church_scope import scoped
@@ -33,9 +34,8 @@ def get_data(filters=None):
 		.inner_join(Collection)
 		.on(Collection.name == Donation.parent)
 		.select(Donation.person, total_amount)
-		# A cancelled collection took its gifts back.
 		.where(
-			(Donation.parenttype == "Collection") & Donation.person.isnotnull() & (Collection.docstatus < 2)
+			(Donation.parenttype == "Collection") & Donation.person.isnotnull() & (Collection.docstatus == 1)
 		)
 		.groupby(Donation.person)
 		.orderby(Sum(Donation.amount), order=Order.desc)
@@ -44,6 +44,6 @@ def get_data(filters=None):
 	if filters.get("from_date"):
 		query = query.where(Collection.date >= filters["from_date"])
 	if filters.get("to_date"):
-		query = query.where(Collection.date <= filters["to_date"])
+		query = query.where(Collection.date < add_days(filters["to_date"], 1))
 
 	return scoped(query, Collection, filters).run(as_dict=True)

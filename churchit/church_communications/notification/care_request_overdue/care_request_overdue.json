@@ -1,0 +1,33 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.status not in (\"Resolved\", \"Closed\")",
+ "condition_type": "Python",
+ "creation": "2026-10-18 10:00:00.000000",
+ "date_changed": "due_on",
+ "days_in_advance": 1,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Care Request",
+ "enabled": 0,
+ "event": "Days After",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>This care request was due on {{ frappe.utils.formatdate(doc.due_on) }} and is still open.</p>\n\n<ul>\n  <li><strong>Person:</strong> {{ frappe.db.get_value(\"Person\", doc.person, \"full_name\") or doc.person }}</li>\n  <li><strong>Category:</strong> {{ doc.category }}</li>\n  <li><strong>Urgency:</strong> {{ doc.urgency }}</li>\n  <li><strong>Status:</strong> {{ doc.status }}</li>\n  <li><strong>Caregiver:</strong> {{ frappe.db.get_value(\"Person\", doc.caregiver, \"full_name\") if doc.caregiver else \"Nobody yet\" }}</li>\n</ul>\n\n<p>Please follow up, then update the request: <a href=\"{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}\">{{ doc.name }}</a></p>",
+ "modified": "2026-10-18 10:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Care Request Overdue",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "cc": "{{ frappe.db.get_value(\"Email Address\", {\"parenttype\": \"Person\", \"parent\": doc.caregiver, \"is_primary\": 1}, \"email_address\") or \"\" }}"
+  },
+  {
+   "receiver_by_role": "Church Pastoral Care"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 1,
+ "subject": "Care request overdue: {{ doc.category }} for {{ frappe.db.get_value(\"Person\", doc.person, \"full_name\") or doc.person }}"
+}

@@ -35,3 +35,24 @@ self.addEventListener("fetch", (event) => {
 		event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
 	}
 });
+
+// Web Push from churchit.church_communications.push: the payload is JSON with title, body and url.
+self.addEventListener("push", (event) => {
+	const message = event.data ? event.data.json() : {};
+	event.waitUntil(
+		self.registration.showNotification(message.title || "", {
+			body: message.body || "",
+			icon: OFFLINE_ICON,
+			data: { url: message.url || "/" },
+		})
+	);
+});
+
+// A click opens the notification's url, and only a page of this site.
+self.addEventListener("notificationclick", (event) => {
+	event.notification.close();
+	const url = new URL(event.notification.data.url, self.location.origin);
+	if (url.origin === self.location.origin) {
+		event.waitUntil(self.clients.openWindow(url.href));
+	}
+});

@@ -11,8 +11,10 @@
  "field_order": [
   "personal_information_section",
   "first_name",
+  "middle_name",
   "last_name",
   "full_name",
+  "nickname",
   "church",
   "gender",
   "family",
@@ -20,20 +22,54 @@
   "spouse",
   "anniversary",
   "marriage_years",
+  "age",
+  "birth_date",
+  "birthday",
+  "birth_month",
+  "birth_day",
+  "life_stage",
+  "graduation_year",
+  "grade",
+  "is_deceased",
+  "deceased_date",
   "column_break_agva",
   "membership",
   "membership_status",
   "inactive_reason",
+  "inactive_since",
+  "membership_changed_on",
+  "status_changed_on",
+  "source",
+  "how_heard",
+  "legacy_system",
+  "legacy_id",
+  "envelope_number",
   "photo",
   "alergies",
+  "medical_notes",
+  "emergency_contact_name",
+  "emergency_contact_phone",
   "user",
   "hide_from_directory",
+  "share_email",
+  "share_phone",
+  "share_address",
+  "share_birthday",
   "team_calendar_key",
-  "age",
+  "other_names_section",
+  "prefix",
+  "suffix",
+  "column_break_names",
+  "previous_last_name",
+  "display_name",
   "life_events_section",
   "life_events",
   "section_break_osjz",
   "positions",
+  "section_break_skills",
+  "skills",
+  "section_break_relationships",
+  "relationships",
   "contact_information_tab",
   "contact_information_section",
   "emails",
@@ -41,15 +77,36 @@
   "addresses",
   "section_break_eqre",
   "letters",
-  "notes_tab",
-  "notes"
+  "connections_tab",
+  "involvement_section",
+  "first_attended_on",
+  "last_attended_on",
+  "times_attended_90d",
+  "column_break_involvement",
+  "last_served_on",
+  "times_served_90d",
+  "ministry_teams",
+  "team_positions",
+  "group_count",
+  "groups",
+  "giving_section",
+  "first_gift_on",
+  "column_break_giving",
+  "last_gift_on",
+  "is_lapsed_giver",
+  "care_section",
+  "open_care_requests",
+  "last_visited_on",
+  "column_break_care",
+  "background_check_status",
+  "background_check_expires_on",
+  "church_fields_tab"
  ],
  "fields": [
   {
    "allow_in_quick_entry": 1,
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "in_standard_filter": 1,
    "label": "First Name",
    "reqd": 1
   },
@@ -57,8 +114,8 @@
    "allow_in_quick_entry": 1,
    "fieldname": "last_name",
    "fieldtype": "Data",
-   "in_standard_filter": 1,
-   "label": "Last Name"
+   "label": "Last Name",
+   "search_index": 1
   },
   {
    "fieldname": "full_name",
@@ -80,7 +137,8 @@
    "search_index": 1
   },
   {
-   "description": "Calculated from the Birth event in Life Events.",
+   "depends_on": "eval:doc.birth_date && (!doc.is_deceased || doc.deceased_date)",
+   "description": "Calculated from the Birth event in Life Events, up to the Death event when there is one.",
    "fieldname": "age",
    "fieldtype": "Int",
    "label": "Age",
@@ -136,9 +194,10 @@
    "label": "Contact"
   },
   {
+   "description": "Members can change this on their Personal Details page. Check-In Settings can print it on name tags.",
    "fieldname": "alergies",
    "fieldtype": "Data",
-   "label": "Alergies",
+   "label": "Allergies",
    "print_hide": 1
   },
   {
@@ -168,10 +227,11 @@
   },
   {
    "depends_on": "eval:doc.membership_status == \"Inactive\"",
-   "description": "For example: Moved away, Deceased, Transferred to another church.",
+   "description": "Why this person is no longer active. A Death life event sets Deceased, and a confirmed Member Transfer out sets Transferred to another church. Add your own reasons to the Inactive Reason list.",
    "fieldname": "inactive_reason",
-   "fieldtype": "Data",
-   "label": "Inactive Reason"
+   "fieldtype": "Link",
+   "label": "Inactive Reason",
+   "options": "Inactive Reason"
   },
   {
    "description": "Birth, baptism, marriage, death, salvation, etc.",
@@ -190,6 +250,29 @@
    "fieldtype": "Table",
    "label": "Positions",
    "options": "Position"
+  },
+  {
+   "fieldname": "section_break_skills",
+   "fieldtype": "Section Break",
+   "label": "Skills and Gifts"
+  },
+  {
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Skills, Interests and Gifts",
+   "options": "Person Skill"
+  },
+  {
+   "fieldname": "section_break_relationships",
+   "fieldtype": "Section Break",
+   "label": "Relationships"
+  },
+  {
+   "description": "People in other households, such as grandparents. The household roster keeps the people in this person's own Family. The other person sees this relationship in their Connections.",
+   "fieldname": "relationships",
+   "fieldtype": "Table",
+   "label": "Relationships",
+   "options": "Person Relationship"
   },
   {
    "fieldname": "section_break_osjz",
@@ -222,18 +305,6 @@
    "options": "Person"
   },
   {
-   "fieldname": "notes_tab",
-   "fieldtype": "Tab Break",
-   "in_preview": 1,
-   "label": "Notes"
-  },
-  {
-   "fieldname": "notes",
-   "fieldtype": "Text Editor",
-   "label": "Notes",
-   "print_hide": 1
-  },
-  {
    "default": "0",
    "description": "Leave this person out of the printed Church Directory, and out of the birthdays and anniversaries in the bulletin. Members can set this themselves on their Personal Details page.",
    "fieldname": "hide_from_directory",
@@ -242,12 +313,42 @@
    "print_hide": 1
   },
   {
+   "default": "0",
+   "depends_on": "eval:!doc.hide_from_directory",
+   "fieldname": "share_email",
+   "fieldtype": "Check",
+   "label": "Show Email in the Member Directory"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.hide_from_directory",
+   "fieldname": "share_phone",
+   "fieldtype": "Check",
+   "label": "Show Phone in the Member Directory"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.hide_from_directory",
+   "fieldname": "share_address",
+   "fieldtype": "Check",
+   "label": "Show Address in the Member Directory"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.hide_from_directory",
+   "description": "Only the day and month are shown.",
+   "fieldname": "share_birthday",
+   "fieldtype": "Check",
+   "label": "Show Birthday in the Member Directory"
+  },
+  {
    "description": "The secret part of this person's Ministry Team calendar link. Members make a new one on the Ministry Team page of the portal.",
    "fieldname": "team_calendar_key",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Team Calendar Key",
    "no_copy": 1,
+   "permlevel": 4,
    "print_hide": 1,
    "read_only": 1,
    "unique": 1
@@ -277,7 +378,8 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "Portal User",
-   "options": "User"
+   "options": "User",
+   "search_index": 1
   },
   {
    "description": "A married or widowed person keeps a spouse and an anniversary.",
@@ -285,6 +387,365 @@
    "fieldtype": "Link",
    "label": "Marital Status",
    "options": "Marital Status"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "other_names_section",
+   "fieldtype": "Section Break",
+   "label": "Other Names"
+  },
+  {
+   "description": "A title such as Mr., Mrs., Dr. or Rev.",
+   "fieldname": "prefix",
+   "fieldtype": "Link",
+   "label": "Prefix",
+   "options": "Salutation"
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "suffix",
+   "fieldtype": "Select",
+   "label": "Suffix",
+   "options": "\nJr.\nSr.\nII\nIII\nIV"
+  },
+  {
+   "fieldname": "column_break_names",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The name this person goes by, when it is not their first name. Display Name uses it, and a search for the person finds it.",
+   "fieldname": "nickname",
+   "fieldtype": "Data",
+   "label": "Nickname"
+  },
+  {
+   "description": "A maiden name or other earlier last name. A search for the person finds it.",
+   "fieldname": "previous_last_name",
+   "fieldtype": "Data",
+   "label": "Previous Last Name"
+  },
+  {
+   "description": "The name this person goes by: the nickname (or else the first name), the last name and the suffix.",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "label": "Display Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.membership_status == \"Inactive\"",
+   "description": "The day the Status changed to Inactive.",
+   "fieldname": "inactive_since",
+   "fieldtype": "Date",
+   "label": "Inactive Since",
+   "read_only": 1
+  },
+  {
+   "description": "When the Membership last changed, from its Milestones.",
+   "fieldname": "membership_changed_on",
+   "fieldtype": "Date",
+   "label": "Membership Changed On",
+   "read_only": 1
+  },
+  {
+   "description": "When the Status last changed, from its Milestones.",
+   "fieldname": "status_changed_on",
+   "fieldtype": "Date",
+   "label": "Status Changed On",
+   "read_only": 1
+  },
+  {
+   "default": "Desk",
+   "description": "How this person was first added: in the desk, by a Data Import, at the Check-In Station or from a Connection Card. Blank for people added before Churchit recorded it.",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Desk\nImport\nCheck-In\nConnection Card\nPortal\nSign-Up\nForm",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "description": "How the person heard of the church, from their first Connection Card.",
+   "fieldname": "how_heard",
+   "fieldtype": "Data",
+   "label": "How They Heard"
+  },
+  {
+   "depends_on": "eval:doc.legacy_id",
+   "description": "The system this record was imported from.",
+   "fieldname": "legacy_system",
+   "fieldtype": "Data",
+   "label": "Imported From",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.legacy_id",
+   "description": "This record's ID in the system it was imported from, so a later import updates it instead of adding it again.",
+   "fieldname": "legacy_id",
+   "fieldtype": "Data",
+   "label": "Imported ID",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "The number on this person's offering envelopes or bank references. Unique in the church. Typing it in a gift's Person field finds the person.",
+   "fieldname": "envelope_number",
+   "fieldtype": "Data",
+   "label": "Envelope Number"
+  },
+  {
+   "description": "Only Church Manager, Church People Editor and Church Check-In users can see these notes. Members cannot see them on their Personal Details page.",
+   "fieldname": "medical_notes",
+   "fieldtype": "Small Text",
+   "label": "Medical Notes",
+   "permlevel": 1,
+   "print_hide": 1
+  },
+  {
+   "description": "Who to call in an emergency, for someone with no household adult in Churchit, such as a visiting child.",
+   "fieldname": "emergency_contact_name",
+   "fieldtype": "Data",
+   "label": "Emergency Contact Name",
+   "permlevel": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "emergency_contact_phone",
+   "fieldtype": "Data",
+   "label": "Emergency Contact Phone",
+   "options": "Phone",
+   "permlevel": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "birth_date",
+   "fieldtype": "Date",
+   "label": "Birth Date",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "The birth date a member gives on the Personal Details page. Saving it records or changes the Birth life event.",
+   "fieldname": "birthday",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Birthday"
+  },
+  {
+   "fieldname": "birth_month",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Birth Month",
+   "read_only": 1
+  },
+  {
+   "fieldname": "birth_day",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Birth Day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "life_stage",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Life Stage",
+   "options": "\nAdult\nChild",
+   "read_only": 1
+  },
+  {
+   "description": "The year the person finishes high school. Grade is worked out from it.",
+   "fieldname": "graduation_year",
+   "fieldtype": "Int",
+   "label": "Graduation Year",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.graduation_year",
+   "description": "Worked out each day from Graduation Year and the month the school year starts in People Settings.",
+   "fieldname": "grade",
+   "fieldtype": "Data",
+   "label": "Grade",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.is_deceased",
+   "fieldname": "is_deceased",
+   "fieldtype": "Check",
+   "label": "Deceased",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.is_deceased",
+   "fieldname": "deceased_date",
+   "fieldtype": "Date",
+   "label": "Deceased Date",
+   "read_only": 1
+  },
+  {
+   "description": "Worked out from attendance, groups and ministry teams at this person's church and kept up to date. Filter the Person list or report on these fields to build a list of people.",
+   "fieldname": "involvement_section",
+   "fieldtype": "Section Break",
+   "label": "Involvement"
+  },
+  {
+   "fieldname": "first_attended_on",
+   "fieldtype": "Date",
+   "label": "First Attended",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_attended_on",
+   "fieldtype": "Date",
+   "label": "Last Attended",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Functions attended as Confirmed, Assumed or Checked-In.",
+   "fieldname": "times_attended_90d",
+   "fieldtype": "Int",
+   "label": "Times Attended (90 Days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_involvement",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "From accepted ministry team assignments.",
+   "fieldname": "last_served_on",
+   "fieldtype": "Date",
+   "label": "Last Served",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "times_served_90d",
+   "fieldtype": "Int",
+   "label": "Times Served (90 Days)",
+   "read_only": 1
+  },
+  {
+   "description": "From the ministry team positions that list this person.",
+   "fieldname": "ministry_teams",
+   "fieldtype": "Table MultiSelect",
+   "label": "Ministry Teams",
+   "options": "Person Ministry Team",
+   "read_only": 1
+  },
+  {
+   "description": "The ministry team positions that list this person.",
+   "fieldname": "team_positions",
+   "fieldtype": "Table MultiSelect",
+   "label": "Team Positions",
+   "options": "Person Team Position",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "group_count",
+   "fieldtype": "Int",
+   "label": "Group Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Groups",
+   "options": "Person Group",
+   "read_only": 1
+  },
+  {
+   "description": "Gifts on submitted collections at this person's church, paid online gifts included. Only finance users see this section.",
+   "fieldname": "giving_section",
+   "fieldtype": "Section Break",
+   "label": "Giving"
+  },
+  {
+   "fieldname": "first_gift_on",
+   "fieldtype": "Date",
+   "label": "First Gift",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_giving",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_gift_on",
+   "fieldtype": "Date",
+   "label": "Last Gift",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Gave in the last 12 months, but not in the last 90 days.",
+   "fieldname": "is_lapsed_giver",
+   "fieldtype": "Check",
+   "label": "Lapsed Giver",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "description": "Open care requests, the latest completed visit and the most recent background check at this person's church. Only pastoral care users see this section.",
+   "fieldname": "care_section",
+   "fieldtype": "Section Break",
+   "label": "Care"
+  },
+  {
+   "default": "0",
+   "description": "Not yet Resolved or Closed.",
+   "fieldname": "open_care_requests",
+   "fieldtype": "Int",
+   "label": "Open Care Requests",
+   "permlevel": 3,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_visited_on",
+   "fieldtype": "Date",
+   "label": "Last Visited",
+   "permlevel": 3,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_care",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "A cleared check past its expiry date shows as Expired.",
+   "fieldname": "background_check_status",
+   "fieldtype": "Select",
+   "label": "Background Check",
+   "options": "\nRequested\nPending\nCleared\nNot Cleared\nExpired",
+   "permlevel": 3,
+   "read_only": 1
+  },
+  {
+   "fieldname": "background_check_expires_on",
+   "fieldtype": "Date",
+   "label": "Background Check Expires",
+   "permlevel": 3,
+   "read_only": 1
+  },
+  {
+   "fieldname": "church_fields_tab",
+   "fieldtype": "Tab Break",
+   "label": "Church Fields"
   }
  ],
  "grid_page_length": 50,
@@ -292,47 +753,122 @@
  "index_web_pages_for_search": 1,
  "links": [
   {
-   "link_doctype": "Prayer Request",
-   "link_fieldname": "requestor"
-  },
-  {
-   "link_doctype": "Prayer",
-   "link_fieldname": "person"
-  },
-  {
-   "link_doctype": "Collection",
-   "link_fieldname": "person"
-  },
-  {
+   "group": "Involvement",
    "link_doctype": "Function",
    "link_fieldname": "person"
   },
   {
-   "link_doctype": "Alms Request",
-   "link_fieldname": "recipient"
+   "group": "Involvement",
+   "link_doctype": "Function Sign-Up",
+   "link_fieldname": "person"
   },
   {
+   "group": "Involvement",
    "link_doctype": "Group",
    "link_fieldname": "person"
   },
   {
+   "group": "Involvement",
+   "link_doctype": "Ministry Team Assignment",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Involvement",
+   "link_doctype": "Missionary",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Involvement",
+   "link_doctype": "Background Check",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Prayer Request",
+   "link_fieldname": "requestor"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Prayer",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Care",
    "link_doctype": "Visitation Log",
    "link_fieldname": "person"
   },
   {
-   "link_doctype": "Member Transfer",
-   "link_fieldname": "person"
-  },
-  {
+   "group": "Care",
    "link_doctype": "Care Request",
    "link_fieldname": "person"
   },
   {
-   "link_doctype": "Background Check",
+   "group": "Care",
+   "link_doctype": "Care Assignment",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Counseling Case",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Alms Request",
+   "link_fieldname": "recipient"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Person Note",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Collection",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Online Donation",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Giving Statement",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Pledge",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Membership",
+   "link_doctype": "Member Transfer",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Membership",
+   "link_doctype": "Communication Consent",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Follow-up",
+   "link_doctype": "Follow-up Card",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Follow-up",
+   "link_doctype": "Connection Card",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Relationships",
+   "link_doctype": "Person",
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-10-13 12:00:00.000000",
+ "modified": "2026-10-27 08:45:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
@@ -396,16 +932,75 @@
    "report": 1,
    "role": "Church Check-In",
    "select": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church People Editor",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Check-In"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "Church Manager"
+  },
+  {
+   "permlevel": 2,
+   "read": 1,
+   "role": "Church Finance"
+  },
+  {
+   "permlevel": 3,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 3,
+   "read": 1,
+   "role": "Church Manager"
+  },
+  {
+   "permlevel": 3,
+   "read": 1,
+   "role": "Church Pastoral Care"
+  },
+  {
+   "permlevel": 4,
+   "read": 1,
+   "role": "System Manager"
   }
  ],
  "route": "church-personz",
  "row_format": "Dynamic",
- "search_fields": "last_name, first_name",
+ "search_fields": "last_name, first_name, nickname, previous_last_name, envelope_number, middle_name",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "title_field": "full_name",
- "track_changes": 1
+ "track_changes": 1,
+ "track_views": 1
 }

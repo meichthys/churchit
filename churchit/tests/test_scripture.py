@@ -134,6 +134,15 @@ class TestTextFiles(FrappeTestCase):
 		self.assertNotIn("thisChapterAudioLinks", chapter)
 		self.assertNotIn("thisChapterAudioTimings", chapter)
 
+	def test_site_config_may_name_a_self_hosted_api(self):
+		response = MagicMock(json=MagicMock(return_value=free_use_bible([])))
+		with (
+			patch.dict(frappe.conf, {"free_use_bible_api_url": "https://bible.example.org/api/"}),
+			patch("churchit.scripture.requests.get", return_value=response) as get,
+		):
+			scripture.download_free_use_bible("BSB")
+		self.assertEqual(get.call_args.args[0], "https://bible.example.org/api/BSB/complete.simple.json")
+
 
 class TestReading(FrappeTestCase):
 	@classmethod

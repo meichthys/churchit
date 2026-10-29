@@ -1,0 +1,30 @@
+{#- Wallet card for a Person: their church, photo and name, and a QR code of their Person ID that
+    the Check-In Station's Scan Card reads. A table lays it out, because wkhtmltopdf has no flexbox.
+    Names are typed by members, so they are escaped. -#}
+<style>
+  .print-format { page-width: 3.375in; page-height: 2.125in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
+  @page { size: 3.375in 2.125in; margin: 0; }
+  .member-card { width: 3.375in; height: 2.125in; box-sizing: border-box; padding: 0.14in 0.16in; overflow: hidden; page-break-inside: avoid; break-inside: avoid; font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; }
+  .member-card .church { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-bottom: 0.05in; border-bottom: 1px solid #000; }
+  .member-card table { width: 100%; height: 1.6in; border-collapse: collapse; table-layout: fixed; }
+  .member-card td { padding: 0 !important; border: 0 !important; vertical-align: middle; }
+  .member-card .photo-cell { width: 0.85in; }
+  .member-card .photo { width: 0.75in; height: 1in; object-fit: cover; border: 1px solid #bbb; }
+  .member-card .holder-name { font-size: 12pt; font-weight: 700; line-height: 1.15; word-wrap: break-word; }
+  .member-card .person-id { margin-top: 0.05in; font-family: monospace; font-size: 7.5pt; color: #333; }
+  .member-card .qr-cell { width: 1in; text-align: right; }
+  .member-card .qr-code { width: 0.95in; height: 0.95in; }
+</style>
+<div class="member-card">
+  <div class="church">{{ (church_name(doc) or "")|e }}</div>
+  <table>
+    <tr>
+      {% if doc.photo %}<td class="photo-cell"><img class="photo" src="{{ doc.photo|e }}" alt=""></td>{% endif %}
+      <td>
+        <div class="holder-name">{{ doc.full_name|e }}</div>
+        <div class="person-id">{{ doc.name }}</div>
+      </td>
+      <td class="qr-cell"><img class="qr-code" src="{{ get_qr_code(doc.name) }}" alt="{{ doc.name }}"></td>
+    </tr>
+  </table>
+</div>

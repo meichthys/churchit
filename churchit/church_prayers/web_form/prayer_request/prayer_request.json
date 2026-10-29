@@ -38,15 +38,15 @@
       "label": "Request"
     },
     {
-      "fieldname": "is_private",
-      "fieldtype": "Check",
-      "label": "Private?"
+      "fieldname": "visibility",
+      "fieldtype": "Select",
+      "label": "Who Can See It"
     }
   ],
   "list_title": "Your Prayer Requests",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-09-28 11:30:00.000000",
+  "modified": "2026-10-22 17:38:27.000000",
   "modified_by": "Administrator",
   "module": "Church Prayers",
   "name": "prayer-request",
@@ -73,21 +73,6 @@
     },
     {
       "allow_read_on_all_link_options": 1,
-      "default": "Requested",
-      "fieldname": "status",
-      "fieldtype": "Link",
-      "hidden": 0,
-      "label": "Status",
-      "max_length": 0,
-      "max_value": 0,
-      "options": "Prayer Request Status",
-      "precision": "",
-      "read_only": 0,
-      "reqd": 1,
-      "show_in_filter": 0
-    },
-    {
-      "allow_read_on_all_link_options": 1,
       "default": "",
       "fieldname": "type",
       "fieldtype": "Link",
@@ -103,18 +88,19 @@
     },
     {
       "allow_read_on_all_link_options": 0,
-      "default": "",
-      "description": "Check this if you don't want this shared with the church body.",
-      "fieldname": "is_private",
-      "fieldtype": "Check",
+      "default": "Whole Church",
+      "description": "Private: only you and the pastoral care team. Prayer Team: also the prayer team. Whole Church: every member, on the Community Prayer Requests page.",
+      "fieldname": "visibility",
+      "fieldtype": "Select",
       "hidden": 0,
-      "label": "Is Private",
+      "label": "Who Can See It",
       "max_length": 0,
       "max_value": 0,
       "precision": "",
       "read_only": 0,
-      "reqd": 0,
-      "show_in_filter": 0
+      "reqd": 1,
+      "show_in_filter": 0,
+      "options": "Private\nPrayer Team\nWhole Church"
     },
     {
       "allow_read_on_all_link_options": 0,

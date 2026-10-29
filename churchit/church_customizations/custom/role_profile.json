@@ -3,6 +3,32 @@
   "custom_perms": [
     {
       "parent": "Role Profile",
+      "role": "System Manager",
+      "permlevel": 0,
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "share": 1,
+      "write": 1
+    },
+    {
+      "parent": "Role Profile",
+      "role": "System Manager",
+      "permlevel": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "share": 1,
+      "write": 1
+    },
+    {
+      "parent": "Role Profile",
       "role": "Church Manager",
       "permlevel": 0,
       "read": 1,

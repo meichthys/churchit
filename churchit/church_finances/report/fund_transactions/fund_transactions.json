@@ -22,7 +22,7 @@
    "width": 0
   },
   {
-   "fieldname": "creation",
+   "fieldname": "date",
    "fieldtype": "Datetime",
    "label": "Date",
    "width": 0
@@ -36,7 +36,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2026-09-28 12:00:00",
+ "modified": "2026-10-22 15:51:00",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund Transactions",

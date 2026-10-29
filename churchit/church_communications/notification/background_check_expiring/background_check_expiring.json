@@ -1,0 +1,30 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.status == \"Cleared\"",
+ "condition_type": "Python",
+ "creation": "2026-10-18 10:00:00.000000",
+ "date_changed": "expires_on",
+ "days_in_advance": 30,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Background Check",
+ "enabled": 0,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>A background check expires in 30 days:</p>\n\n<ul>\n  <li><strong>Person:</strong> {{ doc.person_name or doc.person }}</li>\n  <li><strong>Check Type:</strong> {{ doc.check_type }}</li>\n  <li><strong>Expires On:</strong> {{ frappe.utils.formatdate(doc.expires_on) }}</li>\n  <li><strong>Provider:</strong> {{ doc.provider or \"Not recorded\" }}</li>\n</ul>\n\n<p>Ask them to renew it before then. Without it they cannot serve in a position that needs this check.</p>",
+ "modified": "2026-10-18 10:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Background Check Expiring",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Church Pastoral Care"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "Background check expiring in 30 days: {{ doc.person_name or doc.person }} ({{ doc.check_type }})"
+}

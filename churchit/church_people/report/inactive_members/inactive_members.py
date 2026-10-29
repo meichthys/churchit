@@ -1,16 +1,15 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce, Max
-from frappe.utils import cint
+from frappe.utils import cint, today
 from pypika import Field, Order
 
+from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people.membership import is_active_member
 from churchit.church_scope import scoped
 from churchit.contacts import primary_email_query, primary_phone_query
 from churchit.query import CurDate, DateDiff
 from churchit.utils import set_report_link_titles
-
-ATTENDED_TYPES = ("Confirmed", "Checked-In", "Assumed")
 
 
 def execute(filters=None):
@@ -45,7 +44,8 @@ def get_data(filters=None):
 			.join(Function)
 			.on(Function.name == Attendance.parent)
 			.select(Max(Function.start_date))
-			.where((Attendance.person == Person.name) & Attendance.attendance_type.isin(list(ATTENDED_TYPES)))
+			.where((Attendance.person == Person.name) & Attendance.attendance_type.isin(COUNTED_TYPES))
+			.where(Function.start_date <= today())
 		)
 
 	def membership_date():

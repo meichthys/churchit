@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 
 from churchit.church_people.doctype.family.family import primary_contacts
+from churchit.church_people.membership import living_people_filter
 from churchit.church_scope import scoped
 from churchit.query import CurDate, DayOfMonth, Month
 from churchit.utils import set_report_link_titles
@@ -25,15 +26,19 @@ def get_columns():
 
 def get_data(filters=None):
 	Person = frappe.qb.DocType("Person")
+	Spouse = frappe.qb.DocType("Person").as_("spouse")
 
 	query = (
 		frappe.qb.from_(Person)
+		.left_join(Spouse)
+		.on(Spouse.name == Person.spouse)
 		.select(Person.name, Person.anniversary, Person.marriage_years, Person.spouse)
 		.where(
 			Person.anniversary.isnotnull()
 			& (Month(Person.anniversary) == Month(CurDate()))
 			& Person.name.isin(primary_contacts())
 		)
+		.where(living_people_filter(Person) & (Spouse.name.isnull() | living_people_filter(Spouse)))
 		.orderby(DayOfMonth(Person.anniversary))
 		.orderby(Person.full_name)
 	)

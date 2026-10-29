@@ -1,0 +1,128 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Register") }}{% endblock %}
+{% block header %}<h1>{{ _("Register") }}</h1>{% endblock %}
+
+{% block page_content %}
+<div class="register-page" style="max-width: 560px;">
+	{% if function %}
+	<h2 class="h4 mb-1">{{ function.function_name | e }}</h2>
+	<p class="text-muted">{{ function.when }}</p>
+	{% if function.description %}<p>{{ function.description | e }}</p>{% endif %}
+
+	<form id="register-form">
+		<input type="hidden" name="function" value="{{ function.name | e }}">
+		<div class="form-group mb-3">
+			<label for="register-name">{{ _("Your Name") }}</label>
+			<input type="text" class="form-control" id="register-name" name="registrant_name" autocomplete="name" required>
+		</div>
+		<div class="form-group mb-3">
+			<label for="register-email">{{ _("Your Email") }}</label>
+			<input type="email" class="form-control" id="register-email" name="email" autocomplete="email" required>
+		</div>
+		<div class="form-group mb-3">
+			<label for="register-phone">{{ _("Your Phone (optional)") }}</label>
+			<input type="tel" class="form-control" id="register-phone" name="phone" autocomplete="tel">
+		</div>
+		{% include "churchit/templates/includes/register/household.html" %}
+		{% include "churchit/templates/includes/register/questions.html" %}
+		<div class="form-group mb-3">
+			<label for="register-notes">{{ _("Notes (optional)") }}</label>
+			<textarea class="form-control" id="register-notes" name="notes" rows="2"></textarea>
+		</div>
+		{% include "churchit/templates/includes/register/discount.html" %}
+		{#- Hidden from people; a bot that fills it in is not registered. -#}
+		<div style="position: absolute; left: -10000px;" aria-hidden="true">
+			<label for="register-website">{{ _("Website") }}</label>
+			<input type="text" id="register-website" name="website" tabindex="-1" autocomplete="off">
+		</div>
+		<button type="submit" class="btn btn-primary btn-block" id="register-submit">{{ _("Register") }}</button>
+		<div id="register-error" class="text-danger mt-2" style="display: none;"></div>
+	</form>
+
+	<div id="register-success" style="display: none;">
+		<div class="alert alert-success" role="alert" id="register-message"></div>
+		<p id="register-amount" style="display: none;"></p>
+		<p>
+			<a class="btn btn-default mr-2" id="register-calendar" style="display: none;">{{ _("Add to calendar") }}</a>
+			<a class="btn btn-primary" id="register-pay" style="display: none;">{{ _("Pay now") }}</a>
+		</p>
+	</div>
+	{% else %}
+	{% if is_unknown_function %}
+	<div class="alert alert-info" role="alert">{{ _("This function is not open for registration.") }}</div>
+	{% endif %}
+	{% if functions %}
+	<div class="list-group">
+		{% for item in functions %}
+		<a class="list-group-item list-group-item-action" href="/register?function={{ item.name | urlencode }}">
+			<div class="font-weight-bold">{{ item.function_name | e }}</div>
+			<div class="small text-muted">{{ item.when }}</div>
+		</a>
+		{% endfor %}
+	</div>
+	{% else %}
+	<p class="text-muted">{{ _("Nothing is open for registration right now. Please check back soon.") }}</p>
+	{% endif %}
+	{% endif %}
+</div>
+
+{% if function %}
+<script>
+frappe.ready(function () {
+	const form = document.getElementById('register-form');
+	const btn = document.getElementById('register-submit');
+	const errEl = document.getElementById('register-error');
+	const messages = {
+		Confirmed: {{ _("You are registered. Thank you!") | tojson }},
+		Pending: {{ _("We have your registration. It is held for you until it is approved or paid.") | tojson }},
+		Waitlisted: {{ _("The event is full, so you are on the waitlist. We will email you if a seat opens.") | tojson }},
+	};
+
+	const amountDue = {{ _("The amount due is {0}.") | tojson }};
+	const amountWithDiscount = {{ _("The amount due is {0}, after a discount of {1}.") | tojson }};
+
+	function showLink(id, url) {
+		if (!url) return;
+		const link = document.getElementById(id);
+		link.href = url;
+		link.style.display = '';
+	}
+
+	form.addEventListener('submit', function (e) {
+		e.preventDefault();
+		errEl.style.display = 'none';
+		btn.disabled = true;
+
+		// Every named input goes to the server, so an include only adds inputs.
+		const args = Object.fromEntries(new FormData(form).entries());
+		frappe.call({
+			method: 'churchit.www.register.sign_up',
+			args: churchit.with_church(args),
+			callback: function (r) {
+				const response = r.message || {};
+				form.style.display = 'none';
+				document.getElementById('register-message').textContent =
+					messages[response.status] || messages.Confirmed;
+				showLink('register-calendar', response.calendar_url);
+				showLink('register-pay', response.pay_url);
+				if (response.amount_due) {
+					const amount = document.getElementById('register-amount');
+					amount.textContent = (response.discount ? amountWithDiscount : amountDue)
+						.replace('{0}', response.amount_due)
+						.replace('{1}', response.discount);
+					amount.style.display = '';
+				}
+				document.getElementById('register-success').style.display = '';
+			},
+			error: function () {
+				btn.disabled = false;
+				errEl.textContent = {{ _("Your registration was not saved. Please check the form and try again.") | tojson }};
+				errEl.style.display = 'block';
+			},
+		});
+	});
+});
+</script>
+{% endif %}
+{% endblock %}

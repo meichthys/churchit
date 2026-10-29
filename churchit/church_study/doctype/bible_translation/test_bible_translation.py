@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 import requests
+from frappe.handler import run_doc_method
 from frappe.tests.utils import FrappeTestCase
 
 from churchit import scripture
@@ -120,6 +121,35 @@ class TestBibleTranslation(FrappeTestCase):
 		frappe.db.set_value("Bible Translation", doc.name, "source", "User Import")
 		with self.assertRaisesRegex(frappe.ValidationError, "Free Use Bible API"):
 			frappe.get_doc("Bible Translation", doc.name).download_again()
+
+	def test_download_again_reads_the_saved_translation(self):
+		"""The form sends its own copy. One sent as Free Use must not lock an import in Downloading."""
+		url = self.private_file("_test_saved.csv", "book,chapter,verse,text\nJHN,3,16,For God\n")
+		copy = self.imported_translation(url).as_dict()
+		copy.update(source=scripture.FREE_USE_BIBLE_API, source_id="_TEST")
+
+		with patch("frappe.enqueue_doc") as enqueue:
+			with self.assertRaisesRegex(frappe.ValidationError, "Free Use Bible API"):
+				self.call_from_form("POST", docs=frappe.as_json(copy))
+
+		enqueue.assert_not_called()
+		self.assertEqual(frappe.db.get_value("Bible Translation", copy.name, "status"), "Ready")
+
+	def test_download_again_takes_a_post(self):
+		"""Frappe checks the CSRF token only on a POST, and a GET from another site carries the session."""
+		doc, _enqueue = self.free_translation()
+		frappe.db.set_value("Bible Translation", doc.name, "status", "Failed")
+
+		with patch("frappe.enqueue_doc") as enqueue, self.assertRaises(frappe.PermissionError):
+			self.call_from_form("GET", dt=doc.doctype, dn=doc.name)
+
+		enqueue.assert_not_called()
+		self.assertEqual(frappe.db.get_value("Bible Translation", doc.name, "status"), "Failed")
+
+	def call_from_form(self, http_method, **document):
+		"""Run Download Again as the form's button does, through `run_doc_method`."""
+		with patch.object(frappe.local, "request", frappe._dict(method=http_method), create=True):
+			run_doc_method("download_again", **document)
 
 	def test_an_import_is_read_on_save(self):
 		url = self.private_file(

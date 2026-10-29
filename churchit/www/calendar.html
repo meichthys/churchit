@@ -16,6 +16,8 @@
 		--fc-list-event-hover-bg-color: var(--subtle-fg);
 	}
 	#church-calendar .fc-event { cursor: pointer; }
+	/* the view buttons wrap on a phone instead of widening the page */
+	#church-calendar .fc-header-toolbar { flex-wrap: wrap; gap: 8px; }
 	/* day numbers and event titles are links; follow the page text, not bootstrap's link colour */
 	#church-calendar .fc a { color: inherit; }
 	.event-modal-overlay {
@@ -57,6 +59,10 @@
 	.event-modal-body { padding: 1rem; }
 	.event-modal-body p { margin-bottom: 0.5rem; }
 	.event-modal-body .label { font-weight: 600; }
+	.event-modal-body p a:not(.btn) { text-decoration: underline; }
+	#event-modal-map { height: 200px; margin-bottom: 0.5rem; border-radius: 0.375rem; }
+	.calendar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+	.calendar-actions label { margin: 0 auto 0 0; }
 </style>
 {% endblock %}
 
@@ -65,6 +71,13 @@
 	Showing events from {{ frappe.utils.formatdate(window_start, "MMMM d, YYYY") }}
 	through {{ frappe.utils.formatdate(window_end, "MMMM d, YYYY") }}.
 </p>
+<div class="calendar-actions">
+	{% if has_branches %}
+	<label><input type="checkbox" id="calendar-include-branches"> {{ _("Include branch churches") }}</label>
+	{% endif %}
+	<a class="btn btn-default btn-sm" href="{{ webcal_url | e }}">{{ _("Subscribe") }}</a>
+	<a class="btn btn-default btn-sm" href="{{ feed_url | e }}" download="calendar.ics">{{ _("Download .ics") }}</a>
+</div>
 <div id="church-calendar"></div>
 
 <div class="event-modal-overlay" id="event-modal" role="dialog" aria-modal="true">
@@ -106,25 +119,99 @@
 		return when;
 	}
 
+	function link(url, text, className) {
+		return '<a class="' + (className || '') + '" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(text) + '</a>';
+	}
+
+	function isBranchesShown() {
+		var toggle = document.getElementById('calendar-include-branches');
+		return Boolean(toggle && toggle.checked);
+	}
+
+	var eventMap = null;
+
+	function drawMap(coordinates) {
+		var element = document.getElementById('event-modal-map');
+		if (!element || !window.L) return;
+		var tile = frappe.utils.map_defaults.tiles.default_tile;
+		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
+		eventMap = L.map(element, { scrollWheelZoom: false }).setView(coordinates, 15);
+		L.tileLayer(tile.url, tile.options).addTo(eventMap);
+		L.marker(coordinates).addTo(eventMap);
+	}
+
+	function removeMap() {
+		if (!eventMap) return;
+		eventMap.remove();
+		eventMap = null;
+	}
+
 	function openModal(event) {
 		var details = event.extendedProps || {};
 		var html = ['<p><span class="label">When:</span> ' + escapeHtml(formatWhen(event)) + '</p>'];
 		if (details.type) {
 			html.push('<p><span class="label">Type:</span> ' + escapeHtml(details.type) + '</p>');
 		}
+		if (details.church_name && isBranchesShown()) {
+			html.push('<p><span class="label">Church:</span> ' + escapeHtml(details.church_name) + '</p>');
+		}
 		if (details.address) {
-			html.push('<p><span class="label">Where:</span> ' + escapeHtml(details.address) + '</p>');
+			var mapLink = details.map_url ? ' ' + link(details.map_url, 'Open map') : '';
+			html.push('<p><span class="label">Where:</span> ' + escapeHtml(details.address) + mapLink + '</p>');
+		}
+		if (details.coordinates) {
+			html.push('<div id="event-modal-map"></div>');
+		}
+		if (details.rooms && details.rooms.length) {
+			var label = details.rooms.length > 1 ? 'Rooms:' : 'Room:';
+			html.push('<p><span class="label">' + label + '</span> ' + escapeHtml(details.rooms.join(', ')) + '</p>');
+		}
+		if (details.meeting_url && /^https:\/\//i.test(details.meeting_url)) {
+			html.push('<p>' + link(details.meeting_url, 'Join online', 'btn btn-primary btn-sm') + '</p>');
+		}
+		if (details.live_url) {
+			html.push('<p>' + link(details.live_url, 'Watch live', 'btn btn-primary btn-sm') + '</p>');
 		}
 		if (details.description) {
 			html.push('<p><span class="label">Details:</span><br>' + escapeHtml(details.description).replace(/\n/g, '<br>') + '</p>');
 		}
+		removeMap();
 		document.getElementById('event-modal-body').innerHTML = html.join('');
 		document.getElementById('event-modal-title').textContent = event.title;
 		document.getElementById('event-modal').classList.add('is-open');
+		// Leaflet measures its box, so the map is drawn once the modal shows.
+		if (details.coordinates) drawMap(details.coordinates);
 	}
 
 	function closeModal() {
+		removeMap();
 		document.getElementById('event-modal').classList.remove('is-open');
+	}
+
+	// A date alone is read as UTC midnight; with a time it is local, as FullCalendar reads it.
+	function toDate(value) {
+		return new Date(value.length === 10 ? value + 'T00:00:00' : value);
+	}
+
+	// A ?event= link opens one Function, link-only ones too.
+	function openLinkedEvent() {
+		var name = new URLSearchParams(window.location.search).get('event');
+		if (!name) return;
+		frappe.call({
+			method: 'churchit.www.calendar.get_event',
+			type: 'GET',
+			args: churchit.with_church({ name: name })
+		}).then(function (r) {
+			var found = r.message;
+			if (!found) return;
+			openModal({
+				title: found.title,
+				start: toDate(found.start),
+				end: found.end ? toDate(found.end) : null,
+				allDay: found.allDay,
+				extendedProps: found
+			});
+		});
 	}
 
 	frappe.ready(function () {
@@ -143,7 +230,12 @@
 			events: function (info, successCallback, failureCallback) {
 				frappe.call({
 					method: 'churchit.www.calendar.get_events',
-					args: churchit.with_church({ start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10) })
+					type: 'GET',
+					args: churchit.with_church({
+						start: info.startStr.slice(0, 10),
+						end: info.endStr.slice(0, 10),
+						include_branches: isBranchesShown() ? 1 : 0
+					})
 				}).then(function (r) {
 					successCallback(r.message || []);
 				}, failureCallback);
@@ -154,6 +246,14 @@
 			}
 		});
 		calendar.render();
+		openLinkedEvent();
+
+		var branchToggle = document.getElementById('calendar-include-branches');
+		if (branchToggle) {
+			branchToggle.addEventListener('change', function () {
+				calendar.refetchEvents();
+			});
+		}
 
 		document.querySelector('#event-modal .event-modal-close').addEventListener('click', closeModal);
 		document.getElementById('event-modal').addEventListener('click', function (e) {

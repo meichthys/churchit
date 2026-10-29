@@ -3,7 +3,7 @@ from frappe import _
 from frappe.query_builder.functions import Coalesce
 from pypika import Order
 
-from churchit.church_prayers.doctype.prayer_request.prayer_request import CLOSED_STATUSES
+from churchit.church_prayers.prayer_access import CLOSED_STATUSES
 from churchit.church_scope import scoped
 from churchit.query import CurDate, DateDiff
 from churchit.utils import set_report_link_titles

@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-26 23:28:13.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-26 23:28:13.000000",
+ "modified_by": "Administrator",
+ "name": "Ministry Team Replacement",
+ "owner": "Administrator",
+ "reference_doctype": "Ministry Team Assignment",
+ "response_html": "<p>Dear {{ first_name | e }},</p>\n\n{% if has_accepted %}\n<p>{{ replacement_name | e }} accepted your request and serves in your place as <strong>{{ position | e }}</strong> ({{ ministry | e }}) at {{ function | e }} on {{ date }}{% if time %} at {{ time }}{% endif %}. You no longer serve at this function.</p>\n\n<p>Thank you for finding someone!</p>\n{% else %}\n<p>{{ replacement_name | e }} cannot serve in your place as <strong>{{ position | e }}</strong> ({{ ministry | e }}) at {{ function | e }} on {{ date }}{% if time %} at {{ time }}{% endif %}. You still serve at this function.</p>\n\n<p><a href=\"{{ response_link }}\">Ask someone else or decline</a></p>\n{% endif %}",
+ "subject": "{{ replacement_name }} {% if has_accepted %}takes{% else %}cannot take{% endif %} your place on {{ date }}",
+ "use_html": 1
+}

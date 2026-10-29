@@ -1,0 +1,304 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Check In") }}{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block head_include %}
+<style>
+	.kiosk { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; text-align: center; }
+	.kiosk h1 { margin-bottom: 4px; }
+	.kiosk-church { color: var(--text-muted, #64748b); margin-bottom: 32px; }
+	.kiosk-prompt { font-size: 1.35rem; margin-bottom: 16px; }
+	.kiosk-phone { font-size: 2rem; height: auto; padding: 12px 16px; text-align: center; letter-spacing: 0.08em;
+		max-width: 420px; margin: 0 auto 16px; }
+	.kiosk-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 420px; margin: 0 auto 20px; }
+	.kiosk-keypad button { font-size: 1.75rem; padding: 14px 0; border-radius: var(--ch-radius, 12px); }
+	.kiosk .btn-lg { min-width: 200px; padding: 14px 28px; font-size: 1.25rem; }
+	.kiosk-error { color: var(--red-600, #dc2626); min-height: 1.5em; margin: 8px 0 16px; }
+	.kiosk-household { margin-bottom: 24px; text-align: left; }
+	.kiosk-household h2 { font-size: 1.1rem; color: var(--text-muted, #64748b); margin-bottom: 8px; }
+	.kiosk-member { display: flex; align-items: center; gap: 16px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer;
+		border: 2px solid var(--border-color, #e5e7eb); border-radius: var(--ch-radius, 12px); }
+	.kiosk-member.is-chosen { border-color: var(--primary-color, #4338ca); }
+	.kiosk-member input[type="checkbox"] { width: 28px; min-width: 28px; height: 28px; flex: 0 0 auto; margin: 0;
+		accent-color: var(--primary-color, #4338ca); }
+	.kiosk-avatar { width: 56px; height: 56px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; display: flex;
+		align-items: center; justify-content: center; font-weight: 600; font-size: 1.25rem;
+		background: var(--border-color, #e5e7eb); }
+	.kiosk-who { flex: 1 1 auto; min-width: 0; }
+	.kiosk-name { font-size: 1.25rem; font-weight: 600; overflow-wrap: anywhere; }
+	.kiosk-detail { color: var(--text-muted, #64748b); }
+	.kiosk-who select { margin-top: 6px; font-size: 1rem; }
+	.kiosk-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
+	.kiosk-done { font-size: 1.5rem; margin: 48px 0; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="kiosk">
+	<h1>{{ _("Check In") }}</h1>
+	<p class="kiosk-church">{{ church_name or "" }}</p>
+
+	<section class="kiosk-step" data-step="phone">
+		<label class="kiosk-prompt" for="kiosk-phone">{{ _("Type your phone number, or scan your check-in code") }}</label>
+		<input id="kiosk-phone" class="form-control kiosk-phone" type="tel" inputmode="numeric" autocomplete="off">
+		<div class="kiosk-keypad">
+			{% for key in ["1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+			<button type="button" class="btn btn-default" data-key="{{ key }}">{{ key }}</button>
+			{% endfor %}
+			<button type="button" class="btn btn-default" data-key="clear" aria-label="{{ _('Clear') }}">C</button>
+			<button type="button" class="btn btn-default" data-key="0">0</button>
+			<button type="button" class="btn btn-default" data-key="back" aria-label="{{ _('Delete') }}">&larr;</button>
+		</div>
+		<p class="kiosk-error" role="alert"></p>
+		<button type="button" class="btn btn-primary btn-lg kiosk-find">{{ _("Find") }}</button>
+	</section>
+
+	<section class="kiosk-step" data-step="people" hidden>
+		<p class="kiosk-prompt">{{ _("Choose who to check in") }}</p>
+		<div class="kiosk-households"></div>
+		<p class="kiosk-error" role="alert"></p>
+		<div class="kiosk-actions">
+			<button type="button" class="btn btn-default btn-lg kiosk-restart">{{ _("Start Over") }}</button>
+			<button type="button" class="btn btn-primary btn-lg kiosk-check-in">{{ _("Check In") }}</button>
+		</div>
+	</section>
+
+	<section class="kiosk-step" data-step="done" hidden>
+		<p class="kiosk-done" role="status"></p>
+		<button type="button" class="btn btn-primary btn-lg kiosk-restart">{{ _("Done") }}</button>
+	</section>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="/assets/churchit/js/name_tags.js"></script>
+<script>
+frappe.ready(function () {
+	var METHOD = "churchit.church_ministries.kiosk.";
+	// Back to the phone number after this long without a touch, so a household's names do not stay on screen.
+	var IDLE_MS = 60 * 1000;
+	var DONE_MS = 10 * 1000;
+	var kiosk = document.querySelector(".kiosk");
+	var phone = document.getElementById("kiosk-phone");
+	var found = null;
+	var step = "phone";
+	var timer = null;
+
+	function show(next) {
+		step = next;
+		kiosk.querySelectorAll(".kiosk-step").forEach(function (section) {
+			section.hidden = section.dataset.step !== step;
+		});
+		kiosk.querySelectorAll(".kiosk-error").forEach(function (error) {
+			error.textContent = "";
+		});
+		wait();
+	}
+
+	function wait() {
+		clearTimeout(timer);
+		if (step !== "phone") timer = setTimeout(restart, step === "done" ? DONE_MS : IDLE_MS);
+	}
+
+	function restart() {
+		found = null;
+		phone.value = "";
+		kiosk.querySelector(".kiosk-households").innerHTML = "";
+		show("phone");
+		phone.focus();
+	}
+
+	// Server messages go into the step's error line, not a dialog that a family would have to close.
+	function call(method, args) {
+		var error = kiosk.querySelector(".kiosk-step:not([hidden]) .kiosk-error");
+		return new Promise(function (resolve, reject) {
+			frappe
+				.call({ method: METHOD + method, args: args, error_msg: error, statusCode: {} })
+				.done(function (r) {
+					resolve(r.message);
+				})
+				.fail(function () {
+					if (!error.textContent) error.textContent = __("Something went wrong. Ask at the welcome desk.");
+					reject();
+				});
+		});
+	}
+
+	function find() {
+		if (phone.value.trim().indexOf("f=") === 0) return check_in_code();
+		var button = kiosk.querySelector(".kiosk-find");
+		button.disabled = true;
+		call("find_household", { phone: phone.value })
+			.then(function (result) {
+				if (!result.households.length) {
+					kiosk.querySelector("[data-step='phone'] .kiosk-error").textContent = result.functions.length
+						? __("We could not find that number. Ask at the welcome desk.")
+						: __("Check-in is not open now.");
+					return;
+				}
+				found = result;
+				render_households();
+				show("people");
+			})
+			.catch(function () {})
+			.finally(function () {
+				button.disabled = false;
+			});
+	}
+
+	function render_households() {
+		var titles = {};
+		found.functions.forEach(function (row) {
+			titles[row.name] = row.function_name;
+		});
+		var list = kiosk.querySelector(".kiosk-households");
+		list.innerHTML = "";
+		found.households.forEach(function (household) {
+			var group = document.createElement("div");
+			group.className = "kiosk-household";
+			if (household.family_name) {
+				var heading = document.createElement("h2");
+				heading.textContent = household.family_name;
+				group.appendChild(heading);
+			}
+			household.members.forEach(function (member) {
+				group.appendChild(member_card(member, titles));
+			});
+			list.appendChild(group);
+		});
+	}
+
+	function member_card(member, titles) {
+		var card = document.createElement("label");
+		card.className = "kiosk-member";
+		card.dataset.person = member.name;
+		var box = document.createElement("input");
+		box.type = "checkbox";
+		box.addEventListener("change", function () {
+			card.classList.toggle("is-chosen", box.checked);
+		});
+		card.appendChild(box);
+		card.appendChild(avatar(member));
+
+		var who = document.createElement("div");
+		who.className = "kiosk-who";
+		var name = document.createElement("div");
+		name.className = "kiosk-name";
+		name.textContent = member.full_name;
+		who.appendChild(name);
+		if (member.grade) {
+			var grade = document.createElement("div");
+			grade.className = "kiosk-detail";
+			grade.textContent = __(member.grade);
+			who.appendChild(grade);
+		}
+		who.appendChild(function_choice(member, titles));
+		card.appendChild(who);
+		return card;
+	}
+
+	function avatar(member) {
+		if (member.photo) {
+			var image = document.createElement("img");
+			image.className = "kiosk-avatar";
+			image.alt = "";
+			image.src = member.photo;
+			return image;
+		}
+		var initials = document.createElement("span");
+		initials.className = "kiosk-avatar";
+		initials.setAttribute("aria-hidden", "true");
+		initials.textContent = (member.full_name || "?").charAt(0).toUpperCase();
+		return initials;
+	}
+
+	function function_choice(member, titles) {
+		if (member.functions.length === 1) {
+			var only = document.createElement("div");
+			only.className = "kiosk-detail kiosk-function";
+			only.dataset.function = member.functions[0];
+			only.textContent = titles[member.functions[0]];
+			return only;
+		}
+		var select = document.createElement("select");
+		select.className = "form-control kiosk-function";
+		select.setAttribute("aria-label", __("Where {0} checks in", [member.full_name]));
+		member.functions.forEach(function (name) {
+			select.add(new Option(titles[name], name));
+		});
+		return select;
+	}
+
+	function check_in() {
+		var choices = {};
+		kiosk.querySelectorAll(".kiosk-member").forEach(function (card) {
+			if (!card.querySelector("input[type='checkbox']").checked) return;
+			var choice = card.querySelector(".kiosk-function");
+			choices[card.dataset.person] = choice.dataset.function || choice.value;
+		});
+		if (!Object.keys(choices).length) {
+			kiosk.querySelector("[data-step='people'] .kiosk-error").textContent = __("Choose at least one person.");
+			return;
+		}
+		var button = kiosk.querySelector(".kiosk-check-in");
+		button.disabled = true;
+		call("check_in", { phone: phone.value, choices: choices })
+			.then(finish)
+			.catch(function () {})
+			.finally(function () {
+				button.disabled = false;
+			});
+	}
+
+	// A handheld scanner types a pre check-in code from the member portal into the phone field.
+	function check_in_code() {
+		var button = kiosk.querySelector(".kiosk-find");
+		button.disabled = true;
+		call("check_in_code", { payload: phone.value.trim() })
+			.then(finish)
+			.catch(function () {
+				phone.value = "";
+			})
+			.finally(function () {
+				button.disabled = false;
+			});
+	}
+
+	function finish(result) {
+		var message = kiosk.querySelector(".kiosk-done");
+		show("done");
+		if (!result.print) {
+			message.textContent = __("You are already checked in. Ask at the welcome desk for a new name tag.");
+			return;
+		}
+		message.textContent = result.has_earlier_code
+			? __("You are checked in. Take your name tags. Keep the pickup tag you got earlier today: it still applies.")
+			: __("You are checked in. Take your name tags.");
+		return church.name_tags.print(result.print);
+	}
+
+	kiosk.querySelector(".kiosk-keypad").addEventListener("click", function (event) {
+		var key = event.target.closest("button") && event.target.closest("button").dataset.key;
+		if (!key) return;
+		if (key === "clear") phone.value = "";
+		else if (key === "back") phone.value = phone.value.slice(0, -1);
+		else phone.value += key;
+		phone.focus();
+	});
+	phone.addEventListener("keydown", function (event) {
+		if (event.key === "Enter") find();
+	});
+	kiosk.querySelector(".kiosk-find").addEventListener("click", find);
+	kiosk.querySelector(".kiosk-check-in").addEventListener("click", check_in);
+	kiosk.querySelectorAll(".kiosk-restart").forEach(function (button) {
+		button.addEventListener("click", restart);
+	});
+	kiosk.addEventListener("click", wait);
+	restart();
+});
+</script>
+{% endblock %}

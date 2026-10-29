@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-23 00:00:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Group Message",
+ "owner": "Administrator",
+ "reference_doctype": "Group",
+ "response_html": "<p>{{ leader_name }} sent this message to {{ group_name }}:</p>\n\n<p style=\"white-space: pre-wrap\">{{ message }}</p>\n\n<p>To answer, contact {{ leader_name }} directly.</p>",
+ "subject": "{{ subject }}",
+ "use_html": 1
+}

@@ -4,9 +4,17 @@
 
 {% block page_content %}
 <div class="my-account-container" id="memorize-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="my-account-header mb-0">Bible Memory</h3>
-        <div class="d-flex align-items-center">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <h3 class="my-account-header mb-0 mr-3">Bible Memory</h3>
+        <div class="d-flex align-items-center flex-wrap">
+            {% if groups %}
+            <select class="form-control form-control-sm mr-3" id="group-filter" style="width: auto;" aria-label="Group">
+                <option value="">All groups</option>
+                {% for name, title in groups.items() %}
+                <option value="{{ name | e }}">{{ title | e }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
             <label class="mb-0 mr-3 text-muted" style="font-size: 0.9em;">
                 <input type="checkbox" id="hide-memorized" checked> Hide memorized
             </label>
@@ -42,7 +50,7 @@
     {% if items %}
     <div class="list-group">
         {% for item in items %}
-        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap" data-item="{{ item.name }}" data-memorized="{{ 1 if item.memorized else 0 }}">
+        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap" data-item="{{ item.name }}" data-memorized="{{ 1 if item.memorized else 0 }}" data-group="{{ (item.group or '') | e }}">
             <div class="mr-3" style="flex: 1 1 260px; min-width: 0;">
                 <div>
                     <strong>{{ item.label }}</strong>
@@ -51,7 +59,7 @@
                     {% endif %}
                 </div>
                 {% if item.assigned_by %}
-                <small class="text-muted d-block">Assigned by {{ item.assigned_by_label }}</small>
+                <small class="text-muted d-block">Assigned by {{ item.assigned_by_label }}{% if item.group %} to {{ groups[item.group] | e }}{% endif %}</small>
                 {% endif %}
                 <div class="d-flex align-items-center mt-2">
                     <div class="progress mr-2 memorize-progress" data-progress="{{ item.progress or 0 }}">
@@ -97,11 +105,14 @@
 
     const HIDE_KEY = 'memorize.hideMemorized';
     const hideToggle = $('#hide-memorized');
+    const groupFilter = $('#group-filter');
     const applyHideFilter = () => {
         const hide = hideToggle.checked;
+        const group = groupFilter ? groupFilter.value : '';
         try { localStorage.setItem(HIDE_KEY, hide ? '1' : '0'); } catch (e) {}
-        document.querySelectorAll('[data-memorized="1"]').forEach(el => {
-            if (hide) el.setAttribute('style', 'display: none !important;');
+        document.querySelectorAll('[data-memorized]').forEach(el => {
+            const hidden = (hide && el.dataset.memorized === '1') || (group && el.dataset.group !== group);
+            if (hidden) el.setAttribute('style', 'display: none !important;');
             else el.removeAttribute('style');
         });
     };
@@ -110,6 +121,7 @@
         if (stored !== null) hideToggle.checked = stored === '1';
     } catch (e) {}
     hideToggle.addEventListener('change', applyHideFilter);
+    if (groupFilter) groupFilter.addEventListener('change', applyHideFilter);
     applyHideFilter();
 
     document.querySelectorAll('.memorize-progress').forEach(el => {

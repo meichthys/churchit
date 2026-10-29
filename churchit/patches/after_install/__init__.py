@@ -11,13 +11,38 @@ from pathlib import Path
 
 import frappe
 
+from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
+	create_communication_purposes,
+)
+from churchit.church_finances.doctype.alms_request.alms_request import create_new_alms_request_notification
+from churchit.church_finances.doctype.payment_type.payment_type import create_non_cash_payment_type
+from churchit.church_ministries.doctype.check_in_settings.check_in_settings import add_volunteer_tag_format
 from churchit.church_missions.doctype.missionary_status.missionary_status import (
 	DEFAULT_STATUSES as DEFAULT_MISSIONARY_STATUSES,
 )
+from churchit.church_operations.doctype.church_task.church_task import create_due_notification
+from churchit.church_operations.doctype.room_booking.room_booking import create_decided_notification
+from churchit.church_people.doctype.background_check_type.background_check_type import (
+	create_background_check_types,
+)
+from churchit.church_people.doctype.connection_card_interest.connection_card_interest import (
+	create_connection_card_interests,
+)
+from churchit.church_people.doctype.inactive_reason.inactive_reason import create_inactive_reasons
 from churchit.church_people.doctype.marital_status.marital_status import (
 	DEFAULT_STATUSES as DEFAULT_MARITAL_STATUSES,
 )
+from churchit.church_people.doctype.note_category.note_category import create_note_categories
+from churchit.church_people.doctype.people_settings.people_settings import (
+	store_defaults,
+	sync_directory_menu_item,
+)
+from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
 from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
+from churchit.church_prayers.doctype.prayer_request.prayer_request import (
+	create_new_prayer_request_notifications,
+)
+from churchit.church_website.pages import sync_page_switches
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
@@ -29,12 +54,18 @@ def execute():
 	_create_default_church()
 	create_default_address_template()
 	create_unsynced_records()
+	create_decided_notification()
+	create_due_notification()
+	create_new_prayer_request_notifications()
+	create_new_alms_request_notification()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
 	_create_member_statuses()
 	_create_membership_types()
 	_create_marital_statuses()
+	create_inactive_reasons()
+	store_defaults()
 	_create_function_types()
 	_create_function_attendance_types()
 	_create_position_types()
@@ -45,8 +76,10 @@ def execute():
 	_create_missionary_support_frequencies()
 	_create_missionary_statuses()
 	_create_group_roles()
+	create_group_types()
 	_create_group_statuses()
 	_create_default_ministry()
+	add_volunteer_tag_format()
 
 	# Bible translations, and the one the main church reads by default
 	_create_bible_translations()
@@ -54,9 +87,6 @@ def execute():
 
 	# Module access control
 	_create_module_profile()
-
-	# Dashboard charts
-	_create_dashboard_charts()
 
 	# Custom HTML blocks
 	_create_custom_html_blocks()
@@ -68,6 +98,10 @@ def execute():
 	_setup_contact_us_settings()
 	_setup_website_settings()
 	_setup_portal_settings()
+	# One switch per shipped page; migrate keeps them in step after this.
+	sync_page_switches()
+	# The directory starts off, so its menu item does too.
+	sync_directory_menu_item()
 	setup_bulletin_settings()
 
 	# Visit Type lookups (referenced by Visitation Log)
@@ -83,14 +117,18 @@ def execute():
 	_create_default_care_request_types()
 
 	# Background Check Type lookups (referenced by Background Check)
-	create_default_background_check_types()
+	create_background_check_types()
+
+	# Note Categories (referenced by Person Note), Communication Purposes (referenced by consent),
+	# the interests a guest ticks on a Connection Card and the starting spiritual gifts
+	create_note_categories()
+	create_communication_purposes()
+	create_connection_card_interests()
+	create_spiritual_gifts()
 
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
-
-	# Newsletter recipients: Email Group seeded from Person emails
-	_create_member_email_group()
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +265,7 @@ def _create_function_types():
 		"Business Meeting",
 		"Communion",
 		"Baptism",
+		"Group Meeting",
 	):
 		_insert_if_missing("Function Type", {"type": function_type}, type=function_type)
 
@@ -257,6 +296,7 @@ def _create_position_types():
 def _create_payment_types():
 	for payment_type in ("Cash", "Check", "Online"):
 		_insert_if_missing("Payment Type", {"type": payment_type}, type=payment_type)
+	create_non_cash_payment_type()
 
 
 def _create_person_relation_types():
@@ -352,7 +392,38 @@ def _create_missionary_support_frequencies():
 
 def _create_group_roles():
 	for role in ("Leader", "Member"):
-		_insert_if_missing("Group Role", {"role": role}, role=role)
+		_insert_if_missing("Group Role", {"role": role}, role=role, is_leader=int(role == "Leader"))
+
+
+GROUP_TYPES = {
+	"Small Group": {
+		"description": "A small group that meets often for Bible study, prayer and fellowship.",
+		"public": 1,
+		"show_in_portal": 1,
+	},
+	"Class": {
+		"description": "A class with a teacher, such as a membership class or a Bible class.",
+		"public": 1,
+		"show_in_portal": 1,
+	},
+	"Support Group": {
+		"description": "A group for people with a shared need, such as grief or recovery. A leader approves each new member.",
+		"public": 1,
+		"show_in_portal": 1,
+		"requires_approval": 1,
+	},
+	"Youth Group": {
+		"description": "A group for young people. A leader approves each new member.",
+		"public": 1,
+		"show_in_portal": 1,
+		"requires_approval": 1,
+	},
+}
+
+
+def create_group_types():
+	for group_type, defaults in GROUP_TYPES.items():
+		_insert_if_missing("Group Type", {"type": group_type}, type=group_type, **defaults)
 
 
 def _create_group_statuses():
@@ -513,53 +584,6 @@ def _create_module_profile():
 			"block_modules": [{"module": m} for m in blocked_modules],
 		}
 	).insert(ignore_permissions=True)
-
-
-# ---------------------------------------------------------------------------
-# Dashboard Charts
-# ---------------------------------------------------------------------------
-
-
-def _create_dashboard_charts():
-	"""Create People and Members line charts shown on the Church workspace."""
-	if not frappe.db.exists("Dashboard Chart", "People"):
-		frappe.get_doc(
-			{
-				"doctype": "Dashboard Chart",
-				"chart_name": "People",
-				"module": "Church People",
-				"document_type": "Person",
-				"based_on": "creation",
-				"type": "Line",
-				"time_interval": "Weekly",
-				"timespan": "Last Year",
-				"timeseries": 1,
-				"is_standard": 0,
-				"show_values_over_chart": 1,
-				"filters_json": "[]",
-				"dynamic_filters_json": "[]",
-			}
-		).insert(ignore_permissions=True)
-
-	if not frappe.db.exists("Dashboard Chart", "Members"):
-		frappe.get_doc(
-			{
-				"doctype": "Dashboard Chart",
-				"chart_name": "Members",
-				"module": "Church People",
-				"document_type": "Life Event",
-				"parent_document_type": "Person",
-				"based_on": "date",
-				"type": "Line",
-				"time_interval": "Monthly",
-				"timespan": "Last Year",
-				"timeseries": 1,
-				"is_standard": 0,
-				"show_values_over_chart": 1,
-				"filters_json": '[["Life Event","event_type","=","Membership",false]]',
-				"dynamic_filters_json": "[]",
-			}
-		).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -730,6 +754,7 @@ def _setup_website_settings():
 		{"label": "Sermons", "url": "/sermons", "right": 1},
 		{"label": "Missions", "url": "/missions", "right": 1},
 		{"label": "Ministries", "url": "/ministries", "right": 1},
+		{"label": "Find a Group", "url": "/find-a-group", "right": 1},
 		{"label": "Calendar", "url": "/calendar", "right": 1},
 		{"label": "About Us", "url": "/about", "right": 1},
 		{"label": "Contact Us", "url": "/contact", "right": 1},
@@ -760,10 +785,18 @@ def _setup_portal_settings():
 		("Prayer Requests", "prayer-request", "Prayer Request", "Church User"),
 		("Community Prayer Requests", "community-prayer-requests", "Prayer Request", "Church User"),
 		("Alms Requests", "alms-request", "Alms Request", "Church User"),
+		("Care Requests", "care-request", "Care Request", "Church User"),
 		("Groups", "groups", "Group", "Church User"),
+		("Lead a Group", "group-leader", "Group", "Church User"),
+		("Group Files", "group-files", "Group File", "Church User"),
 		("Giving Statements", "statements", "Giving Statement", "Church User"),
+		("Pledges", "pledge", "Pledge", "Church User"),
+		("Book a Room", "room-request", "Room Booking", "Church User"),
 		("Bulletins", "bulletins", "Bulletin", "Church User"),
-		("Newsletter Subscription", "newsletter-subscription", "Email Group Member", "Church User"),
+		("Personal Details", "personal-details", "Person", "Church User"),
+		("Communication Preferences", "preferences", "Communication Consent", "Church User"),
+		("My Household", "household", "Family", "Church User"),
+		("Member Directory", "directory", "Person", "Church User"),
 	]
 	doc = frappe.get_doc("Portal Settings")
 	# Left blank deliberately. Frappe consults this before Website Settings when a
@@ -854,26 +887,6 @@ def _create_default_case_types():
 		_insert_if_missing("Case Type", {"type": case_type}, type=case_type)
 
 
-def create_default_background_check_types():
-	"""Seed the standard Background Check Type lookup values."""
-	if not frappe.db.exists("DocType", "Background Check Type"):
-		return
-	for check_type, valid_for_years in (
-		("Criminal Background", 3),
-		("Sex Offender Registry", 3),
-		("Child Abuse Clearance", 5),
-		("Driving Record", 3),
-	):
-		if not frappe.db.exists("Background Check Type", check_type):
-			frappe.get_doc(
-				{
-					"doctype": "Background Check Type",
-					"type": check_type,
-					"valid_for_years": valid_for_years,
-				}
-			).insert(ignore_permissions=True)
-
-
 def _create_default_care_request_types():
 	"""Seed the standard Care Request Type lookup values.
 
@@ -910,25 +923,6 @@ def _create_default_budgets():
 			period="Annual",
 			is_active=1,
 		)
-
-
-def _create_member_email_group():
-	"""Create the church newsletter Email Group and seed it from Person emails.
-
-	The list is kept current automatically by the daily
-	``churchit.church_communications.newsletter.sync_member_email_group`` job, so
-	the recipient list is never maintained by hand.
-	"""
-	from churchit.church_communications.newsletter import (
-		MEMBER_EMAIL_GROUP,
-		sync_member_email_group,
-	)
-
-	if not frappe.db.exists("Email Group", MEMBER_EMAIL_GROUP):
-		frappe.get_doc({"doctype": "Email Group", "title": MEMBER_EMAIL_GROUP}).insert(
-			ignore_permissions=True
-		)
-	sync_member_email_group()
 
 
 def _create_contact_types():

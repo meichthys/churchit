@@ -4,6 +4,7 @@ import calendar
 
 import frappe
 from frappe import _
+from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
 from frappe.utils.pdf import inline_private_images
@@ -14,7 +15,7 @@ from pypika import Order
 from churchit.church_missions.doctype.missionary_status.missionary_status import is_current_missionary
 from churchit.church_people.doctype.family.family import primary_contacts
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
-from churchit.church_people.membership import ACTIVE, is_active_member
+from churchit.church_people.membership import ACTIVE, is_active_member, living_people_filter
 from churchit.church_people.report.church_directory_report.booklet import impose_booklet
 from churchit.church_scope import church_filter, root_church, scoped
 from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
@@ -22,6 +23,7 @@ from churchit.query import Day, Month
 from churchit.scripture import get_printable_passage
 from churchit.utils import set_report_link_titles
 
+REPORT = "Church Directory Report"
 ADDRESS_FIELDS = ("address_line1", "address_line2", "city", "state", "pincode")
 
 
@@ -133,7 +135,13 @@ def get_data(filters):
 	return result
 
 
-@frappe.whitelist()
+def refuse_readers_without_the_report():
+	"""The whitelisted directory methods answer only users whose roles may open the report."""
+	if not frappe.get_cached_doc("Report", REPORT).is_permitted():
+		frappe.throw(_("You cannot open the Church Directory."), frappe.PermissionError)
+
+
+@frappe.whitelist(methods=["POST"])
 def get_directory_html(
 	members_only: bool = 0,
 	hide_non_active: bool = 0,
@@ -149,6 +157,9 @@ def get_directory_html(
 	show_birthdays: bool = 0,
 	show_anniversaries: bool = 0,
 	show_missionaries: bool = 0,
+	show_groups: bool = 0,
+	show_group_members: bool = 0,
+	show_group_roles: bool = 0,
 	blank_back_cover: bool = 0,
 	show_page_numbers: bool = 0,
 	include_notes_page: bool = 0,
@@ -157,6 +168,7 @@ def get_directory_html(
 	church: str | None = None,
 ):
 	"""Generate the full HTML for the church directory, ready to print."""
+	refuse_readers_without_the_report()
 	filters = {"church": church, "members_only": members_only, "hide_non_active": hide_non_active}
 	group_by_family = frappe.utils.cint(group_by_family)
 	show_photos = frappe.utils.cint(show_photos)
@@ -170,6 +182,9 @@ def get_directory_html(
 	show_birthdays = frappe.utils.cint(show_birthdays)
 	show_anniversaries = frappe.utils.cint(show_anniversaries)
 	show_missionaries = frappe.utils.cint(show_missionaries)
+	show_groups = frappe.utils.cint(show_groups)
+	show_group_members = show_groups and frappe.utils.cint(show_group_members)
+	show_group_roles = show_group_members and frappe.utils.cint(show_group_roles)
 	blank_back_cover = frappe.utils.cint(blank_back_cover)
 	show_page_numbers = frappe.utils.cint(show_page_numbers)
 	include_notes_page = frappe.utils.cint(include_notes_page)
@@ -342,32 +357,20 @@ def get_directory_html(
 	# ── Birthdays ────────────────────────────────────────────────
 	birthdays = []
 	if show_birthdays:
-		LifeEvent = frappe.qb.DocType("Life Event")
 		birthdays_query = (
 			frappe.qb.from_(Person)
-			.join(LifeEvent)
-			.on(
-				(LifeEvent.parent == Person.name)
-				& (LifeEvent.parenttype == "Person")
-				& (LifeEvent.event_type == "Birth")
-			)
-			.select(
-				Person.full_name,
-				LifeEvent.date.as_("birthday"),
-				Month(LifeEvent.date).as_("birth_month"),
-				Day(LifeEvent.date).as_("birth_day"),
-			)
-			.where(LifeEvent.date.isnotnull())
-			.orderby(Month(LifeEvent.date))
-			.orderby(Day(LifeEvent.date))
+			.select(Person.full_name, Person.birth_month, Person.birth_day)
+			.where(Person.birth_month > 0)
+			.orderby(Person.birth_month)
+			.orderby(Person.birth_day)
 			.orderby(Person.last_name)
 			.orderby(Person.first_name)
 		)
 
 		raw_birthdays = scoped(listed(birthdays_query, Person, filters), Person, filters).run(as_dict=True)
 		for row in raw_birthdays:
-			row["month_name"] = calendar.month_name[int(row.birth_month)]
-			row["month_day"] = f"{calendar.month_name[int(row.birth_month)]} {int(row.birth_day)}"
+			row["month_name"] = calendar.month_name[row.birth_month]
+			row["month_day"] = f"{row.month_name} {row.birth_day}"
 			birthdays.append(row)
 
 	# ── Anniversaries ────────────────────────────────────────────
@@ -393,7 +396,7 @@ def get_directory_html(
 			)
 			.where(Person.anniversary.isnotnull() & (Person.marital_status == MARRIED))
 			.where(Coalesce(Spouse.hide_from_directory, 0) == 0)
-			.where(Spouse.name.isnull() | Spouse.name.notin(deceased_people()))
+			.where(Spouse.name.isnull() | living_people_filter(Spouse))
 			.orderby(Month(Person.anniversary))
 			.orderby(Day(Person.anniversary))
 			.orderby(Person.last_name)
@@ -465,6 +468,8 @@ def get_directory_html(
 				if m.agency:
 					m["agency"] = agency_map.get(m.agency, m.agency)
 
+	groups = get_directory_groups(filters, show_group_members) if show_groups else []
+
 	generated_date = frappe.utils.formatdate(frappe.utils.nowdate(), "MMMM yyyy")
 	church_name = church_doc.church_name if church_doc else ""
 	context = {
@@ -486,6 +491,8 @@ def get_directory_html(
 		"show_birthdays": show_birthdays,
 		"show_anniversaries": show_anniversaries,
 		"show_missionaries": show_missionaries,
+		"groups": groups,
+		"show_group_roles": show_group_roles,
 		"blank_back_cover": blank_back_cover,
 		"show_page_numbers": show_page_numbers,
 		"include_notes_page": include_notes_page,
@@ -508,6 +515,7 @@ def get_directory_html(
 @frappe.whitelist()
 def download_directory_pdf(**options):
 	"""The directory as a PDF, rendered here because only Chromium prints page numbers and footers."""
+	refuse_readers_without_the_report()
 	booklet_printing = frappe.utils.cint(options.get("booklet_printing"))
 	document = get_paginated_directory(options)
 	if booklet_printing and len(document.pages) % 4:
@@ -518,6 +526,7 @@ def download_directory_pdf(**options):
 	if booklet_printing:
 		pdf = impose_booklet(pdf)
 
+	make_access_log(report_name=REPORT, file_type="PDF", method="Print", filters=options)
 	frappe.local.response.filename = f"{_('Church Directory')}.pdf"
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
@@ -557,7 +566,7 @@ def with_home_address(query, Person):
 def listed(query, Person, filters):
 	"""*query* without the deceased, the people who asked to be left out of the directory, and those *filters* leave out."""
 	filters = filters or {}
-	query = query.where((Person.hide_from_directory == 0) & Person.name.notin(deceased_people()))
+	query = query.where((Person.hide_from_directory == 0) & living_people_filter(Person))
 	if frappe.utils.cint(filters.get("members_only")):
 		query = query.where(is_active_member(Person))
 	if frappe.utils.cint(filters.get("hide_non_active")):
@@ -569,7 +578,7 @@ def get_families_with_hidden_contact(hide_non_active=False):
 	"""Families whose primary contact is hidden, deceased, or not Active when *hide_non_active*."""
 	Family = frappe.qb.DocType("Family")
 	Person = frappe.qb.DocType("Person")
-	is_hidden = (Person.hide_from_directory == 1) | Person.name.isin(deceased_people())
+	is_hidden = (Person.hide_from_directory == 1) | ~living_people_filter(Person)
 	if hide_non_active:
 		is_hidden |= Coalesce(Person.membership_status, "") != ACTIVE
 	# church-scope: only used to shorten names of families the scoped queries already listed
@@ -581,16 +590,6 @@ def get_families_with_hidden_contact(hide_non_active=False):
 		.where(is_hidden)
 	)
 	return set(families.run(pluck=True))
-
-
-def deceased_people():
-	"""Subquery of the people with a Death life event."""
-	LifeEvent = frappe.qb.DocType("Life Event")
-	return (
-		frappe.qb.from_(LifeEvent)
-		.select(LifeEvent.parent)
-		.where((LifeEvent.parenttype == "Person") & (LifeEvent.event_type == "Death"))
-	)
 
 
 def listed_family_name(family_name, is_contact_hidden):
@@ -630,7 +629,7 @@ def get_missionary_people(missionaries):
 			(MissionaryPerson.parenttype == "Missionary")
 			& MissionaryPerson.parent.isin(missionaries)
 			& (Person.hide_from_directory == 0)
-			& Person.name.notin(deceased_people())
+			& living_people_filter(Person)
 		)
 		.orderby(MissionaryPerson.idx)
 		.run(as_dict=True)
@@ -639,6 +638,47 @@ def get_missionary_people(missionaries):
 	for row in rows:
 		people.setdefault(row.parent, []).append(row.full_name)
 	return people
+
+
+def get_directory_groups(filters, show_members=False):
+	"""Groups that are not Inactive, and with *show_members* the members of each one shown in the directory."""
+	Group = frappe.qb.DocType("Group")
+	groups_query = (
+		frappe.qb.from_(Group)
+		.select(Group.name, Group.group_name, Group.description, Group.show_in_directory)
+		.where(Coalesce(Group.status, "") != "Inactive")
+		.orderby(Group.group_name)
+	)
+	groups = scoped(groups_query, Group, filters).run(as_dict=True)
+
+	members = {}
+	if show_members:
+		members = get_group_members([group.name for group in groups if group.show_in_directory], filters)
+	for group in groups:
+		group["members"] = members.get(group.name, [])
+	return groups
+
+
+def get_group_members(groups, filters):
+	"""{group: [rows with full_name and role]} by first name, without the people the directory leaves out."""
+	if not groups:
+		return {}
+	GroupMember = frappe.qb.DocType("Group Member")
+	Person = frappe.qb.DocType("Person")
+	# church-scope: only the members of groups the scoped query already listed
+	query = (
+		frappe.qb.from_(GroupMember)
+		.join(Person)
+		.on(Person.name == GroupMember.person)
+		.select(GroupMember.parent, Person.full_name, GroupMember.group_role.as_("role"))
+		.where((GroupMember.parenttype == "Group") & GroupMember.parent.isin(groups))
+		.orderby(Person.first_name)
+		.orderby(Person.last_name)
+	)
+	members = {}
+	for row in listed(query, Person, filters).run(as_dict=True):
+		members.setdefault(row.parent, []).append(row)
+	return members
 
 
 def header_church(filters):

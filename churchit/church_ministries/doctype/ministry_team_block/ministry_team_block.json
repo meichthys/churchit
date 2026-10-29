@@ -15,6 +15,8 @@
   "from_date",
   "to_date",
   "reason",
+  "repeat_frequency",
+  "repeat_until",
   "hidden_fields_section",
   "title"
  ],
@@ -72,6 +74,20 @@
    "label": "Reason"
   },
   {
+   "description": "Repeat the dates from From Date to To Date. Monthly repeats the weekday and its week of the month, such as the first Sunday.",
+   "fieldname": "repeat_frequency",
+   "fieldtype": "Select",
+   "label": "Repeat",
+   "options": "\nWeekly\nEvery Other Week\nMonthly on the Same Weekday"
+  },
+  {
+   "depends_on": "repeat_frequency",
+   "description": "Leave empty to repeat with no end.",
+   "fieldname": "repeat_until",
+   "fieldtype": "Date",
+   "label": "Repeat Until"
+  },
+  {
    "fieldname": "hidden_fields_section",
    "fieldtype": "Section Break",
    "hidden": 1,
@@ -88,7 +104,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-26 22:54:42.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Block",

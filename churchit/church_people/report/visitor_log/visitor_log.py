@@ -1,9 +1,10 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce, Count, Min
-from frappe.utils import cint
+from frappe.utils import cint, today
 from pypika import Interval, Order
 
+from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people.membership import VISITOR
 from churchit.church_scope import scoped
 from churchit.contacts import primary_email_query, primary_phone_query
@@ -49,11 +50,12 @@ def get_data(filters=None):
 			.join(Function)
 			.on(Function.name == Attendance.parent)
 			.where(Attendance.person == Person.name)
+			.where(Attendance.attendance_type.isin(COUNTED_TYPES) & (Function.start_date <= today()))
 		)
 
 	first_visit = attended().select(Attendance.parent).orderby(Function.start_date).limit(1)
 	first_visit_date = attended().select(Min(Function.start_date))
-	visit_count = frappe.qb.from_(Attendance).select(Count("*")).where(Attendance.person == Person.name)
+	visit_count = attended().select(Count("*"))
 
 	query = (
 		frappe.qb.from_(Person)

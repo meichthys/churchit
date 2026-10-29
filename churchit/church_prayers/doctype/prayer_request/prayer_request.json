@@ -13,8 +13,10 @@
   "status",
   "type",
   "end_date",
-  "is_private",
+  "visibility",
   "urgent",
+  "approved_for_list",
+  "prayer_count",
   "column_break_ynvf",
   "recipient_type",
   "recipient",
@@ -54,6 +56,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Prayer Request Status",
+   "permlevel": 1,
    "reqd": 1
   },
   {
@@ -67,14 +70,15 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "default": "0",
-   "description": "Check this if you don't want this request shared with the church body.",
-   "fieldname": "is_private",
-   "fieldtype": "Check",
+   "default": "Whole Church",
+   "description": "Private: only you and the pastoral care team. Prayer Team: also the prayer team. Whole Church: every member, on the Community Prayer Requests page.",
+   "fieldname": "visibility",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Is Private"
+   "label": "Who Can See It",
+   "options": "Private\nPrayer Team\nWhole Church",
+   "reqd": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -152,6 +156,25 @@
    "fieldname": "end_date",
    "fieldtype": "Datetime",
    "label": "End Date"
+  },
+  {
+   "default": "1",
+   "description": "Show this request on the Community Prayer Requests page and in bulletins. A request from the anonymous website form starts unticked until staff approve it.",
+   "fieldname": "approved_for_list",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Approved for List",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "description": "How many prayers people recorded for this request.",
+   "fieldname": "prayer_count",
+   "fieldtype": "Int",
+   "label": "Times Prayed For",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -162,7 +185,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-27 13:53:00.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
@@ -230,6 +253,45 @@
    "role": "Church Staff",
    "select": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Prayer Team",
+   "select": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Pastoral Care",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church User"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Staff"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Prayer Team"
   }
  ],
  "row_format": "Dynamic",

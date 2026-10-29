@@ -5,7 +5,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, getdate
+from frappe.utils import add_days, getdate, set_request
 
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_scope import church_filters, selected_church_filters
@@ -86,16 +86,19 @@ class TestWebsiteChurchSelection(FrappeTestCase):
 		self.assertIn(branch_event.name, events)
 		self.assertNotIn(root_event.name, events)
 
-	def test_bulletins_follow_the_selected_church(self):
+	def test_bulletins_follow_the_members_church_not_the_selected_one(self):
+		"""Bulletins are members-only, so the reader's own church decides, not ``?church=``."""
 		function = make_function("_Test Branch Service", church=self.branch)
 		bulletin = frappe.get_doc({"doctype": "Bulletin", "function": function.name, "publish": 1}).insert(
 			ignore_permissions=True
 		)
 		self.assertEqual(bulletin.church, self.branch)
+		user = ensure_user("_test_site_root_member@example.com", "Root")
+		make_person("_Test Site", "Root Member", church=self.root, user=user)
 
-		self.assertNotIn(bulletin.name, [row.name for row in get_published_bulletins()])
+		frappe.set_user(user)
 		select_church(self.branch)
-		self.assertIn(bulletin.name, [row.name for row in get_published_bulletins()])
+		self.assertNotIn(bulletin.name, [row.name for row in get_published_bulletins()])
 
 	def test_the_navbar_offers_the_published_churches(self):
 		context = frappe._dict({})
@@ -171,6 +174,8 @@ class TestWebsiteChurchSelection(FrappeTestCase):
 		self.assertEqual(request.church, self.root)
 
 	def test_signed_in_visitors_skip_the_shared_page_cache(self):
+		set_request(method="GET", path="/about")
+		self.addCleanup(delattr, frappe.local, "request")
 		frappe.set_user("Guest")
 		before_request()
 		self.assertFalse(getattr(frappe.local, "no_cache", 0))

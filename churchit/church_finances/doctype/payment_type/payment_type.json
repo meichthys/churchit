@@ -9,7 +9,8 @@
  "engine": "InnoDB",
  "field_order": [
   "type",
-  "description"
+  "description",
+  "is_non_cash"
  ],
  "fields": [
   {
@@ -27,6 +28,13 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Description"
+  },
+  {
+   "default": "0",
+   "description": "Donated property, not money. Its gifts need a description and an amount of 0, and statements show the description.",
+   "fieldname": "is_non_cash",
+   "fieldtype": "Check",
+   "label": "Non-Cash"
   }
  ],
  "grid_page_length": 50,
@@ -38,7 +46,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-23 01:04:02.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Payment Type",
@@ -84,9 +92,9 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"
 }

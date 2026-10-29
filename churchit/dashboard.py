@@ -1,4 +1,6 @@
 import frappe
+from frappe import _
+from frappe.desk.query_report import get_report_doc
 from frappe.query_builder.functions import Count
 from frappe.utils import (
 	add_days,
@@ -15,13 +17,16 @@ from frappe.utils import (
 	getdate,
 )
 
+from churchit.church_ministries.attendance import COUNTED_TYPES
+from churchit.church_people import smart_lists
 from churchit.church_scope import church_query_filters, scoped
 
 
 @frappe.whitelist()
 def count_weekly_attendance():
 	frappe.has_permission("Function", "report", throw=True)
-	last_week = frappe.utils.add_days(frappe.utils.nowdate(), -7)
+	today = frappe.utils.nowdate()
+	last_week = frappe.utils.add_days(today, -7)
 
 	Attendance = frappe.qb.DocType("Function Attendance")
 	Function = frappe.qb.DocType("Function")
@@ -31,7 +36,8 @@ def count_weekly_attendance():
 		.join(Function)
 		.on(Attendance.parent == Function.name)
 		.select(Count(Attendance.name))
-		.where(Function.start_date >= last_week)
+		.where((Function.start_date >= last_week) & (Function.start_date <= today))
+		.where(Attendance.attendance_type.isin(COUNTED_TYPES))
 	)
 	count = scoped(query, Function, {}).run()[0][0]
 
@@ -55,6 +61,28 @@ def count_families(filters: str | list | dict | None = None):
 	return count_in_readers_churches("Family", filters)
 
 
+def count_people_in_list(report_name: str) -> dict:
+	"""Number card: people a saved Person list shows in the reader's churches; the card opens that list."""
+	report = frappe.get_cached_doc("Report", report_name)
+	if not report.is_permitted():
+		frappe.throw(_("You cannot open {0}.").format(report_name), frappe.PermissionError)
+
+	if report.report_type == smart_lists.CUSTOM_REPORT:
+		get_report_doc(report_name)  # the rights on the report it was saved from
+		people = smart_lists.get_report_people(report)
+		return {
+			"value": len(people),
+			"fieldtype": "Int",
+			"route": ["query-report", report_name],
+			"route_options": {},
+		}
+
+	count = count_in_readers_churches("Person", frappe.parse_json(report.json).get("filters"))
+	count["route"] = ["List", "Person", "Report", report_name]
+	count["route_options"] = {field: list(condition) for field, condition in church_query_filters({}).items()}
+	return count
+
+
 def count_in_readers_churches(doctype, filters):
 	"""Count *doctype* like a Document Type card would, but only in the reader's churches.
 
@@ -67,8 +95,10 @@ def count_in_readers_churches(doctype, filters):
 		*(frappe.parse_json(filters) or []),
 		*([doctype, field, *condition] for field, condition in scope.items()),
 	]
+	# A child table filter joins one row per match, so count each record once.
+	distinct_records = Count(frappe.qb.DocType(doctype).name).distinct()
 	return {
-		"value": frappe.db.count(doctype, filters=rows),
+		"value": frappe.qb.get_query(doctype, filters=rows, fields=[distinct_records]).run()[0][0],
 		"fieldtype": "Int",
 		"route": ["List", doctype],
 		"route_options": {row[1]: [row[2], row[3]] for row in rows},
@@ -82,6 +112,7 @@ def time_buckets(timespan, time_interval, from_date, to_date):
 	else:
 		end = today
 		start_map = {
+			"Last 5 Years": add_to_date(today, years=-5, as_datetime=False),
 			"Last Year": add_to_date(today, years=-1, as_datetime=False),
 			"Last Quarter": add_months(today, -3),
 			"Last Month": add_months(today, -1),

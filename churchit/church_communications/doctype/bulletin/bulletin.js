@@ -4,7 +4,11 @@
 frappe.ui.form.on("Bulletin", {
 	setup(frm) {
 		frm.set_query("prayer_request", "prayer_requests", () => ({
-			filters: { is_private: 0, status: ["not in", ["Answered", "Archived", "Closed"]] },
+			filters: {
+				visibility: "Whole Church",
+				approved_for_list: 1,
+				status: ["not in", ["Answered", "Archived", "Closed"]],
+			},
 		}));
 	},
 

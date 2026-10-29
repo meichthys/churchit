@@ -23,7 +23,8 @@
 	<form id="give-form">
 		<div class="form-group mb-3">
 			<label for="give-amount">{{ _("Amount") }} <span class="text-muted">({{ currency }})</span></label>
-			<input type="number" min="1" step="0.01" class="form-control" id="give-amount" placeholder="0.00" required>
+			<input type="number" min="1" step="0.01" class="form-control" id="give-amount" placeholder="0.00"
+				{% if amount %}value="{{ amount }}"{% endif %} required>
 		</div>
 
 		<div class="form-group mb-3">
@@ -63,9 +64,29 @@
 		</div>
 		{% endif %}
 
+		{% if fee_cover %}
+		<div class="form-check mb-3" id="give-cover-fee-group">
+			<input type="checkbox" class="form-check-input" id="give-cover-fee">
+			<label class="form-check-label" for="give-cover-fee">
+				{{ _("Cover the processing fee") }} <span id="give-fee-amount"></span>
+			</label>
+			<small class="form-text text-muted">{{ _("We work out the fee from the card rate, so the church receives your whole gift.") }}</small>
+		</div>
+		{% endif %}
+
 		<button type="submit" class="btn btn-primary btn-block" id="give-submit">{{ _("Give") }}</button>
 		<div id="give-error" class="text-danger mt-2" style="display: none;"></div>
 	</form>
+	{% endif %}
+
+	{% if other_ways_to_give %}
+	<div class="give-other-ways mt-5">
+		<h3>{{ _("Other Ways to Give") }}</h3>
+		{{ other_ways_to_give }}
+		{% if envelope_number %}
+		<p>{{ _("When you give this way, use your envelope number {0} as the payment reference.").format("<strong>" ~ envelope_number | e ~ "</strong>") }}</p>
+		{% endif %}
+	</div>
 	{% endif %}
 </div>
 
@@ -77,6 +98,26 @@ frappe.ready(function () {
 	const btn = document.getElementById('give-submit');
 	const errEl = document.getElementById('give-error');
 	const giveLabel = '{{ _("Give") }}';
+	const feeCover = {{ fee_cover | tojson }};
+	const feeGroup = document.getElementById('give-cover-fee-group');
+	const amountEl = document.getElementById('give-amount');
+	const gatewayEl = document.getElementById('give-gateway');
+
+	// The server works out the real fee; this only shows the giver what to expect.
+	function showFee() {
+		if (!feeGroup) return;
+		const rate = feeCover[gatewayEl ? gatewayEl.value : {{ default_gateway | tojson }}];
+		feeGroup.style.display = rate ? '' : 'none';
+		if (!rate) return;
+		const amount = parseFloat(amountEl.value) || 0;
+		const fee = (amount + rate.fixed) / (1 - rate.percent / 100) - amount;
+		document.getElementById('give-fee-amount').textContent =
+			amount > 0 ? '(' + fee.toFixed(2) + ' {{ currency }})' : '';
+	}
+
+	amountEl.addEventListener('input', showFee);
+	if (gatewayEl) gatewayEl.addEventListener('change', showFee);
+	showFee();
 
 	function showError(msg) {
 		btn.disabled = false;
@@ -93,14 +134,15 @@ frappe.ready(function () {
 
 		frappe.call({
 			method: 'churchit.www.give.start_donation',
-			args: {
-				amount: document.getElementById('give-amount').value,
+			args: churchit.with_church({
+				amount: amountEl.value,
 				fund: document.getElementById('give-fund').value,
-				payment_gateway: (document.getElementById('give-gateway') || {}).value,
+				payment_gateway: (gatewayEl || {}).value,
 				donor_name: document.getElementById('give-name').value,
 				email: document.getElementById('give-email').value,
 				notes: document.getElementById('give-notes').value,
-			},
+				cover_fee: feeGroup && document.getElementById('give-cover-fee').checked ? 1 : 0,
+			}),
 			callback: function (r) {
 				if (r.message) {
 					window.location.href = r.message;

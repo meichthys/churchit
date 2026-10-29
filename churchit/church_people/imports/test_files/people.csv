@@ -1,0 +1,5 @@
+Person ID,Household ID,Household Name,Primary Contact,Household Role,First Name,Last Name,Gender,Birth Date,Marital Status,Membership,Status,Home Email,Mobile Phone,Home Phone,Address Line 1,City,State,Postal Code,Country
+S-3,H-1,Fernwood - Alder,No,Child,Bramble,Fernwood,Male,2014-06-02,,Regular Attender,Active,,,(555) 010-2000,7 Juniper Way,Springfield,IL,62701,United States
+S-1,H-1,Fernwood - Alder,Yes,Adult,Alder,Fernwood,Male,1979-01-15,Married,Member,Active,alder.fernwood@example.com,(555) 010-1001,(555) 010-2000,7 Juniper Way,Springfield,IL,62701,United States
+S-2,H-1,Fernwood - Alder,No,Adult,Willow,Fernwood,Female,1981-09-30,Married,Member,Active,willow.fernwood@example.com,(555) 010-1002,(555) 010-2000,7 Juniper Way,Springfield,IL,62701,United States
+S-4,,,,,Quill,Ashby,Female,,Single,Visitor,Active,quill.ashby@example.com,,,12 Linden Court,Springfield,IL,62702,United States

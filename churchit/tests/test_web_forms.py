@@ -111,27 +111,72 @@ class TestGroupsWebForm(FrappeTestCase):
 
 
 class TestCommunityPrayerRequestsWebForm(FrappeTestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		request_type = ensure("Prayer Request Type", {"type": "Health"})
-		self.public = self._request("_Test Community Public", request_type, is_private=0)
-		self.private = self._request("_Test Community Private", request_type, is_private=1)
+		cls.public = cls._request("_Test Community Public", request_type, visibility="Whole Church")
+		cls.team = cls._request("_Test Community Team", request_type, visibility="Prayer Team")
+		cls.private = cls._request("_Test Community Private", request_type, visibility="Private")
+		cls.member = ensure_user("_test_community_member@example.com", "_Test Community Member")
+		cls.praying = ensure_user(
+			"_test_community_team@example.com",
+			"_Test Community Team",
+			roles=("Church User", "Church Prayer Team"),
+		)
+		for user in (cls.member, cls.praying):
+			if not frappe.db.exists("Person", {"user": user}):
+				make_person(user, "_Test Community", user=user)
 
-	def _request(self, title, request_type, **values):
+	@classmethod
+	def _request(cls, title, request_type, **values):
 		return frappe.get_doc(
 			{"doctype": "Prayer Request", "title": title, "type": request_type, **values}
 		).insert(ignore_permissions=True)
 
-	def test_listing_shows_public_requests_from_everyone(self):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def listed(self, user, filters=None):
+		frappe.set_user(user)
 		context = prayer_form.get_list_context(frappe._dict(filters={"owner": "Administrator"}))
 		self.assertIsNone(context.filters)
+		return [row.name for row in context.get_list("Prayer Request", "", filters or [], 0, 500)]
 
-		names = [row.name for row in context.get_list("Prayer Request", "", [], 0, 500)]
+	def test_every_member_sees_whole_church_requests_from_everyone(self):
+		names = self.listed(self.member)
+
 		self.assertIn(self.public.name, names)
+		self.assertNotIn(self.team.name, names)
+		self.assertNotIn(self.private.name, names)
+
+	def test_the_prayer_team_also_sees_prayer_team_requests(self):
+		names = self.listed(self.praying)
+
+		self.assertIn(self.public.name, names)
+		self.assertIn(self.team.name, names)
 		self.assertNotIn(self.private.name, names)
 
 	def test_asking_for_private_requests_yields_nothing(self):
-		context = prayer_form.get_list_context(frappe._dict())
-		self.assertEqual(context.get_list("Prayer Request", "", {"is_private": 1}, 0, 500), [])
+		self.assertEqual(self.listed(self.praying, {"visibility": "Private"}), [])
+
+	def test_the_forms_condition_arrives_as_an_operator_filter(self):
+		names = self.listed(self.praying, {"visibility": ["!=", "Private"]})
+
+		self.assertIn(self.public.name, names)
+		self.assertIn(self.team.name, names)
+
+	def test_a_member_opens_only_the_requests_the_page_lists_them(self):
+		frappe.set_user(self.member)
+		self.assertTrue(self.public.has_webform_permission())
+		self.assertFalse(self.team.has_webform_permission())
+
+		frappe.set_user(self.praying)
+		self.assertTrue(self.team.has_webform_permission())
+		self.assertFalse(self.private.has_webform_permission())
+
+		frappe.set_user("Guest")
+		self.assertFalse(self.public.has_webform_permission())
 
 	def test_portal_submission_keeps_the_chosen_recipient(self):
 		"""The form's script picks a recipient by search; the id only survives
@@ -140,8 +185,9 @@ class TestCommunityPrayerRequestsWebForm(FrappeTestCase):
 		data = json.dumps(
 			{
 				"title": "_Test Community Submitted",
-				# The form's default; Frappe checks mandatory fields before it fills defaults.
+				# The form's defaults; Frappe checks mandatory fields before it fills defaults.
 				"status": "Requested",
+				"visibility": "Whole Church",
 				"type": self.public.type,
 				"request": "Please pray.",
 				"requestor": person.name,

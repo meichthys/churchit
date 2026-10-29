@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-23 22:01:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-23 22:01:00.000000",
+ "modified_by": "Administrator",
+ "name": "Group Join Request",
+ "owner": "Administrator",
+ "reference_doctype": "Group Join Request",
+ "response_html": "<p>Dear {{ first_name }},</p>\n\n<p>{{ person_name }} asks to join {{ group_name }}, which you lead.</p>\n\n{% if message %}<p>They wrote: {{ message }}</p>\n\n{% endif %}<p><a href=\"{{ link }}\">Approve or deny the request</a></p>\n\n<p>Thank you for leading the group!</p>",
+ "subject": "{{ person_name }} asks to join {{ group_name }}",
+ "use_html": 1
+}

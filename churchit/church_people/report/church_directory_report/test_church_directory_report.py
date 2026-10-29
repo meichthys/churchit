@@ -19,6 +19,7 @@ from churchit.church_people.report.church_directory_report.church_directory_repo
 from churchit.tests.helpers import (
 	ensure,
 	ensure_root_church,
+	ensure_user,
 	make_address,
 	make_person,
 	make_primary_contact,
@@ -44,6 +45,15 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		original = frappe.db.get_single_value("Church Features", "enable_website")
 		frappe.db.set_single_value("Church Features", "enable_website", enabled)
 		self.addCleanup(frappe.db.set_single_value, "Church Features", "enable_website", original)
+
+	def test_only_users_the_report_allows_get_the_directory(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(ensure_user("_test_directory_member@example.com", "Member", roles=("Church User",)))
+
+		with self.assertRaises(frappe.PermissionError):
+			self.render()
+		with self.assertRaises(frappe.PermissionError):
+			download_directory_pdf(church=self.church)
 
 	def test_cover_shows_the_church_verse_and_website(self):
 		translation = make_translation(self, "_TDV", [("JOS", 24, 15, "We will serve the LORD.")])
@@ -325,6 +335,58 @@ class TestChurchDirectoryReport(FrappeTestCase):
 			"_Test Former Ashby</", html, "an inactive missionary's people are listed with everyone"
 		)
 
+	def test_groups_are_listed_only_when_ticked(self):
+		make_group("_Test Directory Choir", description="_Test sings on Sundays")
+
+		self.assertNotIn("_Test Directory Choir", self.render())
+		html = self.render(show_groups="1")
+		self.assertIn('<div class="group-name">_Test Directory Choir</div>', html)
+		self.assertIn('<div class="group-description">_Test sings on Sundays</div>', html)
+
+	def test_groups_list_members_and_roles_only_when_shown_in_the_directory(self):
+		ensure("Group Role", {"role": "Leader"})
+		lead = make_person("_Test Lead", "Choir")
+		shy = make_person("_Test Shy", "Choir", hide_from_directory=1)
+		drummer = make_person("_Test Drummer", "Band")
+		make_group(
+			"_Test Directory Choir",
+			show_in_directory=1,
+			members=[{"person": lead.name, "group_role": "Leader"}, {"person": shy.name}],
+		)
+		make_group("_Test Directory Band", members=[{"person": drummer.name, "group_role": "Leader"}])
+		member = '<span class="group-member-name">{}</span>'
+		role = '<span class="group-member-role">Leader</span>'
+
+		self.assertNotIn(member.format("_Test Lead Choir"), self.render(show_groups="1"))
+		html = self.render(show_group_members="1", show_group_roles="1")
+		self.assertNotIn('<div class="group-name">', html, "members need the group list")
+
+		html = self.render(show_groups="1", show_group_members="1")
+		self.assertIn(member.format("_Test Lead Choir"), html)
+		self.assertNotIn(member.format("_Test Shy Choir"), html)
+		self.assertNotIn(member.format("_Test Drummer Band"), html)
+		self.assertNotIn(role, html)
+		self.assertIn(role, self.render(show_groups="1", show_group_members="1", show_group_roles="1"))
+
+	def test_group_members_are_listed_by_first_name(self):
+		people = [make_person(first, "Sorted") for first in ("_Test Zoe", "_Test Abe", "_Test Max")]
+		make_group(
+			"_Test Directory Sorted",
+			show_in_directory=1,
+			members=[{"person": person.name} for person in people],
+		)
+
+		html = self.render(show_groups="1", show_group_members="1")
+
+		names = [f">{first} Sorted<" for first in ("_Test Abe", "_Test Max", "_Test Zoe")]
+		self.assertEqual([html.index(name) for name in names], sorted(html.index(name) for name in names))
+
+	def test_inactive_groups_are_left_out(self):
+		ensure("Group Status", {"status": "Inactive"})
+		make_group("_Test Directory Disbanded", status="Inactive")
+
+		self.assertNotIn("_Test Directory Disbanded", self.render(show_groups="1"))
+
 	def test_deceased_people_are_left_out_everywhere(self):
 		for event_type in ("Birth", "Death"):
 			ensure("Life Event Type", {"type": event_type})
@@ -356,6 +418,19 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		for html in (grouped, self.render(group_by_family="0", **options)):
 			self.assertIn("_Test Rose Mourning", html)
 			self.assertNotIn("Walt", html)
+
+	def test_a_birthday_with_no_year_is_listed_by_month_and_day(self):
+		ensure("Life Event Type", {"type": "Birth"})
+		make_person(
+			"_Test Yearless",
+			"Birthday",
+			life_events=[{"event_type": "Birth", "date": "1900-07-04", "year_unknown": 1}],
+		)
+
+		html = self.render(show_birthdays="1")
+
+		birthdays = html[html.index('<div class="appendix-heading">Birthdays</div>') :]
+		self.assertRegex(birthdays, r"_Test Yearless Birthday</span>\s*<span class=\"calendar-date\">July 4<")
 
 	def test_record_values_are_escaped(self):
 		self.set_church_value("church_name", 'Saint "Mary" </style><script>x()</script>')
@@ -446,6 +521,13 @@ def make_family(family_name, street):
 			"addresses": [{"address": address, "is_primary": 1}],
 		}
 	).insert(ignore_permissions=True)
+
+
+def make_group(group_name, **values):
+	ensure("Group Status", {"status": "Active"})
+	return frappe.get_doc({"doctype": "Group", "group_name": group_name, **values}).insert(
+		ignore_permissions=True
+	)
 
 
 MM_TO_PX = 96 / 25.4

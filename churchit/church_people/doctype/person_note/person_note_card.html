@@ -1,0 +1,12 @@
+<div class="timeline-message-box">
+	<span class="flex justify-between m-1 mb-3">
+		<span class="text-color">
+			{{ author | e }} · <span class="text-muted">{{ date }}</span>
+			<div class="text-muted my-1">{{ heading | e }}</div>
+		</span>
+		<a class="action-btn" href="{{ url }}" title="{{ _('Open Note') }}">
+			<svg class="icon icon-sm"><use href="#icon-link"></use></svg>
+		</a>
+	</span>
+	<div class="content">{{ note }}</div>
+</div>

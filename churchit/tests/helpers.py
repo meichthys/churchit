@@ -12,6 +12,7 @@ an email or phone may be on one Person only.
 
 import csv
 import io
+import json
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -67,6 +68,20 @@ def make_person(first_name, last_name=None, **values):
 	).insert(ignore_permissions=True)
 
 
+def make_smart_list(name, filters=(("Person", "last_name", "=", "_Test Smart List"),), ref_doctype="Person"):
+	"""A saved Report Builder report on *ref_doctype* with *filters*; on Person it is a smart list."""
+	return frappe.get_doc(
+		{
+			"doctype": "Report",
+			"report_name": name,
+			"ref_doctype": ref_doctype,
+			"report_type": "Report Builder",
+			"is_standard": "No",
+			"json": json.dumps({"filters": filters}),
+		}
+	).insert(ignore_permissions=True)
+
+
 def make_primary_contact(person):
 	"""Make *person* the primary contact of the family they are in, and return them."""
 	family = frappe.get_doc("Family", person.family)
@@ -77,6 +92,9 @@ def make_primary_contact(person):
 
 def make_function(function_name, **values):
 	function_type = ensure("Function Type", {"type": "_Test Function Type"})
+	# A price needs a Sign-Up Fund, and a shared one suits a function of any church.
+	fund = {"fund": "_Test Sign-Up Fund", "is_shared": 1}
+	values.setdefault("sign_up_fund", ensure("Fund", {"fund": fund["fund"]}, fund))
 	return frappe.get_doc(
 		{
 			"doctype": "Function",

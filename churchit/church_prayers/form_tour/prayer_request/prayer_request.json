@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-06-27 18:00:00.000000",
+  "modified": "2026-10-21 12:00:00.000000",
   "modified_by": "Administrator",
   "module": "Church Prayers",
   "name": "Prayer Request",
@@ -35,13 +35,13 @@
       "ui_tour": 0
     },
     {
-      "description": "Private requests are visible only to leadership, not the general prayer list.",
-      "fieldname": "is_private",
-      "fieldtype": "Check",
+      "description": "Private: only the requester and the pastoral care team. Prayer Team: also the prayer team. Whole Church: every member, on the Community Prayer Requests page and in bulletins.",
+      "fieldname": "visibility",
+      "fieldtype": "Select",
       "has_next_condition": 0,
       "hide_buttons": 0,
       "is_table_field": 0,
-      "label": "Privacy",
+      "label": "Who Can See It",
       "modal_trigger": 0,
       "next_on_click": 0,
       "next_step_condition": "",
@@ -49,7 +49,7 @@
       "offset_y": 0,
       "popover_element": 0,
       "position": "Bottom",
-      "title": "Privacy",
+      "title": "Who Can See It",
       "ui_tour": 0
     },
     {

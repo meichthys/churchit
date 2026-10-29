@@ -60,8 +60,7 @@ def get_data(filters=None):
 			Donation.check_number,
 			Donation.amount,
 		)
-		# A cancelled collection took its gifts back.
-		.where((Donation.parenttype == "Collection") & (Collection.docstatus < 2))
+		.where((Donation.parenttype == "Collection") & (Collection.docstatus == 1))
 		.orderby(Collection.modified, order=Order.desc)
 	)
 	return scoped(query, Collection, filters).run(as_dict=True)

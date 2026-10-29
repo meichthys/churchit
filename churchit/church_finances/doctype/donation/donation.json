@@ -14,7 +14,10 @@
   "fund",
   "person",
   "person_email",
-  "notes"
+  "notes",
+  "is_non_cash",
+  "description",
+  "legacy_id"
  ],
  "fields": [
   {
@@ -30,7 +33,6 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "default": "General",
    "fieldname": "fund",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -66,6 +68,29 @@
    "label": "Notes"
   },
   {
+   "default": "0",
+   "fetch_from": "payment_type.is_non_cash",
+   "fieldname": "is_non_cash",
+   "fieldtype": "Check",
+   "label": "Non-Cash",
+   "read_only": 1
+  },
+  {
+   "depends_on": "is_non_cash",
+   "description": "What was given, as the statement prints it. Do not state a value.",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "description": "The gift id in the system it was imported from.",
+   "fieldname": "legacy_id",
+   "fieldtype": "Data",
+   "label": "Legacy ID",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
    "depends_on": "eval:doc.payment_type==\"Check\";",
    "fieldname": "check_number",
    "fieldtype": "Data",
@@ -88,7 +113,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-17 02:00:00.000000",
+ "modified": "2026-10-23 20:45:44.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Donation",

@@ -3,17 +3,18 @@
 {%- set upcoming = frappe.get_all(
 	"Function",
 	fields=["name", "function_name", "title", "start_date", "start_time", "all_day", "description"],
-	filters=selected_church_filters(publish=1, start_date=[">=", frappe.utils.nowdate()]),
+	filters=selected_church_filters(publish=1, is_link_only=0, start_date=[">=", frappe.utils.nowdate()]),
 	order_by="start_date asc, start_time asc",
 	limit=4,
 ) -%}
+{%- set sermons_on = "sermons" not in get_switched_off_pages() -%}
 {%- set sermons = frappe.get_all(
 	"Sermon",
 	fields=["name", "title", "notes", "audio_recording", "prepared_by"],
 	filters=selected_church_filters(publish=1),
 	order_by="modified desc",
 	limit=1,
-) -%}
+) if sermons_on else [] -%}
 {%- set address_line = "" -%}
 {%- if church.address -%}
 	{%- set addr = frappe.get_doc("Address", church.address) -%}
@@ -24,7 +25,7 @@
 	{"number": (frappe.utils.date_diff(frappe.utils.nowdate(), church.founding_date) // 365) if church.founding_date else 0, "label": _("Years serving")},
 	{"number": frappe.db.count("Ministry", selected_church_filters(publish=1)), "label": _("Ministries")},
 	{"number": frappe.db.count("Missionary", selected_church_filters(publish=1)), "label": _("Missionaries supported")},
-	{"number": frappe.db.count("Sermon", selected_church_filters(publish=1)), "label": _("Sermons online")},
+	{"number": frappe.db.count("Sermon", selected_church_filters(publish=1)) if sermons_on else 0, "label": _("Sermons online")},
 ] | selectattr("number") | list -%}
 
 <section class="home-hero">

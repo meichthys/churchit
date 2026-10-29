@@ -52,8 +52,9 @@ class BibleTranslation(Document):
 			frappe.throw(_("{0} holds no verses.").format(self.text_file))
 		self.status = "Ready"
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def download_again(self):
+		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
 		if not self.is_free_use:
 			frappe.throw(_("Only a Free Use Bible API translation can be downloaded."))

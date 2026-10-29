@@ -17,44 +17,30 @@ frappe.ui.form.on("Location", {
 	address(frm) {
 		if (!frm.doc.address) return;
 
-		frappe.db.get_doc("Address", frm.doc.address).then((addr) => {
-			const parts = [
-				addr.address_line1,
-				addr.address_line2,
-				addr.city,
-				addr.state,
-				addr.pincode,
-				addr.country,
-			].filter(Boolean);
-
-			if (!parts.length) return;
-
-			const query = encodeURIComponent(parts.join(", "));
-			fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-				headers: { "Accept-Language": "en" },
+		// The server looks the address up, so People Settings can turn it off.
+		frappe
+			.xcall("churchit.church_people.geocoding.get_address_coordinates", {
+				address: frm.doc.address,
 			})
-				.then((r) => r.json())
-				.then((results) => {
-					if (!results.length) {
-						frappe.msgprint(__("Address could not be geocoded."));
-						return;
-					}
-					const { lat, lon } = results[0];
-					const geojson = JSON.stringify({
-						type: "FeatureCollection",
-						features: [
-							{
-								type: "Feature",
-								geometry: {
-									type: "Point",
-									coordinates: [parseFloat(lon), parseFloat(lat)],
-								},
-								properties: {},
-							},
-						],
-					});
-					frm.set_value("geolocation", geojson);
+			.then((coordinates) => {
+				// No answer while address lookups are off.
+				if (!coordinates) return;
+				const [latitude, longitude] = coordinates;
+				if (!latitude && !longitude) {
+					frappe.msgprint(__("Address could not be geocoded."));
+					return;
+				}
+				const geojson = JSON.stringify({
+					type: "FeatureCollection",
+					features: [
+						{
+							type: "Feature",
+							geometry: { type: "Point", coordinates: [longitude, latitude] },
+							properties: {},
+						},
+					],
 				});
-		});
+				frm.set_value("geolocation", geojson);
+			});
 	},
 });

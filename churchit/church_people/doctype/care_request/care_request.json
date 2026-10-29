@@ -13,8 +13,9 @@
   "category",
   "column_break_1",
   "urgency",
+  "due_on",
   "status",
-  "assigned_to",
+  "caregiver",
   "section_break_1",
   "description",
   "preferred_contact",
@@ -73,6 +74,14 @@
    "in_standard_filter": 1
   },
   {
+   "description": "Set from the urgency: Urgent 1 day, High 3 days, Medium 7 days and Low 14 days. You can change it.",
+   "fieldname": "due_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due On",
+   "search_index": 1
+  },
+  {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
@@ -82,9 +91,11 @@
    "in_standard_filter": 1
   },
   {
-   "fieldname": "assigned_to",
+   "description": "The person caring for this request. Filled in from the person's Care Assignment. When the caregiver has a desk login, the request goes on their To Do list.",
+   "fieldname": "caregiver",
    "fieldtype": "Link",
-   "label": "Assigned To",
+   "in_standard_filter": 1,
+   "label": "Caregiver",
    "options": "Person"
   },
   {
@@ -115,7 +126,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-18 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",

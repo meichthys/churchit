@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.exceptions import ValidationError
+from frappe.handler import execute_cmd
 
 from churchit.church_people.group_api import join_group, joinable_public_groups
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person
@@ -55,6 +56,19 @@ class TestGroupApi(RollbackEachTest):
 		for group in ("", "GRP-DOES-NOT-EXIST", self.hidden_group.name, self.closed_group.name):
 			with self.assertRaises(ValidationError):
 				join_group(group)
+
+	def test_a_get_request_joins_nothing(self):
+		"""Frappe checks the CSRF token only on POST, and the session cookie rides on a GET another site starts."""
+		frappe.local.request = frappe._dict(method="GET")
+		frappe.local.form_dict = frappe._dict(group=self.open_group.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				execute_cmd("churchit.church_people.group_api.join_group")
+		finally:
+			del frappe.local.request
+			frappe.local.form_dict = frappe._dict()
+
+		self.assertFalse(frappe.db.exists("Group Member", {"parent": self.open_group.name}))
 
 	def test_join_requires_a_linked_person(self):
 		frappe.set_user(ensure_user("_test_unlinked_joiner@example.com", "_Test Unlinked"))

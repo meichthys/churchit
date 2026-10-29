@@ -1,21 +1,35 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
+
 import frappe
+from frappe.api.v1 import update_doc
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days
 
 from churchit.church_communications.doctype.bulletin.bulletin import (
 	SECTION_FIELDS,
+	download_pdf,
 	get_defaults,
 	missionary_of_the_week,
 	supported_missionaries,
 )
 from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_study.doctype.sermon_handout.sermon_handout import make_handout
-from churchit.tests.helpers import ensure, make_function, make_person, make_translation
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_function,
+	make_person,
+	make_translation,
+	make_two_churches,
+)
 
 FUNCTION_DATE = "2031-05-04"
+# A 1x1 PNG.
+PIXEL = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
 
 class TestBulletin(FrappeTestCase):
@@ -56,9 +70,11 @@ class TestBulletin(FrappeTestCase):
 		self.settings.show_birthdays = 1
 		self.settings.save(ignore_permissions=True)
 		open_request = self.make_prayer_request("_Test Open Request")
-		private_request = self.make_prayer_request("_Test Private Request", is_private=1)
+		private_request = self.make_prayer_request("_Test Private Request", visibility="Private")
+		team_request = self.make_prayer_request("_Test Team Request", visibility="Prayer Team")
 		answered_request = self.make_prayer_request("_Test Answered Request", status="Answered")
 		expired_request = self.make_prayer_request("_Test Expired Request", end_date="2020-01-01 00:00:00")
+		unapproved_request = self.make_prayer_request("_Test Unapproved Request", approved_for_list=0)
 
 		defaults = get_defaults(self.function.name)
 
@@ -68,8 +84,10 @@ class TestBulletin(FrappeTestCase):
 		picked = {row["prayer_request"] for row in defaults["prayer_requests"]}
 		self.assertIn(open_request.name, picked)
 		self.assertNotIn(private_request.name, picked)
+		self.assertNotIn(team_request.name, picked)
 		self.assertNotIn(answered_request.name, picked)
 		self.assertNotIn(expired_request.name, picked)
+		self.assertNotIn(unapproved_request.name, picked)
 		self.assertEqual(
 			next(row for row in defaults["prayer_requests"] if row["prayer_request"] == open_request.name)[
 				"title"
@@ -123,12 +141,21 @@ class TestBulletin(FrappeTestCase):
 		self.settings.save(ignore_permissions=True)
 		self.assertEqual(self.make_bulletin(missionary=sensitive.name).missionary, sensitive.name)
 
-	def test_private_prayer_request_is_refused(self):
-		private_request = self.make_prayer_request("_Test Private Bulletin Request", is_private=1)
+	def test_only_whole_church_prayer_requests_are_printed(self):
+		for visibility in ("Private", "Prayer Team"):
+			request = self.make_prayer_request(f"_Test {visibility} Bulletin Request", visibility=visibility)
+			self.assertRaises(
+				frappe.ValidationError,
+				self.make_bulletin,
+				prayer_requests=[{"prayer_request": request.name}],
+			)
+
+	def test_an_unapproved_prayer_request_is_not_printed(self):
+		request = self.make_prayer_request("_Test Unapproved Bulletin Request", approved_for_list=0)
 		self.assertRaises(
 			frappe.ValidationError,
 			self.make_bulletin,
-			prayer_requests=[{"prayer_request": private_request.name}],
+			prayer_requests=[{"prayer_request": request.name}],
 		)
 
 	def test_church_roles_list_current_holders_in_settings_order(self):
@@ -315,3 +342,71 @@ class TestBulletin(FrappeTestCase):
 		self.assertTrue(bulletin.has_website_permission("read", "member@example.com"))
 		self.assertFalse(bulletin.has_website_permission("read", "Guest"))
 		self.assertFalse(bulletin.has_website_permission("write", "member@example.com"))
+
+	def test_a_pasted_image_is_a_public_file(self):
+		bulletin = self.make_bulletin(welcome=f'<p><img src="data:image/png;base64,{PIXEL}"></p>')
+
+		file_url = frappe.db.get_value(
+			"File", {"attached_to_doctype": "Bulletin", "attached_to_name": bulletin.name}, "file_url"
+		)
+		self.assertTrue(file_url.startswith("/files/"), file_url)
+		self.assertIn(file_url, bulletin.welcome)
+
+	def test_shared_announcements_refuse_a_private_file(self):
+		file = frappe.get_doc(
+			{"doctype": "File", "file_name": "_test_flyer.txt", "content": "Flyer", "is_private": 1}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+		announcements = f'<p><a href="{file.file_url}">Flyer</a></p>'
+
+		self.make_bulletin(announcements=announcements)
+		with self.assertRaises(frappe.ValidationError):
+			self.make_bulletin(announcements=announcements, share_announcements=1)
+
+
+class TestBulletinChurches(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.manager_a = ensure_user("_test_bulletin_a@example.com", "Editor", roles=("Church Manager",))
+		make_person("_Test Bulletin", "Editor", church=cls.branch_a, user=cls.manager_a)
+		cls.member_a = ensure_user("_test_bulletin_member_a@example.com", "Reader")
+		make_person("_Test Bulletin", "Reader", church=cls.branch_a, user=cls.member_a)
+		cls.function_a, cls.function_b = (
+			make_function(f"_Test Bulletin {key}", church=church, start_date=FUNCTION_DATE).name
+			for key, church in (("A", cls.branch_a), ("B", cls.branch_b))
+		)
+
+	def tearDown(self):
+		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
+
+	def test_only_the_functions_church_makes_its_bulletin_or_moves_one(self):
+		"""Frappe checks the church the caller sends, before the bulletin takes the function's church."""
+		theirs = frappe.new_doc("Bulletin", function=self.function_b).insert().name
+		frappe.set_user(self.manager_a)
+
+		with self.assertRaises(frappe.PermissionError):
+			frappe.new_doc("Bulletin", function=self.function_b).insert()
+		self.assertEqual(frappe.new_doc("Bulletin", function=self.function_a).insert().church, self.branch_a)
+
+		frappe.local.form_dict = frappe._dict(
+			data=json.dumps({"function": self.function_a, "church": self.branch_a})
+		)
+		with self.assertRaises(frappe.PermissionError):
+			update_doc("Bulletin", theirs)
+		self.assertEqual(frappe.db.get_value("Bulletin", theirs, "function"), self.function_b)
+
+	def test_a_portal_member_reads_only_their_own_churchs_bulletins(self):
+		mine, theirs = (
+			frappe.new_doc("Bulletin", function=function, publish=1).insert()
+			for function in (self.function_a, self.function_b)
+		)
+
+		self.assertTrue(mine.has_website_permission("read", self.member_a))
+		self.assertFalse(theirs.has_website_permission("read", self.member_a))
+
+		frappe.set_user(self.member_a)
+		with self.assertRaises(frappe.PermissionError):
+			download_pdf(theirs.name)

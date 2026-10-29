@@ -1,0 +1,12 @@
+{
+ "creation": "2026-10-25 22:30:00.000000",
+ "doctype": "Email Template",
+ "modified": "2026-10-25 22:30:00.000000",
+ "modified_by": "Administrator",
+ "name": "Sign-Up Confirmation",
+ "owner": "Administrator",
+ "reference_doctype": "Function Sign-Up",
+ "response_html": "<p>Dear {{ first_name | e }},</p>\n\n<p>You are registered for <strong>{{ function_name | e }}</strong> on {{ date }}{% if time %} at {{ time }}{% endif %}.</p>\n\n{% if attendees | length > 1 %}<p>Attending: {{ attendees | join(\", \") | e }}</p>\n\n{% endif %}<p>To add the event to your calendar, open the attached file.</p>\n\n<p>We look forward to seeing you!</p>",
+ "subject": "You are registered for {{ function_name }}",
+ "use_html": 1
+}

@@ -63,7 +63,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "Home",
    "fieldname": "visit_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -111,7 +110,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-15 12:00:00",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Visitation Log",

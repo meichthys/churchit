@@ -1,0 +1,51 @@
+{#- The open join requests of one group on the leader page: `group` is the group, `join_requests` maps each group to its requests. -#}
+{%- set requests = join_requests.get(group) or [] -%}
+<div class="group-join-requests">
+	<h5 class="mt-4">{{ _("Requests to Join") }}</h5>
+	{% if requests %}
+	<ul class="list-unstyled mb-0">
+		{% for request in requests %}
+		<li class="d-flex flex-wrap align-items-baseline py-2 border-bottom" style="gap: 4px 12px;" data-request="{{ request.name | e }}">
+			<strong>{{ request.person_name | e }}</strong>
+			<span class="small text-muted">{{ frappe.format(request.creation, {"fieldtype": "Date"}) }}</span>
+			<span class="join-request-actions ml-auto">
+				<button type="button" class="btn btn-sm btn-primary join-request-decision" data-approve="1">{{ _("Approve") }}</button>
+				<button type="button" class="btn btn-sm btn-default join-request-decision" data-approve="0">{{ _("Deny") }}</button>
+			</span>
+			{% if request.message %}
+			<span class="w-100 small">{{ request.message | e }}</span>
+			{% endif %}
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p class="small text-muted mb-0">{{ _("No one is waiting to join.") }}</p>
+	{% endif %}
+</div>
+<script>
+// Included once for each group, so the click handler is added once.
+(function () {
+	if (window.churchitJoinRequests) return;
+	window.churchitJoinRequests = true;
+	document.addEventListener("click", function (event) {
+		var button = event.target.closest(".join-request-decision");
+		if (!button) return;
+		var row = button.closest("[data-request]");
+		var actions = row.querySelector(".join-request-actions");
+		actions.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+		frappe.call({
+			method: "churchit.church_people.group_api.decide_join_request",
+			args: { request: row.dataset.request, approve: button.dataset.approve },
+			callback: function (r) {
+				var approved = r.message.status === "Approved";
+				actions.textContent = approved ? "{{ _('Approved') }}" : "{{ _('Denied') }}";
+				// An approval adds a member, so the roster needs a reload.
+				if (approved) setTimeout(function () { window.location.reload(); }, 700);
+			},
+			error: function () {
+				actions.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+			},
+		});
+	});
+})();
+</script>

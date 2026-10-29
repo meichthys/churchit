@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2026-10-23 01:30:17.000000",
+ "description": "A giving history, one row per gift, for Data Import. Download its template from a new Data Import, or map the columns of a payment processor's export. It keeps no records: each row adds a Donation to a draft Collection of its batch and date, and Finance submits the Collections.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-finances",
+ "engine": "InnoDB",
+ "field_order": [
+  "gift_id",
+  "date",
+  "amount",
+  "fund",
+  "payment_type",
+  "check_number",
+  "person_system",
+  "person_id",
+  "email",
+  "batch",
+  "notes"
+ ],
+ "fields": [
+  {
+   "description": "The gift's ID in the system it comes from, such as a Stripe charge ID. A gift is imported once.",
+   "fieldname": "gift_id",
+   "fieldtype": "Data",
+   "label": "Gift ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "description": "The whole amount the giver paid.",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fund",
+   "fieldtype": "Link",
+   "label": "Fund",
+   "options": "Fund",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Link",
+   "label": "Payment Type",
+   "options": "Payment Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "check_number",
+   "fieldtype": "Data",
+   "label": "Check Number"
+  },
+  {
+   "description": "The system the giver's Person ID comes from, as on the People import. Spreadsheet when blank.",
+   "fieldname": "person_system",
+   "fieldtype": "Data",
+   "label": "Imported From"
+  },
+  {
+   "description": "The giver's ID in that system. When no one was imported with it, the email finds the giver.",
+   "fieldname": "person_id",
+   "fieldtype": "Data",
+   "label": "Person ID"
+  },
+  {
+   "description": "Finds the giver when the Person ID does not. Only one person may have it.",
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "description": "Gifts with the same batch and date go in one Collection. The Data Import's name when blank.",
+   "fieldname": "batch",
+   "fieldtype": "Data",
+   "label": "Batch"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Data",
+   "label": "Notes"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2026-10-23 01:30:17.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Giving Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Church Manager"
+  },
+  {
+   "create": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Church Finance"
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -20,6 +20,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_team_assignment,
 	make_team_position,
+	make_two_churches,
 )
 
 MODULE = "churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment"
@@ -139,6 +140,59 @@ class TestMinistryTeamAssignment(RollbackEachTest):
 		self.assertFalse(
 			any("Background Check" in w for w in self.new_assignment(position=nursery.name).get_warnings())
 		)
+
+	def clear(self, person, check_type, expires_on):
+		frappe.get_doc(
+			{
+				"doctype": "Background Check",
+				"person": person,
+				"check_type": ensure("Background Check Type", {"type": check_type}),
+				"status": "Cleared",
+				"completed_on": getdate(),
+				"expires_on": expires_on,
+			}
+		).insert(ignore_permissions=True)
+
+	def nursery(self, **values):
+		"""A position needing a criminal check and child safety training."""
+		required = [
+			{"check_type": ensure("Background Check Type", {"type": check_type})}
+			for check_type in ("_Test Criminal Check", "_Test Safety Training")
+		]
+		return make_team_position(
+			"_Test Nursery", [self.alice.name], needs_background_check=1, required_checks=required, **values
+		)
+
+	def test_each_required_check_must_be_cleared(self):
+		nursery = self.nursery()
+		self.clear(self.alice.name, "_Test Criminal Check", add_days(getdate(), 365))
+
+		warnings = self.new_assignment(position=nursery.name).get_warnings()
+		self.assertTrue(any("is missing _Test Safety Training" in w for w in warnings), warnings)
+
+		self.clear(self.alice.name, "_Test Safety Training", add_days(getdate(), 365))
+		self.assertFalse(
+			any("missing" in w for w in self.new_assignment(position=nursery.name).get_warnings())
+		)
+
+	def test_a_check_must_still_be_current_on_the_day_of_the_function(self):
+		nursery = self.nursery()
+		self.clear(self.alice.name, "_Test Criminal Check", add_days(getdate(), 365))
+		self.clear(self.alice.name, "_Test Safety Training", add_days(self.sunday.start_date, -1))
+
+		warnings = self.new_assignment(position=nursery.name).get_warnings()
+		self.assertTrue(any("is missing _Test Safety Training" in w for w in warnings), warnings)
+
+	def test_a_blocking_position_refuses_someone_without_the_checks(self):
+		nursery = self.nursery(block_without_checks=1)
+		self.clear(self.alice.name, "_Test Criminal Check", add_days(getdate(), 365))
+
+		with self.assertRaisesRegex(frappe.ValidationError, "is missing _Test Safety Training"):
+			self.new_assignment(position=nursery.name).insert(ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Ministry Team Assignment", {"position": nursery.name}))
+
+		self.clear(self.alice.name, "_Test Safety Training", add_days(getdate(), 365))
+		self.new_assignment(position=nursery.name).insert(ignore_permissions=True)
 
 	def test_warns_when_the_person_has_no_email_address(self):
 		self.assertTrue(
@@ -269,3 +323,33 @@ class TestMinistryTeamAssignment(RollbackEachTest):
 		frappe.set_user(ensure_user("_test_team_member@example.com", "Member"))
 		with self.assertRaises(frappe.PermissionError):
 			get_team_emails(self.sunday.name)
+
+
+class TestMinistryTeamAssignmentChurches(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.manager_a = ensure_user("_test_team_a@example.com", "Coordinator", roles=("Church Manager",))
+		make_person("_Test Team", "Coordinator", church=cls.branch_a, user=cls.manager_a)
+		server = make_person("_Test Team", "Server").name
+		cls.teams = {}
+		for key, church in (("A", cls.branch_a), ("B", cls.branch_b)):
+			# The position is in the function's church, so only the user's access can refuse.
+			ministry = f"_Test Team Ministry {key}"
+			ensure("Ministry", {"ministry_name": ministry}, {"ministry_name": ministry, "church": church})
+			cls.teams[key] = {
+				"function": make_function(f"_Test Team {key}", church=church).name,
+				"position": make_team_position(f"_Test Team {key}", [server], ministry_name=ministry).name,
+				"person": server,
+			}
+
+	def test_only_the_functions_church_schedules_people_for_it(self):
+		"""Frappe checks the create right before the assignment takes the function's church."""
+		frappe.set_user(self.manager_a)
+
+		with self.assertRaises(frappe.PermissionError):
+			frappe.new_doc("Ministry Team Assignment", **self.teams["B"]).insert()
+		self.assertEqual(
+			frappe.new_doc("Ministry Team Assignment", **self.teams["A"]).insert().church, self.branch_a
+		)

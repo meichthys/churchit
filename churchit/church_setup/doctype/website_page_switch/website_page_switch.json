@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "creation": "2026-10-27 12:22:41.000000",
+ "description": "Turns one shipped website page on or off.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-website",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "route",
+  "label",
+  "enabled"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Route",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Page",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-27 12:22:41.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Website Page Switch",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

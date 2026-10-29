@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "field:type",
  "creation": "2026-09-14 00:00:00",
- "description": "A kind of background check or clearance a Person can hold (Criminal Background, Sex Offender Registry, Child Abuse Clearance, etc.). Sets how long a cleared check stays valid.",
+ "description": "A kind of background check, clearance or training a Person can hold (Criminal Background, Sex Offender Registry, Child Abuse Clearance, Child Safety Training, etc.). Sets how long a cleared check stays valid.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
@@ -38,7 +38,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-18 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Background Check Type",
@@ -81,6 +81,11 @@
    "read": 1,
    "report": 1,
    "role": "Church Pastoral Care",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff",
    "select": 1
   }
  ],

@@ -1,0 +1,30 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.is_due_for_renewal",
+ "condition_type": "Python",
+ "creation": "2026-10-22 11:00:00.000000",
+ "date_changed": "recorded_on",
+ "days_in_advance": 730,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Communication Consent",
+ "enabled": 0,
+ "event": "Days After",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear {{ frappe.db.get_value(\"Person\", doc.person, \"first_name\") }},</p>\n\n<p>On {{ frappe.utils.formatdate(doc.recorded_on) }} you agreed that {{ church_name(doc) or \"your church\" }} may email you. Please tell us that you still want to hear from us.</p>\n\n<p><a href=\"{{ consent_renewal_link(doc) }}\">Yes, keep in touch</a></p>\n\n<p>To choose what you get from us, sign in and open Communication Preferences. If you do nothing, we keep your current choices, and we will not ask again until you next change them.</p>\n",
+ "modified": "2026-10-21 21:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Consent Renewal",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "cc": "{{ frappe.db.get_value(\"Email Address\", {\"parenttype\": \"Person\", \"parent\": doc.person, \"is_primary\": 1}, \"email_address\") or \"\" }}"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Please confirm you still want to hear from {{ church_name(doc) or \"us\" }}"
+}

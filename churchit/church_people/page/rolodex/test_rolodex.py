@@ -2,9 +2,10 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe.handler import execute_cmd
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_people.page.rolodex.rolodex import get_directory, save_settings
+from churchit.church_people.page.rolodex.rolodex import get_directory, get_settings, save_settings
 from churchit.tests.helpers import (
 	ensure,
 	ensure_root_church,
@@ -63,8 +64,30 @@ class TestRolodexCards(FrappeTestCase):
 		self.assertEqual((card.phone, card.email), ("202-555-0191", "_test_rolodex_card@example.com"))
 		self.assertEqual(card.address, "12 Elm St, Springfield, IL 62701")
 		self.assertIn("openstreetmap.org", card.map_url)
-		self.assertEqual(str(card.birthday), "1980-03-14")
+		self.assertEqual(str(card.birth_date), "1980-03-14")
 		self.assertEqual(card.groups, [self.group.name])
+
+	def test_a_birthday_with_no_year_gives_the_card_a_month_and_day_but_no_age(self):
+		yearless = make_person(
+			"_Test Rolodex",
+			"Yearless",
+			life_events=[{"event_type": "Birth", "date": "1900-07-04", "year_unknown": 1}],
+		)
+
+		card = card_for(get_directory(), yearless.name)
+
+		self.assertEqual((card.birth_month, card.birth_day, card.birth_date, card.age), (7, 4, None, 0))
+
+	def test_people_who_have_died_get_no_card(self):
+		ensure("Life Event Type", {"type": "Death"})
+		departed = make_person(
+			"_Test Rolodex", "Departed", life_events=[{"event_type": "Death", "date": "2024-01-01"}]
+		)
+
+		names = [person.name for person in get_directory()["people"]]
+
+		self.assertIn(self.person.name, names)
+		self.assertNotIn(departed.name, names)
 
 	def test_only_positions_held_today_are_listed(self):
 		self.assertEqual(card_for(get_directory(), self.person.name).positions, [self.elder])
@@ -89,6 +112,22 @@ class TestRolodexSettings(FrappeTestCase):
 			get_directory()["settings"],
 			{"saved": ["_Test Saved Person"], "view": "households", "filters_open": False},
 		)
+
+	def test_a_get_request_saves_nothing(self):
+		"""Frappe checks the CSRF token only on POST, and the session cookie rides on a GET another site starts."""
+		before = get_settings()
+		frappe.local.request = frappe._dict(method="GET")
+		frappe.local.form_dict = frappe._dict(
+			saved=frappe.as_json(["_Test Get Person"]), view="households", filters_open="false"
+		)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				execute_cmd("churchit.church_people.page.rolodex.rolodex.save_settings")
+		finally:
+			del frappe.local.request
+			frappe.local.form_dict = frappe._dict()
+
+		self.assertEqual(get_settings(), before)
 
 
 class TestRolodexSingleChurch(FrappeTestCase):

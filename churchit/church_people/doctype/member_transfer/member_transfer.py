@@ -4,8 +4,10 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import nowdate
 
-from churchit.church_people.membership import CONTACT, INACTIVE
+from churchit.church_people.doctype.inactive_reason.inactive_reason import TRANSFERRED
+from churchit.church_people.membership import ACTIVE, CONTACT, INACTIVE, MEMBER
 from churchit.church_scope import CHURCH_FIELD, allowed_churches
 
 
@@ -44,6 +46,8 @@ class MemberTransfer(Document):
 			self.move_person()
 		elif self.is_confirming_departure():
 			self.mark_person_departed()
+		elif self.is_confirming_arrival():
+			self.mark_person_received()
 
 	@property
 	def is_confirming(self):
@@ -55,15 +59,28 @@ class MemberTransfer(Document):
 	def is_confirming_departure(self):
 		return self.direction == "Out" and not self.to_church and self.is_confirming
 
+	def is_confirming_arrival(self):
+		return self.direction == "In" and not self.to_church and self.is_confirming
+
 	def mark_person_departed(self):
-		"""A person who transfers out to another church is no longer a member here."""
+		"""A person who transfers out to another church is no longer a member here.
+
+		The reason is one Inactive Reason for every transfer; this record keeps the other church.
+		"""
 		person = frappe.get_doc("Person", self.person)
 		person.membership = CONTACT
 		person.membership_status = INACTIVE
-		if self.other_church:
-			person.inactive_reason = _("Transferred to {0}").format(self.other_church)
-		else:
-			person.inactive_reason = _("Transferred to another church")
+		person.inactive_reason = TRANSFERRED
+		person.save(ignore_permissions=True)
+
+	def mark_person_received(self):
+		"""A person who transfers in becomes an active member here, with a Membership life event."""
+		person = frappe.get_doc("Person", self.person)
+		if person.membership == MEMBER and person.membership_status == ACTIVE:
+			return
+		notes = _("Transferred from {0}").format(self.other_church) if self.other_church else None
+		person.append("life_events", {"event_type": "Membership", "date": nowdate(), "notes": notes})
+		person.membership_status = ACTIVE
 		person.save(ignore_permissions=True)
 
 	def move_person(self):

@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-27 08:45:50.000000",
+ "description": "One run of a follow-up workflow action on a card. A run is kept so that the action never runs twice for the same event.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "key",
+  "card",
+  "workflow",
+  "church",
+  "column_break_run",
+  "event",
+  "step",
+  "action",
+  "status",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "card",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Card",
+   "options": "Follow-up Card",
+   "read_only": 1
+  },
+  {
+   "fieldname": "workflow",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Workflow",
+   "options": "Follow-up Workflow",
+   "read_only": 1
+  },
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_run",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Event",
+   "options": "Card Opened\nStep Reached\nCard Closed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "step",
+   "fieldtype": "Data",
+   "label": "Step",
+   "read_only": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Action",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Done\nSkipped\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-10-27 08:45:50.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Follow-up Action Run",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

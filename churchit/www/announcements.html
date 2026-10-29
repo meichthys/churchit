@@ -1,0 +1,18 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Announcements") }}{% endblock %}
+{% block header %}<h1>{{ _("Announcements") }}</h1>{% endblock %}
+
+{% block page_content %}
+<div class="announcements">
+	{% for bulletin in bulletins %}
+	<section class="mb-5">
+		<h3>{{ bulletin.function_name | e }}</h3>
+		<p class="text-muted">{{ frappe.format(bulletin.function_date, {"fieldtype": "Date"}) }}</p>
+		<div>{{ bulletin.announcements }}</div>
+	</section>
+	{% else %}
+	<p class="text-muted">{{ _("There are no announcements right now.") }}</p>
+	{% endfor %}
+</div>
+{% endblock %}

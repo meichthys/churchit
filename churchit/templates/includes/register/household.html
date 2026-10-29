@@ -1,0 +1,117 @@
+{#- A part of the /register page: who else comes, and each person's selection. register.get_attendee_choices
+fills it once the page loads, so the page itself holds no household name. -#}
+<div id="register-attendees">
+	<div class="form-group mb-3" id="register-selection-group" style="display: none;">
+		<label for="register-selection">{{ _("Your Option") }}</label>
+		<select class="form-control" id="register-selection" name="selection"></select>
+	</div>
+	<div class="form-group mb-3" id="register-household" style="display: none;">
+		<label>{{ _("Who from your household is coming with you?") }}</label>
+		<div id="register-household-list"></div>
+	</div>
+	<div class="form-group mb-3">
+		<label>{{ _("Others coming with you (optional)") }}</label>
+		<div id="register-guest-list"></div>
+		<button type="button" class="btn btn-default btn-sm" id="register-add-guest" disabled>{{ _("Add a person") }}</button>
+	</div>
+	<p class="text-muted" id="register-freely-given" style="display: none;">
+		<i>{{ _("Freely you have received; freely give.") }}</i> (Matthew 10:8) {{ _("This registration is freely given: you pay nothing.") }}
+	</p>
+	<input type="hidden" name="attendees" id="register-attendees-json" value="[]">
+</div>
+
+<script>
+frappe.ready(function () {
+	const box = document.getElementById('register-attendees');
+	const output = document.getElementById('register-attendees-json');
+	const guests = document.getElementById('register-guest-list');
+	let selections = [];
+	let freelyGiven = false;
+	const freelyGivenPrice = {{ _("{0}, freely given") | tojson }};
+
+	function selectionInput() {
+		const select = document.createElement('select');
+		select.className = 'form-control form-control-sm register-attendee-selection';
+		select.append(new Option({{ _("Choose an option") | tojson }}, ''));
+		selections.forEach(function (row) {
+			const price = freelyGiven ? freelyGivenPrice.split('{0}').join(row.price) : row.price;
+			const label = row.price ? row.selection + ' (' + price + ')' : row.selection;
+			select.append(new Option(label, row.selection));
+		});
+		return select;
+	}
+
+	function addRow(list, field, rowClass) {
+		const row = document.createElement('div');
+		row.className = 'd-flex align-items-center mb-2 ' + rowClass;
+		row.append(field);
+		if (selections.length) row.append(selectionInput());
+		list.append(row);
+		return row;
+	}
+
+	function addGuest() {
+		const name = document.createElement('input');
+		name.type = 'text';
+		name.className = 'form-control form-control-sm mr-2';
+		name.placeholder = {{ _("Name") | tojson }};
+		addRow(guests, name, 'register-guest').querySelector('input').focus();
+	}
+
+	function addMember(member) {
+		const label = document.createElement('label');
+		label.className = 'mb-0 mr-2 flex-grow-1';
+		const tick = document.createElement('input');
+		tick.type = 'checkbox';
+		tick.value = member.person;
+		tick.className = 'mr-2';
+		label.append(tick, document.createTextNode(member.full_name));
+		addRow(document.getElementById('register-household-list'), label, 'register-member');
+	}
+
+	// Only the hidden JSON input goes to the server, and an option is needed only for a person who comes.
+	function sync() {
+		const rows = [];
+		box.querySelectorAll('.register-member, .register-guest').forEach(function (row) {
+			const tick = row.querySelector('input[type=checkbox]');
+			const name = tick ? '' : row.querySelector('input').value.trim();
+			const select = row.querySelector('select');
+			const comes = tick ? tick.checked : Boolean(name);
+			if (select) select.required = comes;
+			if (!comes) return;
+			const attendee = tick ? { person: tick.value } : { attendee_name: name };
+			if (select) attendee.selection = select.value;
+			rows.push(attendee);
+		});
+		output.value = JSON.stringify(rows);
+	}
+
+	box.addEventListener('input', sync);
+	box.addEventListener('change', sync);
+	document.getElementById('register-add-guest').addEventListener('click', addGuest);
+
+	frappe.call({
+		method: 'churchit.www.register.get_attendee_choices',
+		type: 'GET',
+		args: churchit.with_church({ function: {{ function.name | tojson }} }),
+		callback: function (r) {
+			const choices = r.message || {};
+			selections = choices.selections || [];
+			freelyGiven = Boolean(choices.freely_given);
+			if (freelyGiven) document.getElementById('register-freely-given').style.display = '';
+			document.getElementById('register-add-guest').disabled = false;
+			if (selections.length) {
+				const own = document.getElementById('register-selection');
+				own.replaceChildren(...selectionInput().options);
+				own.value = ''; // moved options arrive selected, so the last one would win
+				own.required = true;
+				document.getElementById('register-selection-group').style.display = '';
+			}
+			(choices.household || []).forEach(addMember);
+			if ((choices.household || []).length) {
+				document.getElementById('register-household').style.display = '';
+			}
+		},
+	});
+});
+</script>

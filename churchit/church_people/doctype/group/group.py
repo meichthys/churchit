@@ -3,11 +3,40 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import getdate
 
-from churchit.contacts import get_primary_emails
+from churchit.church_people.group_meetings import get_meets
+from churchit.church_people.group_requirements import check_member_requirements
 
 
 class Group(Document):
+	def onload(self):
+		self.meets = get_meets(self.name)
+
+	def validate(self):
+		self.meets = get_meets(self.name)
+		check_member_requirements(self)
+
+	@property
+	def member_count(self) -> int:
+		return len(self.members)
+
+	@property
+	def is_full(self) -> bool:
+		return bool(self.capacity) and self.member_count >= self.capacity
+
+	@property
+	def is_enrollment_open(self) -> bool:
+		"""Whether a person can join, or ask to join, from the portal today."""
+		closed = self.close_enrollment_on and getdate(self.close_enrollment_on) < getdate()
+		return bool(
+			self.status == "Active"
+			and self.public
+			and self.show_in_portal
+			and not self.is_full
+			and not closed
+		)
+
 	def has_webform_permission(self):
 		"""Portal access: only members of a portal-visible group may view it."""
 		if not self.show_in_portal:
@@ -21,59 +50,7 @@ class Group(Document):
 		return bool(frappe.db.exists("Group Member", {"parent": self.name, "person": person}))
 
 
-@frappe.whitelist()
-def create_email_group(group: str):
-	"""Create (or top up) a Frappe Email Group from this Person Group's members.
-
-	Pulls each member's primary email into an Email Group named after the group so
-	the group can be used as a newsletter recipient list. Idempotent, because the unique
-	(email_group, email) index means re-running just adds any new members.
-	"""
-	from frappe.email.doctype.email_group.email_group import add_subscribers
-
-	doc = frappe.get_doc("Group", group)
-	# frappe.get_doc checks nothing, and the members' email addresses end up in an
-	# Email Group that is not scoped to a church.
-	doc.check_permission("read")
-	email_group = doc.group_name or doc.name
-
-	created = False
-	if not frappe.db.exists("Email Group", email_group):
-		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(ignore_permissions=True)
-		created = True
-
-	person_ids = [m.person for m in doc.members if m.person]
-	emails, missing = [], []
-	if person_ids:
-		by_person = get_primary_emails("Person", person_ids)
-		names = dict(
-			# church-scope: names for the people already listed on this group
-			frappe.get_all(
-				"Person",
-				filters={"name": ["in", person_ids]},
-				fields=["name", "full_name"],
-				as_list=True,
-			)
-		)
-		for person in person_ids:
-			if by_person.get(person):
-				emails.append(by_person[person])
-			else:
-				missing.append(names.get(person) or person)
-
-	if emails:
-		add_subscribers(email_group, emails)
-
-	return {
-		"email_group": email_group,
-		"created": created,
-		"emails_synced": len(emails),
-		"missing": missing,
-		"total_members": frappe.db.count("Email Group Member", {"email_group": email_group}),
-	}
-
-
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def add_people(group: str, people: str | list[str], group_role: str | None = None):
 	"""Add *people* to a Group, skipping anyone already in it."""
 	doc = frappe.get_doc("Group", group)

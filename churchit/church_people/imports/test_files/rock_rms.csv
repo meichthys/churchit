@@ -1,0 +1,6 @@
+Id,Family Id,Family Name,Family Role,Title,First Name,Nick Name,Middle Name,Last Name,Suffix,Gender,Birthdate,Anniversary Date,Marital Status,Connection Status,Record Status,Inactive Reason,Is Deceased,Email,Mobile Phone,Home Phone,Home Address Street 1,Home Address Street 2,Home Address City,Home Address State,Home Address Postal Code,Home Address Country,Campus
+1203,77,Wrenfield Family,Child,,Oakley,,,Wrenfield,,Male,2017-09-12,,,Attendee,Active,,False,,,(402) 555-0177,410 Prairie Rose Drive,,Lincoln,NE,68502,US,Main Campus
+1202,77,Wrenfield Family,Adult,Mrs.,Hazel,,,Wrenfield,,Female,1988-04-23,2012-08-04,Married,Member,Active,,False,hazel.wrenfield@example.com,(402) 555-0172,(402) 555-0177,410 Prairie Rose Drive,,Lincoln,NE,68502,US,Main Campus
+1201,77,Wrenfield Family,Adult,Mr.,Thaddeus,Tad,,Wrenfield,,Male,1986-01-30,2012-08-04,Married,Member,Active,,False,tad.wrenfield@example.com,(402) 555-0171,(402) 555-0177,410 Prairie Rose Drive,,Lincoln,NE,68502,US,Main Campus
+1300,80,Pruitt Family,Adult,,Clement,,,Pruitt,,Male,1941-06-15,,Widowed,Member,Inactive,Deceased,True,,,,,,,,,,Main Campus
+1310,81,Quarrie Family,Adult,,Imogen,,,Quarrie,,Female,1995-12-01,,Single,Prospect,Pending,,False,imogen.quarrie@example.com,,,,,,,,,Main Campus

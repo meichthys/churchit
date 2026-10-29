@@ -1,7 +1,8 @@
 {
  "attach_print": 0,
  "channel": "Email",
- "condition": "not doc.is_private",
+ "condition": "doc.visibility != \"Private\"",
+ "condition_type": "Python",
  "creation": "2026-05-29 00:00:00",
  "days_in_advance": 0,
  "docstatus": 0,
@@ -12,7 +13,7 @@
  "idx": 0,
  "is_standard": 1,
  "message": "<p>A new prayer request has been submitted:</p>\n\n<ul>\n  <li><strong>Title:</strong> {{ doc.title }}</li>\n  {% if doc.urgent %}<li><strong>Urgent</strong></li>{% endif %}\n  <li><strong>Requestor:</strong> {{ doc.requestor }}</li>\n  {% if doc.recipient_name %}<li><strong>For:</strong> {{ doc.recipient_name }}</li>{% endif %}\n  <li><strong>Type:</strong> {{ doc.type }}</li>\n</ul>\n\n<p>{{ doc.request or doc.description }}</p>\n\n<p>Please join us in praying.</p>",
- "modified": "2026-05-31 21:12:11.308461",
+ "modified": "2026-10-21 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Prayer Request New",

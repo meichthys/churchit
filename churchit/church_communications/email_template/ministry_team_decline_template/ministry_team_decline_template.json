@@ -1,12 +1,12 @@
 {
  "creation": "2026-10-11 12:00:00.000000",
  "doctype": "Email Template",
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-27 01:25:30.000000",
  "modified_by": "Administrator",
  "name": "Ministry Team Decline",
  "owner": "Administrator",
  "reference_doctype": "Ministry Team Assignment",
- "response_html": "<p>{{ person_name | e }} declined to serve as <strong>{{ position | e }}</strong> ({{ ministry | e }}) at {{ function | e }} on {{ date }}{% if time %} at {{ time }}{% endif %}.</p>\n\n{% if decline_reason %}<p>Reason: {{ decline_reason | e }}</p>{% endif %}\n\n<p>The position is open again. <a href=\"{{ assignment_link }}\">Open the assignment</a></p>",
+ "response_html": "<p>{{ person_name | e }} declined to serve as <strong>{{ position | e }}</strong> ({{ ministry | e }}) at {{ function | e }} on {{ date }}{% if time %} at {{ time }}{% endif %}.</p>\n\n{% if decline_reason %}<p>Reason: {{ decline_reason | e }}</p>{% endif %}\n\n<p>{% if replaced_by %}{{ replaced_by | e }} takes the place.{% else %}The position is open again.{% endif %} <a href=\"{{ assignment_link }}\">Open the assignment</a></p>",
  "subject": "{{ person_name }} declined {{ position }} on {{ date }}",
  "use_html": 1
 }

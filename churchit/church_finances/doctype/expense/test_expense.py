@@ -64,6 +64,21 @@ class TestExpense(FrappeTestCase):
 		expense.cancel()
 		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
 
+	def test_submit_writes_one_ledger_row_without_saving_the_fund(self):
+		versions = frappe.db.count("Version", {"ref_doctype": "Fund", "docname": self.fund})
+		expense = self._make_expense(amount=100, notes="Hymnals")
+		expense.submit()
+
+		ledger = {"parent": self.fund, "source_type": "Expense", "source": expense.name}
+		self.assertEqual(
+			frappe.get_all("Financial Transaction", ledger, ["amount", "notes"]),
+			[{"amount": -100, "notes": "Hymnals"}],
+		)
+		self.assertEqual(frappe.db.count("Version", {"ref_doctype": "Fund", "docname": self.fund}), versions)
+
+		expense.cancel()
+		self.assertFalse(frappe.db.exists("Financial Transaction", ledger))
+
 	def test_cancel_restores_the_fund_charged_even_after_the_type_moves(self):
 		expense = self._make_expense(amount=100)
 		expense.submit()
