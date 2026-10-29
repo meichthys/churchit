@@ -451,7 +451,7 @@ def load_text(file_url: str | None) -> dict:
 			return _from_csv(content)
 		return from_free_use_json(json.loads(content))
 	except (KeyError, TypeError, ValueError) as error:
-		frappe.throw(_("Could not read {0}: {1}").format(file_url, error))
+		frappe.throw(_("Could not read {0}: {1}").format(file_url, str(error)))
 
 
 def count_verses(books: dict) -> int:

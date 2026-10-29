@@ -44,7 +44,7 @@ def page_parents(check_in: str) -> list[str]:
 	frappe.cache.set_value(PAGE_KEY.format(check_in), 1, expires_in_sec=PAGE_INTERVAL_SECONDS)
 	# A text gateway can hang, and every code draw locks the day's coded check-ins, so the row is freed
 	# here and the copies are about the child: `send` locks its source until the commit.
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
 
 	child = frappe.get_doc("Person", doc.person)
 	adults = household.members(child.family, [household.ADULT]) if child.family else []
@@ -98,7 +98,7 @@ def text_adults(adults: list[str], child: Document, key: str, context: dict) -> 
 				reference_name=child.name,
 			)
 			break
-		frappe.db.commit()  # a text has left, so its copy must outlive a later error
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (a text has left, so its copy must outlive a later error)
 	return reached
 
 

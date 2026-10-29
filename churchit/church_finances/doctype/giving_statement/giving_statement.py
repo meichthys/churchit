@@ -340,4 +340,4 @@ def send_statement_emails(names: list[str], resend: bool = False):
 		statement.set_email()
 		if statement.email and (resend or not statement.emailed_on):
 			statement.send_by_email()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (each statement is final once emailed)

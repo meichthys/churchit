@@ -85,7 +85,9 @@ def get_timeline_card(note: frappe._dict) -> dict:
 		"icon": "pin" if note.is_pinned else "notebook-pen",
 		"is_card": True,
 		"creation": placed_at,
-		"content": frappe.render_template(CARD_TEMPLATE, context),
+		"content": frappe.render_template(  # nosemgrep: frappe-ssti
+			CARD_TEMPLATE, context
+		),
 	}
 
 

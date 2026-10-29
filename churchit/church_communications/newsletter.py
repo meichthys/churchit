@@ -91,7 +91,7 @@ def unsubscribe(
 	else:
 		set_subscribed(email, church, False)
 		message = _("{0} will no longer receive emails from {1}.").format(email, church_name)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit (a GET link does not auto-commit)
 	frappe.respond_as_web_page(_("Unsubscribed"), message, indicator_color="green")
 
 

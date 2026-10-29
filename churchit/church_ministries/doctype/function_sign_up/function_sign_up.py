@@ -1133,4 +1133,4 @@ def send_reminder(sign_up: Document, channels: list[str], context: dict) -> None
 		)
 		# A text leaves at once, so each copy is committed as soon as it is sent, and the lock on the
 		# sign-up goes with it.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit

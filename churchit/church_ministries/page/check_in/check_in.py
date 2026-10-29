@@ -382,7 +382,7 @@ def check_in(function: str, persons: str | list[str], print_tags: bool = False, 
 		result["capacity_warning"] = warning
 	if cint(print_tags):
 		# A network printer can take seconds, so the check-in locks must not wait for it.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 		result["print"] = print_name_tags(check_ins=names)
 	return result
 

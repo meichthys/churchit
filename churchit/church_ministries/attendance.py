@@ -83,7 +83,7 @@ def refresh_started_totals():
 		total = get_attendance_total(function.attendance, function.start_date, function.headcount)
 		if total != function.attendance_total:
 			function.db_set("attendance_total", total, update_modified=False)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (free the Function lock per row)
 
 
 @frappe.whitelist(methods=["POST"])
