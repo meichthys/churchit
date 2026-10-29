@@ -96,7 +96,7 @@ def print_new_check_ins(names: list[str], new: list[str], church: str | None) ->
 	docs = [frappe.get_doc("Function Check-In", name) for name in new]
 	has_earlier_code = hide_earlier_codes(docs)
 	# A network printer can take seconds, so the check-in locks must not wait for it.
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
 	settings = frappe.get_single("Check-In Settings").for_church(church)
 	return {
 		"count": len(names),

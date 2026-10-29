@@ -275,5 +275,5 @@ def message_group(group: str, subject: str, message: str, channel: str = EMAIL) 
 				[member], SMS, GROUP_MESSAGES, group_doc, key=comment.name, text=MESSAGE_TEXT, context=context
 			)
 		)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (a text has left)
 	return reached

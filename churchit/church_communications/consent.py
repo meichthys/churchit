@@ -233,7 +233,7 @@ def renew_consent(person: str, **signed_params):
 		return
 
 	renew(person)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit (a GET link does not auto-commit)
 	church = email_church(frappe.db.get_value("Person", person, "church"))
 	frappe.respond_as_web_page(
 		_("Thank you"),

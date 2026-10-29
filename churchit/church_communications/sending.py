@@ -210,7 +210,7 @@ class Delivery(Sender):
 			sent = sum(self.send_copy(recipient, values[recipient.person]) for recipient in waiting)
 			# Saving the count also moves `modified`, which tells the stalled retry this delivery is alive.
 			self.email.db_set("recipients", (self.email.recipients or 0) + sent)
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
 
 	def send_copy(self, recipient: Recipient, values: dict) -> bool:
 		"""Send *recipient* their copy and return whether it left. A text that did not leave is marked Error."""

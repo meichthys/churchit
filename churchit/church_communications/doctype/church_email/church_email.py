@@ -314,7 +314,7 @@ def deliver(name: str):
 			_(
 				"This message is a draft again, because sending stopped: {0}. "
 				"Anyone who already got it does not get it again."
-			).format(error),
+			).format(str(error)),
 		)
 		frappe.db.commit()
 		raise
@@ -343,10 +343,10 @@ def send_scheduled():
 	)
 	for name in due + stalled:
 		# The lists were read in an older snapshot; a commit lets the claim see what other workers committed.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 		if claim(name):
 			enqueue_delivery(name)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit (the claims must outlive the job)
 
 
 def get_ready_channels() -> list[str]:

@@ -146,4 +146,4 @@ def backfill_weeks(weeks: int = BACKFILL_WEEKS) -> None:
 	this_week = get_first_day_of_week(today())
 	for weeks_back in range(2, weeks + 1):
 		record_week(add_days(this_week, -7 * weeks_back))
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (keep each recorded week)

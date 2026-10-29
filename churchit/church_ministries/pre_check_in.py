@@ -111,6 +111,6 @@ def check_in(payload: str, print_tags: bool = False) -> dict:
 		result["capacity_warning"] = warning
 	if new and cint(print_tags):
 		# A network printer can take seconds, so the check-in locks must not wait for it.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 		result["print"] = print_name_tags(check_ins=new)
 	return result

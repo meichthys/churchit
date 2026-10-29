@@ -35,7 +35,9 @@ class AlmsRequest(Document):
 		note = frappe.new_doc("Person Note", category=BENEVOLENCE, owner=frappe.session.user)
 		has_category = bool(frappe.db.exists("Note Category", BENEVOLENCE))
 		for key, ptype in (("can_read_case_notes", "read"), ("can_add_case_notes", "create")):
-			self.set_onload(key, has_category and frappe.has_permission("Person Note", ptype, note))
+			self.set_onload(
+				key, has_category and frappe.has_permission("Person Note", ptype, note, throw=False)
+			)
 
 	def validate(self):
 		# Before the pin: `church` came from the requestor as sent, and the pin does not change it.

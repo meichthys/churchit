@@ -356,7 +356,7 @@ def send_requests(texts: TeamTexts) -> int:
 			if is_emailing or texted:
 				assignment.db_set("requested_on", now_datetime(), update_modified=False)
 			if texted:
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep: frappe-manual-commit (a text has left)
 			sent += texted
 	return sent
 
@@ -383,7 +383,7 @@ def send_reminders(texts: TeamTexts) -> int:
 		if is_emailing or texted:
 			assignment.db_set("reminded_on", now_datetime(), update_modified=False)
 		if texted:
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit (a text has left)
 		sent += texted
 	return sent
 

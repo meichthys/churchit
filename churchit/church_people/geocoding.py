@@ -124,7 +124,7 @@ def geocode_missing(after: str = "") -> None:
 	)
 	for address in addresses:
 		geocode(address)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit (keep each geocoded address)
 	if len(addresses) == BATCH:
 		queue_missing(addresses[-1])
 

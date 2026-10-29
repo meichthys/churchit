@@ -80,7 +80,7 @@ def lock_function(function: str):
 	function that may ask the same people wait for this one, so `availability.is_available` sees its
 	requests.
 	"""
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit (see docstring)
 	function_doc = frappe.get_doc("Function", function, for_update=True)
 	positions = [need.position for need in function_doc.team_needs]
 	if not positions:

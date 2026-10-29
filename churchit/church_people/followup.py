@@ -336,7 +336,7 @@ def run_action(card: Document, row: Document, event: str, step: str) -> None:
 		frappe.log_error(
 			f"Follow-up action {row.action} failed", reference_doctype=CARD, reference_name=card.name
 		)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit (keep each action's outcome)
 
 
 def wake_snoozed_cards() -> None:
