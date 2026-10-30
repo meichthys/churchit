@@ -148,6 +148,12 @@ Watch for three things that switch the checks off:
 
 ## Adding a doctype
 
+Give a doctype, report or other shipped record a name that no other Frappe app is likely to use.
+Frappe keeps one record of each name, so an ERPNext `Budget` would take over a Churchit `Budget`. Put
+"Church" before a common word, as in `Church Asset`, `Church Budget`, `Church Location` and
+`Church Task`. `church_setup/app_clashes.py` refuses to install an app that ships a record of the same
+name, and `test_app_clashes` checks ERPNext and Frappe Learning when they are on the bench.
+
 Every doctype that stores records must either carry a church or be declared global; the hygiene test
 fails until one is true. Child tables and Singles are exempt automatically.
 
