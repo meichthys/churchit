@@ -104,7 +104,7 @@
    "fieldname": "old_parent",
    "fieldtype": "Link",
    "label": "Old Parent",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "fieldname": "parent_location",
@@ -113,7 +113,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Parent Location",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "fieldname": "hidden_fields_section",
@@ -126,10 +126,10 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-29 23:30:30",
  "modified_by": "Administrator",
  "module": "Church Operations",
- "name": "Location",
+ "name": "Church Location",
  "naming_rule": "Expression",
  "nsm_parent_field": "parent_location",
  "owner": "Administrator",

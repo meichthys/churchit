@@ -3,6 +3,7 @@
 [pre_model_sync]
 churchit.patches.v1_0.number_repeated_bible_translation_abbreviations
 churchit.patches.v1_0.set_prayer_request_visibility
+churchit.patches.v1_0.rename_records_that_clash_with_erpnext
 
 
 # Patches added in this section will be executed after doctypes are migrated

@@ -24,8 +24,8 @@ FUNCTIONS = ast.FunctionDef | ast.AsyncFunctionDef
 # objects other than `self` and documents loaded by a written-out doctype are not followed, so a
 # person confirms each one here.
 READ_ONLY_METHODS = {
-	"Budget.add_all_expense_types": "adds lines to the browser's copy; the user saves the form",
-	"Budget.get_progress": "totals the expenses the budget tracks",
+	"ChurchBudget.add_all_expense_types": "adds lines to the browser's copy; the user saves the form",
+	"ChurchBudget.get_progress": "totals the expenses the budget tracks",
 	"ChurchEmail.get_preview": "renders one copy of the message for the reader to look at",
 	"ChurchEmail.get_recipient_count": "counts the people the message would go to",
 	"Missionary.add_family": "adds rows to the browser's copy; the user saves the form",

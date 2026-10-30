@@ -297,7 +297,7 @@ class TestWorkOrders(RollbackEachTest):
 		done_a = self.work_order("_Test Work Done A", church=self.branch_a, status="Completed")
 		task_a = make_task("_Test Work Plain Task A", church=self.branch_a)
 		open_b = self.work_order("_Test Work Open B", church=self.branch_b)
-		report = frappe.get_doc("Report", "Open Work Orders")
+		report = frappe.get_doc("Report", "Open Church Work Orders")
 
 		_columns, rows = report.get_data(user=self.manager_a, as_dict=True)
 		shown = [

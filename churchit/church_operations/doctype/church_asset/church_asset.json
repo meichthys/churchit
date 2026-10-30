@@ -83,7 +83,7 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Location",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "default": "0",
@@ -109,7 +109,7 @@
    "link_fieldname": "asset"
   }
  ],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Asset",

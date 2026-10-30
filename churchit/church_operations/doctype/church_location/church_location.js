@@ -1,11 +1,11 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-frappe.ui.form.on("Location", {
+frappe.ui.form.on("Church Location", {
 	parent_location(frm) {
 		if (frm.doc.parent_location && !frm.doc.address) {
 			frappe.db
-				.get_value("Location", frm.doc.parent_location, "address")
+				.get_value("Church Location", frm.doc.parent_location, "address")
 				.then(({ message }) => {
 					if (message && message.address) {
 						frm.set_value("address", message.address);

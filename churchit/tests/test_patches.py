@@ -41,6 +41,7 @@ from churchit.patches.v1_0 import (
 	remove_permlevel_fields_from_person_versions,
 	remove_private_fields_from_versions,
 	rename_agency_logo_field,
+	rename_records_that_clash_with_erpnext,
 	restamp_shared_fund_transfers,
 	restore_shipped_people_charts,
 	scope_website_pages_to_church,
@@ -66,6 +67,69 @@ from churchit.tests.helpers import (
 	make_function,
 	make_person,
 )
+
+
+class TestRenameRecordsThatClashWithErpnext(RollbackEachTest):
+	"""Only Churchit's records move, so ERPNext's Budget, Location and report keep their names."""
+
+	def make_report(self, module):
+		# ERPNext's own report of this name is there when ERPNext is installed.
+		frappe.db.delete("Report", {"name": "Open Work Orders"})
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Open Work Orders",
+				"ref_doctype": "Church Task",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"module": module,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_churchit_record_is_renamed(self):
+		self.make_report("Church Operations")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_records_that_clash_with_erpnext.execute()
+
+		rename.assert_called_once_with(
+			"Report", "Open Work Orders", "Open Church Work Orders", force=True, show_alert=False
+		)
+
+	def test_another_apps_record_with_the_same_name_is_left_alone(self):
+		self.make_report("Core")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_records_that_clash_with_erpnext.execute()
+
+		rename.assert_not_called()
+
+	def test_users_list_settings_follow_the_renamed_doctype(self):
+		data = '{"Report": {"fields": [["name", "_Test Old"]], "order_by": "`tab_Test Old`.`modified` desc"}}'
+		frappe.db.sql(
+			"insert into `__UserSettings` (`user`, `doctype`, `data`) values ('Administrator', '_Test Old', %s)",
+			data,
+		)
+		settings = frappe.new_doc("List View Settings")
+		settings.name = "_Test Old"
+		settings.insert(ignore_permissions=True)
+
+		rename_records_that_clash_with_erpnext.move_list_settings("_Test Old", "_Test New")
+
+		moved = frappe.db.sql("select data from `__UserSettings` where doctype = '_Test New'")[0][0]
+		self.assertEqual(moved, data.replace("_Test Old", "_Test New"))
+		self.assertTrue(frappe.db.exists("List View Settings", "_Test New"))
+
+	def test_customizations_take_the_new_doctype_name(self):
+		make_property_setter("Church Location", "location_name", "bold", 1, "Check")
+		frappe.db.set_value(
+			"Property Setter", "Church Location-location_name-bold", "name", "Location-location_name-bold"
+		)
+
+		rename_records_that_clash_with_erpnext.rename_customizations("Location", "Church Location")
+
+		self.assertTrue(frappe.db.exists("Property Setter", "Church Location-location_name-bold"))
+		self.assertFalse(frappe.db.exists("Property Setter", "Location-location_name-bold"))
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):

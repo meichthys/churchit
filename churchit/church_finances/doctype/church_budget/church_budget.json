@@ -99,10 +99,10 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-29 23:30:30",
  "modified_by": "Administrator",
  "module": "Church Finances",
- "name": "Budget",
+ "name": "Church Budget",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

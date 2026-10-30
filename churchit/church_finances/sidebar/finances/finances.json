@@ -461,7 +461,7 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "Budgets",
-   "link_to": "Budget",
+   "link_to": "Church Budget",
    "link_type": "DocType",
    "open_in_new_tab": 1,
    "show_arrow": 0,
@@ -664,7 +664,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-28 23:56:59.623882",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",

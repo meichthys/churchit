@@ -47,7 +47,7 @@
    "is_query_report": 0,
    "label": "Locations",
    "link_count": 0,
-   "link_to": "Location",
+   "link_to": "Church Location",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -106,7 +106,7 @@
    "is_query_report": 0,
    "label": "Open Work Orders",
    "link_count": 0,
-   "link_to": "Open Work Orders",
+   "link_to": "Open Church Work Orders",
    "link_type": "Report",
    "onboard": 0,
    "report_ref_doctype": "Church Task",
@@ -124,7 +124,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-27 14:34:13.000000",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",

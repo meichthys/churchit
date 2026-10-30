@@ -11,7 +11,7 @@ from churchit.query import Date
 COMPARISON_WINDOWS = ("Same Period Last Year", "Last Month", "Last Quarter", "Last 12 Months")
 
 
-class Budget(Document):
+class ChurchBudget(Document):
 	def validate(self):
 		if getdate(self.end_date) < getdate(self.start_date):
 			frappe.throw(_("End Date cannot be before Start Date."))
@@ -55,7 +55,7 @@ class Budget(Document):
 		whoever is saving, so the scope is part of the question, not a guard.
 		"""
 		overlapping = frappe.get_all(
-			"Budget",
+			"Church Budget",
 			filters={
 				"name": ("!=", self.name or ""),
 				"start_date": ("<=", self.end_date),
@@ -140,11 +140,11 @@ class Budget(Document):
 @frappe.whitelist()
 def get_current_budget(filters: str | list | dict | None = None):
 	"""The budget covering today, else the most recently started one, within the church scope."""
-	frappe.has_permission("Budget", "read", throw=True)
+	frappe.has_permission("Church Budget", "read", throw=True)
 	today = nowdate()
 	scope = church_query_filters(filters)
 	covering = frappe.get_all(
-		"Budget",
+		"Church Budget",
 		filters={"start_date": ("<=", today), "end_date": (">=", today), **scope},
 		order_by="start_date desc",
 		limit=1,
@@ -152,7 +152,7 @@ def get_current_budget(filters: str | list | dict | None = None):
 	)
 	if covering:
 		return covering[0]
-	latest = frappe.get_all("Budget", filters=scope, order_by="start_date desc", limit=1, pluck="name")
+	latest = frappe.get_all("Church Budget", filters=scope, order_by="start_date desc", limit=1, pluck="name")
 	return latest[0] if latest else None
 
 

@@ -39,7 +39,7 @@ frappe.ui.form.on("Missionary", {
 		}).appendTo(grid.grid_buttons);
 	},
 
-	// The server looks the country up, so People Settings can turn it off, as for Location.address.
+	// The server looks the country up, so People Settings can turn it off, as for Church Location.address.
 	// Only fills an empty pin, so a manually placed one is never overwritten.
 	country(frm) {
 		if (!frm.doc.country || frm.doc.geolocation) return;

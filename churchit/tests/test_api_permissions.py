@@ -19,7 +19,7 @@ from frappe.client import get as client_get
 from frappe.desk.form.save import savedocs
 from frappe.handler import run_doc_method
 
-from churchit.church_finances.doctype.budget import budget
+from churchit.church_finances.doctype.church_budget import church_budget
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
 from churchit.church_people.followup import CARD, add_card
@@ -280,7 +280,7 @@ class TestPortalMemberChurchOverRest(RestTestCase):
 
 
 class TestBudgetProgressOverRest(RestTestCase):
-	"""`Budget.get_progress` totals the spending of the budget's own church, as the budget is stored.
+	"""`ChurchBudget.get_progress` totals the spending of the budget's own church, as the budget is stored.
 
 	The form calls it with `frm.call`, which sends the form as `docs=`, and Frappe checks read on
 	that copy, where an empty church passes every User Permission.
@@ -294,7 +294,7 @@ class TestBudgetProgressOverRest(RestTestCase):
 		make_person("_Test REST", "Finance", church=cls.branch_a, user=cls.finance)
 		cls.budget = frappe.get_doc(
 			{
-				"doctype": "Budget",
+				"doctype": "Church Budget",
 				"start_date": "2031-01-01",
 				"end_date": "2031-12-31",
 				"church": cls.branch_a,
@@ -304,7 +304,9 @@ class TestBudgetProgressOverRest(RestTestCase):
 	def test_a_forged_church_totals_no_other_churchs_spending(self):
 		copy = self.budget.as_dict()
 		copy.update(church="", include_branches=1)
-		with patch.object(budget, "get_expense_totals", wraps=budget.get_expense_totals) as totals:
+		with patch.object(
+			church_budget, "get_expense_totals", wraps=church_budget.get_expense_totals
+		) as totals:
 			try:
 				self.run_on_copy(self.finance, "get_progress", copy)
 			except frappe.PermissionError:
@@ -334,7 +336,12 @@ class TestStoredChurch(RestTestCase):
 	def location(self, church, **values):
 		return (
 			frappe.get_doc(
-				{"doctype": "Location", "location_name": f"_Test Stored {church}", "church": church, **values}
+				{
+					"doctype": "Church Location",
+					"location_name": f"_Test Stored {church}",
+					"church": church,
+					**values,
+				}
 			)
 			.insert(ignore_permissions=True)
 			.name
@@ -355,16 +362,18 @@ class TestStoredChurch(RestTestCase):
 	def test_another_churchs_record_cannot_be_moved_by_naming_my_church(self):
 		name = self.location(self.branch_a)
 
-		self.assertFalse(self.saves(self.manager_b, "Location", name, {"church": self.branch_b}))
-		self.assertEqual(frappe.db.get_value("Location", name, "church"), self.branch_a)
+		self.assertFalse(self.saves(self.manager_b, "Church Location", name, {"church": self.branch_b}))
+		self.assertEqual(frappe.db.get_value("Church Location", name, "church"), self.branch_a)
 
 	def test_my_churchs_and_shared_records_still_save(self):
 		mine = self.location(self.branch_b)
 		shared = self.location(self.branch_a, is_shared=1)
 
-		self.assertTrue(self.saves(self.manager_b, "Location", mine, {"location_name": "_Test Renamed B"}))
 		self.assertTrue(
-			self.saves(self.manager_b, "Location", shared, {"location_name": "_Test Renamed Shared"})
+			self.saves(self.manager_b, "Church Location", mine, {"location_name": "_Test Renamed B"})
+		)
+		self.assertTrue(
+			self.saves(self.manager_b, "Church Location", shared, {"location_name": "_Test Renamed Shared"})
 		)
 
 	def test_another_churchs_record_cannot_be_cancelled_through_a_copy(self):

@@ -10,7 +10,7 @@ from frappe.handler import run_doc_method
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_years, getdate, nowdate
 
-from churchit.church_finances.doctype.budget.budget import (
+from churchit.church_finances.doctype.church_budget.church_budget import (
 	get_comparison_window,
 	get_current_budget,
 	get_window_scale,
@@ -31,7 +31,7 @@ def _ensure(doctype, filters, values):
 	return doc.name
 
 
-class TestBudget(FrappeTestCase):
+class TestChurchBudget(FrappeTestCase):
 	def setUp(self):
 		# Expense Type is a tree doctype whose inserts commit, so keep the fund and
 		# types as persistent fixtures and clear their expenses before each test.
@@ -64,11 +64,11 @@ class TestBudget(FrappeTestCase):
 		# Never delete unscoped: this site's real Budget data lives in this table too.
 		if self.budgets:
 			frappe.db.delete("Budget Line", {"parent": ("in", self.budgets)})
-			frappe.db.delete("Budget", {"name": ("in", self.budgets)})
+			frappe.db.delete("Church Budget", {"name": ("in", self.budgets)})
 			frappe.db.commit()
 
 	def _make_budget(self, start, end, lines=None):
-		budget = frappe.get_doc({"doctype": "Budget", "start_date": start, "end_date": end})
+		budget = frappe.get_doc({"doctype": "Church Budget", "start_date": start, "end_date": end})
 		for expense_type, amount in lines or []:
 			budget.append("lines", {"expense_type": expense_type, "budgeted_amount": amount})
 		budget = budget.insert(ignore_permissions=True)
@@ -203,7 +203,7 @@ class TestBudget(FrappeTestCase):
 		test body and restores them after, instead of deleting them outright."""
 		frappe.db.savepoint("test_current_budget")
 		try:
-			frappe.db.delete("Budget")
+			frappe.db.delete("Church Budget")
 			yield
 		finally:
 			frappe.db.rollback(save_point="test_current_budget")

@@ -67,7 +67,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Location",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "fieldname": "capacity",
@@ -136,7 +136,7 @@
    "link_fieldname": "room"
   }
  ],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room",

@@ -11,14 +11,14 @@
  "is_standard": "Yes",
  "json": "{\"filters\": [[\"Church Task\", \"task_type\", \"=\", \"Work Order\"], [\"Church Task\", \"status\", \"!=\", \"Completed\"]], \"fields\": [[\"name\", \"Church Task\"], [\"docstatus\", \"Church Task\"], [\"title\", \"Church Task\"], [\"status\", \"Church Task\"], [\"priority\", \"Church Task\"], [\"due_date\", \"Church Task\"], [\"requester\", \"Church Task\"], [\"asset\", \"Church Task\"], [\"room\", \"Church Task\"]], \"order_by\": \"`tabChurch Task`.`due_date` asc, `tabChurch Task`.`name` asc\", \"add_totals_row\": 0, \"page_length\": 100, \"column_widths\": {\"name\": 120, \"title\": 120, \"status\": 120, \"priority\": 120, \"due_date\": 120, \"requester\": 120, \"asset\": 120, \"room\": 120}, \"group_by\": null}",
  "letterhead": null,
- "modified": "2026-10-27 12:32:43.000000",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
- "name": "Open Work Orders",
+ "name": "Open Church Work Orders",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "Church Task",
- "report_name": "Open Work Orders",
+ "report_name": "Open Church Work Orders",
  "report_type": "Report Builder",
  "roles": [
   {

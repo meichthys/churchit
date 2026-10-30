@@ -63,7 +63,7 @@ _DELETE_STEPS = [
 	(False, "Church Task", {}),
 	(False, "Church Asset", {}),
 	(False, "Room", {}),
-	(False, "Location", {}),
+	(False, "Church Location", {}),
 	(False, "Song", {}),
 	(False, "Prayer", {}),
 	(True, "Fund Transfer", {}),
@@ -91,7 +91,7 @@ _DELETE_STEPS = [
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
 	(False, "Vendor", {}),
-	(False, "Budget", {}),
+	(False, "Church Budget", {}),
 	(False, "Expense Type", {}),
 	(False, "Giving Statement", {}),
 	(False, "Online Donation", {}),
@@ -1537,7 +1537,7 @@ def _create_budget(expense_types):
 	start_date = f"{year}-01-01"
 	end_date = f"{year}-12-31"
 
-	if frappe.db.exists("Budget", {"start_date": start_date, "end_date": end_date}):
+	if frappe.db.exists("Church Budget", {"start_date": start_date, "end_date": end_date}):
 		return
 
 	lines = [
@@ -1551,7 +1551,7 @@ def _create_budget(expense_types):
 
 	doc = frappe.get_doc(
 		{
-			"doctype": "Budget",
+			"doctype": "Church Budget",
 			"start_date": start_date,
 			"end_date": end_date,
 			"lines": lines,
@@ -3018,13 +3018,13 @@ def _create_locations():
 	"""Create sample locations in tree order. Returns dict mapping label → name."""
 	refs = {}
 	for label, parent_key, is_group in _LOCATIONS:
-		existing = frappe.db.get_value("Location", {"location_name": label}, "name")
+		existing = frappe.db.get_value("Church Location", {"location_name": label}, "name")
 		if existing:
 			refs[label] = existing
 			continue
 		doc = frappe.get_doc(
 			{
-				"doctype": "Location",
+				"doctype": "Church Location",
 				"location_name": label,
 				"is_group": 1 if is_group else 0,
 				"parent_location": refs.get(parent_key),

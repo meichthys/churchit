@@ -208,7 +208,7 @@
    "is_query_report": 0,
    "label": "Budgets",
    "link_count": 0,
-   "link_to": "Budget",
+   "link_to": "Church Budget",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -391,7 +391,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-23 17:47:17.000000",
+ "modified": "2026-10-29 23:30:30.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",

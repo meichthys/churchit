@@ -2,12 +2,13 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe.desk.treeview import make_tree_args
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.tests.helpers import make_address
 
 
-class TestLocation(FrappeTestCase):
+class TestChurchLocation(FrappeTestCase):
 	"""A child location falls back to its parent's address, so a campus only
 	has to be addressed once."""
 
@@ -16,9 +17,9 @@ class TestLocation(FrappeTestCase):
 		self.parent = self._location("_Test Campus", address=self.address.name)
 
 	def _location(self, location_name, **values):
-		return frappe.get_doc({"doctype": "Location", "location_name": location_name, **values}).insert(
-			ignore_permissions=True
-		)
+		return frappe.get_doc(
+			{"doctype": "Church Location", "location_name": location_name, **values}
+		).insert(ignore_permissions=True)
 
 	def test_child_inherits_the_parent_address(self):
 		child = self._location("_Test Wing", parent_location=self.parent.name)
@@ -28,6 +29,16 @@ class TestLocation(FrappeTestCase):
 		own = make_address("_Test Wing Address")
 		child = self._location("_Test Annex", parent_location=self.parent.name, address=own.name)
 		self.assertEqual(child.address, own.name)
+
+	def test_add_child_in_the_tree_view_files_the_location_under_its_parent(self):
+		args = make_tree_args(
+			doctype="Church Location",
+			parent=self.parent.name,
+			is_root="false",
+			location_name="_Test Tree Child",
+		)
+		child = frappe.get_doc(args).insert(ignore_permissions=True)
+		self.assertEqual(child.parent_location, self.parent.name)
 
 	def test_location_without_a_parent_keeps_a_blank_address(self):
 		orphan = self._location("_Test Standalone")

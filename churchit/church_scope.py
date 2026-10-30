@@ -47,7 +47,7 @@ SHAREABLE_DOCTYPES = (
 	"Church Asset",
 	"Fund",
 	"Function",
-	"Location",
+	"Church Location",
 	"Meeting Minutes",
 	"Ministry",
 	"Question Set",

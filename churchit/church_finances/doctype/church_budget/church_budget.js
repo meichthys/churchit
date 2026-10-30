@@ -1,7 +1,7 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-frappe.ui.form.on("Budget", {
+frappe.ui.form.on("Church Budget", {
 	refresh(frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(

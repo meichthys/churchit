@@ -33,10 +33,10 @@ class TestBudgetVsActual(FrappeTestCase):
 		# Budgets for the whole test and restores them in tearDown, instead of
 		# deleting them outright (this site's real Budget data lives here too).
 		frappe.db.savepoint("test_budget_vs_actual")
-		frappe.db.delete("Budget")
+		frappe.db.delete("Church Budget")
 		self.budget = frappe.get_doc(
 			{
-				"doctype": "Budget",
+				"doctype": "Church Budget",
 				"start_date": add_days(nowdate(), -30),
 				"end_date": add_days(nowdate(), 30),
 			}
@@ -77,7 +77,7 @@ class TestBudgetVsActual(FrappeTestCase):
 		self.assertIn("prorated", message)
 
 	def test_empty_state_without_any_budget(self):
-		frappe.db.delete("Budget")
+		frappe.db.delete("Church Budget")
 		columns, data, message = execute({})
 		self.assertEqual(data, [])
 		self.assertTrue(columns)

@@ -908,23 +908,6 @@ def _create_default_care_request_types():
 		_insert_if_missing("Care Request Type", {"type": care_type}, type=care_type)
 
 
-def _create_default_budgets():
-	"""Seed a zero-amount Budget for every existing Fund for the current year."""
-	if not frappe.db.exists("DocType", "Budget"):
-		return
-	year = frappe.utils.now_datetime().year
-	for fund in frappe.db.get_all("Fund", fields=["name"]):
-		_insert_if_missing(
-			"Budget",
-			{"fund": fund.name, "fiscal_year": year},
-			fund=fund.name,
-			fiscal_year=year,
-			budgeted_amount=0,
-			period="Annual",
-			is_active=1,
-		)
-
-
 def _create_contact_types():
 	"""Seed the Email Type / Phone Type / Address Type lookups used by the
 	emails, phones and addresses tables on Person, Family and Missionary."""

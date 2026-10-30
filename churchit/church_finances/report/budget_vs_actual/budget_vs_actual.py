@@ -4,7 +4,10 @@ import frappe
 from frappe import _
 from frappe.utils import escape_html
 
-from churchit.church_finances.doctype.budget.budget import COMPARISON_WINDOWS, get_current_budget
+from churchit.church_finances.doctype.church_budget.church_budget import (
+	COMPARISON_WINDOWS,
+	get_current_budget,
+)
 from churchit.utils import set_report_link_titles
 
 
@@ -13,7 +16,7 @@ def execute(filters=None):
 	budget_name = filters.get("budget")
 	if budget_name:
 		# A report checks only its role, and a caller can name any church's budget.
-		frappe.has_permission("Budget", doc=budget_name, throw=True)
+		frappe.has_permission("Church Budget", doc=budget_name, throw=True)
 	else:
 		budget_name = get_current_budget(filters)
 	if not budget_name:
@@ -23,7 +26,7 @@ def execute(filters=None):
 	if comparison not in COMPARISON_WINDOWS:
 		comparison = None
 
-	progress = frappe.get_doc("Budget", budget_name).get_progress(comparison)
+	progress = frappe.get_doc("Church Budget", budget_name).get_progress(comparison)
 	columns = get_columns(comparison)
 	data = progress["rows"]
 	set_report_link_titles(columns, data)
@@ -80,7 +83,7 @@ def get_columns(comparison):
 
 
 def get_message(budget_name, progress):
-	link = f'<a href="/app/budget/{quote(budget_name)}">{escape_html(budget_name)}</a>'
+	link = f'<a href="/app/church-budget/{quote(budget_name)}">{escape_html(budget_name)}</a>'
 	parts = [
 		_("Budget: {0}").format(link),
 		_("{0}% of the period elapsed").format(round(progress["elapsed_fraction"] * 100)),
