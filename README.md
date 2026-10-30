@@ -285,6 +285,34 @@ On a plain `bench` (without Pilot), the equivalent is `bench get-app https://git
 
 Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
 
+#### Churchit and ERPNext on one site
+
+Churchit and ERPNext can share a site. Install them in either order:
+
+```bash
+pilot -b church get-app https://github.com/frappe/erpnext --branch version-16
+pilot -b church install-app church.example.org erpnext
+```
+
+Update and migrate an existing Churchit site before you install ERPNext. Until you do, the install stops with an error.
+
+When both apps are on one site:
+
+| Area | What happens |
+|---|---|
+| Setup wizard | After you add ERPNext to a Churchit site, desk users go to ERPNext's setup wizard until a System Manager completes it. |
+| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. |
+| Letterhead | The church's default letterhead, such as **Church Letter Head**, stays the default, so ERPNext documents also print with it. To print them with an ERPNext letterhead, set it in **Company > Default Letter Head**. |
+| Email | Churchit turns off the standard email footer, so church emails do not end with "Sent via ERPNext". You can turn it on again in **System Settings**. |
+| Address Template | ERPNext's setup wizard replaces the default Address Template for your country, and its template has no phone and email lines. Giving statements print the church address with that template, so check **Address Template** after the wizard. |
+| Addresses | The Address form shows the fields ERPNext needs, such as Preferred Billing Address, Is Your Company Address and Tax Category. A site without ERPNext keeps the short form. Only church addresses go to OpenStreetMap for the map. Addresses linked to customers, suppliers or companies stay on the site. |
+| Portal | The customer and supplier lists (`/orders`, `/invoices`, `/addresses` and others) work beside the Member Portal at `/portal`. ERPNext's customer and supplier logins are not added to People as Visitors. A login is still linked to the person whose primary email is the same address. |
+| Notifications | Communication consent does not apply to ERPNext notifications. ERPNext messages, such as invoices, go to all their recipients, church members included. |
+| Gender | Churchit keeps only Male, Female and Unknown. Installing Churchit on an ERPNext site deletes the other genders, so update the employees and contacts that used one. |
+| Apps screen | Every desk user sees an ERPNext tile. Users without ERPNext roles cannot use it. Desk users who can open Summary go to Summary after login. Other desk users go to their own default. |
+
+Churchit renamed three records so that ERPNext can use their names: **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (`/app/budget`) and API calls (`/api/resource/Location`).
+
 To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 ### First steps after installing
