@@ -2,6 +2,10 @@
 // site with sample data so they can explore the app right away.
 
 frappe.setup.on("before_load", function () {
+	// Another app's wizard (ERPNext's, say) on a site already in use must not offer sample data.
+	if (frappe.boot.setup_wizard_completed_apps?.includes("frappe")) {
+		return;
+	}
 	frappe.setup.add_slide({
 		name: "church_sample_data",
 		title: __("Sample Data"),

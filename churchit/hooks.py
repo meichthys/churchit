@@ -7,11 +7,6 @@ app_license = "mit"
 app_logo_url = "/assets/churchit/media/church_logo.png"
 develop_version = "develop"
 
-website_context = {
-	"favicon": "/assets/churchit/icons/favicon.ico",
-	"splash_image": "/assets/churchit/media/church_logo.png",
-}
-
 update_website_context = "churchit.church_website.context.update_website_context"
 before_request = ["churchit.church_website.context.before_request"]
 
@@ -216,7 +211,11 @@ setup_wizard_complete = [
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-before_app_install = "churchit.church_setup.app_clashes.refuse_clashing_app"
+before_app_install = [
+	"churchit.church_setup.app_clashes.refuse_clashing_app",
+	"churchit.patches.after_install.remember_letter_head",
+]
+after_app_install = "churchit.patches.after_install.keep_church_letter_head"
 
 # Integration Cleanup
 # -------------------

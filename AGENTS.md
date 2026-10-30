@@ -938,7 +938,9 @@ CI does not run it.
 
 The Apps screen shows one Churchit tile (`add_to_apps_screen` in `hooks.py`), but a desk user opens
 Summary after login: `church_summary/home.land_on_summary` sets their Default Workspace when they
-first become a desk user, and leaves a choice they make later alone. Inside the app, the dock on
+first become a desk user, and leaves a choice they make later alone. Only a user with one of
+Summary's roles gets it, so an ERPNext accountant on a shared site does not land on a page they
+cannot open. Inside the app, the dock on
 the left lists the modules (`churchit/dock/churchit/churchit.json`), and each module has one sidebar
 (`churchit/<module>/sidebar/`). Three rules fail silently, so
 `churchit/tests/test_navigation_hygiene.py` checks them:

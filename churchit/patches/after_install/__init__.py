@@ -47,6 +47,11 @@ from churchit.church_website.pages import sync_page_switches
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
 WEBSITE_THEME = "Churchit"
+CHURCH_LOGO = "/assets/churchit/media/church_logo.png"
+CHURCH_FAVICON = "/assets/churchit/icons/favicon.ico"
+CHURCH_LETTER_HEAD = "Church Letter Head"
+# ERPNext's install makes the second of these the site's default letterhead.
+ERPNEXT_LETTER_HEADS = ("Company Letterhead", "Company Letterhead - Grey")
 
 
 def execute():
@@ -97,6 +102,7 @@ def execute():
 	_setup_about_us_settings()
 	_setup_contact_us_settings()
 	_setup_website_settings()
+	set_church_brand()
 	_setup_portal_settings()
 	# One switch per shipped page; migrate keeps them in step after this.
 	sync_page_switches()
@@ -191,8 +197,9 @@ def create_unsynced_records():
 			values = json.loads(source.read_text())
 			if frappe.db.exists(doctype, values["name"]):
 				continue
-			# A church that has already chosen its own default keeps it.
-			if values.get("is_default") and frappe.db.exists(doctype, {"is_default": 1}):
+			# A church that has already chosen its own default keeps it; ERPNext's choice does not count.
+			chosen = {"is_default": 1, "name": ("not in", ERPNEXT_LETTER_HEADS)}
+			if values.get("is_default") and frappe.db.exists(doctype, chosen):
 				values["is_default"] = 0
 			frappe.get_doc(values).insert(ignore_permissions=True)
 
@@ -764,6 +771,42 @@ def _setup_website_settings():
 	doc.footer_powered = " "
 	doc.footer_items = []
 	doc.save(ignore_permissions=True)
+
+
+def set_church_brand():
+	"""Show the church's favicon, splash and logo, and no other app's email footer.
+
+	Frappe takes these from the hooks of the last app installed, so ERPNext installed after
+	Churchit would brand the church's website, login page and emails. A setting wins over every
+	hook, and one the church has already set is kept.
+	"""
+	for doctype, field, value in (
+		("Website Settings", "favicon", CHURCH_FAVICON),
+		("Website Settings", "splash_image", CHURCH_LOGO),
+		("Navbar Settings", "app_logo", CHURCH_LOGO),
+	):
+		if not frappe.db.get_single_value(doctype, field):
+			frappe.db.set_single_value(doctype, field, value)
+
+	# Frappe ships no standard footer; ERPNext's says "Sent via ERPNext". The email code reads the default.
+	frappe.db.set_single_value("System Settings", "disable_standard_email_footer", 1)
+	frappe.db.set_default("disable_standard_email_footer", 1)
+
+
+def remember_letter_head(app_name):
+	"""before_app_install: note the church's default letterhead, which ERPNext's install replaces."""
+	if app_name == "erpnext":
+		frappe.flags.church_letter_head = frappe.db.get_value("Letter Head", {"is_default": 1})
+
+
+def keep_church_letter_head(app_name):
+	"""after_app_install: make the church's letterhead the default again after ERPNext's install."""
+	chosen = frappe.flags.pop("church_letter_head", None)
+	if app_name != "erpnext" or not chosen or frappe.db.get_value("Letter Head", chosen, "is_default"):
+		return
+	letter_head = frappe.get_doc("Letter Head", chosen)
+	letter_head.is_default = 1
+	letter_head.save(ignore_permissions=True)
 
 
 def _setup_portal_settings():

@@ -21,6 +21,16 @@ class TestLandOnSummary(RollbackEachTest):
 		self.assertEqual(frappe.db.get_value("User", user, "user_type"), "Website User")
 		self.assertFalse(default_workspace(user))
 
+	def test_a_desk_user_who_cannot_open_summary_gets_none(self):
+		# An ERPNext accountant on a shared site holds desk roles that Summary is not for.
+		user = ensure_user("_test_home_other_app@example.com", "_Test Home", roles=("Website Manager",))
+		self.assertEqual(frappe.db.get_value("User", user, "user_type"), "System User")
+		self.assertFalse(default_workspace(user))
+
+		land_desk_users_on_summary()
+
+		self.assertFalse(default_workspace(user))
+
 	def test_a_member_given_a_desk_role_opens_summary(self):
 		user = ensure_user("_test_home_promoted@example.com", "_Test Home")
 		frappe.get_doc("User", user).add_roles("Church Staff")

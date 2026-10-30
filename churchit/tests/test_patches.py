@@ -46,6 +46,7 @@ from churchit.patches.v1_0 import (
 	restore_shipped_people_charts,
 	scope_website_pages_to_church,
 	seed_naming_series_counters,
+	set_church_brand,
 	set_church_website,
 	set_display_names,
 	setup_bulletins,
@@ -130,6 +131,77 @@ class TestRenameRecordsThatClashWithErpnext(RollbackEachTest):
 
 		self.assertTrue(frappe.db.exists("Property Setter", "Church Location-location_name-bold"))
 		self.assertFalse(frappe.db.exists("Property Setter", "Location-location_name-bold"))
+
+
+class TestSetChurchBrand(RollbackEachTest):
+	"""Frappe takes the brand from the last app installed, so the church's is stored as settings."""
+
+	def test_blank_settings_get_the_church_brand_and_a_chosen_logo_is_kept(self):
+		frappe.db.set_single_value("Website Settings", "favicon", None)
+		frappe.db.set_single_value("Navbar Settings", "app_logo", "/files/_test_our_logo.png")
+
+		set_church_brand.execute()
+
+		self.assertEqual(
+			frappe.db.get_single_value("Website Settings", "favicon"), after_install.CHURCH_FAVICON
+		)
+		self.assertEqual(
+			frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/_test_our_logo.png"
+		)
+		self.assertTrue(frappe.db.get_default("disable_standard_email_footer"))
+
+
+class TestErpnextLetterHead(RollbackEachTest):
+	"""ERPNext makes its company letterhead the site default; a church site keeps the church's."""
+
+	def make_erpnext_default(self):
+		frappe.db.delete("Letter Head", {"name": ("in", after_install.ERPNEXT_LETTER_HEADS)})
+		frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "Company Letterhead - Grey",
+				"source": "HTML",
+				"content": "<p>Company</p>",
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_installing_erpnext_puts_the_church_letter_head_back(self):
+		add_unsynced_default_records.execute()
+		frappe.get_doc("Letter Head", "Church Letter Head").update({"is_default": 1}).save(
+			ignore_permissions=True
+		)
+
+		after_install.remember_letter_head("erpnext")
+		self.make_erpnext_default()
+		after_install.keep_church_letter_head("erpnext")
+
+		self.assertTrue(frappe.db.get_value("Letter Head", "Church Letter Head", "is_default"))
+
+	def test_a_letterhead_the_church_chose_stays_the_default(self):
+		theirs = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "_Test Church Chosen Letterhead",
+				"source": "HTML",
+				"content": "<p>Ours</p>",
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		after_install.remember_letter_head("erpnext")
+		self.make_erpnext_default()
+		after_install.keep_church_letter_head("erpnext")
+
+		self.assertTrue(frappe.db.get_value("Letter Head", theirs.name, "is_default"))
+
+	def test_installing_churchit_on_an_erpnext_site_makes_the_church_letter_head_default(self):
+		frappe.db.delete("Letter Head", {"name": "Church Letter Head"})
+		self.make_erpnext_default()
+
+		add_unsynced_default_records.execute()
+
+		self.assertTrue(frappe.db.get_value("Letter Head", "Church Letter Head", "is_default"))
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):
