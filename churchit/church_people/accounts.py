@@ -28,15 +28,19 @@ from churchit.contacts import EMAIL_DOCTYPE, EMAIL_FIELD, get_other_holder
 # The Person source of the people added for a portal login.
 PORTAL = "Portal"
 
+# ERPNext gives these roles to the portal logins of its customers and suppliers, who did not come to church.
+ERPNEXT_PARTY_ROLES = {"Customer", "Supplier"}
+
 
 def link_portal_user(login_manager=None):
 	"""on_session_creation: give a Website User who signs in with no Person one.
 
 	The one person of the user's churches who holds the address as their own primary
 	email and has no login is linked. With none, a Visitor is added and the people
-	who may be them are left for the office. With several, nobody is linked and the
-	office sorts them out. A linked user costs one query on every later sign-in.
-	A self check-in kiosk is a device, not a person, so it gets none.
+	who may be them are left for the office; an ERPNext customer or supplier gets none.
+	With several, nobody is linked and the office sorts them out. A linked user costs
+	one query on every later sign-in. A self check-in kiosk is a device, not a person,
+	so it gets none.
 	"""
 	user = frappe.session.user
 	if not is_portal_member(user) or session_person() or KIOSK_ROLE in frappe.get_roles(user):
@@ -63,7 +67,7 @@ def find_or_add_person(user: str) -> None:
 		link_person(holders[0], user)
 	elif holders:
 		record_holders_as_duplicates(holders)
-	else:
+	elif ERPNEXT_PARTY_ROLES.isdisjoint(frappe.get_roles(user)):
 		add_person(user, details)
 
 

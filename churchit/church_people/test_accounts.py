@@ -26,6 +26,12 @@ def share_in_the_directory_by_default(case):
 	case.assertEqual(frappe.new_doc("Person").share_email, 1)
 
 
+def give_erpnext_party_role(user, role):
+	"""Give *user* the portal role ERPNext gives the contacts of a customer or supplier."""
+	ensure("Role", {"role_name": role}, {"role_name": role, "desk_access": 0})
+	frappe.get_doc("User", user).add_roles(role)
+
+
 class TestPortalAccounts(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):
@@ -124,6 +130,21 @@ class TestPortalAccounts(RollbackEachTest):
 		self.assertNotEqual(person.name, namesake.name)
 		self.assertEqual(person.emails[0].shared_from, namesake.name)
 		self.assertTrue(is_paired(person.name, namesake.name))
+
+	def test_an_erpnext_customer_or_supplier_login_gets_no_visitor(self):
+		give_erpnext_party_role(MEMBER, "Customer")
+
+		self.sign_in()
+
+		self.assertIsNone(self.person_of())
+
+	def test_an_erpnext_customer_or_supplier_login_is_linked_to_the_person_holding_the_address(self):
+		person = self.holder("Supplier", self.branch_a)
+		give_erpnext_party_role(MEMBER, "Supplier")
+
+		self.sign_in()
+
+		self.assertEqual(self.person_of(), person.name)
 
 	def test_several_people_holding_the_address_are_paired_and_none_is_linked(self):
 		first = self.holder("Twice", self.branch_a)

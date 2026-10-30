@@ -15,11 +15,21 @@ class ScopedNotification(Notification):
 	def get_list_of_recipients(self, doc, context):
 		recipients, cc, bcc = super().get_list_of_recipients(doc, context)
 		recipients = drop_out_of_scope(recipients, doc, "email")
+		if not is_under_church_consent(doc):
+			return recipients, cc, bcc
 		return tuple(drop_refused(values, "email", EMAIL) for values in (recipients, cc, bcc))
 
 	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
 		receivers = super().get_receiver_list(doc, context, field_on_user, recipient_extractor_func)
-		return drop_refused(drop_out_of_scope(receivers, doc, field_on_user), field_on_user, SMS)
+		receivers = drop_out_of_scope(receivers, doc, field_on_user)
+		if not is_under_church_consent(doc):
+			return receivers
+		return drop_refused(receivers, field_on_user, SMS)
+
+
+def is_under_church_consent(doc) -> bool:
+	"""Church consent covers churchit's and Frappe's doctypes, not another app's messages (an ERPNext invoice)."""
+	return frappe.local.module_app.get(frappe.scrub(doc.meta.module)) in ("churchit", "frappe")
 
 
 def drop_out_of_scope(values, doc, field):

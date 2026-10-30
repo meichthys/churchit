@@ -410,7 +410,9 @@ covering email, the desk bell and SMS, for records your users create too.
 
 Recipients resolved from a document field are inherently fine. If you add a notification on a
 doctype with no church field there is nothing to filter by, so every role recipient receives it.
-Consent filters recipients too (see "Church Emails, consent and bounces").
+Consent filters recipients too, on churchit's and Frappe's doctypes
+(`scoped_notification.is_under_church_consent`), so another app's Notifications, such as an ERPNext
+invoice, still reach church members (see "Church Emails, consent and bounces").
 
 A shipped Notification with a `condition` sets `"condition_type": "Python"` in its JSON. Migrate
 syncs it without field defaults, and Frappe ignores a condition whose type is empty
@@ -618,7 +620,10 @@ site path or a full URL to this site, and a dynamic route matches from its fixed
 gate is still the renderer. Ticking or clearing Members Only clears the whole website cache
 (`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal?doctype=Web
 Page` lists nothing, because `www/portal.html` shadows Frappe's portal page and has no `portal.py`;
-do not add one. A new way to read Web Pages without permission checks must apply the same rule.
+do not add one. The template still draws Frappe's list for another app's list route (ERPNext's
+`/orders`), which runs Frappe's own `portal.py`. Its `no_cache` front matter keeps the landing out of
+the page cache, which those routes read under the `portal` key; do not remove it. A new way to read
+Web Pages without permission checks must apply the same rule.
 
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no

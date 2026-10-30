@@ -95,7 +95,7 @@
   },
   {
    "default": "1",
-   "description": "Send the text of each new or changed address, without a name, to the OpenStreetMap search service (Nominatim), so it shows on the Map of Addresses. Turn this off to keep every address on this site. Addresses not on the map yet then stay off it.",
+   "description": "Send the text of each new or changed church address, without a name, to the OpenStreetMap search service (Nominatim), so it shows on the Map of Addresses. Addresses linked to other records, such as ERPNext customers, suppliers or companies, are never sent. Turn this off to keep every address on this site. Addresses not on the map yet then stay off it.",
    "fieldname": "look_up_addresses",
    "fieldtype": "Check",
    "label": "Look Up Addresses for the Map"
@@ -117,7 +117,7 @@
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-21 21:30:00.000000",
+ "modified": "2026-10-30 00:20:44.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People Settings",

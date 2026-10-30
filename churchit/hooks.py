@@ -13,7 +13,11 @@ before_request = ["churchit.church_website.context.before_request"]
 fixtures = [
 	{
 		"dt": "Custom Field",
-		"filters": [["dt", "in", ["Communication", "Contact Us Settings", "Portal Settings"]]],
+		# The module filter keeps out the fields other apps, such as ERPNext, add to the same doctypes.
+		"filters": [
+			["dt", "in", ["Communication", "Contact Us Settings", "Portal Settings"]],
+			["module", "=", "Church Customizations"],
+		],
 	},
 	{
 		"dt": "Property Setter",

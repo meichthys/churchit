@@ -7,6 +7,10 @@ A save that moves an address queues a lookup with Nominatim, the OpenStreetMap s
 Nominatim allows one request a second and asks for a User-Agent naming the site. A lookup that fails or finds
 nothing leaves the coordinates blank (0, which the Map view skips). The second address line is left out of the
 search, because a flat or suite number stops Nominatim finding the street.
+
+Only the church's own addresses are sent. Churchit points at an address from a Link field, so an address with
+rows in its `links` table belongs to another record, such as an ERPNext customer, supplier or company, and stays
+on the site.
 """
 
 import time
@@ -37,7 +41,9 @@ def queue_geocode(doc, method=None) -> None:
 	"""
 	if frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate or frappe.in_test:
 		return
-	if not is_address_lookup_on() or not any(doc.has_value_changed(field) for field in SEARCH_FIELDS):
+	if doc.links or not is_address_lookup_on():
+		return
+	if not any(doc.has_value_changed(field) for field in SEARCH_FIELDS):
 		return
 	frappe.enqueue(
 		geocode,
@@ -54,6 +60,8 @@ def geocode(address: str) -> None:
 	if not is_address_lookup_on() or not frappe.db.exists("Address", address):
 		return
 	doc = frappe.get_doc("Address", address)
+	if doc.links:
+		return
 	latitude, longitude = get_coordinates(
 		", ".join(filter(None, (doc.get(field) for field in SEARCH_FIELDS)))
 	)
@@ -115,12 +123,16 @@ def geocode_missing(after: str = "") -> None:
 	if not is_address_lookup_on():
 		return
 
-	addresses = frappe.get_all(
-		"Address",
-		filters={"latitude": 0, "name": (">", after)},
-		order_by="name asc",
-		limit=BATCH,
-		pluck="name",
+	Address = frappe.qb.DocType("Address")
+	Link = frappe.qb.DocType("Dynamic Link")
+	linked = frappe.qb.from_(Link).select(Link.parent).where(Link.parenttype == "Address")
+	addresses = (
+		frappe.qb.from_(Address)
+		.select(Address.name)
+		.where((Address.latitude == 0) & (Address.name > after) & Address.name.notin(linked))
+		.orderby(Address.name)
+		.limit(BATCH)
+		.run(pluck=True)
 	)
 	for address in addresses:
 		geocode(address)
