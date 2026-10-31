@@ -246,7 +246,7 @@ class Readme:
 		"""Section markdown -> page HTML. Fenced code becomes a command block with a copy button."""
 		parts = FENCE_TOKEN.split(text)
 		rendered = "".join(
-			command_block(self.fences[int(part)]) if i % 2 else markdown2.markdown(part)
+			command_block(self.fences[int(part)]) if i % 2 else markdown2.markdown(part, extras=["tables"])
 			for i, part in enumerate(parts)
 		)
 		return re.sub(r'href="(?!https?:|#|mailto:)', f'href="{REPO_BLOB_URL}/', rendered)
