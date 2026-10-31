@@ -12,6 +12,7 @@ from frappe.utils import add_days, add_years, getdate, now
 from churchit.church_finances.dashboard_chart_source.finance_summary import finance_summary
 from churchit.church_finances.dashboard_chart_source.fund_goal_progress import fund_goal_progress
 from churchit.church_finances.dashboard_chart_source.giving_by_fund import giving_by_fund
+from churchit.church_people.dashboard_chart_source.life_events import life_events
 from churchit.church_people.dashboard_chart_source.people_added import people_added
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
@@ -137,3 +138,47 @@ class TestPeopleAddedChart(FrappeTestCase):
 		)
 
 		self.assertEqual(chart["datasets"][0]["values"], [0, 1])
+
+
+class TestPeopleChartPeriods(FrappeTestCase):
+	"""The desk sends a chart's name, and a timespan and interval only when the user picks them."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.baptisms = make_quarterly_chart("_Test Baptisms by Quarter", "Life Events", "Baptism")
+		cls.people = make_quarterly_chart("_Test People by Quarter", "People Added")
+
+	def test_a_chart_shows_its_own_timespan_and_interval(self):
+		buckets = time_buckets("Last Quarter", "Quarterly", None, None)
+		quarters = [bucket_label(start, "Quarterly") for start, _end in buckets]
+
+		baptisms = life_events.get(chart_name=self.baptisms.name, filters=self.baptisms.filters_json)
+		self.assertEqual(baptisms["labels"], quarters)
+		self.assertEqual(people_added.get(chart_name=self.people.name)["labels"], quarters)
+
+	def test_the_period_the_user_picks_comes_first(self):
+		picked = {"timespan": "Last Month", "time_interval": "Monthly"}
+
+		baptisms = life_events.get(
+			chart_name=self.baptisms.name, filters=self.baptisms.filters_json, **picked
+		)
+		self.assertEqual(len(baptisms["labels"]), 2)
+		self.assertEqual(len(people_added.get(chart_name=self.people.name, **picked)["labels"]), 2)
+
+
+def make_quarterly_chart(chart_name, source, event_type=None):
+	filters = [["Life Event", "event_type", "=", event_type, False]] if event_type else []
+	return frappe.get_doc(
+		{
+			"doctype": "Dashboard Chart",
+			"chart_name": chart_name,
+			"chart_type": "Custom",
+			"source": source,
+			"type": "Bar",
+			"timeseries": 1,
+			"timespan": "Last Quarter",
+			"time_interval": "Quarterly",
+			"filters_json": frappe.as_json(filters),
+		}
+	).insert()
