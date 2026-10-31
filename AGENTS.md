@@ -1481,7 +1481,9 @@ user may write). `merge.get_merge_choices` lists the fields where two people dif
 dialogs.
 
 Anonymizing (`privacy.anonymize_person`) keeps the Person, clears `PERSONAL_FIELDS` and empties
-`PERSONAL_TABLES`, so a new Person field or table holding personal data goes in one of them. A new
+`PERSONAL_TABLES`, so a new Person field or table holding personal data goes in one of them. The
+first name becomes Anonymized and the last name stays, so the record sorts among its family name in
+the People list; copies of the full name on other records still become Anonymized. A new
 doctype about one person (its subject, not a caregiver or other role) goes in
 `privacy.PERSONAL_DOCTYPES` when anonymizing should delete it, as for Person Note and Connection
 Card. Otherwise it goes in `privacy.RECORDS_ABOUT_THE_PERSON`, and anonymizing deletes its history,

@@ -301,7 +301,7 @@ function add_remove_personal_data_menu_item(frm) {
 	frm.page.add_menu_item(__("Remove Personal Data"), () => {
 		frappe.confirm(
 			__(
-				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their name, contact details, notes, photo, birth date, family, spouse and portal login go. You cannot undo this.",
+				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their first name, contact details, notes, photo, birth date, family, spouse and portal login go, and the last name stays. You cannot undo this.",
 				[frappe.utils.escape_html(frm.doc.full_name)]
 			),
 			() =>

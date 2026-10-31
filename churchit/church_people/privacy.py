@@ -59,9 +59,8 @@ from churchit.contacts import CONTACT_TABLES, stop_sharing_from
 from churchit.questions import clear_answers, get_answer_tables
 
 ANONYMIZED = "Anonymized"
-# Person fields that say who the person is.
+# Person fields that say who the person is. The last name stays, so the record sorts among its family name.
 PERSONAL_FIELDS = (
-	"last_name",
 	"middle_name",
 	"nickname",
 	"previous_last_name",
@@ -279,7 +278,7 @@ def get_identity(doc: Document) -> tuple[set[str], set[str]]:
 
 
 def strip_person(doc: Document) -> None:
-	"""Clear what says who *doc* is, keeping the life events and positions a church counts."""
+	"""Clear what says who *doc* is, keeping the last name and the life events and positions a church counts."""
 	doc.update({fieldname: None for fieldname in PERSONAL_FIELDS})
 	doc.update({"first_name": ANONYMIZED, "gender": UNKNOWN_GENDER, "hide_from_directory": 1})
 	for fieldname in PERSONAL_TABLES:
