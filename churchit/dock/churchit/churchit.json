@@ -24,7 +24,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "handshake",
+   "icon": "church",
    "link_to": "Ministries",
    "link_type": "Sidebar",
    "title": "Ministries"
@@ -40,14 +40,6 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "book-open",
-   "link_to": "Study",
-   "link_type": "Sidebar",
-   "title": "Study"
-  },
-  {
-   "added": 0,
-   "hidden": 0,
    "icon": "mail",
    "link_to": "Communications",
    "link_type": "Sidebar",
@@ -56,18 +48,26 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "globe",
-   "link_to": "Missions",
+   "icon": "wallet",
+   "link_to": "Finances",
    "link_type": "Sidebar",
-   "title": "Missions"
+   "title": "Finances"
   },
   {
    "added": 0,
    "hidden": 0,
-   "icon": "hand-coins",
-   "link_to": "Finances",
+   "icon": "book-open",
+   "link_to": "Study",
    "link_type": "Sidebar",
-   "title": "Finances"
+   "title": "Study"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "plane",
+   "link_to": "Missions",
+   "link_type": "Sidebar",
+   "title": "Missions"
   },
   {
    "added": 0,
@@ -80,18 +80,18 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "landmark",
-   "link_to": "Foundations",
+   "icon": "app-window",
+   "link_to": "Web Site",
    "link_type": "Sidebar",
-   "title": "Foundations"
+   "title": "Website"
   },
   {
    "added": 0,
    "hidden": 0,
-   "icon": "app-window",
-   "link_to": "Web Site",
+   "icon": "scroll-text",
+   "link_to": "Foundations",
    "link_type": "Sidebar",
-   "title": "Web Site"
+   "title": "Foundations"
   },
   {
    "added": 0,
@@ -110,7 +110,7 @@
    "title": "Help"
   }
  ],
- "modified": "2026-10-08 19:41:39.385306",
+ "modified": "2026-10-31 01:34:49.000000",
  "modified_by": "Administrator",
  "name": "churchit",
  "owner": "Administrator",

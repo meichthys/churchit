@@ -122,3 +122,4 @@ churchit.patches.v1_0.land_administrator_on_summary
 churchit.patches.v1_0.set_church_brand
 churchit.patches.v1_0.show_address_fields_for_erpnext
 churchit.patches.v1_0.relabel_visitation_follow_ups_card
+churchit.patches.v1_0.order_the_dock_by_weekly_use

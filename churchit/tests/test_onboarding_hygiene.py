@@ -29,7 +29,7 @@ MODULES_WITHOUT_ONBOARDING = {"Church Setup", "Church Help"}
 ACTIONS_THAT_RUN_A_TOUR = ("Create Entry", "Show Form Tour")
 
 # Module Onboardings that no workspace of their module shows yet, with the reason.
-ONBOARDINGS_NOT_ON_A_WORKSPACE = {"Church": "The Summary workspace has no onboarding block yet"}
+ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
 
 
 class TestOnboardingHygiene(FrappeTestCase):
