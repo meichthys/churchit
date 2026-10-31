@@ -44,7 +44,10 @@ fixtures = [
 	# The map block on the Missions workspace and the preview on Web Site.
 	# App-owned: the workspace JSON references each by name and is re-synced on
 	# every migrate, so they have to be re-applied alongside it.
-	{"dt": "Custom HTML Block", "filters": [["name", "in", ["MissionaryMap", "WebsitePreview"]]]},
+	{
+		"dt": "Custom HTML Block",
+		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview"]]],
+	},
 ]
 # Apps
 # ------------------
@@ -187,7 +190,10 @@ after_install = "churchit.patches.after_install.execute"
 
 # Workspaces ship as standard records, so migrate re-imports them and resets the
 # visibility Church Features set. Re-apply it, and add newly shipped dock entries.
-after_migrate = ["churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"]
+after_migrate = [
+	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
+	"churchit.church_summary.home.add_return_to_framework_dock",
+]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
 # is the user's, so it stores them for Guest and the desk shows none. Collect

@@ -945,7 +945,13 @@ The Apps screen shows one Churchit tile (`add_to_apps_screen` in `hooks.py`), bu
 Summary after login: `church_summary/home.land_on_summary` sets their Default Workspace when they
 first become a desk user, and leaves a choice they make later alone. Only a user with one of
 Summary's roles gets it, so an ERPNext accountant on a shared site does not land on a page they
-cannot open. Inside the app, the dock on
+cannot open. A desk user with no Default
+Workspace opens Summary too, because each desk role's home page is `/desk/summary`
+(`fixtures/role.json`). The `ModuleShortcuts` block at the top of Summary draws a tile for each
+entry of the user's dock, so it hides what the dock hides. A Frappe page that no churchit sidebar
+lists opens in Framework, so `add_return_to_framework_dock` (after install and every migrate) puts
+a Churchit entry first on the site's arrangement of Framework's rail. A saved arrangement is the
+whole rail, so it also names every Framework entry. Inside the app, the dock on
 the left lists the modules (`churchit/dock/churchit/churchit.json`), and each module has one sidebar
 (`churchit/<module>/sidebar/`). Three rules fail silently, so
 `churchit/tests/test_navigation_hygiene.py` checks them:

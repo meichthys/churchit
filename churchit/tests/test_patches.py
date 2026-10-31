@@ -28,6 +28,7 @@ from churchit.patches.v1_0 import (
 	add_pledges_to_portal,
 	add_unsynced_default_records,
 	clear_unknown_person_sources,
+	land_administrator_on_summary,
 	list_missionary_people_in_a_table,
 	mark_check_in_walk_ins_as_visitors,
 	move_copied_function_schedules,
@@ -1341,3 +1342,20 @@ class TestRemovePermlevelFieldsFromPersonVersions(RollbackEachTest):
 		data = frappe.parse_json(frappe.db.get_value("Version", renamed.name, "data"))
 		self.assertEqual(data.changed, [["first_name", "Old", "New"]])
 		self.assertFalse(frappe.db.exists("Version", only_notes.name))
+
+
+class TestLandAdministratorOnSummary(RollbackEachTest):
+	def test_administrator_without_a_default_workspace_opens_summary(self):
+		frappe.db.set_value("User", "Administrator", "default_workspace", None)
+
+		land_administrator_on_summary.execute()
+		land_administrator_on_summary.execute()
+
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), "Summary")
+
+	def test_administrator_keeps_a_chosen_workspace(self):
+		frappe.db.set_value("User", "Administrator", "default_workspace", "People")
+
+		land_administrator_on_summary.execute()
+
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), "People")

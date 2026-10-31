@@ -42,6 +42,7 @@ from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 	create_new_prayer_request_notifications,
 )
+from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
 from churchit.church_website.pages import sync_page_switches
 
 # We define this here so we can import it from sample_data
@@ -92,6 +93,9 @@ def execute():
 
 	# Module access control
 	_create_module_profile()
+	# Administrator and other existing desk users open Summary after login.
+	land_desk_users_on_summary()
+	add_return_to_framework_dock()
 
 	# Custom HTML blocks
 	_create_custom_html_blocks()
