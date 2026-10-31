@@ -16,6 +16,7 @@ from churchit.church_people.derived import BIRTH, DEATH, sync_derived, years_sin
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED, WIDOWED, WITH_SPOUSE
+from churchit.church_people.imports.record import add_contacts
 from churchit.church_people.member_access import (
 	is_portal_member,
 	refuse_member_edits_beyond_personal_details,
@@ -32,7 +33,18 @@ from churchit.church_people.merge import (
 	typed_fields,
 )
 from churchit.church_scope import has_church_access, is_multi_church, is_people_directory_private
-from churchit.contacts import primary_email, stop_sharing_from, validate_contact_tables
+from churchit.contacts import (
+	DEFAULT_EMAIL_TYPE,
+	DEFAULT_PHONE_TYPE,
+	EMAIL_DOCTYPE,
+	EMAIL_FIELD,
+	PHONE_DOCTYPE,
+	PHONE_FIELD,
+	contact_key,
+	primary_email,
+	stop_sharing_from,
+	validate_contact_tables,
+)
 
 # How a Person was first created; Desk is the field's default.
 SOURCE_IMPORT = "Import"
@@ -323,6 +335,7 @@ class Person(Document):
 	def validate(self):
 		refuse_member_edits_beyond_personal_details(self)
 		self.refuse_linking_another_login()
+		self.take_imported_email_and_phone()
 		# Normalise the emails / phones / addresses tables before anything else
 		# reads a primary value off them.
 		validate_contact_tables(self)
@@ -333,6 +346,27 @@ class Person(Document):
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
 		self.validate_relationships()
+
+	def take_imported_email_and_phone(self):
+		"""Make an email or phone from a Data Import's Email or Phone column the primary row of its table.
+
+		Data Import matches those headers to the stored copies, which `sync_derived` rewrites from the tables.
+		"""
+		if not frappe.flags.in_import:
+			return
+
+		for copy_field, table_field, child_doctype, value_field, type_field, kind in (
+			("primary_email", EMAIL_FIELD, EMAIL_DOCTYPE, "email_address", "email_type", DEFAULT_EMAIL_TYPE),
+			("primary_phone", PHONE_FIELD, PHONE_DOCTYPE, "phone_number", "phone_type", DEFAULT_PHONE_TYPE),
+		):
+			value = cstr(self.get(copy_field)).strip()
+			if not value or not self.has_value_changed(copy_field):
+				continue
+
+			add_contacts(self, table_field, child_doctype, value_field, type_field, [(value, kind)])
+			key = contact_key(child_doctype, value)
+			for row in self.get(table_field):
+				row.is_primary = int(contact_key(child_doctype, cstr(row.get(value_field))) == key)
 
 	def refuse_another_churches_spouse(self):
 		"""Only a user who can see a new spouse's church links them: the spouse record changes and may join this family.
@@ -594,7 +628,7 @@ class Person(Document):
 		email = primary_email(self)
 		if not email:
 			frappe.throw(
-				_("Add an email address on the Contact tab before inviting this person to the portal."),
+				_("Add an email address on the Details tab before inviting this person to the portal."),
 				title=_("No Email Address"),
 			)
 

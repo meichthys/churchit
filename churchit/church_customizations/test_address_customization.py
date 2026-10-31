@@ -3,9 +3,10 @@
 
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.desk.search import search_link
 
 from churchit.patches.v1_0 import show_address_fields_for_erpnext
-from churchit.tests.helpers import RollbackEachTest
+from churchit.tests.helpers import RollbackEachTest, make_address
 
 CHURCH_HIDDEN_FIELDS = ("email_id", "phone", "fax", "is_primary_address", "is_shipping_address", "disabled")
 ERPNEXT_FIELDS = ("is_your_company_address", "tax_category")
@@ -47,3 +48,13 @@ class TestAddressCustomization(RollbackEachTest):
 				{"doc_type": "Address", "property": "hidden", "field_name": ("in", shipped)},
 			)
 		)
+
+	def test_an_address_link_shows_the_street_and_is_found_by_city(self):
+		address = make_address("_Test Street Title", address_line1="17 Juniper Court", city="Quillfield")
+
+		results = search_link("Address", "Quillfield")
+
+		self.assertEqual(
+			[(row["value"], row["label"]) for row in results], [(address.name, "17 Juniper Court")]
+		)
+		self.assertIn("Quillfield", results[0]["description"])

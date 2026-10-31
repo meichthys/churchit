@@ -8,6 +8,7 @@ import frappe
 from frappe.client import validate_link_and_fetch
 from frappe.desk.search import search_link
 
+from churchit.church_people.privacy import ANONYMIZED, anonymize_person
 from churchit.church_people.test_matching import make_matchable
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -80,6 +81,17 @@ class TestPersonSearch(RollbackEachTest):
 			frappe.local.request = frappe._dict(method="POST")
 			self.addCleanup(delattr, frappe.local, "request")
 			self.assertEqual(validate_link_and_fetch("Person", self.anna).get("name"), self.anna)
+
+	def test_a_person_whose_data_was_removed_is_never_offered(self):
+		frappe.db.set_value("Person", self.anna, "envelope_number", "_T90418")
+		anonymize_person(self.anna)
+
+		with searching_people_by_contact():
+			self.assertNotIn(self.anna, found(""))
+			self.assertEqual(found("", filters={"name": self.anna}), [])
+			for typed in ("_T90418", "217-555-0190", ANONYMIZED):
+				self.assertNotIn(self.anna, found(typed), typed)
+			self.assertEqual(found("_Testsearch"), [self.ben])
 
 
 class TestPersonSearchAcrossChurches(RollbackEachTest):

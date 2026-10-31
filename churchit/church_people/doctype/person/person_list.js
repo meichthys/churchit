@@ -6,6 +6,15 @@ const ADD_TO_GROUP = "churchit.church_people.doctype.group.group.add_people";
 
 // The report view runs these settings too, so a saved smart list offers the same actions.
 frappe.listview_settings["Person"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
+	add_fields: ["membership_status"],
+	get_indicator(doc) {
+		const colors = { Active: "green", Inactive: "gray" };
+		const status = doc.membership_status;
+		if (!status) return;
+		return [__(status), colors[status] || "blue", `membership_status,=,${status}`];
+	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Rolodex"), () => {
 			frappe.route_options = { view: "people" };

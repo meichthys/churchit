@@ -9,10 +9,11 @@ Person, Family and Missionary each carry the same three child tables:
     phones     -> Phone Number     (phone_number, phone_type, is_primary)
     addresses  -> Postal Address   (address, address_type, is_mailing_address, is_primary)
 
-Nothing is copied back onto the parent, so "the" email / phone / address for a
-record is always resolved through this module: from a loaded document
-(:func:`pick`), with a lookup (:func:`get_primary_email` and friends), or
-inside a report query (:func:`primary_email_query` and friends).
+"The" email / phone / address for a record is resolved through this module:
+from a loaded document (:func:`pick`), with a lookup (:func:`get_primary_email`
+and friends), or inside a report query (:func:`primary_email_query` and
+friends). Only Person keeps a copy, of its primary email and phone, for its list
+and preview (`derived.sync_derived`).
 
 The type of a contact row ("Home", "Work", ...) is a link to a user-editable
 lookup doctype, so no code in this app may branch on a specific type name.
@@ -245,7 +246,7 @@ def validate_contact_tables(doc):
 
 	Trims values, rejects duplicates within a record, makes sure each table
 	has exactly one primary row (and, for addresses, at most one mailing row),
-	keeps each phone number's digits, and unticks Email Bounced on an email
+	keeps each phone number's digits, and unticks Bounced on an email
 	row whose address changed.
 	Flags are corrected rather than rejected so that data imports and the sample
 	data loader never fail on a missing checkbox.
@@ -300,7 +301,7 @@ def sync_notification_addresses(rows):
 
 
 def clear_bounced_on_change(rows, before):
-	"""Untick Email Bounced on each email row whose address is not the one saved last time."""
+	"""Untick Bounced on each email row whose address is not the one saved last time."""
 	saved = _saved_values(before, EMAIL_FIELD, EMAIL_DOCTYPE, "email_address")
 	for row in rows:
 		key = contact_key(EMAIL_DOCTYPE, row.get("email_address") or "")

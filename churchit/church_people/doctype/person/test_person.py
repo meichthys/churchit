@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.api.v1 import read_doc
 from frappe.client import get as client_get
+from frappe.core.doctype.data_import.importer import UPDATE
 from frappe.desk.form.load import getdoc
 from frappe.desk.search import search_link
 from frappe.handler import run_doc_method
@@ -18,9 +19,11 @@ from churchit.church_foundations.church_access import set_user_church, user_chur
 from churchit.church_people.derived import refresh_daily
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.person.person import SOURCE_IMPORT
+from churchit.church_people.imports.test_imports import ImportCase
 from churchit.church_people.merge import merge_people
-from churchit.church_people.test_merge import phone
-from churchit.patches.v1_0 import set_inactive_since_from_history
+from churchit.church_people.privacy import anonymize_person
+from churchit.church_people.test_merge import email, phone
+from churchit.patches.v1_0 import set_inactive_since_from_history, set_person_primary_email_and_phone
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -1037,3 +1040,90 @@ class TestPersonEnvelopeNumber(RollbackEachTest):
 		merge_people(kept.name, removed.name)
 
 		self.assertEqual(frappe.db.get_value("Person", kept.name, "envelope_number"), "90420")
+
+
+class TestPersonPrimaryContact(RollbackEachTest):
+	"""The list and preview show the primary email and phone, which a save copies from the contact tables."""
+
+	def make_reachable(self):
+		return make_person(
+			"Rea",
+			"_Test Reachable",
+			emails=[email("_test.reachable.home@example.com"), email("_test.reachable.work@example.com")],
+			phones=[phone("555-010-0201"), phone("555-010-0202", is_primary=1)],
+		)
+
+	def stored(self, person):
+		return frappe.db.get_value("Person", person.name, ["primary_email", "primary_phone"])
+
+	def test_a_save_stores_the_primary_email_and_phone(self):
+		person = self.make_reachable()
+
+		self.assertEqual(self.stored(person), ("_test.reachable.home@example.com", "555-010-0202"))
+
+	def test_the_stored_values_follow_the_contact_tables(self):
+		person = self.make_reachable()
+		person.emails[1].is_primary = 1
+		person.phones = []
+		person.save(ignore_permissions=True)
+
+		self.assertEqual(self.stored(person), ("_test.reachable.work@example.com", None))
+
+	def test_removing_the_personal_data_clears_them(self):
+		person = self.make_reachable()
+
+		anonymize_person(person.name)
+
+		self.assertEqual(self.stored(person), (None, None))
+
+	def test_the_patch_fills_people_saved_before_the_fields_existed(self):
+		person = self.make_reachable()
+		frappe.db.set_value(
+			"Person", person.name, {"primary_email": None, "primary_phone": None}, update_modified=False
+		)
+
+		set_person_primary_email_and_phone.execute()
+
+		self.assertEqual(self.stored(person), ("_test.reachable.home@example.com", "555-010-0202"))
+
+	def test_a_link_search_finds_a_person_by_last_name_and_shows_the_phone(self):
+		person = self.make_reachable()
+
+		result = next(row for row in search_link("Person", "_Test Reachable") if row["value"] == person.name)
+		self.assertIn("555-010-0202", result["description"])
+
+
+class TestPersonDataImport(ImportCase):
+	"""Data Import matches a Person file's Email and Phone columns to the stored primary copies."""
+
+	def table(self, rows, fieldname):
+		return [(row.get(fieldname), row.is_primary) for row in rows]
+
+	def test_the_email_and_phone_columns_become_contact_rows(self):
+		data_import = self.run_import(
+			"Person",
+			[
+				["First Name", "Last Name", "Email", "Phone"],
+				["Imported", "_Test Columns", "_test.columns@example.com", "555-010-0301"],
+			],
+		)
+
+		self.assertImported(data_import)
+		person = frappe.get_doc("Person", {"last_name": "_Test Columns"})
+		self.assertEqual(self.table(person.emails, "email_address"), [("_test.columns@example.com", 1)])
+		self.assertEqual(self.table(person.phones, "phone_number"), [("555-010-0301", 1)])
+		self.assertEqual(
+			(person.primary_email, person.primary_phone), ("_test.columns@example.com", "555-010-0301")
+		)
+
+	def test_a_changed_phone_in_an_update_becomes_the_primary_one(self):
+		person = make_person("Imported", "_Test Columns", phones=[phone("555-010-0301")])
+
+		data_import = self.run_import("Person", [["ID", "Phone"], [person.name, "555-010-0302"]], UPDATE)
+
+		self.assertImported(data_import)
+		person.reload()
+		self.assertEqual(
+			self.table(person.phones, "phone_number"), [("555-010-0301", 0), ("555-010-0302", 1)]
+		)
+		self.assertEqual(person.primary_phone, "555-010-0302")

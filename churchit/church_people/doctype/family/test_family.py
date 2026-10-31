@@ -9,6 +9,7 @@ from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.household import ADULT, CHILD, OTHER_ADULT
 from churchit.church_people.merge import merge_families
 from churchit.church_people.test_household import born, label, make_household, set_adult_age
+from churchit.patches.v1_0.fill_family_member_counts import execute as fill_member_counts
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -300,6 +301,57 @@ class TestAuthorizedPickups(RollbackEachTest):
 
 		frappe.delete_doc("Family", self.family, ignore_permissions=True, force=True)
 		self.assertFalse(frappe.db.exists("Authorized Pickup", {"family": self.family}))
+
+
+class TestMemberCount(RollbackEachTest):
+	"""The stored count that the Family list and preview show."""
+
+	def setUp(self):
+		super().setUp()
+		self.family, *members = make_household("_Test Counted", "Counted")
+		self.household_size = len(members)
+
+	def count_of(self, family):
+		return frappe.db.get_value("Family", family, "member_count")
+
+	def test_the_count_is_every_member_of_the_household(self):
+		self.assertEqual(self.count_of(self.family), self.household_size)
+
+	def test_the_count_follows_a_person_who_joins_or_leaves(self):
+		visitor = make_person("Vic", "Counted")
+
+		visitor.family = self.family
+		visitor.save(ignore_permissions=True)
+		self.assertEqual(self.count_of(self.family), self.household_size + 1)
+
+		visitor.family = None
+		visitor.save(ignore_permissions=True)
+		self.assertEqual(self.count_of(self.family), self.household_size)
+
+	def test_the_count_drops_with_a_deleted_person(self):
+		visitor = make_person("Vic", "Counted", family=self.family)
+		frappe.delete_doc("Person", visitor.name, ignore_permissions=True, force=True)
+
+		self.assertEqual(self.count_of(self.family), self.household_size)
+
+	def test_a_merge_counts_the_members_of_both_families(self):
+		copy = frappe.get_doc({"doctype": "Family", "family_name": "_Test Counted Copy"}).insert(
+			ignore_permissions=True
+		)
+		make_person("Cora", "Counted", family=copy.name)
+
+		merge_families(self.family, copy.name)
+
+		self.assertEqual(self.count_of(self.family), self.household_size + 1)
+
+	def test_the_patch_counts_the_families_saved_before_the_count_existed(self):
+		frappe.db.set_value("Family", self.family, "member_count", 0, update_modified=False)
+		modified = frappe.db.get_value("Family", self.family, "modified")
+
+		fill_member_counts()
+
+		self.assertEqual(self.count_of(self.family), self.household_size)
+		self.assertEqual(frappe.db.get_value("Family", self.family, "modified"), modified)
 
 
 class TestFamilyAcrossChurches(RollbackEachTest):

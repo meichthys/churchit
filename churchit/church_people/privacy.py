@@ -79,6 +79,8 @@ PERSONAL_FIELDS = (
 	"legacy_system",
 	"legacy_id",
 	"how_heard",
+	"primary_email",
+	"primary_phone",
 )
 # Person tables whose every row is personal.
 PERSONAL_TABLES = ("emails", "phones", "addresses", "letters", "skills", "relationships")

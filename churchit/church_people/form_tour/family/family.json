@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-12 00:10:00.000000",
+ "modified": "2026-10-31 04:20:50.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",
@@ -16,6 +16,24 @@
  "reference_doctype": "Family",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The family's name, usually the last name and the first name of the Primary Contact, such as 'Doe - John'. When the Primary Contact changes, the first name after the dash changes too.",
+   "fieldname": "family_name",
+   "fieldtype": "Data",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Name",
+   "ui_tour": 0
+  },
   {
    "description": "Add each Person and their relationship to the Primary Contact. A Person belongs to one family; adding them here links the relationship both ways.<br><br><b>Add at least one family member to continue.</b>",
    "fieldname": "members",
@@ -35,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The family member the family is named after. Each member's relationship in the Family Members table is their relationship to this person. When you change it, the family is renamed and the relationships are changed to match.",
+   "description": "The family member the family is named after. Choose one of the Family Members. Each member's relationship is to this person. When you change it, the family is renamed and the relationships are changed to match.",
    "fieldname": "primary_contact",
    "fieldtype": "Link",
    "has_next_condition": 0,

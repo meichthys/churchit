@@ -34,6 +34,7 @@ class Family(Document):
 		# First, so the controller's own changes below are not taken for a member's.
 		refuse_member_edits_beyond_photo(self)
 		validate_contact_tables(self)
+		self.member_count = len(self.member_names)
 		if self.primary_contact and self.primary_contact not in self.member_names:
 			frappe.throw(_("The Primary Contact must be one of the Family Members."))
 		self.follow_primary_contacts_church()

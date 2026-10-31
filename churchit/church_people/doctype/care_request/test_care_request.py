@@ -115,6 +115,20 @@ class TestDueDates(CareRequestCase):
 		self.assertEqual(str(request.due_on), "2031-01-01")
 
 
+class TestCareRequestQueue(CareRequestCase):
+	def test_the_list_lists_the_soonest_due_first(self):
+		later, sooner, soonest = (self.request(urgency=urgency).name for urgency in ("Low", "High", "Urgent"))
+		names = frappe.get_all(
+			"Care Request", filters={"name": ["in", [later, sooner, soonest]]}, pluck="name"
+		)
+		self.assertEqual(names, [soonest, sooner, later])
+
+	def test_every_status_has_a_color(self):
+		meta = frappe.get_meta("Care Request")
+		statuses = meta.get_field("status").options.split("\n")
+		self.assertCountEqual([state.title for state in meta.states if state.color], statuses)
+
+
 class TestCaregiverToDo(CareRequestCase):
 	@classmethod
 	def setUpClass(cls):

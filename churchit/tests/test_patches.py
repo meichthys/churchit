@@ -357,7 +357,7 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual([row.person for row in missionary.people], [person])
 
 	def test_contact_migration_reruns_without_legacy_columns(self):
-		self.assertEqual(contact_patch._read_legacy("Person", ["email", "primary_phone"]), [])
+		self.assertEqual(contact_patch._read_legacy("Person", ["email", "home_address"]), [])
 		contact_patch.execute()
 
 	def test_person_address_rows_from_legacy_fields(self):

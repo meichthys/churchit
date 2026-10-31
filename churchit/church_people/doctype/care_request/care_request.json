@@ -9,8 +9,9 @@
  "field_order": [
   "person",
   "church",
-  "submitted_on",
+  "preferred_contact",
   "category",
+  "submitted_on",
   "column_break_1",
   "urgency",
   "due_on",
@@ -18,7 +19,6 @@
   "caregiver",
   "section_break_1",
   "description",
-  "preferred_contact",
   "section_break_2",
   "resolution_notes"
  ],
@@ -28,9 +28,7 @@
    "fieldtype": "Link",
    "label": "Person",
    "options": "Person",
-   "reqd": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1
+   "reqd": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -48,8 +46,7 @@
    "fieldtype": "Date",
    "label": "Submitted On",
    "default": "Today",
-   "read_only": 1,
-   "in_list_view": 1
+   "read_only": 1
   },
   {
    "fieldname": "category",
@@ -79,7 +76,8 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Due On",
-   "search_index": 1
+   "search_index": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "status",
@@ -87,16 +85,17 @@
    "label": "Status",
    "options": "Requested\nTriaged\nIn Progress\nResolved\nClosed",
    "default": "Requested",
-   "in_list_view": 1,
-   "in_standard_filter": 1
+   "in_list_view": 1
   },
   {
    "description": "The person caring for this request. Filled in from the person's Care Assignment. When the caregiver has a desk login, the request goes on their To Do list.",
    "fieldname": "caregiver",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Caregiver",
-   "options": "Person"
+   "options": "Person",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_1",
@@ -106,6 +105,7 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description",
+   "max_height": "12rem",
    "reqd": 1
   },
   {
@@ -115,18 +115,22 @@
    "options": "Phone\nEmail\nIn Person\nText"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:[\"Resolved\", \"Closed\"].includes(doc.status) || doc.resolution_notes",
    "fieldname": "section_break_2",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Resolution"
   },
   {
    "fieldname": "resolution_notes",
    "fieldtype": "Text",
-   "label": "Resolution Notes"
+   "label": "Resolution Notes",
+   "max_height": "12rem"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-18 10:00:00.000000",
+ "modified": "2026-10-31 01:53:52.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",
@@ -190,8 +194,29 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "submitted_on",
- "sort_order": "DESC",
- "states": [],
+ "sort_field": "due_on",
+ "sort_order": "ASC",
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Requested"
+  },
+  {
+   "color": "Yellow",
+   "title": "Triaged"
+  },
+  {
+   "color": "Blue",
+   "title": "In Progress"
+  },
+  {
+   "color": "Green",
+   "title": "Resolved"
+  },
+  {
+   "color": "Gray",
+   "title": "Closed"
+  }
+ ],
  "title_field": "person"
 }

@@ -2,6 +2,8 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Family"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
 	onload(listview) {
 		listview.page.add_inner_button(__("Rolodex"), () => {
 			frappe.route_options = { view: "households" };

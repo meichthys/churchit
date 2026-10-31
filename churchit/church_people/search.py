@@ -8,7 +8,9 @@ import re
 import frappe
 from frappe.desk.search import get_std_fields_list, relevance_sorter
 from frappe.model.db_query import get_order_by
+from frappe.utils.data import make_filter_tuple
 
+from churchit.church_people.privacy import ANONYMIZED
 from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, phone_digits
 
 # Fewer digits than this are too common to search for, the same rule as the Check-In Station.
@@ -33,9 +35,13 @@ def search_people(doctype, txt, searchfield, start, page_len, filters, as_dict=F
 	"""standard_queries for Person: Frappe's own Link search, plus the people holding *txt* as a phone or email.
 
 	It reads through `frappe.get_list` like Frappe does, so the user's permissions, the field's filters and the
-	page length all apply as usual.
+	page length all apply as usual. People whose personal data was removed are left out, so no form links them.
 	"""
 	meta = frappe.get_meta("Person")
+	if isinstance(filters, dict):
+		filters = [make_filter_tuple("Person", key, value) for key, value in filters.items()]
+	filters = [*(filters or []), ["Person", "first_name", "!=", ANONYMIZED]]
+
 	or_filters = []
 	if txt:
 		or_filters = [["Person", field, "like", f"%{txt}%"] for field in get_searched_fields(meta)]

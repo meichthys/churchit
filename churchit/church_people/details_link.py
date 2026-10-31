@@ -28,7 +28,7 @@ def send_details_link(person: str) -> str:
 	doc.check_permission("write")
 	email = primary_email(doc)
 	if not email:
-		frappe.throw(_("Add an email address on the Contact tab before you send a details link."))
+		frappe.throw(_("Add an email address on the Details tab before you send a details link."))
 	if not can_send_email():
 		frappe.throw(_("Set up an outgoing Email Account first."))
 
