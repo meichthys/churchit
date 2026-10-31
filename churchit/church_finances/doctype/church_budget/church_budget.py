@@ -5,13 +5,26 @@ from frappe.query_builder.functions import Sum
 from frappe.utils import add_months, add_years, cint, get_first_day, get_last_day, getdate, nowdate
 from frappe.utils.nestedset import get_descendants_of
 
-from churchit.church_scope import church_query_filters
+from churchit.church_scope import church_query_filters, default_church, is_multi_church
 from churchit.query import Date
 
 COMPARISON_WINDOWS = ("Same Period Last Year", "Last Month", "Last Quarter", "Last 12 Months")
 
 
 class ChurchBudget(Document):
+	def autoname(self):
+		"""BUDGET, the church's abbreviation on a multi-church site, and the period.
+
+		Frappe names a record before `ensure_church` fills its church on validate, so the church
+		is filled here the same way. A single-church name has no abbreviation, even when a user's
+		default church fills the hidden field.
+		"""
+		abbreviation = None
+		if is_multi_church():
+			self.church = self.church or default_church()
+			abbreviation = frappe.db.get_value("Church", self.church, "abbreviation")
+		self.name = " ".join(filter(None, ["BUDGET", abbreviation, f"{self.start_date} to {self.end_date}"]))
+
 	def validate(self):
 		if getdate(self.end_date) < getdate(self.start_date):
 			frappe.throw(_("End Date cannot be before Start Date."))

@@ -119,11 +119,12 @@
    "options": "URL"
   },
   {
-   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube video link, a youtube.com/channel/<channel ID>/live link, or a Let's Church, PeerTube or Owncast player link plays on the page. A youtube.com/@name/live link and any other link open directly. A branch without one uses its parent church's link.",
+   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube video link, a youtube.com/channel/CHANNEL_ID/live link, or a Let's Church, PeerTube or Owncast player link plays on the page. A youtube.com/@name/live link and any other link open directly. A branch without one uses its parent church's link.",
    "fieldname": "live_stream_url",
    "fieldtype": "Data",
    "label": "Live Stream Link",
-   "options": "URL"
+   "options": "URL",
+   "placeholder": "https://www.youtube.com/channel/CHANNEL_ID/live"
   },
   {
    "description": "The translation verses are printed in on bulletins and slides, and the one the Bible reader opens first. Branch churches without their own use this one.",
@@ -216,7 +217,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-28 16:16:30.000000",
+ "modified": "2026-10-30 23:48:37.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

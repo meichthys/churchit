@@ -2,6 +2,10 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Expense", {
+	setup(frm) {
+		frm.set_query("vendor", () => ({ filters: { is_active: 1 } }));
+	},
+
 	vendor(frm) {
 		if (!frm.doc.vendor) return;
 		frappe.db.get_value("Vendor", frm.doc.vendor, "default_expense_type").then((r) => {

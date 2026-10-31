@@ -3,12 +3,14 @@
 
 """Install-time seeding and versioned patches must be safe to run again."""
 
+import json
 import os
 import tempfile
 from unittest import mock
 
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.desk.doctype.custom_workspace.custom_workspace import upsert_content_customization
 from frappe.model.naming import NamingSeries
 from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
@@ -35,6 +37,7 @@ from churchit.patches.v1_0 import (
 	move_email_template_bodies_to_html,
 	move_to_the_apps_screen_and_dock,
 	redesign_home_page,
+	relabel_visitation_follow_ups_card,
 	remove_avery_label_format,
 	remove_duplicate_new_members_chart,
 	remove_email_group_onboarding,
@@ -1359,3 +1362,34 @@ class TestLandAdministratorOnSummary(RollbackEachTest):
 		land_administrator_on_summary.execute()
 
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), "People")
+
+
+class TestRelabelVisitationFollowUpsCard(RollbackEachTest):
+	"""A site's saved People layout must keep finding the relabelled number card."""
+
+	def test_a_customized_people_layout_follows_the_new_label(self):
+		blocks = [
+			{
+				"id": "nc_visits",
+				"type": "number_card",
+				"data": {"number_card_name": relabel_visitation_follow_ups_card.OLD_LABEL, "col": 4},
+			}
+		]
+		upsert_content_customization("People", blocks, {})
+
+		relabel_visitation_follow_ups_card.execute()
+		relabel_visitation_follow_ups_card.execute()
+
+		content = json.loads(frappe.db.get_value("Custom Workspace", "People", "content"))
+		self.assertEqual(content[0]["data"]["number_card_name"], relabel_visitation_follow_ups_card.NEW_LABEL)
+
+	def test_a_people_layout_without_the_old_label_is_left_alone(self):
+		blocks = [
+			{"id": "nc_other", "type": "number_card", "data": {"number_card_name": "New Members", "col": 4}}
+		]
+		upsert_content_customization("People", blocks, {})
+		before = frappe.db.get_value("Custom Workspace", "People", ["content", "modified"])
+
+		relabel_visitation_follow_ups_card.execute()
+
+		self.assertEqual(frappe.db.get_value("Custom Workspace", "People", ["content", "modified"]), before)

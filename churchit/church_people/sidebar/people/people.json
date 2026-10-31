@@ -476,7 +476,7 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
-   "label": "Visitation Followups Needed",
+   "label": "Visitation Follow-ups Needed",
    "link_to": "Visitation Followups Needed",
    "link_type": "Report",
    "open_in_new_tab": 1,
@@ -1295,7 +1295,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-28 23:56:59.308587",
+ "modified": "2026-10-30 23:35:16.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

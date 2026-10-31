@@ -130,7 +130,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-30 23:50:39.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",
@@ -213,7 +213,7 @@
   },
   {
    "color": "Green",
-   "title": "Accepted"
+   "title": "Approved"
   },
   {
    "color": "Blue",

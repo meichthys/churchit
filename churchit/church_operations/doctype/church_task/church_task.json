@@ -184,7 +184,7 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "description": "For generic items that do not exist in the system, you can create a checklist in the notes section below or create sub-tasks by checking 'Is Group' and then creating new tasks wit hthis task selected in the new task's 'Parent Task' field. ",
+   "description": "For generic items that do not exist in the system, you can create a checklist in the notes section below or create sub-tasks by checking 'Is Group' and then creating new tasks with this task selected in the new task's 'Parent Task' field.",
    "fieldname": "task_items",
    "fieldtype": "Table",
    "label": "Task Items",
@@ -208,7 +208,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-10-30 23:50:31.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",

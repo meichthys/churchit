@@ -164,10 +164,12 @@ Scoped doctype: add this field near the top of the form, after the title field.
   "hidden": 1, "in_standard_filter": 0 }
 ```
 
-Leave it `hidden`. `Church Features` creates site-local Property Setters that reveal it when
-multi-church is on, so single-church sites never see it. They are deliberately not fixtures, so
-never export them. `church_scope.ensure_church` (a wildcard `validate` hook) fills the field on save
-and refuses the save if it cannot.
+Leave it `hidden`, and keep it out of any hidden tab, section or column. `Church Features` creates
+site-local Property Setters that reveal it when multi-church is on, so single-church sites never see
+it. These setters are deliberately not fixtures, so never export them. A setter reveals the field,
+not the tab, section or column around it (`test_desk_ui_hygiene` checks this).
+`church_scope.ensure_church` (a wildcard `validate` hook) fills the field on save and refuses the
+save if it cannot.
 
 Give it this `depends_on` as well, and the shareable form of it when the doctype can be shared:
 
@@ -222,7 +224,10 @@ Call the guard from the controller's `validate`, as every caller does. `ensure_c
 Listing a doctype only offers the checkbox, and `is_shared` defaults to 0, so nothing is shared
 until someone ticks it. Belief is the exception: its box defaults to ticked, so a new Belief is
 shared unless someone unticks it. Give a newly listed doctype a default of 0. Model sync gives every
-existing row the column's default, and a ticked row is shared on its next save.
+existing row the column's default, and a ticked row is shared on its next save. Leave `is_shared`
+out of `in_list_view` and `in_standard_filter`, because a single-church list would show an empty
+column (`test_desk_ui_hygiene` checks this). On a multi-church site, Church Features reveals the
+field and its filter, but not a list column.
 
 A shared record stores the **empty string** in `church`, which Frappe's permission clause reads as
 "every church", so the read side costs nothing. That holds while System Settings' Apply Strict User
@@ -281,7 +286,13 @@ Budgets are the one aggregate anchored to a record's church rather than the read
 counts its own church, and counts the churches beneath it only when **Include Branch Churches** is
 ticked, which is how a main church budgets for the whole organisation without forcing that on every
 budget it owns. That is also why Budget is not shareable: a shared budget would have no church to
-anchor to and would show organisation-wide spending to everyone.
+anchor to and would show organisation-wide spending to everyone. On a multi-church site a budget's
+name holds its church's abbreviation (`BUDGET MC 2026-01-01 to 2026-12-31`), so two churches can
+budget the same dates. Frappe names a record before `ensure_church` runs on `validate`, so
+`ChurchBudget.autoname` fills the church first in the same way. A budget made on a single-church
+site keeps `BUDGET 2026-01-01 to 2026-12-31`, even when a user's default church fills its hidden
+church field. A budget made before this naming keeps its old name, and a church can change its
+abbreviation, so never read the church or the dates out of a budget name: use its fields.
 
 ## Adding a report, chart or number card
 
@@ -901,6 +912,10 @@ replaces `MapView.setup_view` (see the next section).
   `<!--email_open_check-->`; `SendMailContext.build_message` puts in the image when the Email Account
   has Track Email Status and the queue has a `communication`. A test builds the message the same way
   (`church_communications/test_open_tracking.py`).
+- **The desk draws field help as HTML.** A placeholder in angle brackets, such as `<name>`, is an
+  unknown tag and vanishes. Write it in capitals, such as CHANNEL_ID, and put an example in the
+  field's `placeholder`. A description uses only the inline tags in `HELP_TEXT_TAGS`
+  (`tests/test_desk_ui_hygiene.py`).
 
 ## Testing
 
@@ -983,10 +998,15 @@ A module's `Module Onboarding` is the checklist a new church works through, and 
 silently, so `churchit/tests/test_onboarding_hygiene.py` checks them rather than leaving them to
 review:
 
-- **An onboarding is rendered only in its module's sidebar.** Frappe shows the earliest
-  onboarding of each module, so give it the `module` of a module that ships a sidebar, and give a
-  module one onboarding. The `onboarding` block some workspaces still carry in their `content` is
-  the pre-v16 mechanism and renders nothing.
+- **An onboarding is rendered only from an `onboarding` block in a workspace.** Frappe 16.50
+  removed the sidebar panel, so an onboarding that no workspace's `content` names never shows. Put
+  `{"id": "<10 characters>", "type": "onboarding", "data": {"onboarding_name": "<name>", "col": 12}}`
+  on a workspace of the onboarding's own module. The block disappears when every required step is
+  done or skipped (a Create Entry step counts as done once a record exists). Dismiss hides it for
+  24 hours in that browser only. No onboarding shows until the setup wizard turns on Enable
+  Onboarding in System Settings. A site that customized a workspace layout in the desk keeps its
+  own snapshot (Custom Workspace), so it does not receive new blocks and does not follow relabelled
+  rows.
 - **Only two step actions start the tour.** `Create Entry` for a normal doctype and
   `Show Form Tour` for a Single, which routes to the settings page and then starts the tour.
   `Go to Page` and `Update Settings` both route to the form and ignore `form_tour` entirely, so a
@@ -995,9 +1015,10 @@ review:
 - **A `Create Entry` step needs `Show Full Form`.** Without it the widget opens quick entry, which
   runs no tour.
 - **A tour step names a fieldname, not a label.** Rename or hide the field and the tour stalls with
-  no error. Point tours at fields the user can actually see: a `hidden` field, the `church` field
-  included, is never rendered, and a field whose `depends_on` is the multi-church switch is absent on
-  the single-church sites that are most of them.
+  no error. Point tours at fields the user can see. A field is not drawn when it is `hidden` (the
+  `church` field included) or sits in a hidden tab, section or column. A field is also absent on a
+  single-church site, which is most sites, when its `depends_on`, or the `depends_on` of its tab,
+  section or column, is the multi-church switch (`test_onboarding_hygiene` checks this).
 
 `Onboarding Step` carries no `module` field. A step belongs to the module folder it ships in, and its
 name is global across every app, so name it after the doctype and do not prefix it.
@@ -1751,7 +1772,8 @@ member's response takes `session_person()`. `FormResponse.process` runs after th
 sender, as `ConnectionCard.process` does: it locks the response, returns unless it is New, links or
 adds the person (source Form) through `matching.find_or_add_person`, sets Processed and starts the
 follow-up. Responses to a shared set have an empty church, so every church sees them.
-`restore_payment_fields` keeps `amount_paid` and `payment_status` as code stored them.
+`restore_payment_fields` keeps `amount_paid` and `payment_status` as code stored them. A saved,
+published set links to its form as Open Form in the form sidebar (`question_set.js`).
 
 ## Church Emails, consent and bounces
 

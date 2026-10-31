@@ -16,7 +16,14 @@ from churchit.church_finances.doctype.church_budget.church_budget import (
 	get_window_scale,
 )
 from churchit.church_finances.report.budget_vs_actual.budget_vs_actual import execute as budget_vs_actual
-from churchit.tests.helpers import ensure_user
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_root_church,
+	ensure_user,
+	force_single_church,
+	make_branch,
+	set_multi_church,
+)
 
 
 def _ensure(doctype, filters, values):
@@ -223,3 +230,40 @@ class TestChurchBudget(FrappeTestCase):
 
 	def test_no_comparison_window_without_a_selection(self):
 		self.assertIsNone(get_comparison_window(getdate("2026-01-01"), getdate("2026-12-31"), None))
+
+
+class TestChurchBudgetName(RollbackEachTest):
+	"""A budget is named after its church and period, so churches can budget the same dates."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		ensure_root_church()
+		set_multi_church(True)
+		cls.branch_a = make_branch("_Test Budget Branch A", "TBNA")
+		cls.branch_b = make_branch("_Test Budget Branch B", "TBNB")
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def make_budget(self, **values):
+		return frappe.get_doc(
+			{"doctype": "Church Budget", "start_date": "2034-01-01", "end_date": "2034-12-31", **values}
+		).insert(ignore_permissions=True)
+
+	def test_two_churches_can_budget_the_same_period(self):
+		self.assertEqual(
+			[self.make_budget(church=church).name for church in (self.branch_a, self.branch_b)],
+			["BUDGET TBNA 2034-01-01 to 2034-12-31", "BUDGET TBNB 2034-01-01 to 2034-12-31"],
+		)
+
+	def test_a_budget_saved_with_no_church_is_named_after_the_church_it_takes(self):
+		"""Frappe names a record before ensure_church fills its church."""
+		budget = self.make_budget()
+		abbreviation = frappe.db.get_value("Church", budget.church, "abbreviation")
+		self.assertEqual(budget.name, f"BUDGET {abbreviation} 2034-01-01 to 2034-12-31")
+
+	def test_a_single_church_budget_is_named_after_its_period_alone(self):
+		"""A user's default church can fill the hidden field on a single-church site."""
+		force_single_church()
+		budget = self.make_budget(church=self.branch_a)
+		self.assertEqual(budget.church, self.branch_a)
+		self.assertEqual(budget.name, "BUDGET 2034-01-01 to 2034-12-31")

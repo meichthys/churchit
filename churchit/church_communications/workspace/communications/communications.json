@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"commDocsCard0\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":4}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"zs5OwikLZe\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Communications\",\"col\":12}},{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"commDocsCard0\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":4}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":4}}]",
  "creation": "2026-07-07 19:43:06.553969",
  "custom_blocks": [],
  "docstatus": 0,
@@ -94,7 +94,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Letters Not Yet Shared With Curch",
+   "label": "Letters Not Yet Shared With Church",
    "link_count": 0,
    "link_to": "Letters To Be Shared",
    "link_type": "Report",
@@ -102,7 +102,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-27 02:45:02.000000",
+ "modified": "2026-10-30 23:35:16.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",

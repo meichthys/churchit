@@ -48,8 +48,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -141,7 +139,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-25 20:30:00.000000",
+ "modified": "2026-10-30 23:26:40.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Meeting Minutes",

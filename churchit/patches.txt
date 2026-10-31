@@ -121,3 +121,4 @@ churchit.patches.v1_0.hide_sermons_on_the_home_page
 churchit.patches.v1_0.land_administrator_on_summary
 churchit.patches.v1_0.set_church_brand
 churchit.patches.v1_0.show_address_fields_for_erpnext
+churchit.patches.v1_0.relabel_visitation_follow_ups_card

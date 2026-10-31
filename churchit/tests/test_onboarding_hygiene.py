@@ -3,7 +3,7 @@
 
 """Every module's onboarding must be reachable, complete, and its tours must point at real fields.
 
-Each failure here is silent: an onboarding whose module has no sidebar is never rendered, a step
+Each failure here is silent: an onboarding that no workspace block names is never rendered, a step
 without a form tour drops the user on an unexplained form, and a tour step naming a field that was
 since renamed or hidden stalls the tour with no error.
 
@@ -17,7 +17,9 @@ import os
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-# The Church onboarding sits on Summary, the page a new church lands on, so Settings and Help
+from churchit.tests.test_desk_ui_hygiene import get_enclosing_breaks
+
+# The Church onboarding belongs on Summary, the page a new church lands on, so Settings and Help
 # offer none of their own.
 MODULES_WITHOUT_ONBOARDING = {"Church Setup", "Church Help"}
 
@@ -25,6 +27,9 @@ MODULES_WITHOUT_ONBOARDING = {"Church Setup", "Church Help"}
 # show_form_tour in public/js/frappe/widgets/onboarding_widget.js). "Go to Page" and
 # "Update Settings" route to the form and ignore the step's form_tour entirely.
 ACTIONS_THAT_RUN_A_TOUR = ("Create Entry", "Show Form Tour")
+
+# Module Onboardings that no workspace of their module shows yet, with the reason.
+ONBOARDINGS_NOT_ON_A_WORKSPACE = {"Church": "The Summary workspace has no onboarding block yet"}
 
 
 class TestOnboardingHygiene(FrappeTestCase):
@@ -43,18 +48,34 @@ class TestOnboardingHygiene(FrappeTestCase):
 		)
 		self.assertEqual(missing, [], f"Church modules without a Module Onboarding: {missing}")
 
-	def test_every_onboarding_is_shown_in_a_sidebar(self):
-		"""The desk shows a module's onboarding in that module's sidebar, and only its earliest one.
+	def test_every_onboarding_is_shown_on_a_workspace_of_its_module(self):
+		"""The desk renders an onboarding only from an `onboarding` block in a workspace's content.
 
-		frappe.desk.doctype.module_onboarding.module_onboarding.get_permitted_onboardings picks one
-		per module; an `onboarding` block in a workspace's content is the older mechanism and
-		renders nothing.
+		frappe.desk.desktop.Workspace reads those blocks; Frappe 16.50 removed the sidebar panel.
 		"""
-		with_sidebar = set(frappe.get_all("Sidebar", filters={"app": "churchit"}, pluck="module"))
-		modules = self.onboarding_modules()
-		missing = sorted(set(modules) - with_sidebar)
-		self.assertEqual(missing, [], f"Module Onboardings whose module has no sidebar: {missing}")
-		self.assertEqual(len(modules), len(set(modules)), "A module offers only its earliest onboarding")
+		shown = {
+			(workspace.module, block["data"]["onboarding_name"])
+			for workspace in frappe.get_all(
+				"Workspace",
+				filters={"module": ["in", self.modules], "standard": 1},
+				fields=["module", "content"],
+			)
+			for block in json.loads(workspace.content or "[]")
+			if block["type"] == "onboarding"
+		}
+		not_shown = sorted(
+			onboarding.name
+			for onboarding in frappe.get_all(
+				"Module Onboarding", filters={"name": ["in", self.onboardings]}, fields=["name", "module"]
+			)
+			if (onboarding.module, onboarding.name) not in shown
+		)
+		self.assertEqual(
+			not_shown,
+			sorted(ONBOARDINGS_NOT_ON_A_WORKSPACE),
+			"Add an onboarding block to a workspace of the onboarding's module, "
+			"or drop a fixed onboarding from ONBOARDINGS_NOT_ON_A_WORKSPACE",
+		)
 
 	def test_every_step_belongs_to_an_onboarding(self):
 		orphans = sorted(set(self.shipped_steps()) - set(self.listed_steps()))
@@ -98,6 +119,7 @@ class TestOnboardingHygiene(FrappeTestCase):
 		self.assertEqual(mismatched, [])
 
 	def test_tour_steps_point_at_visible_fields(self):
+		"""A tour stalls on a step whose field a single-church site does not draw."""
 		broken = []
 		for tour in frappe.get_all(
 			"Form Tour", filters={"module": ["in", self.modules]}, fields=["name", "reference_doctype"]
@@ -109,9 +131,22 @@ class TestOnboardingHygiene(FrappeTestCase):
 				field = meta.get_field(row)
 				if not field:
 					broken.append((tour.name, row, "no such field"))
-				elif field.hidden:
-					broken.append((tour.name, row, "hidden"))
+					continue
+				for reason in self.get_reasons_not_drawn(field, get_enclosing_breaks(meta, row)):
+					broken.append((tour.name, row, reason))
 		self.assertEqual(broken, [])
+
+	@staticmethod
+	def get_reasons_not_drawn(field, breaks):
+		"""Why the form leaves out *field*: it, or a tab, section or column around it, is hidden or multi-church only."""
+		switch = ("frappe.boot.churchit.multi_church", "frappe.boot.churchit.single_church")
+		reasons = []
+		for owner in (field, *breaks):
+			if owner.hidden:
+				reasons.append(f"{owner.fieldname} is hidden")
+			if any(name in (owner.depends_on or "") for name in switch):
+				reasons.append(f"{owner.fieldname} shows only with multi-church on")
+		return reasons
 
 	def steps(self):
 		return frappe.get_all(

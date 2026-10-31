@@ -43,7 +43,7 @@
    "child": 0,
    "collapsible": 1,
    "hidden": 0,
-   "icon": "book-marked",
+   "icon": "book-open-text",
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
@@ -203,7 +203,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-28 23:56:59.827943",
+ "modified": "2026-10-30 23:35:16.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
