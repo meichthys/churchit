@@ -9,6 +9,7 @@ frappe.listview_settings["Person"] = {
 	hide_name_column: true,
 	hide_name_filter: true,
 	add_fields: ["membership_status"],
+	filters: [["membership_status", "=", "Active"]],
 	get_indicator(doc) {
 		const colors = { Active: "green", Inactive: "gray" };
 		const status = doc.membership_status;

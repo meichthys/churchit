@@ -41,7 +41,7 @@
  "is_hidden": 0,
  "label": "Summary",
  "links": [],
- "modified": "2026-10-31 04:29:05.000000",
+ "modified": "2026-10-31 10:05:00.000000",
  "modified_by": "Administrator",
  "module": "Church Summary",
  "name": "Summary",
@@ -108,12 +108,9 @@
   },
   {
    "color": "Blue",
-   "doc_view": "Calendar",
-   "format": "{} next 7 days",
    "label": "Church Calendar",
-   "link_to": "Function",
-   "stats_filter": "[[\"Function\",\"start_date\",\"Timespan\",\"next 7 days\"]]",
-   "type": "DocType"
+   "type": "URL",
+   "url": "/desk/function/view/calendar"
   },
   {
    "color": "Red",

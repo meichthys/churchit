@@ -917,11 +917,18 @@ class TestDeskUiHygiene(FrappeTestCase):
 		assert_list_ratchet(self, found, FILTER_BUDGET_EXCEPTIONS, rule)
 
 	def test_default_list_filters_are_not_standard_filters(self):
-		"""Frappe adds a standard filter on top of the default filter, so picking Resolved would show nothing."""
+		"""Frappe adds a standard filter on top of the default filter, so picking Resolved would show nothing.
+
+		An = condition is the exception: Frappe puts it in the standard filter box, unless it is = 0 on a Check.
+		"""
 		found = {}
 		for path, data in list_doctypes():
 			# A condition is [field, operator, value] or [doctype, field, operator, value].
-			fields = {condition[-3] for condition in get_default_list_filters(get_list_script(path))}
+			fields = {
+				condition[-3]
+				for condition in get_default_list_filters(get_list_script(path))
+				if condition[-2] != "=" or condition[-1] in (0, "0")
+			}
 			if both := sorted(fields & set(get_flagged_fields(data, "in_standard_filter"))):
 				found[data["name"]] = f"{', '.join(both)} is a default filter and a standard filter"
 		rule = "The field of a list's default filter is not also a standard filter"

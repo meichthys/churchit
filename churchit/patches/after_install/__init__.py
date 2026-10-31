@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import frappe
+from frappe.permissions import add_permission
 from frappe.utils.global_search import rebuild_for_doctype
 
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
@@ -54,12 +55,15 @@ CHURCH_FAVICON = "/assets/churchit/icons/favicon.ico"
 CHURCH_LETTER_HEAD = "Church Letter Head"
 # ERPNext's install makes the second of these the site's default letterhead.
 ERPNEXT_LETTER_HEADS = ("Company Letterhead", "Company Letterhead - Grey")
+# The desk roles that read people.
+ADDRESS_READERS = ("Church Manager", "Church Staff", "Church People Editor")
 
 
 def execute():
 	# Default church, which must exist before lookup types that reference it.
 	_create_default_church()
 	create_default_address_template()
+	let_church_roles_read_addresses()
 	create_unsynced_records()
 	create_decided_notification()
 	create_due_notification()
@@ -230,6 +234,16 @@ def create_default_address_template():
 	frappe.get_doc(
 		{"doctype": "Address Template", "country": country, "is_default": 1, "template": ADDRESS_TEMPLATE}
 	).insert(ignore_permissions=True)
+
+
+def let_church_roles_read_addresses():
+	"""Let staff read every Address, so the Map of Addresses and the addresses of people show.
+
+	Frappe gives a role only the addresses it added. ERPNext adds its own Address rule the same way, so this
+	adds rules and never replaces them, and keeps a rule the site already has for the role.
+	"""
+	for role in ADDRESS_READERS:
+		add_permission("Address", role)
 
 
 def _create_default_church():

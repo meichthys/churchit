@@ -17,8 +17,8 @@ unless they opt into the branches beneath it.
 People and families are the exception. Every church reads the whole directory, the way one
 congregation over several campuses expects. Only a person's own church may change them.
 `Keep People and Families Private to Each Church` in `Church Features` scopes them like every
-other record. Records about a person, such as care requests, counseling and giving, keep their own
-church either way.
+other record, except their addresses, which the staff of every church read (see "Roles"). Records
+about a person, such as care requests, counseling and giving, keep their own church either way.
 
 The failure mode is silent. Nothing errors when you get this wrong; a branch simply sees rows that
 belong to another church. The hygiene tests in `churchit/tests/` (`test_*_hygiene.py`) check the
@@ -412,6 +412,16 @@ doctype's `church_customizations/custom/<doctype>.json` under `custom_perms`. A 
 replaces the doctype's standard permissions, and migrate replaces every Custom DocPerm of that
 doctype with the file's rows, so the file lists System Manager's rows too. Church Manager's Data
 Import rights are `if_owner`: a Data Import has no church, and its file holds every row.
+
+Address is the exception, because ERPNext adds its own Address rule (read for Accounts Manager) and
+a file's rows would delete it. `custom/address.json` holds no rows. Instead
+`after_install.let_church_roles_read_addresses` and a v1_0 patch add read for Church Manager,
+Church Staff and Church People Editor with `frappe.permissions.add_permission`, as ERPNext does,
+which keeps every other rule and any rule the site already has for the role. These roles read
+every address, so the Map of Addresses and the addresses of people show. Frappe's own rule lets
+other roles read only the addresses they added. An address has no church and is titled with the
+household or person name, so the staff of every church read it, also when Keep People and
+Families Private to Each Church is ticked (`church_customizations/test_address_customization.py`).
 
 ## Notifications
 
@@ -1126,7 +1136,9 @@ loses its color. `test_every_status_has_a_color` and
   changes to Requested in U11. The field of that filter is not also a standard filter: Frappe keeps
   the default filter and adds the standard filter on top, so Care Request with Status = Resolved
   would be empty. The status pill (a click replaces the default filter) and the Filters popover
-  cover it (`test_default_list_filters_are_not_standard_filters`).
+  cover it (`test_default_list_filters_are_not_standard_filters`). An `=` filter is the exception:
+  Frappe puts it in the standard filter box, where the user changes or clears it. The Person list
+  opens on Status = Active this way.
 - Frappe saves each user's last filters and sort on every list they open, and these win over
   `sort_field` and the `listview_settings` filters. An empty saved filter list wins too. So a change
   to a list's columns, filters or sort ships a v1_0 patch that calls
@@ -1267,12 +1279,13 @@ These add to the rules in "Desk navigation".
   (`test_count_shortcuts_use_the_lists_default_filter`). Summary's My Assignments is the exception:
   ToDo is Frappe's list, and a report cannot filter on the current user. Never put a count on
   Person or Family, because the count includes every church
-  (`test_people_and_families_have_no_count_shortcut`). A calendar shortcut counts something useful,
-  such as the next 7 days, because every DocType shortcut shows a count. It saves its filter on the
-  Calendar view only, and the calendar shows only those days until the user clears the filter, so
-  the label and the Help say so. A `stats_filter` may use `frappe.session.user`. Write a relative
-  date as `Timespan`, such as 'next 7 days', not as a `frappe.datetime` call, because a saved filter
-  keeps the date it was saved with (`test_conditions_with_javascript_dates_are_read` reads both).
+  (`test_people_and_families_have_no_count_shortcut`). A calendar is a URL shortcut, such as
+  Summary's Church Calendar to `/desk/function/view/calendar`, which opens in a new tab with no
+  count. A DocType shortcut always shows a count and saves its filter onto the calendar, which then
+  hides the other weeks until the user clears it (`test_no_doctype_shortcut_opens_a_calendar`). A
+  `stats_filter` may use `frappe.session.user`. Write a relative date as `Timespan`, such as 'next 7
+  days', not as a `frappe.datetime` call, because a saved filter keeps the date it was saved with
+  (`test_conditions_with_javascript_dates_are_read` reads both).
 - Color a number card only when it asks for action. Set `show_percentage_stats` only on flow
   figures, such as giving and expenses.
 - Each dock entry has its own Lucide icon, and the dock lists the modules in order of weekly use.
@@ -1368,8 +1381,9 @@ filters these figures in lists, smart lists and exports, and Check-In, People Ed
 Manager read `medical_notes` (permlevel 1) on every person. Person Versions still record
 `medical_notes` and the other fields above permlevel 0, so every Person reader sees those changes in
 the timeline. Only a user who sees both churches can put a person into another church's Family. A
-church that must keep them apart ticks Keep People and Families Private to Each Church. A new figure
-that counts one church's records inherits the gap; say so in the manuals.
+church that must keep them apart ticks Keep People and Families Private to Each Church, which
+leaves the addresses readable (see "Roles"). A new figure that counts one church's records inherits
+the gap; say so in the manuals.
 
 `summaries.keep_stored_values` (in `Person._validate_links`, before Frappe's link check) puts the
 stored figures and summary rows back on every save, because a refresh and a delete leave `modified`
@@ -1390,9 +1404,11 @@ saved filters and then applies the church and the living filter. A new list of t
 `get_people` and `dashboard.count_in_readers_churches` count each person once.
 
 The standard lists ship as Report Builder JSON under `church_people/report/`. The Report view runs
-the Person `listview_settings` too, so every saved list gets the Person list's Actions. Their server
-side, `church_people/list_actions.py`, takes names from the browser, so it checks the right on every
-record: `email` to read addresses, `write` to change them.
+the Person `listview_settings` too, so every saved list gets the Person list's Actions, and the
+Report view opens on Status = Active, which Save As keeps in a new list unless the user clears it
+first (Manual: People says so). The server side of the Actions, `church_people/list_actions.py`,
+takes names from the browser, so it checks the right on every record: `email` to read addresses,
+`write` to change them.
 
 Person stores `primary_email` and `primary_phone`, copied from its contact tables by
 `derived.sync_derived` on every save, because a list column, a preview and a Link search cannot read

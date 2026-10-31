@@ -2,11 +2,13 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.search import search_link
+from frappe.permissions import add_permission
 
-from churchit.patches.v1_0 import show_address_fields_for_erpnext
-from churchit.tests.helpers import RollbackEachTest, make_address
+from churchit.patches.v1_0 import let_church_roles_read_addresses, show_address_fields_for_erpnext
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address
 
 CHURCH_HIDDEN_FIELDS = ("email_id", "phone", "fax", "is_primary_address", "is_shipping_address", "disabled")
 ERPNEXT_FIELDS = ("is_your_company_address", "tax_category")
@@ -58,3 +60,40 @@ class TestAddressCustomization(RollbackEachTest):
 			[(row["value"], row["label"]) for row in results], [(address.name, "17 Juniper Court")]
 		)
 		self.assertIn("Quillfield", results[0]["description"])
+
+
+class TestAddressReaders(RollbackEachTest):
+	"""Frappe gives a role only the addresses it added, so the Map of Addresses was empty for staff."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.delete("Custom DocPerm", {"parent": "Address"})
+		clear_permissions_cache("Address")
+		self.addCleanup(clear_permissions_cache, "Address")
+
+	def test_staff_read_every_address_but_change_only_their_own(self):
+		staff = ensure_user("_test-address-reader@example.com", "Address Reader", roles=("Church Staff",))
+		address = make_address("_Test Address Reader").name
+		self.assertFalse(frappe.has_permission("Address", "read", doc=address, user=staff))
+
+		let_church_roles_read_addresses.execute()
+
+		self.assertTrue(frappe.has_permission("Address", "read", doc=address, user=staff))
+		self.assertFalse(frappe.has_permission("Address", "write", doc=address, user=staff))
+
+	def test_the_rules_of_frappe_and_other_apps_stay(self):
+		"""ERPNext adds Address read for Accounts Manager the same way; a role stands in for it here."""
+		add_permission("Address", "Church Finance")
+
+		let_church_roles_read_addresses.execute()
+		let_church_roles_read_addresses.execute()
+
+		readers = frappe.get_all("Custom DocPerm", filters={"parent": "Address", "read": 1}, pluck="role")
+		for role in (
+			"System Manager",
+			"Church Finance",
+			"Church Manager",
+			"Church Staff",
+			"Church People Editor",
+		):
+			self.assertEqual(readers.count(role), 1, role)

@@ -154,7 +154,7 @@
   {
    "default": "0",
    "depends_on": "enable_multi_church",
-   "description": "Every church can look up every person and family by default, the way one congregation spread over several campuses expects. Only a person's own church can change them, and prayer requests, care, counseling and giving stay with each church. Tick this to hide each church's people and families from the other churches as well.",
+   "description": "Every church can look up every person and family by default, the way one congregation spread over several campuses expects. Only a person's own church can change them, and prayer requests, care, counseling and giving stay with each church. Tick this to hide each church's people and families from the other churches as well. Their addresses stay readable by the staff of every church.",
    "fieldname": "private_people",
    "fieldtype": "Check",
    "label": "Keep People and Families Private to Each Church"
@@ -176,7 +176,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-27 13:53:00.000000",
+ "modified": "2026-10-31 10:20:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

@@ -322,10 +322,7 @@ class TestWorkspaceHygiene(FrappeTestCase):
 		assert_list_ratchet(self, found, WORKSPACES_OVER_THEIR_CAPS, "Module workspace shows too many blocks")
 
 	def test_count_shortcuts_use_the_lists_default_filter(self):
-		"""A count shortcut saves its filter onto the list, so it is the filter that the list opens with.
-
-		A calendar shortcut is exempt: it saves its filter on the Calendar view only.
-		"""
+		"""A count shortcut saves its filter onto the list, so it is the filter that the list opens with."""
 		scripts = {data["name"]: get_list_script(path) for path, data in doctype_files()}
 		found = {}
 		for workspace in shipped_workspaces():
@@ -337,3 +334,13 @@ class TestWorkspaceHygiene(FrappeTestCase):
 					found[f"{workspace['name']}: {row['label']}"] = row["stats_filter"]
 		rule = "A count shortcut on a list uses the list's own default filter"
 		assert_list_ratchet(self, found, COUNT_FILTER_EXCEPTIONS, rule)
+
+	def test_no_doctype_shortcut_opens_a_calendar(self):
+		"""Its count saves a filter onto the calendar, which then hides the other weeks; use a URL shortcut."""
+		found = [
+			(workspace["name"], row["label"])
+			for workspace in shipped_workspaces()
+			for row in workspace.get("shortcuts", [])
+			if row.get("type") == "DocType" and row.get("doc_view") == "Calendar"
+		]
+		self.assertEqual(found, [])
