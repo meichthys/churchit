@@ -28,6 +28,7 @@
   {
    "fieldname": "fund",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
    "label": "Name",
    "reqd": 1
@@ -149,7 +150,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-10-30 23:50:39.000000",
+ "modified": "2026-10-31 01:28:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",

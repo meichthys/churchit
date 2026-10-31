@@ -48,6 +48,7 @@
    "fieldname": "agency_name",
    "fieldtype": "Data",
    "in_filter": 1,
+   "in_global_search": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
@@ -89,7 +90,7 @@
    "link_fieldname": "agency"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 01:28:01.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Agency",

@@ -473,6 +473,7 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "hidden": 1,
+   "in_global_search": 1,
    "label": "Title",
    "read_only": 1
   },
@@ -629,7 +630,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-30 23:48:25.000000",
+ "modified": "2026-10-31 01:30:37.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",
@@ -685,6 +686,5 @@
  "sort_order": "ASC",
  "states": [],
  "title_field": "title",
- "track_changes": 1,
- "track_views": 1
+ "track_changes": 1
 }

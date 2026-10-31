@@ -25,6 +25,9 @@ person in a field of its own also loses the answers kept on it to a Question Set
 (`clear_answers`). A Function Sign-Up that names the person only as an attendee loses that attendee's answers
 and its change history, and the others' answers stay. A sign-up the person made keeps no typed name, email or
 phone (`forget_sign_up_details`), and nor does a guest sign-up left unlinked with one of their email addresses.
+The search bar (Ctrl+K) at once stops finding the old name on the person, their family and the records scrubbed
+above (`refresh_search_row`). A record that names the person only in a table row, such as a Missionary or a
+Function, keeps a title typed with their name.
 
 A member's Personal Data Deletion Request anonymizes their Person once Frappe has deleted their login
 (`anonymize_on_data_deletion`).
@@ -41,6 +44,7 @@ from frappe.model.delete_doc import get_linked_docs
 from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.query_builder.functions import Coalesce, Lower
+from frappe.utils.global_search import delete_for_document, update_global_search
 
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.person.person import (
@@ -143,6 +147,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 		frappe.db.set_value("Person", {"name": doc.spouse, "spouse": doc.name}, "spouse", None)
 	strip_person(doc)
 	doc.save(ignore_permissions=True)
+	refresh_search_row(doc)
 	remove_relationships_with(person)
 	forget(doc.doctype, doc.name, addresses)
 	if family:
@@ -315,6 +320,7 @@ def leave_family(family: str, first_name: str) -> None:
 	surname, dash, named = frappe.db.get_value("Family", family, "family_name").rpartition("-")
 	if dash and surname.strip() and named.strip().casefold() == first_name.casefold():
 		frappe.db.set_value("Family", family, "family_name", surname.strip())
+		refresh_search_row(frappe.get_doc("Family", family))
 
 
 def anonymize_family(family: str) -> None:
@@ -326,6 +332,7 @@ def anonymize_family(family: str) -> None:
 		doc.set(fieldname, [])
 	blank_church_fields(doc)
 	doc.save(ignore_permissions=True)
+	refresh_search_row(doc)
 	forget(doc.doctype, doc.name, addresses)
 
 
@@ -380,6 +387,20 @@ def scrub_record(record: LinkedRecord, replacements: list[tuple[re.Pattern, str]
 			changed[fieldname] = scrubbed.strip() or None
 	if changed:
 		frappe.db.set_value(record.doctype, record.name, changed, update_modified=False)
+		if frappe.get_meta(record.doctype).get_global_search_fields():
+			refresh_search_row(
+				frappe.get_doc(record.parenttype or record.doctype, record.parent or record.name)
+			)
+
+
+def refresh_search_row(doc: Document) -> None:
+	"""Take *doc*'s old text out of the search bar now and queue its new text.
+
+	A save only queues the new text for Frappe's sync every 15 minutes, and `db.set_value` skips the index. The
+	index is a MyISAM table, so a rollback does not put the old row back; the next save of *doc* does.
+	"""
+	delete_for_document(doc)
+	update_global_search(doc)
 
 
 def anonymize_on_data_deletion(doc: Document, method=None) -> None:

@@ -126,3 +126,4 @@ churchit.patches.v1_0.order_the_dock_by_weekly_use
 churchit.patches.v1_0.set_person_primary_email_and_phone
 churchit.patches.v1_0.fill_family_member_counts
 churchit.patches.v1_0.clear_saved_sort_and_filters_of_people_and_shared_lists
+churchit.patches.v1_0.add_churchit_to_global_search

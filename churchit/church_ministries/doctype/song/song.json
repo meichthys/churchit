@@ -33,6 +33,7 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "in_filter": 1,
+   "in_global_search": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
@@ -171,7 +172,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-10-30 23:26:40.000000",
+ "modified": "2026-10-31 01:30:37.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",
@@ -218,6 +219,5 @@
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",
- "track_changes": 1,
- "track_views": 1
+ "track_changes": 1
 }

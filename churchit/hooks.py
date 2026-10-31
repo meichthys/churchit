@@ -448,6 +448,32 @@ override_whitelisted_methods = {
 # A Person Link field also finds people by phone number or email address.
 standard_queries = {"Person": "churchit.church_people.search.search_people"}
 
+# The search bar (Ctrl+K) finds these records by their title field. Never add a record about one person's
+# care, prayer or history. They come first in Global Search Settings, whose first 5 rows are the search
+# dialog's filter buttons. Frappe reads this list only in the setup wizard, so a new entry reaches existing
+# sites through a new patch that calls `add_to_global_search` with only the new doctypes.
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Person", "index": 0},
+		{"doctype": "Family", "index": 1},
+		{"doctype": "Group", "index": 2},
+		{"doctype": "Sermon", "index": 3},
+		{"doctype": "Song", "index": 4},
+		{"doctype": "Function", "index": 5},
+		{"doctype": "Ministry", "index": 6},
+		{"doctype": "Sermon Series", "index": 7},
+		{"doctype": "Missionary", "index": 8},
+		{"doctype": "Missionary Agency", "index": 9},
+		{"doctype": "Fund", "index": 10},
+		{"doctype": "Vendor", "index": 11},
+		{"doctype": "Room", "index": 12},
+		{"doctype": "Church Location", "index": 13},
+		{"doctype": "Church Asset", "index": 14},
+		{"doctype": "Bulletin", "index": 15},
+		{"doctype": "Belief", "index": 16},
+	]
+}
+
 # Data Import targets that read another system's people export, or Churchit's own spreadsheet,
 # and build Address, Family and Person records from each row.
 data_import_providers = {

@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import frappe
+from frappe.utils.global_search import rebuild_for_doctype
 
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
 	create_communication_purposes,
@@ -135,6 +136,10 @@ def execute():
 	create_communication_purposes()
 	create_connection_card_interests()
 	create_spiritual_gifts()
+
+	# The search bar (Ctrl+K) finds the records of the global_search_doctypes hook, which Frappe
+	# reads only in the setup wizard, and this site may have run it before churchit was installed.
+	add_to_global_search(get_searched_doctypes())
 
 	# Cleanup
 	_clean_gender_options()
@@ -980,3 +985,35 @@ def _create_default_life_event_types():
 		"Conversion",
 	):
 		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
+
+
+def get_searched_doctypes() -> list[str]:
+	"""The doctypes of churchit's `global_search_doctypes` hook, in its order."""
+	return [
+		row["doctype"] for row in frappe.get_hooks("global_search_doctypes", app_name="churchit")["Default"]
+	]
+
+
+def add_to_global_search(doctypes: list[str]) -> None:
+	"""Add the *doctypes* that Global Search Settings lacks after its leading churchit rows, and index them.
+
+	Only the given doctypes are added, so a row the site took out stays out. A row whose DocType no longer
+	exists (an uninstalled app's) is dropped, as Frappe's reset drops it, because the save refuses it.
+	"""
+	searched = get_searched_doctypes()
+	settings = frappe.get_single("Global Search Settings")
+	listed = [
+		row.document_type
+		for row in settings.allowed_in_global_search
+		if frappe.db.exists("DocType", row.document_type)
+	]
+	position = next((index for index, doctype in enumerate(listed) if doctype not in searched), len(listed))
+	missing = [doctype for doctype in doctypes if doctype not in listed]
+
+	settings.allowed_in_global_search = []
+	for doctype in [*listed[:position], *missing, *listed[position:]]:
+		settings.append("allowed_in_global_search", {"document_type": doctype})
+	settings.save(ignore_permissions=True)
+
+	for doctype in doctypes:
+		rebuild_for_doctype(doctype)

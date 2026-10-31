@@ -28,6 +28,7 @@
   {
    "fieldname": "room_name",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
    "label": "Room Name",
    "reqd": 1
@@ -134,7 +135,7 @@
    "link_fieldname": "room"
   }
  ],
- "modified": "2026-10-30 23:26:40.000000",
+ "modified": "2026-10-31 01:28:01.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room",
