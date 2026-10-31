@@ -17,7 +17,7 @@ import os
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.tests.test_desk_ui_hygiene import get_enclosing_breaks
+from churchit.tests.test_desk_ui_hygiene import assert_list_ratchet, get_enclosing_breaks
 
 # The Church onboarding belongs on Summary, the page a new church lands on, so Settings and Help
 # offer none of their own.
@@ -30,6 +30,30 @@ ACTIONS_THAT_RUN_A_TOUR = ("Create Entry", "Show Form Tour")
 
 # Module Onboardings that no workspace of their module shows yet, with the reason.
 ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
+
+# Tours whose steps run against the order of the form, with the phase of the UX roadmap that fixes them,
+# or the reason the work goes in another order. U13 puts 'Take the Tour' on every form with a tour, so it reorders the tours of forms no other phase changes.
+TOURS_OUT_OF_ORDER = {
+	"Family": "The Primary Contact is chosen from the members, so the tour asks for the members first",
+	"Counseling Case": "U7",
+	"Function": "U7",
+	"Ministry": "U7",
+	"Budget": "U8",
+	"Expense": "U8",
+	"Fund": "U8",
+	"Visitation Log": "U9",
+	"Bulletin": "U10",
+	"Missionary": "U10",
+	"Missionary Agency": "U10",
+	"Prayer Request": "U10",
+	"Sermon": "U10",
+	"Church Asset": "U11",
+	"Church Task": "U11",
+	"About Us Settings": "U13",
+	"Contact Us Settings": "U13",
+	"Email Account Setup": "U13",
+	"Website Settings": "U13",
+}
 
 
 class TestOnboardingHygiene(FrappeTestCase):
@@ -195,3 +219,20 @@ class TestOnboardingHygiene(FrappeTestCase):
 		if not os.path.isdir(path):
 			return []
 		return sorted(entry for entry in os.listdir(path) if not entry.startswith("__"))
+
+	def test_tour_steps_follow_the_order_of_the_form(self):
+		"""A tour that jumps back up the form leaves the user hunting for the field it names next."""
+		found = {}
+		for tour in frappe.get_all(
+			"Form Tour", filters={"module": ["in", self.modules]}, fields=["name", "reference_doctype"]
+		):
+			if not tour.reference_doctype:
+				continue
+			fieldnames = [field.fieldname for field in frappe.get_meta(tour.reference_doctype).fields]
+			steps = frappe.get_all(
+				"Form Tour Step", filters={"parent": tour.name}, pluck="fieldname", order_by="idx"
+			)
+			steps = [step for step in steps if step in fieldnames]
+			if steps != sorted(steps, key=fieldnames.index):
+				found[tour.name] = sorted(steps, key=fieldnames.index)
+		assert_list_ratchet(self, found, TOURS_OUT_OF_ORDER, "Tour steps run against the form order")

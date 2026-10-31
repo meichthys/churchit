@@ -9,12 +9,18 @@ the last condition of a list whose conditions carry a fifth part (frappe.utils.c
 in public/js/frappe/utils/utils.js), so a list filtered on one condition shows every record. The same
 four-part rule holds for shortcut counts and Web Form conditions. A manual link to a desk page that
 was renamed or deleted opens "Page not found".
+
+A module workspace is a dashboard, not a menu: the sidebar is the one menu, so it carries no link cards
+and no quick lists, and it shows its blocks in one order so the work comes first on a phone. Those
+two rules are ratchets: each phase of the UX roadmap deletes the exceptions it fixes, and the checks
+fail on a new violation and on an exception that no longer applies.
 """
 
 import glob
 import json
 import os
 import re
+from itertools import groupby
 from urllib.parse import unquote, urlsplit
 
 import frappe
@@ -23,6 +29,12 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.giving_settings.giving_settings import SUPPORTED_GATEWAY_SETTINGS
 from churchit.church_finances.payments import is_payments_on
+from churchit.tests.test_desk_ui_hygiene import (
+	assert_list_ratchet,
+	doctype_files,
+	get_default_list_filters,
+	get_list_script,
+)
 
 # Which workspace rows each kind of block looks its widget up in.
 BLOCK_ROWS = {
@@ -30,6 +42,71 @@ BLOCK_ROWS = {
 	"chart": ("chart_name", "charts"),
 	"quick_list": ("quick_list_name", "quick_lists"),
 	"custom_block": ("custom_block_name", "custom_blocks"),
+}
+
+# The order of a module workspace: verse, onboarding, attention shortcuts, number cards, charts.
+# Other blocks (headers, spacers, custom blocks) go anywhere.
+BLOCK_ORDER = ("paragraph", "onboarding", "shortcut", "number_card", "chart")
+
+# A count shortcut spans every church's records, so these doctypes get none.
+DOCTYPES_WITHOUT_COUNT_SHORTCUTS = ("Person", "Family")
+
+# The most of each block a module workspace shows. A shortcut to a page (a Page or a URL, such as the
+# Rolodex, a station or a map) does not count as an attention shortcut.
+MAX_ATTENTION_SHORTCUTS = 6
+MAX_PAGE_SHORTCUTS = 3
+MAX_NUMBER_CARDS = 6
+MAX_CHARTS = 4
+PAGE_SHORTCUT_TYPES = ("Page", "URL")
+
+# A JS value in a shortcut filter: frappe.session.user, frappe.datetime.add_days(frappe.datetime.get_today(), 7).
+JS_VALUE = re.compile(r'(?<!["\w.])frappe(?:\.\w+)+(?:\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))?')
+
+# Today's breaks of each rule, with the phase of the UX roadmap that fixes them.
+WORKSPACES_OUT_OF_ORDER = {
+	"Communications": "U6",
+	"Finances": "U6",
+	"Foundations": "U6",
+	"Ministries": "U6",
+	"Missions": "U6",
+	"Operations": "U6",
+	"Prayers": "U6",
+	"Study": "U6",
+	"Web Site": "U6",
+}
+
+WORKSPACES_WITH_LINK_CARDS = {
+	"Communications": "U6",
+	"Finances": "U6",
+	"Foundations": "U6",
+	"Ministries": "U6",
+	"Missions": "U6",
+	"Operations": "U6",
+	"Prayers": "U6",
+	"Settings": "U6",
+	"Study": "U6",
+	"Web Site": "U6",
+}
+
+WORKSPACES_WITH_QUICK_LISTS = {
+	"Prayers": "U6",
+}
+
+WORKSPACES_OVER_THEIR_CAPS = {
+	"Communications": "U6",
+	"Finances": "U6",
+	"Foundations": "U6",
+	"Missions": "U6",
+	"Operations": "U6",
+	"Prayers": "U6",
+	"Settings": "U6",
+	"Study": "U6",
+	"Web Site": "U6",
+}
+
+COUNT_FILTER_EXCEPTIONS = {
+	"Finances: Gifts with No Person": "U6",
+	"Summary: My Assignments": "ToDo is Frappe's list, and a report cannot filter on the current user",
 }
 
 
@@ -42,9 +119,65 @@ def shipped_workspaces():
 	return shipped("workspace")
 
 
+def get_module_workspaces():
+	"""The workspaces that show a module's work: all but the manuals and Help."""
+	return [
+		workspace
+		for workspace in shipped_workspaces()
+		if not workspace["name"].startswith("Manual: ") and workspace["name"] != "Help"
+	]
+
+
+def get_block_types(workspace: dict) -> list[str]:
+	return [block["type"] for block in json.loads(workspace["content"])]
+
+
+def get_frappe_shortcut_colors() -> set[str]:
+	"""The colors Frappe's shortcut dialog offers; any other value draws a gray badge."""
+	path = frappe.get_app_path("frappe", "public", "js", "frappe", "widgets", "widget_dialog.js")
+	with open(path) as source:
+		match = re.search(
+			r'fieldname: "color",\s*label: __\("Color"\),\s*options: \[([^\]]*)\]', source.read()
+		)
+	if not match:
+		raise ValueError("Frappe moved the shortcut color options; update get_frappe_shortcut_colors")
+	return set(re.findall(r'"(\w+)"', match.group(1)))
+
+
+def get_conditions(conditions: str | list) -> list[list]:
+	"""The [field, operator, value] conditions of a filter, written as JSON or as a JS expression, in one order."""
+	if isinstance(conditions, str):
+		conditions = json.loads(JS_VALUE.sub('"js"', conditions))
+	return sorted((condition[-3:] for condition in conditions), key=json.dumps)
+
+
+def get_cap_problems(workspace: dict) -> list[str]:
+	"""How the blocks of *workspace* go over the most a module workspace shows."""
+	types = get_block_types(workspace)
+	rows = {row["label"]: row for row in workspace.get("shortcuts", [])}
+	shortcuts = [
+		rows[block["data"]["shortcut_name"]].get("type")
+		for block in json.loads(workspace["content"])
+		if block["type"] == "shortcut"
+	]
+	pages = sum(kind in PAGE_SHORTCUT_TYPES for kind in shortcuts)
+	counts = {
+		"attention shortcuts": (len(shortcuts) - pages, MAX_ATTENTION_SHORTCUTS),
+		"page shortcuts": (pages, MAX_PAGE_SHORTCUTS),
+		"number cards": (types.count("number_card"), MAX_NUMBER_CARDS),
+		"charts": (types.count("chart"), MAX_CHARTS),
+	}
+	problems = [
+		f"{count} {kind}, {limit} at most" for kind, (count, limit) in counts.items() if count > limit
+	]
+	if not types.count("chart"):
+		problems.append("no chart")
+	return problems
+
+
 def has_five_parts(condition_json: str | None) -> bool:
-	# The filter is a JS expression; this is the only one it uses.
-	conditions = json.loads((condition_json or "[]").replace("frappe.session.user", '""'))
+	"""Whether a condition of the filter has a fifth part. Frappe reads the filter as a JS expression."""
+	conditions = json.loads(JS_VALUE.sub('""', condition_json or "[]"))
 	return isinstance(conditions, list) and any(len(condition) != 4 for condition in conditions)
 
 
@@ -116,3 +249,91 @@ class TestWorkspaceHygiene(FrappeTestCase):
 					if problem := get_desk_link_problem(href, doctypes, pages):
 						broken.append((workspace["name"], href, problem))
 		self.assertEqual(broken, [])
+
+	def test_conditions_with_javascript_dates_are_read(self):
+		week = (
+			'[["Function", "start_date", "between", '
+			"[frappe.datetime.get_today(), frappe.datetime.add_days(frappe.datetime.get_today(), 7)]]]"
+		)
+		self.assertFalse(has_five_parts(week))
+		self.assertFalse(has_five_parts('[["Care Request", "caregiver", "=", frappe.session.user]]'))
+		self.assertTrue(has_five_parts('[["Function", "start_date", ">=", frappe.datetime.get_today(), 1]]'))
+
+	def test_shortcut_colors_come_from_frappes_list(self):
+		colors = get_frappe_shortcut_colors()
+		self.assertIn("Orange", colors)
+		wrong = [
+			(workspace["name"], row["label"], row["color"])
+			for workspace in shipped_workspaces()
+			for row in workspace.get("shortcuts", [])
+			if row.get("color") and row["color"] not in colors
+		]
+		self.assertEqual(wrong, [])
+
+	def test_people_and_families_have_no_count_shortcut(self):
+		"""Every DocType shortcut shows a count, except one that opens a new record."""
+		counted = [
+			(workspace["name"], row["label"])
+			for workspace in shipped_workspaces()
+			for row in workspace.get("shortcuts", [])
+			if row.get("type") == "DocType"
+			and row.get("link_to") in DOCTYPES_WITHOUT_COUNT_SHORTCUTS
+			and row.get("doc_view") != "New"
+		]
+		self.assertEqual(counted, [])
+
+	def test_module_workspaces_have_no_link_cards(self):
+		"""The sidebar is the one menu."""
+		found = {}
+		for workspace in get_module_workspaces():
+			card_blocks = get_block_types(workspace).count("card")
+			if card_blocks or workspace.get("links"):
+				found[workspace["name"]] = {
+					"card_blocks": card_blocks,
+					"link_rows": len(workspace.get("links", [])),
+				}
+		assert_list_ratchet(self, found, WORKSPACES_WITH_LINK_CARDS, "Module workspace has link cards")
+
+	def test_module_workspaces_have_no_quick_lists(self):
+		"""A quick list orders by creation and shows modified times; a shortcut or a report answers better."""
+		found = {
+			workspace["name"]: len(workspace.get("quick_lists", []))
+			for workspace in get_module_workspaces()
+			if workspace.get("quick_lists") or "quick_list" in get_block_types(workspace)
+		}
+		assert_list_ratchet(self, found, WORKSPACES_WITH_QUICK_LISTS, "Module workspace has quick lists")
+
+	def test_module_workspaces_show_blocks_in_the_standard_order(self):
+		"""Verse, onboarding, attention shortcuts, number cards, charts. Summary keeps its own order."""
+		found = {}
+		for workspace in get_module_workspaces():
+			types = [kind for kind in get_block_types(workspace) if kind in BLOCK_ORDER]
+			if workspace["name"] != "Summary" and types != sorted(types, key=BLOCK_ORDER.index):
+				found[workspace["name"]] = [kind for kind, _ in groupby(types)]
+		assert_list_ratchet(self, found, WORKSPACES_OUT_OF_ORDER, "Module workspace blocks are out of order")
+
+	def test_module_workspaces_stay_within_their_caps(self):
+		"""6 attention shortcuts, 3 page shortcuts and 6 number cards at most, and 1 to 4 charts."""
+		found = {
+			workspace["name"]: problems
+			for workspace in get_module_workspaces()
+			if (problems := get_cap_problems(workspace))
+		}
+		assert_list_ratchet(self, found, WORKSPACES_OVER_THEIR_CAPS, "Module workspace shows too many blocks")
+
+	def test_count_shortcuts_use_the_lists_default_filter(self):
+		"""A count shortcut saves its filter onto the list, so it is the filter that the list opens with.
+
+		A calendar shortcut is exempt: it saves its filter on the Calendar view only.
+		"""
+		scripts = {data["name"]: get_list_script(path) for path, data in doctype_files()}
+		found = {}
+		for workspace in shipped_workspaces():
+			for row in workspace.get("shortcuts", []):
+				if row.get("type") != "DocType" or row.get("doc_view") not in (None, "", "List"):
+					continue
+				default = get_default_list_filters(scripts.get(row["link_to"], ""))
+				if row.get("stats_filter") and get_conditions(row["stats_filter"]) != get_conditions(default):
+					found[f"{workspace['name']}: {row['label']}"] = row["stats_filter"]
+		rule = "A count shortcut on a list uses the list's own default filter"
+		assert_list_ratchet(self, found, COUNT_FILTER_EXCEPTIONS, rule)

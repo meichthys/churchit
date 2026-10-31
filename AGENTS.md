@@ -916,6 +916,27 @@ replaces `MapView.setup_view` (see the next section).
   unknown tag and vanishes. Write it in capitals, such as CHANNEL_ID, and put an example in the
   field's `placeholder`. A description uses only the inline tags in `HELP_TEXT_TAGS`
   (`tests/test_desk_ui_hygiene.py`).
+- **A doctype JSON's `fields` list does not follow the form.** `field_order` does, and 31 doctypes
+  list their fields in another order. A check or script that reads the layout from JSON sorts by
+  `field_order` (`get_fields_in_form_order` in `tests/test_desk_ui_hygiene.py`).
+- **A shortcut cannot open the Map view in place.** Workspace Shortcut `doc_view` has no Map option,
+  and `frappe.utils.generate_route` sends any other value to the doctype's default view. A Sidebar
+  URL item, and a URL shortcut too, opens in a new tab. The People workspace therefore opens the
+  Address map with a URL shortcut to `/desk/people/address/view/map`. The `people` part keeps the
+  People sidebar in the new tab only because that sidebar lists Address (Data, Addresses). Without
+  the listing, the desk switches to Frappe's Contacts sidebar. Do not set `default_view` Map on
+  Address, because ERPNext shares the doctype.
+- **The search bar checks each hit with `frappe.has_permission`, not with
+  `permission_query_conditions`.** A doctype whose access rule lives only in query conditions needs
+  a matching `has_permission` hook before it is searched; Person and Family have both. A save only
+  queues its search row, and Frappe writes the queue every 15 minutes. `frappe.db.set_value` skips
+  the index, so after one on a searched field call `privacy.refresh_search_row`, as anonymizing
+  does. The index `__global_search` is a MyISAM table: a rollback does not undo it. So if Remove
+  Personal Data fails and rolls back, the person keeps their data but has no search row, and Frappe's
+  own save has queued the anonymized one, until the person's next save. It does not wait for the
+  commit, because a write after the commit breaks a following `sql_ddl`. A test deletes the rows it
+  made (`test_global_search.forget_search_rows`). MariaDB indexes only whole
+  words of 4 letters or more (`ft_min_word_len`).
 
 ## Testing
 
@@ -962,6 +983,11 @@ CI does not run it.
 - A test that sets a site default (`country`) restores it with `addClassCleanup`; the test site may
   have none. A test that calls Frappe's `get_open_count` resets `frappe.db.set_execution_timeout(0)`,
   because it limits the session to 1 second and later tests share the connection.
+- Frappe saves no Version row while tests run: `Document.save` sets `ignore_version` from
+  `frappe.in_test`. A test that needs the change history saves with `ignore_version=False`.
+- Sample birthdays and anniversaries use `_this_week_in`, which keeps the date inside the current
+  Monday-to-Sunday week. Pass a leap year, so a Feb 29 in this week exists in it. Do not use a plain
+  day offset for a 'this week' record.
 
 ## Desk navigation
 
@@ -991,10 +1017,16 @@ Edit a sidebar or the dock on a developer-mode site, from the desk or with `doc.
 writes the file itself. Church Features hides a disabled module through the site's own layer of the
 dock and each user's (`Dock` rows with `standard` off), never through the files.
 
+A saved arrangement of the dock keeps its own row order, so a new order in
+`churchit/dock/churchit/churchit.json` does not reach a site that has one. Church Features saves the
+site's arrangement when it hides a module. Change the shipped order together with a v1_0 patch that
+reorders the site's arrangement when its rows are still in the previous shipped order, as
+`order_the_dock_by_weekly_use` does. Leave users' own arrangements alone.
+
 ## Onboarding steps and form tours
 
 A module's `Module Onboarding` is the checklist a new church works through, and each step carries a
-`Form Tour` explaining the fields the form does not explain by itself. Four things here fail
+`Form Tour` explaining the fields the form does not explain by itself. Five things here fail
 silently, so `churchit/tests/test_onboarding_hygiene.py` checks them rather than leaving them to
 review:
 
@@ -1019,9 +1051,256 @@ review:
   `church` field included) or sits in a hidden tab, section or column. A field is also absent on a
   single-church site, which is most sites, when its `depends_on`, or the `depends_on` of its tab,
   section or column, is the multi-church switch (`test_onboarding_hygiene` checks this).
+- **Tour steps follow the order of the form.** A step that sits above the previous one makes the
+  user look back up the form. Reorder the steps when you move fields
+  (`test_tour_steps_follow_the_order_of_the_form`).
 
 `Onboarding Step` carries no `module` field. A step belongs to the module folder it ships in, and its
 name is global across every app, so name it after the doctype and do not prefix it.
+
+## Desk lists and forms
+
+Every module's lists, forms, sidebars and workspaces follow the same rules, so a secretary who knows
+one module knows them all. Use a Frappe setting first. Use a form script or a hook only when no
+setting does the job, and give the reason in the change. Most rules have a ratchet check: a test
+with a list of today's exceptions. When you fix an exception, delete it from the list. The check
+fails on a new violation and on an exception that is no longer needed, so the lists only get
+shorter. The value of an exception is the UX roadmap phase that fixes it: U4 is the list sweep, U6
+the other sidebars and workspaces, U7 to U11 the module phases and U13 the tours. Every ratchet uses
+`assert_list_ratchet` in `tests/test_desk_ui_hygiene.py`.
+
+### Lists
+
+- Show the title, a status pill and 4 fields that answer the list's question. Up to 2 more fields
+  can follow, so 6 `in_list_view` fields at most (`test_list_columns_stay_within_the_budget`). A
+  phone shows only the first 2 fields, so put the 2 that matter most first. List columns follow the
+  form's `field_order`: to move a column up, move the field up the form. A hidden field in the
+  header section is fine.
+- No Text, Small Text, Long Text, Text Editor, HTML Editor, Markdown Editor, Code, Table, Table
+  MultiSelect or Geolocation column (`test_lists_have_no_text_columns`). No Link column whose
+  `fetch_from` fills the title, because the subject shows it. The desk leaves the title field itself
+  out of the field columns, so its `in_list_view` flag adds no column, but the budget still counts
+  it (`test_lists_never_repeat_the_title`).
+- 4 `in_standard_filter` fields at most. Frappe adds the title filter by itself. A multi-church site
+  also shows the church and sharing filters, and the budget does not count them. A Check filter
+  finds only ticked records, so use one only when ticked is what users look for, such as Publish or
+  Bookable (`test_list_filters_stay_within_the_budget`).
+- A doctype with a `title_field` hides its ID: set `hide_name_column` and `hide_name_filter` in
+  `<doctype>_list.js`. Staff quote the number of a Collection, Expense, Fund Transfer, Online
+  Donation, Counseling Case, Church Asset and Bible Translation, so these keep the ID. Room Booking
+  hides the ID column but keeps the ID filter, because the setup sheet prints the BK number
+  (`test_lists_with_a_title_hide_the_id`). Address keeps its ID column too, because the ID (address
+  title and type) says whose address it is, and hiding it would need a list script that also changes
+  ERPNext's Address list. A list that starts with an ID or a hash gets a title field.
+- A print format or a notification of a doctype that hides its ID shows the title, not `doc.name`
+  (`test_prints_and_notifications_never_quote_a_hidden_id`).
+
+### Status colors
+
+A field named `status` gets its colors from the DocType `states`. They show in the list, the form
+header and quick lists with no script. A status that other fields decide (dates, checkboxes), or a
+status field with another name such as Person `membership_status`, gets a `get_indicator` in
+`<doctype>_list.js`. Each state title must be an option of the field. For a Link status (Group,
+Missionary, Prayer Request) the options are the records the app seeds, so a renamed status record
+loses its color. `test_every_status_has_a_color` and
+`test_every_state_title_is_an_option_of_its_field` check this. Take the color from this table:
+
+| Color | Meaning | Examples |
+| --- | --- | --- |
+| Orange | Waiting for staff | Requested, Pending, New, Planned, Open |
+| Yellow | In review | Triaged, Reviewed |
+| Blue | Under way, or for information | In Progress, Scheduled, Letter Issued, Intake, Published |
+| Green | Good result, still current | Active, Approved, Confirmed, Paid, Resolved, Completed, Given, Done |
+| Red | Blocked, failed or refused | Conflict, Failed, Needs Review, Declined, Withdrawn, Overdrawn, Unbalanced |
+| Purple | Set aside or passed on | Waitlisted, Referred, Blocked, Refunded |
+| Gray | Finished or off | Closed, Cancelled, Denied, Inactive, Ended, Spam, Skipped, Draft |
+
+### Sort, default filters and saved list settings
+
+- Sort dated records by their own date, newest first. Sort a work queue by due date, soonest first,
+  and a directory by name. Never sort by `modified`, except on a log
+  (`test_lists_never_sort_by_modified`).
+- A work queue opens on its own filter, set as `filters` in `listview_settings`. Care Request
+  (unfinished) and Room Booking (not Denied or Cancelled) do this today. Group Join Request
+  (Requested) and Follow-up Card (Open) get their filter in UX roadmap phase U9, and Room Booking
+  changes to Requested in U11. The field of that filter is not also a standard filter: Frappe keeps
+  the default filter and adds the standard filter on top, so Care Request with Status = Resolved
+  would be empty. The status pill (a click replaces the default filter) and the Filters popover
+  cover it (`test_default_list_filters_are_not_standard_filters`).
+- Frappe saves each user's last filters and sort on every list they open, and these win over
+  `sort_field` and the `listview_settings` filters. An empty saved filter list wins too. So a change
+  to a list's columns, filters or sort ships a v1_0 patch that calls
+  `churchit.user_settings.clear_list_filters_and_sort` with those doctypes, and the release note
+  says that saved filters and sorts on those lists were reset. A patch runs once on a site, so add a
+  new patch for each change and never extend an old one. The patch keeps each user's Report view,
+  Kanban and Calendar settings, saved filter layouts and grid columns.
+- A church's own List Settings and Customize Form changes are site Property Setters and a List View
+  Settings record. On that site they win over the app's list and form changes, and a patch never
+  deletes them. A List View Settings record shows only the columns it names, so a new list column
+  does not show. A System Manager who drags a column wider also saves one. A church field added
+  with Customize Form saves the whole field order, so the form keeps the old order. The
+  release note gives the reset: for a list, List Settings, '+ Add / Remove Fields', Reset Fields;
+  for a form, Customize Form, Actions, Reset Layout. Never advise Reset All Customizations: it
+  deletes the church's own fields and leaves the List View Settings record.
+
+### Search and preview
+
+- `search_fields` holds 2 or 3 fields that tell records with the same title apart. Person has 5,
+  because its link search (`search_people`) reads every search field, in this order: primary
+  phone, envelope number, nickname, previous last name, middle name
+  (`test_search_fields_stay_short`). No rich text, and no Link to an autonumbered doctype, because
+  the dropdown then shows raw IDs (`test_search_fields_hold_no_rich_text_or_raw_ids`).
+- A doctype that other forms link to sets `show_preview_popup` with 3 to 6 `in_preview` fields. A
+  small lookup may have fewer, but never none: with no `in_preview` field Frappe previews every
+  required field. There is no preview on Counseling Case, Care Request, Person Note or Background
+  Check (`test_previews_need_the_popup_and_skip_private_records`). No Geolocation, Check, rich text
+  or Dynamic Link field in a preview (`test_previews_show_only_short_facts`).
+- Ctrl+K indexes only the title field (`title_field`, permlevel 0) of the doctypes in
+  `global_search_doctypes` (`hooks.py`): never `show_name_in_global_search`, never a second name
+  field such as a nickname, and never a record about one person's care, prayer or history
+  (`privacy.PERSONAL_DOCTYPES`, `RECORDS_ABOUT_THE_PERSON`, Prayer) (`test_global_search`). A new
+  searched doctype sets `in_global_search` on its title field and joins the hook with the next
+  `index`. Frappe reads the hook only in the setup wizard, so the same change adds a new v1_0 patch
+  that calls `add_to_global_search` with only the new doctypes; never re-run
+  `add_churchit_to_global_search`, because a church may have taken rows out on purpose. A new Person
+  field that holds personal data goes in `privacy.PERSONAL_FIELDS`, so that Remove Personal Data
+  clears it and rewrites the search row. After a `frappe.db.set_value` on a searched field, call
+  `privacy.refresh_search_row`.
+
+### Forms
+
+- The first tab is 'Details', with about 15 visible inputs and the main grid of a typical record.
+  Its first section has no label. Add a tab when the form has 2 or more separate jobs, or when
+  Details is longer than about 2 screens at 1440x1000. 5 content tabs at most. A later tab is a noun
+  of 1 or 2 words that the Manual also uses, with the fieldname `<noun>_tab`, and never 'Other',
+  'More', 'Misc' or 'Advanced'. 'Connections' (`show_dashboard`) comes after the content tabs, and
+  'Church Fields' is last. Singles are exempt from the Details rule
+  (`test_tabs_follow_the_naming_rules`). Frappe puts its own Details tab ahead of fields that sit in
+  no tab. The check does not look at where Connections sits.
+- Put the sections in this order: who or what, when and where, status, the content (text or the main
+  grid), then the optional sections. Safety fields (allergies, emergency contacts, pickup rules) sit
+  directly under the header.
+- A collapsible section has a label that names its content and a `collapsible_depends_on` that opens
+  it when it holds something staff typed or must act on. A section of routine system values (gateway
+  references, print toggles, maps) may stay closed: add it to `ROUTINE_COLLAPSED` with the reason,
+  and give it a one-line description of what it holds
+  (`test_collapsible_sections_open_when_they_hold_data`).
+- Use `depends_on` only when a field cannot apply, and never on a section that a form tour points
+  into. Empty read-only fields hide by themselves.
+- Help never repeats the label (`test_help_never_repeats_the_label`). Inline help is 80 characters
+  at most. For longer help, set `show_description_on_click` (the (i) icon). Section Break and Table
+  help cannot hide, so it is 120 characters at most (`test_long_help_sits_behind_the_info_icon`).
+  Put an example in `placeholder`.
+- A Text, Long Text, Text Editor, HTML Editor, Markdown Editor or Code field on the first tab sets
+  `max_height`, such as 12rem. Small Text is left out, because its box is only 150px
+  (`test_first_tab_text_fields_have_a_max_height`).
+- A form has 2 top-level custom buttons at most. Record actions go in the 'Actions' group and
+  reports about the record in 'View' (the group argument of `add_custom_button`). Tours and rare or
+  destructive items go in the '...' menu. Hide a button that cannot work yet.
+- Group the Connections links. A group label never repeats a section label of the same form.
+- Set `track_changes` on documents that staff edit, and `ignore_version` on automatic saves. Never
+  set `timeline_field`, which shows nothing in Frappe 16.54 (`test_doctypes_set_no_timeline_field`).
+  `track_views` stays on Person and Prayer Request only, where the 'viewed' rows are an audit of who
+  read the record (`test_track_views_only_where_an_audit_is_needed`). A tracked doctype that links
+  to a Person must lose that person's name from its Version rows when Remove Personal Data runs
+  (`test_tracked_records_about_a_person_are_forgotten_with_them`). A doctype that does not yet do
+  this sits in `PERSON_HISTORY_EXCEPTIONS` with the reason, and a gap line there is a leak to close
+  in `church_people/privacy.py`. Delete the line when you close the leak
+  (`church_people/test_privacy_history.py` checks Family and Collection by behavior).
+
+### Child grids
+
+Every `in_list_view` field of a child table sets `columns` from 1 to 12, which Frappe 16.54 draws as
+60 to 600px. The column that identifies the row comes first and is the widest. A grid shows 5
+columns at most and no Text, Long Text, Text Editor, HTML Editor, Markdown Editor or Code column. A
+Check column has width 1 and a short label with no '?'. The value staff enter or read most (Amount
+on Donation) stays in the first 300px, so it shows on a tablet. Show warning flags in the grid, such
+as `is_bounced` on Email Address and `is_returned_mail` on Postal Address. A user's saved grid
+columns win over these settings for that user (`test_grids_set_their_column_widths`). A child table
+that only a Table MultiSelect uses has no grid, so these rules skip it.
+
+### Sidebars and workspaces
+
+These add to the rules in "Desk navigation".
+
+- A sidebar starts with 'Home', then 5 to 8 daily items, each with its own icon, then folders. A
+  folder is a Section Break with `indent`, `collapsible`, `keep_closed` and an icon. Its items set
+  `child` and have no icon
+  (`test_sections_are_closed_folders_with_icons_and_their_items_are_children`). Reports go at the
+  end of their feature folder, and 'Setup' and 'Data' are closed folders at the end. With its
+  folders closed, a sidebar shows 16 rows or fewer. A heading that stays open, such as Needs
+  Attention on Summary, goes in `OPEN_SECTIONS` with the reason.
+- A label is 24 characters at most, so the sidebar does not cut it off
+  (`test_labels_fit_the_sidebar`). Every icon exists in a sprite that the desk loads
+  (`test_every_icon_is_in_a_sprite_the_desk_loads`): sidebar items, sidebar header icons and dock
+  icons. The desk loads Lucide from `lucide/icons.svg`, not from the older
+  `public/icons/lucide.svg`, so an icon that is only in the old file, such as `book-marked`, draws
+  nothing.
+- Set `is_default_module` only on a Frappe doctype that churchit users need, and only once across
+  all of churchit's sidebars. On a site with ERPNext, the claim sends that doctype to churchit's
+  sidebar for every user. Two claims are settled by install order, and nothing tells you
+  (`test_no_doctype_is_claimed_by_two_sidebar_items`).
+- Never add a URL item for a desk route, because Frappe opens every URL item in a new tab. A
+  filtered list is a standard Report Builder report, because a filtered sidebar link saves its
+  filters onto the plain list. A calendar is a workspace shortcut with `doc_view` Calendar
+  (`test_no_url_item_opens_a_desk_route`). Frappe has no Map `doc_view`, so a map is a URL shortcut
+  (see "Frappe behaviours worth knowing").
+- A standard Report Builder report leaves the List view alone, but Frappe saves its filters as the
+  doctype's plain Report view settings (`ListView.before_render`), so the Report view in the view
+  switcher opens with them later. Report Builder filters cannot say 'before today': `<` with 'Today'
+  compares text. The Report view keeps the first `order_by` key and adds the ID in the same
+  direction (not for `name`, `creation` or `modified`), so write `order_by` that way, such as
+  `` `tabFunction`.`start_date` asc, `tabFunction`.`name` asc ``. Another `order_by` shows 'Not
+  Saved' each time the report opens.
+- A module workspace has, in this order: the verse, the onboarding, shortcuts, number cards (6 at
+  most) and 1 to 4 charts. Up to 6 shortcuts are attention shortcuts, which open a list, a calendar
+  or a report of the work that waits. Up to 3 more open a page of the module, such as the Rolodex,
+  the Check-In Station or a map (a Page or URL shortcut). It has no link cards and no quick lists,
+  because the sidebar is the menu (`test_module_workspaces_show_blocks_in_the_standard_order`,
+  `test_module_workspaces_stay_within_their_caps`, `test_module_workspaces_have_no_link_cards`,
+  `test_module_workspaces_have_no_quick_lists`).
+  Summary keeps its own order: verse, module grid, onboarding, Needs Attention, At a Glance, Trends.
+- A shortcut color comes from Frappe's color list: Red for urgent or overdue, Orange for waiting,
+  Blue for information (`test_shortcut_colors_come_from_frappes_list`). A count shortcut saves its
+  filter onto the list, so give a count only to a queue whose filter is the list's own default
+  filter. A queue with no default filter gets one first
+  (`test_count_shortcuts_use_the_lists_default_filter`). Summary's My Assignments is the exception:
+  ToDo is Frappe's list, and a report cannot filter on the current user. Never put a count on
+  Person or Family, because the count includes every church
+  (`test_people_and_families_have_no_count_shortcut`). A calendar shortcut counts something useful,
+  such as the next 7 days, because every DocType shortcut shows a count. It saves its filter on the
+  Calendar view only, and the calendar shows only those days until the user clears the filter, so
+  the label and the Help say so. A `stats_filter` may use `frappe.session.user`. Write a relative
+  date as `Timespan`, such as 'next 7 days', not as a `frappe.datetime` call, because a saved filter
+  keeps the date it was saved with (`test_conditions_with_javascript_dates_are_read` reads both).
+- Color a number card only when it asks for action. Set `show_percentage_stats` only on flow
+  figures, such as giving and expenses.
+- Each dock entry has its own Lucide icon, and the dock lists the modules in order of weekly use.
+
+### Frappe features that churchit does not use
+
+- Fold, because it does not work in a tabbed form.
+- DocType Layout, because it is a second layout to keep and a sidebar cannot open it.
+- List View Settings and List Filter layouts as defaults, because they cannot be the default for
+  every user.
+- DocType Actions, because they have no condition. Use `add_custom_button`.
+- New Custom HTML Blocks. The `ModuleShortcuts` block on Summary stays.
+
+### Before and after screenshots
+
+Each change to a list, form, sidebar or workspace also updates the Manual, moves the form tour steps
+into the new field order (`test_tour_steps_follow_the_order_of_the_form`), bumps `modified` in each
+JSON file you edit by hand, and gets before and after screenshots:
+
+1. On the dev site (`churchit.localhost`, which has the sample data), clear the saved filters and
+   sort of the lists you change. Run `clear_list_filters_and_sort` in a console and commit.
+2. Pick one sample record for each form, and use the same records for both sets of shots.
+3. Take the before shots as `mary.johnson@example.com` with the run-churchit driver
+   (`.claude/skills/run-churchit/driver.py`). Take each page at 1440x1000 (`viewport 1440 1000`
+   before `nav`) and again with `--device mobile` (390x844). Name them `<page>-desktop` and
+   `<page>-mobile`.
+4. Make the change and migrate. Take the after shots of the same pages and records in the same way.
+5. Delete each record that you made for the shots.
 
 ## Documentation obligations
 
@@ -1115,6 +1394,19 @@ the Person `listview_settings` too, so every saved list gets the Person list's A
 side, `church_people/list_actions.py`, takes names from the browser, so it checks the right on every
 record: `email` to read addresses, `write` to change them.
 
+Person stores `primary_email` and `primary_phone`, copied from its contact tables by
+`derived.sync_derived` on every save, because a list column, a preview and a Link search cannot read
+a child table. Never set them yourself. Code that changes Email Address or Phone Number rows with
+`frappe.db` leaves them stale until the person is saved again, so save the person after it, as a
+merge does. Data Import matches a Person column headed Email or Phone to these fields, so during an
+import `Person.take_imported_email_and_phone` makes such a value the primary row of its table before
+the save copies it back. Both are in `privacy.PERSONAL_FIELDS`.
+
+`Family.member_count` is stored by `Family.validate` from the Members table, so the Family list and
+preview can show it. Change a household's members only by saving the Family
+(`Person.sync_family_members`, `remove_from_family` and the merges do). A direct write to the Family
+Members table leaves the count wrong. The patch `fill_family_member_counts` backfills it.
+
 ## Engagement, pathways, map and retention
 
 A Pathway step is a smart list (`Pathway.get_steps_done` reads it through `smart_lists.get_people`).
@@ -1134,6 +1426,16 @@ calls Nominatim from the browser. People Settings `look_up_addresses` turns all 
 `geocoding.is_address_lookup_on()` before anything that sends address text. Custom fields sync
 after the patches, so a patch that needs one syncs its customization file first, as
 `queue_address_coordinates` does.
+
+An Address shows its street. The Address Property Setters in
+`church_customizations/custom/address.json` set `title_field` to `address_line1`,
+`show_title_field_in_link` and `search_fields` "address_line1, city" (`test_address_customization`).
+They apply to ERPNext's addresses on a shared site too, and every migrate puts them back over a
+site's own Customize Form choice. Address keeps List as its default view, because ERPNext uses the
+same doctype; the map opens from the 'Map of Addresses' shortcut. Address also keeps its ID
+column, because the ID (address title and type) says whose address it is, and hiding it would need a
+list script that also changes ERPNext's Address list. `test_lists_with_a_title_hide_the_id` reads
+only churchit's doctypes, so it does not check Address.
 
 `privacy.get_due_query` is the one rule for whose data the daily retention job removes; the
 Personal Data Due for Removal report scopes the same query.
@@ -1877,6 +2179,6 @@ global Email Unsubscribe. Only `newsletter.py` writes Email Unsubscribe records.
 
 `bounces.record_bounce` reads a bounce report's text, one pattern per format (the `bounces.py`
 docstring explains why); a new format needs a pattern and a real sample in `test_bounces.py`. Decide
-whether to send to an address only through `bounces.bounced_addresses`. Email Bounced is cleared
-only in `contacts.validate_contact_tables` when a row's address changes; a raw write
+whether to send to an address only through `bounces.bounced_addresses`. `is_bounced` (Bounced) is
+cleared only in `contacts.validate_contact_tables` when a row's address changes; a raw write
 (`db.set_value`, `db_insert`) skips that.

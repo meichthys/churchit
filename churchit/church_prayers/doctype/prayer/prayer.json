@@ -88,7 +88,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 01:30:37.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer",
@@ -146,6 +146,5 @@
  "sort_order": "DESC",
  "show_title_field_in_link": 1,
  "states": [],
- "title_field": "title",
- "track_views": 1
+ "title_field": "title"
 }
