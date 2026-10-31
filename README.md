@@ -161,7 +161,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund transfers between accounts
 - Expense tracking by category
 - Alms request system for financial assistance (with web form), with an email to the care team and Benevolence case notes that only the care team reads
-- Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
+- Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover (needs the optional [Payments app](#online-payments-optional))
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
 - Other ways to give (bank transfer, standing order, mailed check) on /give, per church
@@ -314,6 +314,23 @@ When both apps are on one site:
 Churchit renamed three records so that ERPNext can use their names: **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (`/app/budget`) and API calls (`/api/resource/Location`).
 
 To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
+
+### Online payments (optional)
+
+Online giving on the Give page, sign-up payments and form payments need Frappe's [Payments](https://github.com/frappe/payments) app. Churchit does not install it, so online payments are off on a new site. Everything else works without it, and a church can still record payments by hand. To turn online payments on:
+
+1. Install the Payments app on the site:
+
+   | Setup | Steps |
+   |---|---|
+   | Frappe Cloud | Open the site page, then the **Apps** tab. Click **Install App** and choose **Payments**. |
+   | Docker | Set `EXTRA_APPS=payments` in `~/churchit/.env` and run `docker compose up -d`. See [Optional apps](deploy/README.md#optional-apps). |
+   | Pilot | `pilot -b church get-app https://github.com/frappe/payments --branch version-16`, then `pilot -b church install-app church.example.org payments` |
+   | Plain bench | `bench get-app payments --branch version-16`, then `bench --site <your-site> install-app payments` |
+
+2. Set up Stripe or PayPal, and tick **Enable Online Giving** in **Giving Settings**. The Finances manual in the app tells how (Online giving).
+
+Until the Payments app is installed, **Giving Settings** shows a notice, and Churchit does not let you tick **Enable Online Giving**. The Give page shows that online giving is unavailable, and it still shows **Other Ways to Give**. A sign-up with a price waits for a payment by hand. A form with a price keeps the answers and asks the person to contact the church office.
 
 ### First steps after installing
 

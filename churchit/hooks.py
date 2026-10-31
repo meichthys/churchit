@@ -52,8 +52,6 @@ fixtures = [
 # Apps
 # ------------------
 
-required_apps = ["payments"]
-
 # The Churchit tile on the Apps screen, which opens on Summary.
 add_to_apps_screen = [
 	{

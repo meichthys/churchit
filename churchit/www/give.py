@@ -21,7 +21,11 @@ def get_context(context):
 	church = selected_church_name()
 	context.no_cache = 1
 	context.title = _("Give")
-	context.enabled = bool(settings.enabled)
+	# Gateways the donor may choose from. With one gateway the page hides the
+	# picker and uses it silently; with several the donor selects one.
+	context.gateways = settings.get_offered_gateways(church)
+	# Without a gateway, which needs the payments app, the form could take no gift.
+	context.enabled = bool(settings.enabled and context.gateways)
 	context.currency = settings.currency or "USD"
 	context.thank_you_message = settings.get_thank_you_message(church)
 	context.other_ways_to_give = settings.get_other_ways_to_give(church)
@@ -29,7 +33,7 @@ def get_context(context):
 
 	# When anonymous giving is off, the giver must log in so the gift links to a Person.
 	# The login returns to the give link's church, fund and amount.
-	if settings.enabled and not settings.allow_anonymous and frappe.session.user == "Guest":
+	if context.enabled and not settings.allow_anonymous and frappe.session.user == "Guest":
 		link = {
 			key: frappe.form_dict[key] for key in ("church", "fund", "amount") if frappe.form_dict.get(key)
 		}
@@ -51,9 +55,6 @@ def get_context(context):
 	amount = flt(frappe.form_dict.get("amount"))
 	context.amount = amount if amount > 0 else None
 
-	# Gateways the donor may choose from. With one gateway the page hides the
-	# picker and uses it silently; with several the donor selects one.
-	context.gateways = settings.get_offered_gateways(church)
 	context.default_gateway = settings.get_default_gateway(church)
 	context.fee_cover = {
 		row.payment_gateway: {"percent": flt(row.fee_percent), "fixed": flt(row.fee_fixed)}

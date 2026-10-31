@@ -104,11 +104,11 @@ services:
 
   migrate:
     container_name: churchit-migrate
-    # Temp container: runs on every `up`. Installs any app that is in the image
-    # (deploy/apps.json -> sites/apps.txt) but not yet on this site, then runs
-    # migrations. This is what makes existing sites pick up churchit upgrades and
-    # newly-added apps automatically. The app list comes from the image, which
-    # is what gets pulled, not from this compose file. The Administrator password
+    # Temp container: runs on every `up`. Installs each optional app named in
+    # EXTRA_APPS that is in the image (deploy/apps.json -> sites/apps.txt) but not
+    # yet on this site, then runs migrations. This is what makes existing sites
+    # pick up churchit upgrades and the optional apps you turn on. Taking an app
+    # out of EXTRA_APPS does not uninstall it. The Administrator password
     # is intentionally NOT touched here: create-site sets it once at creation and
     # after that it is owned by the user (changeable in the web UI).
     <<: *backend
@@ -124,9 +124,11 @@ services:
           exit 0;
         fi;
         installed="$$(bench --site ${SITE_NAME} list-apps 2>/dev/null)";
-        for app in $$(cat sites/apps.txt); do
-          if ! echo "$$installed" | grep -qw "$$app"; then
-            echo "Installing app new to this site: $$app";
+        for app in ${EXTRA_APPS:-}; do
+          if ! grep -qx "$$app" sites/apps.txt; then
+            echo "Skipping $$app: this image does not have it.";
+          elif ! echo "$$installed" | grep -qw "$$app"; then
+            echo "Installing optional app: $$app";
             bench --site ${SITE_NAME} install-app "$$app";
           fi;
         done;

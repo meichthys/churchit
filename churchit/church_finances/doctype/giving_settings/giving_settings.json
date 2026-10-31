@@ -26,8 +26,8 @@
  ],
  "fields": [
   {
-   "default": "1",
-   "description": "When unchecked, the /give page shows an \"unavailable\" notice and rejects new gifts.",
+   "default": "0",
+   "description": "Shows the giving form on the /give page. Needs the Payments app and a payment gateway. When unchecked, the page shows an \"unavailable\" notice and rejects new gifts.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enable Online Giving"
@@ -45,7 +45,7 @@
    "label": "Payment"
   },
   {
-   "description": "Payments-app gateways offered to donors on the /give page. With more than one, donors choose; mark one row as the default.",
+   "description": "Payments-app gateways offered to donors on the /give page and for sign-up and form payments. With more than one, donors choose; mark one row as the default. Needs the Payments app.",
    "fieldname": "gateways",
    "fieldtype": "Table",
    "label": "Payment Gateways",
@@ -127,7 +127,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-23 01:04:02.000000",
+ "modified": "2026-10-30 23:11:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",

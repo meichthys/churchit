@@ -670,6 +670,15 @@ Only the gateways in `giving_settings.SUPPORTED_GATEWAY_SETTINGS` (Stripe and Pa
 `gateways_for` skips one stored before. `GivingSettings.get_gateway(church, payment_gateway)` gives
 the row a payment uses: the one asked for when the church is offered it, else the church's default.
 
+The payments app is optional (not in `required_apps`), and `payments.is_payments_on()` is its switch.
+Without it `gateways_for` offers no row, so /give shows its unavailable notice, a sign-up is not
+payable and `get_payment_url` refuses in `get_gateway` before it imports the app. Giving Settings
+refuses Enable Online Giving without the app, and its form says why. Never import `payments` at
+module level. A test that needs the app gets its gateway from `test_giving_settings.make_gateway`,
+which skips the test without the app, and a doctype test module whose doctype links Payment Gateway
+sets `IGNORE_TEST_RECORD_DEPENDENCIES = ["Payment Gateway"]`. The Docker image ships the app, and
+installs it only when `.env` lists it in `EXTRA_APPS`.
+
 ## Giving and the fund ledger
 
 Write Fund ledger rows only with `fund.add_transaction` and `fund.remove_transactions`. They lock

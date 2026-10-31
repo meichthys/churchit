@@ -21,6 +21,9 @@ import frappe
 from frappe.desk.utils import slug
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_finances.doctype.giving_settings.giving_settings import SUPPORTED_GATEWAY_SETTINGS
+from churchit.church_finances.payments import is_payments_on
+
 # Which workspace rows each kind of block looks its widget up in.
 BLOCK_ROWS = {
 	"number_card": ("number_card_name", "number_cards"),
@@ -98,6 +101,9 @@ class TestWorkspaceHygiene(FrappeTestCase):
 
 	def test_manual_links_open_a_desk_page(self):
 		doctypes = {slug(name): name for name in frappe.get_all("DocType", pluck="name")}
+		if not is_payments_on():
+			# The manual links the optional payments app's gateway settings.
+			doctypes.update({slug(name): name for name in SUPPORTED_GATEWAY_SETTINGS})
 		pages = set(frappe.get_all("Page", pluck="name")) | {
 			slug(name) for name in frappe.get_all("Workspace", pluck="name")
 		}

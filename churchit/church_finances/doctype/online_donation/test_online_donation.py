@@ -11,6 +11,9 @@ from churchit.church_people import summaries
 from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
+# The payments app is optional, so its Payment Gateway may not exist.
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Payment Gateway"]
+
 
 def ensure_online_payment_type():
 	# "Online" Payment Type is required for the recorded Collection's Donation row.
