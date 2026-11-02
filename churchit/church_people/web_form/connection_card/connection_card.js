@@ -24,10 +24,15 @@ function show_interests_as_checkboxes(field) {
 		return;
 	}
 
-	const $choices = $('<div class="connection-card-interests">').appendTo(field.grid.wrapper);
+	const $choices = $('<div class="connection-card-interests">').appendTo(
+		field.grid.wrapper,
+	);
 	for (const interest of interests) {
 		$('<label class="connection-card-interest">')
-			.append($('<input type="checkbox">').val(interest), document.createTextNode(interest))
+			.append(
+				$('<input type="checkbox">').val(interest),
+				document.createTextNode(interest),
+			)
 			.appendTo($choices);
 	}
 	$choices.on("change", () => {
@@ -43,9 +48,14 @@ function show_interests_as_checkboxes(field) {
 // right to read them, and a select offers them as a list.
 function fit_household_to_a_phone(field) {
 	const grid = field.grid;
-	const column = field.df.fields.find((df) => df.fieldname === "relationship");
+	const column = field.df.fields.find(
+		(df) => df.fieldname === "relationship",
+	);
 	grid.update_docfield_property("relationship", "fieldtype", "Select");
-	grid.update_docfield_property("relationship", "options", ["", ...JSON.parse(column.options)]);
+	grid.update_docfield_property("relationship", "options", [
+		"",
+		...JSON.parse(column.options),
+	]);
 	grid.update_docfield_property("name", "hidden", 1);
 	grid.wrapper.find(".grid-add-row").on("click", () => {
 		grid.grid_rows[grid.grid_rows.length - 1].toggle_view(true);

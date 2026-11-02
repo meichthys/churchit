@@ -12,8 +12,9 @@ frappe.ui.form.on("Church Features", {
 		// The dock and sidebars come from the cached bootinfo, so the desk keeps
 		// showing the old set until it is reloaded. Website page rows do not change them.
 		if (get_switches(frm) === frm.saved_switches) return;
-		frappe.confirm(__("Module visibility has changed. Reload now to apply it?"), () =>
-			window.location.reload()
+		frappe.confirm(
+			__("Module visibility has changed. Reload now to apply it?"),
+			() => window.location.reload(),
 		);
 	},
 });

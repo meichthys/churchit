@@ -39,9 +39,9 @@ def send_sms_hooks(methods):
 	get_hooks = frappe.get_hooks
 	return patch(
 		"frappe.get_hooks",
-		side_effect=lambda hook=None, *args, **kwargs: methods
-		if hook == "send_sms"
-		else get_hooks(hook, *args, **kwargs),
+		side_effect=lambda hook=None, *args, **kwargs: (
+			methods if hook == "send_sms" else get_hooks(hook, *args, **kwargs)
+		),
 	)
 
 

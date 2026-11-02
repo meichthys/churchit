@@ -5,7 +5,7 @@ $(document).on("form-refresh", function (e, frm) {
 			"help",
 			() => window.open(frm.meta.documentation, "_blank"),
 			"",
-			__("Documentation")
+			__("Documentation"),
 		);
 	}
 });

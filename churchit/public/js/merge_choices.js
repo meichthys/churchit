@@ -9,15 +9,23 @@
 	churchit.merge_choices = {
 		async render($wrapper, keep, remove) {
 			// A Link field fires onchange again on blur, for example when the user clicks a radio.
-			if ($wrapper.data("keep") === keep && $wrapper.data("remove") === remove) return;
+			if (
+				$wrapper.data("keep") === keep &&
+				$wrapper.data("remove") === remove
+			)
+				return;
 			$wrapper.data({ keep, remove }).empty();
 			if (!keep || !remove) return;
-			const choices = await frappe.xcall("churchit.church_people.merge.get_merge_choices", {
-				keep,
-				remove,
-			});
+			const choices = await frappe.xcall(
+				"churchit.church_people.merge.get_merge_choices",
+				{
+					keep,
+					remove,
+				},
+			);
 			// The user picked another person while this one loaded.
-			if ($wrapper.data("keep") !== keep || !choices.fields.length) return;
+			if ($wrapper.data("keep") !== keep || !choices.fields.length)
+				return;
 
 			const escape = frappe.utils.escape_html;
 			const cell = (field, side) => `
@@ -30,7 +38,7 @@
 				(field) => `<tr>
 					<th scope="row">${escape(field.label)}</th>
 					${cell(field, "keep")}${cell(field, "remove")}
-				</tr>`
+				</tr>`,
 			);
 			// A form of its own keeps the radio groups apart from those of another dialog.
 			$wrapper.html(`

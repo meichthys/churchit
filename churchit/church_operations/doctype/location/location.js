@@ -35,7 +35,10 @@ frappe.ui.form.on("Location", {
 					features: [
 						{
 							type: "Feature",
-							geometry: { type: "Point", coordinates: [longitude, latitude] },
+							geometry: {
+								type: "Point",
+								coordinates: [longitude, latitude],
+							},
 							properties: {},
 						},
 					],

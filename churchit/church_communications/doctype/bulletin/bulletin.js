@@ -20,7 +20,10 @@ frappe.ui.form.on("Bulletin", {
 
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro(__("Members can download this bulletin from the portal."), "blue");
+			frm.set_intro(
+				__("Members can download this bulletin from the portal."),
+				"blue",
+			);
 		}
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Print Bulletin"), () => frm.print_doc());
@@ -43,13 +46,18 @@ function fill_defaults(frm, { sections }) {
 		.then((r) => {
 			const defaults = r.message;
 			for (const [field, value] of Object.entries(defaults)) {
-				if (field === "prayer_requests" || (!sections && field.startsWith("show_")))
+				if (
+					field === "prayer_requests" ||
+					(!sections && field.startsWith("show_"))
+				)
 					continue;
 				frm.set_value(field, value);
 			}
 			if (!frm.doc.function) return;
 			frm.clear_table("prayer_requests");
-			defaults.prayer_requests.forEach((row) => frm.add_child("prayer_requests", row));
+			defaults.prayer_requests.forEach((row) =>
+				frm.add_child("prayer_requests", row),
+			);
 			frm.refresh_field("prayer_requests");
 		});
 }

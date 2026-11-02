@@ -32,7 +32,9 @@ frappe.ui.form.on("Person", {
 		}
 
 		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
-		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+		const has_email = (frm.doc.emails || []).some(
+			(row) => row.email_address,
+		);
 		if (has_email && !frm.doc.user) {
 			frm.add_custom_button(__("Invite to Portal"), function () {
 				frm.call("invite_to_portal");
@@ -45,10 +47,15 @@ frappe.ui.form.on("Person", {
 		}
 
 		if (frm.doc.__onload?.has_unsubscribed) {
-			frm.dashboard.add_indicator(__("Unsubscribed from Church Emails"), "orange");
+			frm.dashboard.add_indicator(
+				__("Unsubscribed from Church Emails"),
+				"orange",
+			);
 			if (frappe.model.can_write("Person")) {
 				frm.add_custom_button(__("Resubscribe to Church Emails"), () =>
-					frm.call("resubscribe_to_church_emails").then(() => frm.reload_doc())
+					frm
+						.call("resubscribe_to_church_emails")
+						.then(() => frm.reload_doc()),
 				);
 			}
 		}
@@ -82,12 +89,19 @@ function show_background_check_status(frm) {
 		.then((rows) => {
 			if (!rows || !rows.length) return;
 			const check = rows[0];
-			const colors = { Cleared: "green", "Not Cleared": "red", Expired: "gray" };
+			const colors = {
+				Cleared: "green",
+				"Not Cleared": "red",
+				Expired: "gray",
+			};
 			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
 			if (check.status === "Cleared" && check.expires_on) {
 				label += ` ${__("until")} ${frappe.datetime.str_to_user(check.expires_on)}`;
 			}
-			frm.dashboard.add_indicator(label, colors[check.status] || "orange");
+			frm.dashboard.add_indicator(
+				label,
+				colors[check.status] || "orange",
+			);
 		});
 }
 
@@ -95,21 +109,32 @@ function show_background_check_status(frm) {
 function show_alert_notes(frm) {
 	if (!frappe.model.can_read("Person Note")) return;
 	const person = frm.doc.name;
-	frappe.xcall("churchit.church_people.notes.get_alert_notes", { person }).then((notes) => {
-		if (!notes.length || frm.doc.name !== person) return;
-		const lines = notes.map((note) => {
-			const category = frappe.utils.escape_html(__(note.category));
-			const link = frappe.utils.get_form_link("Person Note", note.name, true, category);
-			const text = frappe.utils.escape_html(frappe.utils.html2text(note.note));
-			return `<div>${link}: ${text}</div>`;
+	frappe
+		.xcall("churchit.church_people.notes.get_alert_notes", { person })
+		.then((notes) => {
+			if (!notes.length || frm.doc.name !== person) return;
+			const lines = notes.map((note) => {
+				const category = frappe.utils.escape_html(__(note.category));
+				const link = frappe.utils.get_form_link(
+					"Person Note",
+					note.name,
+					true,
+					category,
+				);
+				const text = frappe.utils.escape_html(
+					frappe.utils.html2text(note.note),
+				);
+				return `<div>${link}: ${text}</div>`;
+			});
+			frm.set_intro(lines.join(""), "red");
 		});
-		frm.set_intro(lines.join(""), "red");
-	});
 }
 
 // The link lets the person change their own details without a login, once, for 7 days.
 function add_details_link_menu_item(frm) {
-	const has_email = (frm.doc.emails || []).some((row) => row.is_primary && row.email_address);
+	const has_email = (frm.doc.emails || []).some(
+		(row) => row.is_primary && row.email_address,
+	);
 	if (!frm.perm[0]?.write || !has_email) return;
 	frm.page.add_menu_item(__("Send Details Link"), () =>
 		frappe
@@ -118,10 +143,12 @@ function add_details_link_menu_item(frm) {
 			})
 			.then((email) =>
 				frappe.show_alert({
-					message: __("Details link sent to {0}", [frappe.utils.escape_html(email)]),
+					message: __("Details link sent to {0}", [
+						frappe.utils.escape_html(email),
+					]),
 					indicator: "green",
-				})
-			)
+				}),
+			),
 	);
 }
 
@@ -130,7 +157,10 @@ function add_details_link_menu_item(frm) {
 function show_engagement(frm) {
 	const doc = frm.doc;
 	const add = (label, value, color) =>
-		frm.dashboard.add_indicator(`${label}: ${frappe.utils.escape_html(String(value))}`, color);
+		frm.dashboard.add_indicator(
+			`${label}: ${frappe.utils.escape_html(String(value))}`,
+			color,
+		);
 	const date = (value) => frappe.datetime.str_to_user(value);
 
 	if (doc.first_attended_on) {
@@ -140,14 +170,22 @@ function show_engagement(frm) {
 	add(
 		__("Times Attended (90 Days)"),
 		doc.times_attended_90d || 0,
-		doc.times_attended_90d ? "green" : "orange"
+		doc.times_attended_90d ? "green" : "orange",
 	);
-	add(__("Groups"), doc.group_count || 0, doc.group_count ? "green" : "orange");
+	add(
+		__("Groups"),
+		doc.group_count || 0,
+		doc.group_count ? "green" : "orange",
+	);
 	if (doc.last_served_on) {
 		add(__("Last Served"), date(doc.last_served_on), "blue");
 	}
 	if (frm.perm[2]?.read && doc.last_gift_on) {
-		add(__("Last Gift"), date(doc.last_gift_on), doc.is_lapsed_giver ? "orange" : "green");
+		add(
+			__("Last Gift"),
+			date(doc.last_gift_on),
+			doc.is_lapsed_giver ? "orange" : "green",
+		);
 	}
 }
 
@@ -176,7 +214,7 @@ function add_note_menu_item(frm) {
 			after_insert,
 			set_category_query,
 			note,
-			true
+			true,
 		);
 	});
 }
@@ -186,9 +224,11 @@ function add_note_menu_item(frm) {
 const check_for_possible_matches = frappe.utils.debounce((frm) => {
 	if (frm.doctype !== "Person" || !frm.is_new()) return;
 	const own_values = (rows, field) =>
-		(rows || []).filter((row) => row[field] && !row.shared_from).map((row) => row[field]);
+		(rows || [])
+			.filter((row) => row[field] && !row.shared_from)
+			.map((row) => row[field]);
 	const birth = (frm.doc.life_events || []).find(
-		(row) => row.event_type === "Birth" && row.date && !row.year_unknown
+		(row) => row.event_type === "Birth" && row.date && !row.year_unknown,
 	);
 	const candidate = {
 		first_name: frm.doc.first_name,
@@ -202,14 +242,20 @@ const check_for_possible_matches = frappe.utils.debounce((frm) => {
 		emails: own_values(frm.doc.emails, "email_address"),
 		phones: own_values(frm.doc.phones, "phone_number"),
 	};
-	if (!candidate.first_name || !(candidate.emails.length || candidate.phones.length)) {
+	if (
+		!candidate.first_name ||
+		!(candidate.emails.length || candidate.phones.length)
+	) {
 		frm.set_intro("");
 		return;
 	}
 	frappe
-		.xcall("churchit.church_people.matching.get_possible_matches", { candidate })
+		.xcall("churchit.church_people.matching.get_possible_matches", {
+			candidate,
+		})
 		.then((matches) => {
-			if (frm.is_new()) frm.set_intro(possible_matches_note(matches), "yellow");
+			if (frm.is_new())
+				frm.set_intro(possible_matches_note(matches), "yellow");
 		});
 }, 500);
 
@@ -220,12 +266,16 @@ function possible_matches_note(matches) {
 			"Person",
 			match.person,
 			true,
-			frappe.utils.escape_html(match.full_name)
+			frappe.utils.escape_html(match.full_name),
 		);
-		const reasons = match.reasons.map((reason) => frappe.utils.escape_html(__(reason)));
+		const reasons = match.reasons.map((reason) =>
+			frappe.utils.escape_html(__(reason)),
+		);
 		return `${link} (${reasons.join(", ")})`;
 	});
-	return __("This person may already be in the directory: {0}", [people.join("; ")]);
+	return __("This person may already be in the directory: {0}", [
+		people.join("; "),
+	]);
 }
 
 frappe.ui.form.on("Person", {
@@ -256,23 +306,26 @@ function add_merge_menu_item(frm) {
 					options: "Person",
 					label: __("Person to Keep"),
 					reqd: 1,
-					get_query: () => ({ filters: { name: ["!=", frm.doc.name] } }),
+					get_query: () => ({
+						filters: { name: ["!=", frm.doc.name] },
+					}),
 					description: __(
 						"Everything that names {0} moves to this person, and {0} is deleted. This person keeps their own details, except the ones you choose below, and gets the ones they do not have from {0}. You cannot undo a merge.",
-						[name]
+						[name],
 					),
 					onchange: () =>
 						churchit.merge_choices.render(
 							choices(),
 							dialog.get_value("keep"),
-							frm.doc.name
+							frm.doc.name,
 						),
 				},
 				{ fieldname: "choices", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Merge"),
 			primary_action({ keep }) {
-				const take_from_removed = churchit.merge_choices.get_taken(choices());
+				const take_from_removed =
+					churchit.merge_choices.get_taken(choices());
 				dialog.hide();
 				frappe
 					.call({
@@ -295,7 +348,7 @@ function add_remove_personal_data_menu_item(frm) {
 		frappe.confirm(
 			__(
 				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their name, contact details, notes, photo, birth date, family, spouse and portal login go. You cannot undo this.",
-				[frappe.utils.escape_html(frm.doc.full_name)]
+				[frappe.utils.escape_html(frm.doc.full_name)],
 			),
 			() =>
 				frappe
@@ -304,7 +357,7 @@ function add_remove_personal_data_menu_item(frm) {
 						args: { person: frm.doc.name },
 						freeze: true,
 					})
-					.then(() => frm.reload_doc())
+					.then(() => frm.reload_doc()),
 		);
 	});
 }

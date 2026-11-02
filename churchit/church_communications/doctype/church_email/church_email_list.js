@@ -3,7 +3,12 @@
 
 frappe.listview_settings["Church Email"] = {
 	get_indicator(doc) {
-		const colors = { Draft: "gray", Scheduled: "orange", Sending: "blue", Sent: "green" };
+		const colors = {
+			Draft: "gray",
+			Scheduled: "orange",
+			Sending: "blue",
+			Sent: "green",
+		};
 		return [__(doc.status), colors[doc.status], `status,=,${doc.status}`];
 	},
 };

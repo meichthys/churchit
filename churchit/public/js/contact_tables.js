@@ -75,12 +75,17 @@
 			frm.fields_dict[fieldname].grid.update_docfield_property(
 				"shared_from",
 				"filter_description",
-				description
+				description,
 			);
 		}
 	}
 
-	for (const parent of ["Person", "Family", "Missionary", "Missionary Agency"]) {
+	for (const parent of [
+		"Person",
+		"Family",
+		"Missionary",
+		"Missionary Agency",
+	]) {
 		frappe.ui.form.on(parent, {
 			setup: set_shared_from_queries,
 			refresh: describe_shared_from_filter,

@@ -29,7 +29,9 @@ frappe.listview_settings["Bible Memory Item"] = {
 						fieldtype: "Link",
 						label: __("Group"),
 						options: "Group",
-						description: __("Everyone in the group who has a portal login."),
+						description: __(
+							"Everyone in the group who has a portal login.",
+						),
 					},
 					{
 						fieldname: "user",
@@ -56,10 +58,10 @@ frappe.listview_settings["Bible Memory Item"] = {
 							dialog.hide();
 							listview.refresh();
 							frappe.show_alert({
-								message: __("{0} assigned, {1} already had it.", [
-									message.created,
-									message.skipped,
-								]),
+								message: __(
+									"{0} assigned, {1} already had it.",
+									[message.created, message.skipped],
+								),
 								indicator: "green",
 							});
 							if (!message.missing_users.length) return;

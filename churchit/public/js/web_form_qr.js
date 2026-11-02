@@ -19,7 +19,7 @@ function show_qr_code(frm) {
 				options: "Church",
 				label: __("Church"),
 				description: __(
-					"Guests who scan the code fill in the form for this church. Leave it empty for the main church."
+					"Guests who scan the code fill in the form for this church. Leave it empty for the main church.",
 				),
 				hidden: !frappe.boot.churchit?.multi_church,
 				get_query: () => ({ filters: { publish: 1 } }),
@@ -42,9 +42,12 @@ function get_form_address(frm, church) {
 
 async function render_qr_code(dialog, frm) {
 	const address = get_form_address(frm, dialog.get_value("church"));
-	const image = await frappe.xcall("frappe.utils.print_format_generator.get_qr_code", {
-		value: address,
-	});
+	const image = await frappe.xcall(
+		"frappe.utils.print_format_generator.get_qr_code",
+		{
+			value: address,
+		},
+	);
 	dialog.qr_code = image;
 	const safe_address = frappe.utils.escape_html(address);
 	// The code is black on clear, so it keeps a white ground in the dark theme.
