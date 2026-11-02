@@ -9,7 +9,9 @@ frappe.query_reports["Function Registrations"] = {
 			label: __("Function"),
 			fieldtype: "Link",
 			options: "Function",
-			description: __("Choose a function to see a column for each of its questions."),
+			description: __(
+				"Choose a function to see a column for each of its questions.",
+			),
 		},
 		{
 			fieldname: "status",

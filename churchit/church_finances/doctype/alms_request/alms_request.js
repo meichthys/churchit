@@ -8,13 +8,17 @@ frappe.ui.form.on("Alms Request", {
 			frm.set_df_property(
 				"recipient",
 				"description",
-				`Alms are requested for this ${frm.doc.recipient_type}.`
+				`Alms are requested for this ${frm.doc.recipient_type}.`,
 			);
 		}
 	},
 	refresh(frm) {
 		// One expense per request, for whoever keeps the books
-		if (!frm.is_new() && !frm.doc.associated_expense && frappe.model.can_create("Expense")) {
+		if (
+			!frm.is_new() &&
+			!frm.doc.associated_expense &&
+			frappe.model.can_create("Expense")
+		) {
 			frm.add_custom_button(__("Create Expense"), function () {
 				frappe.call({
 					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
@@ -30,11 +34,13 @@ frappe.ui.form.on("Alms Request", {
 	onload: function (frm) {
 		// Pre-populate the requestor field with the current user's name
 		if (frm.is_new()) {
-			frappe.db.get_value("Person", { user: frappe.session.user }, "name").then((r) => {
-				if (r && r.message) {
-					frm.set_value("requestor", r.message.name);
-				}
-			});
+			frappe.db
+				.get_value("Person", { user: frappe.session.user }, "name")
+				.then((r) => {
+					if (r && r.message) {
+						frm.set_value("requestor", r.message.name);
+					}
+				});
 		}
 	},
 	after_save: function (frm) {
@@ -44,17 +50,20 @@ frappe.ui.form.on("Alms Request", {
 			!frm.doc.associated_expense &&
 			frappe.model.can_create("Expense")
 		) {
-			frappe.confirm("Would you like to create an associated expense?", function () {
-				frappe.call({
-					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-					args: {
-						alms_request_name: frm.doc.name,
-					},
-					callback: function () {
-						frm.reload_doc();
-					},
-				});
-			});
+			frappe.confirm(
+				"Would you like to create an associated expense?",
+				function () {
+					frappe.call({
+						method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
+						args: {
+							alms_request_name: frm.doc.name,
+						},
+						callback: function () {
+							frm.reload_doc();
+						},
+					});
+				},
+			);
 		}
 	},
 });
@@ -63,15 +72,19 @@ frappe.ui.form.on("Alms Request", {
 // The server says whether the user may read or add a Benevolence note.
 function add_case_note_buttons(frm) {
 	const onload = frm.doc.__onload || {};
-	if (frm.is_new() || !frm.doc.recipient || !onload.can_read_case_notes) return;
+	if (frm.is_new() || !frm.doc.recipient || !onload.can_read_case_notes)
+		return;
 	const group = __("Case Notes");
 	frm.add_custom_button(
 		__("View Case Notes"),
 		async () => {
 			const person = await get_case_note_person(frm);
-			frappe.set_route("List", "Person Note", { person, category: "Benevolence" });
+			frappe.set_route("List", "Person Note", {
+				person,
+				category: "Benevolence",
+			});
 		},
-		group
+		group,
 	);
 	if (!onload.can_add_case_notes) return;
 	frm.add_custom_button(
@@ -85,14 +98,24 @@ function add_case_note_buttons(frm) {
 					query: "churchit.church_people.notes.search_categories_to_add",
 				});
 			};
-			frappe.ui.form.make_quick_entry("Person Note", null, set_category_query, note, true);
+			frappe.ui.form.make_quick_entry(
+				"Person Note",
+				null,
+				set_category_query,
+				note,
+				true,
+			);
 		},
-		group
+		group,
 	);
 }
 
 async function get_case_note_person(frm) {
 	if (frm.doc.recipient_type === "Person") return frm.doc.recipient;
-	const { message } = await frappe.db.get_value("Family", frm.doc.recipient, "primary_contact");
+	const { message } = await frappe.db.get_value(
+		"Family",
+		frm.doc.recipient,
+		"primary_contact",
+	);
 	return message?.primary_contact || frm.doc.requestor;
 }

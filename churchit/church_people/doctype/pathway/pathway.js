@@ -10,7 +10,9 @@ frappe.ui.form.on("Pathway", {
 	refresh(frm) {
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Open Progress"), () =>
-			frappe.set_route("query-report", "Pathway Progress", { pathway: frm.doc.name })
+			frappe.set_route("query-report", "Pathway Progress", {
+				pathway: frm.doc.name,
+			}),
 		);
 	},
 });

@@ -3,7 +3,11 @@
 
 frappe.listview_settings["Possible Duplicate"] = {
 	get_indicator(doc) {
-		const colors = { Open: "orange", Merged: "green", "Not a Duplicate": "gray" };
+		const colors = {
+			Open: "orange",
+			Merged: "green",
+			"Not a Duplicate": "gray",
+		};
 		return [__(doc.status), colors[doc.status], `status,=,${doc.status}`];
 	},
 };

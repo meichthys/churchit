@@ -60,7 +60,8 @@ function update_collection_total(frm) {
 
 // Update imbalance as the difference between entered total and expected total
 function update_imbalance(frm, entered_total) {
-	var entered = entered_total !== undefined ? entered_total : frm.doc.total_amount || 0;
+	var entered =
+		entered_total !== undefined ? entered_total : frm.doc.total_amount || 0;
 	var expected = frm.doc.expected_total || 0;
 	frm.set_value("imbalance", entered - expected);
 }

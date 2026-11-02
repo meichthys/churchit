@@ -10,7 +10,8 @@ frappe.listview_settings["Song"] = {
 };
 
 const SONG_FILES = "churchit.church_ministries.songs.song_files";
-const items = (rows) => `<ul>${rows.map((row) => `<li>${row}</li>`).join("")}</ul>`;
+const items = (rows) =>
+	`<ul>${rows.map((row) => `<li>${row}</li>`).join("")}</ul>`;
 
 function add_song_import_button(listview) {
 	if (!frappe.model.can_create("Song")) return;
@@ -25,36 +26,51 @@ function add_song_import_button(listview) {
 			allow_take_photo: false,
 			allow_google_drive: false,
 			restrictions: {
-				allowed_file_types: [".cho", ".chordpro", ".chopro", ".pro", ".usr"],
+				allowed_file_types: [
+					".cho",
+					".chordpro",
+					".chopro",
+					".pro",
+					".usr",
+				],
 				max_file_size: 1024 * 1024,
 				max_number_of_files: 50,
 			},
 			on_success: (file) => file && files.push(file.name),
 		});
 		uploader.dialog.set_primary_action(__("Import"), () =>
-			uploader.upload_files().then(() => import_song_files(listview, files))
+			uploader
+				.upload_files()
+				.then(() => import_song_files(listview, files)),
 		);
 	});
 }
 
 function import_song_files(listview, files) {
 	const escape = frappe.utils.escape_html;
-	frappe.xcall(`${SONG_FILES}.import_song_files`, { files }).then(({ imported, skipped }) => {
-		listview.refresh();
-		const links = imported.map(
-			(row) =>
-				`<a href="${frappe.utils.get_form_link("Song", row.song)}">${escape(row.file)}</a>`
-		);
-		let message = __("{0} songs imported.", [imported.length]) + items(links);
-		if (skipped.length) {
-			const reason = __(
-				"{0} files skipped: a song with the same CCLI number or title is listed.",
-				[skipped.length]
+	frappe
+		.xcall(`${SONG_FILES}.import_song_files`, { files })
+		.then(({ imported, skipped }) => {
+			listview.refresh();
+			const links = imported.map(
+				(row) =>
+					`<a href="${frappe.utils.get_form_link("Song", row.song)}">${escape(row.file)}</a>`,
 			);
-			message += reason + items(skipped.map(escape));
-		}
-		frappe.msgprint({ title: __("Import Song Files"), message, indicator: "green" });
-	});
+			let message =
+				__("{0} songs imported.", [imported.length]) + items(links);
+			if (skipped.length) {
+				const reason = __(
+					"{0} files skipped: a song with the same CCLI number or title is listed.",
+					[skipped.length],
+				);
+				message += reason + items(skipped.map(escape));
+			}
+			frappe.msgprint({
+				title: __("Import Song Files"),
+				message,
+				indicator: "green",
+			});
+		});
 }
 
 function add_public_domain_hymns_button(listview) {
@@ -62,13 +78,15 @@ function add_public_domain_hymns_button(listview) {
 	listview.page.add_inner_button(__("Add Public-Domain Hymns"), () =>
 		frappe
 			.xcall(`${SONG_FILES}.get_public_domain_hymns`, {}, "GET")
-			.then((hymns) => choose_public_domain_hymns(listview, hymns))
+			.then((hymns) => choose_public_domain_hymns(listview, hymns)),
 	);
 }
 
 function choose_public_domain_hymns(listview, hymns) {
 	const escape = frappe.utils.escape_html;
-	const titles = Object.fromEntries(hymns.map((hymn) => [hymn.file, escape(hymn.title)]));
+	const titles = Object.fromEntries(
+		hymns.map((hymn) => [hymn.file, escape(hymn.title)]),
+	);
 	const options = hymns.map((hymn) => {
 		const authors = `<span class="text-muted">${escape(hymn.authors)}</span>`;
 		return { value: hymn.file, label: `${titles[hymn.file]} ${authors}` };
@@ -82,7 +100,7 @@ function choose_public_domain_hymns(listview, hymns) {
 				fieldtype: "MultiCheck",
 				label: __("Hymns"),
 				description: __(
-					"Words and music published in 1930 or earlier. Each hymn becomes a public-domain song with its chord chart and slides. A hymn whose title your song list already shows is skipped."
+					"Words and music published in 1930 or earlier. Each hymn becomes a public-domain song with its chord chart and slides. A hymn whose title your song list already shows is skipped.",
 				),
 				select_all: 1,
 				columns: 2,
@@ -91,11 +109,17 @@ function choose_public_domain_hymns(listview, hymns) {
 		],
 		primary_action_label: __("Add"),
 		primary_action: ({ files }) => {
-			if (!files?.length) return frappe.msgprint(__("Select at least one hymn."));
+			if (!files?.length)
+				return frappe.msgprint(__("Select at least one hymn."));
 			return frappe
-				.xcall(`${SONG_FILES}.add_public_domain_hymns`, { files }, "POST", {
-					freeze: true,
-				})
+				.xcall(
+					`${SONG_FILES}.add_public_domain_hymns`,
+					{ files },
+					"POST",
+					{
+						freeze: true,
+					},
+				)
 				.then((result) => {
 					dialog.hide();
 					listview.refresh();
@@ -109,22 +133,28 @@ function choose_public_domain_hymns(listview, hymns) {
 function show_hymns_added(titles, { imported, skipped }) {
 	const links = imported.map(
 		(row) =>
-			`<a href="${frappe.utils.get_form_link("Song", row.song)}">${titles[row.file]}</a>`
+			`<a href="${frappe.utils.get_form_link("Song", row.song)}">${titles[row.file]}</a>`,
 	);
 	let message = __("{0} hymns added.", [imported.length]) + items(links);
 	if (skipped.length) {
-		const reason = __("{0} hymns skipped: a song with the same title is listed.", [
-			skipped.length,
-		]);
+		const reason = __(
+			"{0} hymns skipped: a song with the same title is listed.",
+			[skipped.length],
+		);
 		message += reason + items(skipped.map((file) => titles[file]));
 	}
-	frappe.msgprint({ title: __("Add Public-Domain Hymns"), message, indicator: "green" });
+	frappe.msgprint({
+		title: __("Add Public-Domain Hymns"),
+		message,
+		indicator: "green",
+	});
 }
 
 function add_song_export_list_button(listview) {
 	listview.page.add_action_item(__("Export Songs"), () => {
 		const songs = listview.get_checked_items(true);
-		if (!songs.length) return frappe.msgprint(__("Select at least one song."));
+		if (!songs.length)
+			return frappe.msgprint(__("Select at least one song."));
 		frappe.prompt(
 			{
 				fieldname: "file_format",
@@ -134,16 +164,16 @@ function add_song_export_list_button(listview) {
 				default: "OpenLyrics",
 				reqd: 1,
 				description: __(
-					"OpenLyrics opens in FreeShow, OpenLP and Quelea. ChordPro keeps the chords. More than one song comes as a zip file."
+					"OpenLyrics opens in FreeShow, OpenLP and Quelea. ChordPro keeps the chords. More than one song comes as a zip file.",
 				),
 			},
 			({ file_format }) =>
 				window.open(
 					`/api/method/${SONG_FILES}.export_songs?` +
-						$.param({ songs: JSON.stringify(songs), file_format })
+						$.param({ songs: JSON.stringify(songs), file_format }),
 				),
 			__("Export Songs"),
-			__("Export")
+			__("Export"),
 		);
 	});
 }
