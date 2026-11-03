@@ -286,8 +286,14 @@ permission_query_conditions = {
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 }
 
-# A person's notes show on their timeline, to the users who may read them.
-additional_timeline_content = {"Person": ["churchit.church_people.notes.get_timeline_notes"]}
+# A person's notes, visits, care requests, life events, transfers and connection cards show on their
+# timeline, to the users who may read them.
+additional_timeline_content = {
+	"Person": [
+		"churchit.church_people.notes.get_timeline_notes",
+		"churchit.church_people.history.get_timeline_content",
+	]
+}
 
 # Follow-up workflows that start when a person's membership changes or a life event is added.
 churchit_people_events = {

@@ -1,0 +1,13 @@
+<div class="timeline-message-box">
+	<span class="flex justify-between m-1">
+		<span class="text-color">
+			{{ heading | e }} · <span class="text-muted text-nowrap">{{ date | e }}</span>
+			{% if details %}<div class="text-muted my-1">{{ details | e }}</div>{% endif %}
+		</span>
+		{% if url %}
+		<a class="action-btn" href="{{ url | e }}" title="{{ _('Open') }}">
+			<svg class="icon icon-sm"><use href="#icon-link"></use></svg>
+		</a>
+		{% endif %}
+	</span>
+</div>
