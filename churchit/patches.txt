@@ -136,3 +136,4 @@ churchit.patches.v1_0.retitle_alms_requests
 churchit.patches.v1_0.retitle_prayers
 churchit.patches.v1_0.set_weekly_metrics_titles
 churchit.patches.v1_0.clear_saved_sort_and_filters_of_module_lists
+churchit.patches.v1_0.forget_milestones_of_deleted_people

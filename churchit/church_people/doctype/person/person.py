@@ -262,6 +262,8 @@ class Person(Document):
 			self.remove_from_family(self.family)
 		stop_sharing_from(self.doctype, self.name)
 		remove_relationships_with(self.name)
+		# Milestones name the person in a Data field, so the next person given this number would show them.
+		frappe.db.delete("Milestone", {"reference_type": self.doctype, "reference_name": self.name})
 
 	def before_rename(self, old, new, merge=False):
 		"""A person's ID changes only by a merge into another person, and the merge must lose no login or marriage."""
