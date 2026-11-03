@@ -7,22 +7,26 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "online_giving_tab",
   "enabled",
   "column_break_uffx",
   "allow_anonymous",
   "section_break_gateway",
   "gateways",
-  "column_break_funds",
+  "section_break_defaults",
   "default_fund",
+  "column_break_funds",
   "currency",
+  "messages_tab",
   "section_break_message",
   "thank_you_message",
   "other_ways_to_give",
+  "church_wording",
+  "statements_tab",
   "section_break_statements",
   "statement_grouping",
   "column_break_statements",
-  "statement_acknowledgment",
-  "church_wording"
+  "statement_acknowledgment"
  ],
  "fields": [
   {
@@ -30,14 +34,16 @@
    "description": "Shows the giving form on the /give page. Needs the Payments app and a payment gateway. When unchecked, the page shows an \"unavailable\" notice and rejects new gifts.",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enable Online Giving"
+   "label": "Enable Online Giving",
+   "show_description_on_click": 1
   },
   {
    "default": "1",
    "description": "When unchecked, visitors must log in before giving so the gift links to their Person.",
    "fieldname": "allow_anonymous",
    "fieldtype": "Check",
-   "label": "Allow Anonymous (Guest) Giving"
+   "label": "Allow Anonymous (Guest) Giving",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_gateway",
@@ -45,7 +51,7 @@
    "label": "Payment"
   },
   {
-   "description": "Payments-app gateways offered to donors on the /give page and for sign-up and form payments. With more than one, donors choose; mark one row as the default. Needs the Payments app.",
+   "description": "Offered on the Give page and for sign-up and form payments. Mark one row as the default.",
    "fieldname": "gateways",
    "fieldtype": "Table",
    "label": "Payment Gateways",
@@ -71,8 +77,7 @@
   },
   {
    "fieldname": "section_break_message",
-   "fieldtype": "Section Break",
-   "label": "Thank You"
+   "fieldtype": "Section Break"
   },
   {
    "default": "Thank you for your generous gift!",
@@ -85,7 +90,8 @@
    "description": "Bank transfer, standing order or mailing details. The Give page shows this text below the form, also when online giving is off.",
    "fieldname": "other_ways_to_give",
    "fieldtype": "Text Editor",
-   "label": "Other Ways to Give"
+   "label": "Other Ways to Give",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_uffx",
@@ -93,8 +99,7 @@
   },
   {
    "fieldname": "section_break_statements",
-   "fieldtype": "Section Break",
-   "label": "Contribution Statements"
+   "fieldtype": "Section Break"
   },
   {
    "default": "Household",
@@ -113,7 +118,8 @@
    "description": "Printed at the foot of every statement. US churches need this wording for gifts of $250 or more (IRS Publication 1771).",
    "fieldname": "statement_acknowledgment",
    "fieldtype": "Small Text",
-   "label": "Acknowledgment Text"
+   "label": "Acknowledgment Text",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -122,12 +128,31 @@
    "fieldtype": "Table",
    "label": "Wording Per Church",
    "options": "Church Giving Wording"
+  },
+  {
+   "fieldname": "online_giving_tab",
+   "fieldtype": "Tab Break",
+   "label": "Online Giving"
+  },
+  {
+   "fieldname": "section_break_defaults",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "messages_tab",
+   "fieldtype": "Tab Break",
+   "label": "Messages"
+  },
+  {
+   "fieldname": "statements_tab",
+   "fieldtype": "Tab Break",
+   "label": "Statements"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 23:11:00.000000",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",

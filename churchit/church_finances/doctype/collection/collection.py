@@ -1,10 +1,12 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now
+from frappe.utils import getdate, now
 
 from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
 from churchit.church_scope import refuse_another_churches_record
@@ -37,8 +39,8 @@ class Collection(Document):
 				)
 
 	def before_save(self):
-		parts = [self.function or "", str(self.date or "")]
-		self.title = " - ".join(p for p in parts if p)
+		function_name = self.function and frappe.db.get_value("Function", self.function, "function_name")
+		self.title = get_title(function_name, self.date)
 		self.update_totals()
 		self.set_donor_emails()
 
@@ -127,6 +129,14 @@ class Collection(Document):
 
 		if messages:
 			frappe.msgprint("<br>".join(messages))
+
+
+def get_title(function_name: str | None, date: str | datetime) -> str:
+	"""The day and the Function's name, such as "2026-10-20 Sunday Worship".
+
+	The day comes first, so a narrow list column does not cut it off.
+	"""
+	return f"{getdate(date)} {function_name or _('Collection')}"
 
 
 def add_single_donation(church: str, fund: str, amount: float, notes: str, person: str | None = None) -> str:

@@ -12,18 +12,19 @@
   "church",
   "date",
   "function",
-  "notes",
-  "import_batch",
   "column_break_ijpy",
   "expected_total",
   "total_amount",
   "imbalance",
+  "section_break_izta",
+  "donations",
   "section_break_oplj",
   "fund_totals",
   "column_break_tikj",
   "payment_type_totals",
-  "section_break_izta",
-  "donations",
+  "section_break_notes",
+  "notes",
+  "import_batch",
   "amended_from"
  ],
  "fields": [
@@ -45,10 +46,8 @@
    "search_index": 1
   },
   {
-   "description": "The `Function` associated with this collection.",
    "fieldname": "function",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Function",
@@ -59,7 +58,6 @@
    "default": "now",
    "fieldname": "date",
    "fieldtype": "Datetime",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Date",
    "reqd": 1
@@ -69,7 +67,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "For 'anonymous' donations, enter the total amount and leave `Person` and `Check #` blank. To apply a single check to multiple funds, create another donation record with the same check number. The `Bank Reconciliation Report` will combine the separate donations together for easier reconciliation with bank statements.",
+   "description": "One row per gift. Leave Person blank for anonymous cash. Split a check across funds with one row per fund.",
    "fieldname": "donations",
    "fieldtype": "Table",
    "label": "Donations",
@@ -96,6 +94,7 @@
    "reqd": 1
   },
   {
+   "bold": 1,
    "fieldname": "imbalance",
    "fieldtype": "Currency",
    "label": "Imbalance",
@@ -141,18 +140,26 @@
   },
   {
    "fieldname": "section_break_oplj",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Totals"
   },
   {
    "fieldname": "column_break_tikj",
    "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.notes",
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Notes"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-23 01:04:02.000000",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Collection",
@@ -205,7 +212,7 @@
  "row_format": "Dynamic",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "date",
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",

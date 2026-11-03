@@ -8,34 +8,35 @@
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
+  "donor_name",
+  "church",
   "amount",
   "fee_amount",
   "fund",
-  "church",
-  "status",
   "column_break_giver",
-  "person",
-  "donor_name",
   "email",
+  "person",
+  "status",
+  "collection",
+  "section_break_notes",
+  "notes",
   "section_break_payment",
   "currency",
   "payment_gateway",
-  "transaction_reference",
   "column_break_link",
-  "collection",
-  "section_break_notes",
-  "notes"
+  "transaction_reference"
  ],
  "fields": [
   {
+   "bold": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Amount",
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.fee_amount",
    "description": "The processing fee the giver chose to cover. It is part of the gift.",
    "fieldname": "fee_amount",
    "fieldtype": "Currency",
@@ -47,14 +48,13 @@
    "fieldname": "fund",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Fund",
    "options": "Fund",
    "reqd": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
-   "description": "The church the gift belongs to. A shared fund names no church, so the gift keeps its own.",
+   "description": "A shared fund names no church, so the gift keeps the church it was given to.",
    "fieldname": "church",
    "fieldtype": "Link",
    "hidden": 1,
@@ -70,7 +70,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pending\nPaid\nNeeds Review\nFailed\nCancelled\nRefunded"
+   "options": "Pending\nPaid\nNeeds Review\nFailed\nCancelled\nRefunded",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_giver",
@@ -80,6 +81,7 @@
    "description": "Set automatically when the giver is logged in. Blank for anonymous gifts.",
    "fieldname": "person",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person"
@@ -92,10 +94,14 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Email",
    "options": "Email"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:[\"Needs Review\", \"Failed\"].includes(doc.status)",
+   "description": "The gateway, the currency and the payment reference.",
    "fieldname": "section_break_payment",
    "fieldtype": "Section Break",
    "label": "Payment"
@@ -117,6 +123,7 @@
    "description": "Reference id from the payment gateway / Integration Request.",
    "fieldname": "transaction_reference",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Transaction Reference",
    "no_copy": 1,
    "read_only": 1
@@ -135,8 +142,11 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.notes",
    "fieldname": "section_break_notes",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Notes"
   },
   {
    "fieldname": "notes",
@@ -146,7 +156,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-23 01:04:02.000000",
+ "modified": "2026-10-31 13:36:17.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Online Donation",
@@ -188,7 +198,34 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Green",
+   "title": "Paid"
+  },
+  {
+   "color": "Red",
+   "title": "Needs Review"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  },
+  {
+   "color": "Gray",
+   "title": "Cancelled"
+  },
+  {
+   "color": "Purple",
+   "title": "Refunded"
+  }
+ ],
+ "title_field": "donor_name",
+ "track_changes": 1
 }

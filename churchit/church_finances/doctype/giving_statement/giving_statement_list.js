@@ -24,6 +24,14 @@ function period_fields() {
 }
 
 frappe.listview_settings["Giving Statement"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
+	add_fields: ["emailed_on", "email"],
+	get_indicator(doc) {
+		if (doc.emailed_on) return [__("Emailed"), "green", "emailed_on,is,set"];
+		if (!doc.email) return [__("No Email"), "red", "email,is,not set"];
+		return [__("Not Sent"), "orange", "emailed_on,is,not set|email,is,set"];
+	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Generate Statements"), () => {
 			frappe.prompt(

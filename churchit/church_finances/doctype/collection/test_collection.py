@@ -11,8 +11,8 @@ from frappe.utils import add_months, get_datetime, getdate, now
 from churchit.church_finances.doctype.collection.collection import ONLINE_PAYMENT_TYPE
 from churchit.church_finances.doctype.online_donation import online_donation
 from churchit.church_finances.report.fund_transactions_by_date import fund_transactions_by_date
-from churchit.patches.v1_0 import date_collection_ledger_rows
-from churchit.tests.helpers import RollbackEachTest, make_person
+from churchit.patches.v1_0 import date_collection_ledger_rows, retitle_collections
+from churchit.tests.helpers import RollbackEachTest, make_function, make_person
 
 
 def _ensure(doctype, filters, values):
@@ -125,6 +125,32 @@ class TestCollection(FrappeTestCase):
 
 		self.assertEqual(self.ledger_dates(last_month, last_month), [get_datetime(f"{last_month} 10:00:00")])
 		self.assertEqual(self.ledger_dates(getdate(), getdate()), [])
+
+	def test_the_title_is_the_day_and_the_functions_name(self):
+		collection = self._make_collection(date="2030-04-04 09:30:00")
+		self.assertEqual(collection.title, "2030-04-04 Collection")
+
+		collection.function = make_function("_Test Title Service").name
+		collection.save(ignore_permissions=True)
+		self.assertEqual(collection.title, "2030-04-04 _Test Title Service")
+
+	def test_the_patch_retitles_each_collection_once_and_keeps_its_modified_time(self):
+		collection = self._make_collection(date="2030-04-04 09:30:00")
+		frappe.db.set_value(
+			"Collection",
+			collection.name,
+			{"function": make_function("_Test Retitle Service").name, "title": "FUNC-0001 - 2030-04-04"},
+			update_modified=False,
+		)
+		modified = frappe.db.get_value("Collection", collection.name, "modified")
+
+		retitle_collections.execute()
+		retitle_collections.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Collection", collection.name, ["title", "modified"]),
+			("2030-04-04 _Test Retitle Service", modified),
+		)
 
 	def test_the_patch_dates_old_ledger_rows_from_their_collection(self):
 		collection = self._make_collection(amount=321, date="2030-04-04 09:30:00")

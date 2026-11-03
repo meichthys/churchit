@@ -122,7 +122,7 @@ class OnlineDonation(Document):
 		)
 		self.status = "Paid"
 		self.flags.recording_gift = True
-		self.save(ignore_permissions=True)
+		self.save(ignore_permissions=True, ignore_version=True)
 
 		self.send_acknowledgment()
 

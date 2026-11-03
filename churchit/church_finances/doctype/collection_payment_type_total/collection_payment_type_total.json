@@ -12,6 +12,7 @@
  ],
  "fields": [
   {
+   "columns": 3,
    "fieldname": "payment_type",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -22,6 +23,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "total",
    "fieldtype": "Currency",
    "in_filter": 1,
@@ -35,7 +37,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-18 00:00:00.000000",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Collection Payment Type Total",
