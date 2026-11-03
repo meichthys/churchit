@@ -5,6 +5,7 @@ import json
 
 import frappe
 
+from churchit.patches.v1_0 import clear_saved_sort_and_filters_of_module_lists as module_patch
 from churchit.patches.v1_0 import clear_saved_sort_and_filters_of_people_and_shared_lists as patch
 from churchit.tests.helpers import RollbackEachTest
 from churchit.user_settings import clear_list_filters_and_sort
@@ -67,5 +68,11 @@ class TestClearListFiltersAndSort(RollbackEachTest):
 		self.assertEqual(saved["List"], {"active_layout_name": "Mine"})
 		self.assertEqual(saved["Report"], SAVED["Report"])
 
-	def test_the_patch_names_only_doctypes_that_exist(self):
-		self.assertEqual([name for name in patch.LISTS if not frappe.db.exists("DocType", name)], [])
+	def test_the_patches_name_only_doctypes_that_exist(self):
+		for module in (patch, module_patch):
+			self.assertEqual(
+				[name for name in module.LISTS if not frappe.db.exists("DocType", name)], [], module.__name__
+			)
+
+	def test_the_module_patch_names_each_list_once(self):
+		self.assertEqual(sorted(module_patch.LISTS), sorted(set(module_patch.LISTS)))
