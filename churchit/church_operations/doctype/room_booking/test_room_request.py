@@ -107,6 +107,14 @@ class TestRoomRequest(RollbackEachTest):
 		with self.assertRaises(frappe.ValidationError):
 			self.request(self.closed_a)
 
+	def test_a_members_clash_message_does_not_offer_request_anyway(self):
+		frappe.set_user(self.member)
+		self.request(self.gated_a)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "already booked") as clash:
+			self.request(self.gated_a)
+		self.assertNotIn("Request Anyway", str(clash.exception))
+
 	def test_another_churchs_unshared_room_is_refused_and_a_shared_one_is_not(self):
 		frappe.set_user(self.member)
 		with self.assertRaises(frappe.PermissionError):

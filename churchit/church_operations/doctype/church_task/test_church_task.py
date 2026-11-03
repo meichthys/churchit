@@ -321,4 +321,6 @@ class TestWorkOrders(RollbackEachTest):
 
 		found = get_open_count("Church Asset", self.shared_asset)["count"]["external_links_found"]
 
-		self.assertEqual({row["doctype"]: row["count"] for row in found}, {"Church Task": 2})
+		self.assertEqual(
+			{row["doctype"]: row["count"] for row in found}, {"Room Booking": 0, "Church Task": 2}
+		)

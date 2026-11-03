@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-06-27 18:00:00.000000",
+  "modified": "2026-10-31 13:20:35.000000",
   "modified_by": "Administrator",
   "module": "Church Operations",
   "name": "Church Task",
@@ -17,7 +17,7 @@
   "save_on_complete": 1,
   "steps": [
     {
-      "description": "Tasks move Open → Assigned → In Progress → Completed; the status is used for filtering the task list.<br><br><b>Set a Status to continue.</b>",
+      "description": "Tasks move from Open to Assigned, In Progress and Completed. The task list hides Completed tasks.<br><br><b>Set a Status to continue.</b>",
       "fieldname": "status",
       "fieldtype": "Select",
       "has_next_condition": 1,
@@ -32,6 +32,24 @@
       "popover_element": 0,
       "position": "Bottom",
       "title": "Workflow",
+      "ui_tour": 0
+    },
+    {
+      "description": "The task list puts the soonest due first, and each person assigned gets a reminder before it is due.",
+      "fieldname": "due_date",
+      "fieldtype": "Datetime",
+      "has_next_condition": 0,
+      "hide_buttons": 0,
+      "is_table_field": 0,
+      "label": "Deadline",
+      "modal_trigger": 0,
+      "next_on_click": 0,
+      "next_step_condition": "",
+      "offset_x": 0,
+      "offset_y": 0,
+      "popover_element": 0,
+      "position": "Bottom",
+      "title": "Deadline",
       "ui_tour": 0
     },
     {
@@ -53,31 +71,13 @@
       "ui_tour": 0
     },
     {
-      "description": "Used for reminders and overdue highlighting.",
-      "fieldname": "due_date",
-      "fieldtype": "Datetime",
-      "has_next_condition": 0,
-      "hide_buttons": 0,
-      "is_table_field": 0,
-      "label": "Deadline",
-      "modal_trigger": 0,
-      "next_on_click": 0,
-      "next_step_condition": "",
-      "offset_x": 0,
-      "offset_y": 0,
-      "popover_element": 0,
-      "position": "Bottom",
-      "title": "Deadline",
-      "ui_tour": 0
-    },
-    {
-      "description": "Break the task into checkable items for finer-grained tracking.",
+      "description": "Link the records this task is about, such as a Person, a Room or a Function. Tick Done as each one is finished.",
       "fieldname": "task_items",
       "fieldtype": "Table",
       "has_next_condition": 0,
       "hide_buttons": 0,
       "is_table_field": 0,
-      "label": "Checklist",
+      "label": "Linked Records",
       "modal_trigger": 0,
       "next_on_click": 0,
       "next_step_condition": "",
@@ -85,7 +85,7 @@
       "offset_y": 0,
       "popover_element": 0,
       "position": "Top",
-      "title": "Checklist",
+      "title": "Linked Records",
       "ui_tour": 0
     }
   ],

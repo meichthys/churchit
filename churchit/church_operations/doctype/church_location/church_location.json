@@ -2,6 +2,7 @@
  "actions": [],
  "autoname": "LOC-.####",
  "creation": "2026-04-15 18:04:25.757295",
+ "default_view": "Tree",
  "description": "An area or space (i.e address, building, room, drawer, website, etc)",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-operations",
@@ -15,6 +16,7 @@
   "is_group",
   "parent_location",
   "address",
+  "section_break_map",
   "geolocation",
   "hidden_fields_section",
   "old_parent",
@@ -66,7 +68,6 @@
   {
    "fieldname": "geolocation",
    "fieldtype": "Geolocation",
-   "in_preview": 1,
    "label": "Geolocation"
   },
   {
@@ -95,6 +96,7 @@
   },
   {
    "default": "0",
+   "description": "Tick to hold other locations, such as a building that holds rooms.",
    "fieldname": "is_group",
    "fieldtype": "Check",
    "label": "Is Group"
@@ -119,13 +121,31 @@
    "fieldtype": "Section Break",
    "hidden": 1,
    "label": "Hidden Fields"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.geolocation",
+   "fieldname": "section_break_map",
+   "fieldtype": "Section Break",
+   "label": "Map"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
- "links": [],
- "modified": "2026-10-31 01:28:01.000000",
+ "links": [
+  {
+   "group": "Rooms and Assets",
+   "link_doctype": "Room",
+   "link_fieldname": "location"
+  },
+  {
+   "group": "Rooms and Assets",
+   "link_doctype": "Church Asset",
+   "link_fieldname": "location"
+  }
+ ],
+ "modified": "2026-10-31 13:21:05.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Location",
@@ -170,8 +190,8 @@
  "rows_threshold_for_grid_search": 20,
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "location_name",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "location_name"
 }

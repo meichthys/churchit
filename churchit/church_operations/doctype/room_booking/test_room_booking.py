@@ -585,6 +585,13 @@ class TestBlockedRoomTime(RoomBookingDecisionCase):
 			with self.assertRaisesRegex(ValidationError, "already booked"):
 				self.book(self.listed_room, **values)
 
+	def test_a_clash_with_a_blocked_time_does_not_offer_request_anyway(self):
+		self.block(self.approver_1)
+		with self.assertRaises(ValidationError) as clash:
+			self.book(self.listed_room, user=self.staff_a, as_user=True)
+		self.assertIn("already booked", str(clash.exception))
+		self.assertNotIn("Request Anyway", str(clash.exception))
+
 	def test_a_blocked_time_denies_the_requests_it_overlaps(self):
 		requested = self.book(self.listed_room)
 		conflict = self.book(self.listed_room, request_anyway=1)
@@ -613,6 +620,16 @@ class TestRoomBookingConflicts(RoomBookingDecisionCase):
 		conflict = self.book(self.open_room, request_anyway=1)
 		self.assertEqual(conflict.status, "Conflict")
 		self.assertIn(self.manager_a, self.open_todos(conflict))
+
+	def test_the_clash_message_offers_request_anyway_only_on_the_desk_form(self):
+		self.book(self.open_room, user=self.staff_a, as_user=True)
+		with self.assertRaisesRegex(ValidationError, "already booked.*Tick Request Anyway"):
+			self.book(self.open_room, user=self.staff_a, as_user=True)
+
+		# A decision or a recurrence copy saves with ignore_permissions and cannot tick it.
+		with self.assertRaises(ValidationError) as clash:
+			self.book(self.open_room)
+		self.assertNotIn("Request Anyway", str(clash.exception))
 
 	def test_a_conflict_holds_no_time(self):
 		self.book(self.open_room, 9)

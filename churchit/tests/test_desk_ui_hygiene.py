@@ -212,75 +212,45 @@ COLUMN_BUDGET_EXCEPTIONS = {}
 
 TEXT_COLUMN_EXCEPTIONS = {
 	"Belief.belief_statement": "U4",
-	"Church Task.notes": "U4",
 }
 
 REPEATED_COLUMN_EXCEPTIONS = {}
 
-FILTER_BUDGET_EXCEPTIONS = {
-	"Church Task": "U11",
-}
+FILTER_BUDGET_EXCEPTIONS = {}
 
-DEFAULT_FILTER_EXCEPTIONS = {
-	"Room Booking": "U11",
-}
+DEFAULT_FILTER_EXCEPTIONS = {}
 
 ID_RULE_EXCEPTIONS = {
 	"Belief": "U4",
 	"Church": "U4",
-	"Church Location": "U4",
-	"Church Task": "U4",
 	"Form Response": "U4",
-	"Meeting Minutes": "U4",
 	"Question Set": "U4",
-	"Room": "U4",
 }
 
 STATUS_COLOR_EXCEPTIONS = {
 	"Form Response": "U4",
-	"Meeting Minutes": "U4",
-	"Room Booking": "U4",
 }
 
 QUOTED_ID_EXCEPTIONS = {
 	"church_people/print_format/member_qr_card/member_qr_card.json": "The card prints the Person ID beside the QR code that the Check-In Station scans",
 }
 
-PREVIEW_FIELD_EXCEPTIONS = {
-	"Church Asset.notes": "U4",
-	"Church Location.geolocation": "U4",
-	"Church Task Item.completed": "U4",
-	"Church Task Item.item": "U4",
-	"Church Task Item.notes": "U4",
-	"Church Task.is_group": "U4",
-	"Church Task.notes": "U4",
-}
+PREVIEW_FIELD_EXCEPTIONS = {}
 
 PREVIEW_POPUP_EXCEPTIONS = {
 	"Belief": "U4",
-	"Church Asset": "U4",
-	"Church Task": "U4",
-	"Church Task Item": "U4",
 }
 
-SEARCH_FIELD_EXCEPTIONS = {
-	"Church Asset.location": "U11",
-	"Church Asset.notes": "U11",
-	"Church Task.notes": "U11",
-}
+SEARCH_FIELD_EXCEPTIONS = {}
 
 SEARCH_COUNT_EXCEPTIONS = {}
 
 SORT_EXCEPTIONS = {
 	"Belief": "U4",
 	"Church": "U4",
-	"Church Asset": "U4",
-	"Church Location": "U4",
-	"Church Task": "U4",
 	"Follow-up Action Run": "a log of automation runs",
 	"Form Response": "U4",
 	"Question Set": "U4",
-	"Room": "U4",
 }
 
 # R2: form checks (UX roadmap U1). Each exception maps a doctype, or "Doctype.field", to its fixing phase.
@@ -304,35 +274,24 @@ LONG_HELP_EXCEPTIONS = {
 	"Belief": "U11",
 	"Church": "U11",
 	"Church Features": "U11",
-	"Church Task": "U11",
 	"Question Set": "U11",
 	"Question Set Question": "U11",
-	"Room": "U11",
-	"Room Booking": "U11",
 }
 
 # Doctype.fieldname: a text field on the first tab without max_height.
 TEXT_HEIGHT_EXCEPTIONS = {
 	"Belief.belief_statement": "U11",
-	"Church Asset.notes": "U11",
-	"Church Task.notes": "U11",
 	"Church.about": "U11",
-	"Meeting Minutes.minutes": "U11",
-	"Room Booking.notes": "U11",
 }
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
 	"Slide": "The slide text is the only value that tells the rows apart, so it stays in the grid",
-	"Church Task Item": "U11",
-	"Meeting Attendee": "U11",
-	"Room Setup": "U11",
 }
 
 # Doctype.fieldname: a collapsible section without collapsible_depends_on.
 COLLAPSIBLE_EXCEPTIONS = {
 	"Church Features.section_website_pages": "U11",
-	"Meeting Minutes.section_break_3": "U11",
 }
 
 # Doctype.fieldname: collapsed sections of routine system values, which stay closed. Each has a
@@ -347,13 +306,16 @@ ROUTINE_COLLAPSED = {
 # church_people/privacy.py. test_privacy_history.is_gap reads a line that holds " gap:" as a gap.
 PERSON_HISTORY_EXCEPTIONS = {
 	"Church Email": "Kept for its other recipients; anonymizing removes the person's name and email from its history",
+	"Church Task": "Kept for the task; anonymizing removes the person's name and email from its history",
 	"Collection": "Kept for its other donors; anonymizing removes the person's name and email from its history",
 	"Family": "Kept for its other members; anonymizing removes the person's name, email and first name from its history and from its members' histories",
 	"Function": "Kept for its other attendees; anonymizing removes the person's name and email from its history",
 	"Group": "Kept for its other members; anonymizing removes the person's name and email from its history",
+	"Meeting Minutes": "Kept for the meeting; anonymizing removes the attendee's name and email from its history",
 	"Ministry": "Kept for the ministry; anonymizing removes the coordinator's name and email from its history",
 	"Ministry Team Position": "Kept for its other people; anonymizing removes the person's name and email from its history",
 	"Missionary": "Kept for the missionary; anonymizing removes the person's name and email from its history",
+	"Room Booking": "Kept for the booking; anonymizing removes the person's name and email from its history",
 	"Sermon": "Kept for the sermon; anonymizing removes the preacher's name and email from its history",
 	"Sermon Series": "Kept for the series; anonymizing removes the person's name and email from its history",
 }
