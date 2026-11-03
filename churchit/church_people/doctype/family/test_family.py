@@ -113,6 +113,15 @@ class TestFamily(FrappeTestCase):
 		self.assertEqual(family.family_name, "Doe - Mom")
 		self.assertIn("Doe - Mom", str(frappe.local.message_log))
 
+	def test_a_dash_inside_a_name_stays_when_the_family_is_renamed(self):
+		for family_name, renamed in (("Doe - Mary-Jane", "Doe - Mom"), ("Smith-Jones", "Smith-Jones - Mom")):
+			family, _dad, mom, *_others = self._make_household(family_name)
+			family.reload()
+			family.primary_contact = mom.name
+			family.save(ignore_permissions=True)
+
+			self.assertEqual(family.family_name, renamed)
+
 	def test_a_son_as_primary_contact_relates_his_parents_grandmother_and_brother(self):
 		family, dad, mom, gran, bob, bill = self._make_household("Son - Dad")
 		family.reload()
