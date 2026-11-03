@@ -7,6 +7,7 @@ import re
 import frappe
 
 from churchit.church_people.privacy import ANONYMIZED, anonymize_person, scrub_history
+from churchit.church_people.test_group_meetings import make_group
 from churchit.church_people.test_merge import email, make_family
 from churchit.patches.v1_0 import forget_team_and_duplicate_history_of_anonymized_people
 from churchit.tests.helpers import (
@@ -152,6 +153,15 @@ class TestHistoryAfterRemovingPersonalData(RollbackEachTest):
 		ministry.save(**SAVE_WITH_HISTORY)
 
 		self.assert_forgotten(ministry, FULL_NAME, person)
+
+	def test_a_group_forgets_a_member_row_changed_to_the_person(self):
+		person = make_person(FIRST_NAME, "Historia")
+		other = make_person("_Test Other", "Historia")
+		group = make_group("_Test History Group", members=[{"person": other.name}])
+		group.members[0].person = person.name
+		group.save(**SAVE_WITH_HISTORY)
+
+		self.assert_forgotten(group, FULL_NAME, person)
 
 	def test_a_team_assignment_forgets_the_name_the_person_had_before_a_rename(self):
 		person = make_person("_Test Former", "Historia")

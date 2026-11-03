@@ -2,6 +2,9 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Follow-up Card"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
+	filters: [["status", "=", "Open"]],
 	add_fields: ["status", "due_on", "snoozed_until"],
 	get_indicator(doc) {
 		if (doc.status === "Closed") return [__("Closed"), "gray", "status,=,Closed"];

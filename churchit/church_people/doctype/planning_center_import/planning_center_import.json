@@ -116,7 +116,8 @@
    "description": "Yes, true or Child makes the person a Child of their household. Everyone else in it is an Adult.",
    "fieldname": "is_child",
    "fieldtype": "Data",
-   "label": "Child"
+   "label": "Child",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "marital_status",
@@ -218,7 +219,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-10-17 19:00:00.000000",
+ "modified": "2026-10-31 13:13:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Planning Center Import",

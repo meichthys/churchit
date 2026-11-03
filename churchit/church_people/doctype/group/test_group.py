@@ -77,6 +77,21 @@ class TestGroup(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			add_people(group.name, [self.outsider.name])
 
+	def test_the_history_of_a_group_names_a_new_member_by_id_only(self):
+		"""Group is not deleted with a person, so its Version rows may hold no name or email."""
+		group = self._make_group("_Test History Group")
+		group.append("members", {"person": self.member.name})
+		# Frappe skips Version rows while it runs tests, unless a save asks for them.
+		group.save(ignore_permissions=True, ignore_version=False)
+
+		history = " ".join(
+			frappe.get_all("Version", filters={"ref_doctype": "Group", "docname": group.name}, pluck="data")
+		)
+
+		self.assertIn(self.member.name, history)
+		self.assertNotIn(self.member.full_name, history)
+		self.assertNotIn("_test_group_member@example.com", history)
+
 
 class TestGroupLeaders(RollbackEachTest):
 	@classmethod
