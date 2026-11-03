@@ -1,18 +1,19 @@
 {
  "aggregate_function_based_on": "amount",
  "creation": "2026-05-16 00:00:00.000000",
- "currency": "USD",
+ "currency": "",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Expense",
  "dynamic_filters_json": "[]",
- "filters_json": "[[\"Expense\",\"docstatus\",\"=\",1,false],[\"Expense\",\"date\",\"Timespan\",\"this month\",false]]",
+ "filters_json": "[]",
  "function": "Sum",
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
  "label": "Total Expenses ($) This Month",
- "modified": "2026-10-09 15:00:00.000000",
+ "method": "churchit.church_setup.number_card.total_expenses_this_month.total_expenses_this_month.get_value",
+ "modified": "2026-11-03 11:58:22.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Total Expenses This Month",
@@ -21,5 +22,5 @@
  "report_function": "Sum",
  "show_percentage_stats": 0,
  "stats_time_interval": "Monthly",
- "type": "Document Type"
+ "type": "Custom"
 }

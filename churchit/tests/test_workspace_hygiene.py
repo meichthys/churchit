@@ -77,15 +77,7 @@ COUNT_FILTER_EXCEPTIONS = {
 	"Summary: My Assignments": "ToDo is Frappe's list, and a report cannot filter on the current user",
 }
 
-SUMMARY_CARD = (
-	"Summary's At a Glance figures came before this rule; a click still saves the filter onto the list"
-)
-NUMBER_CARD_FILTER_EXCEPTIONS = {
-	"Summary: Active Prayer Requests": SUMMARY_CARD,
-	"Summary: Expenses This Month": SUMMARY_CARD,
-	"Summary: Giving This Month": SUMMARY_CARD,
-	"Summary: Prayers Answered This Month": SUMMARY_CARD,
-}
+NUMBER_CARD_FILTER_EXCEPTIONS = {}
 
 
 def shipped(folder):

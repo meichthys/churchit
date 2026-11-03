@@ -1379,9 +1379,11 @@ These add to the rules in "Desk navigation".
   date window, such as the collections of the last 7 days, or on a plain inventory count.
 - A click on a Document Type number card puts the card's filter on the list it opens, and the list
   saves it, as for a count shortcut. So a card on a workspace has no filter, or the list's own
-  default filter (`test_number_cards_use_the_lists_default_filter`). Show a figure for a period,
-  such as the giving of this month, in a chart. A Report card cannot help: `query_report.run`
-  returns nothing for a Report Builder report.
+  default filter (`test_number_cards_use_the_lists_default_filter`). A filtered figure, such as the
+  giving of this month, is a Custom card over a saved Report Builder list: its method calls
+  `dashboard.total_of_saved_list`, which counts or sums what the list shows and opens that list, as
+  Summary's At a Glance cards do. A Report card cannot help: `query_report.run` returns nothing for
+  a Report Builder report.
 - Each dock entry has its own Lucide icon, and the dock lists the modules in order of weekly use.
 
 ### Frappe features that churchit does not use

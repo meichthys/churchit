@@ -16,8 +16,8 @@ from churchit.church_people.dashboard_chart_source.life_events import life_event
 from churchit.church_people.dashboard_chart_source.people_added import people_added
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
-from churchit.dashboard import bucket_label, count_weekly_attendance, time_buckets
-from churchit.tests.helpers import ensure, make_function, make_person, make_primary_contact
+from churchit.dashboard import bucket_label, count_weekly_attendance, time_buckets, total_of_saved_list
+from churchit.tests.helpers import ensure, ensure_user, make_function, make_person, make_primary_contact
 
 
 class TestWeeklyAttendanceCard(FrappeTestCase):
@@ -182,3 +182,49 @@ def make_quarterly_chart(chart_name, source, event_type=None):
 			"filters_json": frappe.as_json(filters),
 		}
 	).insert()
+
+
+class TestSavedListCards(FrappeTestCase):
+	"""Summary's At a Glance cards total a saved list and open it, so a click puts no filter on the plain list."""
+
+	CARDS = (
+		"Active Prayer Requests",
+		"Answered Prayers This Month",
+		"Total Collection This Month",
+		"Total Expenses This Month",
+	)
+
+	def test_each_card_opens_its_saved_list(self):
+		for name in self.CARDS:
+			with self.subTest(card=name):
+				card = frappe.get_doc("Number Card", name)
+				total = frappe.get_attr(card.method)()
+				doctype, report = total["route"][1], total["route"][3]
+
+				self.assertEqual(total["route"], ["List", card.document_type, "Report", report])
+				self.assertEqual(frappe.db.get_value("Report", report, "ref_doctype"), doctype)
+
+	def test_the_giving_card_sums_this_months_submitted_collections(self):
+		payment_type = ensure("Payment Type", {"type": "Cash"})
+		fund = ensure("Fund", {"fund": "_Test Saved List Fund"})
+		before = total_of_saved_list("Collections This Month", "Sum", "total_amount")["value"]
+		for amount, submit in ((30, True), (500, False)):
+			collection = frappe.get_doc({"doctype": "Collection", "date": now(), "expected_total": amount})
+			collection.append("donations", {"payment_type": payment_type, "fund": fund, "amount": amount})
+			collection.insert(ignore_permissions=True)
+			if submit:
+				collection.submit()
+
+		total = total_of_saved_list("Collections This Month", "Sum", "total_amount")
+
+		self.assertEqual((total["value"] - before, total["fieldtype"]), (30, "Currency"))
+
+	def test_a_reader_who_may_not_open_the_list_gets_the_number_without_the_link(self):
+		staff = ensure_user("_test-saved-list-card@example.com", "Saved List Card", roles=("Church Staff",))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(staff)
+
+		total = total_of_saved_list("Active Prayer Requests")
+
+		self.assertEqual(total["fieldtype"], "Int")
+		self.assertNotIn("route", total)

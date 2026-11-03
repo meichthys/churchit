@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.desk.doctype.number_card.number_card import get_result
 from frappe.desk.query_report import get_report_doc
 from frappe.query_builder.functions import Count
 from frappe.utils import (
@@ -81,6 +82,24 @@ def count_people_in_list(report_name: str) -> dict:
 	count["route"] = ["List", "Person", "Report", report_name]
 	count["route_options"] = {field: list(condition) for field, condition in church_query_filters({}).items()}
 	return count
+
+
+def total_of_saved_list(report_name: str, function: str = "Count", field: str | None = None) -> dict:
+	"""Number card: the count, or the *function* of *field*, of what a saved Report Builder list shows.
+
+	The card opens that list, which keeps its own filters, so a click puts no filter on the plain list. A
+	reader who may not open the list still sees the number, read with their own permissions.
+	"""
+	report = frappe.get_cached_doc("Report", report_name)
+	doctype = report.ref_doctype
+	card = frappe._dict(document_type=doctype, function=function, aggregate_function_based_on=field)
+	total = {
+		"value": get_result(card, frappe.parse_json(report.json).get("filters")),
+		"fieldtype": frappe.get_meta(doctype).get_field(field).fieldtype if field else "Int",
+	}
+	if report.is_permitted():
+		total["route"] = ["List", doctype, "Report", report_name]
+	return total
 
 
 def count_in_readers_churches(doctype, filters):
