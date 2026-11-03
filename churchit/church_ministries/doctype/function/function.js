@@ -8,20 +8,11 @@ frappe.ui.form.on("Function", {
 	},
 
 	refresh: function (frm) {
-		// Customize the Sign-Up Items grid: hide my_quantity (irrelevant on Function)
-		// and the description column; show quantity_needed and quantity_signed_up.
-		const grid = frm.fields_dict.table_cxhh && frm.fields_dict.table_cxhh.grid;
-		if (grid) {
-			grid.update_docfield_property("quantity_needed", "in_list_view", 1);
-			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
-			grid.update_docfield_property("my_quantity", "in_list_view", 0);
-			grid.update_docfield_property("description", "in_list_view", 0);
-			grid.set_column_disp("my_quantity", false);
-			grid.set_column_disp("description", false);
-			// Force re-evaluation of which columns are visible. By default the grid
-			// caches `visible_columns` and won't pick up our docfield property changes.
-			grid.reset_grid();
-		}
+		// A Function Sign-Up shares this grid and shows its own quantity there, so the price is added here.
+		const grid = frm.fields_dict.table_cxhh.grid;
+		grid.update_docfield_property("price", "in_list_view", 1);
+		// The grid caches its visible columns, so it is reset to show the price.
+		grid.reset_grid();
 
 		// Populate the virtual quantity_signed_up column for each Sign-Up Item row.
 		populate_signed_up_totals(frm);
@@ -80,74 +71,8 @@ frappe.ui.form.on("Function", {
 		}
 
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Check-In Station"), function () {
-				frappe.route_options = { function: frm.doc.name };
-				frappe.set_route("check-in");
-			});
-		}
-
-		// Allow booking rooms and equipment for this saved function (each Room Booking links back to it)
-		if (!frm.is_new()) {
-			frm.add_custom_button(__("Book a Room"), () => book_rooms(frm), __("Create"));
-
-			frm.add_custom_button(
-				__("Bulletin"),
-				function () {
-					frappe.new_doc("Bulletin", { function: frm.doc.name });
-				},
-				__("Create")
-			);
-
-			frm.add_custom_button(
-				__("Schedule"),
-				function () {
-					frappe.set_route("query-report", "Ministry Team Schedule", {
-						function: frm.doc.name,
-					});
-				},
-				__("Ministry Team")
-			);
-
-			frm.add_custom_button(
-				__("Email the Team"),
-				() => email_the_team(frm),
-				__("Ministry Team")
-			);
-
-			add_fill_open_needs_button(frm);
-		}
-
-		// Add Sign Ups buttons if sign-ups are enabled, there are items, or there are linked sign-ups
-		if (!frm.is_new()) {
-			const has_items = frm.doc.table_cxhh && frm.doc.table_cxhh.length > 0;
-
-			frappe.db
-				.count("Function Sign-Up", {
-					filters: { function: frm.doc.name },
-				})
-				.then((count) => {
-					if (frm.doc.allow_sign_ups || has_items || count > 0) {
-						frm.add_custom_button(
-							__("Show Signed-Up Items"),
-							function () {
-								frappe.set_route("query-report", "Function Sign-Up Items", {
-									function: frm.doc.name,
-								});
-							},
-							__("Sign Ups")
-						);
-
-						frm.add_custom_button(
-							__("Show Signed-Up People"),
-							function () {
-								frappe.set_route("list", "Function Sign-Up", {
-									function: frm.doc.name,
-								});
-							},
-							__("Sign Ups")
-						);
-					}
-				});
+			add_actions(frm);
+			add_views(frm);
 		}
 	},
 
@@ -170,30 +95,60 @@ frappe.ui.form.on("Function Attendance", {
 	},
 });
 
-function add_fill_open_needs_button(frm) {
+// Record actions under one Actions button, for a saved function.
+function add_actions(frm) {
+	const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
+	action(__("Check-In Station"), () => {
+		frappe.route_options = { function: frm.doc.name };
+		frappe.set_route("check-in");
+	});
+	// Each Room Booking links back to this function.
+	action(__("Book a Room"), () => book_rooms(frm));
+	action(__("New Bulletin"), () => frappe.new_doc("Bulletin", { function: frm.doc.name }));
+	action(__("Email the Team"), () => email_the_team(frm));
+	add_fill_open_needs_action(frm, action);
+}
+
+// Reports about this function under one View button. The sign-up ones only once it takes sign-ups.
+function add_views(frm) {
+	const view = (label, fn) => frm.add_custom_button(label, fn, __("View"));
+	view(__("Team Schedule"), () =>
+		frappe.set_route("query-report", "Ministry Team Schedule", { function: frm.doc.name })
+	);
+
+	const has_items = (frm.doc.table_cxhh || []).length > 0;
+	frappe.db.count("Function Sign-Up", { filters: { function: frm.doc.name } }).then((count) => {
+		if (!frm.doc.allow_sign_ups && !has_items && !count) return;
+		view(__("Signed-Up Items"), () =>
+			frappe.set_route("query-report", "Function Sign-Up Items", { function: frm.doc.name })
+		);
+		view(__("Signed-Up People"), () =>
+			frappe.set_route("list", "Function Sign-Up", { function: frm.doc.name })
+		);
+	});
+}
+
+function add_fill_open_needs_action(frm, action) {
 	if (!frappe.model.can_create("Ministry Team Assignment")) return;
-	frm.add_custom_button(
-		__("Fill Open Needs"),
-		() =>
-			frappe.call({
-				method: "churchit.church_ministries.auto_schedule.fill_open_needs",
-				args: { function: frm.doc.name },
-				freeze: true,
-				callback: ({ message }) => {
-					const open = message.unfilled.reduce((total, row) => total + row.open, 0);
-					frappe.show_alert(
-						{
-							message: __("Asked {0} people to serve. Places still open: {1}.", [
-								message.assigned.length,
-								open,
-							]),
-							indicator: open ? "orange" : "green",
-						},
-						10
-					);
-				},
-			}),
-		__("Ministry Team")
+	action(__("Fill Open Needs"), () =>
+		frappe.call({
+			method: "churchit.church_ministries.auto_schedule.fill_open_needs",
+			args: { function: frm.doc.name },
+			freeze: true,
+			callback: ({ message }) => {
+				const open = message.unfilled.reduce((total, row) => total + row.open, 0);
+				frappe.show_alert(
+					{
+						message: __("Asked {0} people to serve. Places still open: {1}.", [
+							message.assigned.length,
+							open,
+						]),
+						indicator: open ? "orange" : "green",
+					},
+					10
+				);
+			},
+		})
 	);
 }
 

@@ -13,6 +13,7 @@
  ],
  "fields": [
   {
+   "columns": 4,
    "fieldname": "person",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -20,12 +21,14 @@
    "options": "Person"
   },
   {
+   "columns": 3,
    "fieldname": "attendee_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Attendee Name"
   },
   {
+   "columns": 3,
    "description": "One of the function's Selections.",
    "fieldname": "selection",
    "fieldtype": "Data",
@@ -36,7 +39,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-31 13:18:10.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Attendee",

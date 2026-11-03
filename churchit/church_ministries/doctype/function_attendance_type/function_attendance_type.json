@@ -24,7 +24,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Description"
   }
  ],
@@ -37,7 +36,7 @@
    "table_fieldname": "attendance"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:19:00.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Attendance Type",
@@ -85,8 +84,8 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "type",
+ "sort_order": "ASC",
  "show_title_field_in_link": 1,
  "states": [],
  "title_field": "type"

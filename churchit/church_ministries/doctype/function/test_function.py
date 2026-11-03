@@ -1,17 +1,25 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
 from datetime import date, time, timedelta
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, get_datetime, getdate
 
-from churchit.church_ministries.doctype.function.function import _as_time, apply_template
+from churchit.church_foundations.church_access import set_user_church
+from churchit.church_ministries.doctype.function.function import (
+	_as_time,
+	apply_template,
+	get_calendar_events,
+	move_on_calendar,
+)
 from churchit.church_ministries.recurrence import create_occurrence
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
+	ensure_user,
 	make_function,
 	make_person,
 	make_team_position,
@@ -190,3 +198,98 @@ class TestFunctionMeetingLink(RollbackEachTest):
 		function.reload()
 		function.description = "Now with notes"
 		function.save(ignore_permissions=True)
+
+
+class TestFunctionCalendar(RollbackEachTest):
+	def get_events(self, *names):
+		filters = json.dumps([["Function", "name", "in", names]])
+		events = get_calendar_events("2031-05-01", "2031-05-08", filters)
+		return {
+			event.name: (event.function_name, event.start_date, event.end_date, event.all_day)
+			for event in events
+		}
+
+	def test_entries_show_the_name_at_their_hours(self):
+		timed = make_function("_Test Early Service", start_time="09:00:00", end_time="10:30:00")
+		open_ended = make_function("_Test Prayer Hour", start_time="19:00:00")
+		all_day = make_function("_Test Retreat Days", all_day=1, end_date="2031-05-03")
+		untimed = make_function("_Test Clean-Up Day")
+
+		self.assertEqual(
+			self.get_events(timed.name, open_ended.name, all_day.name, untimed.name),
+			{
+				timed.name: ("_Test Early Service", "2031-05-01 09:00:00", "2031-05-01 10:30:00", 0),
+				open_ended.name: ("_Test Prayer Hour", "2031-05-01 19:00:00", "2031-05-01 20:00:00", 0),
+				all_day.name: ("_Test Retreat Days", date(2031, 5, 1), date(2031, 5, 3), 1),
+				untimed.name: ("_Test Clean-Up Day", date(2031, 5, 1), date(2031, 5, 1), 1),
+			},
+		)
+
+	def test_a_drag_moves_the_day_and_the_hours(self):
+		timed = make_function("_Test Moved Service", start_time="09:00:00", end_time="10:30:00")
+		move_on_calendar(
+			json.dumps(
+				{"name": timed.name, "start_date": "2031-05-02 11:00:00", "end_date": "2031-05-02 12:30:00"}
+			)
+		)
+		timed.reload()
+		self.assertEqual(
+			(timed.start_date, timed.start_time, timed.end_date, timed.end_time),
+			(date(2031, 5, 2), timedelta(hours=11), None, timedelta(hours=12, minutes=30)),
+		)
+
+	def test_a_drag_keeps_an_all_day_function_all_day(self):
+		# The calendar sends the last second of a one-day entry, and the midnight after a longer one.
+		retreat = make_function("_Test Moved Retreat", all_day=1)
+		for end, end_date in (("2031-05-04 23:59:59", None), ("2031-05-06 00:00:00", date(2031, 5, 5))):
+			move_on_calendar(
+				json.dumps({"name": retreat.name, "start_date": "2031-05-04 00:00:00", "end_date": end})
+			)
+			retreat.reload()
+			self.assertEqual(
+				(retreat.all_day, retreat.start_date, retreat.end_date), (1, date(2031, 5, 4), end_date)
+			)
+
+	def test_a_drop_on_the_all_day_row_moves_only_the_day(self):
+		# The calendar sends 24 hours from the time where the entry was let go.
+		timed = make_function("_Test Dropped Service", start_time="09:00:00", end_time="10:30:00")
+		move_on_calendar(
+			json.dumps(
+				{
+					"name": timed.name,
+					"all_day": 1,
+					"start_date": "2031-05-03 09:30:00",
+					"end_date": "2031-05-04 09:29:59",
+				}
+			)
+		)
+		timed.reload()
+		self.assertEqual(
+			(timed.all_day, timed.start_date, timed.start_time, timed.end_date, timed.end_time),
+			(0, date(2031, 5, 3), timedelta(hours=9), None, timedelta(hours=10, minutes=30)),
+		)
+
+	def test_another_churchs_function_is_not_on_the_calendar(self):
+		_root, church_a, church_b = make_two_churches()
+		staff = ensure_user("_test_function_calendar@example.com", "Calendar Staff", roles=("Church Staff",))
+		set_user_church(staff, church_b)
+		mine = make_function("_Test Calendar Mine", church=church_b)
+		theirs = make_function("_Test Calendar Theirs", church=church_a)
+
+		frappe.set_user(staff)
+
+		self.assertEqual(set(self.get_events(mine.name, theirs.name)), {mine.name})
+
+	def test_a_drag_needs_write_access(self):
+		function = make_function("_Test Unmovable Service", start_time="09:00:00")
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			move_on_calendar(
+				json.dumps(
+					{
+						"name": function.name,
+						"start_date": "2031-05-02 09:00:00",
+						"end_date": "2031-05-02 10:00:00",
+					}
+				)
+			)

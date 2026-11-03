@@ -217,14 +217,9 @@ TEXT_COLUMN_EXCEPTIONS = {
 	"Belief.belief_statement": "U4",
 	"Church Task.notes": "U4",
 	"Expense.notes": "U4",
-	"Function Attendance Type.description": "U4",
-	"Function Check-In.notes": "U4",
-	"Function Sign-Up.notes": "U4",
-	"Function Type.description": "U4",
 	"Fund Transfer.notes": "U4",
 	"Missionary Status.description": "U4",
 	"Prayer Request.request": "U4",
-	"Sign-Up Item.description": "U4",
 }
 
 REPEATED_COLUMN_EXCEPTIONS = {
@@ -236,7 +231,6 @@ FILTER_BUDGET_EXCEPTIONS = {
 	"Bible Memory Item": "U10",
 	"Church Task": "U11",
 	"Expense": "U8",
-	"Function": "U7",
 	"Missionary": "U10",
 	"Prayer Request": "U10",
 }
@@ -258,11 +252,6 @@ ID_RULE_EXCEPTIONS = {
 	"Communication Consent": "U4",
 	"Expense Type": "U4",
 	"Form Response": "U4",
-	"Function": "U4",
-	"Function Attendance Type": "U4",
-	"Function Check-In": "U4",
-	"Function Sign-Up": "U4",
-	"Function Type": "U4",
 	"Fund": "U4",
 	"GL Account Mapping": "U4",
 	"Giving Statement": "U4",
@@ -287,7 +276,6 @@ ID_RULE_EXCEPTIONS = {
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
 	"Sermon Series": "U4",
-	"Sign-Up Item": "U4",
 	"Song": "U4",
 	"Vendor": "U4",
 }
@@ -296,7 +284,6 @@ STATUS_COLOR_EXCEPTIONS = {
 	"Communication Consent": "U4",
 	"Counseling Case": "U4",
 	"Form Response": "U4",
-	"Function Sign-Up": "U4",
 	"Meeting Minutes": "U4",
 	"Ministry": "U4",
 	"Ministry Team Assignment": "U4",
@@ -319,7 +306,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task.is_group": "U4",
 	"Church Task.notes": "U4",
 	"Financial Transaction.source": "U4",
-	"Function Schedule.item": "U4",
 	"Fund.allow_giving": "U4",
 	"Ministry.description": "U4",
 	"Missionary.geolocation": "U4",
@@ -341,10 +327,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Expense": "U4",
 	"Expense Type": "U4",
 	"Financial Transaction": "U4",
-	"Function Check-In": "U4",
-	"Function Schedule": "U4",
-	"Function Sign-Up": "U4",
-	"Function Sign-Up Item": "U4",
 	"Fund": "U4",
 	"Fund Transfer": "U4",
 	"Missionary": "U4",
@@ -384,11 +366,6 @@ SORT_EXCEPTIONS = {
 	"Expense Type": "U4",
 	"Follow-up Action Run": "a log of automation runs",
 	"Form Response": "U4",
-	"Function": "U4",
-	"Function Attendance Type": "U4",
-	"Function Check-In": "U4",
-	"Function Sign-Up": "U4",
-	"Function Type": "U4",
 	"Fund": "U4",
 	"Fund Transfer": "U4",
 	"GL Account Mapping": "U4",
@@ -411,7 +388,6 @@ SORT_EXCEPTIONS = {
 	"Room": "U4",
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
-	"Sign-Up Item": "U4",
 	"Song": "U4",
 	"Vendor": "U4",
 }
@@ -434,15 +410,6 @@ GRID_COLUMN_WIDTHS = range(1, 13)
 
 # Doctype: a field help over 80 characters without the (i) icon, or a section or table help over 120.
 LONG_HELP_EXCEPTIONS = {
-	"Check-In Settings": "U7",
-	"Function": "U7",
-	"Function Check-In": "U7",
-	"Function Schedule": "U7",
-	"Function Sign-Up": "U7",
-	"Function Sign-Up Discount": "U7",
-	"Function Sign-Up Item": "U7",
-	"Function Team Need": "U7",
-	"Function Type": "U7",
 	"Ministry": "U7",
 	"Ministry Team Assignment": "U7",
 	"Ministry Team Block": "U7",
@@ -510,18 +477,7 @@ TEXT_HEIGHT_EXCEPTIONS = {
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
-	"Check-In Tag Format": "U7",
-	"Church Check In Printer": "U7",
 	"Counseling Session": "U7",
-	"Function Association": "U7",
-	"Function Attendance": "U7",
-	"Function Schedule": "U7",
-	"Function Sign-Up Attendee": "U7",
-	"Function Sign-Up Discount": "U7",
-	"Function Sign-Up Item": "U7",
-	"Function Sign-Up Selection": "U7",
-	"Function Skip Date": "U7",
-	"Function Team Need": "U7",
 	"Ministry Recurring Function": "U7",
 	"Ministry Team Position Person": "U7",
 	"Song Arrangement": "U7",
@@ -547,9 +503,6 @@ GRID_EXCEPTIONS = {
 
 # Doctype.fieldname: a collapsible section without collapsible_depends_on.
 COLLAPSIBLE_EXCEPTIONS = {
-	"Function Sign-Up.section_break_answers": "U7",
-	"Function.section_break_check_in_limits": "U7",
-	"Function.section_break_discounts": "U7",
 	"Ministry Team Assignment.section_break_emails": "U7",
 	"Bible Memory Item.internal_section": "U10",
 	"Church Features.section_website_pages": "U11",

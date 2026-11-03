@@ -1,10 +1,12 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
 from datetime import datetime, time, timedelta
 
 import frappe
 from frappe import _
+from frappe.desk.calendar import get_events
 from frappe.model.document import Document
 from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
 
@@ -24,7 +26,9 @@ class Function(Document):
 			and self.has_value_changed("source_template")
 			and not self.flags.ignore_permissions
 		):
-			frappe.throw(_("Only the recurring functions job sets Source Template."), frappe.PermissionError)
+			frappe.throw(
+				_("Only the recurring functions job sets Made From Template."), frappe.PermissionError
+			)
 
 		self.refuse_new_group_associations()
 		if any(self.has_value_changed(field) for field in ("group", "church", "is_shared")):
@@ -253,6 +257,54 @@ def get_time_window(function) -> tuple[datetime, datetime]:
 
 	end_time = _as_time(function.end_time) if function.end_time else time.max
 	return datetime.combine(start_date, _as_time(function.start_time)), datetime.combine(end_date, end_time)
+
+
+@frappe.whitelist()
+def get_calendar_events(start: str, end: str, filters: str | None = None, order_by: str | None = None):
+	"""The Functions the reader may see from *start* to *end*, for the desk calendar.
+
+	Start Date and End Date carry the start and end time, so a timed function shows at its hours. A
+	function with no start time is all day. One with no end time lasts an hour.
+	"""
+	field_map = json.dumps({"start": "start_date", "end": "end_date"})
+	fields = ["name", "function_name", "all_day", "start_date", "start_time", "end_date", "end_time"]
+	events = get_events("Function", start, end, field_map, filters, fields, order_by)
+	for event in events:
+		if event.all_day or not event.start_time:
+			event.update(all_day=1, end_date=event.end_date or event.start_date)
+			continue
+
+		starts_at, ends_at = get_time_window(event)
+		if not event.end_time:
+			ends_at = datetime.combine(ends_at.date(), starts_at.time()) + timedelta(hours=1)
+		event.update(start_date=str(starts_at), end_date=str(ends_at))
+	return events
+
+
+@frappe.whitelist(methods=["POST"])
+def move_on_calendar(args: str) -> None:
+	"""Move a Function dragged or stretched on the desk calendar to its new days and times.
+
+	*args* holds the Function's name and the new start and end in Start Date and End Date.
+	"""
+	args = frappe._dict(json.loads(args))
+	function = frappe.get_doc("Function", args.name)
+	function.check_permission("write")
+	starts_at, ends_at = get_datetime(args.start_date), get_datetime(args.end_date)
+	if cint(args.all_day) and function.start_time and not function.all_day:
+		# A timed entry dropped on the all-day row arrives as 24 hours: only its day moves.
+		span = date_diff(function.end_date or function.start_date, function.start_date)
+		function.end_date = add_days(starts_at.date(), span) if span else None
+	else:
+		if function.all_day or not function.start_time:
+			# An all-day end arrives as the last second of its last day, or as the midnight after it.
+			ends_at -= timedelta(seconds=1)
+		else:
+			function.start_time, function.end_time = starts_at.time(), ends_at.time()
+		function.end_date = ends_at.date() if ends_at.date() > starts_at.date() else None
+
+	function.start_date = starts_at.date()
+	function.save()
 
 
 def get_schedule_rows(function) -> list[frappe._dict]:

@@ -51,7 +51,6 @@
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Function",
    "link_filters": "[[\"Function\",\"allow_sign_ups\",\"=\",1]]",
@@ -83,7 +82,8 @@
    "label": "Status",
    "no_copy": 1,
    "options": "\nPending\nConfirmed\nWaitlisted\nCancelled",
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.status=='Pending'",
@@ -92,7 +92,8 @@
    "fieldtype": "Datetime",
    "label": "Hold Expires On",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "approved_by",
@@ -109,7 +110,6 @@
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
@@ -142,15 +142,12 @@
    "description": "Check this if you plan to attend this function.",
    "fieldname": "attending",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Attending"
   },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Notes"
   },
   {
@@ -171,8 +168,11 @@
    "label": "Hidden Fields"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.table_iprj || []).length",
    "fieldname": "section_break_yuko",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Sign-Up Items"
   },
   {
    "fieldname": "table_iprj",
@@ -181,6 +181,8 @@
    "options": "Function Sign-Up Item"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.amount_due || doc.amount_paid || doc.payment_status || doc.discount_code",
    "fieldname": "section_break_payment",
    "fieldtype": "Section Break",
    "label": "Payment"
@@ -227,6 +229,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.answers || []).length",
    "fieldname": "section_break_answers",
    "fieldtype": "Section Break",
    "label": "Answers"
@@ -240,7 +243,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-24 00:19:50.000000",
+ "modified": "2026-11-03 01:13:18.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up",
@@ -324,9 +327,26 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Green",
+   "title": "Confirmed"
+  },
+  {
+   "color": "Purple",
+   "title": "Waitlisted"
+  },
+  {
+   "color": "Gray",
+   "title": "Cancelled"
+  }
+ ],
  "title_field": "title",
  "track_changes": 1
 }

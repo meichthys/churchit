@@ -22,6 +22,7 @@
   "column_break_tags",
   "name_tag_format",
   "zpl_format",
+  "tag_formats_section",
   "tag_formats",
   "limits_section",
   "capacity_mode",
@@ -43,7 +44,8 @@
    "fieldtype": "Select",
    "label": "Name Tag Printing",
    "options": "Browser\nZebra Browser Print\nQZ Tray\nNetwork Printer",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.name_tag_printing == 'Network Printer'",
@@ -51,7 +53,8 @@
    "fieldname": "printer_host",
    "fieldtype": "Data",
    "label": "Printer Host",
-   "mandatory_depends_on": "eval:doc.name_tag_printing == 'Network Printer'"
+   "mandatory_depends_on": "eval:doc.name_tag_printing == 'Network Printer'",
+   "show_description_on_click": 1
   },
   {
    "default": "9100",
@@ -65,7 +68,8 @@
    "description": "Printer name as listed by QZ Tray. Leave blank to use the computer's default printer.",
    "fieldname": "printer_name",
    "fieldtype": "Data",
-   "label": "Printer Name"
+   "label": "Printer Name",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_printing",
@@ -77,7 +81,8 @@
    "fieldname": "label_width",
    "fieldtype": "Float",
    "label": "Label Width (in)",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "default": "2",
@@ -105,14 +110,16 @@
    "description": "Print a random pickup code on every name tag, and one extra pickup tag per family listing the names and code. Used to match children with the adult collecting them.",
    "fieldname": "security_codes",
    "fieldtype": "Check",
-   "label": "Print Security Codes"
+   "label": "Print Security Codes",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "Print the person's allergies under their name, from the Allergies field on the Person. Tags for people with no allergies stay as they are.",
    "fieldname": "print_allergies",
    "fieldtype": "Check",
-   "label": "Print Allergies on Name Tags"
+   "label": "Print Allergies on Name Tags",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_tags",
@@ -125,7 +132,8 @@
    "fieldname": "name_tag_format",
    "fieldtype": "Link",
    "label": "Name Tag Format",
-   "options": "Print Format"
+   "options": "Print Format",
+   "show_description_on_click": 1
   },
   {
    "default": "Zebra Name Tag",
@@ -134,7 +142,8 @@
    "fieldname": "zpl_format",
    "fieldtype": "Link",
    "label": "ZPL Format",
-   "options": "Print Format"
+   "options": "Print Format",
+   "show_description_on_click": 1
   },
   {
    "description": "A different name tag for Guest or Volunteer check-ins. A kind with no row uses the formats above.",
@@ -154,7 +163,8 @@
    "fieldname": "capacity_mode",
    "fieldtype": "Select",
    "label": "Room Capacity",
-   "options": "Off\nWarn\nBlock"
+   "options": "Off\nWarn\nBlock",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_limits",
@@ -166,7 +176,8 @@
    "fieldname": "check_in_opens_minutes",
    "fieldtype": "Int",
    "label": "Self Check-In Opens (Minutes Before Start)",
-   "non_negative": 1
+   "non_negative": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -180,12 +191,16 @@
    "fieldtype": "Table",
    "label": "Printers Per Church",
    "options": "Church Check In Printer"
+  },
+  {
+   "fieldname": "tag_formats_section",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 21:48:34.000000",
+ "modified": "2026-10-31 13:19:19.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Check-In Settings",

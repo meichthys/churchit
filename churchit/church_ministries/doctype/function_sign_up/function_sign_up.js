@@ -3,8 +3,9 @@
 
 frappe.ui.form.on("Function Sign-Up", {
 	refresh(frm) {
+		// It gives the seats away, so it waits in the ... menu.
 		if (!frm.is_new() && frm.doc.status !== "Cancelled" && frm.perm[0].write) {
-			frm.add_custom_button(__("Cancel Registration"), () =>
+			frm.page.add_menu_item(__("Cancel Registration"), () =>
 				frappe.confirm(__("Cancel this sign-up and give its seats to the waitlist?"), () =>
 					frm.call("cancel_registration").then(() => frm.reload_doc())
 				)
@@ -18,7 +19,7 @@ frappe.ui.form.on("Function Sign-Up", {
 			frm.add_custom_button(
 				__("Approve"),
 				() => frm.call("approve").then(() => frm.reload_doc()),
-				__("Approval")
+				__("Actions")
 			);
 			frm.add_custom_button(
 				__("Decline"),
@@ -27,7 +28,7 @@ frappe.ui.form.on("Function Sign-Up", {
 						__("Decline this sign-up and give its seats to the waitlist?"),
 						() => frm.call("decline").then(() => frm.reload_doc())
 					),
-				__("Approval")
+				__("Actions")
 			);
 		}
 
@@ -44,7 +45,7 @@ frappe.ui.form.on("Function Sign-Up", {
 						frappe.confirm(__("Record that the registrant paid the amount due?"), () =>
 							frm.call("record_offline_payment").then(() => frm.reload_doc())
 						),
-					__("Payment")
+					__("Actions")
 				);
 			}
 			if (["Paid", "Refund Due"].includes(frm.doc.payment_status)) {
@@ -54,24 +55,19 @@ frappe.ui.form.on("Function Sign-Up", {
 						frappe.confirm(__("Record that the payment was refunded?"), () =>
 							frm.call("record_refund").then(() => frm.reload_doc())
 						),
-					__("Payment")
+					__("Actions")
 				);
 			}
 		}
 
-		// Customize the items grid: hide Description, show qty_needed, qty_signed_up, my_quantity.
+		// A Function shares this grid and shows the price there, so the quantity brought is added here.
 		const grid = frm.fields_dict.table_iprj && frm.fields_dict.table_iprj.grid;
 		if (grid) {
-			grid.update_docfield_property("description", "in_list_view", 0);
 			grid.update_docfield_property("description", "hidden", 1);
-			grid.update_docfield_property("quantity_needed", "in_list_view", 1);
 			grid.update_docfield_property("quantity_needed", "read_only", 1);
-			grid.update_docfield_property("quantity_signed_up", "in_list_view", 1);
 			grid.update_docfield_property("my_quantity", "in_list_view", 1);
-			grid.update_docfield_property("my_quantity", "hidden", 0);
-			// Force re-evaluation of which columns are visible. By default the grid
-			// caches `visible_columns` and won't pick up our docfield property changes.
-			//grid.reset_grid();
+			// The grid caches its visible columns, so it is reset to show the new one.
+			grid.reset_grid();
 		}
 
 		// Restrict the Item dropdown to items configured on the selected Function.

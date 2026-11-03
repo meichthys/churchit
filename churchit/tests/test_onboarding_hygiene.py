@@ -36,7 +36,6 @@ ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
 TOURS_OUT_OF_ORDER = {
 	"Family": "The Primary Contact is chosen from the members, so the tour asks for the members first",
 	"Counseling Case": "U7",
-	"Function": "U7",
 	"Ministry": "U7",
 	"Budget": "U8",
 	"Expense": "U8",

@@ -19,10 +19,10 @@
  "fields": [
   {
    "allow_in_quick_entry": 1,
+   "columns": 4,
    "fieldname": "item",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Item",
    "options": "Sign-Up Item",
@@ -30,35 +30,35 @@
   },
   {
    "allow_in_quick_entry": 1,
+   "columns": 2,
    "default": "0",
    "description": "The quantity of this item needed for the function.",
    "fieldname": "quantity_needed",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Quantity Needed"
   },
   {
-   "description": "The total quantity for which people have signed up (computed from Function Sign-Ups).",
+   "columns": 2,
+   "description": "The quantity that people signed up to bring, from every sign-up.",
    "fieldname": "quantity_signed_up",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "in_preview": 1,
    "is_virtual": 1,
    "label": "Quantity Signed Up",
    "read_only": 1
   },
   {
    "allow_in_quick_entry": 1,
+   "columns": 2,
    "default": "1",
    "description": "The quantity of this item that the person is signing up to bring.",
    "fieldname": "my_quantity",
    "fieldtype": "Int",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "My Quantity"
   },
   {
+   "columns": 2,
    "description": "The price of each one. The sign-up copies it from the function.",
    "fieldname": "price",
    "fieldtype": "Currency",
@@ -76,7 +76,6 @@
    "fetch_from": "item.description",
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_preview": 1,
    "label": "Description"
   }
  ],
@@ -84,7 +83,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-31 13:18:10.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Item",
