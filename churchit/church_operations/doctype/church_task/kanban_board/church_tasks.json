@@ -1,0 +1,159 @@
+{
+ "card_fields": [
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "priority",
+   "icon": "flag",
+   "idx": 1,
+   "name": "de1f7aeabe",
+   "parent": "Church Tasks",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "due_date",
+   "icon": "calendar",
+   "idx": 2,
+   "name": "e6d7a6465a",
+   "parent": "Church Tasks",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "task_type",
+   "icon": "tag",
+   "idx": 3,
+   "name": "714e1877c7",
+   "parent": "Church Tasks",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "columns": [
+  {
+   "column_name": "Open",
+   "doctype": "Kanban Board Column",
+   "idx": 1,
+   "indicator": "Orange",
+   "name": "b7b0828b9c",
+   "parent": "Church Tasks",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "Assigned",
+   "doctype": "Kanban Board Column",
+   "idx": 2,
+   "indicator": "Purple",
+   "name": "bbfd6c436d",
+   "parent": "Church Tasks",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "In Progress",
+   "doctype": "Kanban Board Column",
+   "idx": 3,
+   "indicator": "Blue",
+   "name": "6ac6c53a31",
+   "parent": "Church Tasks",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "Completed",
+   "doctype": "Kanban Board Column",
+   "idx": 4,
+   "indicator": "Green",
+   "name": "2660202992",
+   "parent": "Church Tasks",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  }
+ ],
+ "creation": "2026-10-31 13:42:00.000000",
+ "docstatus": 0,
+ "doctype": "Kanban Board",
+ "field_name": "status",
+ "filters": "[[\"Church Task\", \"status\", \"!=\", \"Completed\"]]",
+ "footer_date_field": "Modified",
+ "group_by_fields": [
+  {
+   "doctype": "Kanban Board Group Field",
+   "fieldname": "priority",
+   "idx": 1,
+   "name": "6864c1b752",
+   "parent": "Church Tasks",
+   "parentfield": "group_by_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Group Field",
+   "fieldname": "task_type",
+   "idx": 2,
+   "name": "fbdbeb9785",
+   "parent": "Church Tasks",
+   "parentfield": "group_by_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "kanban_board_name": "Church Tasks",
+ "modified": "2026-11-03 01:01:20.000000",
+ "modified_by": "Administrator",
+ "module": "Church Operations",
+ "name": "Church Tasks",
+ "owner": "Administrator",
+ "preview_fields": [
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "task_type",
+   "idx": 1,
+   "name": "5a067f7b52",
+   "parent": "Church Tasks",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "parent_task",
+   "idx": 2,
+   "name": "0dd4a311c5",
+   "parent": "Church Tasks",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "priority",
+   "idx": 3,
+   "name": "43971713e5",
+   "parent": "Church Tasks",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "due_date",
+   "idx": 4,
+   "name": "ad53ab03f8",
+   "parent": "Church Tasks",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "private": 0,
+ "reference_doctype": "Church Task",
+ "show_assigned_to": 1,
+ "show_labels": 0,
+ "show_tags_on_card": 0,
+ "title_field": "title",
+ "use_kanban_v2": 1
+}

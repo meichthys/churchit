@@ -37,10 +37,6 @@ frappe.ui.form.on("Person", {
 			show_engagement(frm);
 			add_remove_personal_data_menu_item(frm);
 		}
-
-		frm.page.add_menu_item(__("Take the Tour"), () =>
-			frm.tour.init({ tour_name: "Person" }).then(() => frm.tour.start())
-		);
 	},
 });
 

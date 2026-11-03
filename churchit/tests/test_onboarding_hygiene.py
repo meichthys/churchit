@@ -32,13 +32,9 @@ ACTIONS_THAT_RUN_A_TOUR = ("Create Entry", "Show Form Tour")
 ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
 
 # Tours whose steps run against the order of the form, with the phase of the UX roadmap that fixes them,
-# or the reason the work goes in another order. U13 puts 'Take the Tour' on every form with a tour, so it reorders the tours of forms no other phase changes.
+# or the reason the work goes in another order.
 TOURS_OUT_OF_ORDER = {
 	"Family": "The Primary Contact is chosen from the members, so the tour asks for the members first",
-	"About Us Settings": "U13",
-	"Contact Us Settings": "U13",
-	"Email Account Setup": "U13",
-	"Website Settings": "U13",
 }
 
 
