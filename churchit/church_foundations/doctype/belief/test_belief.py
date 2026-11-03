@@ -23,3 +23,17 @@ class TestBelief(FrappeTestCase):
 	def test_a_reference_nobody_can_read_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):
 			self._belief("_Test Unreadable Belief", "Hezekiah 1:1")
+
+	def test_beliefs_stay_in_the_order_they_were_added_when_one_is_edited(self):
+		first = self._belief("_Test Order Belief 1", "")
+		second = self._belief("_Test Order Belief 2", "")
+		second.db_set("belief_statement", "<p>Edited last.</p>")
+
+		titles = frappe.get_list(
+			"Belief",
+			filters={"title": ("like", "_Test Order Belief%")},
+			pluck="title",
+			ignore_permissions=True,
+		)
+
+		self.assertEqual(titles, [first.title, second.title])

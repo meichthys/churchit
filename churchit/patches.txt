@@ -134,3 +134,4 @@ churchit.patches.v1_0.retitle_collections
 churchit.patches.v1_0.retitle_fund_transfers
 churchit.patches.v1_0.retitle_alms_requests
 churchit.patches.v1_0.retitle_prayers
+churchit.patches.v1_0.set_weekly_metrics_titles

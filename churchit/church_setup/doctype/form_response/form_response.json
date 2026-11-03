@@ -63,11 +63,13 @@
   {
    "fieldname": "last_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Last Name"
   },
   {
    "fieldname": "email",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Email",
    "options": "Email"
   },
@@ -105,6 +107,7 @@
   {
    "fieldname": "payment_status",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Payment Status",
    "no_copy": 1,
    "options": "\nUnpaid\nPaid\nRefunded",
@@ -113,7 +116,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-24 00:03:35.000000",
+ "modified": "2026-10-31 13:18:47.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Form Response",
@@ -166,10 +169,19 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "first_name, last_name, email",
- "sort_field": "modified",
+ "search_fields": "last_name, email",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "New"
+  },
+  {
+   "color": "Green",
+   "title": "Processed"
+  }
+ ],
  "title_field": "first_name",
  "track_changes": 1
 }

@@ -210,9 +210,7 @@ def assert_list_ratchet(test: FrappeTestCase, found: dict, exceptions: dict[str,
 
 COLUMN_BUDGET_EXCEPTIONS = {}
 
-TEXT_COLUMN_EXCEPTIONS = {
-	"Belief.belief_statement": "U4",
-}
+TEXT_COLUMN_EXCEPTIONS = {}
 
 REPEATED_COLUMN_EXCEPTIONS = {}
 
@@ -220,16 +218,9 @@ FILTER_BUDGET_EXCEPTIONS = {}
 
 DEFAULT_FILTER_EXCEPTIONS = {}
 
-ID_RULE_EXCEPTIONS = {
-	"Belief": "U4",
-	"Church": "U4",
-	"Form Response": "U4",
-	"Question Set": "U4",
-}
+ID_RULE_EXCEPTIONS = {}
 
-STATUS_COLOR_EXCEPTIONS = {
-	"Form Response": "U4",
-}
+STATUS_COLOR_EXCEPTIONS = {}
 
 QUOTED_ID_EXCEPTIONS = {
 	"church_people/print_format/member_qr_card/member_qr_card.json": "The card prints the Person ID beside the QR code that the Check-In Station scans",
@@ -237,20 +228,14 @@ QUOTED_ID_EXCEPTIONS = {
 
 PREVIEW_FIELD_EXCEPTIONS = {}
 
-PREVIEW_POPUP_EXCEPTIONS = {
-	"Belief": "U4",
-}
+PREVIEW_POPUP_EXCEPTIONS = {}
 
 SEARCH_FIELD_EXCEPTIONS = {}
 
 SEARCH_COUNT_EXCEPTIONS = {}
 
 SORT_EXCEPTIONS = {
-	"Belief": "U4",
-	"Church": "U4",
 	"Follow-up Action Run": "a log of automation runs",
-	"Form Response": "U4",
-	"Question Set": "U4",
 }
 
 # R2: form checks (UX roadmap U1). Each exception maps a doctype, or "Doctype.field", to its fixing phase.
@@ -268,21 +253,13 @@ BLOCK_HELP_FIELDTYPES = ("Section Break", "Table")
 LONG_TEXT_FIELDTYPES = ("Code", "HTML Editor", "Long Text", "Markdown Editor", "Text", "Text Editor")
 # Frappe 16.54 maps a grid column's `columns` from 1 to 12 onto 60 to 600px and ignores any other value.
 GRID_COLUMN_WIDTHS = range(1, 13)
+MIN_TEXT_EDITOR_HEIGHT = 300  # pixels, the height Frappe gives the Quill editor
 
 # Doctype: a field help over 80 characters without the (i) icon, or a section or table help over 120.
-LONG_HELP_EXCEPTIONS = {
-	"Belief": "U11",
-	"Church": "U11",
-	"Church Features": "U11",
-	"Question Set": "U11",
-	"Question Set Question": "U11",
-}
+LONG_HELP_EXCEPTIONS = {}
 
 # Doctype.fieldname: a text field on the first tab without max_height.
-TEXT_HEIGHT_EXCEPTIONS = {
-	"Belief.belief_statement": "U11",
-	"Church.about": "U11",
-}
+TEXT_HEIGHT_EXCEPTIONS = {}
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
@@ -290,9 +267,7 @@ GRID_EXCEPTIONS = {
 }
 
 # Doctype.fieldname: a collapsible section without collapsible_depends_on.
-COLLAPSIBLE_EXCEPTIONS = {
-	"Church Features.section_website_pages": "U11",
-}
+COLLAPSIBLE_EXCEPTIONS = {}
 
 # Doctype.fieldname: collapsed sections of routine system values, which stay closed. Each has a
 # one-line description of what it holds.
@@ -772,6 +747,18 @@ class TestDeskUiHygiene(FrappeTestCase):
 		}
 		rule = "A long text field on the first tab sets max_height"
 		assert_list_ratchet(self, found, TEXT_HEIGHT_EXCEPTIONS, rule)
+
+	def test_text_editors_are_not_capped_below_their_editor(self):
+		"""Frappe draws a 300px editor in a Text Editor, so a smaller `max_height` scrolls twice."""
+		found = {}
+		for _path, data in doctype_files():
+			for field in data["fields"]:
+				match = re.fullmatch(r"([\d.]+)(rem|px)", field.get("max_height") or "")
+				if field["fieldtype"] == "Text Editor" and match:
+					pixels = float(match[1]) * (16 if match[2] == "rem" else 1)
+					if pixels < MIN_TEXT_EDITOR_HEIGHT:
+						found[f"{data['name']}.{field['fieldname']}"] = field["max_height"]
+		self.assertEqual(found, {}, "Give a Text Editor a max_height of 20rem or more")
 
 	def test_grids_set_their_column_widths(self):
 		"""Every grid column has a width, a grid has 5 columns at most, and none is a text box.

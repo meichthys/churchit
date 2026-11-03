@@ -7,6 +7,7 @@
  "documentation": "/app/manual%3A-foundations",
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "week_start",
   "church",
   "column_break_week",
@@ -21,9 +22,15 @@
  ],
  "fields": [
   {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Week",
+   "read_only": 1
+  },
+  {
    "fieldname": "week_start",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Week Starting",
    "read_only": 1,
@@ -69,12 +76,14 @@
   {
    "fieldname": "people_in_groups",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "People in Groups",
    "read_only": 1
   },
   {
    "fieldname": "people_serving",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "People Serving",
    "read_only": 1
   },
@@ -87,6 +96,7 @@
   {
    "fieldname": "giving_total",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Giving",
    "permlevel": 2,
    "read_only": 1
@@ -101,7 +111,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-10-27 13:53:00.000000",
+ "modified": "2026-10-31 13:18:47.000000",
  "modified_by": "Administrator",
  "module": "Church Summary",
  "name": "Weekly Metrics",
@@ -156,5 +166,6 @@
  "row_format": "Dynamic",
  "sort_field": "week_start",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }

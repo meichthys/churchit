@@ -32,7 +32,8 @@
    "in_list_view": 1,
    "label": "Answer Type",
    "options": "Data\nSmall Text\nSelect\nCheck\nDate\nInt\nEmail\nPhone",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "columns": 1,
@@ -55,13 +56,14 @@
    "description": "The name the answer is kept under. Made from the question when left blank. Change it only before anyone answers.",
    "fieldname": "fieldname",
    "fieldtype": "Data",
-   "label": "Answer Name"
+   "label": "Answer Name",
+   "show_description_on_click": 1
   }
  ],
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-22 17:28:16.000000",
+ "modified": "2026-10-31 13:18:47.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Question Set Question",

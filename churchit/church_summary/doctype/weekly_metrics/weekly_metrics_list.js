@@ -2,6 +2,8 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Weekly Metrics"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
 	onload(listview) {
 		if (!frappe.user.has_role(["Church Manager", "System Manager"])) return;
 		listview.page.add_inner_button(__("Fill the Last 52 Weeks"), () => {

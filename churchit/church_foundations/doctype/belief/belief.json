@@ -24,7 +24,6 @@
    "in_filter": 1,
    "in_global_search": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Title",
    "reqd": 1,
@@ -60,28 +59,31 @@
   {
    "fieldname": "belief_statement",
    "fieldtype": "Text Editor",
-   "in_list_view": 1,
    "label": "Belief Statement",
+   "max_height": "20rem",
    "reqd": 1
   },
   {
-   "description": "The passages this belief rests on, such as Romans 3:23; Ephesians 2:8-9. Separate passages with a semicolon.",
+   "description": "The passages this belief rests on. Separate them with a semicolon.",
    "fieldname": "bible_references",
    "fieldtype": "Small Text",
-   "label": "Bible References"
+   "label": "Bible References",
+   "placeholder": "Romans 3:23; Ephesians 2:8-9"
   },
   {
    "default": "0",
    "description": "Check this to show this belief on the public website.",
    "fieldname": "publish",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Publish"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 01:28:01.000000",
+ "modified": "2026-11-02 23:52:08.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Belief",
@@ -124,8 +126,8 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "creation",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "title",
  "track_changes": 1
