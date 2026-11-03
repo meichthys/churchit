@@ -553,6 +553,7 @@ LIST_READERS = ("frappe.get_list",)
 SIGNED_LINK = "a signed email link: verify_request checks the signature over every parameter first"
 TRANSLATION = "scripture.is_readable is the read rule for a Bible Translation: Free Use text is public"
 OWN_RECORD = "a portal member holds no right on it; it refuses a record that is not the session's own"
+CHART_SETTINGS = "it reads only the chart's timespan and interval; the data needs Person report permission"
 NAME_CHECK_EXEMPT = {
 	"churchit.church_communications.consent.renew_consent": SIGNED_LINK,
 	"churchit.church_communications.newsletter.unsubscribe": SIGNED_LINK,
@@ -586,6 +587,8 @@ NAME_CHECK_EXEMPT = {
 	"churchit.church_missions.doctype.missionary.missionary.get_country_coordinates": (
 		"Country is Frappe's global reference data"
 	),
+	"churchit.church_people.dashboard_chart_source.life_events.life_events.get": CHART_SETTINGS,
+	"churchit.church_people.dashboard_chart_source.people_added.people_added.get": CHART_SETTINGS,
 	"churchit.church_people.group_api.join_group": (
 		"a member joins only a public portal group of their church (church_filters on session_church)"
 	),
