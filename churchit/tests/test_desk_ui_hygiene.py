@@ -218,7 +218,6 @@ TEXT_COLUMN_EXCEPTIONS = {
 REPEATED_COLUMN_EXCEPTIONS = {}
 
 FILTER_BUDGET_EXCEPTIONS = {
-	"Bible Memory Item": "U10",
 	"Church Task": "U11",
 }
 
@@ -228,7 +227,6 @@ DEFAULT_FILTER_EXCEPTIONS = {
 
 ID_RULE_EXCEPTIONS = {
 	"Belief": "U4",
-	"Bible Memory Item": "U4",
 	"Church": "U4",
 	"Church Location": "U4",
 	"Church Task": "U4",
@@ -236,9 +234,6 @@ ID_RULE_EXCEPTIONS = {
 	"Meeting Minutes": "U4",
 	"Question Set": "U4",
 	"Room": "U4",
-	"Sermon": "U4",
-	"Sermon Handout": "U4",
-	"Sermon Series": "U4",
 }
 
 STATUS_COLOR_EXCEPTIONS = {
@@ -259,8 +254,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task Item.notes": "U4",
 	"Church Task.is_group": "U4",
 	"Church Task.notes": "U4",
-	"Sermon Slide.notes": "U4",
-	"Sermon Slide.slide": "U4",
 }
 
 PREVIEW_POPUP_EXCEPTIONS = {
@@ -268,8 +261,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Church Asset": "U4",
 	"Church Task": "U4",
 	"Church Task Item": "U4",
-	"Sermon Presentation": "U4",
-	"Sermon Slide": "U4",
 }
 
 SEARCH_FIELD_EXCEPTIONS = {
@@ -282,7 +273,6 @@ SEARCH_COUNT_EXCEPTIONS = {}
 
 SORT_EXCEPTIONS = {
 	"Belief": "U4",
-	"Bible Memory Item": "U4",
 	"Church": "U4",
 	"Church Asset": "U4",
 	"Church Location": "U4",
@@ -291,8 +281,6 @@ SORT_EXCEPTIONS = {
 	"Form Response": "U4",
 	"Question Set": "U4",
 	"Room": "U4",
-	"Sermon": "U4",
-	"Sermon Handout": "U4",
 }
 
 # R2: form checks (UX roadmap U1). Each exception maps a doctype, or "Doctype.field", to its fixing phase.
@@ -313,10 +301,6 @@ GRID_COLUMN_WIDTHS = range(1, 13)
 
 # Doctype: a field help over 80 characters without the (i) icon, or a section or table help over 120.
 LONG_HELP_EXCEPTIONS = {
-	"Bible Memory Item": "U10",
-	"Bible Translation": "U10",
-	"Sermon": "U10",
-	"Sermon Handout": "U10",
 	"Belief": "U11",
 	"Church": "U11",
 	"Church Features": "U11",
@@ -329,9 +313,6 @@ LONG_HELP_EXCEPTIONS = {
 
 # Doctype.fieldname: a text field on the first tab without max_height.
 TEXT_HEIGHT_EXCEPTIONS = {
-	"Sermon Handout.content": "U10",
-	"Sermon Series.description": "U10",
-	"Sermon.notes": "U10",
 	"Belief.belief_statement": "U11",
 	"Church Asset.notes": "U11",
 	"Church Task.notes": "U11",
@@ -342,8 +323,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
-	"Sermon Presentation": "U10",
-	"Sermon Slide": "U10",
 	"Slide": "The slide text is the only value that tells the rows apart, so it stays in the grid",
 	"Church Task Item": "U11",
 	"Meeting Attendee": "U11",
@@ -352,7 +331,6 @@ GRID_EXCEPTIONS = {
 
 # Doctype.fieldname: a collapsible section without collapsible_depends_on.
 COLLAPSIBLE_EXCEPTIONS = {
-	"Bible Memory Item.internal_section": "U10",
 	"Church Features.section_website_pages": "U11",
 	"Meeting Minutes.section_break_3": "U11",
 }
@@ -360,6 +338,7 @@ COLLAPSIBLE_EXCEPTIONS = {
 # Doctype.fieldname: collapsed sections of routine system values, which stay closed. Each has a
 # one-line description of what it holds.
 ROUTINE_COLLAPSED = {
+	"Bible Memory Item.internal_section": "Mistake counts per word that the Bible Memory page keeps",
 	"Bulletin.section_break_sections": "Print toggles that Bulletin Settings defaults, set once",
 	"Missionary.location_section": "The map pin, which choosing a country places",
 }
@@ -375,6 +354,8 @@ PERSON_HISTORY_EXCEPTIONS = {
 	"Ministry": "Kept for the ministry; anonymizing removes the coordinator's name and email from its history",
 	"Ministry Team Position": "Kept for its other people; anonymizing removes the person's name and email from its history",
 	"Missionary": "Kept for the missionary; anonymizing removes the person's name and email from its history",
+	"Sermon": "Kept for the sermon; anonymizing removes the preacher's name and email from its history",
+	"Sermon Series": "Kept for the series; anonymizing removes the person's name and email from its history",
 }
 
 # Doctype: why a record keeps a viewed row for every open.

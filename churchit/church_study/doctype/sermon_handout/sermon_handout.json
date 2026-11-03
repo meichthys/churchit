@@ -49,10 +49,11 @@
    "read_only": 1
   },
   {
-   "description": "Wrap a word or phrase in square brackets, like [grace], to print it as a blank for listeners to fill in.",
+   "description": "Wrap a word or phrase in square brackets, like [grace], to print a blank.",
    "fieldname": "content",
    "fieldtype": "Text Editor",
-   "label": "Content"
+   "label": "Content",
+   "max_height": "20rem"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -62,7 +63,7 @@
    "link_fieldname": "handout"
   }
  ],
- "modified": "2026-10-30 23:26:40.000000",
+ "modified": "2026-11-02 23:52:34.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Handout",
@@ -105,7 +106,7 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",

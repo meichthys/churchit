@@ -19,13 +19,13 @@
  "fields": [
   {
    "allow_in_quick_entry": 1,
+   "columns": 2,
    "depends_on": "eval:!doc.scripture",
    "description": "The kind of record the slide shows. Leave blank for a Scripture slide.",
    "fieldname": "slide_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Slide Type",
    "mandatory_depends_on": "eval:!doc.scripture",
@@ -33,18 +33,19 @@
   },
   {
    "allow_in_quick_entry": 1,
+   "columns": 4,
    "depends_on": "eval:!doc.scripture",
    "fieldname": "slide",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Slide",
    "mandatory_depends_on": "eval:doc.slide_type",
    "options": "slide_type"
   },
   {
+   "columns": 3,
    "depends_on": "eval:!doc.slide_type",
    "description": "A passage to show, such as Psalms 23, instead of a record.",
    "fieldname": "scripture",
@@ -75,8 +76,6 @@
   {
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Notes"
   }
  ],
@@ -84,7 +83,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-30 00:00:00.000000",
+ "modified": "2026-10-31 13:14:03.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Slide",

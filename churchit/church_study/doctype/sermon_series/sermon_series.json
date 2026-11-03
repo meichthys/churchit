@@ -62,6 +62,8 @@
    "fieldname": "speaker",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Primary Speaker",
    "options": "Person"
   },
@@ -69,6 +71,7 @@
    "fieldname": "start_date",
    "fieldtype": "Date",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Start Date"
   },
   {
@@ -78,11 +81,14 @@
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "End Date"
   },
   {
    "fieldname": "publish",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Publish to Website"
   },
   {
@@ -92,7 +98,8 @@
   {
    "fieldname": "description",
    "fieldtype": "Text Editor",
-   "label": "Description"
+   "label": "Description",
+   "max_height": "20rem"
   },
   {
    "fieldname": "image",
@@ -102,13 +109,14 @@
   }
  ],
  "grid_page_length": 50,
+ "image_field": "image",
  "links": [
   {
    "link_doctype": "Sermon",
    "link_fieldname": "series"
   }
  ],
- "modified": "2026-10-31 01:28:01.000000",
+ "modified": "2026-11-03 01:33:46.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Series",
@@ -155,9 +163,11 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
  "sort_field": "start_date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "series_name"
+ "title_field": "series_name",
+ "track_changes": 1
 }
