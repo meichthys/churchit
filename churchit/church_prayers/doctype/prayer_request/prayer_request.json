@@ -115,7 +115,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Prayer For",
+   "label": "Prayer For Name",
    "read_only": 1
   },
   {
@@ -190,7 +190,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-10-31 13:16:50.000000",
+ "modified": "2026-11-03 11:54:14.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
