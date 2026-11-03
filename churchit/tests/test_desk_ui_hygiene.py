@@ -353,7 +353,7 @@ STATUS_COLOR_EXCEPTIONS = {
 }
 
 QUOTED_ID_EXCEPTIONS = {
-	"church_people/print_format/member_qr_card/member_qr_card.json": "U4",
+	"church_people/print_format/member_qr_card/member_qr_card.json": "The card prints the Person ID beside the QR code that the Check-In Station scans",
 }
 
 PREVIEW_FIELD_EXCEPTIONS = {
@@ -658,19 +658,16 @@ ROUTINE_COLLAPSED = {
 	"Bulletin.section_break_sections": "Print toggles that Bulletin Settings defaults, set once",
 }
 
-# Doctype: why Version rows may stay after Remove Personal Data. A Gap line is a leak to close in
-# church_people/privacy.py, in the UX roadmap phase it names.
+# Doctype: why its Version rows may stay after Remove Personal Data. A gap line is a leak to close in
+# church_people/privacy.py. test_privacy_history.is_gap reads a line that holds " gap:" as a gap.
 PERSON_HISTORY_EXCEPTIONS = {
-	"Church Email": "The people rows hold only Person IDs",
-	"Collection": "U8 gap: a Donation row added or changed later keeps the donor email in the history",
-	"Family": "U4 gap: the history keeps the family name, which holds the person's first name",
-	"Function": "U4 gap: a title typed with the person's name keeps it; the attendance rows hold IDs",
-	"Ministry": "The team coordinator is a Person ID",
-	"Ministry Team Assignment": "U4 gap: the history keeps the old title and person name after a rename",
-	"Ministry Team Block": "U4 gap: the history keeps the old title, which is the person's name, after a rename",
-	"Ministry Team Position": "The people rows hold only Person IDs",
-	"Missionary": "U4 gap: a title typed with the person's name keeps it; the people rows hold IDs",
-	"Possible Duplicate": "U4 gap: the history keeps the old person names after a rename",
+	"Church Email": "Kept for its other recipients; anonymizing removes the person's name and email from its history",
+	"Collection": "Kept for its other donors; anonymizing removes the person's name and email from its history",
+	"Family": "Kept for its other members; anonymizing removes the person's name, email and first name from its history and from its members' histories",
+	"Function": "Kept for its other attendees; anonymizing removes the person's name and email from its history",
+	"Ministry": "Kept for the ministry; anonymizing removes the coordinator's name and email from its history",
+	"Ministry Team Position": "Kept for its other people; anonymizing removes the person's name and email from its history",
+	"Missionary": "Kept for the missionary; anonymizing removes the person's name and email from its history",
 }
 
 # Doctype: why a record keeps a viewed row for every open.
@@ -1163,9 +1160,9 @@ class TestDeskUiHygiene(FrappeTestCase):
 		A doctype with track_changes that links to a Person loses its Version rows when the person is
 		anonymized (church_people/privacy.py), or sits in PERSON_HISTORY_EXCEPTIONS with the reason.
 
-		This reads only the PERSONAL_DOCTYPES and RECORDS_ABOUT_THE_PERSON tuples, so a fix that deletes
-		the Version rows another way leaves its Gap line standing. church_people/test_privacy_history.py
-		proves those gaps (Family and Collection) by behavior.
+		This reads only the PERSONAL_DOCTYPES and RECORDS_ABOUT_THE_PERSON tuples. A doctype whose history
+		anonymizing scrubs rather than deletes (privacy.scrub_history) keeps a line with that reason.
+		church_people/test_privacy_history.py proves the lines by behavior.
 		"""
 		doctypes = {data["name"]: data for _path, data in doctype_files()}
 		forgotten = {"Person"} | {doctype for doctype, _field in PERSONAL_DOCTYPES + RECORDS_ABOUT_THE_PERSON}

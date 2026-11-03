@@ -41,6 +41,11 @@ class LinkedRecord:
 	parenttype: str | None = None
 	parent: str | None = None
 
+	@property
+	def document(self) -> tuple[str, str]:
+		"""The (doctype, name) of the record, or of the parent record of a child row."""
+		return self.parenttype or self.doctype, self.parent or self.name
+
 
 def linked_records(person: str) -> list[LinkedRecord]:
 	"""Every record and child row that names *person* in a Link or Dynamic Link field."""

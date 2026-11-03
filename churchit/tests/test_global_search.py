@@ -227,4 +227,6 @@ class TestRemovePersonalData(RollbackEachTest):
 		sync_global_search()
 		self.assertEqual(found(first_name), set())
 		self.assertEqual(found(sermon_word), {("Sermon", sermon.name)})
-		self.assertEqual(found(SURNAME), {("Person", wife.name), ("Family", family.name)})
+		self.assertEqual(
+			found(SURNAME), {("Person", person.name), ("Person", wife.name), ("Family", family.name)}
+		)

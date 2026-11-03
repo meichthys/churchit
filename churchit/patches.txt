@@ -129,3 +129,4 @@ churchit.patches.v1_0.clear_saved_sort_and_filters_of_people_and_shared_lists
 churchit.patches.v1_0.add_churchit_to_global_search
 churchit.patches.v1_0.let_church_roles_read_addresses
 churchit.patches.v1_0.open_the_person_list_on_active_people
+churchit.patches.v1_0.forget_team_and_duplicate_history_of_anonymized_people
