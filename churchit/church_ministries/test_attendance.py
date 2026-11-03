@@ -167,6 +167,15 @@ class TestAttendanceWriters(FrappeTestCase):
 
 		self.assertEqual(frappe.db.get_value("Function", self.function, "attendance_total"), 2)
 
+	def test_a_check_in_or_sign_up_leaves_no_history_entry(self):
+		versions = {"ref_doctype": "Function", "docname": self.function}
+		before = frappe.db.count("Version", versions)
+
+		record(self.first, self.function, "Checked-In")
+		self._sign_up(self.second).delete(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.count("Version", versions), before)
+
 	def test_a_change_refreshes_the_persons_summaries(self):
 		queued = queued_people(lambda: record(self.first, self.function, "Confirmed"))
 
