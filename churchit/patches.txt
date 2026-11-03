@@ -133,3 +133,4 @@ churchit.patches.v1_0.forget_team_and_duplicate_history_of_anonymized_people
 churchit.patches.v1_0.retitle_collections
 churchit.patches.v1_0.retitle_fund_transfers
 churchit.patches.v1_0.retitle_alms_requests
+churchit.patches.v1_0.retitle_prayers

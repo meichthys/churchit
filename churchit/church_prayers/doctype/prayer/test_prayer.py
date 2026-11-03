@@ -5,8 +5,10 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_foundations.church_access import set_user_church
-from churchit.patches.v1_0 import count_prayers_for_requests
+from churchit.church_people.privacy import ANONYMIZED, anonymize
+from churchit.patches.v1_0 import count_prayers_for_requests, retitle_prayers
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
+from churchit.tests.test_global_search import forget_search_rows
 
 
 class TestPrayer(FrappeTestCase):
@@ -20,15 +22,39 @@ class TestPrayer(FrappeTestCase):
 			{"doctype": "Prayer", "person": self.person.name, "date": "2031-05-01 09:30:00", **values}
 		).insert(ignore_permissions=True)
 
-	def test_title_joins_person_and_date(self):
+	def test_title_names_the_person_and_the_day(self):
 		prayer = self._prayer()
-		self.assertEqual(prayer.title, f"{self.person.name} - 2031-05-01 09:30:00")
+		self.assertEqual(prayer.title, "_Test Prayer Intercessor, 2031-05-01")
 
 	def test_title_is_rebuilt_when_the_date_changes(self):
 		prayer = self._prayer()
 		prayer.date = "2031-06-02 14:00:00"
 		prayer.save(ignore_permissions=True)
-		self.assertEqual(prayer.title, f"{self.person.name} - 2031-06-02 14:00:00")
+		self.assertEqual(prayer.title, "_Test Prayer Intercessor, 2031-06-02")
+
+	def test_the_patch_retitles_a_prayer_named_by_the_person_id(self):
+		prayer = self._prayer()
+		old_title = f"{self.person.name} - 2031-05-01 09:30:00"
+		frappe.db.set_value("Prayer", prayer.name, "title", old_title, update_modified=False)
+
+		retitle_prayers.execute()
+		retitle_prayers.execute()
+
+		self.assertEqual(frappe.db.get_value("Prayer", prayer.name, "title"), prayer.title)
+
+
+class TestPrayerOfAnAnonymizedPerson(RollbackEachTest):
+	def test_removing_personal_data_takes_the_name_out_of_the_title(self):
+		person = make_person("_Test Prayer", "Forgotten")
+		self.addCleanup(forget_search_rows, "Forgotten", person)
+		prayer = frappe.get_doc(
+			{"doctype": "Prayer", "person": person.name, "date": "2031-05-01 09:30:00"}
+		).insert(ignore_permissions=True)
+
+		anonymize(person.name)
+
+		title = frappe.db.get_value("Prayer", prayer.name, "title")
+		self.assertEqual(title, f"{ANONYMIZED}, 2031-05-01")
 
 
 class TestPrayerAcrossChurches(RollbackEachTest):

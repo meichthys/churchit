@@ -3,22 +3,20 @@
 
 frappe.ui.form.on("Missionary", {
 	refresh(frm) {
-		//Add an 'intro' indicating if a missionary is published to the website
 		if (frm.doc.sensitive && frm.doc.publish) {
 			frm.set_intro(
-				"🚨 This missionary is marked as sensitive and is published \
-                to the public website. Make sure sensitive content is not being \
-                leaked to the public!",
+				__(
+					"This missionary is sensitive and published on the public website. Check that nothing sensitive shows there."
+				),
 				"red"
 			);
 		} else if (frm.doc.sensitive) {
 			frm.set_intro(
-				"⚠️ This missionary is marked as sensitive. \
-                be careful not to disclose sensitive information.",
+				__("This missionary is sensitive. Do not share their details outside the church."),
 				"yellow"
 			);
 		} else if (frm.doc.publish) {
-			frm.set_intro("🌐 This missionary is published to the public website", "blue");
+			frm.set_intro(__("This missionary is published on the public website."), "blue");
 		}
 
 		const grid = frm.fields_dict.people.grid;

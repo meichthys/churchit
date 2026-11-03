@@ -10,28 +10,28 @@
  "field_order": [
   "title",
   "church",
-  "status",
-  "type",
-  "end_date",
-  "visibility",
-  "urgent",
-  "approved_for_list",
-  "prayer_count",
-  "column_break_ynvf",
-  "recipient_type",
   "recipient",
   "recipient_name",
+  "recipient_type",
   "requestor",
+  "column_break_ynvf",
+  "status",
+  "type",
+  "visibility",
+  "urgent",
+  "prayer_count",
   "section_break_usaz",
-  "request"
+  "request",
+  "listing_section",
+  "approved_for_list",
+  "column_break_listing",
+  "end_date"
  ],
  "fields": [
   {
    "allow_in_quick_entry": 1,
    "fieldname": "title",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Title",
    "reqd": 1
   },
@@ -61,8 +61,7 @@
   },
   {
    "fieldname": "column_break_ynvf",
-   "fieldtype": "Column Break",
-   "placeholder": "If this request is for a specific person, select/add the person here."
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section_break_usaz",
@@ -75,19 +74,18 @@
    "fieldname": "visibility",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "in_standard_filter": 1,
+   "in_preview": 1,
    "label": "Who Can See It",
    "options": "Private\nPrayer Team\nWhole Church",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "allow_in_quick_entry": 1,
    "default": "0",
-   "description": "Check this if this request needs urgent prayer.",
    "fieldname": "urgent",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Urgent"
   },
@@ -103,41 +101,39 @@
    "reqd": 1
   },
   {
-   "description": "The person who made the request.",
    "fieldname": "requestor",
    "fieldtype": "Link",
    "in_filter": 1,
-   "in_preview": 1,
    "label": "Requestor",
    "options": "Person"
   },
   {
-   "description": "This field is only used to properly display the recipient name in web-forms which don't support dynamic links.",
+   "description": "Filled from Prayer For, so lists and web pages show the name.",
    "fieldname": "recipient_name",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Recipient Name",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Prayer For",
    "read_only": 1
   },
   {
    "allow_in_quick_entry": 1,
-   "description": "The person for whom prayers will be prayed.",
+   "description": "Leave blank for a general request.",
    "fieldname": "recipient",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
-   "label": "Recipient",
+   "label": "Prayer For",
    "options": "recipient_type",
    "search_index": 1
   },
   {
    "default": "Person",
-   "description": "The type of entity for which prayer is being requested.",
+   "description": "A Person, or another kind of record such as a Missionary.",
    "fieldname": "recipient_type",
    "fieldtype": "Link",
-   "label": "Recipient Type",
+   "label": "Prayer For Type",
    "options": "DocType"
   },
   {
@@ -145,14 +141,12 @@
    "fieldname": "request",
    "fieldtype": "Small Text",
    "in_filter": 1,
-   "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Request",
    "mandatory_depends_on": "eval: doc.type!=\"Unspoken\";"
   },
   {
-   "description": "Date at which the prayer request 'expires'.",
+   "description": "After this date the request leaves the prayer lists. Leave blank to keep it.",
    "fieldname": "end_date",
    "fieldtype": "Datetime",
    "label": "End Date"
@@ -162,19 +156,30 @@
    "description": "Show this request on the Community Prayer Requests page and in bulletins. A request from the anonymous website form starts unticked until staff approve it.",
    "fieldname": "approved_for_list",
    "fieldtype": "Check",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Approved for List",
-   "permlevel": 1
+   "permlevel": 1,
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "How many prayers people recorded for this request.",
    "fieldname": "prayer_count",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Times Prayed For",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:!doc.approved_for_list || doc.end_date",
+   "fieldname": "listing_section",
+   "fieldtype": "Section Break",
+   "label": "Listing and Expiry"
+  },
+  {
+   "fieldname": "column_break_listing",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -185,7 +190,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-10-27 13:53:00.000000",
+ "modified": "2026-10-31 13:16:50.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
@@ -295,23 +300,23 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "status,type,recipient",
+ "search_fields": "recipient_name,type,status",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [
   {
-   "color": "Purple",
-   "title": "Answered"
-  },
-  {
-   "color": "Yellow",
+   "color": "Orange",
    "title": "Requested"
   },
   {
    "color": "Blue",
    "title": "Being Prayed For"
+  },
+  {
+   "color": "Green",
+   "title": "Answered"
   }
  ],
  "title_field": "title",

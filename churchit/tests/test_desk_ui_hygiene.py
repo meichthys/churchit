@@ -208,15 +208,11 @@ def assert_list_ratchet(test: FrappeTestCase, found: dict, exceptions: dict[str,
 
 # Today's breaks of each rule. A phase deletes the entries it fixes.
 
-COLUMN_BUDGET_EXCEPTIONS = {
-	"Prayer Request": "U10",
-}
+COLUMN_BUDGET_EXCEPTIONS = {}
 
 TEXT_COLUMN_EXCEPTIONS = {
 	"Belief.belief_statement": "U4",
 	"Church Task.notes": "U4",
-	"Missionary Status.description": "U4",
-	"Prayer Request.request": "U4",
 }
 
 REPEATED_COLUMN_EXCEPTIONS = {}
@@ -224,8 +220,6 @@ REPEATED_COLUMN_EXCEPTIONS = {}
 FILTER_BUDGET_EXCEPTIONS = {
 	"Bible Memory Item": "U10",
 	"Church Task": "U11",
-	"Missionary": "U10",
-	"Prayer Request": "U10",
 }
 
 DEFAULT_FILTER_EXCEPTIONS = {
@@ -243,14 +237,6 @@ ID_RULE_EXCEPTIONS = {
 	"Communication Consent": "U4",
 	"Form Response": "U4",
 	"Meeting Minutes": "U4",
-	"Missionary": "U4",
-	"Missionary Agency": "U4",
-	"Missionary Status": "U4",
-	"Missionary Support Frequency": "U4",
-	"Prayer": "U4",
-	"Prayer Request": "U4",
-	"Prayer Request Status": "U4",
-	"Prayer Request Type": "U4",
 	"Question Set": "U4",
 	"Room": "U4",
 	"Sermon": "U4",
@@ -262,7 +248,6 @@ STATUS_COLOR_EXCEPTIONS = {
 	"Communication Consent": "U4",
 	"Form Response": "U4",
 	"Meeting Minutes": "U4",
-	"Missionary": "U4",
 	"Room Booking": "U4",
 }
 
@@ -278,11 +263,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task Item.notes": "U4",
 	"Church Task.is_group": "U4",
 	"Church Task.notes": "U4",
-	"Missionary.geolocation": "U4",
-	"Missionary.publish": "U4",
-	"Prayer Request.recipient": "U4",
-	"Prayer Request.urgent": "U4",
-	"Prayer Topic.topic": "U4",
 	"Sermon Slide.notes": "U4",
 	"Sermon Slide.slide": "U4",
 	"Slide.content": "U4",
@@ -293,11 +273,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Church Asset": "U4",
 	"Church Task": "U4",
 	"Church Task Item": "U4",
-	"Missionary": "U4",
-	"Missionary Agency": "U4",
-	"Missionary Support Frequency": "U4",
-	"Prayer Request": "U4",
-	"Prayer Topic": "U4",
 	"Sermon Presentation": "U4",
 	"Sermon Slide": "U4",
 	"Slide": "U4",
@@ -307,8 +282,6 @@ SEARCH_FIELD_EXCEPTIONS = {
 	"Church Asset.location": "U11",
 	"Church Asset.notes": "U11",
 	"Church Task.notes": "U11",
-	"Prayer Request.recipient": "U10",
-	"Prayer.person": "U10",
 }
 
 SEARCH_COUNT_EXCEPTIONS = {}
@@ -323,14 +296,6 @@ SORT_EXCEPTIONS = {
 	"Communication Purpose": "U4",
 	"Follow-up Action Run": "a log of automation runs",
 	"Form Response": "U4",
-	"Missionary": "U4",
-	"Missionary Agency": "U4",
-	"Missionary Status": "U4",
-	"Missionary Support Frequency": "U4",
-	"Prayer": "U4",
-	"Prayer Request": "U4",
-	"Prayer Request Status": "U4",
-	"Prayer Request Type": "U4",
 	"Push Subscription": "U4",
 	"Question Set": "U4",
 	"Room": "U4",
@@ -362,8 +327,6 @@ LONG_HELP_EXCEPTIONS = {
 	"Bulletin Settings": "U10",
 	"Church Email": "U10",
 	"Communication Consent": "U10",
-	"Missionary": "U10",
-	"Prayer Request": "U10",
 	"Push Settings": "U10",
 	"Sermon": "U10",
 	"Sermon Handout": "U10",
@@ -382,7 +345,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 	"Bulletin.announcements": "U10",
 	"Bulletin.welcome": "U10",
 	"Church Email.message": "U10",
-	"Missionary.notes": "U10",
 	"Sermon Handout.content": "U10",
 	"Sermon Series.description": "U10",
 	"Sermon.notes": "U10",
@@ -397,8 +359,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
 	"Church Bulletin Sections": "U10",
-	"Missionary Person": "U10",
-	"Prayer Topic": "U10",
 	"Sermon Presentation": "U10",
 	"Sermon Slide": "U10",
 	"Slide": "U10",
@@ -418,6 +378,7 @@ COLLAPSIBLE_EXCEPTIONS = {
 # one-line description of what it holds.
 ROUTINE_COLLAPSED = {
 	"Bulletin.section_break_sections": "Print toggles that Bulletin Settings defaults, set once",
+	"Missionary.location_section": "The map pin, which choosing a country places",
 }
 
 # Doctype: why its Version rows may stay after Remove Personal Data. A gap line is a leak to close in

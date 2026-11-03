@@ -36,9 +36,6 @@ ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
 TOURS_OUT_OF_ORDER = {
 	"Family": "The Primary Contact is chosen from the members, so the tour asks for the members first",
 	"Bulletin": "U10",
-	"Missionary": "U10",
-	"Missionary Agency": "U10",
-	"Prayer Request": "U10",
 	"Sermon": "U10",
 	"Church Asset": "U11",
 	"Church Task": "U11",

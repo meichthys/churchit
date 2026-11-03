@@ -21,6 +21,12 @@ LINK_HOLDERS = "link holders"
 
 SITE_WIDE_SOURCE = {"title": "Every page (navbar, footer, app name)", "route": "", "access": PUBLIC}
 
+# Pages that show a Function's schedule, where a row shows the title of the record it links to.
+SCHEDULE_SOURCES = (
+	{"title": "Bulletins", "route": "bulletins", "access": MEMBERS},
+	{"title": "Ministry Team", "route": "ministry-team", "access": MEMBERS},
+)
+
 # A page that sends every guest to the login screen is the portal, not the public site.
 # A redirect gated on anything else (giving allows anonymous gifts) still serves guests.
 GUEST_REDIRECT = re.compile(
@@ -76,6 +82,21 @@ def published_entries():
 			for fieldname in fields_used_in(doctype, code, attributes):
 				yield source, doctype, fieldname
 	yield from web_form_entries()
+	yield from schedule_item_entries(doctypes)
+
+
+def schedule_item_entries(doctypes):
+	"""Yield the title field of each doctype that a Function's schedule links to, for the pages that show it.
+
+	`function.get_schedule_rows` reads the title through a doctype held in a variable, which the scan cannot see.
+	"""
+	linked = frappe.get_all(
+		"Function Schedule", filters={"item": ("is", "set")}, pluck="item_type", distinct=True
+	)
+	for doctype in set(linked) & doctypes:
+		if title_field := frappe.get_meta(doctype).title_field:
+			for source in SCHEDULE_SOURCES:
+				yield source, doctype, title_field
 
 
 def code_sources():

@@ -16,6 +16,7 @@ from churchit.church_website.published_fields import (
 	web_form_entries,
 	www_routes,
 )
+from churchit.tests.helpers import make_function, make_person
 
 
 def routes(published, doctype, fieldname):
@@ -112,6 +113,18 @@ class TestPublishedFields(FrappeTestCase):
 		published = published_field_map()
 		self.assertIn("personal-details", routes(published, "Person", "photo"))
 		self.assertIn("prayer-request", routes(published, "Prayer Request", "request"))
+
+	def test_the_title_of_a_record_on_a_function_schedule_is_members_only(self):
+		"""A schedule row shows the title of the record it links to, read through a doctype in a variable."""
+		person = make_person("_Test Schedule", "Intercessor").name
+		prayer = frappe.get_doc({"doctype": "Prayer", "person": person, "date": "2031-05-01"})
+		prayer.insert(ignore_permissions=True)
+		make_function("_Test Schedule Badge", schedule=[{"item_type": "Prayer", "item": prayer.name}])
+
+		sources = published_field_map()["Prayer"]["title"]
+
+		self.assertEqual({source["route"] for source in sources}, {"bulletins", "ministry-team"})
+		self.assertEqual({source["access"] for source in sources}, {MEMBERS})
 
 	def test_fields_read_through_an_included_template(self):
 		# /statements includes the statement body, which calls the statement_header jinja method.

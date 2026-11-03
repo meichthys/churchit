@@ -29,7 +29,7 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
    "reqd": 1,
@@ -50,7 +50,6 @@
    "default": "Now",
    "fieldname": "date",
    "fieldtype": "Datetime",
-   "in_list_view": 1,
    "label": "Date",
    "reqd": 1
   },
@@ -88,7 +87,7 @@
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-10-31 01:30:37.000000",
+ "modified": "2026-10-31 13:17:50.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer",
@@ -141,8 +140,8 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "content, person",
- "sort_field": "modified",
+ "search_fields": "content",
+ "sort_field": "date",
  "sort_order": "DESC",
  "show_title_field_in_link": 1,
  "states": [],
