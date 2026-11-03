@@ -26,7 +26,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Description"
   }
  ],
@@ -37,7 +36,7 @@
    "link_fieldname": "inactive_reason"
   }
  ],
- "modified": "2026-10-16 16:00:00.000000",
+ "modified": "2026-10-31 13:11:23.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Inactive Reason",
@@ -81,8 +80,8 @@
    "role": "Church Staff"
   }
  ],
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "reason",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "reason"
 }

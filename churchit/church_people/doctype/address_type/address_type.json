@@ -10,11 +10,11 @@
  "field_order": ["type", "description"],
  "fields": [
   {"fieldname": "type", "fieldtype": "Data", "label": "Type", "reqd": 1, "unique": 1, "in_list_view": 1},
-  {"fieldname": "description", "fieldtype": "Small Text", "label": "Description", "in_list_view": 1}
+  {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"}
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:11:11.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Address Type",
@@ -63,8 +63,8 @@
  "quick_entry": 1,
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "type",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "type"
 }

@@ -71,7 +71,8 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "To Church",
-   "options": "Church"
+   "options": "Church",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "approved_by",
@@ -95,12 +96,13 @@
   {
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "20rem"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-11-02 23:52:22.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Transfer",
@@ -146,6 +148,28 @@
  "row_format": "Dynamic",
  "sort_field": "letter_date",
  "sort_order": "DESC",
- "states": [],
- "title_field": "person"
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Requested"
+  },
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Blue",
+   "title": "Letter Issued"
+  },
+  {
+   "color": "Green",
+   "title": "Confirmed"
+  },
+  {
+   "color": "Gray",
+   "title": "Cancelled"
+  }
+ ],
+ "title_field": "person",
+ "track_changes": 1
 }

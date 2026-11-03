@@ -130,7 +130,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-31 01:53:52.000000",
+ "modified": "2026-10-31 13:12:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",
@@ -218,5 +218,6 @@
    "title": "Closed"
   }
  ],
- "title_field": "person"
+ "title_field": "person",
+ "track_changes": 1
 }

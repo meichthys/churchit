@@ -213,34 +213,22 @@ COLUMN_BUDGET_EXCEPTIONS = {
 }
 
 TEXT_COLUMN_EXCEPTIONS = {
-	"Address Type.description": "U4",
 	"Alms Request.description": "U4",
 	"Belief.belief_statement": "U4",
 	"Church Task.notes": "U4",
-	"Email Type.description": "U4",
 	"Expense.notes": "U4",
 	"Function Attendance Type.description": "U4",
 	"Function Check-In.notes": "U4",
 	"Function Sign-Up.notes": "U4",
 	"Function Type.description": "U4",
 	"Fund Transfer.notes": "U4",
-	"Inactive Reason.description": "U4",
-	"Marital Status.description": "U4",
-	"Member Status.description": "U4",
-	"Membership Type.description": "U4",
 	"Missionary Status.description": "U4",
-	"Person Relation Type.description": "U4",
-	"Phone Type.description": "U4",
-	"Position Type.description": "U4",
 	"Prayer Request.request": "U4",
 	"Sign-Up Item.description": "U4",
 }
 
 REPEATED_COLUMN_EXCEPTIONS = {
-	"Authorized Pickup.person": "U4",
-	"Background Check.person": "U4",
 	"Ministry Team Block.person": "U4",
-	"Pickup Restriction.child": "U4",
 }
 
 FILTER_BUDGET_EXCEPTIONS = {
@@ -251,7 +239,6 @@ FILTER_BUDGET_EXCEPTIONS = {
 	"Function": "U7",
 	"Missionary": "U10",
 	"Prayer Request": "U10",
-	"Visitation Log": "U9",
 }
 
 DEFAULT_FILTER_EXCEPTIONS = {
@@ -259,21 +246,16 @@ DEFAULT_FILTER_EXCEPTIONS = {
 }
 
 ID_RULE_EXCEPTIONS = {
-	"Address Type": "U4",
 	"Alms Request": "U4",
-	"Authorized Pickup": "U4",
-	"Background Check": "U4",
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
 	"Bulletin": "U4",
-	"Care Request Type": "U4",
 	"Case Type": "U4",
 	"Church": "U4",
 	"Church Email": "U4",
 	"Church Location": "U4",
 	"Church Task": "U4",
 	"Communication Consent": "U4",
-	"Email Type": "U4",
 	"Expense Type": "U4",
 	"Form Response": "U4",
 	"Function": "U4",
@@ -284,13 +266,7 @@ ID_RULE_EXCEPTIONS = {
 	"Fund": "U4",
 	"GL Account Mapping": "U4",
 	"Giving Statement": "U4",
-	"Inactive Reason": "U4",
-	"Life Event Type": "U4",
-	"Marital Status": "U4",
 	"Meeting Minutes": "U4",
-	"Member Status": "U4",
-	"Member Transfer": "U4",
-	"Membership Type": "U4",
 	"Ministry": "U4",
 	"Ministry Team Assignment": "U4",
 	"Ministry Team Block": "U4",
@@ -300,14 +276,8 @@ ID_RULE_EXCEPTIONS = {
 	"Missionary Status": "U4",
 	"Missionary Support Frequency": "U4",
 	"Payment Type": "U4",
-	"Person Note": "U4",
-	"Person Relation Type": "U4",
-	"Phone Type": "U4",
-	"Pickup Restriction": "U4",
 	"Pledge": "U4",
 	"Pledge Campaign": "U4",
-	"Position Type": "U4",
-	"Possible Duplicate": "U4",
 	"Prayer": "U4",
 	"Prayer Request": "U4",
 	"Prayer Request Status": "U4",
@@ -320,7 +290,6 @@ ID_RULE_EXCEPTIONS = {
 	"Sign-Up Item": "U4",
 	"Song": "U4",
 	"Vendor": "U4",
-	"Visit Type": "U4",
 }
 
 STATUS_COLOR_EXCEPTIONS = {
@@ -329,13 +298,11 @@ STATUS_COLOR_EXCEPTIONS = {
 	"Form Response": "U4",
 	"Function Sign-Up": "U4",
 	"Meeting Minutes": "U4",
-	"Member Transfer": "U4",
 	"Ministry": "U4",
 	"Ministry Team Assignment": "U4",
 	"Missionary": "U4",
 	"Online Donation": "U4",
 	"Room Booking": "U4",
-	"Visitation Log": "U4",
 }
 
 QUOTED_ID_EXCEPTIONS = {
@@ -373,7 +340,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Church Task Item": "U4",
 	"Expense": "U4",
 	"Expense Type": "U4",
-	"Family Members": "U4",
 	"Financial Transaction": "U4",
 	"Function Check-In": "U4",
 	"Function Schedule": "U4",
@@ -394,7 +360,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 }
 
 SEARCH_FIELD_EXCEPTIONS = {
-	"Authorized Pickup.family": "U9",
 	"Church Asset.location": "U11",
 	"Church Asset.notes": "U11",
 	"Church Task.notes": "U11",
@@ -405,13 +370,9 @@ SEARCH_FIELD_EXCEPTIONS = {
 SEARCH_COUNT_EXCEPTIONS = {}
 
 SORT_EXCEPTIONS = {
-	"Address Type": "U4",
 	"Alms Request": "U4",
-	"Background Check Type": "U4",
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
-	"Care Assignment": "U4",
-	"Care Request Type": "U4",
 	"Case Type": "U4",
 	"Church": "U4",
 	"Church Asset": "U4",
@@ -419,7 +380,6 @@ SORT_EXCEPTIONS = {
 	"Church Task": "U4",
 	"Collection": "U4",
 	"Communication Purpose": "U4",
-	"Email Type": "U4",
 	"Expense": "U4",
 	"Expense Type": "U4",
 	"Follow-up Action Run": "a log of automation runs",
@@ -432,11 +392,6 @@ SORT_EXCEPTIONS = {
 	"Fund": "U4",
 	"Fund Transfer": "U4",
 	"GL Account Mapping": "U4",
-	"Inactive Reason": "U4",
-	"Life Event Type": "U4",
-	"Marital Status": "U4",
-	"Member Status": "U4",
-	"Membership Type": "U4",
 	"Ministry": "U4",
 	"Ministry Team Assignment": "U4",
 	"Ministry Team Block": "U4",
@@ -445,11 +400,8 @@ SORT_EXCEPTIONS = {
 	"Missionary Agency": "U4",
 	"Missionary Status": "U4",
 	"Missionary Support Frequency": "U4",
-	"Note Category": "U4",
 	"Online Donation": "U4",
 	"Payment Type": "U4",
-	"Phone Type": "U4",
-	"Position Type": "U4",
 	"Prayer": "U4",
 	"Prayer Request": "U4",
 	"Prayer Request Status": "U4",
@@ -462,7 +414,6 @@ SORT_EXCEPTIONS = {
 	"Sign-Up Item": "U4",
 	"Song": "U4",
 	"Vendor": "U4",
-	"Visit Type": "U4",
 }
 
 # R2: form checks (UX roadmap U1). Each exception maps a doctype, or "Doctype.field", to its fixing phase.
@@ -515,13 +466,6 @@ LONG_HELP_EXCEPTIONS = {
 	"Online Donation": "U8",
 	"Payment Type": "U8",
 	"Pledge": "U8",
-	"Authorized Pickup": "U9",
-	"Background Check": "U9",
-	"Background Check Type": "U9",
-	"Family Members": "U9",
-	"Member Transfer": "U9",
-	"People Settings": "U9",
-	"Pickup Restriction": "U9",
 	"Bible Memory Item": "U10",
 	"Bible Translation": "U10",
 	"Bulletin": "U10",
@@ -549,9 +493,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 	"Church Budget.notes": "U8",
 	"Giving Settings.other_ways_to_give": "U8",
 	"Vendor.notes": "U8",
-	"Member Transfer.notes": "U9",
-	"Person Note.note": "U9",
-	"Visitation Log.notes": "U9",
 	"Bulletin.announcements": "U10",
 	"Bulletin.welcome": "U10",
 	"Church Email.message": "U10",
@@ -593,8 +534,6 @@ GRID_EXCEPTIONS = {
 	"Financial Transaction": "U8",
 	"Giving Gateway": "U8",
 	"Giving Statement Line": "U8",
-	"Family Members": "U9",
-	"Position": "U9",
 	"Church Bulletin Sections": "U10",
 	"Missionary Person": "U10",
 	"Prayer Topic": "U10",

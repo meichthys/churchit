@@ -17,17 +17,18 @@
    "fieldname": "member",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Family Member",
    "options": "Person",
-   "reqd": 1
+   "reqd": 1,
+   "columns": 4
   },
   {
    "fieldname": "relationship_to_primary_contact",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Relationship to Primary Contact",
-   "options": "Person Relation Type"
+   "options": "Person Relation Type",
+   "columns": 3
   },
   {
    "description": "Adult: a responsible adult of the household. Other Adult: lives here without authority over the children. Child: a dependent. Filled from the relationship and age when left blank.",
@@ -35,14 +36,16 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Household Role",
-   "options": "\nAdult\nOther Adult\nChild"
+   "options": "\nAdult\nOther Adult\nChild",
+   "columns": 3,
+   "show_description_on_click": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-16 16:00:00.000000",
+ "modified": "2026-10-31 13:12:47.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family Members",

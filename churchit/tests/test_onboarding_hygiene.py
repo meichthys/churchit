@@ -41,7 +41,6 @@ TOURS_OUT_OF_ORDER = {
 	"Budget": "U8",
 	"Expense": "U8",
 	"Fund": "U8",
-	"Visitation Log": "U9",
 	"Bulletin": "U10",
 	"Missionary": "U10",
 	"Missionary Agency": "U10",

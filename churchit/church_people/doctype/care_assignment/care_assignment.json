@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "CA-.####",
  "creation": "2026-05-29 00:00:00.000000",
- "description": "Maps a person to their assigned deacon / care team member.",
+ "description": "Maps a person to the caregiver who looks after them.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
@@ -22,9 +22,7 @@
    "fieldtype": "Link",
    "label": "Person",
    "options": "Person",
-   "reqd": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1
+   "reqd": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -40,7 +38,7 @@
   {
    "fieldname": "deacon",
    "fieldtype": "Link",
-   "label": "Deacon",
+   "label": "Caregiver",
    "options": "Person",
    "reqd": 1,
    "in_list_view": 1,
@@ -51,7 +49,8 @@
    "fieldtype": "Date",
    "label": "Start Date",
    "reqd": 1,
-   "default": "Today"
+   "default": "Today",
+   "in_list_view": 1
   },
   {
    "fieldname": "column_break_1",
@@ -74,7 +73,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:11:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Assignment",
@@ -119,7 +118,9 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
+ "sort_field": "start_date",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "person",
+ "track_changes": 1
 }

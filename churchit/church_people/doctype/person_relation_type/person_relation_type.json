@@ -25,7 +25,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Description"
   }
  ],
@@ -38,7 +37,7 @@
    "table_fieldname": "relationships"
   }
  ],
- "modified": "2026-10-27 09:13:26",
+ "modified": "2026-10-31 13:11:23.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Relation Type",

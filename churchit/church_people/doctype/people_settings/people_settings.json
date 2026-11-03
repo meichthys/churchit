@@ -24,7 +24,7 @@
  "fields": [
   {
    "default": "18",
-   "description": "A person without a household role is an Adult from this age, and a Child before it.",
+   "description": "Without a household role, a person is an Adult from this age, else a Child.",
    "fieldname": "adult_age",
    "fieldtype": "Int",
    "label": "Adult Age",
@@ -36,7 +36,8 @@
    "description": "How alike two people must be, from 0 to 100, before Churchit warns that a new person may already exist or lists them as a possible duplicate.",
    "fieldname": "match_threshold",
    "fieldtype": "Int",
-   "label": "Duplicate Match Threshold"
+   "label": "Duplicate Match Threshold",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "directory_section",
@@ -48,7 +49,8 @@
    "description": "Members see the people of their church on the Member Directory page in the portal. A person shows with only what they chose to share, and people who hide from the directory are left out.",
    "fieldname": "member_directory",
    "fieldtype": "Check",
-   "label": "Member Directory"
+   "label": "Member Directory",
+   "show_description_on_click": 1
   },
   {
    "default": "1",
@@ -73,7 +75,8 @@
    "description": "What a person added from now on shares until they change it. People already on file keep their own choice.",
    "fieldname": "directory_share_birthday",
    "fieldtype": "Check",
-   "label": "New People Show Their Birthday"
+   "label": "New People Show Their Birthday",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "school_section",
@@ -98,7 +101,8 @@
    "description": "Send the text of each new or changed church address, without a name, to the OpenStreetMap search service (Nominatim), so it shows on the Map of Addresses. Addresses linked to other records, such as ERPNext customers, suppliers or companies, are never sent. Turn this off to keep every address on this site. Addresses not on the map yet then stay off it.",
    "fieldname": "look_up_addresses",
    "fieldtype": "Check",
-   "label": "Look Up Addresses for the Map"
+   "label": "Look Up Addresses for the Map",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "retention_section",
@@ -111,13 +115,14 @@
    "fieldname": "remove_inactive_after_years",
    "fieldtype": "Int",
    "label": "Remove Personal Data After (Years Inactive)",
-   "non_negative": 1
+   "non_negative": 1,
+   "show_description_on_click": 1
   }
  ],
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 00:20:44.000000",
+ "modified": "2026-10-31 13:12:47.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People Settings",

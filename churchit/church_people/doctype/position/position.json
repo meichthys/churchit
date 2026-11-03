@@ -17,7 +17,8 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "Notes"
+   "label": "Notes",
+   "columns": 3
   },
   {
    "default": "Today",
@@ -26,14 +27,16 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Start Date",
-   "reqd": 1
+   "reqd": 1,
+   "columns": 2
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "End Date"
+   "label": "End Date",
+   "columns": 2
   },
   {
    "fieldname": "position",
@@ -42,14 +45,15 @@
    "in_standard_filter": 1,
    "label": "Position",
    "options": "Position Type",
-   "reqd": 1
+   "reqd": 1,
+   "columns": 4
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-14 13:04:54.188284",
+ "modified": "2026-11-02 23:11:31.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position",

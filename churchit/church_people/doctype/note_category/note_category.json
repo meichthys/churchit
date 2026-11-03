@@ -68,7 +68,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-17 21:00:00.000000",
+ "modified": "2026-10-31 13:20:48.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Note Category",
@@ -118,7 +118,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+ "sort_field": "category_name",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "category_name"
 }

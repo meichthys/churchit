@@ -23,7 +23,6 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
    "reqd": 1,
@@ -75,7 +74,8 @@
    "fieldname": "contact_method",
    "fieldtype": "Select",
    "label": "Contact",
-   "options": "\nCall\nVisit\nText\nEmail\nIn Person"
+   "options": "\nCall\nVisit\nText\nEmail\nIn Person",
+   "in_list_view": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -83,7 +83,8 @@
    "description": "Show this note at the top of the person's form.",
    "fieldname": "is_alert",
    "fieldtype": "Check",
-   "label": "Alert"
+   "label": "Alert",
+   "in_list_view": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -101,12 +102,13 @@
    "fieldname": "note",
    "fieldtype": "Text Editor",
    "label": "Note",
-   "reqd": 1
+   "reqd": 1,
+   "max_height": "20rem"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-11-02 23:52:34.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Note",
