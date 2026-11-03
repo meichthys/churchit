@@ -43,7 +43,8 @@
    "description": "Count what this church's branches spend as well as its own, for an organisation-wide budget.",
    "fieldname": "include_branches",
    "fieldtype": "Check",
-   "label": "Include Branch Churches"
+   "label": "Include Branch Churches",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "end_date",
@@ -60,7 +61,6 @@
    "fieldname": "budgeted_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Total Budgeted",
    "read_only": 1
   },
@@ -77,28 +77,31 @@
   },
   {
    "fieldname": "section_break_lines",
-   "fieldtype": "Section Break",
-   "label": "Expense Lines"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "lines",
    "fieldtype": "Table",
-   "label": "Lines",
+   "label": "Expense Lines",
    "options": "Budget Line"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.notes",
    "fieldname": "section_break_notes",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Notes"
   },
   {
    "fieldname": "notes",
    "fieldtype": "Text",
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "12rem"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-30 23:50:39.000000",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Church Budget",
@@ -145,5 +148,6 @@
  "row_format": "Dynamic",
  "sort_field": "start_date",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

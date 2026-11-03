@@ -213,11 +213,8 @@ COLUMN_BUDGET_EXCEPTIONS = {
 }
 
 TEXT_COLUMN_EXCEPTIONS = {
-	"Alms Request.description": "U4",
 	"Belief.belief_statement": "U4",
 	"Church Task.notes": "U4",
-	"Expense.notes": "U4",
-	"Fund Transfer.notes": "U4",
 	"Missionary Status.description": "U4",
 	"Prayer Request.request": "U4",
 }
@@ -225,10 +222,8 @@ TEXT_COLUMN_EXCEPTIONS = {
 REPEATED_COLUMN_EXCEPTIONS = {}
 
 FILTER_BUDGET_EXCEPTIONS = {
-	"Alms Request": "U8",
 	"Bible Memory Item": "U10",
 	"Church Task": "U11",
-	"Expense": "U8",
 	"Missionary": "U10",
 	"Prayer Request": "U10",
 }
@@ -238,7 +233,6 @@ DEFAULT_FILTER_EXCEPTIONS = {
 }
 
 ID_RULE_EXCEPTIONS = {
-	"Alms Request": "U4",
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
 	"Bulletin": "U4",
@@ -247,10 +241,7 @@ ID_RULE_EXCEPTIONS = {
 	"Church Location": "U4",
 	"Church Task": "U4",
 	"Communication Consent": "U4",
-	"Expense Type": "U4",
 	"Form Response": "U4",
-	"Fund": "U4",
-	"GL Account Mapping": "U4",
 	"Meeting Minutes": "U4",
 	"Missionary": "U4",
 	"Missionary Agency": "U4",
@@ -265,7 +256,6 @@ ID_RULE_EXCEPTIONS = {
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
 	"Sermon Series": "U4",
-	"Vendor": "U4",
 }
 
 STATUS_COLOR_EXCEPTIONS = {
@@ -281,7 +271,6 @@ QUOTED_ID_EXCEPTIONS = {
 }
 
 PREVIEW_FIELD_EXCEPTIONS = {
-	"Alms Request.recipient": "U4",
 	"Church Asset.notes": "U4",
 	"Church Location.geolocation": "U4",
 	"Church Task Item.completed": "U4",
@@ -289,8 +278,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task Item.notes": "U4",
 	"Church Task.is_group": "U4",
 	"Church Task.notes": "U4",
-	"Financial Transaction.source": "U4",
-	"Fund.allow_giving": "U4",
 	"Missionary.geolocation": "U4",
 	"Missionary.publish": "U4",
 	"Prayer Request.recipient": "U4",
@@ -304,14 +291,8 @@ PREVIEW_FIELD_EXCEPTIONS = {
 PREVIEW_POPUP_EXCEPTIONS = {
 	"Belief": "U4",
 	"Church Asset": "U4",
-	"Church Budget": "U4",
 	"Church Task": "U4",
 	"Church Task Item": "U4",
-	"Expense": "U4",
-	"Expense Type": "U4",
-	"Financial Transaction": "U4",
-	"Fund": "U4",
-	"Fund Transfer": "U4",
 	"Missionary": "U4",
 	"Missionary Agency": "U4",
 	"Missionary Support Frequency": "U4",
@@ -333,7 +314,6 @@ SEARCH_FIELD_EXCEPTIONS = {
 SEARCH_COUNT_EXCEPTIONS = {}
 
 SORT_EXCEPTIONS = {
-	"Alms Request": "U4",
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
 	"Church": "U4",
@@ -341,13 +321,8 @@ SORT_EXCEPTIONS = {
 	"Church Location": "U4",
 	"Church Task": "U4",
 	"Communication Purpose": "U4",
-	"Expense": "U4",
-	"Expense Type": "U4",
 	"Follow-up Action Run": "a log of automation runs",
 	"Form Response": "U4",
-	"Fund": "U4",
-	"Fund Transfer": "U4",
-	"GL Account Mapping": "U4",
 	"Missionary": "U4",
 	"Missionary Agency": "U4",
 	"Missionary Status": "U4",
@@ -361,7 +336,6 @@ SORT_EXCEPTIONS = {
 	"Room": "U4",
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
-	"Vendor": "U4",
 }
 
 # R2: form checks (UX roadmap U1). Each exception maps a doctype, or "Doctype.field", to its fixing phase.
@@ -382,11 +356,6 @@ GRID_COLUMN_WIDTHS = range(1, 13)
 
 # Doctype: a field help over 80 characters without the (i) icon, or a section or table help over 120.
 LONG_HELP_EXCEPTIONS = {
-	"Alms Request": "U8",
-	"Church Budget": "U8",
-	"Expense": "U8",
-	"Fund": "U8",
-	"GL Account Mapping": "U8",
 	"Bible Memory Item": "U10",
 	"Bible Translation": "U10",
 	"Bulletin": "U10",
@@ -410,8 +379,6 @@ LONG_HELP_EXCEPTIONS = {
 
 # Doctype.fieldname: a text field on the first tab without max_height.
 TEXT_HEIGHT_EXCEPTIONS = {
-	"Church Budget.notes": "U8",
-	"Vendor.notes": "U8",
 	"Bulletin.announcements": "U10",
 	"Bulletin.welcome": "U10",
 	"Church Email.message": "U10",
@@ -429,8 +396,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
-	"Budget Line": "U8",
-	"Financial Transaction": "U8",
 	"Church Bulletin Sections": "U10",
 	"Missionary Person": "U10",
 	"Prayer Topic": "U10",

@@ -14,9 +14,7 @@ from churchit.church_scope import (
 
 class FundTransfer(Document):
 	def before_save(self):
-		fund_part = f"{self.from_fund or ''} to {self.to_fund or ''}".strip()
-		parts = [fund_part, str(self.date or "")]
-		self.title = " - ".join(p for p in parts if p)
+		self.title = get_title(self.from_fund, self.to_fund)
 
 	def validate(self):
 		if self.from_fund == self.to_fund:
@@ -77,3 +75,9 @@ class FundTransfer(Document):
 			f"{get_link_to_form('Fund', self.from_fund, from_label)} to "
 			f"{get_link_to_form('Fund', self.to_fund, to_label)}."
 		)
+
+
+def get_title(from_fund: str, to_fund: str) -> str:
+	"""'General to Building', from the names of the two funds."""
+	names = dict(frappe.db.get_values("Fund", {"name": ("in", [from_fund, to_fund])}, ["name", "fund"]))
+	return f"{names.get(from_fund) or from_fund} to {names.get(to_fund) or to_fund}"

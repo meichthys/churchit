@@ -12,6 +12,9 @@ from frappe.tests.utils import FrappeTestCase
 from churchit.church_finances.doctype.alms_request.alms_request import create_expense
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.note_category.note_category import BENEVOLENCE
+from churchit.church_people.privacy import ANONYMIZED, anonymize
+from churchit.church_people.test_merge import make_family
+from churchit.patches.v1_0 import retitle_alms_requests
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -49,11 +52,6 @@ class TestAlmsRequest(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-	def test_title_combines_recipient_amount_and_status(self):
-		alms = self._make_request(amount=250)
-		self.assertIn("250", alms.title)
-		self.assertIn("Approved", alms.title)
-
 	def test_create_expense_requires_an_amount(self):
 		alms = self._make_request(expense_type=self.expense_type)
 		with self.assertRaises(ValidationError):
@@ -74,6 +72,8 @@ class TestAlmsRequest(FrappeTestCase):
 		self.assertEqual(expense.amount, 100)
 		self.assertEqual(expense.type, self.expense_type)
 		self.assertEqual(expense.docstatus, 1)
+		# No Expense links to the recipient, so Remove Personal Data could not reach a name there.
+		self.assertEqual(expense.title, f"Alms Request {alms.name}")
 
 	def test_failed_create_expense_leaves_no_link(self):
 		alms = self._make_request(amount=100)
@@ -93,6 +93,100 @@ class TestAlmsRequest(FrappeTestCase):
 			execute_cmd("churchit.church_finances.doctype.alms_request.alms_request.create_expense")
 
 		self.assertFalse(frappe.db.get_value("Alms Request", alms.name, "associated_expense"))
+
+
+class TestAlmsRequestTitle(RollbackEachTest):
+	"""The title is the recipient's name: the amount and status have their own columns."""
+
+	def make_request(self, recipient, requestor):
+		return frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": recipient,
+				"requestor": requestor,
+				"description": "_Test alms title",
+				"amount": 200,
+				"status": "Approved",
+			}
+		).insert(ignore_permissions=True)
+
+	def test_the_title_is_the_recipients_name(self):
+		recipient = make_person("_Test Alms", "Recipient")
+		alms = self.make_request(recipient.name, make_person("_Test Alms", "Deacon").name)
+
+		self.assertEqual(alms.title, "_Test Alms Recipient")
+
+	def test_the_patch_retitles_an_old_request_and_its_expense_and_can_run_again(self):
+		recipient = make_person("_Test Alms", "Retitled")
+		alms = self.make_request(recipient.name, recipient.name)
+		frappe.db.set_value("Alms Request", alms.name, "title", "_Test Alms Retitled - 200 - Approved")
+		expense = frappe.get_doc(
+			{"doctype": "Expense", "title": "Alms: _Test Alms Retitled - 200 - Approved", "amount": 200}
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+		frappe.db.set_value("Alms Request", alms.name, "associated_expense", expense.name)
+
+		retitle_alms_requests.execute()
+		retitle_alms_requests.execute()
+
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "title"), "_Test Alms Retitled")
+		self.assertEqual(frappe.db.get_value("Expense", expense.name, "title"), f"Alms Request {alms.name}")
+
+	def test_removing_the_recipients_personal_data_leaves_no_name_in_the_title(self):
+		recipient = make_person("_Test Alms", "Forgotten")
+		alms = self.make_request(recipient.name, make_person("_Test Alms", "Deacon").name)
+
+		anonymize(recipient.name)
+
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "title"), ANONYMIZED)
+
+	def make_family_request(self, *members):
+		"""A request first for someone else, then changed to the family of *members*, so its history names it."""
+		family = make_family("_Test Kin - _Test Alms Anne", *members)
+		alms = self.make_request(
+			make_person("_Test Alms", "Other").name, make_person("_Test Alms", "Deacon").name
+		)
+		alms.update({"recipient_type": "Family", "recipient": family.name})
+		# Frappe skips Version rows in tests unless a save asks for them.
+		alms.save(ignore_permissions=True, ignore_version=False)
+		self.assertEqual(alms.title, "_Test Kin - _Test Alms Anne")
+		return alms
+
+	def get_history(self, alms) -> str:
+		return "".join(
+			frappe.get_all("Version", {"ref_doctype": "Alms Request", "docname": alms.name}, pluck="data")
+		)
+
+	def test_a_family_that_keeps_members_loses_the_first_name_from_its_requests(self):
+		person = make_person("_Test Alms Anne", "_Test Kin")
+		alms = self.make_family_request(person, make_person("_Test Alms Wife", "_Test Kin"))
+
+		anonymize(person.name)
+
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "title"), "_Test Kin")
+		self.assertNotIn("_Test Alms Anne", self.get_history(alms))
+
+	def test_a_family_with_no_one_left_is_anonymized_on_its_requests(self):
+		person = make_person("_Test Alms Anne", "_Test Kin")
+		alms = self.make_family_request(person)
+
+		anonymize(person.name)
+
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "title"), ANONYMIZED)
+		self.assertNotIn("_Test Alms Anne", self.get_history(alms))
+
+	def test_removing_the_recipients_personal_data_leaves_no_name_in_the_history(self):
+		recipient = make_person("_Test Alms", "Moved")
+		alms = self.make_request(recipient.name, make_person("_Test Alms", "Deacon").name)
+		alms.description = "Rent for _Test Alms Moved"
+		# Frappe skips Version rows in tests unless a save asks for them.
+		alms.save(ignore_permissions=True, ignore_version=False)
+		history = {"ref_doctype": "Alms Request", "docname": alms.name}
+		self.assertIn("_Test Alms Moved", "".join(frappe.get_all("Version", history, pluck="data")))
+
+		anonymize(recipient.name)
+
+		self.assertNotIn("_Test Alms Moved", "".join(frappe.get_all("Version", history, pluck="data")))
 
 
 class TestAlmsRequestAcrossChurches(RollbackEachTest):

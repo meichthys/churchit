@@ -35,9 +35,6 @@ ONBOARDINGS_NOT_ON_A_WORKSPACE = {}
 # or the reason the work goes in another order. U13 puts 'Take the Tour' on every form with a tour, so it reorders the tours of forms no other phase changes.
 TOURS_OUT_OF_ORDER = {
 	"Family": "The Primary Contact is chosen from the members, so the tour asks for the members first",
-	"Budget": "U8",
-	"Expense": "U8",
-	"Fund": "U8",
 	"Bulletin": "U10",
 	"Missionary": "U10",
 	"Missionary Agency": "U10",

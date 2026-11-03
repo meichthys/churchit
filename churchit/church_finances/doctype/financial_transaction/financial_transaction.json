@@ -8,53 +8,54 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "amount",
+  "date",
   "source_type",
   "source",
-  "date",
+  "amount",
   "notes"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Amount",
    "reqd": 1
   },
   {
+   "columns": 3,
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Notes"
   },
   {
+   "columns": 3,
    "fieldname": "source_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Source Type",
    "options": "DocType",
    "reqd": 1
   },
   {
+   "columns": 4,
    "fieldname": "source",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Source",
    "options": "source_type",
    "reqd": 1
   },
   {
+   "columns": 4,
    "fieldname": "date",
    "fieldtype": "Datetime",
    "in_list_view": 1,
@@ -66,7 +67,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-13 23:57:45.821416",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Financial Transaction",

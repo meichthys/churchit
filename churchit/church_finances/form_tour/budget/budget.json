@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-29 23:30:30.000000",
+ "modified": "2026-10-31 13:16:12.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Budget",
@@ -35,6 +35,24 @@
    "ui_tour": 0
   },
   {
+   "description": "Summed from the expense lines below as you type them. Once the budget is saved, a Status section under it shows the actual spend, the percent used and what is left.",
+   "fieldname": "budgeted_amount",
+   "fieldtype": "Currency",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Total Budgeted",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Total Budgeted",
+   "ui_tour": 0
+  },
+  {
    "description": "One line per Expense Type, with what you plan to spend. <b>Add All Expense Types</b> in the grid menu starts you from the full list. Actuals are matched to a line by Expense Type, so a type you leave out is not tracked, and a parent type already includes its children, so budgeting both counts that spending twice.<br><br><b>Add at least one line to continue.</b>",
    "fieldname": "lines",
    "fieldtype": "Table",
@@ -50,24 +68,6 @@
    "popover_element": 0,
    "position": "Top",
    "title": "Expense Lines",
-   "ui_tour": 0
-  },
-  {
-   "description": "Summed from the lines as you type them. Once the budget is saved, a Status section appears above it with the actual spend, the percent used and what is left.",
-   "fieldname": "budgeted_amount",
-   "fieldtype": "Currency",
-   "has_next_condition": 0,
-   "hide_buttons": 0,
-   "is_table_field": 0,
-   "label": "Total Budgeted",
-   "modal_trigger": 0,
-   "next_on_click": 0,
-   "next_step_condition": "",
-   "offset_x": 0,
-   "offset_y": 0,
-   "popover_element": 0,
-   "position": "Bottom",
-   "title": "Total Budgeted",
    "ui_tour": 0
   }
  ],

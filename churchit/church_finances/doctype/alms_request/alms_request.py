@@ -50,17 +50,23 @@ class AlmsRequest(Document):
 		validate_members_recipient(self)
 
 	def before_save(self):
-		# Set the alms request title
-		recipient_label = self.recipient or ""
-		if self.recipient and self.recipient_type:
-			meta = frappe.get_meta(self.recipient_type)
-			if meta.title_field:
-				recipient_label = (
-					frappe.db.get_value(self.recipient_type, self.recipient, meta.title_field)
-					or self.recipient
-				)
-		parts = [recipient_label, str(self.amount or ""), self.status or ""]
-		self.title = " - ".join(p for p in parts if p)
+		self.title = get_recipient_name(self.recipient_type, self.recipient)
+
+
+def get_recipient_name(recipient_type: str | None, recipient: str | None) -> str | None:
+	"""The recipient's title, such as a person's full name, which is the request's title.
+
+	Anonymizing writes Anonymized over a person's full name in this stored copy.
+	"""
+	if not recipient or not recipient_type:
+		return recipient
+	title_field = frappe.get_meta(recipient_type).title_field
+	return (title_field and frappe.db.get_value(recipient_type, recipient, title_field)) or recipient
+
+
+def get_expense_title(alms_request: str) -> str:
+	"""The title of the Expense that pays *alms_request*: its ID, never the recipient, whom no Expense links to."""
+	return _("Alms Request {0}").format(alms_request)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -76,7 +82,7 @@ def create_expense(alms_request_name: str):
 	if not alms.expense_type:
 		frappe.throw(_("⚠️ An expense type is required for an expense to be created."))
 	expense = frappe.new_doc("Expense")
-	expense.title = f"Alms: {alms.title}"
+	expense.title = get_expense_title(alms.name)
 	expense.amount = alms.amount
 	expense.type = alms.expense_type
 	expense.date = frappe.utils.now()

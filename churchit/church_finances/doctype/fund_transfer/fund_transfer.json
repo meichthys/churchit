@@ -37,8 +37,6 @@
    "fieldname": "from_fund",
    "fieldtype": "Link",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "From Fund",
    "options": "Fund",
@@ -60,8 +58,6 @@
    "fieldname": "to_fund",
    "fieldtype": "Link",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "To Fund",
    "options": "Fund",
@@ -79,7 +75,6 @@
   {
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "in_preview": 1,
    "label": "Notes"
   },
@@ -115,7 +110,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:44:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund Transfer",
@@ -167,9 +162,11 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }
