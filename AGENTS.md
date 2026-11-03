@@ -552,7 +552,9 @@ Every field a page shows carries a badge on its desk form, worked out by scannin
 themselves (`church_website/published_fields.py`). Nothing is declared by hand: a new www page,
 published Web Page, Web Form or guest endpoint is picked up, and so are the helpers, jinja methods
 and included templates it calls. The scan finds a read by the doctype it names as a string, so pass
-doctypes to `frappe.get_all` and similar calls as literals. It also counts an import path such as
+doctypes to `frappe.get_all` and similar calls as literals. A Function's schedule row shows the
+title of whatever record it links to, so `schedule_item_entries` badges the title field of each
+doctype that a schedule row names, as members-only. It also counts an import path such as
 `churchit.church_people.membership` as a read of the field `membership`, so a badge can name a
 field the page does not show.
 
@@ -766,6 +768,18 @@ refuses a document whose debits and credits differ, lists every missing mapping 
 and names a source document by its doctype and name only. Do not add a title or a person to the
 memo: an Expense title can hold a person's name.
 
+A Collection's title is its day and its Function's name, such as 2026-10-20 Sunday Worship
+(`collection.get_title`, set in `before_save`). The day comes first so that a narrow list column
+does not cut it. A stored title that holds a day writes it as ISO, here and in the Prayer and
+Weekly Metrics titles, so it reads the same after a church changes its date format. An Online
+Donation's title is `donor_name`: Remove Personal Data rewrites it and removes the Version rows of
+the gift. A Fund Transfer is titled with the names of its funds,
+'General to Building' (`fund_transfer.get_title`), and an Alms Request with its recipient's name
+(`alms_request.get_recipient_name`), a stored copy that Remove Personal Data writes Anonymized over
+like any copy of a full name. The Expense that Create Expense makes is titled with the request's
+ID, such as 'Alms Request ALMS-0002' (`alms_request.get_expense_title`), because no Expense links to
+the recipient, so Remove Personal Data could not find a name there.
+
 ## Integrations
 
 A connector to another system uses Frappe's doctypes, hooks and APIs as they are designed, and stays
@@ -858,6 +872,23 @@ replaces `MapView.setup_view` (see the next section).
 - **Kanban v2 keeps only the new column from a card move**, and ignores its own realtime update for
   that card. A doctype whose save changes other card fields reloads the board in its
   `<doctype>_kanban.js` `onAfterCardMove`, as `follow_up_card_kanban.js` does.
+- **Frappe's calendar draws a Date field as an all-day entry.** The Function calendar
+  (`function_calendar.js`) reads `function.get_calendar_events`, which puts each function's start
+  and end time into Start Date and End Date. A drag or resize goes through `move_on_calendar`, which
+  keeps All Day as it is. Frappe sends all_day for any entry that lasts exactly 24 hours, so a timed
+  entry dropped on the all-day row arrives as a 24 hour all-day entry: `move_on_calendar` then moves
+  only its day and keeps its times. Frappe also converts every timed entry from the system time zone
+  to the user's time zone. Both methods keep the real fieldnames in `field_map`, so selecting a time
+  range still starts a new Function on that date.
+- **A standard Kanban Board ships in `<module>/doctype/<doctype>/kanban_board/<name>.json`**, the
+  only path Frappe 16.54 syncs. It needs `is_standard` Yes, a `module`, `use_kanban_v2` and
+  `private` 0, or Frappe refuses it. A site that already has a non-standard board of the same name
+  keeps its own. A card sits in the column that has its status as name, so a status with no column
+  leaves its cards off the board (Care Requests keeps Closed as an Archived column on purpose). A
+  card move saves only the status through `frappe.client.set_value`, so the controller runs. On a
+  developer-mode site, saving the board record rewrites its file. `tests/test_boards_and_tours.py`
+  checks the two shipped boards, Care Requests and Church Tasks, which the 'Care Board' and 'Tasks
+  Board' shortcuts open.
 - **A web form puts the records of its Link fields into the page**, hidden fields included: every
   record on a guest form or with Allow Read On All Link Options, else the records the user owns. So
   a guest form's hidden `church` field is Data, not Link, and a member form does not link to Person
@@ -947,6 +978,14 @@ replaces `MapView.setup_view` (see the next section).
   commit, because a write after the commit breaks a following `sql_ddl`. A test deletes the rows it
   made (`test_global_search.forget_search_rows`). MariaDB indexes only whole
   words of 4 letters or more (`ft_min_word_len`).
+- **A changed `_list.js` of an existing doctype shows only after `clear-cache` or a migrate.**
+  Frappe keeps the list script in the doctype meta.
+- **A tree with exactly one top-level record draws it as the root by its ID, not its title**
+  (`treeview.js get_root`). So `church_location_tree.js` sets `get_tree_root` off and roots the tree
+  at 'All Locations' (`root_value` "", the top level of the default `get_children`).
+- **A Single shows no `placeholder` on a Data, Link, Dynamic Link, Password, Select or Read Only
+  field.** In Frappe 16.54 `ControlData.set_input_attributes` returns early on a Single before it
+  sets the placeholder. On a settings doctype, put a short example in the help instead.
 
 ## Testing
 
@@ -1064,6 +1103,16 @@ review:
 - **Tour steps follow the order of the form.** A step that sits above the previous one makes the
   user look back up the form. Reorder the steps when you move fields
   (`test_tour_steps_follow_the_order_of_the_form`).
+- **One script adds 'Take the Tour'.** `public/js/help_icon_on_form.js` puts it in the '...' menu of
+  every form that has a standard Form Tour, found by the tour's `reference_doctype`, because a tour
+  name can differ from its doctype (Budget, Email Account Setup). Frappe 16.54 lists no tours at
+  boot, so the script asks once per page load. Do not add a menu item for a tour in a doctype's own
+  script, and give a doctype one tour (`tests/test_boards_and_tours.py`). Set `include_name_field`
+  only for a doctype named by Prompt: on a doctype named by a field, the hidden name field leaves
+  the tour with nothing to show at its first step
+  (`test_a_tour_asks_for_a_name_only_where_the_form_has_a_name_field`). A tour step that points at a
+  field behind `depends_on` stalls the tour when the user does not tick the switch. Put the hint in
+  the step of the switch instead (Email Account Setup).
 
 `Onboarding Step` carries no `module` field. A step belongs to the module folder it ships in, and its
 name is global across every app, so name it after the doctype and do not prefix it.
@@ -1075,17 +1124,18 @@ one module knows them all. Use a Frappe setting first. Use a form script or a ho
 setting does the job, and give the reason in the change. Most rules have a ratchet check: a test
 with a list of today's exceptions. When you fix an exception, delete it from the list. The check
 fails on a new violation and on an exception that is no longer needed, so the lists only get
-shorter. The value of an exception is the UX roadmap phase that fixes it: U4 is the list sweep, U6
-the other sidebars and workspaces, U7 to U11 the module phases and U13 the tours. Every ratchet uses
+shorter. The value of an exception is the reason it stays. Every ratchet uses
 `assert_list_ratchet` in `tests/test_desk_ui_hygiene.py`.
 
 ### Lists
 
 - Show the title, a status pill and 4 fields that answer the list's question. Up to 2 more fields
   can follow, so 6 `in_list_view` fields at most (`test_list_columns_stay_within_the_budget`). A
-  phone shows only the first 2 fields, so put the 2 that matter most first. List columns follow the
-  form's `field_order`: to move a column up, move the field up the form. A hidden field in the
-  header section is fine.
+  phone shows 2 field columns. With a status pill these are fields 1 and 2. Without a pill they are
+  fields 2 and 3, because Frappe draws columns 4 and 5 of the row (`ListView.get_left_html`), so the
+  first field never shows on a phone: Person Note hides its Category there. On a list with no pill,
+  put the field that matters least first. List columns follow the form's `field_order`: to move a
+  column up, move the field up the form. A hidden field in the header section is fine.
 - No Text, Small Text, Long Text, Text Editor, HTML Editor, Markdown Editor, Code, Table, Table
   MultiSelect or Geolocation column (`test_lists_have_no_text_columns`). No Link column whose
   `fetch_from` fills the title, because the subject shows it. The desk leaves the title field itself
@@ -1102,6 +1152,10 @@ the other sidebars and workspaces, U7 to U11 the module phases and U13 the tours
   (`test_lists_with_a_title_hide_the_id`). Address keeps its ID column too, because the ID (address
   title and type) says whose address it is, and hiding it would need a list script that also changes
   ERPNext's Address list. A list that starts with an ID or a hash gets a title field.
+- A title field adds its own filter box, so do not also set `in_standard_filter` on the Link that
+  fills the title (Background Check, Authorized Pickup, Pickup Restriction and Person Note have a
+  Link and a `*_name` title). A lookup named by one field (autoname `field:`) sets `title_field` to
+  that field, so its column and filter read 'Type' or 'Skill', not 'ID'.
 - A print format or a notification of a doctype that hides its ID shows the title, not `doc.name`
   (`test_prints_and_notifications_never_quote_a_hidden_id`).
 
@@ -1110,7 +1164,13 @@ the other sidebars and workspaces, U7 to U11 the module phases and U13 the tours
 A field named `status` gets its colors from the DocType `states`. They show in the list, the form
 header and quick lists with no script. A status that other fields decide (dates, checkboxes), or a
 status field with another name such as Person `membership_status`, gets a `get_indicator` in
-`<doctype>_list.js`. Each state title must be an option of the field. For a Link status (Group,
+`<doctype>_list.js`. Care Assignment shows Upcoming (blue, before Start Date), Current (green) or
+Ended (gray, after End Date) this way, and Pickup Restriction shows Active or Ended from Valid
+Until. A click on the pill saves one filter, and one filter cannot
+say 'no end date, or an end date in the future'. So Ended is `end_date,is,set|end_date,<,Today` (a
+plain `<` also matches an empty date, because Frappe compares `ifnull(date, '0001-01-01')`), and
+Current or Active selects only the records with no end date. Each state title must be an option of
+the field. For a Link status (Group,
 Missionary, Prayer Request) the options are the records the app seeds, so a renamed status record
 loses its color. `test_every_status_has_a_color` and
 `test_every_state_title_is_an_option_of_its_field` check this. Take the color from this table:
@@ -1130,15 +1190,20 @@ loses its color. `test_every_status_has_a_color` and
 - Sort dated records by their own date, newest first. Sort a work queue by due date, soonest first,
   and a directory by name. Never sort by `modified`, except on a log
   (`test_lists_never_sort_by_modified`).
+- `frappe.get_list` with no `order_by` sorts by the doctype's `sort_field`, so a page that reads
+  records that way changes order with the list. The Beliefs page lists beliefs as the Belief list
+  does: by `creation`, oldest first, which is the order a church writes its statement of faith. This
+  is the one list that is not newest first or by name.
 - A work queue opens on its own filter, set as `filters` in `listview_settings`. Care Request
-  (unfinished) and Room Booking (not Denied or Cancelled) do this today. Group Join Request
-  (Requested) and Follow-up Card (Open) get their filter in UX roadmap phase U9, and Room Booking
-  changes to Requested in U11. The field of that filter is not also a standard filter: Frappe keeps
-  the default filter and adds the standard filter on top, so Care Request with Status = Resolved
-  would be empty. The status pill (a click replaces the default filter) and the Filters popover
-  cover it (`test_default_list_filters_are_not_standard_filters`). An `=` filter is the exception:
-  Frappe puts it in the standard filter box, where the user changes or clears it. The Person list
-  opens on Status = Active this way.
+  (unfinished), Group Join Request (Requested), Follow-up Card (Open), Church Task (not Completed)
+  and Room Booking (not Denied or Cancelled) do this today. Room Booking does not filter on
+  Requested, because its calendar view starts with the same `filters` and the calendar would lose
+  the approved bookings; the Booking Requests report is its queue. The field of that filter is not
+  also a standard filter: Frappe keeps the default filter and adds the standard filter on top, so
+  Care Request with Status = Resolved would be empty. The status pill (a click replaces the default
+  filter) and the Filters popover cover it (`test_default_list_filters_are_not_standard_filters`).
+  An `=` filter is the exception: Frappe puts it in the standard filter box, where the user changes
+  or clears it. The Person list opens on Status = Active this way.
 - Frappe saves each user's last filters and sort on every list they open, and these win over
   `sort_field` and the `listview_settings` filters. An empty saved filter list wins too. So a change
   to a list's columns, filters or sort ships a v1_0 patch that calls
@@ -1205,20 +1270,27 @@ loses its color. `test_every_status_has_a_color` and
   Put an example in `placeholder`.
 - A Text, Long Text, Text Editor, HTML Editor, Markdown Editor or Code field on the first tab sets
   `max_height`, such as 12rem. Small Text is left out, because its box is only 150px
-  (`test_first_tab_text_fields_have_a_max_height`).
+  (`test_first_tab_text_fields_have_a_max_height`). A Text Editor draws a 300px editor inside its
+  box, so give it a `max_height` of 20rem or more. A smaller cap puts a scrolling box around a
+  scrolling editor and cuts off the bottom of the editor.
 - A form has 2 top-level custom buttons at most. Record actions go in the 'Actions' group and
   reports about the record in 'View' (the group argument of `add_custom_button`). Tours and rare or
   destructive items go in the '...' menu. Hide a button that cannot work yet.
 - Group the Connections links. A group label never repeats a section label of the same form.
-- Set `track_changes` on documents that staff edit, and `ignore_version` on automatic saves. Never
-  set `timeline_field`, which shows nothing in Frappe 16.54 (`test_doctypes_set_no_timeline_field`).
+- Set `track_changes` on documents that staff edit, and `ignore_version` on automatic saves, but not
+  on Counseling Case or Person Note: a Version row keeps the old text of a changed or deleted note,
+  and a counselor who deletes a note expects it gone. Never set `timeline_field`, which shows nothing in Frappe 16.54 (`test_doctypes_set_no_timeline_field`).
   `track_views` stays on Person and Prayer Request only, where the 'viewed' rows are an audit of who
   read the record (`test_track_views_only_where_an_audit_is_needed`). A tracked doctype that links
-  to a Person must lose that person's name from its Version rows when Remove Personal Data runs
-  (`test_tracked_records_about_a_person_are_forgotten_with_them`). A doctype that does not yet do
-  this sits in `PERSON_HISTORY_EXCEPTIONS` with the reason, and a gap line there is a leak to close
-  in `church_people/privacy.py`. Delete the line when you close the leak
-  (`church_people/test_privacy_history.py` checks Family and Collection by behavior).
+  to a Person must lose that person's name and email from its Version rows when Remove Personal
+  Data runs (`test_tracked_records_about_a_person_are_forgotten_with_them`). A Version row shows a
+  changed Link to a Person as the person's name, not the ID. A record about one person goes in
+  `privacy.RECORDS_ABOUT_THE_PERSON`, and anonymizing deletes its history. Any other tracked record
+  that names the person keeps its history, and anonymizing writes Anonymized for their name and
+  removes their email in it (`privacy.scrub_history`). Such a doctype needs a
+  `PERSON_HISTORY_EXCEPTIONS` line that says so. A gap line there is a leak still to close in
+  `church_people/privacy.py`. Reword or delete the line when you close the leak
+  (`church_people/test_privacy_history.py` checks the lines by behavior).
 
 ### Child grids
 
@@ -1241,7 +1313,12 @@ These add to the rules in "Desk navigation".
   (`test_sections_are_closed_folders_with_icons_and_their_items_are_children`). Reports go at the
   end of their feature folder, and 'Setup' and 'Data' are closed folders at the end. With its
   folders closed, a sidebar shows 16 rows or fewer. A heading that stays open, such as Needs
-  Attention on Summary, goes in `OPEN_SECTIONS` with the reason.
+  Attention on Summary, goes in `OPEN_SECTIONS` with the reason. A folder label differs from the
+  label of every item above it in the sidebar. Frappe opens the folder of the active item by the
+  first item with the folder's label, so a top-level 'Funds' link keeps the 'Funds' folder closed on
+  arrival (`test_no_folder_shares_its_label_with_an_earlier_item`). A module with few pages (Study,
+  Missions, Foundations and Web Site) lists its pages and reports at the top and has at most a Setup
+  folder. Help lists each module's manual as an item, with the icon that the module has in the dock.
 - A label is 24 characters at most, so the sidebar does not cut it off
   (`test_labels_fit_the_sidebar`). Every icon exists in a sprite that the desk loads
   (`test_every_icon_is_in_a_sprite_the_desk_loads`): sidebar items, sidebar header icons and dock
@@ -1251,7 +1328,8 @@ These add to the rules in "Desk navigation".
 - Set `is_default_module` only on a Frappe doctype that churchit users need, and only once across
   all of churchit's sidebars. On a site with ERPNext, the claim sends that doctype to churchit's
   sidebar for every user. Two claims are settled by install order, and nothing tells you
-  (`test_no_doctype_is_claimed_by_two_sidebar_items`).
+  (`test_no_doctype_is_claimed_by_two_sidebar_items`). The Settings sidebar claims User, Role
+  Profile and Data Import, and no other churchit sidebar item claims a doctype.
 - Never add a URL item for a desk route, because Frappe opens every URL item in a new tab. A
   filtered list is a standard Report Builder report, because a filtered sidebar link saves its
   filters onto the plain list. A calendar is a workspace shortcut with `doc_view` Calendar
@@ -1263,7 +1341,16 @@ These add to the rules in "Desk navigation".
   compares text. The Report view keeps the first `order_by` key and adds the ID in the same
   direction (not for `name`, `creation` or `modified`), so write `order_by` that way, such as
   `` `tabFunction`.`start_date` asc, `tabFunction`.`name` asc ``. Another `order_by` shows 'Not
-  Saved' each time the report opens.
+  Saved' each time the report opens. The Report view returns the filters that are not standard
+  filter boxes first, then the standard boxes in field order, and shows 'Not Saved' when the saved
+  order differs. A condition fills a box when its field is the title or an `in_standard_filter`
+  field and it is `=` (or `like` on a non-Link), but not `= 0` on a Check. So save the `=`
+  conditions on such fields last. Save a docstatus value as text, such as "0", because the filter
+  box drops the number 0 and the report would list every record. A doctype with no `status` field
+  also needs `docstatus` in `column_widths`. `church_setup/test_queue_reports.py` runs every
+  standard Report Builder report, so a renamed field breaks the test and not the queue. It checks
+  the order and the text, and that a Report shortcut to a Report Builder report names the report's
+  doctype in `report_ref_doctype`, which the desk builds the route from.
 - A module workspace has, in this order: the verse, the onboarding, shortcuts, number cards (6 at
   most) and 1 to 4 charts. Up to 6 shortcuts are attention shortcuts, which open a list, a calendar
   or a report of the work that waits. Up to 3 more open a page of the module, such as the Rolodex,
@@ -1286,8 +1373,15 @@ These add to the rules in "Desk navigation".
   `stats_filter` may use `frappe.session.user`. Write a relative date as `Timespan`, such as 'next 7
   days', not as a `frappe.datetime` call, because a saved filter keeps the date it was saved with
   (`test_conditions_with_javascript_dates_are_read` reads both).
-- Color a number card only when it asks for action. Set `show_percentage_stats` only on flow
-  figures, such as giving and expenses.
+- Color a number card only when it asks for action. Set `show_percentage_stats` only on a running
+  total, such as all giving or all expenses. Frappe repeats the card's filter with `creation`
+  before one interval ago and compares the two totals, so the figure means nothing on a card with a
+  date window, such as the collections of the last 7 days, or on a plain inventory count.
+- A click on a Document Type number card puts the card's filter on the list it opens, and the list
+  saves it, as for a count shortcut. So a card on a workspace has no filter, or the list's own
+  default filter (`test_number_cards_use_the_lists_default_filter`). Show a figure for a period,
+  such as the giving of this month, in a chart. A Report card cannot help: `query_report.run`
+  returns nothing for a Report Builder report.
 - Each dock entry has its own Lucide icon, and the dock lists the modules in order of weekly use.
 
 ### Frappe features that churchit does not use
@@ -1357,6 +1451,17 @@ Membership history is Milestone rows written by `membership.record_changes` for
 `membership.TRACKED_FIELDS`, read by `membership.changed_between` and the Membership Changes report.
 Do not add a Frappe Milestone Tracker on Person: Frappe allows one tracker per doctype, and clearing
 the tracked field fails the save.
+
+`church_people/history.py` adds a person's visits, care requests, life events with a full date,
+member transfers and connection cards to the Person timeline as short cards, the 20 newest of each
+kind. It reads each kind with `frappe.get_list` in `get_readable_rows`, so roles, church and User
+Permissions apply, and Frappe leaves out fields above the reader's permission level. A filter or
+sort on such a field raises, so a kind whose filter or date field the reader may not read shows
+nothing. `get_list` does not check the permission level of the Person `life_events` table, so
+`get_life_event_cards` checks it with the Person's own `get_permlevel_access`, as the form does.
+`get_list` runs no `has_permission` hook per record, so a doctype with one is not added there
+without a check on each row (`test_history` fails). Counseling Case and Background Check never go
+on the timeline. A card shows no free text, only short facts and a link.
 
 ## Person summary fields and smart lists
 
@@ -1483,11 +1588,22 @@ dialogs.
 Anonymizing (`privacy.anonymize_person`) keeps the Person, clears `PERSONAL_FIELDS` and empties
 `PERSONAL_TABLES`, so a new Person field or table holding personal data goes in one of them. The
 first name becomes Anonymized and the last name stays, so the record sorts among its family name in
-the People list; copies of the full name on other records still become Anonymized. A new
+the People list; copies of the full name on other records still become Anonymized. A title that a
+record builds again from the Person on its next save, such as a Prayer's or an Alms Request's, then
+shows 'Anonymized' and the kept last name, as the Person does. A new
 doctype about one person (its subject, not a caregiver or other role) goes in
 `privacy.PERSONAL_DOCTYPES` when anonymizing should delete it, as for Person Note and Connection
 Card. Otherwise it goes in `privacy.RECORDS_ABOUT_THE_PERSON`, and anonymizing deletes its history,
 comments and attachments and blanks its messages.
+
+Anonymizing also scrubs the change history of every other record that names the person
+(`privacy.scrub_history`). It reads these records before the person leaves their family, spouse and
+relatives. The copies of the person's name become Anonymized and their email addresses go. The
+family's name loses their first name, in the history of the family and in the text and history of
+the records that name it, such as the other members and an Alms Request for the family. A family
+left with no one in it becomes Anonymized, and so does its name on those records. A record that no
+longer names the person, such as a ministry with a new coordinator, keeps the person's name in its
+history.
 
 Anonymizing also clears every field added with Customize Form, on the Person and on an anonymized
 Family (`privacy.blank_church_fields`), because Churchit cannot tell which of them are personal. A
@@ -1556,8 +1672,10 @@ A Person Note's category decides who reads it (`notes.has_note_permission` and
 `frappe.get_list`, or `get_doc` plus a permission check, never `get_all` or `qb`, even for a person
 the reader can see. In Frappe a share overrides both hooks, so Person Note has no `share` right: do
 not add one, and do not assign notes. Person Note does not track changes, because every System
-Manager can read Version records. A Person's timeline does not show records linked to the person;
-notes reach it through `additional_timeline_content`.
+Manager can read Version records. A Person's timeline does not show records linked to the person by
+itself. Notes (`notes.get_timeline_notes`) and visits, care requests, dated life events, member
+transfers and connection cards (`history.get_timeline_content`) reach it through
+`additional_timeline_content`.
 
 `PersonNote.validate` checks write on the stored note (see "A has_permission hook sees the edited
 document"). Only `church_access.has_every_church` users add or delete a Note Category or change its
@@ -1568,9 +1686,10 @@ The shipped categories are General, Pastoral Care and Benevolence
 (`note_category.create_note_categories`). A patch that adds one passes its name, so it does not
 bring back a category a church deleted. Alms Request case notes are Benevolence notes on the
 recipient, or on a Family's primary contact (`alms_request.js`). The form shows the Case Notes
-buttons from `__onload.can_read_case_notes` and `can_add_case_notes`, which `AlmsRequest.onload`
-takes from the rights on an unsaved Benevolence note. Do not decide them from the Person Note
-DocType rights in JS: Church Staff holds those, but not the Benevolence category.
+item in the View menu and the Add Case Note item in the Actions menu from
+`__onload.can_read_case_notes` and `can_add_case_notes`, which `AlmsRequest.onload` takes from the
+rights on an unsaved Benevolence note. Do not decide them from the Person Note DocType rights in JS:
+Church Staff holds those, but not the Benevolence category.
 
 ## Member portal
 
@@ -1717,6 +1836,12 @@ public calendar feed.
 
 Sign-ups of a shared Function have an empty church, so every church sees them.
 
+Function Sign-Up Item is one grid for two parents. Its JSON lists only the columns both forms show
+(Item, Quantity Needed, Quantity Signed Up). `function.js` adds Price and `function_sign_up.js` adds
+My Quantity with `update_docfield_property`, and each calls `grid.reset_grid()`, because the grid
+keeps the columns it drew first. Frappe copies a child table's docfields for each parent document,
+so the override on one form does not reach the other.
+
 ## Room bookings
 
 Room Booking `status` stores Requested, Approved, Denied, Cancelled, Completed, Blocked and
@@ -1769,6 +1894,11 @@ Take a new lock for a booking save only in `lock_room_and_assets`, and run the r
 `test_room_booking.py`, `test_room_booking_assets.py` and `test_room_booking_loans.py` again after
 you change a clash read or one of these indexes.
 
+On the desk form the clash message also says to tick Request Anyway on the Room Booking form. It
+does not on the Room Request web form, for a portal member, on a save with `ignore_permissions`
+(decisions and recurrence copies) or for a clash with a Blocked time, where Request Anyway cannot
+help. The Function form's Book a Room dialog gets the message too and has no such box.
+
 A booking reserves bookable Church Assets in its `assets` table (Room Booking Asset, labelled
 Equipment), with or without a room. A booking with no room is never gated and takes its church from
 `ensure_church`. A booking of a shared room judges its equipment against `shared_by_church`, the
@@ -1796,10 +1926,15 @@ not change, so a decision never asks new questions; after a change of room, answ
 are dropped. A Blocked booking asks nothing. A Room names only a Question Set of its church or a
 shared one (`Room.refuse_another_churches_question_set`).
 
-`room_booking_list.js` hides Denied and Cancelled bookings by default. The calendar view
-(`/desk/room-booking/view/calendar`, Room Calendar in the Operations sidebar) extends the list view,
-so it starts with the same filter, and both read through `get_list`. The Room Usage report scopes
-Room Booking with `scoped`, so a booking of a shared room shows for every church, as in the list.
+Room Booking opens on its calendar (`/desk/room-booking/view/calendar`): `default_view` is
+Calendar, without `force_re_route_to_default_view`, so the list stays in the view switcher, and Room
+Bookings in the Operations sidebar opens the calendar. `room_booking_list.js` hides Denied and
+Cancelled bookings by default, and the calendar view extends the list view, so it starts with the
+same filter. Both read through `get_list`. Do not narrow that filter to Requested: the calendar
+would lose the approved bookings. `room_booking_calendar.js` colors each booking from the DocType
+`states` and orders a day by start time, because Frappe orders a day's events by the list sort,
+which is newest first. The Room Usage report scopes Room Booking with `scoped`, so a booking of a
+shared room shows for every church, as in the list.
 
 ## Church tasks and work orders
 
@@ -1906,7 +2041,9 @@ indicator show only the latest check, so do not filter on them to find who may s
 Request's caregiver gets the request through `assign_to`, which shares it only when the session user
 has the share right. So `CareRequest.assign` shares it first, with `ignore_share_permission`.
 `before_save` has already refused a caregiver outside the request's church
-(`refuse_a_caregiver_outside_the_church`).
+(`refuse_a_caregiver_outside_the_church`). Care Request, Care Assignment, Visitation Log and Member
+Transfer set `track_changes`. Remove Personal Data deletes their Version rows (`forget`), and
+`church_people/test_care_history.py` proves it.
 
 `background_check.get_check_problem(person, on_date, check_types, label)` is the one message for a
 missing check, and Ministry Team Assignment and Group both call it. A Group with
@@ -2053,9 +2190,12 @@ of the runs of the person's cards (`privacy.forget_records_about`), because a fa
 can hold the number.
 
 The workflow owns its Kanban Board: `FollowupWorkflow.sync_board` rewrites its columns and filters
-on every save, so never edit the board by hand. `Follow-up Card.step` stays a Data field, because
-Kanban v2 takes columns from the board, not from Select options. Frappe checks a Dynamic Link before
-`validate`, so a trigger's `value_type` is set in the workflow's `_validate_links` override from
+on every save, so never edit the board by hand. The form hides the workflow's Board link; Open Board
+opens the board. A Follow-up Action Run takes its title from its card (`title_field` card, a Link),
+never from a stored copy of the person's name: a run has no Person link, so Remove Personal Data
+would not rewrite a copy. `Follow-up Card.step` stays a Data field, because Kanban v2 takes columns
+from the board, not from Select options. Frappe checks a Dynamic Link before `validate`, so a
+trigger's `value_type` is set in the workflow's `_validate_links` override from
 `followup.VALUE_TYPES`. Moving a card closes its ToDos and assigns through
 `assign_to._add(ignore_permissions=True)`, as Assignment Rule does. `has_card_permission` reads
 `_assign` from the database: a form sends none, and a caller could send a forged one.
@@ -2120,7 +2260,8 @@ text and keeps the copy. People sharing one address or number get one copy, reco
 of them by Person ID.
 Frappe's `send_sms` writes an SMS Log only for numbers the gateway accepted, so a text copy's
 `delivery_status` is Sent or Error from that log. `get_people_sent` leaves out Error copies for the
-Sent To count, and a delivery asks with `include_failed=True`, so a failed copy is never sent again.
+Number Sent count, and a delivery asks with `include_failed=True`, so a failed copy is never sent
+again.
 Texts go through Frappe's public `send_sms`, so the SMS Settings Allowed Roles apply in the job, and
 `require_sending_set_up` checks them at click time. The scheduler only claims and queues `deliver`
 on the long queue; a job that times out stays Sending for the stalled retry.

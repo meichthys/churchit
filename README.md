@@ -48,6 +48,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
 - Person Notes in categories that decide who reads them, with alert notes at the top of the form
+- A timeline at the bottom of each Person with their visits, care requests, life events, member transfers and connection cards, each shown only to users who may open it
 - Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event, a smart list, or a card of another workflow that reaches a step or closes
 - Follow-up workflows send emails and texts, add people to groups and tags, and start other workflows by themselves
 - Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
@@ -56,7 +57,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
 - Relationships to people in other households, such as grandparents, shown on both people's forms
 - Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
-- Care requests with a caregiver and due date, and background checks a position or a group can require
+- Care requests with a caregiver and due date, a Care Board that shows them by status, and background checks a position or a group can require
 - Duplicate warnings, merging with a choice of the value to keep for each detail, and imports from Planning Center, Rock RMS, Breeze or a spreadsheet
 - Envelope numbers, unique in each church, that find the giver in a gift's Person field
 - Remove Personal Data on request or after a set number of inactive years
@@ -196,7 +197,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Bible Memory practice in the portal, with passages managers can assign to people and groups, and a Bible Memory report of a group's progress
 
 ### Operations
-- Task tracking with document references, assignees and a reminder to them the day before a task is due
+- Task tracking with document references, assignees, a Tasks Board by status and a reminder to them the day before a task is due
 - Work orders for assets and rooms, with priority and requester, and an Open Work Orders report
 - Equipment loans: check equipment out and in on its booking, and an Assets on Loan report that shows late returns first
 - Asset tracking (location, details, status)
@@ -225,6 +226,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
 - Built-in documentation for each module
 - Guided setup/onboarding
+- A Take the Tour item on every form that has a guided tour
 
 ## 📥 Installing Churchit
 
