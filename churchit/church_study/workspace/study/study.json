@@ -1,6 +1,11 @@
 {
- "charts": [],
- "content": "[{\"id\":\"g8CNKH3aRO\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Study\",\"col\":12}},{\"id\":\"OGTcXJ9p_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\",\"col\":12}},{\"id\":\"bibleShortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bible\",\"col\":4}},{\"id\":\"ZQz8Pr7Ozj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sermons\",\"col\":4}},{\"id\":\"ckBmem01rd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"References Memorized\",\"col\":4}},{\"id\":\"nN5R0rrK8W\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"OfmuFWcqcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Documents\",\"col\":4}},{\"id\":\"mc4PE39_sG\",\"type\":\"card\",\"data\":{\"card_name\":\"Study Reports\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Sermons by Month",
+   "label": "Sermons by Month"
+  }
+ ],
+ "content": "[{\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\", \"col\": 12}}, {\"id\": \"g8CNKH3aRO\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Study\", \"col\": 12}}, {\"id\": \"bibleShortcut\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bible\", \"col\": 4}}, {\"id\": \"ZQz8Pr7Ozj\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Sermons\", \"col\": 4}}, {\"id\": \"sermonsByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Sermons by Month\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.783659",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,97 +17,8 @@
  "indicator_color": "",
  "is_hidden": 0,
  "label": "Study",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Study Reports",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Bible Memory",
-   "link_count": 0,
-   "link_to": "Bible Memory",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Study Documents",
-   "link_count": 8,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Translations",
-   "link_count": 0,
-   "link_to": "Bible Translation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sermons",
-   "link_count": 0,
-   "link_to": "Sermon",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sermon Handouts",
-   "link_count": 0,
-   "link_to": "Sermon Handout",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sermon Series",
-   "link_count": 0,
-   "link_to": "Sermon Series",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Memory Items",
-   "link_count": 0,
-   "link_to": "Bible Memory Item",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bible Memory Sessions",
-   "link_count": 0,
-   "link_to": "Memory Session",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-09 12:00:00.000000",
+ "links": [],
+ "modified": "2026-11-03 01:02:55.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",
@@ -110,10 +26,6 @@
   {
    "label": "Sermons",
    "number_card_name": "Sermons"
-  },
-  {
-   "label": "References Memorized",
-   "number_card_name": "References Memorized"
   }
  ],
  "owner": "Administrator",

@@ -34,38 +34,13 @@ OPEN_SECTIONS = {
 }
 
 # Today's breaks of each rule, with the phase of the UX roadmap that fixes them.
-LONG_LABELS = {
-	("Communications", "Letters Not Yet Shared With Church"): "U6",
-	("Finances", "Collection Bank Reconciliation"): "U6",
-	("Finances", "Donations Totals by Person"): "U6",
-	("Finances", "Fund Transactions By Date"): "U6",
-	("Ministries", "Function Attendance Types"): "U6",
-	("Ministries", "Function Attendance by Person"): "U6",
-	("Ministries", "Function Attendance by Type"): "U6",
-	("Ministries", "Ministry Team Assignments"): "U6",
-	("Missions", "Missionary Letters Not Yet Read"): "U6",
-	("Missions", "Missionary Support Frequencies"): "U6",
-}
+LONG_LABELS = {}
 
 # Sidebars whose sections are not yet closed folders.
-SIDEBARS_WITHOUT_FOLDERS = {
-	"Communications": "U6",
-	"Finances": "U6",
-	"Foundations": "U6",
-	"Help": "U6",
-	"Ministries": "U6",
-	"Missions": "U6",
-	"Operations": "U6",
-	"Prayers": "U6",
-	"Settings": "U6",
-	"Study": "U6",
-	"Web Site": "U6",
-}
+SIDEBARS_WITHOUT_FOLDERS = {}
 
 # URL items that open a desk route.
-DESK_ROUTE_URL_ITEMS = {
-	("Operations", "Room Calendar"): "U6",
-}
+DESK_ROUTE_URL_ITEMS = {}
 
 
 def get_sprite_symbols() -> set[str]:
@@ -189,3 +164,14 @@ class TestNavigationHygiene(FrappeTestCase):
 			if item.link_type == "URL" and is_desk_route(item.url)
 		}
 		assert_list_ratchet(self, found, DESK_ROUTE_URL_ITEMS, "URL item opens a desk route")
+
+	def test_no_folder_shares_its_label_with_an_earlier_item(self):
+		"""Frappe opens the folder of the active item by the first label that matches the folder's own."""
+		found = []
+		for sidebar in self.documents:
+			seen = set()
+			for item in sidebar.items:
+				if item.type == "Section Break" and item.label in seen:
+					found.append((sidebar.name, item.label))
+				seen.add(item.label)
+		self.assertEqual(found, [])

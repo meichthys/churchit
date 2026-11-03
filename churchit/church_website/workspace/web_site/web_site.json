@@ -1,6 +1,11 @@
 {
- "charts": [],
- "content": "[{\"id\":\"mIsHlQIrkg\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Web Site\",\"col\":12}},{\"id\":\"ciUonBt9cC\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\",\"col\":12}},{\"id\":\"chWebsitePreview\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WebsitePreview\",\"col\":12}},{\"id\":\"iX6U8evofK\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Dynamic Web Pages\",\"col\":4}},{\"id\":\"CwAfg_RVOi\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Settings\",\"col\":4}},{\"id\":\"S3zudvwL7L\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"cnc4wuMolb\",\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Web Pages by Type",
+   "label": "Web Pages by Type"
+  }
+ ],
+ "content": "[{\"id\": \"ciUonBt9cC\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\", \"col\": 12}}, {\"id\": \"mIsHlQIrkg\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Web Site\", \"col\": 12}}, {\"id\": \"iX6U8evofK\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Web Pages\", \"col\": 6}}, {\"id\": \"webPagesByType\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Web Pages by Type\", \"col\": 12}}, {\"id\": \"webSiteSpacer\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chWebsitePreview\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"WebsitePreview\", \"col\": 12}}]",
  "creation": "2026-07-08 09:43:37.127745",
  "custom_blocks": [
   {
@@ -18,200 +23,15 @@
  "indicator_color": "",
  "is_hidden": 0,
  "label": "Web Site",
- "links": [
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Settings",
-   "link_count": 0,
-   "link_to": "Website Settings",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Theme",
-   "link_count": 0,
-   "link_to": "Website Theme",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Script",
-   "link_count": 0,
-   "link_to": "Website Script",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "About Us Settings",
-   "link_count": 0,
-   "link_to": "About Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contact Us Settings",
-   "link_count": 0,
-   "link_to": "Contact Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "description": "The portal is part of the website that is only accessible to logged-in users. The users must have the the `Church User` or `Church Manager` permissions.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Portal",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Portal Settings",
-   "link_count": 0,
-   "link_to": "Portal Settings",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "description": "The web site is the public facing portion of the site that anyone can view even without logging in. No user account is required to view the website.",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Site",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Page",
-   "link_count": 0,
-   "link_to": "Web Page",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Form",
-   "link_count": 0,
-   "link_to": "Web Form",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Sidebar",
-   "link_count": 0,
-   "link_to": "Website Sidebar",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Route Meta",
-   "link_count": 0,
-   "link_to": "Website Route Meta",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "description": "Website settings can be changed to customize the look and feel of the site as well as the specific AboutUs or ContactUs page content. Other page contents are populated dynamically by checking the 'Publish' field on specific documents (like Beliefs, Ministries, Missionaries, Sermons, etc).",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Settings",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Settings",
-   "link_count": 0,
-   "link_to": "Website Settings",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Theme",
-   "link_count": 0,
-   "link_to": "Website Theme",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "About Us Settings",
-   "link_count": 0,
-   "link_to": "About Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contact Us Settings",
-   "link_count": 0,
-   "link_to": "Contact Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-30 23:35:16.000000",
+ "links": [],
+ "modified": "2026-11-03 01:02:55.000000",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",
  "number_cards": [
   {
-   "label": "Dynamic Web Pages",
-   "number_card_name": "Dynamic Web Pages"
+   "label": "Web Pages",
+   "number_card_name": "Web Pages"
   }
  ],
  "owner": "Administrator",

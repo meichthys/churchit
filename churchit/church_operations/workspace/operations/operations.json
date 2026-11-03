@@ -1,6 +1,15 @@
 {
- "charts": [],
- "content": "[{\"id\":\"9adGE55P2Z\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Operations\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\",\"col\":12}},{\"id\":\"mdXg9JNSYu\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Tasks\",\"col\":4}},{\"id\":\"4XPzZfLTim\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Assets\",\"col\":4}},{\"id\":\"Xclw1M0291\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Locations\",\"col\":4}},{\"id\":\"ronRJLfg_I\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"G8_0zqHj_v\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Documents\",\"col\":4}},{\"id\":\"rOpsRprt01\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Open Tasks by Priority",
+   "label": "Open Tasks by Priority"
+  },
+  {
+   "chart_name": "Room Bookings by Week",
+   "label": "Room Bookings by Week"
+  }
+ ],
+ "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\", \"col\": 12}}, {\"id\": \"9adGE55P2Z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Operations\", \"col\": 12}}, {\"id\": \"OpeTas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Open Tasks\", \"col\": 4}}, {\"id\": \"BooReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Booking Requests\", \"col\": 4}}, {\"id\": \"TasBoa\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tasks Board\", \"col\": 4}}, {\"id\": \"OpeTasByPri\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Open Tasks by Priority\", \"col\": 6}}, {\"id\": \"RooBooByWee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Room Bookings by Week\", \"col\": 6}}]",
  "creation": "2026-07-07 19:43:06.744443",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,136 +21,12 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Operations",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Operations Documents",
-   "link_count": 6,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Assets",
-   "link_count": 0,
-   "link_to": "Church Asset",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Tasks",
-   "link_count": 0,
-   "link_to": "Church Task",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Locations",
-   "link_count": 0,
-   "link_to": "Church Location",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Meeting Minutes",
-   "link_count": 0,
-   "link_to": "Meeting Minutes",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Rooms",
-   "link_count": 0,
-   "link_to": "Room",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Room Bookings",
-   "link_count": 0,
-   "link_to": "Room Booking",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Operations Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Room Usage",
-   "link_count": 0,
-   "link_to": "Room Usage",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Open Work Orders",
-   "link_count": 0,
-   "link_to": "Open Church Work Orders",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Church Task",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Assets on Loan",
-   "link_count": 0,
-   "link_to": "Assets on Loan",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Room Booking",
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-29 23:30:30.000000",
+ "links": [],
+ "modified": "2026-10-31 13:19:28.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",
- "number_cards": [
-  {
-   "label": "Tasks",
-   "number_card_name": "Tasks"
-  },
-  {
-   "label": "Locations",
-   "number_card_name": "Locations"
-  },
-  {
-   "label": "Assets",
-   "number_card_name": "Assets"
-  }
- ],
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -158,7 +43,34 @@
   }
  ],
  "sequence_id": 13.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "format": "{} open",
+   "label": "Open Tasks",
+   "link_to": "Church Task",
+   "stats_filter": "[[\"Church Task\", \"status\", \"!=\", \"Completed\"]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "label": "Booking Requests",
+   "link_to": "Booking Requests",
+   "report_ref_doctype": "Room Booking",
+   "type": "Report"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "Kanban",
+   "format": "{} open",
+   "kanban_board": "Church Tasks",
+   "label": "Tasks Board",
+   "link_to": "Church Task",
+   "stats_filter": "[[\"Church Task\", \"status\", \"!=\", \"Completed\"]]",
+   "type": "DocType"
+  }
+ ],
  "standard": 1,
  "title": "Operations",
  "type": "Workspace"

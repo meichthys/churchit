@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-10-31 13:31:39.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{\"filters\": [[\"Church Email\", \"status\", \"=\", \"Scheduled\"]], \"fields\": [[\"name\", \"Church Email\"], [\"docstatus\", \"Church Email\"], [\"subject\", \"Church Email\"], [\"channel\", \"Church Email\"], [\"send_to\", \"Church Email\"], [\"send_after\", \"Church Email\"]], \"order_by\": \"`tabChurch Email`.`send_after` asc, `tabChurch Email`.`name` asc\", \"add_totals_row\": 0, \"page_length\": 100, \"column_widths\": {\"name\": 120, \"subject\": 120, \"channel\": 120, \"send_to\": 120, \"send_after\": 120}, \"group_by\": null}",
+ "letterhead": null,
+ "modified": "2026-10-31 13:31:39.000000",
+ "modified_by": "Administrator",
+ "module": "Church Communications",
+ "name": "Scheduled Emails",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Church Email",
+ "report_name": "Scheduled Emails",
+ "report_type": "Report Builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
+ "timeout": 0
+}

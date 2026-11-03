@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-10-31 13:18:05.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{\"filters\": [[\"Expense\", \"docstatus\", \"=\", \"0\"]], \"fields\": [[\"name\", \"Expense\"], [\"docstatus\", \"Expense\"], [\"title\", \"Expense\"], [\"type\", \"Expense\"], [\"vendor\", \"Expense\"], [\"amount\", \"Expense\"], [\"date\", \"Expense\"]], \"order_by\": \"`tabExpense`.`date` asc, `tabExpense`.`name` asc\", \"add_totals_row\": 0, \"page_length\": 100, \"column_widths\": {\"name\": 120, \"docstatus\": 120, \"title\": 120, \"type\": 120, \"vendor\": 120, \"amount\": 120, \"date\": 120}, \"group_by\": null}",
+ "letterhead": null,
+ "modified": "2026-11-02 23:24:47.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Pending Expenses",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Expense",
+ "report_name": "Pending Expenses",
+ "report_type": "Report Builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Finance"
+  }
+ ],
+ "timeout": 0
+}

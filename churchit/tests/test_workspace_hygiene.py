@@ -63,50 +63,28 @@ PAGE_SHORTCUT_TYPES = ("Page", "URL")
 JS_VALUE = re.compile(r'(?<!["\w.])frappe(?:\.\w+)+(?:\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))?')
 
 # Today's breaks of each rule, with the phase of the UX roadmap that fixes them.
-WORKSPACES_OUT_OF_ORDER = {
-	"Communications": "U6",
-	"Finances": "U6",
-	"Foundations": "U6",
-	"Ministries": "U6",
-	"Missions": "U6",
-	"Operations": "U6",
-	"Prayers": "U6",
-	"Study": "U6",
-	"Web Site": "U6",
-}
+WORKSPACES_OUT_OF_ORDER = {}
 
-WORKSPACES_WITH_LINK_CARDS = {
-	"Communications": "U6",
-	"Finances": "U6",
-	"Foundations": "U6",
-	"Ministries": "U6",
-	"Missions": "U6",
-	"Operations": "U6",
-	"Prayers": "U6",
-	"Settings": "U6",
-	"Study": "U6",
-	"Web Site": "U6",
-}
+WORKSPACES_WITH_LINK_CARDS = {}
 
-WORKSPACES_WITH_QUICK_LISTS = {
-	"Prayers": "U6",
-}
+WORKSPACES_WITH_QUICK_LISTS = {}
 
 WORKSPACES_OVER_THEIR_CAPS = {
-	"Communications": "U6",
-	"Finances": "U6",
-	"Foundations": "U6",
-	"Missions": "U6",
-	"Operations": "U6",
-	"Prayers": "U6",
-	"Settings": "U6",
-	"Study": "U6",
-	"Web Site": "U6",
+	"Settings": "Settings is the setup menu: no work waits there, so it shows no shortcut, card or chart",
 }
 
 COUNT_FILTER_EXCEPTIONS = {
-	"Finances: Gifts with No Person": "U6",
 	"Summary: My Assignments": "ToDo is Frappe's list, and a report cannot filter on the current user",
+}
+
+SUMMARY_CARD = (
+	"Summary's At a Glance figures came before this rule; a click still saves the filter onto the list"
+)
+NUMBER_CARD_FILTER_EXCEPTIONS = {
+	"Summary: Active Prayer Requests": SUMMARY_CARD,
+	"Summary: Expenses This Month": SUMMARY_CARD,
+	"Summary: Giving This Month": SUMMARY_CARD,
+	"Summary: Prayers Answered This Month": SUMMARY_CARD,
 }
 
 
@@ -334,6 +312,27 @@ class TestWorkspaceHygiene(FrappeTestCase):
 					found[f"{workspace['name']}: {row['label']}"] = row["stats_filter"]
 		rule = "A count shortcut on a list uses the list's own default filter"
 		assert_list_ratchet(self, found, COUNT_FILTER_EXCEPTIONS, rule)
+
+	def test_number_cards_use_the_lists_default_filter(self):
+		"""A click on a Document Type card saves the card's filter onto the list, as a count shortcut does."""
+		scripts = {data["name"]: get_list_script(path) for path, data in doctype_files()}
+		cards = {card["name"]: card for card in shipped("number_card")}
+		found = {}
+		for workspace in shipped_workspaces():
+			for row in workspace.get("number_cards", []):
+				card = cards.get(row["number_card_name"])
+				if not card or card.get("type") != "Document Type":
+					continue
+				conditions = [
+					condition[1:4]
+					for key in ("filters_json", "dynamic_filters_json")
+					for condition in json.loads(card.get(key) or "[]")
+				]
+				default = get_default_list_filters(scripts.get(card["document_type"], ""))
+				if conditions and get_conditions(conditions) != get_conditions(default):
+					found[f"{workspace['name']}: {row['label']}"] = card["name"]
+		rule = "A number card with a filter uses the list's own default filter"
+		assert_list_ratchet(self, found, NUMBER_CARD_FILTER_EXCEPTIONS, rule)
 
 	def test_no_doctype_shortcut_opens_a_calendar(self):
 		"""Its count saves a filter onto the calendar, which then hides the other weeks; use a URL shortcut."""
