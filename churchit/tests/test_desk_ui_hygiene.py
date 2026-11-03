@@ -229,12 +229,9 @@ DEFAULT_FILTER_EXCEPTIONS = {
 ID_RULE_EXCEPTIONS = {
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
-	"Bulletin": "U4",
 	"Church": "U4",
-	"Church Email": "U4",
 	"Church Location": "U4",
 	"Church Task": "U4",
-	"Communication Consent": "U4",
 	"Form Response": "U4",
 	"Meeting Minutes": "U4",
 	"Question Set": "U4",
@@ -245,7 +242,6 @@ ID_RULE_EXCEPTIONS = {
 }
 
 STATUS_COLOR_EXCEPTIONS = {
-	"Communication Consent": "U4",
 	"Form Response": "U4",
 	"Meeting Minutes": "U4",
 	"Room Booking": "U4",
@@ -265,7 +261,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task.notes": "U4",
 	"Sermon Slide.notes": "U4",
 	"Sermon Slide.slide": "U4",
-	"Slide.content": "U4",
 }
 
 PREVIEW_POPUP_EXCEPTIONS = {
@@ -275,7 +270,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Church Task Item": "U4",
 	"Sermon Presentation": "U4",
 	"Sermon Slide": "U4",
-	"Slide": "U4",
 }
 
 SEARCH_FIELD_EXCEPTIONS = {
@@ -293,10 +287,8 @@ SORT_EXCEPTIONS = {
 	"Church Asset": "U4",
 	"Church Location": "U4",
 	"Church Task": "U4",
-	"Communication Purpose": "U4",
 	"Follow-up Action Run": "a log of automation runs",
 	"Form Response": "U4",
-	"Push Subscription": "U4",
 	"Question Set": "U4",
 	"Room": "U4",
 	"Sermon": "U4",
@@ -323,11 +315,6 @@ GRID_COLUMN_WIDTHS = range(1, 13)
 LONG_HELP_EXCEPTIONS = {
 	"Bible Memory Item": "U10",
 	"Bible Translation": "U10",
-	"Bulletin": "U10",
-	"Bulletin Settings": "U10",
-	"Church Email": "U10",
-	"Communication Consent": "U10",
-	"Push Settings": "U10",
 	"Sermon": "U10",
 	"Sermon Handout": "U10",
 	"Belief": "U11",
@@ -342,9 +329,6 @@ LONG_HELP_EXCEPTIONS = {
 
 # Doctype.fieldname: a text field on the first tab without max_height.
 TEXT_HEIGHT_EXCEPTIONS = {
-	"Bulletin.announcements": "U10",
-	"Bulletin.welcome": "U10",
-	"Church Email.message": "U10",
 	"Sermon Handout.content": "U10",
 	"Sermon Series.description": "U10",
 	"Sermon.notes": "U10",
@@ -358,10 +342,9 @@ TEXT_HEIGHT_EXCEPTIONS = {
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
-	"Church Bulletin Sections": "U10",
 	"Sermon Presentation": "U10",
 	"Sermon Slide": "U10",
-	"Slide": "U10",
+	"Slide": "The slide text is the only value that tells the rows apart, so it stays in the grid",
 	"Church Task Item": "U11",
 	"Meeting Attendee": "U11",
 	"Room Setup": "U11",

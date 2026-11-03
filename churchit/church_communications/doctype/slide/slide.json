@@ -11,11 +11,10 @@
  ],
  "fields": [
   {
+   "columns": 10,
    "fieldname": "content",
    "fieldtype": "Text Editor",
    "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Content"
   },
   {
@@ -28,7 +27,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-13 23:58:34.672818",
+ "modified": "2026-11-02 23:06:13.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Slide",

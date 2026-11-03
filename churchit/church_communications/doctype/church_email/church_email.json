@@ -9,29 +9,31 @@
  "engine": "InnoDB",
  "field_order": [
   "channel",
-  "subject",
+  "purpose",
   "church",
+  "column_break_status",
+  "status",
+  "send_after",
+  "sent_on",
+  "recipients",
+  "section_break_recipients",
   "send_to",
   "group",
   "smart_list",
   "people",
+  "column_break_household",
   "include_household",
   "household_roles",
-  "purpose",
-  "email_template",
-  "column_break_status",
-  "status",
-  "send_after",
-  "recipients",
-  "sent_on",
   "section_break_message",
+  "email_template",
+  "subject",
   "message",
   "text_message"
  ],
  "fields": [
   {
    "default": "Email",
-   "description": "A text message goes through the SMS Settings, only to people who agreed to get texts.",
+   "description": "Texts go through the SMS Settings, only to people who agreed to get texts.",
    "fieldname": "channel",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -41,12 +43,13 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.channel!=\"Text Message\"",
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Subject",
-   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
+   "default": "Church News",
+   "description": "What the message is about. Only people who allow this purpose get it.",
+   "fieldname": "purpose",
+   "fieldtype": "Link",
+   "label": "Purpose",
+   "options": "Communication Purpose",
+   "reqd": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -57,6 +60,48 @@
    "options": "Church"
   },
   {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nScheduled\nSending\nSent",
+   "read_only": 1
+  },
+  {
+   "description": "Leave empty to send it when you click Send, or pick a time to send it then.",
+   "fieldname": "send_after",
+   "fieldtype": "Datetime",
+   "label": "Send At"
+  },
+  {
+   "depends_on": "eval:doc.status==\"Sent\"",
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Sent On",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status==\"Sent\"",
+   "description": "How many people it was sent to.",
+   "fieldname": "recipients",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_recipients",
+   "fieldtype": "Section Break",
+   "label": "Recipients"
+  },
+  {
    "default": "Active People",
    "description": "Active People is everyone whose Status is Active. Active Members is only those whose Membership is Member. People who have died, and anyone who does not allow the Purpose, are always left out.",
    "fieldname": "send_to",
@@ -64,7 +109,8 @@
    "in_list_view": 1,
    "label": "Send To",
    "options": "Active People\nActive Members\nGroup\nSmart List\nChosen People",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.send_to==\"Group\"",
@@ -92,6 +138,10 @@
    "options": "Church Email Person"
   },
   {
+   "fieldname": "column_break_household",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "description": "Also send to the people in each recipient's Family. Each person gets one copy.",
    "fieldname": "include_household",
@@ -107,13 +157,9 @@
    "options": "Everyone\nAdults\nAdults and Other Adults"
   },
   {
-   "default": "Church News",
-   "description": "What the message is about. Only people who allow this purpose get it.",
-   "fieldname": "purpose",
-   "fieldtype": "Link",
-   "label": "Purpose",
-   "options": "Communication Purpose",
-   "reqd": 1
+   "fieldname": "section_break_message",
+   "fieldtype": "Section Break",
+   "label": "Message"
   },
   {
    "depends_on": "eval:doc.channel!=\"Text Message\"",
@@ -124,43 +170,12 @@
    "options": "Email Template"
   },
   {
-   "fieldname": "column_break_status",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "Draft",
-   "fieldname": "status",
-   "fieldtype": "Select",
+   "depends_on": "eval:doc.channel!=\"Text Message\"",
+   "fieldname": "subject",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Status",
-   "options": "Draft\nScheduled\nSending\nSent",
-   "read_only": 1
-  },
-  {
-   "description": "Leave empty to send it when you click Send. Pick a time to have it sent then instead.",
-   "fieldname": "send_after",
-   "fieldtype": "Datetime",
-   "label": "Send At"
-  },
-  {
-   "depends_on": "eval:doc.status==\"Sent\"",
-   "description": "How many people it was sent to.",
-   "fieldname": "recipients",
-   "fieldtype": "Int",
-   "label": "Sent To",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.status==\"Sent\"",
-   "fieldname": "sent_on",
-   "fieldtype": "Datetime",
-   "label": "Sent On",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_message",
-   "fieldtype": "Section Break"
+   "label": "Subject",
+   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
   },
   {
    "depends_on": "eval:doc.channel!=\"Text Message\"",
@@ -168,7 +183,9 @@
    "fieldname": "message",
    "fieldtype": "Text Editor",
    "label": "Message",
-   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
+   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\"",
+   "max_height": "20rem",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.channel==\"Text Message\"",
@@ -176,13 +193,14 @@
    "fieldname": "text_message",
    "fieldtype": "Small Text",
    "label": "Text",
-   "mandatory_depends_on": "eval:doc.channel==\"Text Message\""
+   "mandatory_depends_on": "eval:doc.channel==\"Text Message\"",
+   "show_description_on_click": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-27 08:45:50.000000",
+ "modified": "2026-11-03 01:11:22.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Church Email",
@@ -229,7 +247,24 @@
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Gray",
+   "title": "Draft"
+  },
+  {
+   "color": "Blue",
+   "title": "Scheduled"
+  },
+  {
+   "color": "Blue",
+   "title": "Sending"
+  },
+  {
+   "color": "Green",
+   "title": "Sent"
+  }
+ ],
  "title_field": "subject",
  "track_changes": 1
 }

@@ -18,22 +18,23 @@ frappe.ui.form.on("Church Email", {
 		if (frm.is_new()) return;
 
 		const can_send = frappe.model.can_write("Church Email");
+		const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
 		if (["Draft", "Scheduled"].includes(frm.doc.status)) {
-			frm.add_custom_button(__("Preview"), () => preview(frm));
+			action(__("Preview"), () => preview(frm));
 		}
 		if (frm.doc.status === "Draft" && can_send) {
 			const test_label = is_text(frm) ? __("Send Test Text") : __("Send Test Email");
-			frm.add_custom_button(test_label, () => send_test(frm));
+			action(test_label, () => send_test(frm));
 			frm.add_custom_button(__("Send"), () => send(frm)).addClass("btn-primary");
 		} else if (frm.doc.status === "Scheduled") {
 			frm.set_intro(
 				__("This message will be sent at {0}.", [
 					frappe.datetime.str_to_user(frm.doc.send_after),
 				]),
-				"orange"
+				"blue"
 			);
 			if (can_send) {
-				frm.add_custom_button(__("Unschedule"), () =>
+				action(__("Unschedule"), () =>
 					frm.call("unschedule").then(() => frm.reload_doc())
 				);
 			}

@@ -47,7 +47,6 @@
   {
    "fieldname": "user_agent",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Browser",
    "read_only": 1
   },
@@ -62,7 +61,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-27 01:49:09.000000",
+ "modified": "2026-11-02 23:06:13.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Push Subscription",
@@ -82,7 +81,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
+ "sort_field": "last_used",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "user_agent"
 }
