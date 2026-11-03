@@ -222,9 +222,7 @@ TEXT_COLUMN_EXCEPTIONS = {
 	"Prayer Request.request": "U4",
 }
 
-REPEATED_COLUMN_EXCEPTIONS = {
-	"Ministry Team Block.person": "U4",
-}
+REPEATED_COLUMN_EXCEPTIONS = {}
 
 FILTER_BUDGET_EXCEPTIONS = {
 	"Alms Request": "U8",
@@ -244,7 +242,6 @@ ID_RULE_EXCEPTIONS = {
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
 	"Bulletin": "U4",
-	"Case Type": "U4",
 	"Church": "U4",
 	"Church Email": "U4",
 	"Church Location": "U4",
@@ -256,10 +253,6 @@ ID_RULE_EXCEPTIONS = {
 	"GL Account Mapping": "U4",
 	"Giving Statement": "U4",
 	"Meeting Minutes": "U4",
-	"Ministry": "U4",
-	"Ministry Team Assignment": "U4",
-	"Ministry Team Block": "U4",
-	"Ministry Team Position": "U4",
 	"Missionary": "U4",
 	"Missionary Agency": "U4",
 	"Missionary Status": "U4",
@@ -276,17 +269,13 @@ ID_RULE_EXCEPTIONS = {
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
 	"Sermon Series": "U4",
-	"Song": "U4",
 	"Vendor": "U4",
 }
 
 STATUS_COLOR_EXCEPTIONS = {
 	"Communication Consent": "U4",
-	"Counseling Case": "U4",
 	"Form Response": "U4",
 	"Meeting Minutes": "U4",
-	"Ministry": "U4",
-	"Ministry Team Assignment": "U4",
 	"Missionary": "U4",
 	"Online Donation": "U4",
 	"Room Booking": "U4",
@@ -307,7 +296,6 @@ PREVIEW_FIELD_EXCEPTIONS = {
 	"Church Task.notes": "U4",
 	"Financial Transaction.source": "U4",
 	"Fund.allow_giving": "U4",
-	"Ministry.description": "U4",
 	"Missionary.geolocation": "U4",
 	"Missionary.publish": "U4",
 	"Prayer Request.recipient": "U4",
@@ -338,7 +326,6 @@ PREVIEW_POPUP_EXCEPTIONS = {
 	"Sermon Presentation": "U4",
 	"Sermon Slide": "U4",
 	"Slide": "U4",
-	"Song": "U4",
 }
 
 SEARCH_FIELD_EXCEPTIONS = {
@@ -355,7 +342,6 @@ SORT_EXCEPTIONS = {
 	"Alms Request": "U4",
 	"Belief": "U4",
 	"Bible Memory Item": "U4",
-	"Case Type": "U4",
 	"Church": "U4",
 	"Church Asset": "U4",
 	"Church Location": "U4",
@@ -369,10 +355,6 @@ SORT_EXCEPTIONS = {
 	"Fund": "U4",
 	"Fund Transfer": "U4",
 	"GL Account Mapping": "U4",
-	"Ministry": "U4",
-	"Ministry Team Assignment": "U4",
-	"Ministry Team Block": "U4",
-	"Ministry Team Position": "U4",
 	"Missionary": "U4",
 	"Missionary Agency": "U4",
 	"Missionary Status": "U4",
@@ -388,7 +370,6 @@ SORT_EXCEPTIONS = {
 	"Room": "U4",
 	"Sermon": "U4",
 	"Sermon Handout": "U4",
-	"Song": "U4",
 	"Vendor": "U4",
 }
 
@@ -410,14 +391,6 @@ GRID_COLUMN_WIDTHS = range(1, 13)
 
 # Doctype: a field help over 80 characters without the (i) icon, or a section or table help over 120.
 LONG_HELP_EXCEPTIONS = {
-	"Ministry": "U7",
-	"Ministry Team Assignment": "U7",
-	"Ministry Team Block": "U7",
-	"Ministry Team Position": "U7",
-	"Ministry Team Position Person": "U7",
-	"Song": "U7",
-	"Song Arrangement": "U7",
-	"Song Media": "U7",
 	"Alms Request": "U8",
 	"Church Budget": "U8",
 	"Church Giving Wording": "U8",
@@ -456,7 +429,6 @@ LONG_HELP_EXCEPTIONS = {
 
 # Doctype.fieldname: a text field on the first tab without max_height.
 TEXT_HEIGHT_EXCEPTIONS = {
-	"Ministry.description": "U7",
 	"Church Budget.notes": "U8",
 	"Giving Settings.other_ways_to_give": "U8",
 	"Vendor.notes": "U8",
@@ -477,11 +449,6 @@ TEXT_HEIGHT_EXCEPTIONS = {
 
 # Child doctype: an in_list_view field without `columns`, more than 5 grid columns, or a text column.
 GRID_EXCEPTIONS = {
-	"Counseling Session": "U7",
-	"Ministry Recurring Function": "U7",
-	"Ministry Team Position Person": "U7",
-	"Song Arrangement": "U7",
-	"Song Media": "U7",
 	"Budget Line": "U8",
 	"Church Giving Wording": "U8",
 	"Collection Fund Total": "U8",
@@ -503,7 +470,6 @@ GRID_EXCEPTIONS = {
 
 # Doctype.fieldname: a collapsible section without collapsible_depends_on.
 COLLAPSIBLE_EXCEPTIONS = {
-	"Ministry Team Assignment.section_break_emails": "U7",
 	"Bible Memory Item.internal_section": "U10",
 	"Church Features.section_website_pages": "U11",
 	"Meeting Minutes.section_break_3": "U11",

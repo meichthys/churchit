@@ -28,7 +28,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Case Type",
@@ -70,8 +70,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "type",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "type"
 }

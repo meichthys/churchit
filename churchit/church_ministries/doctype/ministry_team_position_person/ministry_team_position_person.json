@@ -12,6 +12,7 @@
  ],
  "fields": [
   {
+   "columns": 6,
    "fieldname": "person",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -20,8 +21,9 @@
    "reqd": 1
   },
   {
+   "columns": 3,
    "default": "0",
-   "description": "The most times in a calendar month this person serves in this position. 0 means no limit.",
+   "description": "The most times a month this person serves here. 0 means no limit.",
    "fieldname": "max_times_per_month",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -32,7 +34,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-26 22:54:42.000000",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Position Person",

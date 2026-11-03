@@ -8,27 +8,29 @@
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "ministry_name",
   "church",
   "is_shared",
   "shared_by_church",
   "group",
-  "total_expenses",
-  "publish",
+  "team_coordinator",
   "column_break_details",
   "status",
   "start_date",
   "end_date",
-  "mission_statement",
+  "total_expenses",
   "section_break_mission",
+  "publish",
+  "mission_statement",
   "description",
   "section_break_team",
-  "team_coordinator",
-  "column_break_team",
   "team_reminder_days",
+  "column_break_team",
   "section_break_recurring",
   "recurring_functions",
-  "create_recurring_function"
+  "create_recurring_function",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -73,6 +75,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Active\nInactive"
@@ -85,6 +88,8 @@
    "description": "Optionally associate this ministry with a Group of People.",
    "fieldname": "group",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Group",
    "options": "Group"
@@ -92,29 +97,30 @@
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "in_preview": 1,
    "label": "Start Date"
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
-   "in_preview": 1,
    "label": "End Date"
   },
   {
+   "description": "What the website shows. Bulletins also print the mission statement.",
    "fieldname": "section_break_mission",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Website"
   },
   {
    "fieldname": "mission_statement",
    "fieldtype": "Small Text",
+   "in_preview": 1,
    "label": "Mission Statement"
   },
   {
    "fieldname": "description",
    "fieldtype": "Text Editor",
-   "in_preview": 1,
-   "label": "Description"
+   "label": "Description",
+   "max_height": "20rem"
   },
   {
    "description": "The ministry's team positions are listed under Connections.",
@@ -126,6 +132,8 @@
    "description": "Gets an email when someone declines a Ministry Team Assignment.",
    "fieldname": "team_coordinator",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "Team Coordinator",
    "options": "Person"
   },
@@ -135,7 +143,7 @@
   },
   {
    "default": "2",
-   "description": "How many days before a function to remind the people serving at it. 0 sends no reminders.",
+   "description": "Days before a function to remind the people serving at it. 0 sends no reminders.",
    "fieldname": "team_reminder_days",
    "fieldtype": "Int",
    "label": "Remind Days Before",
@@ -152,13 +160,13 @@
    "fieldname": "total_expenses",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Total Expenses",
    "read_only": 1
   },
   {
-   "depends_on": "eval: true",
-   "description": "Function templates with Auto-Repeat enabled that produce recurring functions for this Ministry. This list is read-only and refreshes automatically.",
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.recurring_functions || []).length",
+   "description": "Functions that repeat for this ministry. Use the button below to make one.",
    "fieldname": "section_break_recurring",
    "fieldtype": "Section Break",
    "label": "Recurring Functions"
@@ -175,24 +183,38 @@
    "fieldname": "create_recurring_function",
    "fieldtype": "Button",
    "label": "Create Recurring Function"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [
   {
-   "link_doctype": "Expense",
-   "link_fieldname": "ministry"
-  },
-  {
+   "group": "Functions",
    "link_doctype": "Function",
    "link_fieldname": "associated_ministry"
   },
   {
+   "group": "Team",
    "link_doctype": "Ministry Team Position",
+   "link_fieldname": "ministry"
+  },
+  {
+   "group": "Spending",
+   "link_doctype": "Expense",
    "link_fieldname": "ministry"
   }
  ],
- "modified": "2026-10-31 01:30:37.000000",
+ "modified": "2026-11-02 23:52:08.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
@@ -236,9 +258,18 @@
  "row_format": "Dynamic",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
+ "sort_field": "ministry_name",
+ "sort_order": "ASC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Active"
+  },
+  {
+   "color": "Gray",
+   "title": "Inactive"
+  }
+ ],
  "title_field": "ministry_name",
  "track_changes": 1
 }

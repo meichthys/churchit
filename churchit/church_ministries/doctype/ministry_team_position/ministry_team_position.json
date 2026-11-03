@@ -25,7 +25,6 @@
   {
    "fieldname": "position_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Position Name",
    "reqd": 1
   },
@@ -60,7 +59,8 @@
    "fieldname": "needs_background_check",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Needs Background Check"
+   "label": "Needs Background Check",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.needs_background_check",
@@ -68,7 +68,8 @@
    "fieldname": "required_checks",
    "fieldtype": "Table MultiSelect",
    "label": "Required Checks",
-   "options": "Ministry Team Position Check"
+   "options": "Ministry Team Position Check",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
@@ -115,7 +116,7 @@
    "link_fieldname": "position"
   }
  ],
- "modified": "2026-10-26 22:54:42.000000",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Position",
@@ -170,8 +171,8 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "title",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "title",
  "track_changes": 1

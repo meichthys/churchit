@@ -2,6 +2,8 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Ministry Team Assignment"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
 	onload(listview) {
 		if (!frappe.model.can_create("Ministry Team Assignment")) return;
 		listview.page.add_inner_button(__("Send Requests Now"), () => {
