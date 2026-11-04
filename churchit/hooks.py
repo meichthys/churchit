@@ -66,7 +66,7 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = ["/assets/churchit/css/desk.css"]
+app_include_css = ["/assets/churchit/css/desk.css", "/assets/churchit/css/pwa.css"]
 app_include_js = [
 	"/assets/churchit/js/help_icon_on_form.js",
 	"/assets/churchit/js/church_utils.js",
@@ -76,12 +76,13 @@ app_include_js = [
 	"/assets/churchit/js/bible_reference.js",
 	"/assets/churchit/js/questions.js",
 	"/assets/churchit/js/merge_choices.js",
+	"/assets/churchit/js/pwa.js",
 ]
 
 # include js, css files in header of web template
 # Page layout shared by every website theme. The Churchit theme's own look is
 # public/scss/website.scss, which frappe compiles into each Website Theme.
-web_include_css = ["/assets/churchit/css/website.css"]
+web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
 	"/assets/churchit/js/portal_groups.js",
@@ -134,9 +135,11 @@ website_redirects = [
 # One page per published sermon. A sermon name can hold a slash.
 website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
 
-# Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
-# cache run, and members-only Web Pages send guests to the login page.
+# /app-start, where the installed app opens. Shipped pages a church switched off answer 404
+# before Frappe's own renderers or its page cache run, and members-only Web Pages send guests
+# to the login page.
 page_renderer = [
+	"churchit.church_website.pwa.AppStartPage",
 	"churchit.church_website.pages.SwitchedOffPage",
 	"churchit.church_website.pages.MembersOnlyPage",
 ]
@@ -372,15 +375,18 @@ doc_events = {
 	},
 }
 
-# Desk: whether multi-church is on and whether the user may include branches.
+# Desk: whether multi-church is on and whether the user may include branches, and the tags
+# that make the desk installable.
 extend_bootinfo = [
 	"churchit.church_scope.extend_bootinfo",
 	"churchit.scripture.extend_bootinfo",
 	"churchit.church_communications.staff_chat.extend_bootinfo",
+	"churchit.church_website.pwa.extend_bootinfo",
 ]
 
 # User menu switch for parent-church users; hidden for everyone else. One
-# item per state, since a Navbar Item's label is fixed.
+# item per state, since a Navbar Item's label is fixed. Install App shows while
+# this browser can install the app (public/js/pwa.js).
 standard_navbar_items = [
 	{
 		"item_label": "Include Branch Churches",
@@ -394,6 +400,14 @@ standard_navbar_items = [
 		"item_type": "Action",
 		"action": "church.toggle_branch_churches()",
 		"condition": "frappe.boot.churchit && frappe.boot.churchit.include_branches === true",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Install App",
+		"item_type": "Action",
+		"icon": "download",
+		"action": "church.install_app()",
+		"condition": "church.can_install_app && church.can_install_app()",
 		"is_standard": 1,
 	},
 ]

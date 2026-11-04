@@ -24,6 +24,8 @@
   "enable_setup",
   "section_website_pages",
   "website_pages",
+  "section_app",
+  "offer_app_install",
   "section_multi_church",
   "enable_multi_church",
   "private_people",
@@ -141,6 +143,19 @@
    "options": "Website Page Switch"
   },
   {
+   "fieldname": "section_app",
+   "fieldtype": "Section Break",
+   "label": "App"
+  },
+  {
+   "default": "1",
+   "description": "Offer signed-in users to install the site as an app on their phone or computer. Not now hides the offer on that device for 30 days. Install App in the desk user menu and on the Communication Preferences page stays either way.",
+   "fieldname": "offer_app_install",
+   "fieldtype": "Check",
+   "label": "Offer to Install the App",
+   "show_description_on_click": 1
+  },
+  {
    "collapsible": 1,
    "collapsible_depends_on": "enable_multi_church",
    "fieldname": "section_multi_church",
@@ -181,7 +196,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-31 13:18:47.000000",
+ "modified": "2026-11-03 13:55:28.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

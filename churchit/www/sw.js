@@ -6,6 +6,8 @@
 const CACHE = "churchit-v1";
 const OFFLINE_URL = "/offline";
 const OFFLINE_ICON = "/assets/churchit/icons/pwa/icon-192.png";
+// The status bar icon on Android, which only draws the shape of a picture.
+const BADGE_ICON = "/assets/churchit/icons/pwa/badge-96.png";
 
 self.addEventListener("install", (event) => {
 	event.waitUntil(
@@ -43,6 +45,7 @@ self.addEventListener("push", (event) => {
 		self.registration.showNotification(message.title || "", {
 			body: message.body || "",
 			icon: OFFLINE_ICON,
+			badge: BADGE_ICON,
 			data: { url: message.url || "/" },
 		})
 	);

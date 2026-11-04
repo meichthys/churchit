@@ -651,7 +651,8 @@ Web Pages without permission checks must apply the same rule.
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
 module owns it). Every migrate adds its switch to Church Features (`sync_page_switches`). Do not add
-home, portal, manifest.json, sw.js, offline, preferences or a Frappe route. A switched-off page
+home, portal, manifest.json, sw.js, offline, app-start (the `AppStartPage` renderer, where the
+installed app opens), preferences or a Frappe route. A switched-off page
 answers 404 from the `SwitchedOffPage` renderer, its web form refuses Frappe's web form APIs
 (`SwitchedOffWebForm`), and its navbar, footer, portal and sitemap links go at render time
 (`get_hidden_pages`). `SwitchedOffPage` reads the request path, not `frappe.local.path`, which only
