@@ -24,7 +24,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "church",
+   "icon": "calendar-heart",
    "link_to": "Ministries",
    "link_type": "Sidebar",
    "title": "Ministries"
@@ -48,7 +48,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "wallet",
+   "icon": "circle-dollar-sign",
    "link_to": "Finances",
    "link_type": "Sidebar",
    "title": "Finances"
@@ -88,7 +88,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "scroll-text",
+   "icon": "church",
    "link_to": "Foundations",
    "link_type": "Sidebar",
    "title": "Foundations"
@@ -110,7 +110,7 @@
    "title": "Help"
   }
  ],
- "modified": "2026-10-31 01:34:49.000000",
+ "modified": "2026-11-03 22:27:12.000000",
  "modified_by": "Administrator",
  "name": "churchit",
  "owner": "Administrator",

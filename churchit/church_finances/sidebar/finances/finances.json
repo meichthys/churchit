@@ -3,7 +3,7 @@
  "creation": "2026-10-08 19:33:59.980853",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "wallet",
+ "header_icon": "circle-dollar-sign",
  "idx": 0,
  "items": [
   {
@@ -630,7 +630,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-02 23:21:11.000000",
+ "modified": "2026-11-03 22:27:12.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",
