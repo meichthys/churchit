@@ -33,6 +33,7 @@ from churchit.church_people.membership import MEMBER, REGULAR_ATTENDER
 from churchit.church_summary import metrics
 from churchit.contacts import get_primary_email
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
+from churchit.query import this_week
 
 _PATHWAY = "Next Steps"
 # (step, its smart list, the list's Person filters), in the order people usually take them.
@@ -63,7 +64,7 @@ _DELETE_STEPS = [
 	(False, "Church Task", {}),
 	(False, "Church Asset", {}),
 	(False, "Room", {}),
-	(False, "Location", {}),
+	(False, "Church Location", {}),
 	(False, "Song", {}),
 	(False, "Prayer", {}),
 	(True, "Fund Transfer", {}),
@@ -91,7 +92,7 @@ _DELETE_STEPS = [
 	(False, "Prayer Request", {}),
 	(True, "Expense", {}),
 	(False, "Vendor", {}),
-	(False, "Budget", {}),
+	(False, "Church Budget", {}),
 	(False, "Expense Type", {}),
 	(False, "Giving Statement", {}),
 	(False, "Online Donation", {}),
@@ -296,11 +297,14 @@ def delete_sample_data():
 
 
 def _this_week_in(day_offset, year):
-	"""Return the date (as string) *day_offset* days from today, moved to *year*.
+	"""Return the date (as string) of the weekday *day_offset* days after today, inside
+	this Monday-to-Sunday week, moved to *year*.
 
-	A birthday or anniversary made this way shows up in the "this week" cards
-	and reports whenever sample data is created."""
-	target = add_days(getdate(), day_offset)
+	A day past Sunday wraps round to Monday, so a birthday or anniversary made this way
+	shows up in the "this week" cards and reports whenever sample data is created.
+	*year* is a leap year, so a Feb 29 in this week exists in it."""
+	monday, _sunday = this_week()
+	target = add_days(monday, (getdate().weekday() + day_offset) % 7)
 	return str(target.replace(year=year))
 
 
@@ -560,7 +564,9 @@ def _delete_communications(emptied):
 # Birthdays and position dates are computed dynamically so that reports like
 # "Birthdays This Week" always have data regardless of when sample data is
 # created.  The helper ``_this_week_in(offset, year)`` places the
-# birthday *offset* days from today but in the given birth year.
+# birthday on a day of this week, in the given birth year.  Lisa, Martha and
+# Rachel joined and were baptized recently, so the New Members and Baptisms by
+# Year charts show more than one point.
 
 
 def _build_people():
@@ -630,7 +636,7 @@ def _build_people():
 			"2005-05-20",
 			1,
 			"2004-09-15",
-			_this_week_in(2, 1980),  # birthday in 2 days
+			_this_week_in(2, 1980),  # birthday this week
 			"+1 202-555-0301",
 			"david.thompson@example.com",
 			[
@@ -644,9 +650,9 @@ def _build_people():
 			"Thompson",
 			"Female",
 			1,
-			"2006-01-08",
+			_near_date(-250),
 			1,
-			"2005-06-20",
+			_near_date(-500),
 			"1982-12-03",
 			"+1 202-555-0302",
 			"lisa.thompson@example.com",
@@ -658,15 +664,15 @@ def _build_people():
 			"Evans",
 			"Female",
 			1,
-			"2000-04-16",
+			_near_date(-75),  # after her transfer letter from Grace Baptist Church
 			1,
-			"1999-08-22",
+			_near_date(-1100),
 			"1975-05-11",
 			"+1 202-555-0401",
 			"martha.evans@example.com",
 			[
-				{"position": "Secretary", "start_date": "2008-01-01"},
-				{"position": "Treasurer", "start_date": "2010-01-01"},
+				{"position": "Secretary", "start_date": _near_date(-60)},
+				{"position": "Treasurer", "start_date": _near_date(-30)},
 			],
 			None,
 		),
@@ -720,7 +726,7 @@ def _build_people():
 			"2008-08-18",
 			1,
 			"2007-12-25",
-			_this_week_in(3, 1985),  # birthday in 3 days
+			_this_week_in(3, 1984),  # birthday this week
 			"+1 202-555-0801",
 			"elizabeth.harper@example.com",
 			[],
@@ -748,7 +754,7 @@ def _build_people():
 			None,
 			0,
 			None,
-			_this_week_in(12, 2019),
+			"2019-06-12",
 			None,
 			None,
 			[],
@@ -942,7 +948,7 @@ _PRIMARY_CONTACTS = {
 
 _SPOUSES = [
 	("James Wilson", "Sarah Wilson", "1986-06-14"),
-	("Robert Johnson", "Mary Johnson", "1995-10-07"),
+	("Robert Johnson", "Mary Johnson", _this_week_in(4, 1996)),
 	# Today's date, so an anniversary always shows up this week and this month.
 	("David Thompson", "Lisa Thompson", _this_week_in(0, 2004)),
 ]
@@ -1537,7 +1543,7 @@ def _create_budget(expense_types):
 	start_date = f"{year}-01-01"
 	end_date = f"{year}-12-31"
 
-	if frappe.db.exists("Budget", {"start_date": start_date, "end_date": end_date}):
+	if frappe.db.exists("Church Budget", {"start_date": start_date, "end_date": end_date}):
 		return
 
 	lines = [
@@ -1551,7 +1557,7 @@ def _create_budget(expense_types):
 
 	doc = frappe.get_doc(
 		{
-			"doctype": "Budget",
+			"doctype": "Church Budget",
 			"start_date": start_date,
 			"end_date": end_date,
 			"lines": lines,
@@ -3018,13 +3024,13 @@ def _create_locations():
 	"""Create sample locations in tree order. Returns dict mapping label → name."""
 	refs = {}
 	for label, parent_key, is_group in _LOCATIONS:
-		existing = frappe.db.get_value("Location", {"location_name": label}, "name")
+		existing = frappe.db.get_value("Church Location", {"location_name": label}, "name")
 		if existing:
 			refs[label] = existing
 			continue
 		doc = frappe.get_doc(
 			{
-				"doctype": "Location",
+				"doctype": "Church Location",
 				"location_name": label,
 				"is_group": 1 if is_group else 0,
 				"parent_location": refs.get(parent_key),

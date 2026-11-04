@@ -81,6 +81,13 @@
 			</table>
 		{% endif %}
 
+		{# public/js/pwa.js shows this while the browser can install the app. #}
+		<div class="mt-5 d-none" data-install-app>
+			<h5>{{ _("App on this device") }}</h5>
+			<p class="text-muted">{{ _("Open {0} from your home screen, Dock or taskbar like any other app.").format(church_name or _("your church")) | e }}</p>
+			<button type="button" class="btn btn-primary btn-sm" data-install-app-button>{{ _("Install app") }}</button>
+		</div>
+
 		{% if push_public_key %}
 			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}"
 				data-has-push-column="{{ 1 if 'Push' in channels else 0 }}">

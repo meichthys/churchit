@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-10-30 23:11:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",
@@ -17,7 +17,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Turns the public /give webpage on or off. When off, visitors see an 'unavailable' notice instead of the form.",
+   "description": "Turns the giving form of the public /give webpage on or off. When off, visitors see an 'unavailable' notice instead of the form. Online giving needs the Payments app, so it is off until a System Manager installs it.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "has_next_condition": 0,
@@ -53,16 +53,16 @@
    "ui_tour": 0
   },
   {
-   "description": "Add one row per gateway you accept. With more than one, donors choose at checkout; mark exactly one row as Default.<br><br><b>Add at least one gateway row to continue.</b>",
+   "description": "Add one row per gateway you accept. With more than one, donors choose at checkout; mark exactly one row as Default. Without the Payments app this table stays empty.",
    "fieldname": "gateways",
    "fieldtype": "Table",
-   "has_next_condition": 1,
+   "has_next_condition": 0,
    "hide_buttons": 0,
    "is_table_field": 0,
    "label": "Payment Methods",
    "modal_trigger": 0,
    "next_on_click": 0,
-   "next_step_condition": "eval: doc.gateways && doc.gateways.length",
+   "next_step_condition": "",
    "offset_x": 0,
    "offset_y": 0,
    "popover_element": 0,

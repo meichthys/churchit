@@ -10,10 +10,10 @@
   "person",
   "church",
   "counselor",
-  "start_date",
-  "column_break_1",
-  "status",
   "case_type",
+  "column_break_1",
+  "start_date",
+  "status",
   "end_date",
   "section_break_1",
   "summary",
@@ -53,6 +53,7 @@
    "default": "Today",
    "fieldname": "start_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Start Date",
    "reqd": 1
   },
@@ -72,6 +73,7 @@
   {
    "fieldname": "case_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Case Type",
    "options": "Case Type"
@@ -104,7 +106,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-11-03 01:01:09.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Counseling Case",
@@ -151,6 +153,23 @@
  "row_format": "Dynamic",
  "sort_field": "start_date",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Intake"
+  },
+  {
+   "color": "Green",
+   "title": "Active"
+  },
+  {
+   "color": "Gray",
+   "title": "Closed"
+  },
+  {
+   "color": "Purple",
+   "title": "Referred"
+  }
+ ],
  "title_field": "person"
 }

@@ -396,6 +396,12 @@ p code, li code, dd code { color: var(--brand-ink); background: rgba(99,102,241,
 .first-steps ul { padding-left: 1.2rem; }
 .first-steps strong { color: var(--ink); }
 
+/* README tables; they scroll sideways on narrow screens instead of widening the page. */
+.first-steps table, .path-body table { display: block; overflow-x: auto; border-collapse: collapse; margin: .8rem 0; font-size: .9rem; line-height: 1.45; }
+.first-steps th, .first-steps td, .path-body th, .path-body td { padding: .5rem .7rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.first-steps th, .path-body th { color: var(--ink); font-weight: 700; border-bottom-color: rgba(15, 23, 42, .16); }
+.first-steps td code, .path-body td code { color: var(--brand-ink); background: rgba(99,102,241,.1); padding: .1em .4em; border-radius: 6px; white-space: nowrap; }
+
 /* ---- Documentation ------------------------------------------------------- */
 .doc-layout { display: grid; grid-template-columns: 250px 1fr; gap: 2.2rem; align-items: start; padding-top: 2.5rem; }
 @media (max-width: 900px) { .doc-layout { grid-template-columns: 1fr; } }

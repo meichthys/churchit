@@ -4,9 +4,9 @@
 frappe.ui.form.on("Song", {
 	refresh(frm) {
 		if (frm.is_new()) return;
+		add_present_button(frm);
 		add_chord_chart_button(frm);
 		add_make_slides_button(frm);
-		add_present_button(frm);
 		add_export_button(frm);
 	},
 });
@@ -68,7 +68,7 @@ function add_chord_chart_button(frm) {
 function add_make_slides_button(frm) {
 	const names = get_charted_arrangements(frm).map((row) => row.arrangement_name);
 	if (!names.length || !frm.has_perm("write")) return;
-	frm.add_custom_button(__("Make Slides from ChordPro"), () => {
+	const make_slides = () => {
 		if (frm.is_dirty()) return frappe.msgprint(__("Save the song first."));
 		if (names.length === 1) return confirm_make_slides(frm, names[0]);
 		frappe.prompt(
@@ -84,7 +84,8 @@ function add_make_slides_button(frm) {
 			__("Make Slides from ChordPro"),
 			__("Next")
 		);
-	});
+	};
+	frm.add_custom_button(__("Make Slides from ChordPro"), make_slides, __("Actions"));
 }
 
 function confirm_make_slides(frm, arrangement) {
@@ -129,7 +130,7 @@ function add_present_button(frm) {
 
 function add_export_button(frm) {
 	if (!get_charted_arrangements(frm).length) return;
-	frm.add_custom_button(__("Export"), () => {
+	const export_song = () => {
 		if (frm.is_dirty()) return frappe.msgprint(__("Save the song first."));
 		frappe.prompt(
 			{
@@ -151,5 +152,6 @@ function add_export_button(frm) {
 			__("Export Song"),
 			__("Export")
 		);
-	});
+	};
+	frm.add_custom_button(__("Export"), export_song, __("Actions"));
 }

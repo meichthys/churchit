@@ -34,6 +34,7 @@ class Family(Document):
 		# First, so the controller's own changes below are not taken for a member's.
 		refuse_member_edits_beyond_photo(self)
 		validate_contact_tables(self)
+		self.member_count = len(self.member_names)
 		if self.primary_contact and self.primary_contact not in self.member_names:
 			frappe.throw(_("The Primary Contact must be one of the Family Members."))
 		self.follow_primary_contacts_church()
@@ -140,10 +141,13 @@ class Family(Document):
 		return [member for member in blank if member.household_role]
 
 	def rename_after_primary_contact(self):
-		"""Put the primary contact's first name after the last dash, "Doe - John" to "Doe - Jane"."""
+		"""Put the primary contact's first name after the last " - ", "Doe - John" to "Doe - Jane".
+
+		A dash inside a name, as in "Smith-Jones" or "Mary-Jane", stays part of that name.
+		"""
 		first_name = frappe.db.get_value("Person", self.primary_contact, "first_name")
-		surname, dash, _first_name = self.family_name.rpartition("-")
-		self.family_name = f"{surname}{dash} {first_name}" if dash else f"{self.family_name} - {first_name}"
+		surname, dash, _first_name = self.family_name.rpartition(" - ")
+		self.family_name = f"{surname}{dash}{first_name}" if dash else f"{self.family_name} - {first_name}"
 
 	def warn_about_new_primary_contact(self, old_family_name):
 		names = self.get_member_values("full_name")

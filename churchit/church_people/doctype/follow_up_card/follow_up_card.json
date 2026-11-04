@@ -9,14 +9,14 @@
  "field_order": [
   "person",
   "person_name",
-  "contact_details",
-  "workflow",
   "church",
-  "column_break_card",
+  "contact_details",
   "step",
-  "status",
   "due_on",
+  "column_break_card",
+  "status",
   "snoozed_until",
+  "workflow",
   "section_break_details",
   "reason",
   "column_break_details",
@@ -41,6 +41,7 @@
    "fetch_from": "person.full_name",
    "fieldname": "person_name",
    "fieldtype": "Data",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Person Name",
    "read_only": 1
@@ -97,6 +98,7 @@
   {
    "fieldname": "due_on",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Due On",
    "read_only": 1
   },
@@ -157,8 +159,14 @@
   }
  ],
  "index_web_pages_for_search": 0,
- "links": [],
- "modified": "2026-10-18 09:00:00.000000",
+ "links": [
+  {
+   "group": "Action Runs",
+   "link_doctype": "Follow-up Action Run",
+   "link_fieldname": "card"
+  }
+ ],
+ "modified": "2026-10-31 13:25:20.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Card",
@@ -227,8 +235,8 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "due_on",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "person_name",
  "track_changes": 1

@@ -25,8 +25,6 @@
    "description": "The child that the restricted person may not collect.",
    "fieldname": "child",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Child",
    "options": "Person",
    "reqd": 1
@@ -67,7 +65,7 @@
    "label": "Restricted Person"
   },
   {
-   "description": "The person who may not collect the child, when they are in the directory. Verify Pickup refuses to release the child to them.",
+   "description": "Pick them when they are in the directory. Verify Pickup then refuses them.",
    "fieldname": "restricted_person",
    "fieldtype": "Link",
    "label": "Restricted Person",
@@ -83,7 +81,7 @@
    "read_only_depends_on": "eval:doc.restricted_person"
   },
   {
-   "description": "What the check-in volunteer reads at Verify Pickup, such as how to know the person and whom to call. Do not write the reason here.",
+   "description": "What the volunteer reads at Verify Pickup. Do not write the reason here.",
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "What the Volunteer Sees",
@@ -108,7 +106,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-22 22:18:03.000000",
+ "modified": "2026-10-31 13:19:10.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Pickup Restriction",

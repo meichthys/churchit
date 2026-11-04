@@ -50,7 +50,8 @@ def record(person: str, function: str, status: str) -> bool:
 	else:
 		row.attendance_type = status
 
-	function_doc.save(ignore_permissions=True)
+	# A check-in or a sign-up is not an edit of the Function, so it leaves no history entry.
+	function_doc.save(ignore_permissions=True, ignore_version=True)
 	return True
 
 
@@ -65,7 +66,7 @@ def remove(person: str, function: str, status: str) -> bool:
 		return False
 
 	function_doc.remove(row)
-	function_doc.save(ignore_permissions=True)
+	function_doc.save(ignore_permissions=True, ignore_version=True)
 	return True
 
 

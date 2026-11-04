@@ -6,7 +6,7 @@ from datetime import timedelta
 import frappe
 
 from churchit.church_people.membership import changed_between, record_changes
-from churchit.patches.v1_0 import record_membership_history
+from churchit.patches.v1_0 import forget_milestones_of_deleted_people, record_membership_history
 from churchit.tests.helpers import RollbackEachTest, ensure, make_person
 
 
@@ -76,6 +76,24 @@ class TestMembershipHistory(RollbackEachTest):
 
 		self.assertEqual(self.kept_by(person, membership=None), [])
 		self.assertIsNone(frappe.db.get_value("Person", person.name, "membership"))
+
+	def test_deleting_a_person_deletes_their_history(self):
+		person = make_person("_Test History Deleted", membership="Visitor")
+		self.assertTrue(milestones(person.name))
+
+		person.delete(ignore_permissions=True)
+
+		self.assertEqual(milestones(person.name), [])
+
+	def test_the_patch_forgets_only_the_history_of_people_who_are_gone(self):
+		kept = make_person("_Test History Kept", membership="Visitor").name
+		keep_milestone("PRSN-_Test-Gone", "membership", "Member", frappe.utils.now_datetime())
+
+		forget_milestones_of_deleted_people.execute()
+		forget_milestones_of_deleted_people.execute()
+
+		self.assertEqual(milestones("PRSN-_Test-Gone"), [])
+		self.assertTrue(milestones(kept))
 
 	def test_nothing_is_kept_during_migrate(self):
 		person = make_person("_Test History Migrate", membership="Visitor")

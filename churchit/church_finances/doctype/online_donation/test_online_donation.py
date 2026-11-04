@@ -1,15 +1,23 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_year_ending, get_year_start, nowdate
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
-from churchit.church_finances.doctype.online_donation.online_donation import alert_unrecorded_gifts
+from churchit.church_finances.doctype.online_donation.online_donation import (
+	OnlineDonation,
+	alert_unrecorded_gifts,
+)
 from churchit.church_people import summaries
 from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
+
+# The payments app is optional, so its Payment Gateway may not exist.
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Payment Gateway"]
 
 
 def ensure_online_payment_type():
@@ -107,6 +115,23 @@ class TestOnlineDonation(FrappeTestCase):
 
 		self.assertNotEqual(gift.status, "Paid")
 		self.assertFalse(gift.collection)
+
+	def test_recording_a_gift_writes_no_history_but_a_staff_edit_does(self):
+		fund = self._make_fund()
+		gift = self._make_gift(fund, 20, donor_name="History Giver", email="history@example.com")
+
+		# Saves write no Version in tests unless in_test is off.
+		with patch.object(frappe, "in_test", False), patch.object(OnlineDonation, "send_acknowledgment"):
+			gift.on_payment_authorized("Completed")
+			self.assertEqual(
+				frappe.db.count("Version", {"ref_doctype": gift.doctype, "docname": gift.name}), 0
+			)
+
+			gift.reload()
+			gift.notes = "Matched by Finance"
+			gift.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.count("Version", {"ref_doctype": gift.doctype, "docname": gift.name}), 1)
 
 	def test_authorized_is_idempotent(self):
 		fund = self._make_fund()

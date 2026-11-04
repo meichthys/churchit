@@ -7,18 +7,17 @@ app_license = "mit"
 app_logo_url = "/assets/churchit/media/church_logo.png"
 develop_version = "develop"
 
-website_context = {
-	"favicon": "/assets/churchit/icons/favicon.ico",
-	"splash_image": "/assets/churchit/media/church_logo.png",
-}
-
 update_website_context = "churchit.church_website.context.update_website_context"
 before_request = ["churchit.church_website.context.before_request"]
 
 fixtures = [
 	{
 		"dt": "Custom Field",
-		"filters": [["dt", "in", ["Communication", "Contact Us Settings", "Portal Settings"]]],
+		# The module filter keeps out the fields other apps, such as ERPNext, add to the same doctypes.
+		"filters": [
+			["dt", "in", ["Communication", "Contact Us Settings", "Portal Settings"]],
+			["module", "=", "Church Customizations"],
+		],
 	},
 	{
 		"dt": "Property Setter",
@@ -45,12 +44,13 @@ fixtures = [
 	# The map block on the Missions workspace and the preview on Web Site.
 	# App-owned: the workspace JSON references each by name and is re-synced on
 	# every migrate, so they have to be re-applied alongside it.
-	{"dt": "Custom HTML Block", "filters": [["name", "in", ["MissionaryMap", "WebsitePreview"]]]},
+	{
+		"dt": "Custom HTML Block",
+		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview"]]],
+	},
 ]
 # Apps
 # ------------------
-
-required_apps = ["payments"]
 
 # The Churchit tile on the Apps screen, which opens on Summary.
 add_to_apps_screen = [
@@ -66,7 +66,7 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = ["/assets/churchit/css/desk.css"]
+app_include_css = ["/assets/churchit/css/desk.css", "/assets/churchit/css/pwa.css"]
 app_include_js = [
 	"/assets/churchit/js/help_icon_on_form.js",
 	"/assets/churchit/js/church_utils.js",
@@ -76,12 +76,13 @@ app_include_js = [
 	"/assets/churchit/js/bible_reference.js",
 	"/assets/churchit/js/questions.js",
 	"/assets/churchit/js/merge_choices.js",
+	"/assets/churchit/js/pwa.js",
 ]
 
 # include js, css files in header of web template
 # Page layout shared by every website theme. The Churchit theme's own look is
 # public/scss/website.scss, which frappe compiles into each Website Theme.
-web_include_css = ["/assets/churchit/css/website.css"]
+web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
 	"/assets/churchit/js/portal_groups.js",
@@ -134,9 +135,11 @@ website_redirects = [
 # One page per published sermon. A sermon name can hold a slash.
 website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
 
-# Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
-# cache run, and members-only Web Pages send guests to the login page.
+# /app-start, where the installed app opens. Shipped pages a church switched off answer 404
+# before Frappe's own renderers or its page cache run, and members-only Web Pages send guests
+# to the login page.
 page_renderer = [
+	"churchit.church_website.pwa.AppStartPage",
 	"churchit.church_website.pages.SwitchedOffPage",
 	"churchit.church_website.pages.MembersOnlyPage",
 ]
@@ -188,7 +191,10 @@ after_install = "churchit.patches.after_install.execute"
 
 # Workspaces ship as standard records, so migrate re-imports them and resets the
 # visibility Church Features set. Re-apply it, and add newly shipped dock entries.
-after_migrate = ["churchit.church_setup.doctype.church_features.church_features.apply_on_migrate"]
+after_migrate = [
+	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
+	"churchit.church_summary.home.add_return_to_framework_dock",
+]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
 # is the user's, so it stores them for Guest and the desk shows none. Collect
@@ -216,7 +222,11 @@ setup_wizard_complete = [
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-before_app_install = "churchit.church_setup.app_clashes.refuse_clashing_app"
+before_app_install = [
+	"churchit.church_setup.app_clashes.refuse_clashing_app",
+	"churchit.patches.after_install.remember_letter_head",
+]
+after_app_install = "churchit.patches.after_install.keep_church_letter_head"
 
 # Integration Cleanup
 # -------------------
@@ -279,8 +289,14 @@ permission_query_conditions = {
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 }
 
-# A person's notes show on their timeline, to the users who may read them.
-additional_timeline_content = {"Person": ["churchit.church_people.notes.get_timeline_notes"]}
+# A person's notes, visits, care requests, life events, transfers and connection cards show on their
+# timeline, to the users who may read them.
+additional_timeline_content = {
+	"Person": [
+		"churchit.church_people.notes.get_timeline_notes",
+		"churchit.church_people.history.get_timeline_content",
+	]
+}
 
 # Follow-up workflows that start when a person's membership changes or a life event is added.
 churchit_people_events = {
@@ -359,15 +375,18 @@ doc_events = {
 	},
 }
 
-# Desk: whether multi-church is on and whether the user may include branches.
+# Desk: whether multi-church is on and whether the user may include branches, and the tags
+# that make the desk installable.
 extend_bootinfo = [
 	"churchit.church_scope.extend_bootinfo",
 	"churchit.scripture.extend_bootinfo",
 	"churchit.church_communications.staff_chat.extend_bootinfo",
+	"churchit.church_website.pwa.extend_bootinfo",
 ]
 
 # User menu switch for parent-church users; hidden for everyone else. One
-# item per state, since a Navbar Item's label is fixed.
+# item per state, since a Navbar Item's label is fixed. Install App shows while
+# this browser can install the app (public/js/pwa.js).
 standard_navbar_items = [
 	{
 		"item_label": "Include Branch Churches",
@@ -381,6 +400,14 @@ standard_navbar_items = [
 		"item_type": "Action",
 		"action": "church.toggle_branch_churches()",
 		"condition": "frappe.boot.churchit && frappe.boot.churchit.include_branches === true",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Install App",
+		"item_type": "Action",
+		"icon": "download",
+		"action": "church.install_app()",
+		"condition": "church.can_install_app && church.can_install_app()",
 		"is_standard": 1,
 	},
 ]
@@ -440,6 +467,32 @@ override_whitelisted_methods = {
 
 # A Person Link field also finds people by phone number or email address.
 standard_queries = {"Person": "churchit.church_people.search.search_people"}
+
+# The search bar (Ctrl+K) finds these records by their title field. Never add a record about one person's
+# care, prayer or history. They come first in Global Search Settings, whose first 5 rows are the search
+# dialog's filter buttons. Frappe reads this list only in the setup wizard, so a new entry reaches existing
+# sites through a new patch that calls `add_to_global_search` with only the new doctypes.
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Person", "index": 0},
+		{"doctype": "Family", "index": 1},
+		{"doctype": "Group", "index": 2},
+		{"doctype": "Sermon", "index": 3},
+		{"doctype": "Song", "index": 4},
+		{"doctype": "Function", "index": 5},
+		{"doctype": "Ministry", "index": 6},
+		{"doctype": "Sermon Series", "index": 7},
+		{"doctype": "Missionary", "index": 8},
+		{"doctype": "Missionary Agency", "index": 9},
+		{"doctype": "Fund", "index": 10},
+		{"doctype": "Vendor", "index": 11},
+		{"doctype": "Room", "index": 12},
+		{"doctype": "Church Location", "index": 13},
+		{"doctype": "Church Asset", "index": 14},
+		{"doctype": "Bulletin", "index": 15},
+		{"doctype": "Belief", "index": 16},
+	]
+}
 
 # Data Import targets that read another system's people export, or Churchit's own spreadsheet,
 # and build Address, Family and Person records from each row.

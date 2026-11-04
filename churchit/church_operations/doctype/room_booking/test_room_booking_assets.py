@@ -11,6 +11,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations.doctype.room_booking.room_booking import RoomBooking
+from churchit.connections import get_open_count
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -178,6 +179,19 @@ class TestRoomBookingAssetsAcrossChurches(RollbackEachTest):
 		frappe.set_user(self.staff_b)
 		with self.assertRaisesRegex(frappe.ValidationError, theirs.name):
 			self.book([self.shared_asset]).insert()
+
+	def test_the_bookings_of_a_shared_asset_count_only_the_readers_church(self):
+		theirs = make_booking([self.shared_asset], 9, requester=self.requester_a)
+		theirs.insert(ignore_permissions=True).db_set("church", self.branch_a)
+		frappe.set_user(self.staff_b)
+		make_booking([self.shared_asset], 11, requester=self.requester_b).insert()
+
+		try:
+			found = get_open_count("Church Asset", self.shared_asset)["count"]["external_links_found"]
+		finally:
+			# Frappe's get_open_count limits the session's statements to 1 second, meant to end with the request.
+			frappe.db.set_execution_timeout(0)
+		self.assertEqual({row["doctype"]: row["count"] for row in found}["Room Booking"], 1)
 
 
 class TestRoomBookingAssetRace(FrappeTestCase):

@@ -45,6 +45,7 @@
    "default": "0",
    "fieldname": "is_group",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Is Group"
   },
   {
@@ -69,7 +70,6 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "in_filter": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Type",
    "reqd": 1,
@@ -101,7 +101,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense Type",
@@ -155,9 +155,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "type",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "type"
 }

@@ -8,26 +8,31 @@
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "fund",
   "church",
   "is_shared",
   "shared_by_church",
   "description",
+  "column_break_ojjy",
+  "balance",
   "allow_giving",
   "is_tax_deductible",
-  "column_break_ojjy",
-  "start_date",
-  "end_date",
-  "balance",
+  "goal_section",
   "goal_amount",
   "goal_progress",
-  "section_break_xcgh",
-  "transactions"
+  "column_break_goal",
+  "start_date",
+  "end_date",
+  "ledger_tab",
+  "transactions",
+  "connections_tab"
  ],
  "fields": [
   {
    "fieldname": "fund",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
    "label": "Name",
    "reqd": 1
@@ -47,8 +52,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -73,8 +76,6 @@
    "description": "Show this fund as an option on the public online giving page.",
    "fieldname": "allow_giving",
    "fieldtype": "Check",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Allow giving to this fund"
   },
   {
@@ -82,7 +83,9 @@
    "description": "Untick for a fund whose gifts are not tax deductible, for example a pass-through collection. Its gifts are left off giving statements.",
    "fieldname": "is_tax_deductible",
    "fieldtype": "Check",
-   "label": "Tax Deductible"
+   "in_list_view": 1,
+   "label": "Tax Deductible",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_ojjy",
@@ -103,18 +106,19 @@
    "label": "End Date"
   },
   {
+   "bold": 1,
    "fieldname": "balance",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Balance"
+   "label": "Balance",
+   "read_only": 1
   },
   {
    "allow_in_quick_entry": 1,
-   "description": "Optional fundraising target for this fund (e.g. a building project or missions trip). Leave at 0 for no goal.",
+   "description": "A target to raise, such as for a building project. Leave at 0 for no goal.",
    "fieldname": "goal_amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "in_preview": 1,
    "label": "Goal Amount",
    "non_negative": 1
@@ -130,26 +134,70 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_xcgh",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "transactions",
    "fieldtype": "Table",
    "label": "Transactions",
    "options": "Financial Transaction"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.goal_amount || doc.start_date || doc.end_date",
+   "fieldname": "goal_section",
+   "fieldtype": "Section Break",
+   "label": "Fundraising Goal"
+  },
+  {
+   "fieldname": "column_break_goal",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ledger_tab",
+   "fieldtype": "Tab Break",
+   "label": "Ledger"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
+   "group": "Giving",
    "link_doctype": "Collection",
    "link_fieldname": "fund",
    "table_fieldname": "donations"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Online Donation",
+   "link_fieldname": "fund"
+  },
+  {
+   "group": "Giving",
+   "link_doctype": "Pledge Campaign",
+   "link_fieldname": "fund"
+  },
+  {
+   "group": "Spending",
+   "link_doctype": "Expense",
+   "link_fieldname": "associated_fund"
+  },
+  {
+   "group": "Spending",
+   "link_doctype": "Expense Type",
+   "link_fieldname": "fund"
   }
  ],
- "modified": "2026-10-24 00:07:42.000000",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",
@@ -200,8 +248,8 @@
  "row_format": "Dynamic",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "fund",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "fund",
  "track_changes": 1

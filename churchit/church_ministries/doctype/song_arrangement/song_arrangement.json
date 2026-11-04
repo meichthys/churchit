@@ -15,6 +15,7 @@
  ],
  "fields": [
   {
+   "columns": 4,
    "fieldname": "arrangement_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -22,6 +23,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "description": "The key the chart is written in. The Chord Chart moves the chords from this key.",
    "fieldname": "song_key",
    "fieldtype": "Select",
@@ -30,6 +32,7 @@
    "options": "\nC\nDb\nD\nEb\nE\nF\nF#\nG\nAb\nA\nBb\nB\nCm\nC#m\nDm\nEbm\nEm\nFm\nF#m\nGm\nG#m\nAm\nBbm\nBm"
   },
   {
+   "columns": 2,
    "fieldname": "tempo",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -40,7 +43,8 @@
    "description": "The chart in ChordPro: chords in square brackets before the syllable, such as [G]Amazing [D/F#]grace, and sections such as {start_of_verse} and {end_of_verse}.",
    "fieldname": "chordpro",
    "fieldtype": "Code",
-   "label": "ChordPro"
+   "label": "ChordPro",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "notes",
@@ -51,7 +55,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-27 00:31:37.000000",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song Arrangement",

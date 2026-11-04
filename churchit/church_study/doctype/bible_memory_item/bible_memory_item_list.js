@@ -2,6 +2,17 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Bible Memory Item"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
+	add_fields: ["memorized", "progress"],
+	get_indicator(doc) {
+		if (doc.memorized) return [__("Memorized"), "green", "memorized,=,1"];
+		if (doc.progress > 0) return [__("In Progress"), "blue", "memorized,=,0|progress,>,0"];
+		return [__("Not Started"), "gray", "progress,=,0"];
+	},
+	formatters: {
+		progress: (value) => `${cint(value)}%`,
+	},
 	onload(listview) {
 		if (!frappe.user.has_role(["Church Manager", "System Manager"])) return;
 		listview.page.add_inner_button(__("Assign a Passage"), () => {

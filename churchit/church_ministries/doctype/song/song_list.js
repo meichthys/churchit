@@ -2,6 +2,8 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Song"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
 	onload(listview) {
 		add_song_import_button(listview);
 		add_public_domain_hymns_button(listview);

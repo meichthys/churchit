@@ -24,70 +24,73 @@ frappe.ui.form.on("Person", {
 			frm.refresh_field("marriage_years");
 		}
 
-		// Add 'New Family From Person' button if Last Name is populated and person is not already a family's primary contact
-		if (frm.doc.last_name && !frm.doc.__onload?.is_primary_contact) {
-			frm.add_custom_button(__("New Family From Person"), function () {
-				frm.call("new_family_from_person").then(() => frm.reload_doc());
-			});
-		}
-
-		// Add 'Invite to Portal' button if an email is on file and no Portal User is linked
-		const has_email = (frm.doc.emails || []).some((row) => row.email_address);
-		if (has_email && !frm.doc.user) {
-			frm.add_custom_button(__("Invite to Portal"), function () {
-				frm.call("invite_to_portal");
-			});
+		// The Connections tab holds the dashboard, so this alert sits above the tabs instead.
+		if (frm.doc.__onload?.has_unsubscribed) {
+			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");
 		}
 
 		if (!frm.is_new()) {
+			add_actions(frm);
 			show_background_check_status(frm);
 			show_alert_notes(frm);
-		}
-
-		if (frm.doc.__onload?.has_unsubscribed) {
-			frm.dashboard.add_indicator(__("Unsubscribed from Church Emails"), "orange");
-			if (frappe.model.can_write("Person")) {
-				frm.add_custom_button(__("Resubscribe to Church Emails"), () =>
-					frm.call("resubscribe_to_church_emails").then(() => frm.reload_doc())
-				);
-			}
-		}
-
-		if (!frm.is_new()) {
-			add_note_menu_item(frm);
-			add_details_link_menu_item(frm);
 			add_merge_menu_item(frm);
 			show_engagement(frm);
 			add_remove_personal_data_menu_item(frm);
 		}
-
-		// Add 'Person Tour' button
-		frm.add_custom_button(__("Tutorial"), function () {
-			frm.tour.init("Person").then(() => frm.tour.start());
-		});
 	},
 });
 
-// Show the most recent background check on the form dashboard so leaders can
-// see at a glance whether this person is cleared to serve.
+// Record actions under one Actions button, for a saved person.
+function add_actions(frm) {
+	const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
+	add_note_action(frm, action);
+
+	if (frm.doc.last_name && !frm.doc.__onload?.is_primary_contact) {
+		action(__("New Family From Person"), () =>
+			frm.call("new_family_from_person").then(() => frm.reload_doc())
+		);
+	}
+
+	const has_email = (frm.doc.emails || []).some((row) => row.email_address);
+	if (has_email && !frm.doc.user) {
+		action(__("Invite to Portal"), () => frm.call("invite_to_portal"));
+	}
+
+	add_details_link_action(frm, action);
+
+	if (frm.doc.__onload?.has_unsubscribed && frappe.model.can_write("Person")) {
+		action(__("Resubscribe to Church Emails"), () =>
+			frm.call("resubscribe_to_church_emails").then(() => frm.reload_doc())
+		);
+	}
+}
+
+// Show the most recent background check so leaders can see at a glance whether this person is
+// cleared to serve. The dashboard sits on the Connections tab, so a check that does not clear
+// the person goes above the tabs instead.
 function show_background_check_status(frm) {
 	if (!frappe.model.can_read("Background Check")) return;
+	const person = frm.doc.name;
 	frappe.db
 		.get_list("Background Check", {
-			filters: { person: frm.doc.name },
+			filters: { person },
 			fields: ["check_type", "status", "expires_on"],
 			order_by: "requested_on desc, creation desc",
 			limit: 1,
 		})
 		.then((rows) => {
-			if (!rows || !rows.length) return;
+			if (!rows || !rows.length || frm.doc.name !== person) return;
 			const check = rows[0];
-			const colors = { Cleared: "green", "Not Cleared": "red", Expired: "gray" };
 			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
-			if (check.status === "Cleared" && check.expires_on) {
+			if (check.status !== "Cleared") {
+				const color = check.status === "Not Cleared" ? "red" : "orange";
+				frm.dashboard.set_headline_alert(frappe.utils.escape_html(label), color);
+				return;
+			}
+			if (check.expires_on) {
 				label += ` ${__("until")} ${frappe.datetime.str_to_user(check.expires_on)}`;
 			}
-			frm.dashboard.add_indicator(label, colors[check.status] || "orange");
+			frm.dashboard.add_indicator(label, "green");
 		});
 }
 
@@ -108,10 +111,10 @@ function show_alert_notes(frm) {
 }
 
 // The link lets the person change their own details without a login, once, for 7 days.
-function add_details_link_menu_item(frm) {
+function add_details_link_action(frm, action) {
 	const has_email = (frm.doc.emails || []).some((row) => row.is_primary && row.email_address);
 	if (!frm.perm[0]?.write || !has_email) return;
-	frm.page.add_menu_item(__("Send Details Link"), () =>
+	action(__("Send Details Link"), () =>
 		frappe
 			.xcall("churchit.church_people.details_link.send_details_link", {
 				person: frm.doc.name,
@@ -152,9 +155,9 @@ function show_engagement(frm) {
 }
 
 // A dialog keeps the person's unsaved changes; the Activity list and the alerts then load the new note.
-function add_note_menu_item(frm) {
+function add_note_action(frm, action) {
 	if (!frappe.model.can_create("Person Note")) return;
-	frm.page.add_menu_item(__("Add Person Note"), () => {
+	action(__("Add Person Note"), () => {
 		const note = frappe.model.get_new_doc("Person Note");
 		note.person = frm.doc.name;
 		const after_insert = () => {
@@ -294,7 +297,7 @@ function add_remove_personal_data_menu_item(frm) {
 	frm.page.add_menu_item(__("Remove Personal Data"), () => {
 		frappe.confirm(
 			__(
-				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their name, contact details, notes, photo, birth date, family, spouse and portal login go. You cannot undo this.",
+				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their first name, contact details, notes, photo, birth date, family, spouse and portal login go, and the last name stays. You cannot undo this.",
 				[frappe.utils.escape_html(frm.doc.full_name)]
 			),
 			() =>

@@ -1,10 +1,13 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Count
+from frappe.utils import getdate
 
 from churchit.church_prayers.prayer_access import PRAYER_REQUEST
 from churchit.church_scope import refuse_another_churches_parent
@@ -31,8 +34,8 @@ class Prayer(Document):
 				)
 
 	def before_save(self):
-		parts = [self.person or "", str(self.date or "")]
-		self.title = " - ".join(p for p in parts if p)
+		full_name = frappe.db.get_value("Person", self.person, "full_name") if self.person else None
+		self.title = get_prayer_title(full_name, self.date)
 
 	def on_update(self):
 		recount_prayers(get_prayed_requests(self) | get_prayed_requests(self.get_doc_before_save()))
@@ -42,6 +45,15 @@ class Prayer(Document):
 
 	def after_delete(self):
 		recount_prayers(get_prayed_requests(self))
+
+
+def get_prayer_title(full_name: str | None, date: datetime | str | None) -> str:
+	"""Who prayed and on which day, such as 'James Wilson, 2026-10-20'. Lists and links show it.
+
+	The day is ISO, as in a Collection's title, so a stored title keeps its meaning when the date format changes.
+	"""
+	day = str(getdate(date)) if date else None
+	return ", ".join(part for part in (full_name, day) if part)
 
 
 def get_prayed_requests(prayer: Prayer | None) -> set[str]:

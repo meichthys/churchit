@@ -116,7 +116,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-17 19:30:00.000000",
+ "modified": "2026-10-31 13:12:16.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Possible Duplicate",
@@ -160,7 +160,20 @@
  "show_title_field_in_link": 0,
  "sort_field": "score",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Open"
+  },
+  {
+   "color": "Green",
+   "title": "Merged"
+  },
+  {
+   "color": "Gray",
+   "title": "Not a Duplicate"
+  }
+ ],
  "title_field": "person_name",
  "track_changes": 1
 }

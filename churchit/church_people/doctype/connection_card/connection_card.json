@@ -14,6 +14,7 @@
   "column_break_name",
   "email",
   "phone",
+  "person",
   "section_break_visit",
   "visit",
   "how_heard",
@@ -28,7 +29,6 @@
   "section_break_processing",
   "status",
   "column_break_processing",
-  "person",
   "processed_on"
  ],
  "fields": [
@@ -88,7 +88,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "I Am",
-   "options": "First-Time Guest\nReturning Guest\nRegular Attender\nMember"
+   "options": "First-Time Guest\nReturning Guest\nRegular Attender\nMember",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "how_heard",
@@ -157,7 +158,8 @@
    "label": "Status",
    "no_copy": 1,
    "options": "New\nProcessed\nSpam",
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_processing",
@@ -170,7 +172,8 @@
    "label": "Person",
    "no_copy": 1,
    "options": "Person",
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "processed_on",
@@ -182,7 +185,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-21 09:00:00.000000",
+ "modified": "2026-10-31 13:13:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Connection Card",
@@ -249,9 +252,22 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "New"
+  },
+  {
+   "color": "Green",
+   "title": "Processed"
+  },
+  {
+   "color": "Gray",
+   "title": "Spam"
+  }
+ ],
  "title_field": "full_name",
  "track_changes": 1
 }

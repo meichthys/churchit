@@ -1,0 +1,180 @@
+{
+ "card_fields": [
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "person",
+   "icon": "user",
+   "idx": 1,
+   "name": "f9e764fcbb",
+   "parent": "Care Requests",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "urgency",
+   "icon": "flag",
+   "idx": 2,
+   "name": "df638c1615",
+   "parent": "Care Requests",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "due_on",
+   "icon": "calendar",
+   "idx": 3,
+   "name": "4a49bf11a9",
+   "parent": "Care Requests",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "caregiver",
+   "icon": "heart-handshake",
+   "idx": 4,
+   "name": "f106484d10",
+   "parent": "Care Requests",
+   "parentfield": "card_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "columns": [
+  {
+   "column_name": "Requested",
+   "doctype": "Kanban Board Column",
+   "idx": 1,
+   "indicator": "Orange",
+   "name": "5c02ac9796",
+   "parent": "Care Requests",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "Triaged",
+   "doctype": "Kanban Board Column",
+   "idx": 2,
+   "indicator": "Yellow",
+   "name": "9da7c46e56",
+   "parent": "Care Requests",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "In Progress",
+   "doctype": "Kanban Board Column",
+   "idx": 3,
+   "indicator": "Blue",
+   "name": "f0d7c9605a",
+   "parent": "Care Requests",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "Resolved",
+   "doctype": "Kanban Board Column",
+   "idx": 4,
+   "indicator": "Green",
+   "name": "3b7907b006",
+   "parent": "Care Requests",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Active"
+  },
+  {
+   "column_name": "Closed",
+   "doctype": "Kanban Board Column",
+   "idx": 5,
+   "indicator": "Gray",
+   "name": "7856d1d84f",
+   "parent": "Care Requests",
+   "parentfield": "columns",
+   "parenttype": "Kanban Board",
+   "status": "Archived"
+  }
+ ],
+ "creation": "2026-10-31 13:42:00.000000",
+ "docstatus": 0,
+ "doctype": "Kanban Board",
+ "field_name": "status",
+ "filters": "[[\"Care Request\", \"status\", \"not in\", [\"Resolved\", \"Closed\"]]]",
+ "footer_date_field": "Modified",
+ "group_by_fields": [
+  {
+   "doctype": "Kanban Board Group Field",
+   "fieldname": "urgency",
+   "idx": 1,
+   "name": "16dec446b5",
+   "parent": "Care Requests",
+   "parentfield": "group_by_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Group Field",
+   "fieldname": "caregiver",
+   "idx": 2,
+   "name": "01a6c7645c",
+   "parent": "Care Requests",
+   "parentfield": "group_by_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Group Field",
+   "fieldname": "category",
+   "idx": 3,
+   "name": "9e338f5031",
+   "parent": "Care Requests",
+   "parentfield": "group_by_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "kanban_board_name": "Care Requests",
+ "modified": "2026-11-03 01:01:20.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Care Requests",
+ "owner": "Administrator",
+ "preview_fields": [
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "category",
+   "idx": 1,
+   "name": "c2a4bea0f0",
+   "parent": "Care Requests",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "submitted_on",
+   "idx": 2,
+   "name": "764bb576c5",
+   "parent": "Care Requests",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  },
+  {
+   "doctype": "Kanban Board Field",
+   "fieldname": "preferred_contact",
+   "idx": 3,
+   "name": "bd32627754",
+   "parent": "Care Requests",
+   "parentfield": "preview_fields",
+   "parenttype": "Kanban Board"
+  }
+ ],
+ "private": 0,
+ "reference_doctype": "Care Request",
+ "show_assigned_to": 0,
+ "show_labels": 0,
+ "show_tags_on_card": 0,
+ "title_field": "description",
+ "use_kanban_v2": 1
+}

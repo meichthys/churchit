@@ -25,12 +25,22 @@ person in a field of its own also loses the answers kept on it to a Question Set
 (`clear_answers`). A Function Sign-Up that names the person only as an attendee loses that attendee's answers
 and its change history, and the others' answers stay. A sign-up the person made keeps no typed name, email or
 phone (`forget_sign_up_details`), and nor does a guest sign-up left unlinked with one of their email addresses.
+The search bar (Ctrl+K) at once stops finding the old name on the person, their family and the records scrubbed
+above (`refresh_search_row`). A record that names the person only in a table row, such as a Missionary or a
+Function, keeps a title typed with their name.
+
+The change history of every other record that names the person, their family, spouse and relatives included,
+loses the copies of their name and email addresses too (`scrub_history`), since a Version row keeps old values
+and shows a Link to a Person as the person's name. The history of the family, and the text and history of
+the records that show the family by its name, such as the other members, also lose their first name.
 
 A member's Personal Data Deletion Request anonymizes their Person once Frappe has deleted their login
 (`anonymize_on_data_deletion`).
 """
 
+import json
 import re
+from collections import defaultdict
 from collections.abc import Iterable
 
 import frappe
@@ -41,6 +51,7 @@ from frappe.model.delete_doc import get_linked_docs
 from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.query_builder.functions import Coalesce, Lower
+from frappe.utils.global_search import delete_for_document, update_global_search
 
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.person.person import (
@@ -50,14 +61,13 @@ from churchit.church_people.doctype.person.person import (
 )
 from churchit.church_people.followup import CARD, OPEN, close_quietly
 from churchit.church_people.membership import INACTIVE, living_people_filter
-from churchit.church_people.person_data_map import LinkedRecord, linked_records
+from churchit.church_people.person_data_map import LinkedRecord, get_records_naming, linked_records
 from churchit.contacts import CONTACT_TABLES, stop_sharing_from
 from churchit.questions import clear_answers, get_answer_tables
 
 ANONYMIZED = "Anonymized"
-# Person fields that say who the person is.
+# Person fields that say who the person is. The last name stays, so the record sorts among its family name.
 PERSONAL_FIELDS = (
-	"last_name",
 	"middle_name",
 	"nickname",
 	"previous_last_name",
@@ -79,6 +89,8 @@ PERSONAL_FIELDS = (
 	"legacy_system",
 	"legacy_id",
 	"how_heard",
+	"primary_email",
+	"primary_phone",
 )
 # Person tables whose every row is personal.
 PERSONAL_TABLES = ("emails", "phones", "addresses", "letters", "skills", "relationships")
@@ -103,8 +115,12 @@ RECORDS_ABOUT_THE_PERSON = (
 	("Function Sign-Up", "person"),
 	("Giving Statement", "person"),
 	("Member Transfer", "person"),
+	("Ministry Team Assignment", "person"),
+	("Ministry Team Block", "person"),
 	("Online Donation", "person"),
 	("Pledge", "person"),
+	("Possible Duplicate", "person"),
+	("Possible Duplicate", "other_person"),
 	("Prayer Request", "requestor"),
 	("Visitation Log", "person"),
 )
@@ -135,12 +151,15 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	emails = own_emails | {email.lower() for email in emails}
 	first_name, family = doc.first_name, doc.family
 	addresses = [row.address for row in doc.addresses]
+	# Read before the person leaves their family, spouse and relatives, whose histories name them too.
+	histories = {record.document for record in linked_records(person)}
 	disable_login(doc.user)
 	if doc.spouse:
 		# The spouse keeps their own marital status and anniversary; only the link to this record goes.
 		frappe.db.set_value("Person", {"name": doc.spouse, "spouse": doc.name}, "spouse", None)
 	strip_person(doc)
 	doc.save(ignore_permissions=True)
+	refresh_search_row(doc)
 	remove_relationships_with(person)
 	forget(doc.doctype, doc.name, addresses)
 	if family:
@@ -149,7 +168,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	forget_records_about(person)
 	forget_sign_up_details(person, emails)
 	records = linked_records(person)
-	remove_copies(records, names, emails)
+	remove_copies(records, histories, names, emails)
 	for record in records:
 		if get_answer_tables(record.doctype):
 			clear_answers(frappe.get_doc(record.doctype, record.name))
@@ -272,7 +291,7 @@ def get_identity(doc: Document) -> tuple[set[str], set[str]]:
 
 
 def strip_person(doc: Document) -> None:
-	"""Clear what says who *doc* is, keeping the life events and positions a church counts."""
+	"""Clear what says who *doc* is, keeping the last name and the life events and positions a church counts."""
 	doc.update({fieldname: None for fieldname in PERSONAL_FIELDS})
 	doc.update({"first_name": ANONYMIZED, "gender": UNKNOWN_GENDER, "hide_from_directory": 1})
 	for fieldname in PERSONAL_TABLES:
@@ -303,28 +322,42 @@ def blank_church_fields(doc: Document) -> None:
 
 
 def leave_family(family: str, first_name: str) -> None:
-	"""Anonymize the person's *family* when no one is left in it, else take their *first_name* off its name.
+	"""Anonymize the person's *family* when no one is left in it, else take their *first_name* off its name, and
+	off the text and history of the family and of the records that name it, which copy the family's name.
 
 	A household is named after its primary contact, "Doe - John", so the name becomes "Doe".
 	"""
 	if not frappe.db.exists("Family Members", {"parenttype": "Family", "parent": family}):
 		anonymize_family(family)
 		return
-	surname, dash, named = frappe.db.get_value("Family", family, "family_name").rpartition("-")
-	if dash and surname.strip() and named.strip().casefold() == first_name.casefold():
-		frappe.db.set_value("Family", family, "family_name", surname.strip())
+	first_name_suffix = re.compile(rf"(?<=\S)\s*-\s*{re.escape(first_name)}\s*$", re.IGNORECASE)
+	family_name = frappe.db.get_value("Family", family, "family_name")
+	if (surname := first_name_suffix.sub("", family_name)) != family_name:
+		frappe.db.set_value("Family", family, "family_name", surname)
+		refresh_search_row(frappe.get_doc("Family", family))
+	records = get_records_naming("Family", family)
+	for record in records:
+		scrub_record(record, [(first_name_suffix, "")])
+	histories = {("Family", family)} | {record.document for record in records}
+	scrub_history(histories, [(first_name_suffix, "")], [first_name])
 
 
 def anonymize_family(family: str) -> None:
-	"""Strip a family left with no one in it, whose name and contact details were its last member's."""
+	"""Strip a family left with no one in it, whose name and contact details were its last member's, and write
+	Anonymized for its name on the records that name it, such as the title of an Alms Request for it."""
 	doc = frappe.get_doc("Family", family)
+	family_name = doc.family_name
 	addresses = [row.address for row in doc.addresses]
 	doc.update({"family_name": ANONYMIZED, "photo": None, "legacy_system": None, "legacy_id": None})
 	for fieldname, *_rest in CONTACT_TABLES:
 		doc.set(fieldname, [])
 	blank_church_fields(doc)
 	doc.save(ignore_permissions=True)
+	refresh_search_row(doc)
 	forget(doc.doctype, doc.name, addresses)
+	if family_name and family_name != ANONYMIZED:
+		records = get_records_naming("Family", family)
+		remove_copies(records, {record.document for record in records}, {family_name}, set())
 
 
 def forget(doctype: str, name: str, addresses: Iterable[str] = ()) -> None:
@@ -353,12 +386,20 @@ def forget(doctype: str, name: str, addresses: Iterable[str] = ()) -> None:
 			frappe.delete_doc("Address", address, ignore_permissions=True, delete_permanently=True)
 
 
-def remove_copies(records: list[LinkedRecord], names: set[str], emails: set[str]) -> None:
-	"""In the text fields of *records*, write Anonymized for each of *names* and remove each of *emails*."""
-	replacements = [(re.compile(rf"(?<!\w){re.escape(name)}(?!\w)"), ANONYMIZED) for name in names]
+def remove_copies(
+	records: list[LinkedRecord], histories: set[tuple[str, str]], names: set[str], emails: set[str]
+) -> None:
+	"""Write Anonymized for each of *names* and remove each of *emails*, in the text fields of *records* and in
+	the change history of each (doctype, name) of *histories*."""
+	# The longest name first, so "John Doe Jr." goes whole before "John Doe".
+	replacements = [
+		(re.compile(rf"(?<!\w){re.escape(name)}(?!\w)"), ANONYMIZED)
+		for name in sorted(names, key=len, reverse=True)
+	]
 	replacements += [(re.compile(re.escape(email), re.IGNORECASE), "") for email in emails]
 	for record in records:
 		scrub_record(record, replacements)
+	scrub_history(histories, replacements, names | emails)
 
 
 def scrub_record(record: LinkedRecord, replacements: list[tuple[re.Pattern, str]]) -> None:
@@ -369,15 +410,71 @@ def scrub_record(record: LinkedRecord, replacements: list[tuple[re.Pattern, str]
 		if df.fieldtype in TEXT_FIELDTYPES and not df.is_virtual
 	]
 	values = frappe.db.get_value(record.doctype, record.name, fields, as_dict=True) if fields else {}
-	changed = {}
-	for fieldname, value in (values or {}).items():
-		scrubbed = value
-		for pattern, replacement in replacements if value else ():
-			scrubbed = pattern.sub(replacement, scrubbed)
-		if scrubbed != value:
-			changed[fieldname] = scrubbed.strip() or None
+	changed = {
+		fieldname: scrubbed
+		for fieldname, value in (values or {}).items()
+		if value and (scrubbed := scrub_text(value, replacements)) != value
+	}
 	if changed:
 		frappe.db.set_value(record.doctype, record.name, changed, update_modified=False)
+		if frappe.get_meta(record.doctype).get_global_search_fields():
+			refresh_search_row(frappe.get_doc(*record.document))
+
+
+def scrub_text(text: str, replacements: list[tuple[re.Pattern, str]]) -> str | None:
+	"""*text* with each (pattern, replacement) of *replacements* applied, None when nothing is left."""
+	scrubbed = text
+	for pattern, replacement in replacements:
+		scrubbed = pattern.sub(replacement, scrubbed)
+	return text if scrubbed == text else (scrubbed.strip() or None)
+
+
+def scrub_history(
+	documents: Iterable[tuple[str, str]], replacements: list[tuple[re.Pattern, str]], texts: Iterable[str]
+) -> None:
+	"""Apply *replacements* to each text in the change history of each (doctype, name) of *documents*, where a
+	Version row holds one of *texts*."""
+	by_doctype = defaultdict(list)
+	for doctype, name in documents:
+		by_doctype[doctype].append(name)
+	or_filters = [["data", "like", get_like_pattern(text)] for text in texts]
+	for doctype, docnames in by_doctype.items():
+		filters = {"ref_doctype": doctype, "docname": ("in", docnames)}
+		versions = frappe.get_all("Version", filters=filters, or_filters=or_filters, fields=["name", "data"])
+		for version in versions:
+			data = json.loads(version.data)
+			if (scrubbed := scrub_value(data, replacements)) != data:
+				# The JSON as Version.set_diff writes it.
+				text = frappe.as_json(scrubbed, indent=None, separators=(",", ":"))
+				frappe.db.set_value("Version", version.name, "data", text, update_modified=False)
+
+
+def scrub_value(value, replacements: list[tuple[re.Pattern, str]]):
+	"""*value*, read from a Version row's JSON, with *replacements* applied to each text in it."""
+	if isinstance(value, str):
+		# The timeline shows a None as "null".
+		return scrub_text(value, replacements) or ""
+	if isinstance(value, list):
+		return [scrub_value(item, replacements) for item in value]
+	if isinstance(value, dict):
+		return {key: scrub_value(item, replacements) for key, item in value.items()}
+	return value
+
+
+def get_like_pattern(text: str) -> str:
+	"""A LIKE pattern for *text* as a Version row spells it: JSON, which writes non-ASCII as \\u escapes."""
+	spelled = json.dumps(text)[1:-1]
+	return "%" + re.sub(r"[\\%_]", lambda match: "\\" + match.group(), spelled) + "%"
+
+
+def refresh_search_row(doc: Document) -> None:
+	"""Take *doc*'s old text out of the search bar now and queue its new text.
+
+	A save only queues the new text for Frappe's sync every 15 minutes, and `db.set_value` skips the index. The
+	index is a MyISAM table, so a rollback does not put the old row back; the next save of *doc* does.
+	"""
+	delete_for_document(doc)
+	update_global_search(doc)
 
 
 def anonymize_on_data_deletion(doc: Document, method=None) -> None:

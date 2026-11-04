@@ -73,7 +73,7 @@
    "set_only_once": 1
   },
   {
-   "description": "Given: the person agreed to be contacted. Withdrawn: they asked the church to stop.",
+   "description": "Given: they agreed to be contacted. Withdrawn: they asked the church to stop.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -118,7 +118,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-27 01:49:09.000000",
+ "modified": "2026-11-02 23:06:13.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communication Consent",
@@ -178,7 +178,16 @@
  "row_format": "Dynamic",
  "sort_field": "recorded_on",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Green",
+   "title": "Given"
+  },
+  {
+   "color": "Red",
+   "title": "Withdrawn"
+  }
+ ],
  "title_field": "person_name",
  "track_changes": 1
 }

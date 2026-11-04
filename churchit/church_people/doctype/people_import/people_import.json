@@ -51,29 +51,35 @@
    "description": "The person's ID in that system. A later import of the same ID updates the person.",
    "fieldname": "legacy_id",
    "fieldtype": "Data",
-   "label": "Person ID"
+   "in_import_template": 1,
+   "label": "Person ID",
+   "show_description_on_click": 1
   },
   {
    "description": "People with the same Household ID share a Family.",
    "fieldname": "household_id",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Household ID"
   },
   {
    "description": "The Family's name. When blank, the first member's last and first name.",
    "fieldname": "household_name",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Household Name"
   },
   {
    "default": "0",
    "fieldname": "is_primary_contact",
    "fieldtype": "Check",
+   "in_import_template": 1,
    "label": "Primary Contact"
   },
   {
    "fieldname": "household_role",
    "fieldtype": "Select",
+   "in_import_template": 1,
    "label": "Household Role",
    "options": "\nAdult\nOther Adult\nChild"
   },
@@ -97,6 +103,7 @@
   {
    "fieldname": "last_name",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Last Name"
   },
   {
@@ -118,12 +125,14 @@
   {
    "fieldname": "gender",
    "fieldtype": "Select",
+   "in_import_template": 1,
    "label": "Gender",
    "options": "\nFemale\nMale\nUnknown"
   },
   {
    "fieldname": "birth_date",
    "fieldtype": "Date",
+   "in_import_template": 1,
    "label": "Birth Date"
   },
   {
@@ -140,12 +149,14 @@
   {
    "fieldname": "membership",
    "fieldtype": "Link",
+   "in_import_template": 1,
    "label": "Membership",
    "options": "Membership Type"
   },
   {
    "fieldname": "membership_status",
    "fieldtype": "Link",
+   "in_import_template": 1,
    "label": "Status",
    "options": "Member Status"
   },
@@ -162,6 +173,7 @@
   {
    "fieldname": "home_email",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Home Email"
   },
   {
@@ -172,6 +184,7 @@
   {
    "fieldname": "mobile_phone",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Mobile Phone"
   },
   {
@@ -187,6 +200,7 @@
   {
    "fieldname": "address_line1",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Address Line 1"
   },
   {
@@ -197,21 +211,25 @@
   {
    "fieldname": "city",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "City"
   },
   {
    "fieldname": "state",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "State"
   },
   {
    "fieldname": "pincode",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Postal Code"
   },
   {
    "fieldname": "country",
    "fieldtype": "Link",
+   "in_import_template": 1,
    "label": "Country",
    "options": "Country"
   }
@@ -219,7 +237,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-10-23 01:04:02.000000",
+ "modified": "2026-10-31 13:13:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People Import",

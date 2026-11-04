@@ -7,13 +7,13 @@
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
-  "status",
   "person",
   "church",
   "visit_date",
+  "visit_type",
   "visited_by",
   "column_break_1",
-  "visit_type",
+  "status",
   "duration_minutes",
   "follow_up_needed",
   "schedule_follow_up",
@@ -24,8 +24,6 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
    "reqd": 1
@@ -99,18 +97,18 @@
   },
   {
    "fieldname": "section_break_1",
-   "fieldtype": "Section Break",
-   "label": "Notes"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "20rem"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-15 12:00:00",
+ "modified": "2026-11-02 23:52:34.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Visitation Log",
@@ -157,5 +155,20 @@
  "row_format": "Dynamic",
  "sort_field": "visit_date",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Planned"
+  },
+  {
+   "color": "Blue",
+   "title": "Scheduled"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  }
+ ],
+ "title_field": "person",
+ "track_changes": 1
 }

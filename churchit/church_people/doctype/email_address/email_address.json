@@ -37,20 +37,23 @@
    "reqd": 1
   },
   {
-   "columns": 2,
+   "columns": 1,
    "default": "0",
    "description": "The address used when the church emails this record.",
    "fieldname": "is_primary",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Is Primary"
+   "label": "Primary"
   },
   {
+   "columns": 1,
    "default": "0",
    "description": "Email sent to this address came back. Churchit ticks it when a bounce reaches the church's inbox, and clears it when the address changes. Church Emails skip this address.",
    "fieldname": "is_bounced",
    "fieldtype": "Check",
-   "label": "Email Bounced"
+   "in_list_view": 1,
+   "label": "Bounced",
+   "show_description_on_click": 1
   },
   {
    "columns": 2,
@@ -59,7 +62,8 @@
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Shared From",
-   "options": "shared_from_type"
+   "options": "shared_from_type",
+   "show_description_on_click": 1
   },
   {
    "description": "Set automatically to the doctype of the record this row is on.",
@@ -72,7 +76,7 @@
    "read_only": 1
   },
   {
-   "description": "Set automatically. Holds a copy of the address on the primary row and is blank on every other row, which is what limits Notifications to one recipient. See churchit.contacts.",
+   "description": "Filled on the primary row only, so a Notification goes to one address.",
    "fieldname": "notification_address",
    "fieldtype": "Data",
    "hidden": 1,
@@ -86,7 +90,7 @@
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-20 09:00:00.000000",
+ "modified": "2026-10-31 01:35:33.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Email Address",

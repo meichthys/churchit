@@ -21,7 +21,6 @@
   {
    "fieldname": "campaign",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Campaign",
    "options": "Pledge Campaign",
@@ -42,7 +41,6 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
@@ -50,7 +48,7 @@
    "search_index": 1
   },
   {
-   "description": "Set this for a household pledge. The gifts of everyone in the household then count.",
+   "description": "Set for a household pledge. The gifts of everyone in the household then count.",
    "fieldname": "family",
    "fieldtype": "Link",
    "label": "Family",
@@ -74,6 +72,7 @@
    "description": "How often the giver plans to give.",
    "fieldname": "frequency",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Frequency",
    "options": "One Time\nWeekly\nMonthly\nQuarterly\nYearly",
    "reqd": 1
@@ -88,7 +87,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-23 01:11:13",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Pledge",

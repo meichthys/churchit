@@ -8,33 +8,38 @@
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "title",
   "church",
   "is_shared",
   "shared_by_church",
-  "column_break_odyq",
   "ccli",
   "authors",
-  "copyright",
-  "public_domain",
-  "column_break_song_music",
+  "column_break_odyq",
   "default_key",
   "tempo",
   "time_signature",
+  "section_break_copyright",
+  "copyright",
+  "column_break_song_music",
+  "public_domain",
+  "music_tab",
   "section_break_arrangements",
   "arrangements",
   "section_break_media",
   "media",
+  "slides_tab",
   "section_break_btjs",
-  "slides"
+  "slides",
+  "connections_tab"
  ],
  "fields": [
   {
    "fieldname": "title",
    "fieldtype": "Data",
    "in_filter": 1,
+   "in_global_search": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Title",
    "reqd": 1
@@ -54,8 +59,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -83,6 +86,7 @@
    "fieldname": "authors",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Authors"
   },
@@ -94,9 +98,10 @@
   },
   {
    "default": "0",
-   "description": "The words and music are free of copyright. Guests can see the slides of a public domain song in a presentation.",
+   "description": "Words and music free of copyright. Guests can see its slides in a presentation.",
    "fieldname": "public_domain",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Public Domain"
   },
   {
@@ -104,10 +109,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "The key the team usually plays the song in. Each arrangement can have its own key.",
+   "description": "The key the team usually plays it in. Each arrangement can have its own key.",
    "fieldname": "default_key",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Default Key",
    "options": "\nC\nDb\nD\nEb\nE\nF\nF#\nG\nAb\nA\nBb\nB\nCm\nC#m\nDm\nEbm\nEm\nFm\nF#m\nGm\nG#m\nAm\nBbm\nBm"
   },
@@ -115,6 +121,7 @@
    "description": "Beats per minute.",
    "fieldname": "tempo",
    "fieldtype": "Int",
+   "in_preview": 1,
    "label": "Tempo (BPM)",
    "non_negative": 1
   },
@@ -130,8 +137,7 @@
   },
   {
    "fieldname": "section_break_arrangements",
-   "fieldtype": "Section Break",
-   "label": "Arrangements"
+   "fieldtype": "Section Break"
   },
   {
    "description": "Each way the team plays the song. The ChordPro chart is the source of the chord chart and the slides.",
@@ -146,7 +152,7 @@
    "label": "Rehearsal Media"
   },
   {
-   "description": "Charts and recordings for rehearsal. Volunteers serving at a function with this song see them on their Ministry Team page.",
+   "description": "Charts and recordings for rehearsal. The team of a function with this song sees them on the Ministry Team page.",
    "fieldname": "media",
    "fieldtype": "Table",
    "label": "Media",
@@ -154,8 +160,7 @@
   },
   {
    "fieldname": "section_break_btjs",
-   "fieldtype": "Section Break",
-   "label": "Slides"
+   "fieldtype": "Section Break"
   },
   {
    "description": "The lyrics on screen. Make Slides from ChordPro replaces them with an arrangement's lyrics.",
@@ -163,17 +168,44 @@
    "fieldtype": "Table",
    "label": "Slides",
    "options": "Slide"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "section_break_copyright",
+   "fieldtype": "Section Break",
+   "label": "Copyright"
+  },
+  {
+   "fieldname": "music_tab",
+   "fieldtype": "Tab Break",
+   "label": "Music"
+  },
+  {
+   "fieldname": "slides_tab",
+   "fieldtype": "Tab Break",
+   "label": "Slides"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
+   "group": "Service Plans",
    "link_doctype": "Function",
    "link_fieldname": "item"
   }
  ],
- "modified": "2026-10-27 00:31:37.000000",
+ "modified": "2026-11-02 23:08:20.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Song",
@@ -215,11 +247,12 @@
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "authors,ccli",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "title",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "title",
- "track_changes": 1,
- "track_views": 1
+ "track_changes": 1
 }

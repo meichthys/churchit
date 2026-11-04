@@ -36,7 +36,7 @@
  ],
  "fields": [
   {
-   "description": "Which sections are switched on when a new Bulletin is created. Each Bulletin can still switch its own sections on or off.",
+   "description": "Sections switched on in each new Bulletin. Each Bulletin can still switch its own sections on or off.",
    "fieldname": "section_break_sections",
    "fieldtype": "Section Break",
    "label": "Default Sections"
@@ -127,7 +127,8 @@
    "fieldname": "roles",
    "fieldtype": "Table MultiSelect",
    "label": "Church Roles",
-   "options": "Bulletin Role"
+   "options": "Bulletin Role",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_roles",
@@ -146,7 +147,8 @@
    "description": "Let missionaries marked as sensitive be featured as Missionary of the Week. Off by default because bulletins are handed out freely.",
    "fieldname": "include_sensitive_missionaries",
    "fieldtype": "Check",
-   "label": "Include Sensitive Missionaries"
+   "label": "Include Sensitive Missionaries",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_celebrations",
@@ -173,7 +175,7 @@
   },
   {
    "default": "7",
-   "description": "How many days, starting on the function date, to look for birthdays and anniversaries.",
+   "description": "Days to look for birthdays and anniversaries, starting on the function date.",
    "fieldname": "celebration_days",
    "fieldtype": "Int",
    "label": "Days From Function Date",
@@ -181,12 +183,13 @@
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "description": "Church Roles are shared, but each church prints its own people in them.",
    "fieldname": "church_sections_section",
    "fieldtype": "Section Break",
    "label": "Sections Per Church"
   },
   {
-   "description": "A row replaces the whole set above for that church, so set every option in it. The list of leadership job titles is shared, but each church prints its own people in them.",
+   "description": "A row replaces the whole set above for that church, so set every option in it.",
    "fieldname": "church_sections",
    "fieldtype": "Table",
    "label": "Sections Per Church",
@@ -196,7 +199,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-26 14:00:00.000000",
+ "modified": "2026-11-02 23:06:13.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin Settings",

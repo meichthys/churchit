@@ -25,25 +25,18 @@ function show_decision_buttons(frm) {
 	if (frm.is_new() || !frm.doc.__onload?.is_approver) return;
 
 	const decide = (method, args) => frm.call(method, args).then(() => frm.reload_doc());
+	const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
 	if (frm.doc.status === "Requested") {
-		frm.add_custom_button(__("Approve"), () => decide("approve"), __("Decide"));
-		frm.add_custom_button(__("Deny"), () => decide("deny"), __("Decide"));
+		action(__("Approve"), () => decide("approve"));
+		action(__("Deny"), () => decide("deny"));
 	}
 	if (frm.doc.status === "Conflict") {
-		frm.add_custom_button(
-			__("Keep This Booking"),
-			() =>
-				frappe.confirm(
-					__("Approve this booking and deny the requests it clashes with?"),
-					() => decide("resolve_conflict", { action: "keep" })
-				),
-			__("Resolve")
+		action(__("Keep This Booking"), () =>
+			frappe.confirm(__("Approve this booking and deny the requests it clashes with?"), () =>
+				decide("resolve_conflict", { action: "keep" })
+			)
 		);
-		frm.add_custom_button(
-			__("Share the Room"),
-			() => decide("resolve_conflict", { action: "share" }),
-			__("Resolve")
-		);
+		action(__("Share the Room"), () => decide("resolve_conflict", { action: "share" }));
 	}
 }
 
@@ -54,10 +47,10 @@ function show_loan_buttons(frm) {
 
 	const lend = (method) => frm.call(method).then(() => frm.reload_doc());
 	if (frm.doc.status === "Approved" && frm.doc.assets?.length && !frm.doc.checked_out_on) {
-		frm.add_custom_button(__("Check Out"), () => lend("check_out"));
+		frm.add_custom_button(__("Check Out"), () => lend("check_out"), __("Actions"));
 	}
 	if (frm.doc.checked_out_on && !frm.doc.returned_on) {
-		frm.add_custom_button(__("Check In"), () => lend("check_in"));
+		frm.add_custom_button(__("Check In"), () => lend("check_in"), __("Actions"));
 	}
 }
 

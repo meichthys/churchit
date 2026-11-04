@@ -9,17 +9,19 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "status",
   "recipient_type",
   "recipient",
-  "column_break_ixvv",
   "requestor",
   "church",
+  "column_break_ixvv",
+  "status",
   "amount",
-  "expense_type",
-  "associated_expense",
   "section_break_olzm",
-  "description"
+  "description",
+  "expense_section",
+  "expense_type",
+  "column_break_expense",
+  "associated_expense"
  ],
  "fields": [
   {
@@ -33,9 +35,6 @@
    "description": "The entity that would be receiving the alms.",
    "fieldname": "recipient",
    "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Recipient",
    "options": "recipient_type",
    "reqd": 1
@@ -51,9 +50,7 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Description",
    "reqd": 1
   },
@@ -63,7 +60,6 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Amount",
    "precision": "0"
   },
@@ -79,18 +75,17 @@
    "reqd": 1
   },
   {
-   "description": "Required to 'Create Expense'. The fund associated with the selected expense will be reduced by the alms 'Amount'.",
+   "description": "Needed to create the expense, which comes out of this type's fund.",
    "documentation_url": "/app/manual%3A-finances",
    "fieldname": "expense_type",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Expense Type",
    "options": "Expense Type"
   },
   {
-   "description": "After alms are distributed, click 'Create Expense' above or manually create an expense for this alms request and link it here.",
+   "description": "Click Create Expense once the alms are given, or link an expense you made.",
    "fieldname": "associated_expense",
    "fieldtype": "Link",
    "label": "Associated Expense",
@@ -110,7 +105,9 @@
    "fieldname": "requestor",
    "fieldtype": "Link",
    "in_filter": 1,
+   "in_list_view": 1,
    "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Requestor",
    "options": "Person",
    "reqd": 1
@@ -125,12 +122,23 @@
    "label": "Church",
    "options": "Church",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:[\"Approved\", \"Distributed\"].includes(doc.status) || doc.expense_type || doc.associated_expense",
+   "fieldname": "expense_section",
+   "fieldtype": "Section Break",
+   "label": "Expense"
+  },
+  {
+   "fieldname": "column_break_expense",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",
@@ -200,11 +208,11 @@
  "row_format": "Dynamic",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [
   {
-   "color": "Yellow",
+   "color": "Orange",
    "title": "Pending"
   },
   {
@@ -213,12 +221,13 @@
   },
   {
    "color": "Green",
-   "title": "Accepted"
+   "title": "Approved"
   },
   {
-   "color": "Blue",
+   "color": "Green",
    "title": "Distributed"
   }
  ],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

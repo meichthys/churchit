@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
+from churchit.church_finances.payments import is_payments_on
+
 # Gateways whose checkout takes an Online Donation and whose callback reaches on_payment_authorized.
 # Braintree is not here: its checkout loads the reference as a Payment Request.
 SUPPORTED_GATEWAY_SETTINGS = ("Stripe Settings", "PayPal Settings")
@@ -17,10 +19,23 @@ def is_supported_gateway(payment_gateway: str) -> bool:
 
 
 class GivingSettings(Document):
+	def onload(self):
+		self.set_onload("is_payments_on", is_payments_on())
+
 	def validate(self):
+		self.refuse_online_giving_without_payments()
 		self.refuse_unsupported_gateways()
 		self.refuse_bad_fee_rates()
 		self.normalize_default_gateway()
+
+	def refuse_online_giving_without_payments(self):
+		if self.enabled and not is_payments_on():
+			frappe.throw(
+				_(
+					"Online giving needs the Payments app, which is not installed on this site. A System Manager must install it first. The Finances manual tells how."
+				),
+				title=_("Payments App Needed"),
+			)
 
 	def refuse_unsupported_gateways(self):
 		for row in self.gateways:
@@ -61,8 +76,10 @@ class GivingSettings(Document):
 		A row naming a church serves only that church, so each congregation's
 		gifts reach its own merchant account. A row leaving it blank serves every
 		church, which is what a single-church site has and what an organisation
-		with one account keeps.
+		with one account keeps. Without the payments app no row serves any church.
 		"""
+		if not is_payments_on():
+			return []
 		rows = [row for row in self.gateways if not row.church or row.church == church]
 		# A church with its own gateways uses only those, even when none of them is supported;
 		# otherwise the shared ones stand in.

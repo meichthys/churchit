@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-10-31 13:18:05.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{\"filters\": [[\"Ministry Team Assignment\", \"status\", \"=\", \"Pending\"]], \"fields\": [[\"name\", \"Ministry Team Assignment\"], [\"docstatus\", \"Ministry Team Assignment\"], [\"person_name\", \"Ministry Team Assignment\"], [\"function\", \"Ministry Team Assignment\"], [\"position\", \"Ministry Team Assignment\"], [\"requested_on\", \"Ministry Team Assignment\"], [\"reminded_on\", \"Ministry Team Assignment\"]], \"order_by\": \"`tabMinistry Team Assignment`.`creation` asc\", \"add_totals_row\": 0, \"page_length\": 100, \"column_widths\": {\"name\": 120, \"person_name\": 120, \"function\": 120, \"position\": 120, \"requested_on\": 120, \"reminded_on\": 120}, \"group_by\": null}",
+ "letterhead": null,
+ "modified": "2026-10-31 13:18:05.000000",
+ "modified_by": "Administrator",
+ "module": "Church Ministries",
+ "name": "Pending Team Responses",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Ministry Team Assignment",
+ "report_name": "Pending Team Responses",
+ "report_type": "Report Builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Church Manager"
+  },
+  {
+   "role": "Church Staff"
+  }
+ ],
+ "timeout": 0
+}

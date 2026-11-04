@@ -2,24 +2,29 @@
  "actions": [],
  "autoname": "BK-.####",
  "creation": "2026-05-29 00:00:00.000000",
+ "default_view": "Calendar",
  "description": "A room booking with start/end datetime and conflict checking on validate.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
  "field_order": [
+  "purpose",
   "room",
   "church",
   "assets",
   "shared_by_church",
-  "requester",
-  "purpose",
   "column_break_1",
   "start_datetime",
   "end_datetime",
+  "requester",
   "status",
+  "section_break_sharing",
   "request_anyway",
+  "column_break_sharing",
   "can_share_room",
+  "section_break_loan",
   "checked_out_on",
+  "column_break_loan",
   "returned_on",
   "section_break_1",
   "function",
@@ -102,7 +107,6 @@
   {
    "fieldname": "end_datetime",
    "fieldtype": "Datetime",
-   "in_list_view": 1,
    "label": "End",
    "reqd": 1
   },
@@ -112,13 +116,13 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Status",
-   "options": "Requested\nApproved\nDenied\nCancelled\nCompleted\nBlocked\nConflict"
+   "options": "Requested\nApproved\nDenied\nCancelled\nCompleted\nBlocked\nConflict",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
-   "description": "Save a booking that clashes with another one as Conflict, so an approver can choose between them.",
+   "description": "Save a clashing booking as Conflict, so an approver can choose.",
    "fieldname": "request_anyway",
    "fieldtype": "Check",
    "label": "Request Anyway",
@@ -152,16 +156,18 @@
   {
    "fieldname": "function",
    "fieldtype": "Link",
-   "label": "Function (optional)",
+   "label": "Function",
    "options": "Function"
   },
   {
    "fieldname": "notes",
    "fieldtype": "Text",
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "12rem"
   },
   {
-   "depends_on": "room",
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.setup || doc.setup_notes",
    "fieldname": "section_break_setup",
    "fieldtype": "Section Break",
    "label": "Setup"
@@ -188,11 +194,30 @@
    "fieldtype": "Table",
    "label": "Answers",
    "options": "Question Answer"
+  },
+  {
+   "fieldname": "section_break_sharing",
+   "fieldtype": "Section Break",
+   "label": "If the Room Is Taken"
+  },
+  {
+   "fieldname": "column_break_sharing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.checked_out_on",
+   "fieldname": "section_break_loan",
+   "fieldtype": "Section Break",
+   "label": "Equipment Loan"
+  },
+  {
+   "fieldname": "column_break_loan",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-27 23:35:17.000000",
+ "modified": "2026-11-03 01:33:46.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",
@@ -254,7 +279,39 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "start_datetime",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Requested"
+  },
+  {
+   "color": "Green",
+   "title": "Approved"
+  },
+  {
+   "color": "Gray",
+   "title": "Denied"
+  },
+  {
+   "color": "Gray",
+   "title": "Cancelled"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  },
+  {
+   "color": "Purple",
+   "title": "Blocked"
+  },
+  {
+   "color": "Red",
+   "title": "Conflict"
+  }
+ ],
+ "title_field": "purpose",
+ "track_changes": 1
 }

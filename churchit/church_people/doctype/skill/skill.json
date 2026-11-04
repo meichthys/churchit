@@ -37,7 +37,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-27 08:45:50.000000",
+ "modified": "2026-10-31 13:20:48.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Skill",
@@ -98,5 +98,6 @@
  "row_format": "Dynamic",
  "sort_field": "skill_name",
  "sort_order": "ASC",
- "states": []
+ "states": [],
+ "title_field": "skill_name"
 }

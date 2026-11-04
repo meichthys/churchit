@@ -13,11 +13,13 @@
   "is_shared",
   "shared_by_church",
   "location",
-  "capacity",
   "column_break_1",
+  "capacity",
   "is_bookable",
+  "section_break_rules",
   "requires_approval",
   "approvers",
+  "column_break_rules",
   "question_set",
   "section_break_1",
   "description",
@@ -28,6 +30,7 @@
   {
    "fieldname": "room_name",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
    "label": "Room Name",
    "reqd": 1
@@ -47,8 +50,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -65,14 +66,16 @@
    "fieldname": "location",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Location",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "fieldname": "capacity",
    "fieldtype": "Int",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Capacity"
   },
   {
@@ -89,6 +92,7 @@
   {
    "fieldname": "requires_approval",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Requires Approval"
   },
   {
@@ -97,7 +101,8 @@
    "fieldname": "approvers",
    "fieldtype": "Table MultiSelect",
    "label": "Approvers",
-   "options": "Room Approver"
+   "options": "Room Approver",
+   "show_description_on_click": 1
   },
   {
    "description": "Questions a person answers when they book this room.",
@@ -113,9 +118,12 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
+   "in_preview": 1,
    "label": "Description"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.setups || []).length",
    "fieldname": "section_break_setups",
    "fieldtype": "Section Break",
    "label": "Setups"
@@ -126,17 +134,33 @@
    "fieldtype": "Table",
    "label": "Setups",
    "options": "Room Setup"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.is_bookable || doc.requires_approval || doc.question_set",
+   "fieldname": "section_break_rules",
+   "fieldtype": "Section Break",
+   "label": "Booking Rules"
+  },
+  {
+   "fieldname": "column_break_rules",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "links": [
+  {
+   "group": "Bookings",
+   "link_doctype": "Room Booking",
+   "link_fieldname": "room"
+  },
   {
    "group": "Work Orders",
    "link_doctype": "Church Task",
    "link_fieldname": "room"
   }
  ],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-10-31 13:19:53.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room",
@@ -183,9 +207,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "room_name",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "room_name"
 }

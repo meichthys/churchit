@@ -140,7 +140,12 @@ class TestFinanceChurchOwnership(FrappeTestCase):
 	def test_budget_vs_actual_refuses_another_churchs_budget(self):
 		"""The report reads whichever budget its filter names, so it checks that budget first."""
 		budget = frappe.get_doc(
-			{"doctype": "Budget", "church": self.root, "start_date": "2001-01-01", "end_date": "2001-12-31"}
+			{
+				"doctype": "Church Budget",
+				"church": self.root,
+				"start_date": "2001-01-01",
+				"end_date": "2001-12-31",
+			}
 		)
 		budget.append("lines", {"expense_type": self.root_type, "budgeted_amount": 100})
 		budget.insert(ignore_permissions=True)

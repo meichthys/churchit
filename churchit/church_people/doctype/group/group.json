@@ -8,17 +8,22 @@
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "section_break_x4tp",
   "group_name",
   "group_type",
   "church",
   "description",
-  "meets",
   "column_break_details",
   "status",
+  "meets",
+  "section_break_members",
+  "members",
+  "joining_tab",
   "public",
   "show_in_portal",
   "show_in_directory",
+  "column_break_joining",
   "requires_approval",
   "capacity",
   "close_enrollment_on",
@@ -28,8 +33,7 @@
   "column_break_requirements",
   "required_checks",
   "block_without_checks",
-  "section_break_members",
-  "members"
+  "connections_tab"
  ],
  "fields": [
   {
@@ -45,6 +49,7 @@
    "fieldname": "status",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Group Status"
@@ -52,6 +57,7 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
+   "in_preview": 1,
    "label": "Description"
   },
   {
@@ -60,12 +66,12 @@
    "fieldtype": "Small Text",
    "label": "Meets",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_members",
-   "fieldtype": "Section Break",
-   "label": "Members"
+   "fieldtype": "Section Break"
   },
   {
    "description": "People who belong to this group.",
@@ -77,16 +83,19 @@
   {
    "fieldname": "group_name",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "label": "Name"
   },
   {
-   "description": "Choosing a type fills in its defaults below. You can change them.",
+   "description": "Choosing a type fills in the settings on the Joining tab. You can change them.",
    "fieldname": "group_type",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Group Type",
-   "options": "Group Type"
+   "options": "Group Type",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -102,21 +111,24 @@
    "description": "Anyone can join public groups.",
    "fieldname": "public",
    "fieldtype": "Check",
-   "label": "Public"
+   "label": "Public",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "Make this group visible on the /groups portal page to members (and to anyone if the group is Public).",
    "fieldname": "show_in_portal",
    "fieldtype": "Check",
-   "label": "Show in Portal"
+   "label": "Show in Portal",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "List this group's members in the Church Directory. This works only when the directory's Group List and Group Members options are ticked.",
    "fieldname": "show_in_directory",
    "fieldtype": "Check",
-   "label": "Show in Directory"
+   "label": "Show in Directory",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
@@ -124,7 +136,8 @@
    "description": "A person who joins from the portal sends a request, and a leader approves it. Untick to let people join at once.",
    "fieldname": "requires_approval",
    "fieldtype": "Check",
-   "label": "Requires Approval"
+   "label": "Requires Approval",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
@@ -132,17 +145,17 @@
    "fieldname": "capacity",
    "fieldtype": "Int",
    "label": "Capacity",
-   "non_negative": 1
+   "non_negative": 1,
+   "show_description_on_click": 1
   },
   {
    "description": "After this date nobody can join or request to join from the portal.",
    "fieldname": "close_enrollment_on",
    "fieldtype": "Date",
-   "label": "Close Enrollment On"
+   "label": "Close Enrollment On",
+   "show_description_on_click": 1
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "needs_background_check",
    "fieldname": "section_break_requirements",
    "fieldtype": "Section Break",
    "label": "Requirements"
@@ -152,7 +165,8 @@
    "description": "Tick this when the group's leaders, or all its members, need a current, cleared Background Check, for example in a youth group.",
    "fieldname": "needs_background_check",
    "fieldtype": "Check",
-   "label": "Needs Background Check"
+   "label": "Needs Background Check",
+   "show_description_on_click": 1
   },
   {
    "default": "Leaders",
@@ -161,7 +175,8 @@
    "fieldname": "checks_apply_to",
    "fieldtype": "Select",
    "label": "Checks Apply To",
-   "options": "Leaders\nEveryone"
+   "options": "Leaders\nEveryone",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_requirements",
@@ -173,7 +188,8 @@
    "fieldname": "required_checks",
    "fieldtype": "Table MultiSelect",
    "label": "Required Checks",
-   "options": "Group Required Check"
+   "options": "Group Required Check",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
@@ -182,6 +198,26 @@
    "fieldname": "block_without_checks",
    "fieldtype": "Check",
    "label": "Block People Without Checks"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "joining_tab",
+   "fieldtype": "Tab Break",
+   "label": "Joining"
+  },
+  {
+   "fieldname": "column_break_joining",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
@@ -198,7 +234,7 @@
    "link_fieldname": "group"
   },
   {
-   "group": "Members",
+   "group": "Join Requests",
    "link_doctype": "Group Join Request",
    "link_fieldname": "group"
   },
@@ -208,7 +244,7 @@
    "link_fieldname": "group"
   }
  ],
- "modified": "2026-10-23 22:30:00.000000",
+ "modified": "2026-10-31 13:13:06.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
@@ -262,9 +298,21 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "search_fields": "group_type",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "title_field": "group_name"
+ "sort_field": "group_name",
+ "sort_order": "ASC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Active"
+  },
+  {
+   "color": "Gray",
+   "title": "Inactive"
+  }
+ ],
+ "title_field": "group_name",
+ "track_changes": 1
 }

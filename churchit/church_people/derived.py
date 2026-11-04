@@ -3,7 +3,8 @@
 
 """Person fields worked out from other fields, never typed in.
 
-`sync_derived` sets them on every save. `refresh_daily` brings every person up to date between saves.
+`sync_derived` sets them on every save. `refresh_daily` brings every person up to date between saves, except
+the primary email and phone, which change only with a save.
 """
 
 import calendar
@@ -13,6 +14,7 @@ from dateutil.relativedelta import relativedelta
 from frappe.utils import getdate, nowdate
 
 from churchit.church_people import household
+from churchit.contacts import primary_email, primary_phone
 
 ADULT = "Adult"
 CHILD = "Child"
@@ -45,12 +47,18 @@ def years_since(date):
 
 
 def sync_derived(person) -> None:
-	"""Set *person*'s fields that come from their life events, household role, anniversary and graduation year."""
+	"""Set *person*'s fields that come from their life events, household role, anniversary, graduation year and
+	contact tables.
+
+	Lists and previews cannot read a child table, so the primary email and phone are stored on the person.
+	"""
 	# A new or changed family has no roster row for this person until on_update adds it.
 	role = None if person.has_value_changed("family") else household.role_of(person.name)
 	person.update(get_derived_values(person.life_events or [], role))
 	person.marriage_years = years_since(person.anniversary)
 	person.grade = get_grade(person.graduation_year)
+	person.primary_email = primary_email(person)
+	person.primary_phone = primary_phone(person)
 
 
 def get_derived_values(life_events, role) -> dict:

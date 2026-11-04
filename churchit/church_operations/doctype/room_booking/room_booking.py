@@ -196,11 +196,15 @@ class RoomBooking(Document):
 		if self.request_anyway and not is_blocked:
 			self.status = "Conflict"
 			return
-		frappe.throw(
-			_("Room is already booked at that time (conflicts with: {0}).").format(
-				describe_clashes([(clash.name, clash.church) for clash in clashes])
-			)
+
+		message = _("Room is already booked at that time (conflicts with: {0}).").format(
+			describe_clashes([(clash.name, clash.church) for clash in clashes])
 		)
+		# Only a desk user can tick Request Anyway: not a member on the Room Request form, not a decision.
+		is_desk_user = not (self.flags.ignore_permissions or is_portal_member() or frappe.flags.in_web_form)
+		if is_desk_user and not is_blocked:
+			message += " " + _("Tick Request Anyway on the Room Booking form to let an approver choose.")
+		frappe.throw(message)
 
 	def get_room_clashes(self) -> list[frappe._dict]:
 		"""The other bookings that hold this room at an overlapping time, read with a lock."""

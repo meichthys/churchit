@@ -1,6 +1,8 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
@@ -25,12 +27,12 @@ from churchit.tests.helpers import (
 STAFF_ROLE = "Church Manager"
 
 
-def make_notification(channel, field):
+def make_notification(channel, field, document_type="Person"):
 	return frappe.get_doc(
 		{
 			"doctype": "Notification",
 			"name": "_Test Consent Notification",
-			"document_type": "Person",
+			"document_type": document_type,
 			"event": "New",
 			"channel": channel,
 			"subject": "_Test",
@@ -100,3 +102,22 @@ class TestNotificationConsent(RollbackEachTest):
 		receivers = self.sms_receivers()
 		self.assertNotIn("555 010 0102", receivers)
 		self.assertIn("555 010 0101", receivers)
+
+	def test_another_apps_notification_ignores_church_consent(self):
+		# Contact stands in for a doctype of another app, such as an ERPNext Customer.
+		self.enterContext(patch.dict(frappe.local.module_app, {"contacts": "_test_other_app"}))
+		record([self.member.name], EMAIL, WITHDRAWN)
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"email_id": "_test_consent_notified@example.com",
+				"mobile_no": "555 010 0102",
+			}
+		)
+
+		email = make_notification("Email", "email_id", "Contact")
+		recipients, _cc, _bcc = email.get_list_of_recipients(contact, {"doc": contact})
+		self.assertIn("_test_consent_notified@example.com", recipients)
+
+		sms = make_notification("SMS", "mobile_no", "Contact")
+		self.assertIn("555 010 0102", sms.get_receiver_list(contact, {"doc": contact}))

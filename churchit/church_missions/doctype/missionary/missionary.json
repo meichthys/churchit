@@ -8,25 +8,29 @@
  "documentation": "/app/manual%3A-missions",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "section_break_oyuw",
   "title",
   "status",
   "church",
   "agency",
+  "country",
   "mission_statement",
   "column_break_vedu",
-  "country",
-  "geolocation",
-  "website",
-  "photo",
   "publish",
   "sensitive",
+  "website",
+  "photo",
   "people_section",
   "people",
+  "location_section",
+  "geolocation",
+  "contact_tab",
   "contact_information_section",
   "emails",
   "phones",
   "addresses",
+  "support_tab",
   "support_section",
   "support_start_date",
   "support_end_date",
@@ -35,11 +39,13 @@
   "support_frequency",
   "auto_create_expenses",
   "expense_type",
-  "section_break_appf",
-  "notes",
+  "letters_tab",
   "section_break_qxbh",
   "letters",
-  "related_documents"
+  "related_documents",
+  "section_break_appf",
+  "notes",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -64,10 +70,9 @@
    "options": "Country"
   },
   {
-   "description": "Where the missionary serves. Place a pin on the map to show this missionary on the missionary map. Sensitive missionaries are not shown on website missions map.",
+   "description": "Sensitive missionaries are left off the public missions map.",
    "fieldname": "geolocation",
    "fieldtype": "Geolocation",
-   "in_preview": 1,
    "label": "Location"
   },
   {
@@ -85,7 +90,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Link related documents here (i.e. `Person`s, `Function`s, `Collection`s, etc.)",
+   "description": "Other records about this missionary, such as people, functions or collections.",
    "fieldname": "related_documents",
    "fieldtype": "Table",
    "label": "Related Documents",
@@ -102,19 +107,18 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
+   "in_global_search": 1,
    "label": "Title",
    "reqd": 1,
    "unique": 1
   },
   {
    "default": "Active",
-   "description": "Inactive missionaries are left out of the Church Directory and the bulletin's Missionary of the Week.",
+   "description": "Inactive ones are left out of the Church Directory and Missionary of the Week.",
    "fieldname": "status",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Missionary Status",
@@ -149,6 +153,7 @@
   {
    "fieldname": "support_amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "in_preview": 1,
    "label": "Support Amount",
    "non_negative": 1
@@ -156,6 +161,7 @@
   {
    "fieldname": "support_frequency",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_preview": 1,
    "label": "Support Frequency",
    "mandatory_depends_on": "eval: doc.support_amount>0;",
@@ -164,14 +170,15 @@
   {
    "default": "0",
    "depends_on": "eval:doc.support_amount>0",
-   "description": "Automatically create a draft `Expense` each support period based on the support amount and frequency. Drafts are left unsubmitted for review. Enabling this backfills drafts for any periods already elapsed since the support start date.",
+   "description": "Makes a draft Expense each support period from the amount and frequency, for staff to review and submit. Turning it on also adds drafts for the periods since the support start date.",
    "fieldname": "auto_create_expenses",
    "fieldtype": "Check",
-   "label": "Auto-create Expenses"
+   "label": "Auto-create Expenses",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.auto_create_expenses",
-   "description": "The `Expense Type` (and therefore `Fund`) that auto-created support expenses are charged to.",
+   "description": "Auto-made expenses are charged to this type and its fund.",
    "fieldname": "expense_type",
    "fieldtype": "Link",
    "label": "Expense Type",
@@ -179,10 +186,9 @@
    "options": "Expense Type"
   },
   {
-   "description": "Mark one email and one phone as primary. Those are used for prayer letters and correspondence. Also tick which address receives mail.",
+   "description": "Mark one email and one phone as primary; letters use them. Tick the address that gets mail.",
    "fieldname": "contact_information_section",
-   "fieldtype": "Section Break",
-   "label": "Contact Information"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "emails",
@@ -198,29 +204,22 @@
   },
   {
    "fieldname": "people_section",
-   "fieldtype": "Section Break",
-   "label": "People"
+   "fieldtype": "Section Break"
   },
   {
-   "description": "The people this missionary record is about, such as a couple and their children, or the contact person at a supported organization or ministry.",
+   "description": "Who this record is about, such as a couple and their children, or an organization's contact.",
    "fieldname": "people",
    "fieldtype": "Table",
    "label": "People",
    "options": "Missionary Person"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.notes",
    "fieldname": "section_break_appf",
-   "fieldtype": "Section Break",
-   "label": "Notes"
+   "fieldtype": "Section Break"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.support_amount>0",
    "fieldname": "support_section",
-   "fieldtype": "Section Break",
-   "label": "Support"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "column_break_esna",
@@ -235,7 +234,6 @@
    "fieldname": "support_start_date",
    "fieldtype": "Date",
    "in_filter": 1,
-   "in_preview": 1,
    "label": "Support Start Date",
    "mandatory_depends_on": "eval:doc.support_amount>0"
   },
@@ -250,14 +248,12 @@
    "fieldname": "publish",
    "fieldtype": "Check",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Publish"
   },
   {
    "default": "0",
-   "description": "Is this missionary information sensitive? (i.e. restricted country)",
+   "description": "For a closed country. Off the website and map; off bulletins unless allowed.",
    "fieldname": "sensitive",
    "fieldtype": "Check",
    "label": "Sensitive"
@@ -265,13 +261,57 @@
   {
    "fieldname": "section_break_oyuw",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "collapsible": 1,
+   "description": "The pin on the missions map. Choosing a country places it.",
+   "fieldname": "location_section",
+   "fieldtype": "Section Break",
+   "label": "Location"
+  },
+  {
+   "fieldname": "contact_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "support_tab",
+   "fieldtype": "Tab Break",
+   "label": "Support"
+  },
+  {
+   "fieldname": "letters_tab",
+   "fieldtype": "Tab Break",
+   "label": "Letters and Notes"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "image_field": "photo",
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-10-11 16:00:00",
+ "links": [
+  {
+   "group": "Spending",
+   "link_doctype": "Expense",
+   "link_fieldname": "missionary"
+  },
+  {
+   "group": "Communication",
+   "link_doctype": "Bulletin",
+   "link_fieldname": "missionary"
+  }
+ ],
+ "modified": "2026-11-02 23:15:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",
@@ -313,11 +353,25 @@
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "country",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
+ "sort_field": "title",
+ "sort_order": "ASC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Active"
+  },
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Gray",
+   "title": "Inactive"
+  }
+ ],
  "title_field": "title",
  "track_changes": 1
 }

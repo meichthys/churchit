@@ -119,7 +119,68 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
 
 <p>On a plain <code>bench</code> (without Pilot), the equivalent is <code>bench get-app https://github.com/meichthys/churchit</code>, <code>bench --site &lt;your-site&gt; install-app churchit</code>, and <code>bench update</code> to upgrade.</p>
 
-<p>Churchit cannot share a site with an app that has a doctype of the same name. Today this includes ERPNext (Budget, Location), Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared doctypes.</p>
+<p>Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.</p>
+
+<h4>Churchit and ERPNext on one site</h4>
+
+<p>Churchit and ERPNext can share a site. Install them in either order:</p>
+<div class="cmd"><code>pilot -b church get-app https://github.com/frappe/erpnext --branch version-16
+pilot -b church install-app church.example.org erpnext</code><button class="btn cmd-copy" type="button" data-copy>Copy</button></div><p>Update and migrate an existing Churchit site before you install ERPNext. Until you do, the install stops with an error.</p>
+
+<p>When both apps are on one site:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Area</th>
+  <th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Setup wizard</td>
+  <td>After you add ERPNext to a Churchit site, desk users go to ERPNext's setup wizard until a System Manager completes it.</td>
+</tr>
+<tr>
+  <td>Website</td>
+  <td>Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up.</td>
+</tr>
+<tr>
+  <td>Letterhead</td>
+  <td>The church's default letterhead, such as <strong>Church Letter Head</strong>, stays the default, so ERPNext documents also print with it. To print them with an ERPNext letterhead, set it in <strong>Company &gt; Default Letter Head</strong>.</td>
+</tr>
+<tr>
+  <td>Email</td>
+  <td>Churchit turns off the standard email footer, so church emails do not end with "Sent via ERPNext". You can turn it on again in <strong>System Settings</strong>.</td>
+</tr>
+<tr>
+  <td>Address Template</td>
+  <td>ERPNext's setup wizard replaces the default Address Template for your country, and its template has no phone and email lines. Giving statements print the church address with that template, so check <strong>Address Template</strong> after the wizard.</td>
+</tr>
+<tr>
+  <td>Addresses</td>
+  <td>The Address form shows the fields ERPNext needs, such as Preferred Billing Address, Is Your Company Address and Tax Category. A site without ERPNext keeps the short form. Every Address link, on church and ERPNext forms, shows the first line of the address. To find an address, type part of the street, the city or the name it was saved under. The search no longer finds an address by its country or state. Only church addresses go to OpenStreetMap for the map. Addresses linked to customers, suppliers or companies stay on the site.</td>
+</tr>
+<tr>
+  <td>Portal</td>
+  <td>The customer and supplier lists (<code>/orders</code>, <code>/invoices</code>, <code>/addresses</code> and others) work beside the Member Portal at <code>/portal</code>. ERPNext's customer and supplier logins are not added to People as Visitors. A login is still linked to the person whose primary email is the same address.</td>
+</tr>
+<tr>
+  <td>Notifications</td>
+  <td>Communication consent does not apply to ERPNext notifications. ERPNext messages, such as invoices, go to all their recipients, church members included.</td>
+</tr>
+<tr>
+  <td>Gender</td>
+  <td>Churchit keeps only Male, Female and Unknown. Installing Churchit on an ERPNext site deletes the other genders, so update the employees and contacts that used one.</td>
+</tr>
+<tr>
+  <td>Apps screen</td>
+  <td>Every desk user sees an ERPNext tile. Users without ERPNext roles cannot use it. Desk users who can open Summary go to Summary after login. Other desk users go to their own default.</td>
+</tr>
+</tbody>
+</table>
+
+<p>Churchit renamed three records so that ERPNext can use their names: <strong>Budget</strong> is now <strong>Church Budget</strong>, <strong>Location</strong> is now <strong>Church Location</strong>, and the <strong>Open Work Orders</strong> report is now <strong>Open Church Work Orders</strong>. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (<code>/app/budget</code>) and API calls (<code>/api/resource/Location</code>).</p>
 
 <p>To make the site reachable from the internet with your own domain, see <a href="#setting-up-a-public-domain">Setting up a public domain</a>.</p>
 </div></article>
@@ -141,13 +202,42 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
 <li>Create your own user: type <code>New User</code> in the search bar. Under <strong>Roles &amp; Permissions</strong>, give the user the <code>Church Manager</code> Role Profile and the <code>Church</code> Module Profile. This user can manage all aspects of the church.</li>
 <li><p>For other staff and volunteers, create users with the Role Profile that matches their job, and the <code>Church</code> Module Profile:</p>
 
-<p>| Role Profile | For | Can change |
-|---|---|---|
-| <code>Church Staff</code> | Staff who look things up | Their own prayer requests, sign-ups, care requests and room bookings. Reads people, events, groups and ministries. |
-| <code>Church Office</code> | Office administrators | People, families, groups and member transfers |
-| <code>Church Care Team</code> | Pastors, deacons, care team | Care, counseling, visitation, background checks, prayer and alms requests |
-| <code>Church Treasurer</code> | Treasurer, bookkeeper | Collections, expenses, funds, budgets and giving statements |
-| <code>Church Check-In Volunteer</code> | Check-in desk | The Check-In Station only |</p>
+<table>
+<thead>
+<tr>
+  <th>Role Profile</th>
+  <th>For</th>
+  <th>Can change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>Church Staff</code></td>
+  <td>Staff who look things up</td>
+  <td>Their own prayer requests, sign-ups, care requests and room bookings. Reads people, events, groups and ministries.</td>
+</tr>
+<tr>
+  <td><code>Church Office</code></td>
+  <td>Office administrators</td>
+  <td>People, families, groups and member transfers</td>
+</tr>
+<tr>
+  <td><code>Church Care Team</code></td>
+  <td>Pastors, deacons, care team</td>
+  <td>Care, counseling, visitation, background checks, prayer and alms requests</td>
+</tr>
+<tr>
+  <td><code>Church Treasurer</code></td>
+  <td>Treasurer, bookkeeper</td>
+  <td>Collections, expenses, funds, budgets and giving statements</td>
+</tr>
+<tr>
+  <td><code>Church Check-In Volunteer</code></td>
+  <td>Check-in desk</td>
+  <td>The Check-In Station only</td>
+</tr>
+</tbody>
+</table>
 
 <p>Combine profiles when one person has several jobs. Open the <code>Role Permissions Manager</code> to see exactly what each role can do.</p></li>
 <li>Members do not need a desk login. Use <strong>Invite to Portal</strong> on their Person. It gives them the <code>Church User</code> role, which reaches the portal and their own records only.</li>

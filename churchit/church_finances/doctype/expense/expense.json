@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "autoname": "EXP-.####",
  "creation": "2025-10-09 02:25:29.401455",
+ "default_print_format": "Expense Voucher",
  "description": "A financial transaction that reduces the balance of a `Fund`",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
@@ -10,12 +11,12 @@
  "field_order": [
   "title",
   "church",
+  "date",
+  "amount",
+  "column_break_nqye",
   "vendor",
   "type",
   "associated_fund",
-  "amount",
-  "column_break_nqye",
-  "date",
   "ministry",
   "missionary",
   "section_break_fdwq",
@@ -40,6 +41,7 @@
    "search_index": 1
   },
   {
+   "bold": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -62,6 +64,8 @@
   {
    "fieldname": "vendor",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Vendor",
    "options": "Vendor",
@@ -80,7 +84,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "in_preview": 1,
    "label": "Notes"
   },
@@ -98,6 +101,7 @@
    "default": "Now",
    "fieldname": "date",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "in_preview": 1,
    "label": "Date"
   },
@@ -112,18 +116,16 @@
   {
    "fieldname": "associated_fund",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Associated Fund",
    "options": "Fund",
    "read_only": 1
   },
   {
-   "description": "Set automatically when this expense is generated from a `Missionary`'s recurring support.",
+   "depends_on": "eval:doc.missionary",
+   "description": "Set when the expense comes from a missionary's recurring support.",
    "fieldname": "missionary",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Missionary",
    "no_copy": 1,
    "options": "Missionary",
@@ -140,7 +142,7 @@
    "link_fieldname": "source"
   }
  ],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:39:43.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",
@@ -195,9 +197,11 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

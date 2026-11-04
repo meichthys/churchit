@@ -14,24 +14,24 @@
  ],
  "fields": [
   {
+   "columns": 3,
    "default": "Prayer Request",
    "fieldname": "topic_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Topic Type",
-   "link_filters": "[[\"DocType\",\"name\",\"like\",\"Church%\"]]",
+   "link_filters": "[[\"DocType\", \"module\", \"like\", \"Church%\"], [\"DocType\", \"istable\", \"=\", 0], [\"DocType\", \"issingle\", \"=\", 0]]",
    "options": "DocType",
    "reqd": 1
   },
   {
+   "columns": 5,
    "fieldname": "topic",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Topic",
    "options": "topic_type",
@@ -39,8 +39,10 @@
    "search_index": 1
   },
   {
+   "columns": 4,
    "fieldname": "prayer",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Prayer"
   }
  ],
@@ -48,7 +50,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-27 13:53:00.000000",
+ "modified": "2026-10-31 13:31:34.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Topic",

@@ -17,12 +17,17 @@
    "label": "Giving by Week"
   }
  ],
- "content": "[{\"id\":\"cLDjNswU3c\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Unless the LORD builds the house, the builders labor in vain.\\\"</i> (Psalm 127:1)\",\"col\":12}},{\"id\":\"qv6aLVY432\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h1\\\" style=\\\"font-weight: normal;\\\">\ud83d\udcca Summary</span>\",\"col\":12}},{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>At a Glance</b></span>\",\"col\":12}},{\"id\":\"c1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"c2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Weekly Attendance\",\"col\":4}},{\"id\":\"c3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ministries\",\"col\":4}},{\"id\":\"c4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"c5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayers Answered This Month\",\"col\":4}},{\"id\":\"c6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Verses Memorized\",\"col\":4}},{\"id\":\"c7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Giving This Month\",\"col\":4}},{\"id\":\"c8\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Expenses This Month\",\"col\":4}},{\"id\":\"c9\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionaries\",\"col\":4}},{\"id\":\"sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trends</b></span>\",\"col\":12}},{\"id\":\"ch1\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving and Expenses\",\"col\":12}},{\"id\":\"ch2\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Prayer Requests by Type\",\"col\":12}},{\"id\":\"ch3\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance by Week\",\"col\":6}},{\"id\":\"ch4\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving by Week\",\"col\":6}},{\"id\":\"sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Needs Attention</b></span>\",\"col\":12}},{\"id\":\"q1\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"My Assignments\",\"col\":6}},{\"id\":\"q2\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Urgent Prayer Requests\",\"col\":6}},{\"id\":\"q3\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Coming Up This Week\",\"col\":6}},{\"id\":\"q4\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Pending Alms Requests\",\"col\":6}},{\"id\":\"sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr4\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Website</b></span>\",\"col\":12}},{\"id\":\"chWebsitePreview\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WebsitePreview\",\"col\":12}}]",
+ "content": "[{\"id\":\"cLDjNswU3c\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Unless the LORD builds the house, the builders labor in vain.\\\"</i> (Psalm 127:1)\",\"col\":12}},{\"id\":\"chModuleShortcuts\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"ModuleShortcuts\",\"col\":12}},{\"id\":\"obChurch01\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Church\",\"col\":12}},{\"id\":\"hdr3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Needs Attention</b></span>\",\"col\":12}},{\"id\":\"scAssign01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Assignments\",\"col\":4}},{\"id\":\"scCare0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Care Requests\",\"col\":4}},{\"id\":\"scCalendar\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Church Calendar\",\"col\":4}},{\"id\":\"scPrayer01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Urgent Prayer Requests\",\"col\":4}},{\"id\":\"scAlms0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Pending Alms Requests\",\"col\":4}},{\"id\":\"scFollowUp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Follow-up Cards\",\"col\":4}},{\"id\":\"sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>At a Glance</b></span>\",\"col\":12}},{\"id\":\"c1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Members\",\"col\":4}},{\"id\":\"c2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Weekly Attendance\",\"col\":4}},{\"id\":\"c7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Giving This Month\",\"col\":4}},{\"id\":\"c8\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Expenses This Month\",\"col\":4}},{\"id\":\"c4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Prayer Requests\",\"col\":4}},{\"id\":\"c5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Prayers Answered This Month\",\"col\":4}},{\"id\":\"sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trends</b></span>\",\"col\":12}},{\"id\":\"ch1\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving and Expenses\",\"col\":12}},{\"id\":\"ch2\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Prayer Requests by Type\",\"col\":12}},{\"id\":\"ch3\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance by Week\",\"col\":6}},{\"id\":\"ch4\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Giving by Week\",\"col\":6}},{\"id\":\"sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"hdr4\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Website</b></span>\",\"col\":12}},{\"id\":\"chWebsitePreview\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"WebsitePreview\",\"col\":12}}]",
  "creation": "2026-07-07 19:43:06.882658",
  "custom_blocks": [
   {
-   "custom_block_name": "WebsitePreview",
+   "custom_block_name": "ModuleShortcuts",
    "idx": 1,
+   "label": "ModuleShortcuts"
+  },
+  {
+   "custom_block_name": "WebsitePreview",
+   "idx": 2,
    "label": "WebsitePreview"
   }
  ],
@@ -36,7 +41,7 @@
  "is_hidden": 0,
  "label": "Summary",
  "links": [],
- "modified": "2026-10-27 13:52:00.000000",
+ "modified": "2026-10-31 10:05:00.000000",
  "modified_by": "Administrator",
  "module": "Church Summary",
  "name": "Summary",
@@ -50,10 +55,6 @@
    "number_card_name": "Total Weekly Attendance"
   },
   {
-   "label": "Ministries",
-   "number_card_name": "Ministries"
-  },
-  {
    "label": "Active Prayer Requests",
    "number_card_name": "Active Prayer Requests"
   },
@@ -62,47 +63,18 @@
    "number_card_name": "Answered Prayers This Month"
   },
   {
-   "label": "Verses Memorized",
-   "number_card_name": "References Memorized"
-  },
-  {
    "label": "Giving This Month",
    "number_card_name": "Total Collection This Month"
   },
   {
    "label": "Expenses This Month",
    "number_card_name": "Total Expenses This Month"
-  },
-  {
-   "label": "Missionaries",
-   "number_card_name": "Total Missionaries"
   }
  ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "quick_lists": [
-  {
-   "document_type": "ToDo",
-   "label": "My Assignments",
-   "quick_list_filter": "[[\"ToDo\",\"allocated_to\",\"=\",frappe.session.user],[\"ToDo\",\"status\",\"=\",\"Open\"]]"
-  },
-  {
-   "document_type": "Prayer Request",
-   "label": "Urgent Prayer Requests",
-   "quick_list_filter": "[[\"Prayer Request\",\"urgent\",\"=\",1],[\"Prayer Request\",\"status\",\"not in\",[\"Answered\",\"Archived\",\"Closed\"]]]"
-  },
-  {
-   "document_type": "Function",
-   "label": "Coming Up This Week",
-   "quick_list_filter": "[[\"Function\",\"start_date\",\"Timespan\",\"next 7 days\"]]"
-  },
-  {
-   "document_type": "Alms Request",
-   "label": "Pending Alms Requests",
-   "quick_list_filter": "[[\"Alms Request\",\"status\",\"=\",\"Pending\"]]"
-  }
- ],
+ "quick_lists": [],
  "roles": [
   {
    "role": "System Manager"
@@ -115,7 +87,53 @@
   }
  ],
  "sequence_id": 1.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "format": "{} open",
+   "label": "My Assignments",
+   "link_to": "ToDo",
+   "stats_filter": "[[\"ToDo\",\"allocated_to\",\"=\",frappe.session.user],[\"ToDo\",\"status\",\"=\",\"Open\"]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "format": "{} open",
+   "label": "Open Care Requests",
+   "link_to": "Care Request",
+   "stats_filter": "[[\"Care Request\",\"status\",\"not in\",[\"Resolved\",\"Closed\"]]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "Church Calendar",
+   "type": "URL",
+   "url": "/desk/function/view/calendar"
+  },
+  {
+   "color": "Red",
+   "label": "Urgent Prayer Requests",
+   "link_to": "Urgent Prayer Requests",
+   "report_ref_doctype": "Prayer Request",
+   "type": "Report"
+  },
+  {
+   "color": "Orange",
+   "label": "Pending Alms Requests",
+   "link_to": "Pending Alms Requests",
+   "report_ref_doctype": "Alms Request",
+   "type": "Report"
+  },
+  {
+   "color": "Orange",
+   "label": "Open Follow-up Cards",
+   "link_to": "Open Follow-up Cards",
+   "report_ref_doctype": "Follow-up Card",
+   "type": "Report"
+  }
+ ],
  "standard": 1,
  "title": "Summary",
  "type": "Workspace"

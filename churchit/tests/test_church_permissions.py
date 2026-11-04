@@ -11,7 +11,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, getdate
 
 from churchit.church_communications.doctype.bulletin.bulletin import get_defaults as bulletin_defaults
-from churchit.church_finances.doctype.budget.budget import get_expense_totals
+from churchit.church_finances.doctype.church_budget.church_budget import get_expense_totals
 from churchit.church_finances.doctype.giving_statement.giving_statement import (
 	generate_statements,
 	get_givers,
@@ -852,7 +852,7 @@ class TestChurchPermissions(FrappeTestCase):
 		lines = [{"expense_type": expense_type, "budgeted_amount": 10}]
 		frappe.get_doc(
 			{
-				"doctype": "Budget",
+				"doctype": "Church Budget",
 				"title": "_Test Overlap B",
 				"start_date": "2032-01-01",
 				"end_date": "2032-12-31",
@@ -865,7 +865,7 @@ class TestChurchPermissions(FrappeTestCase):
 		frappe.clear_messages()
 		frappe.get_doc(
 			{
-				"doctype": "Budget",
+				"doctype": "Church Budget",
 				"title": "_Test Overlap A",
 				"start_date": "2032-06-01",
 				"end_date": "2032-09-30",

@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-09-25 22:00:00.000000",
+ "modified": "2026-10-31 13:42:09.000000",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "About Us Settings",
@@ -16,6 +16,24 @@
  "reference_doctype": "About Us Settings",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "Frappe ships <code>/about</code> disabled and churchit enables it at install, because the navbar links to it. Ticking this again takes the page down and leaves a dead menu entry, so remove the navbar item too.",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Publishing the Page",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Publishing the Page",
+   "ui_tour": 0
+  },
   {
    "description": "The heading at the top of <code>/about</code>. Churchit sets it to <i>About Our Church</i> at install and the text below is yours to write.",
    "fieldname": "page_title",
@@ -86,24 +104,6 @@
    "popover_element": 0,
    "position": "Top",
    "title": "Church Leadership",
-   "ui_tour": 0
-  },
-  {
-   "description": "Frappe ships <code>/about</code> disabled and churchit enables it at install, because the navbar links to it. Ticking this again takes the page down and leaves a dead menu entry, so remove the navbar item too.",
-   "fieldname": "is_disabled",
-   "fieldtype": "Check",
-   "has_next_condition": 0,
-   "hide_buttons": 0,
-   "is_table_field": 0,
-   "label": "Publishing the Page",
-   "modal_trigger": 0,
-   "next_on_click": 0,
-   "next_step_condition": "",
-   "offset_x": 0,
-   "offset_y": 0,
-   "popover_element": 0,
-   "position": "Bottom",
-   "title": "Publishing the Page",
    "ui_tour": 0
   }
  ],

@@ -12,6 +12,7 @@
  ],
  "fields": [
   {
+   "columns": 6,
    "fieldname": "function",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -20,6 +21,7 @@
    "reqd": 1
   },
   {
+   "columns": 4,
    "fetch_from": "function.repeat_frequency",
    "fieldname": "repeat_frequency",
    "fieldtype": "Data",
@@ -31,7 +33,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-16 00:00:00",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Recurring Function",

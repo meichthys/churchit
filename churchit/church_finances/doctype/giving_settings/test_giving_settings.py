@@ -1,13 +1,30 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest import SkipTest
+from unittest.mock import patch
+
 import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_finances.payments import get_payment_url, is_payments_on
+
+# The payments app is optional, so its Payment Gateway may not exist.
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Payment Gateway"]
+
+
+def without_payments():
+	"""Act as a site without the payments app."""
+	return patch(
+		"churchit.church_finances.doctype.giving_settings.giving_settings.is_payments_on", return_value=False
+	)
+
 
 def make_gateway(name, settings="Stripe Settings"):
-	"""A Payment Gateway called *name* that runs on the *settings* doctype."""
+	"""A Payment Gateway called *name* that runs on the *settings* doctype; skips the test without the payments app."""
+	if not is_payments_on():
+		raise SkipTest("Needs the payments app.")
 	gateway = frappe.new_doc("Payment Gateway")
 	if frappe.db.exists("Payment Gateway", name):
 		gateway = frappe.get_doc("Payment Gateway", name)
@@ -102,3 +119,40 @@ class TestGivingSettingsPerChurch(FrappeTestCase):
 		# The row fills in only what it sets; the rest still comes from the Single.
 		self.assertEqual(settings.get_statement_acknowledgment("CHR-BRANCH"), "Site wording")
 		self.assertEqual(settings.get_thank_you_message(), "Site thanks")
+
+
+class TestWithoutThePaymentsApp(FrappeTestCase):
+	"""Online payments are off on a site without the payments app, and say why."""
+
+	def test_no_gateway_serves_any_church(self):
+		settings = frappe.new_doc("Giving Settings")
+		settings.append("gateways", {"payment_gateway": "Stripe", "is_default": 1})
+
+		with without_payments():
+			self.assertEqual(settings.get_offered_gateways(), [])
+			self.assertIsNone(settings.get_default_gateway())
+
+	def test_online_giving_cannot_be_turned_on(self):
+		settings = frappe.new_doc("Giving Settings")
+		settings.enabled = 0
+
+		with without_payments():
+			settings.validate()
+			settings.enabled = 1
+			with self.assertRaisesRegex(ValidationError, "Payments app"):
+				settings.validate()
+
+	def test_the_form_learns_that_the_app_is_missing(self):
+		settings = frappe.new_doc("Giving Settings")
+
+		with without_payments():
+			settings.onload()
+
+		self.assertIs(settings.get_onload().is_payments_on, False)
+
+	def test_a_checkout_is_refused_before_it_needs_the_app(self):
+		reference = frappe._dict(doctype="Online Donation", name="_Test Gift")
+
+		with without_payments(), patch.dict("sys.modules", {"payments.utils": None}):
+			with self.assertRaisesRegex(ValidationError, "No payment gateway"):
+				get_payment_url(reference, 10, "USD", None, "Gift", "Gift")

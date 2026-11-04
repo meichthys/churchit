@@ -48,6 +48,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
 - Person Notes in categories that decide who reads them, with alert notes at the top of the form
+- A timeline at the bottom of each Person with their visits, care requests, life events, member transfers and connection cards, each shown only to users who may open it
 - Follow-up workflows on a Kanban board per workflow, started by a guest card, a first check-in, an event sign-up, a form, a membership change, a life event, a smart list, or a card of another workflow that reaches a step or closes
 - Follow-up workflows send emails and texts, add people to groups and tags, and start other workflows by themselves
 - Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
@@ -56,7 +57,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
 - Relationships to people in other households, such as grandparents, shown on both people's forms
 - Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
-- Care requests with a caregiver and due date, and background checks a position or a group can require
+- Care requests with a caregiver and due date, a Care Board that shows them by status, and background checks a position or a group can require
 - Duplicate warnings, merging with a choice of the value to keep for each detail, and imports from Planning Center, Rock RMS, Breeze or a spreadsheet
 - Envelope numbers, unique in each church, that find the giver in a gift's Person field
 - Remove Personal Data on request or after a set number of inactive years
@@ -161,7 +162,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund transfers between accounts
 - Expense tracking by category
 - Alms request system for financial assistance (with web form), with an email to the care team and Benevolence case notes that only the care team reads
-- Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover
+- Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover (needs the optional [Payments app](#online-payments-optional))
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
 - Other ways to give (bank transfer, standing order, mailed check) on /give, per church
@@ -196,7 +197,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Bible Memory practice in the portal, with passages managers can assign to people and groups, and a Bible Memory report of a group's progress
 
 ### Operations
-- Task tracking with document references, assignees and a reminder to them the day before a task is due
+- Task tracking with document references, assignees, a Tasks Board by status and a reminder to them the day before a task is due
 - Work orders for assets and rooms, with priority and requester, and an Open Work Orders report
 - Equipment loans: check equipment out and in on its booking, and an Assets on Loan report that shows late returns first
 - Asset tracking (location, details, status)
@@ -225,6 +226,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
 - Built-in documentation for each module
 - Guided setup/onboarding
+- A Take the Tour item on every form that has a guided tour
 
 ## 📥 Installing Churchit
 
@@ -283,9 +285,54 @@ pilot -b church setup production
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
 
-Churchit cannot share a site with an app that has a doctype of the same name. Today this includes ERPNext (Budget, Location), Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared doctypes.
+Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
+
+#### Churchit and ERPNext on one site
+
+Churchit and ERPNext can share a site. Install them in either order:
+
+```bash
+pilot -b church get-app https://github.com/frappe/erpnext --branch version-16
+pilot -b church install-app church.example.org erpnext
+```
+
+Update and migrate an existing Churchit site before you install ERPNext. Until you do, the install stops with an error.
+
+When both apps are on one site:
+
+| Area | What happens |
+|---|---|
+| Setup wizard | After you add ERPNext to a Churchit site, desk users go to ERPNext's setup wizard until a System Manager completes it. |
+| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. |
+| Letterhead | The church's default letterhead, such as **Church Letter Head**, stays the default, so ERPNext documents also print with it. To print them with an ERPNext letterhead, set it in **Company > Default Letter Head**. |
+| Email | Churchit turns off the standard email footer, so church emails do not end with "Sent via ERPNext". You can turn it on again in **System Settings**. |
+| Address Template | ERPNext's setup wizard replaces the default Address Template for your country, and its template has no phone and email lines. Giving statements print the church address with that template, so check **Address Template** after the wizard. |
+| Addresses | The Address form shows the fields ERPNext needs, such as Preferred Billing Address, Is Your Company Address and Tax Category. A site without ERPNext keeps the short form. Every Address link, on church and ERPNext forms, shows the first line of the address. To find an address, type part of the street, the city or the name it was saved under. The search no longer finds an address by its country or state. Only church addresses go to OpenStreetMap for the map. Addresses linked to customers, suppliers or companies stay on the site. |
+| Portal | The customer and supplier lists (`/orders`, `/invoices`, `/addresses` and others) work beside the Member Portal at `/portal`. ERPNext's customer and supplier logins are not added to People as Visitors. A login is still linked to the person whose primary email is the same address. |
+| Notifications | Communication consent does not apply to ERPNext notifications. ERPNext messages, such as invoices, go to all their recipients, church members included. |
+| Gender | Churchit keeps only Male, Female and Unknown. Installing Churchit on an ERPNext site deletes the other genders, so update the employees and contacts that used one. |
+| Apps screen | Every desk user sees an ERPNext tile. Users without ERPNext roles cannot use it. Desk users who can open Summary go to Summary after login. Other desk users go to their own default. |
+
+Churchit renamed three records so that ERPNext can use their names: **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (`/app/budget`) and API calls (`/api/resource/Location`).
 
 To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
+
+### Online payments (optional)
+
+Online giving on the Give page, sign-up payments and form payments need Frappe's [Payments](https://github.com/frappe/payments) app. Churchit does not install it, so online payments are off on a new site. Everything else works without it, and a church can still record payments by hand. To turn online payments on:
+
+1. Install the Payments app on the site:
+
+   | Setup | Steps |
+   |---|---|
+   | Frappe Cloud | Open the site page, then the **Apps** tab. Click **Install App** and choose **Payments**. |
+   | Docker | Set `EXTRA_APPS=payments` in `~/churchit/.env` and run `docker compose up -d`. See [Optional apps](deploy/README.md#optional-apps). |
+   | Pilot | `pilot -b church get-app https://github.com/frappe/payments --branch version-16`, then `pilot -b church install-app church.example.org payments` |
+   | Plain bench | `bench get-app payments --branch version-16`, then `bench --site <your-site> install-app payments` |
+
+2. Set up Stripe or PayPal, and tick **Enable Online Giving** in **Giving Settings**. The Finances manual in the app tells how (Online giving).
+
+Until the Payments app is installed, **Giving Settings** shows a notice, and Churchit does not let you tick **Enable Online Giving**. The Give page shows that online giving is unavailable, and it still shows **Other Ways to Give**. A sign-up with a price waits for a payment by hand. A form with a price keeps the answers and asks the person to contact the church office.
 
 ### First steps after installing
 

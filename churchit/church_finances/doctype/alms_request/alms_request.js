@@ -13,17 +13,15 @@ frappe.ui.form.on("Alms Request", {
 		}
 	},
 	refresh(frm) {
-		// One expense per request, for whoever keeps the books
-		if (!frm.is_new() && !frm.doc.associated_expense && frappe.model.can_create("Expense")) {
-			frm.add_custom_button(__("Create Expense"), function () {
-				frappe.call({
-					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-					args: { alms_request_name: frm.doc.name },
-					callback: function () {
-						frm.reload_doc();
-					},
-				});
-			});
+		// One expense per request, for whoever keeps the books, once it has an amount and a type
+		if (
+			!frm.is_new() &&
+			!frm.doc.associated_expense &&
+			frm.doc.amount &&
+			frm.doc.expense_type &&
+			frappe.model.can_create("Expense")
+		) {
+			frm.add_custom_button(__("Create Expense"), () => create_expense(frm), __("Actions"));
 		}
 		add_case_note_buttons(frm);
 	},
@@ -44,34 +42,33 @@ frappe.ui.form.on("Alms Request", {
 			!frm.doc.associated_expense &&
 			frappe.model.can_create("Expense")
 		) {
-			frappe.confirm("Would you like to create an associated expense?", function () {
-				frappe.call({
-					method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
-					args: {
-						alms_request_name: frm.doc.name,
-					},
-					callback: function () {
-						frm.reload_doc();
-					},
-				});
-			});
+			frappe.confirm("Would you like to create an associated expense?", () =>
+				create_expense(frm)
+			);
 		}
 	},
 });
+
+function create_expense(frm) {
+	frappe.call({
+		method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
+		args: { alms_request_name: frm.doc.name },
+		callback: () => frm.reload_doc(),
+	});
+}
 
 // Benevolence case notes are Person Notes on the recipient, or on a Family's primary contact.
 // The server says whether the user may read or add a Benevolence note.
 function add_case_note_buttons(frm) {
 	const onload = frm.doc.__onload || {};
 	if (frm.is_new() || !frm.doc.recipient || !onload.can_read_case_notes) return;
-	const group = __("Case Notes");
 	frm.add_custom_button(
-		__("View Case Notes"),
+		__("Case Notes"),
 		async () => {
 			const person = await get_case_note_person(frm);
 			frappe.set_route("List", "Person Note", { person, category: "Benevolence" });
 		},
-		group
+		__("View")
 	);
 	if (!onload.can_add_case_notes) return;
 	frm.add_custom_button(
@@ -87,7 +84,7 @@ function add_case_note_buttons(frm) {
 			};
 			frappe.ui.form.make_quick_entry("Person Note", null, set_category_query, note, true);
 		},
-		group
+		__("Actions")
 	);
 }
 

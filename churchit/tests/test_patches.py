@@ -3,12 +3,14 @@
 
 """Install-time seeding and versioned patches must be safe to run again."""
 
+import json
 import os
 import tempfile
 from unittest import mock
 
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.desk.doctype.custom_workspace.custom_workspace import upsert_content_customization
 from frappe.model.naming import NamingSeries
 from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
@@ -28,12 +30,14 @@ from churchit.patches.v1_0 import (
 	add_pledges_to_portal,
 	add_unsynced_default_records,
 	clear_unknown_person_sources,
+	land_administrator_on_summary,
 	list_missionary_people_in_a_table,
 	mark_check_in_walk_ins_as_visitors,
 	move_copied_function_schedules,
 	move_email_template_bodies_to_html,
 	move_to_the_apps_screen_and_dock,
 	redesign_home_page,
+	relabel_visitation_follow_ups_card,
 	remove_avery_label_format,
 	remove_duplicate_new_members_chart,
 	remove_email_group_onboarding,
@@ -41,10 +45,12 @@ from churchit.patches.v1_0 import (
 	remove_permlevel_fields_from_person_versions,
 	remove_private_fields_from_versions,
 	rename_agency_logo_field,
+	rename_records_that_clash_with_erpnext,
 	restamp_shared_fund_transfers,
 	restore_shipped_people_charts,
 	scope_website_pages_to_church,
 	seed_naming_series_counters,
+	set_church_brand,
 	set_church_website,
 	set_display_names,
 	setup_bulletins,
@@ -66,6 +72,140 @@ from churchit.tests.helpers import (
 	make_function,
 	make_person,
 )
+
+
+class TestRenameRecordsThatClashWithErpnext(RollbackEachTest):
+	"""Only Churchit's records move, so ERPNext's Budget, Location and report keep their names."""
+
+	def make_report(self, module):
+		# ERPNext's own report of this name is there when ERPNext is installed.
+		frappe.db.delete("Report", {"name": "Open Work Orders"})
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Open Work Orders",
+				"ref_doctype": "Church Task",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"module": module,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_churchit_record_is_renamed(self):
+		self.make_report("Church Operations")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_records_that_clash_with_erpnext.execute()
+
+		rename.assert_called_once_with(
+			"Report", "Open Work Orders", "Open Church Work Orders", force=True, show_alert=False
+		)
+
+	def test_another_apps_record_with_the_same_name_is_left_alone(self):
+		self.make_report("Core")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_records_that_clash_with_erpnext.execute()
+
+		rename.assert_not_called()
+
+	def test_users_list_settings_follow_the_renamed_doctype(self):
+		data = '{"Report": {"fields": [["name", "_Test Old"]], "order_by": "`tab_Test Old`.`modified` desc"}}'
+		frappe.db.sql(
+			"insert into `__UserSettings` (`user`, `doctype`, `data`) values ('Administrator', '_Test Old', %s)",
+			data,
+		)
+		settings = frappe.new_doc("List View Settings")
+		settings.name = "_Test Old"
+		settings.insert(ignore_permissions=True)
+
+		rename_records_that_clash_with_erpnext.move_list_settings("_Test Old", "_Test New")
+
+		moved = frappe.db.sql("select data from `__UserSettings` where doctype = '_Test New'")[0][0]
+		self.assertEqual(moved, data.replace("_Test Old", "_Test New"))
+		self.assertTrue(frappe.db.exists("List View Settings", "_Test New"))
+
+	def test_customizations_take_the_new_doctype_name(self):
+		make_property_setter("Church Location", "location_name", "bold", 1, "Check")
+		frappe.db.set_value(
+			"Property Setter", "Church Location-location_name-bold", "name", "Location-location_name-bold"
+		)
+
+		rename_records_that_clash_with_erpnext.rename_customizations("Location", "Church Location")
+
+		self.assertTrue(frappe.db.exists("Property Setter", "Church Location-location_name-bold"))
+		self.assertFalse(frappe.db.exists("Property Setter", "Location-location_name-bold"))
+
+
+class TestSetChurchBrand(RollbackEachTest):
+	"""Frappe takes the brand from the last app installed, so the church's is stored as settings."""
+
+	def test_blank_settings_get_the_church_brand_and_a_chosen_logo_is_kept(self):
+		frappe.db.set_single_value("Website Settings", "favicon", None)
+		frappe.db.set_single_value("Navbar Settings", "app_logo", "/files/_test_our_logo.png")
+
+		set_church_brand.execute()
+
+		self.assertEqual(
+			frappe.db.get_single_value("Website Settings", "favicon"), after_install.CHURCH_FAVICON
+		)
+		self.assertEqual(
+			frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/_test_our_logo.png"
+		)
+		self.assertTrue(frappe.db.get_default("disable_standard_email_footer"))
+
+
+class TestErpnextLetterHead(RollbackEachTest):
+	"""ERPNext makes its company letterhead the site default; a church site keeps the church's."""
+
+	def make_erpnext_default(self):
+		frappe.db.delete("Letter Head", {"name": ("in", after_install.ERPNEXT_LETTER_HEADS)})
+		frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "Company Letterhead - Grey",
+				"source": "HTML",
+				"content": "<p>Company</p>",
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_installing_erpnext_puts_the_church_letter_head_back(self):
+		add_unsynced_default_records.execute()
+		frappe.get_doc("Letter Head", "Church Letter Head").update({"is_default": 1}).save(
+			ignore_permissions=True
+		)
+
+		after_install.remember_letter_head("erpnext")
+		self.make_erpnext_default()
+		after_install.keep_church_letter_head("erpnext")
+
+		self.assertTrue(frappe.db.get_value("Letter Head", "Church Letter Head", "is_default"))
+
+	def test_a_letterhead_the_church_chose_stays_the_default(self):
+		theirs = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "_Test Church Chosen Letterhead",
+				"source": "HTML",
+				"content": "<p>Ours</p>",
+				"is_default": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		after_install.remember_letter_head("erpnext")
+		self.make_erpnext_default()
+		after_install.keep_church_letter_head("erpnext")
+
+		self.assertTrue(frappe.db.get_value("Letter Head", theirs.name, "is_default"))
+
+	def test_installing_churchit_on_an_erpnext_site_makes_the_church_letter_head_default(self):
+		frappe.db.delete("Letter Head", {"name": "Church Letter Head"})
+		self.make_erpnext_default()
+
+		add_unsynced_default_records.execute()
+
+		self.assertTrue(frappe.db.get_value("Letter Head", "Church Letter Head", "is_default"))
 
 
 class TestUnsyncedDefaultRecords(FrappeTestCase):
@@ -217,7 +357,7 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual([row.person for row in missionary.people], [person])
 
 	def test_contact_migration_reruns_without_legacy_columns(self):
-		self.assertEqual(contact_patch._read_legacy("Person", ["email", "primary_phone"]), [])
+		self.assertEqual(contact_patch._read_legacy("Person", ["email", "home_address"]), [])
 		contact_patch.execute()
 
 	def test_person_address_rows_from_legacy_fields(self):
@@ -1205,3 +1345,51 @@ class TestRemovePermlevelFieldsFromPersonVersions(RollbackEachTest):
 		data = frappe.parse_json(frappe.db.get_value("Version", renamed.name, "data"))
 		self.assertEqual(data.changed, [["first_name", "Old", "New"]])
 		self.assertFalse(frappe.db.exists("Version", only_notes.name))
+
+
+class TestLandAdministratorOnSummary(RollbackEachTest):
+	def test_administrator_without_a_default_workspace_opens_summary(self):
+		frappe.db.set_value("User", "Administrator", "default_workspace", None)
+
+		land_administrator_on_summary.execute()
+		land_administrator_on_summary.execute()
+
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), "Summary")
+
+	def test_administrator_keeps_a_chosen_workspace(self):
+		frappe.db.set_value("User", "Administrator", "default_workspace", "People")
+
+		land_administrator_on_summary.execute()
+
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "default_workspace"), "People")
+
+
+class TestRelabelVisitationFollowUpsCard(RollbackEachTest):
+	"""A site's saved People layout must keep finding the relabelled number card."""
+
+	def test_a_customized_people_layout_follows_the_new_label(self):
+		blocks = [
+			{
+				"id": "nc_visits",
+				"type": "number_card",
+				"data": {"number_card_name": relabel_visitation_follow_ups_card.OLD_LABEL, "col": 4},
+			}
+		]
+		upsert_content_customization("People", blocks, {})
+
+		relabel_visitation_follow_ups_card.execute()
+		relabel_visitation_follow_ups_card.execute()
+
+		content = json.loads(frappe.db.get_value("Custom Workspace", "People", "content"))
+		self.assertEqual(content[0]["data"]["number_card_name"], relabel_visitation_follow_ups_card.NEW_LABEL)
+
+	def test_a_people_layout_without_the_old_label_is_left_alone(self):
+		blocks = [
+			{"id": "nc_other", "type": "number_card", "data": {"number_card_name": "New Members", "col": 4}}
+		]
+		upsert_content_customization("People", blocks, {})
+		before = frappe.db.get_value("Custom Workspace", "People", ["content", "modified"])
+
+		relabel_visitation_follow_ups_card.execute()
+
+		self.assertEqual(frappe.db.get_value("Custom Workspace", "People", ["content", "modified"]), before)

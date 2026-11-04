@@ -25,7 +25,7 @@
    "reqd": 1
   },
   {
-   "description": "The phone number's digits only, kept by Churchit so a search or the duplicate finder can match it however it was typed.",
+   "description": "The digits of the number, so search and the duplicate finder match any format.",
    "fieldname": "digits",
    "fieldtype": "Data",
    "hidden": 1,
@@ -44,13 +44,13 @@
    "reqd": 1
   },
   {
-   "columns": 2,
+   "columns": 1,
    "default": "0",
    "description": "The number used when the church calls or texts this record.",
    "fieldname": "is_primary",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Is Primary"
+   "label": "Primary"
   },
   {
    "columns": 2,
@@ -59,7 +59,8 @@
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Shared From",
-   "options": "shared_from_type"
+   "options": "shared_from_type",
+   "show_description_on_click": 1
   },
   {
    "description": "Set automatically to the doctype of the record this row is on.",
@@ -75,7 +76,7 @@
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-17 18:00:00.000000",
+ "modified": "2026-10-31 01:35:33.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Phone Number",

@@ -17,6 +17,12 @@ def nominatim_answer(places):
 	return response
 
 
+def make_linked_address():
+	return make_address(
+		"_Test Geocoding Linked", links=[{"link_doctype": "User", "link_name": "Administrator"}]
+	)
+
+
 class TestGeocoding(RollbackEachTest):
 	def setUp(self):
 		super().setUp()
@@ -90,6 +96,34 @@ class TestGeocoding(RollbackEachTest):
 		self.assertEqual(geocode.call_count, 1)
 		self.assertNotEqual(geocode.call_args.args[0], located.name)
 		self.assertEqual(enqueue.call_args.kwargs["after"], geocode.call_args.args[0])
+
+	def test_an_address_linked_to_another_record_is_never_queued_or_sent(self):
+		"""ERPNext links a customer's, supplier's or company's address through `links`; churchit never does."""
+		linked = make_linked_address()
+		linked.city = "Shelbyville"
+		with (
+			mock.patch.object(frappe, "in_test", False),
+			mock.patch("frappe.enqueue") as enqueue,
+			mock.patch("requests.get") as get,
+		):
+			linked.save(ignore_permissions=True)
+			geocoding.geocode(linked.name)
+
+		enqueue.assert_not_called()
+		get.assert_not_called()
+
+	def test_the_sweep_for_missing_coordinates_skips_linked_addresses(self):
+		linked = make_linked_address()
+		with (
+			mock.patch.object(geocoding, "BATCH", 1000),
+			mock.patch.object(geocoding, "geocode") as geocode,
+			mock.patch.object(frappe.db, "commit"),
+		):
+			geocoding.geocode_missing()
+
+		looked_up = [call.args[0] for call in geocode.call_args_list]
+		self.assertIn(self.address.name, looked_up)
+		self.assertNotIn(linked.name, looked_up)
 
 	def test_with_the_lookup_off_no_address_is_sent_or_queued(self):
 		frappe.db.set_single_value("People Settings", "look_up_addresses", 0)

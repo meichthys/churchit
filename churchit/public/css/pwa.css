@@ -1,0 +1,70 @@
+/* The install card from public/js/pwa.js, on the website and the desk alike. The tokens are
+   Frappe's, which both share and which follow the light/dark switch. */
+
+.churchit-install {
+	position: fixed;
+	z-index: 1040; /* over the navbar (1030), under modals (1050) */
+	right: 24px;
+	bottom: 24px;
+	width: 360px;
+	max-width: calc(100vw - 24px);
+	display: grid;
+	grid-template-columns: 48px 1fr;
+	column-gap: 12px;
+	padding: 16px;
+	background: var(--card-bg, #fff);
+	color: var(--text-color);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	box-shadow: 0 12px 40px -8px rgba(15, 23, 42, 0.35);
+	animation: churchit-install-in 0.25s ease-out;
+}
+
+.churchit-install-icon {
+	grid-row: span 2;
+	width: 48px;
+	height: 48px;
+	border-radius: 11px;
+}
+
+.churchit-install-title {
+	margin: 0;
+	font-weight: 600;
+	color: var(--heading-color, var(--text-color));
+}
+
+.churchit-install-text {
+	margin: 4px 0 0;
+	font-size: 0.875rem;
+	color: var(--text-muted);
+}
+
+.churchit-install-actions {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 14px;
+}
+
+@media (max-width: 575px) {
+	.churchit-install {
+		right: 12px;
+		left: 12px;
+		bottom: calc(12px + env(safe-area-inset-bottom));
+		width: auto;
+	}
+}
+
+@keyframes churchit-install-in {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.churchit-install {
+		animation: none;
+	}
+}

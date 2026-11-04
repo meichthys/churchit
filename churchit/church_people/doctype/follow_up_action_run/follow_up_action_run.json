@@ -94,7 +94,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-10-27 08:45:50.000000",
+ "modified": "2026-10-31 13:13:30.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Action Run",
@@ -124,5 +124,19 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Done"
+  },
+  {
+   "color": "Gray",
+   "title": "Skipped"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ],
+ "title_field": "card"
 }

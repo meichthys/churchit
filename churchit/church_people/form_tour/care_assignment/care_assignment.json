@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-09-25 22:00:00.000000",
+ "modified": "2026-10-31 13:11:48.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Assignment",
@@ -17,13 +17,13 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "The person responsible for this member's care. A Care Request from them is assigned to this deacon on save, so nobody has to route it by hand.<br><br><b>Pick a Deacon to continue.</b>",
+   "description": "The person responsible for this member's care. A Care Request from them is assigned to this caregiver on save, so nobody has to route it by hand.<br><br><b>Pick a Caregiver to continue.</b>",
    "fieldname": "deacon",
    "fieldtype": "Link",
    "has_next_condition": 1,
    "hide_buttons": 0,
    "is_table_field": 0,
-   "label": "The Deacon",
+   "label": "The Caregiver",
    "modal_trigger": 0,
    "next_on_click": 0,
    "next_step_condition": "eval: doc.deacon",
@@ -31,11 +31,11 @@
    "offset_y": 0,
    "popover_element": 0,
    "position": "Bottom",
-   "title": "The Deacon",
+   "title": "The Caregiver",
    "ui_tour": 0
   },
   {
-   "description": "Assignments are read by date: the deacon on duty is whoever's assignment covers today.",
+   "description": "Assignments are read by date: the caregiver on duty is whoever's assignment covers today.",
    "fieldname": "start_date",
    "fieldtype": "Date",
    "has_next_condition": 0,
@@ -71,7 +71,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Context the deacon should have before the first visit.",
+   "description": "Context the caregiver should have before the first visit.",
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "has_next_condition": 0,

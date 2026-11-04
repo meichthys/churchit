@@ -17,6 +17,15 @@
   "cover_image",
   "verse",
   "publish",
+  "section_break_text",
+  "welcome",
+  "column_break_text",
+  "announcements",
+  "share_announcements",
+  "section_break_missionary",
+  "missionary",
+  "section_break_prayers",
+  "prayer_requests",
   "section_break_sections",
   "show_contact_information",
   "show_order_of_worship",
@@ -30,22 +39,12 @@
   "show_prayer_requests",
   "show_birthdays",
   "show_anniversaries",
-  "show_sermon_handout",
-  "section_break_text",
-  "welcome",
-  "column_break_text",
-  "announcements",
-  "share_announcements",
-  "section_break_missionary",
-  "missionary",
-  "section_break_prayers",
-  "prayer_requests"
+  "show_sermon_handout"
  ],
  "fields": [
   {
    "fieldname": "function",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Function",
    "options": "Function",
@@ -82,6 +81,7 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "hidden": 1,
+   "in_global_search": 1,
    "label": "Title",
    "read_only": 1
   },
@@ -96,18 +96,74 @@
    "label": "Cover Image"
   },
   {
-   "description": "Printed at the foot of the front cover, such as John 3:16, in the church's default translation.",
+   "description": "Printed at the foot of the front cover, in the church's default translation.",
    "fieldname": "verse",
    "fieldtype": "Data",
-   "label": "Verse of the Week"
+   "label": "Verse of the Week",
+   "placeholder": "John 3:16"
   },
   {
    "default": "0",
-   "description": "Let signed-in members of this church read this bulletin and download it as a PDF from the portal.",
+   "description": "Members of this church can read it and download the PDF in the portal.",
    "fieldname": "publish",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Show in Portal"
+  },
+  {
+   "fieldname": "section_break_text",
+   "fieldtype": "Section Break",
+   "label": "Welcome and Announcements"
+  },
+  {
+   "description": "Opens the inside of the bulletin.",
+   "fieldname": "welcome",
+   "fieldtype": "Text Editor",
+   "label": "Welcome Message",
+   "max_height": "20rem"
+  },
+  {
+   "fieldname": "column_break_text",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "announcements",
+   "fieldtype": "Text Editor",
+   "label": "Announcements",
+   "max_height": "20rem"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.announcements",
+   "description": "Show the announcements, and nothing else from this bulletin, on the public Announcements page. Show in Portal must also be ticked.",
+   "fieldname": "share_announcements",
+   "fieldtype": "Check",
+   "label": "Show Announcements on the Website",
+   "show_description_on_click": 1
+  },
+  {
+   "fieldname": "section_break_missionary",
+   "fieldtype": "Section Break",
+   "label": "Missionary of the Week"
+  },
+  {
+   "description": "Picked automatically in turn from the missionaries currently supported. Change it here for this bulletin only.",
+   "fieldname": "missionary",
+   "fieldtype": "Link",
+   "label": "Missionary",
+   "options": "Missionary",
+   "show_description_on_click": 1
+  },
+  {
+   "fieldname": "section_break_prayers",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Starts with every open request that is not private. Remove or add rows for this bulletin.",
+   "fieldname": "prayer_requests",
+   "fieldtype": "Table",
+   "label": "Prayer Requests",
+   "options": "Bulletin Prayer Request"
   },
   {
    "collapsible": 1,
@@ -191,65 +247,14 @@
    "description": "Adds a third sheet with the handout of the sermon on the function's schedule, printed twice to cut into two half-page inserts.",
    "fieldname": "show_sermon_handout",
    "fieldtype": "Check",
-   "label": "Sermon Handout Insert"
-  },
-  {
-   "fieldname": "section_break_text",
-   "fieldtype": "Section Break",
-   "label": "Welcome and Announcements"
-  },
-  {
-   "description": "Opens the inside of the bulletin.",
-   "fieldname": "welcome",
-   "fieldtype": "Text Editor",
-   "label": "Welcome Message"
-  },
-  {
-   "fieldname": "column_break_text",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "announcements",
-   "fieldtype": "Text Editor",
-   "label": "Announcements"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.announcements",
-   "description": "Show the announcements, and nothing else from this bulletin, on the public Announcements page. Show in Portal must also be ticked.",
-   "fieldname": "share_announcements",
-   "fieldtype": "Check",
-   "label": "Show Announcements on the Website"
-  },
-  {
-   "fieldname": "section_break_missionary",
-   "fieldtype": "Section Break",
-   "label": "Missionary of the Week"
-  },
-  {
-   "description": "Picked automatically in turn from the missionaries currently supported. Change it here for this bulletin only.",
-   "fieldname": "missionary",
-   "fieldtype": "Link",
-   "label": "Missionary",
-   "options": "Missionary"
-  },
-  {
-   "fieldname": "section_break_prayers",
-   "fieldtype": "Section Break",
-   "label": "Prayer Requests"
-  },
-  {
-   "description": "Starts with every open request that is not private. Remove or add rows for this bulletin.",
-   "fieldname": "prayer_requests",
-   "fieldtype": "Table",
-   "label": "Prayer Requests",
-   "options": "Bulletin Prayer Request"
+   "label": "Sermon Handout Insert",
+   "show_description_on_click": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-10-27 15:54:11.000000",
+ "modified": "2026-10-31 13:24:54.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin",

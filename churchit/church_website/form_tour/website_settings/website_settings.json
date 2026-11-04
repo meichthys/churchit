@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-09-25 22:00:00.000000",
+ "modified": "2026-10-31 13:42:09.000000",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Website Settings",
@@ -71,6 +71,24 @@
    "ui_tour": 0
   },
   {
+   "description": "The small icon browsers show on a tab and in bookmarks. The icons used when a member installs the site to their phone are shipped with the app, not taken from here.",
+   "fieldname": "favicon",
+   "fieldtype": "Attach",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "FavIcon",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "FavIcon",
+   "ui_tour": 0
+  },
+  {
    "description": "The public menu, seeded at install with the pages churchit ships: Home, Beliefs, Sermons, Missions, Ministries, Calendar, About, Contact, Give. It is yours from then on; nothing rewrites it. Removing a link here leaves its Web Page published, so churchit offers to unpublish the page when you save.",
    "fieldname": "top_bar_items",
    "fieldtype": "Table",
@@ -104,24 +122,6 @@
    "popover_element": 0,
    "position": "Bottom",
    "title": "Footer",
-   "ui_tour": 0
-  },
-  {
-   "description": "The small icon browsers show on a tab and in bookmarks. The icons used when a member installs the site to their phone are shipped with the app, not taken from here.",
-   "fieldname": "favicon",
-   "fieldtype": "Attach",
-   "has_next_condition": 0,
-   "hide_buttons": 0,
-   "is_table_field": 0,
-   "label": "FavIcon",
-   "modal_trigger": 0,
-   "next_on_click": 0,
-   "next_step_condition": "",
-   "offset_x": 0,
-   "offset_y": 0,
-   "popover_element": 0,
-   "position": "Bottom",
-   "title": "FavIcon",
    "ui_tour": 0
   }
  ],

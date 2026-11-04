@@ -8,4 +8,4 @@
   <li><strong>Caregiver:</strong> {{ frappe.db.get_value("Person", doc.caregiver, "full_name") if doc.caregiver else "Nobody yet" }}</li>
 </ul>
 
-<p>Please follow up, then update the request: <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">{{ doc.name }}</a></p>
+<p>Please follow up, then update the request for <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">{{ frappe.db.get_value("Person", doc.person, "full_name") or doc.person }}</a>.</p>

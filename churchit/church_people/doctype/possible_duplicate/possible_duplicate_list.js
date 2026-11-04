@@ -2,8 +2,6 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.listview_settings["Possible Duplicate"] = {
-	get_indicator(doc) {
-		const colors = { Open: "orange", Merged: "green", "Not a Duplicate": "gray" };
-		return [__(doc.status), colors[doc.status], `status,=,${doc.status}`];
-	},
+	hide_name_column: true,
+	hide_name_filter: true,
 };

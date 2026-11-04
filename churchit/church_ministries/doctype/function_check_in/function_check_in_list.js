@@ -1,4 +1,23 @@
+// This source code is freely given for the sake of the gospel (Matthew 10:8)
+// and is licensed under MIT No Attribution (MIT-0).
+
 frappe.listview_settings["Function Check-In"] = {
+	hide_name_column: true,
+	hide_name_filter: true,
+	add_fields: ["security_code", "collected_at"],
+	// A pickup code means a child who leaves only through Verify Pickup.
+	get_indicator(doc) {
+		if (doc.security_code && doc.collected_at)
+			return [__("Picked Up"), "green", "security_code,is,set|collected_at,is,set"];
+		if (doc.security_code)
+			return [
+				__("Awaiting Pickup"),
+				"orange",
+				"security_code,is,set|collected_at,is,not set",
+			];
+		if (doc.collected_at)
+			return [__("Checked Out"), "gray", "security_code,is,not set|collected_at,is,set"];
+	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Check-In Station"), () => frappe.set_route("check-in"));
 		listview.page.add_action_item(__("Print Name Tags"), () => {
@@ -6,14 +25,5 @@ frappe.listview_settings["Function Check-In"] = {
 			if (!check_ins.length) return frappe.msgprint(__("Select at least one check-in."));
 			church.name_tags.print_for({ check_ins });
 		});
-		listview.page.add_inner_message(
-			`<div style="background: var(--yellow-highlight-color); padding: \
-            8px 12px; border-radius: 6px; display: inline-block;">
-                💡 Tip: Use the <a href="/app/check-in"><strong>Check-In Station</strong></a> \
-                to check people in by name or phone and print name tags, or open the \
-                <a href="/app/person"><strong>Person list</strong></a>, select people and \
-                choose <i>Actions → Check In</i>.
-            </div>`
-		);
 	},
 };

@@ -1,6 +1,11 @@
 {
- "charts": [],
- "content": "[{\"id\":\"RPmabcwgTz\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Missions\",\"col\":12}},{\"id\":\"T2NecsUQOb\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\",\"col\":12}},{\"id\":\"HdXD35AVEm\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionaries\",\"col\":4}},{\"id\":\"SBUFaJw-aP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Agencies\",\"col\":4}},{\"id\":\"8w-eZYsZPl\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"chMissionaryMap\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"MissionaryMap\",\"col\":12}},{\"id\":\"chMissionaryMapSpacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"YWaCShFabd\",\"type\":\"card\",\"data\":{\"card_name\":\"Missions Documents\",\"col\":4}},{\"id\":\"iUdtHBDilm\",\"type\":\"card\",\"data\":{\"card_name\":\"Missionary Reports\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Missionaries by Status",
+   "label": "Missionaries by Status"
+  }
+ ],
+ "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\", \"col\": 12}}, {\"id\": \"RPmabcwgTz\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Missions\", \"col\": 12}}, {\"id\": \"HdXD35AVEm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionaries\", \"col\": 6}}, {\"id\": \"SBUFaJw-aP\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Agencies\", \"col\": 6}}, {\"id\": \"missionariesByStatus\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Missionaries by Status\", \"col\": 12}}, {\"id\": \"8w-eZYsZPl\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chMissionaryMap\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"MissionaryMap\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.859477",
  "custom_blocks": [
   {
@@ -18,67 +23,8 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Missions",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Missionary Reports",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Missionary Letters",
-   "link_count": 0,
-   "link_to": "Missionary Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Missionary Letters Not Yet Read",
-   "link_count": 0,
-   "link_to": "Missionary Letters Not Yet Read",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Missions Documents",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Missionaries",
-   "link_count": 0,
-   "link_to": "Missionary",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Missionary Agencies",
-   "link_count": 0,
-   "link_to": "Missionary Agency",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-09 12:00:00.000000",
+ "links": [],
+ "modified": "2026-10-31 13:37:59.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",

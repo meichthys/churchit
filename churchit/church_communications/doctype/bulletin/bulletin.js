@@ -49,7 +49,11 @@ function fill_defaults(frm, { sections }) {
 			}
 			if (!frm.doc.function) return;
 			frm.clear_table("prayer_requests");
-			defaults.prayer_requests.forEach((row) => frm.add_child("prayer_requests", row));
+			defaults.prayer_requests.forEach((row) => {
+				// The grid shows the request by its title, which a new row has not loaded yet.
+				frappe.utils.add_link_title("Prayer Request", row.prayer_request, row.title);
+				frm.add_child("prayer_requests", row);
+			});
 			frm.refresh_field("prayer_requests");
 		});
 }

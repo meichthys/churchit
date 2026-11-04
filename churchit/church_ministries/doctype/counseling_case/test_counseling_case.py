@@ -9,6 +9,8 @@ from frappe.api.v1 import update_doc
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 CASE = "Counseling Case"
+# Frappe skips Version rows while it runs tests, unless a save asks for them.
+SAVE_WITH_HISTORY = {"ignore_permissions": True, "ignore_version": False}
 
 
 class TestCounselingCaseChurches(RollbackEachTest):
@@ -42,3 +44,14 @@ class TestCounselingCaseChurches(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			update_doc(CASE, theirs)
 		self.assertEqual(frappe.db.get_value(CASE, theirs, "church"), self.branch_b)
+
+
+class TestCounselingCaseHistory(RollbackEachTest):
+	def test_a_case_keeps_no_history_of_its_notes(self):
+		"""A counselor who deletes a session note expects it gone, so no Version row keeps a copy."""
+		person = make_person("_Test Counseling", "History").name
+		case = frappe.new_doc(CASE, person=person).insert(ignore_permissions=True)
+		case.summary = "Weekly meetings"
+		case.save(**SAVE_WITH_HISTORY)
+
+		self.assertFalse(frappe.db.exists("Version", {"ref_doctype": CASE, "docname": case.name}))

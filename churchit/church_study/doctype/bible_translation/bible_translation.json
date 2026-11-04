@@ -29,7 +29,6 @@
    "description": "A short name such as BSB or ESV. It names the translation throughout the app.",
    "fieldname": "abbreviation",
    "fieldtype": "Data",
-   "in_standard_filter": 1,
    "label": "Abbreviation",
    "reqd": 1,
    "unique": 1
@@ -38,13 +37,15 @@
    "fieldname": "translation",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Translation",
    "reqd": 1
   },
   {
    "fieldname": "language",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Language"
   },
   {
@@ -65,10 +66,12 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Text Source",
    "options": "Free Use Bible API\nUser Import",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.source==\"Free Use Bible API\"",
@@ -83,6 +86,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Status",
    "options": "No Text\nDownloading\nReady\nFailed",
@@ -105,7 +109,8 @@
    "fieldtype": "Attach",
    "label": "Text File",
    "mandatory_depends_on": "eval:doc.source==\"User Import\"",
-   "read_only_depends_on": "eval:doc.source==\"Free Use Bible API\""
+   "read_only_depends_on": "eval:doc.source==\"Free Use Bible API\"",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "column_break_text",
@@ -127,7 +132,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-09-30 01:00:00.000000",
+ "modified": "2026-11-02 23:03:36.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Translation",
@@ -176,9 +181,27 @@
  ],
  "row_format": "Dynamic",
  "search_fields": "translation",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
  "sort_field": "translation",
  "sort_order": "ASC",
- "states": [],
+ "states": [
+  {
+   "color": "Gray",
+   "title": "No Text"
+  },
+  {
+   "color": "Blue",
+   "title": "Downloading"
+  },
+  {
+   "color": "Green",
+   "title": "Ready"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ],
  "title_field": "translation"
 }

@@ -1,6 +1,24 @@
+---
+no_cache: 1
+---
 {% extends "templates/web.html" %}
 
+{% block header %}
+{% if doctype %}
+    <h3 class="my-account-header">{{ title or _("{0} List").format(_(doctype)) }}</h3>
+{% endif %}
+{% endblock %}
+
 {% block page_content %}
+{% if doctype %}
+    {% if introduction %}
+        <p>{{ introduction }}</p>
+    {% endif %}
+    {% include list_template %}
+    {% if list_footer %}
+        {{ list_footer }}
+    {% endif %}
+{% else %}
 <div class="portal-home">
     <h1>{{ _("Member Portal") }}</h1>
     {% if frappe.session.user == "Guest" %}
@@ -23,4 +41,5 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
 {% endblock %}

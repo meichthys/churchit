@@ -11,22 +11,22 @@
   "section_break_fgnk",
   "title",
   "church",
-  "task_type",
   "status",
-  "due_date",
   "priority",
+  "due_date",
   "column_break_yrnx",
-  "is_group",
+  "task_type",
   "parent_task",
+  "is_group",
   "section_break_work_order",
   "requester",
   "column_break_work_order",
   "asset",
   "room",
-  "section_break_kwag",
-  "task_items",
   "section_break_ysry",
   "notes",
+  "section_break_kwag",
+  "task_items",
   "hidden_fields_section",
   "old_parent",
   "lft",
@@ -56,11 +56,9 @@
   {
    "allow_in_quick_entry": 1,
    "default": "0",
-   "description": "Checking this box allows you to add 'generic' sub-tasks and link them to this task. For items that already exist in the system, use the 'Task Items' table below.",
+   "description": "Tick to let other tasks name this one as their Parent Task.",
    "fieldname": "is_group",
    "fieldtype": "Check",
-   "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Is Group"
   },
   {
@@ -74,7 +72,6 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "in_preview": 1,
    "label": "Title",
    "reqd": 1
   },
@@ -92,6 +89,7 @@
    "fieldname": "task_type",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Task\nWork Order"
@@ -110,6 +108,8 @@
    "default": "Medium",
    "fieldname": "priority",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Priority",
    "options": "Low\nMedium\nHigh\nUrgent"
@@ -126,9 +126,8 @@
    "allow_in_quick_entry": 1,
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "in_list_view": 1,
-   "in_preview": 1,
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "20rem"
   },
   {
    "fieldname": "hidden_fields_section",
@@ -143,7 +142,6 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Parent Task",
    "options": "Church Task"
@@ -167,24 +165,25 @@
   {
    "fieldname": "asset",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Asset",
    "options": "Church Asset"
   },
   {
    "fieldname": "room",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Room",
    "options": "Room"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.task_items || []).length",
    "fieldname": "section_break_kwag",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Linked Records"
   },
   {
    "allow_in_quick_entry": 1,
-   "description": "For generic items that do not exist in the system, you can create a checklist in the notes section below or create sub-tasks by checking 'Is Group' and then creating new tasks wit hthis task selected in the new task's 'Parent Task' field. ",
+   "description": "Records this task is about, such as a Person or a Function. Tick Done as each one is finished.",
    "fieldname": "task_items",
    "fieldtype": "Table",
    "label": "Task Items",
@@ -198,7 +197,6 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Status",
    "options": "Open\nAssigned\nIn Progress\nCompleted",
    "reqd": 1
@@ -208,7 +206,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-11-03 01:33:46.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",
@@ -252,13 +250,14 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "title, notes",
+ "search_fields": "status, due_date",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "due_date",
+ "sort_order": "ASC",
  "states": [
   {
-   "color": "Red",
+   "color": "Orange",
    "title": "Open"
   },
   {
@@ -266,7 +265,7 @@
    "title": "Assigned"
   },
   {
-   "color": "Yellow",
+   "color": "Blue",
    "title": "In Progress"
   },
   {
@@ -274,5 +273,6 @@
    "title": "Completed"
   }
  ],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

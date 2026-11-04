@@ -16,15 +16,18 @@
  ],
  "fields": [
   {
+   "columns": 3,
    "description": "A Freely Given discount comes off every sign-up. With Percent 100 the function is free, and its prices still show what it costs.",
    "fieldname": "kind",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Kind",
    "options": "Code\nEarly Bird\nGroup\nFreely Given",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
+   "columns": 2,
    "depends_on": "eval:doc.kind=='Code'",
    "description": "Registrants type it. Capitals do not matter.",
    "fieldname": "code",
@@ -33,6 +36,7 @@
    "label": "Code"
   },
   {
+   "columns": 2,
    "description": "An amount off the sign-up.",
    "fieldname": "amount",
    "fieldtype": "Currency",
@@ -40,6 +44,7 @@
    "label": "Amount"
   },
   {
+   "columns": 2,
    "description": "A percent off the sign-up, when Amount is empty.",
    "fieldname": "percent",
    "fieldtype": "Percent",
@@ -47,9 +52,11 @@
    "label": "Percent"
   },
   {
+   "columns": 2,
    "description": "The last day the discount applies.",
    "fieldname": "valid_until",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Valid Until"
   },
   {
@@ -64,7 +71,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-26 00:36:10.000000",
+ "modified": "2026-10-31 13:18:10.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Sign-Up Discount",

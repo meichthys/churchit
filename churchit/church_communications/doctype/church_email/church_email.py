@@ -111,7 +111,7 @@ class ChurchEmail(Document):
 			frappe.throw(_("This message has been sent, so it can no longer be changed."))
 		self.status = before.status
 		if self.status == SCHEDULED and not self.send_after:
-			frappe.throw(_("Set Send At, or click Unschedule to keep this message as a draft."))
+			frappe.throw(_("Set Send At, or choose Actions, Unschedule to keep this message as a draft."))
 
 	@property
 	def is_text_message(self) -> bool:

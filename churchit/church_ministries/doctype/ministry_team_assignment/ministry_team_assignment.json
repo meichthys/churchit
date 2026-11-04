@@ -52,7 +52,6 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
@@ -92,7 +91,7 @@
    "label": "Decline Reason"
   },
   {
-   "description": "The assignment this one takes over. When this one is accepted, the other is declined.",
+   "description": "The assignment this one takes over. Accepting this one declines the other.",
    "fieldname": "replaces",
    "fieldtype": "Link",
    "label": "Replaces",
@@ -100,15 +99,15 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_emails",
    "fieldtype": "Section Break",
    "label": "Emails"
   },
   {
-   "description": "When the request went out by email or text. A new assignment is sent once a day, or at once with Send Requests Now on the list.",
+   "description": "When the request was sent. Requests go daily, or at once with Send Requests Now.",
    "fieldname": "requested_on",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Requested On",
    "no_copy": 1,
    "read_only": 1
@@ -163,7 +162,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-27 01:27:34.000000",
+ "modified": "2026-10-31 13:14:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Assignment",
@@ -218,9 +217,22 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Green",
+   "title": "Accepted"
+  },
+  {
+   "color": "Red",
+   "title": "Declined"
+  }
+ ],
  "title_field": "title",
  "track_changes": 1
 }

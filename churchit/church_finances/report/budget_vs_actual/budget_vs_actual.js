@@ -4,7 +4,7 @@ frappe.query_reports["Budget vs Actual"] = {
 			fieldname: "budget",
 			label: __("Budget"),
 			fieldtype: "Link",
-			options: "Budget",
+			options: "Church Budget",
 			description: __("Leave blank to use the budget covering today"),
 		},
 		{

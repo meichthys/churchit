@@ -7,6 +7,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now
 
 from churchit.church_foundations.church_access import set_user_church
+from churchit.patches.v1_0 import retitle_fund_transfers
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_two_churches
 
 
@@ -33,6 +34,23 @@ class TestFundTransfer(FrappeTestCase):
 		}
 		data.update(values)
 		return frappe.get_doc(data).insert(ignore_permissions=True)
+
+	def test_the_title_names_the_funds(self):
+		self.assertEqual(self._make_transfer().title, "_Test Transfer From to _Test Transfer To")
+
+	def test_the_patch_retitles_an_old_transfer_and_can_run_again(self):
+		transfer = self._make_transfer()
+		frappe.db.set_value(
+			"Fund Transfer", transfer.name, "title", f"{self.from_fund} to {self.to_fund} - 2026-10-17"
+		)
+
+		retitle_fund_transfers.execute()
+		retitle_fund_transfers.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Fund Transfer", transfer.name, "title"),
+			"_Test Transfer From to _Test Transfer To",
+		)
 
 	def test_same_source_and_destination_rejected(self):
 		with self.assertRaises(ValidationError):

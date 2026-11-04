@@ -15,12 +15,15 @@
   "primary_contact",
   "column_break_pmch",
   "photo",
+  "member_count",
   "members_section",
   "members",
-  "contact_information_section",
+  "home_address_section",
   "addresses",
+  "contact_information_section",
   "phones",
   "emails",
+  "legacy_section",
   "legacy_system",
   "legacy_id",
   "church_fields_tab"
@@ -31,10 +34,18 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Household details shared by the whole family; anything belonging to one person goes on that Person instead. Tick which address receives mail.",
+   "description": "Tick the address that gets mail.",
+   "fieldname": "home_address_section",
+   "fieldtype": "Section Break",
+   "label": "Home Address"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:(doc.phones || []).length || (doc.emails || []).length",
+   "description": "Shared by the whole household. A phone or email for one person goes on that Person.",
    "fieldname": "contact_information_section",
    "fieldtype": "Section Break",
-   "label": "Contact Information"
+   "label": "Household Phone and Email"
   },
   {
    "fieldname": "addresses",
@@ -55,6 +66,10 @@
    "options": "Email Address"
   },
   {
+   "fieldname": "legacy_section",
+   "fieldtype": "Section Break"
+  },
+  {
    "depends_on": "eval:doc.legacy_id",
    "description": "The system this record was imported from.",
    "fieldname": "legacy_system",
@@ -69,7 +84,8 @@
    "fieldtype": "Data",
    "label": "Imported ID",
    "read_only": 1,
-   "search_index": 1
+   "search_index": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "church_fields_tab",
@@ -80,7 +96,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "family_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Name",
    "reqd": 1
@@ -102,13 +118,23 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Primary Contact",
-   "options": "Person"
+   "options": "Person",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "photo",
    "fieldtype": "Attach Image",
    "in_preview": 1,
    "label": "Photo"
+  },
+  {
+   "fieldname": "member_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Members",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "section_break_acrr",
@@ -142,7 +168,7 @@
    "link_fieldname": "family"
   }
  ],
- "modified": "2026-10-27 08:45:50.000000",
+ "modified": "2026-10-31 01:26:12.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",
@@ -211,8 +237,8 @@
  "row_format": "Dynamic",
  "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "family_name",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "family_name",
  "track_changes": 1

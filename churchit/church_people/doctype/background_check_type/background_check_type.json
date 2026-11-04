@@ -23,7 +23,7 @@
   },
   {
    "default": "3",
-   "description": "Used to fill in the expiry date of a check when it is completed. Leave 0 if checks of this type do not expire.",
+   "description": "Sets the expiry date of a completed check. 0 means it never expires.",
    "fieldname": "valid_for_years",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -38,7 +38,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-18 10:00:00.000000",
+ "modified": "2026-10-31 13:20:48.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Background Check Type",
@@ -90,7 +90,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+ "sort_field": "type",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "type"
 }

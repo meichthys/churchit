@@ -10,34 +10,46 @@
  "documentation": "/app/manual%3A-foundations",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "church_name",
   "abbreviation",
   "legal_name",
-  "tax_id",
-  "ccli_license_number",
   "founding_date",
+  "column_break_rmsm",
   "image",
+  "publish",
   "is_group",
   "parent_church",
-  "publish",
-  "column_break_rmsm",
+  "contact_section",
   "address",
   "phone",
   "email",
+  "column_break_contact",
   "website",
   "live_stream_url",
+  "about_tab",
   "mission_statement",
+  "column_break_about",
   "church_verse",
-  "default_bible_translation",
-  "contact_only_with_consent",
   "section_break_nxne",
   "about",
+  "settings_tab",
+  "tax_id",
+  "ccli_license_number",
+  "column_break_settings",
+  "default_bible_translation",
+  "contact_only_with_consent",
   "hidden_fields_section",
   "lft",
   "rgt",
   "old_parent"
  ],
  "fields": [
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
   {
    "fieldname": "church_name",
    "fieldtype": "Data",
@@ -59,7 +71,7 @@
    "label": "Tax ID"
   },
   {
-   "description": "The church's CCLI Church Copyright License number. Song slides show it under the copyright.",
+   "description": "Song slides show it under the copyright.",
    "fieldname": "ccli_license_number",
    "fieldtype": "Data",
    "label": "CCLI License Number"
@@ -88,8 +100,15 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Parent Church",
    "options": "Church"
+  },
+  {
+   "description": "Shown on the website footer, the Contact Us page, printed letterheads and bulletins.",
+   "fieldname": "contact_section",
+   "fieldtype": "Section Break",
+   "label": "Contact"
   },
   {
    "fieldname": "address",
@@ -98,18 +117,22 @@
    "options": "Address"
   },
   {
-   "description": "Shown on the website footer, the Contact Us page, printed letterheads and bulletins.",
    "fieldname": "phone",
    "fieldtype": "Data",
+   "in_preview": 1,
    "label": "Phone",
    "options": "Phone"
   },
   {
-   "description": "Shown on the website footer, the Contact Us page, printed letterheads and bulletins.",
    "fieldname": "email",
    "fieldtype": "Data",
+   "in_preview": 1,
    "label": "Email",
    "options": "Email"
+  },
+  {
+   "fieldname": "column_break_contact",
+   "fieldtype": "Column Break"
   },
   {
    "description": "Printed on the cover of the Church Directory.",
@@ -119,25 +142,47 @@
    "options": "URL"
   },
   {
-   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube video link, a youtube.com/channel/<channel ID>/live link, or a Let's Church, PeerTube or Owncast player link plays on the page. A youtube.com/@name/live link and any other link open directly. A branch without one uses its parent church's link.",
+   "description": "An https link to this church's live stream, shown at /live on the website. A YouTube video link, a youtube.com/channel/CHANNEL_ID/live link, or a Let's Church, PeerTube or Owncast player link plays on the page. A youtube.com/@name/live link and any other link open directly. A branch without one uses its parent church's link.",
    "fieldname": "live_stream_url",
    "fieldtype": "Data",
    "label": "Live Stream Link",
-   "options": "URL"
+   "options": "URL",
+   "placeholder": "https://www.youtube.com/channel/CHANNEL_ID/live",
+   "show_description_on_click": 1
+  },
+  {
+   "fieldname": "about_tab",
+   "fieldtype": "Tab Break",
+   "label": "About"
+  },
+  {
+   "fieldname": "column_break_about",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "column_break_settings",
+   "fieldtype": "Column Break"
   },
   {
    "description": "The translation verses are printed in on bulletins and slides, and the one the Bible reader opens first. Branch churches without their own use this one.",
    "fieldname": "default_bible_translation",
    "fieldtype": "Link",
    "label": "Default Bible Translation",
-   "options": "Bible Translation"
+   "options": "Bible Translation",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "Tick this where people must agree before the church contacts them, as in the UK and the EU. When it is not ticked, the church may contact people until they ask it to stop.",
    "fieldname": "contact_only_with_consent",
    "fieldtype": "Check",
-   "label": "Contact People Only With Their Consent"
+   "label": "Contact People Only With Their Consent",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
@@ -156,7 +201,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "A short description of the church. By default, this is used on the 'About Us' webpage.",
+   "description": "A short description of the church. The About Us web page shows it.",
    "fieldname": "about",
    "fieldtype": "Text Editor",
    "label": "About"
@@ -194,6 +239,7 @@
    "description": "Short name used where the full one will not fit. No two churches may share one.",
    "fieldname": "abbreviation",
    "fieldtype": "Data",
+   "in_preview": 1,
    "label": "Abbreviation",
    "reqd": 1,
    "unique": 1
@@ -205,7 +251,7 @@
    "label": "Church Verse"
   },
   {
-   "description": "A logo or photo of the church. Can be shown in church bulletin, directory or website.",
+   "description": "A logo or photo for the bulletin, the directory and the website.",
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image"
@@ -216,7 +262,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-28 16:16:30.000000",
+ "modified": "2026-10-31 13:35:24.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",
@@ -265,9 +311,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "church_name",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "church_name",
  "track_changes": 1

@@ -4,9 +4,9 @@
  "doctype": "Form Tour",
  "first_document": 0,
  "idx": 0,
- "include_name_field": 1,
+ "include_name_field": 0,
  "is_standard": 1,
- "modified": "2026-06-27 13:00:00.000000",
+ "modified": "2026-11-02 23:23:53.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Account Setup",
@@ -15,6 +15,18 @@
  "reference_doctype": "Email Account",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created, since Frappe will pull server settings from that domain.",
+   "field": "",
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Email Address",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Email Address"
+  },
   {
    "description": "A short label for this account, e.g. <em>Office</em>, <em>Pastor Inbox</em>, or <em>Giving</em>. This is how the account will appear in lists and selectors. It doesn't need to match the email address.",
    "field": "",
@@ -28,16 +40,28 @@
    "title": "Account Name"
   },
   {
-   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created, since Frappe will pull server settings from that domain.",
+   "description": "Check this to pull messages from this mailbox into Frappe. Incoming emails appear in the <a href=\"/app/communication\">Communication</a> inbox and can be linked to records like Prayer Requests, People, and Letters. When you check it, <strong>Default Incoming</strong> appears. Tick that on the one account that gets mail addressed to no specific inbox.",
    "field": "",
-   "fieldname": "email_id",
-   "fieldtype": "Data",
+   "fieldname": "enable_incoming",
+   "fieldtype": "Check",
    "has_next_condition": 0,
    "is_table_field": 0,
-   "label": "Email Address",
+   "label": "Enable Incoming",
    "parent_field": "",
    "position": "Right",
-   "title": "Email Address"
+   "title": "Enable Incoming"
+  },
+  {
+   "description": "Check this to send mail through this account. Notifications, replies, and the \"Send\" button on Communications will use this account's SMTP credentials. When you check it, <strong>Default Outgoing</strong> appears. Tick that on the one account whose address is the From address when no account is chosen.",
+   "field": "",
+   "fieldname": "enable_outgoing",
+   "fieldtype": "Check",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Enable Outgoing",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Enable Outgoing"
   },
   {
    "description": "Select the <a href=\"/app/email-domain\">Email Domain</a> you set up earlier. The incoming/outgoing server and port settings will be inherited from it, so you don't have to enter them again.",
@@ -62,54 +86,6 @@
    "parent_field": "",
    "position": "Right",
    "title": "Password"
-  },
-  {
-   "description": "Check this to pull messages from this mailbox into Frappe. Incoming emails appear in the <a href=\"/app/communication\">Communication</a> inbox and can be linked to records like Prayer Requests, People, and Letters.",
-   "field": "",
-   "fieldname": "enable_incoming",
-   "fieldtype": "Check",
-   "has_next_condition": 0,
-   "is_table_field": 0,
-   "label": "Enable Incoming",
-   "parent_field": "",
-   "position": "Right",
-   "title": "Enable Incoming"
-  },
-  {
-   "description": "Mark this account as the <strong>default</strong> for incoming mail. Only one account should be the default. It's where messages addressed to no specific inbox get routed.",
-   "field": "",
-   "fieldname": "default_incoming",
-   "fieldtype": "Check",
-   "has_next_condition": 0,
-   "is_table_field": 0,
-   "label": "Default Incoming",
-   "parent_field": "",
-   "position": "Right",
-   "title": "Default Incoming"
-  },
-  {
-   "description": "Check this to send mail through this account. Notifications, replies, and the \"Send\" button on Communications will use this account's SMTP credentials.",
-   "field": "",
-   "fieldname": "enable_outgoing",
-   "fieldtype": "Check",
-   "has_next_condition": 0,
-   "is_table_field": 0,
-   "label": "Enable Outgoing",
-   "parent_field": "",
-   "position": "Right",
-   "title": "Enable Outgoing"
-  },
-  {
-   "description": "Mark this account as the <strong>default</strong> for outgoing mail. Only one account should be the default outgoing. It's the From address used when no specific account is chosen.",
-   "field": "",
-   "fieldname": "default_outgoing",
-   "fieldtype": "Check",
-   "has_next_condition": 0,
-   "is_table_field": 0,
-   "label": "Default Outgoing",
-   "parent_field": "",
-   "position": "Right",
-   "title": "Default Outgoing"
   }
  ],
  "title": "Set Up an Email Account"

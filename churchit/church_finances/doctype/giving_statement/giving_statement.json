@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "autoname": "GS-.#####",
  "creation": "2026-09-11 00:00:00.000000",
+ "default_print_format": "Contribution Statement",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "editable_grid": 1,
@@ -36,7 +37,6 @@
    "description": "The person this statement is addressed to.",
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
@@ -55,9 +55,10 @@
    "read_only": 1
   },
   {
-   "description": "Set when the statement covers a whole household. Every member's giving is included.",
+   "description": "Set when the statement covers a household. Every member's giving is included.",
    "fieldname": "family",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Family",
    "options": "Family"
   },
@@ -68,7 +69,6 @@
   {
    "fieldname": "from_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "From Date",
    "reqd": 1
@@ -76,7 +76,6 @@
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "To Date",
    "reqd": 1
   },
@@ -99,6 +98,7 @@
    "description": "Resolved from the person's primary email address.",
    "fieldname": "email",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Email",
    "options": "Email",
    "read_only": 1
@@ -109,7 +109,8 @@
    "fieldtype": "Datetime",
    "label": "Emailed On",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_lines",
@@ -125,7 +126,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-23 17:46:05.000000",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Statement",

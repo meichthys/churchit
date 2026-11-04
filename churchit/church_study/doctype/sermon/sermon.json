@@ -7,30 +7,34 @@
  "documentation": "/app/manual%3A-study",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "title",
   "church",
   "is_shared",
   "shared_by_church",
-  "prepared_by",
-  "series",
   "sermon_date",
-  "scripture",
-  "publish",
+  "series",
+  "prepared_by",
   "column_break_wnxx",
-  "audio_recording",
-  "media_url",
+  "scripture",
   "handout",
+  "publish",
   "section_break_zozg",
   "notes",
-  "section_break_slides",
+  "recording_section",
+  "audio_recording",
+  "column_break_recording",
+  "media_url",
+  "slides_tab",
   "slides",
-  "section_break_presentation_history",
+  "presentation_history_tab",
   "presentation_history"
  ],
  "fields": [
   {
    "fieldname": "title",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
    "label": "Title",
    "reqd": 1,
@@ -51,8 +55,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -68,12 +70,15 @@
   {
    "fieldname": "prepared_by",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Prepared By",
    "options": "Person"
   },
   {
    "fieldname": "series",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Series",
    "options": "Sermon Series"
@@ -84,19 +89,23 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Sermon Date",
-   "search_index": 1
+   "search_index": 1,
+   "show_description_on_click": 1
   },
   {
-   "description": "The passage the sermon preaches on, such as John 3:16-21. Separate several passages with a semicolon.",
+   "description": "Separate several passages with a semicolon.",
    "fieldname": "scripture",
    "fieldtype": "Data",
-   "label": "Scripture"
+   "in_list_view": 1,
+   "label": "Scripture",
+   "placeholder": "John 3:16-21"
   },
   {
    "default": "0",
    "description": "Check this to show this sermon on the public website.",
    "fieldname": "publish",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Publish"
   },
   {
@@ -109,30 +118,22 @@
    "fieldname": "media_url",
    "fieldtype": "Data",
    "label": "Video Link",
-   "options": "URL"
+   "options": "URL",
+   "show_description_on_click": 1
   },
   {
-   "description": "A fill-in-the-blank outline printed as the sermon notes insert of a Bulletin. Use the Create Handout button to start one from the notes below.",
+   "description": "A fill-in-the-blank outline printed as the sermon notes insert of a Bulletin. To start one from the notes, use Actions, Create Handout.",
    "fieldname": "handout",
    "fieldtype": "Link",
    "label": "Handout",
-   "options": "Sermon Handout"
-  },
-  {
-   "fieldname": "section_break_slides",
-   "fieldtype": "Section Break",
-   "label": "Slides"
+   "options": "Sermon Handout",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "slides",
    "fieldtype": "Table",
    "label": "Slides",
    "options": "Sermon Slide"
-  },
-  {
-   "fieldname": "section_break_presentation_history",
-   "fieldtype": "Section Break",
-   "label": "Presentation History"
   },
   {
    "fieldname": "presentation_history",
@@ -143,7 +144,8 @@
   {
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "20rem"
   },
   {
    "fieldname": "column_break_wnxx",
@@ -152,12 +154,36 @@
   {
    "fieldname": "section_break_zozg",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "recording_section",
+   "fieldtype": "Section Break",
+   "label": "Recording"
+  },
+  {
+   "fieldname": "column_break_recording",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "slides_tab",
+   "fieldtype": "Tab Break",
+   "label": "Slides"
+  },
+  {
+   "fieldname": "presentation_history_tab",
+   "fieldtype": "Tab Break",
+   "label": "Presentation History"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-11-03 01:33:46.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",
@@ -200,8 +226,9 @@
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "sermon_date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

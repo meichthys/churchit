@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 
 import frappe
+from frappe.permissions import add_permission
+from frappe.utils.global_search import rebuild_for_doctype
 
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
 	create_communication_purposes,
@@ -42,17 +44,26 @@ from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 	create_new_prayer_request_notifications,
 )
+from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
 from churchit.church_website.pages import sync_page_switches
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
 WEBSITE_THEME = "Churchit"
+CHURCH_LOGO = "/assets/churchit/media/church_logo.png"
+CHURCH_FAVICON = "/assets/churchit/icons/favicon.ico"
+CHURCH_LETTER_HEAD = "Church Letter Head"
+# ERPNext's install makes the second of these the site's default letterhead.
+ERPNEXT_LETTER_HEADS = ("Company Letterhead", "Company Letterhead - Grey")
+# The desk roles that read people.
+ADDRESS_READERS = ("Church Manager", "Church Staff", "Church People Editor")
 
 
 def execute():
 	# Default church, which must exist before lookup types that reference it.
 	_create_default_church()
 	create_default_address_template()
+	let_church_roles_read_addresses()
 	create_unsynced_records()
 	create_decided_notification()
 	create_due_notification()
@@ -87,6 +98,9 @@ def execute():
 
 	# Module access control
 	_create_module_profile()
+	# Administrator and other existing desk users open Summary after login.
+	land_desk_users_on_summary()
+	add_return_to_framework_dock()
 
 	# Custom HTML blocks
 	_create_custom_html_blocks()
@@ -97,6 +111,7 @@ def execute():
 	_setup_about_us_settings()
 	_setup_contact_us_settings()
 	_setup_website_settings()
+	set_church_brand()
 	_setup_portal_settings()
 	# One switch per shipped page; migrate keeps them in step after this.
 	sync_page_switches()
@@ -125,6 +140,10 @@ def execute():
 	create_communication_purposes()
 	create_connection_card_interests()
 	create_spiritual_gifts()
+
+	# The search bar (Ctrl+K) finds the records of the global_search_doctypes hook, which Frappe
+	# reads only in the setup wizard, and this site may have run it before churchit was installed.
+	add_to_global_search(get_searched_doctypes())
 
 	# Cleanup
 	_clean_gender_options()
@@ -191,8 +210,9 @@ def create_unsynced_records():
 			values = json.loads(source.read_text())
 			if frappe.db.exists(doctype, values["name"]):
 				continue
-			# A church that has already chosen its own default keeps it.
-			if values.get("is_default") and frappe.db.exists(doctype, {"is_default": 1}):
+			# A church that has already chosen its own default keeps it; ERPNext's choice does not count.
+			chosen = {"is_default": 1, "name": ("not in", ERPNEXT_LETTER_HEADS)}
+			if values.get("is_default") and frappe.db.exists(doctype, chosen):
 				values["is_default"] = 0
 			frappe.get_doc(values).insert(ignore_permissions=True)
 
@@ -214,6 +234,16 @@ def create_default_address_template():
 	frappe.get_doc(
 		{"doctype": "Address Template", "country": country, "is_default": 1, "template": ADDRESS_TEMPLATE}
 	).insert(ignore_permissions=True)
+
+
+def let_church_roles_read_addresses():
+	"""Let staff read every Address, so the Map of Addresses and the addresses of people show.
+
+	Frappe gives a role only the addresses it added. ERPNext adds its own Address rule the same way, so this
+	adds rules and never replaces them, and keeps a rule the site already has for the role.
+	"""
+	for role in ADDRESS_READERS:
+		add_permission("Address", role)
 
 
 def _create_default_church():
@@ -766,6 +796,42 @@ def _setup_website_settings():
 	doc.save(ignore_permissions=True)
 
 
+def set_church_brand():
+	"""Show the church's favicon, splash and logo, and no other app's email footer.
+
+	Frappe takes these from the hooks of the last app installed, so ERPNext installed after
+	Churchit would brand the church's website, login page and emails. A setting wins over every
+	hook, and one the church has already set is kept.
+	"""
+	for doctype, field, value in (
+		("Website Settings", "favicon", CHURCH_FAVICON),
+		("Website Settings", "splash_image", CHURCH_LOGO),
+		("Navbar Settings", "app_logo", CHURCH_LOGO),
+	):
+		if not frappe.db.get_single_value(doctype, field):
+			frappe.db.set_single_value(doctype, field, value)
+
+	# Frappe ships no standard footer; ERPNext's says "Sent via ERPNext". The email code reads the default.
+	frappe.db.set_single_value("System Settings", "disable_standard_email_footer", 1)
+	frappe.db.set_default("disable_standard_email_footer", 1)
+
+
+def remember_letter_head(app_name):
+	"""before_app_install: note the church's default letterhead, which ERPNext's install replaces."""
+	if app_name == "erpnext":
+		frappe.flags.church_letter_head = frappe.db.get_value("Letter Head", {"is_default": 1})
+
+
+def keep_church_letter_head(app_name):
+	"""after_app_install: make the church's letterhead the default again after ERPNext's install."""
+	chosen = frappe.flags.pop("church_letter_head", None)
+	if app_name != "erpnext" or not chosen or frappe.db.get_value("Letter Head", chosen, "is_default"):
+		return
+	letter_head = frappe.get_doc("Letter Head", chosen)
+	letter_head.is_default = 1
+	letter_head.save(ignore_permissions=True)
+
+
 def _setup_portal_settings():
 	"""Seed the member portal menu (Portal Settings) with Church defaults.
 
@@ -908,23 +974,6 @@ def _create_default_care_request_types():
 		_insert_if_missing("Care Request Type", {"type": care_type}, type=care_type)
 
 
-def _create_default_budgets():
-	"""Seed a zero-amount Budget for every existing Fund for the current year."""
-	if not frappe.db.exists("DocType", "Budget"):
-		return
-	year = frappe.utils.now_datetime().year
-	for fund in frappe.db.get_all("Fund", fields=["name"]):
-		_insert_if_missing(
-			"Budget",
-			{"fund": fund.name, "fiscal_year": year},
-			fund=fund.name,
-			fiscal_year=year,
-			budgeted_amount=0,
-			period="Annual",
-			is_active=1,
-		)
-
-
 def _create_contact_types():
 	"""Seed the Email Type / Phone Type / Address Type lookups used by the
 	emails, phones and addresses tables on Person, Family and Missionary."""
@@ -950,3 +999,35 @@ def _create_default_life_event_types():
 		"Conversion",
 	):
 		_insert_if_missing("Life Event Type", {"type": event_type}, type=event_type)
+
+
+def get_searched_doctypes() -> list[str]:
+	"""The doctypes of churchit's `global_search_doctypes` hook, in its order."""
+	return [
+		row["doctype"] for row in frappe.get_hooks("global_search_doctypes", app_name="churchit")["Default"]
+	]
+
+
+def add_to_global_search(doctypes: list[str]) -> None:
+	"""Add the *doctypes* that Global Search Settings lacks after its leading churchit rows, and index them.
+
+	Only the given doctypes are added, so a row the site took out stays out. A row whose DocType no longer
+	exists (an uninstalled app's) is dropped, as Frappe's reset drops it, because the save refuses it.
+	"""
+	searched = get_searched_doctypes()
+	settings = frappe.get_single("Global Search Settings")
+	listed = [
+		row.document_type
+		for row in settings.allowed_in_global_search
+		if frappe.db.exists("DocType", row.document_type)
+	]
+	position = next((index for index, doctype in enumerate(listed) if doctype not in searched), len(listed))
+	missing = [doctype for doctype in doctypes if doctype not in listed]
+
+	settings.allowed_in_global_search = []
+	for doctype in [*listed[:position], *missing, *listed[position:]]:
+		settings.append("allowed_in_global_search", {"document_type": doctype})
+	settings.save(ignore_permissions=True)
+
+	for doctype in doctypes:
+		rebuild_for_doctype(doctype)

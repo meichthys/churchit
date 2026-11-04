@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-06-27 14:00:00.000000",
+  "modified": "2026-10-31 13:14:57.000000",
   "modified_by": "Administrator",
   "module": "Church Ministries",
   "name": "Ministry",
@@ -53,24 +53,6 @@
       "ui_tour": 0
     },
     {
-      "description": "This ministry's repeating events. Rather than editing rows here, use the Create Recurring Function button so they are generated correctly.",
-      "fieldname": "recurring_functions",
-      "fieldtype": "Table",
-      "has_next_condition": 0,
-      "hide_buttons": 0,
-      "is_table_field": 0,
-      "label": "Recurring Gatherings",
-      "modal_trigger": 0,
-      "next_on_click": 0,
-      "next_step_condition": "",
-      "offset_x": 0,
-      "offset_y": 0,
-      "popover_element": 0,
-      "position": "Top",
-      "title": "Recurring Gatherings",
-      "ui_tour": 0
-    },
-    {
       "description": "Publish to list this ministry on the public website with its mission statement.",
       "fieldname": "publish",
       "fieldtype": "Check",
@@ -86,6 +68,24 @@
       "popover_element": 0,
       "position": "Bottom",
       "title": "Show on Website",
+      "ui_tour": 0
+    },
+    {
+      "description": "After you save the ministry, click here to make a Function that repeats, such as a weekly practice. The list above fills in by itself.",
+      "fieldname": "create_recurring_function",
+      "fieldtype": "Button",
+      "has_next_condition": 0,
+      "hide_buttons": 0,
+      "is_table_field": 0,
+      "label": "Recurring Functions",
+      "modal_trigger": 0,
+      "next_on_click": 0,
+      "next_step_condition": "",
+      "offset_x": 0,
+      "offset_y": 0,
+      "popover_element": 0,
+      "position": "Top",
+      "title": "Recurring Functions",
       "ui_tour": 0
     }
   ],

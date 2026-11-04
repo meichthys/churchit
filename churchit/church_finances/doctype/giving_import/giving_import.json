@@ -25,7 +25,8 @@
    "fieldname": "gift_id",
    "fieldtype": "Data",
    "label": "Gift ID",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "date",
@@ -63,13 +64,15 @@
    "description": "The system the giver's Person ID comes from, as on the People import. Spreadsheet when blank.",
    "fieldname": "person_system",
    "fieldtype": "Data",
-   "label": "Imported From"
+   "label": "Imported From",
+   "show_description_on_click": 1
   },
   {
    "description": "The giver's ID in that system. When no one was imported with it, the email finds the giver.",
    "fieldname": "person_id",
    "fieldtype": "Data",
-   "label": "Person ID"
+   "label": "Person ID",
+   "show_description_on_click": 1
   },
   {
    "description": "Finds the giver when the Person ID does not. Only one person may have it.",
@@ -81,7 +84,8 @@
    "description": "Gifts with the same batch and date go in one Collection. The Data Import's name when blank.",
    "fieldname": "batch",
    "fieldtype": "Data",
-   "label": "Batch"
+   "label": "Batch",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "notes",
@@ -92,7 +96,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-10-23 01:30:17.000000",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Import",

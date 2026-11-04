@@ -43,7 +43,8 @@
    "description": "Head of Household becomes the Primary Contact of the Family. Child makes a Child of the household. Head of Household, Spouse and Adult make an Adult. Unassigned or blank sets no role.",
    "fieldname": "household_role",
    "fieldtype": "Data",
-   "label": "Family Role"
+   "label": "Family Role",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "first_name",
@@ -88,7 +89,8 @@
    "fieldname": "membership",
    "fieldtype": "Link",
    "label": "Status",
-   "options": "Membership Type"
+   "options": "Membership Type",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "home_email",
@@ -134,7 +136,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-10-27 08:56:35.000000",
+ "modified": "2026-10-31 13:13:40.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Breeze Import",

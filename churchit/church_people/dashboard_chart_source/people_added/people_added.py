@@ -19,9 +19,13 @@ def get(
 	"""People added per period in the reader's churches.
 
 	Every church reads the people directory, so Frappe's own Count chart
-	totals the whole organisation for a branch.
+	totals the whole organisation for a branch. The period is the one the
+	user picked, else the chart's own.
 	"""
 	frappe.has_permission("Person", "report", throw=True)
+	if chart_name:
+		chart_doc = frappe.get_doc("Dashboard Chart", chart_name)
+		timespan, time_interval = timespan or chart_doc.timespan, time_interval or chart_doc.time_interval
 	time_interval = time_interval or "Weekly"
 	scope = church_query_filters({})
 	buckets = time_buckets(timespan or "Last Year", time_interval, from_date, to_date)

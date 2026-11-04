@@ -201,7 +201,7 @@ frappe.ui.form.on("Sermon", {
 						create_handout();
 					}
 				},
-				__("Create")
+				__("Actions")
 			);
 		}
 

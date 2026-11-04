@@ -5,7 +5,7 @@
    "label": "Attendance (12 weeks)"
   }
  ],
- "content": "[{\"id\": \"Kwawi9Etd-\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\", \"col\": 12}}, {\"id\": \"pzAjt6FN7_\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ministries\", \"col\": 3}}, {\"id\": \"e90GZyYsvo\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Functions\", \"col\": 3}}, {\"id\": \"uf01\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Upcoming Functions\", \"col\": 3}}, {\"id\": \"iYgQntDecm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Songs\", \"col\": 3}}, {\"id\": \"chkShortcut\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Check-In Station\", \"col\": 12}}, {\"id\": \"ch01\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Attendance (12 weeks)\", \"col\": 12}}, {\"id\": \"XfFcgMyu0y\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"mR7kYz3pQw\", \"type\": \"card\", \"data\": {\"card_name\": \"Ministry Documents\", \"col\": 4}}, {\"id\": \"TDh-inBJuc\", \"type\": \"card\", \"data\": {\"card_name\": \"Function Documents\", \"col\": 4}}, {\"id\": \"fnReports1\", \"type\": \"card\", \"data\": {\"card_name\": \"Function Reports\", \"col\": 4}}, {\"id\": \"mt-teams-01\", \"type\": \"card\", \"data\": {\"card_name\": \"Ministry Teams\", \"col\": 4}}, {\"id\": \"counseling_card\", \"type\": \"card\", \"data\": {\"card_name\": \"Counseling\", \"col\": 4}}, {\"id\": \"8rlNHndDdV\", \"type\": \"card\", \"data\": {\"card_name\": \"Ministry Reports\", \"col\": 4}}, {\"id\": \"Sr-qVFGTSJ\", \"type\": \"card\", \"data\": {\"card_name\": \"Song Documents\", \"col\": 4}}]",
+ "content": "[{\"id\": \"Kwawi9Etd-\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\", \"col\": 12}}, {\"id\": \"9sXlkpyEvA\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Ministries\", \"col\": 12}}, {\"id\": \"PenTeaRes\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Team Responses\", \"col\": 6}}, {\"id\": \"WaiSigUps\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Waitlisted Sign-Ups\", \"col\": 6}}, {\"id\": \"ChuCal\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Church Calendar\", \"col\": 6}}, {\"id\": \"CheInSta\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Check-In Station\", \"col\": 6}}, {\"id\": \"Min\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ministries\", \"col\": 4}}, {\"id\": \"Son\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Songs\", \"col\": 4}}, {\"id\": \"Att(12Wee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Attendance (12 weeks)\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.917550",
  "custom_blocks": [],
  "docstatus": 0,
@@ -17,354 +17,12 @@
  "indicator_color": "",
  "is_hidden": 0,
  "label": "Ministries",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministries",
-   "link_count": 0,
-   "link_to": "Ministry",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Ministries Report",
-   "link_count": 0,
-   "link_to": "Ministries",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Documents",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministries",
-   "link_count": 0,
-   "link_to": "Ministry",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Reports",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Ministries",
-   "link_count": 0,
-   "link_to": "Ministries",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Song Documents",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Songs",
-   "link_count": 0,
-   "link_to": "Song",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Song Usage",
-   "link_count": 0,
-   "link_to": "Song Usage",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Reports",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Attendance: All",
-   "link_count": 0,
-   "link_to": "Church Attendance",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Function Attendance by Type",
-   "link_count": 0,
-   "link_to": "Function Attendance by Type",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Function Attendance by Person",
-   "link_count": 0,
-   "link_to": "Function Attendance by Person",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Function Count by Type",
-   "link_count": 0,
-   "link_to": "Function Count by Type",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Function Sign-Up Items",
-   "link_count": 0,
-   "link_to": "Function Sign-Up Items",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Function Registrations",
-   "link_count": 0,
-   "link_to": "Function Registrations",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Recurring Functions",
-   "link_count": 0,
-   "link_to": "Recurring Functions",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Counseling",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Counseling Cases",
-   "link_count": 0,
-   "link_to": "Counseling Case",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Case Types",
-   "link_count": 0,
-   "link_to": "Case Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Documents",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Functions",
-   "link_count": 0,
-   "link_to": "Function",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Types",
-   "link_count": 0,
-   "link_to": "Function Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Attendance Types",
-   "link_count": 0,
-   "link_to": "Function Attendance Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Check-Ins",
-   "link_count": 0,
-   "link_to": "Function Check-In",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Check-In Settings",
-   "link_count": 0,
-   "link_to": "Check-In Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Function Sign-Ups",
-   "link_count": 0,
-   "link_to": "Function Sign-Up",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bulletins",
-   "link_count": 0,
-   "link_to": "Bulletin",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Teams",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Team Positions",
-   "link_count": 0,
-   "link_to": "Ministry Team Position",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Team Assignments",
-   "link_count": 0,
-   "link_to": "Ministry Team Assignment",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Ministry Team Blocks",
-   "link_count": 0,
-   "link_to": "Ministry Team Block",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Ministry Team Schedule",
-   "link_count": 0,
-   "link_to": "Ministry Team Schedule",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Ministry Team Grid",
-   "link_count": 0,
-   "link_to": "Ministry Team Grid",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-27 00:31:52.000000",
- "modified_by": "mary.johnson@example.com",
+ "links": [],
+ "modified": "2026-11-03 01:02:55.000000",
+ "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
  "number_cards": [
-  {
-   "label": "Functions",
-   "number_card_name": "Functions"
-  },
-  {
-   "label": "Upcoming Functions",
-   "number_card_name": "Upcoming Functions"
-  },
   {
    "label": "Ministries",
    "number_card_name": "Ministries"
@@ -394,6 +52,26 @@
  ],
  "sequence_id": 9.0,
  "shortcuts": [
+  {
+   "color": "Orange",
+   "label": "Pending Team Responses",
+   "link_to": "Pending Team Responses",
+   "report_ref_doctype": "Ministry Team Assignment",
+   "type": "Report"
+  },
+  {
+   "color": "Orange",
+   "label": "Waitlisted Sign-Ups",
+   "link_to": "Waitlisted Sign-Ups",
+   "report_ref_doctype": "Function Sign-Up",
+   "type": "Report"
+  },
+  {
+   "color": "Blue",
+   "label": "Church Calendar",
+   "type": "URL",
+   "url": "/desk/function/view/calendar"
+  },
   {
    "color": "Green",
    "label": "Check-In Station",

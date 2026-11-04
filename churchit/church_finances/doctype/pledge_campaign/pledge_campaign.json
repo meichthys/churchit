@@ -11,10 +11,10 @@
   "title",
   "church",
   "fund",
+  "goal_amount",
   "column_break_dates",
   "start_date",
-  "end_date",
-  "goal_amount"
+  "end_date"
  ],
  "fields": [
   {
@@ -38,6 +38,7 @@
    "fieldname": "fund",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Fund",
    "options": "Fund",
@@ -51,6 +52,7 @@
    "fieldname": "start_date",
    "fieldtype": "Date",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Start Date",
    "reqd": 1
   },
@@ -59,12 +61,15 @@
    "fieldname": "end_date",
    "fieldtype": "Date",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "End Date",
    "reqd": 1
   },
   {
    "fieldname": "goal_amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "Goal Amount"
   }
  ],
@@ -75,7 +80,7 @@
    "link_fieldname": "campaign"
   }
  ],
- "modified": "2026-10-23 01:11:13",
+ "modified": "2026-10-31 13:13:13.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Pledge Campaign",
@@ -121,6 +126,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
  "sort_field": "start_date",
  "sort_order": "DESC",

@@ -10,5 +10,5 @@ from churchit.church_scope import refuse_another_churches_parent
 class CareAssignment(Document):
 	def validate(self):
 		refuse_another_churches_parent(
-			self, "person", _("{0} belongs to another church, so only that church can give them a deacon.")
+			self, "person", _("{0} belongs to another church, so only that church can give them a caregiver.")
 		)

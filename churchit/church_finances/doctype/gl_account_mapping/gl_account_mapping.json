@@ -22,7 +22,8 @@
    "in_standard_filter": 1,
    "label": "Mapping For",
    "options": "Fund\nPayment Type\nExpense Type\nChurch",
-   "reqd": 1
+   "reqd": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "record",
@@ -57,7 +58,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-23 01:31:07",
+ "modified": "2026-10-31 13:16:01.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "GL Account Mapping",
@@ -104,8 +105,8 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "account",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "account",
  "track_changes": 1

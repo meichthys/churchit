@@ -14,9 +14,11 @@
   "is_shared",
   "shared_by_church",
   "location",
+  "acquisition_date",
+  "column_break_1",
   "is_bookable",
   "image",
-  "acquisition_date",
+  "section_break_notes",
   "notes"
  ],
  "fields": [
@@ -24,8 +26,8 @@
    "allow_in_quick_entry": 1,
    "fieldname": "title",
    "fieldtype": "Data",
+   "in_global_search": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Title",
    "reqd": 1
@@ -45,8 +47,6 @@
    "fieldname": "is_shared",
    "fieldtype": "Check",
    "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Shared with All Churches"
   },
   {
@@ -63,7 +63,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "image",
    "fieldtype": "Attach Image",
-   "in_preview": 1,
    "label": "Image"
   },
   {
@@ -72,7 +71,6 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Acquisition Date"
   },
   {
@@ -83,20 +81,30 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Location",
-   "options": "Location"
+   "options": "Church Location"
   },
   {
    "default": "0",
    "description": "People can book this asset in a Room Booking, with or without a room.",
    "fieldname": "is_bookable",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Bookable"
   },
   {
    "fieldname": "notes",
    "fieldtype": "Text Editor",
-   "in_preview": 1,
-   "label": "Notes"
+   "label": "Notes",
+   "max_height": "20rem"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
@@ -104,12 +112,17 @@
  "index_web_pages_for_search": 1,
  "links": [
   {
+   "group": "Bookings",
+   "link_doctype": "Room Booking",
+   "link_fieldname": "asset"
+  },
+  {
    "group": "Work Orders",
    "link_doctype": "Church Task",
    "link_fieldname": "asset"
   }
  ],
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-11-02 23:52:22.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Asset",
@@ -151,10 +164,11 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "title, notes, location",
+ "show_preview_popup": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "title",
+ "sort_order": "ASC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

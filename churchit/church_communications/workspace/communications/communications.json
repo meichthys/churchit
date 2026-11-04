@@ -1,6 +1,11 @@
 {
- "charts": [],
- "content": "[{\"id\":\"nnvMTG5Sl5\",\"type\":\"paragraph\",\"data\":{\"text\":\"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\",\"col\":12}},{\"id\":\"1ozkmhwUfX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Person Letters\",\"col\":4}},{\"id\":\"URO83YzARG\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Missionary Letters\",\"col\":4}},{\"id\":\"UoQwSv6u6X\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"commDocsCard0\",\"type\":\"card\",\"data\":{\"card_name\":\"Communications Documents\",\"col\":4}},{\"id\":\"ybuIQ-BIW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Letter Reports\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Emails Sent by Month",
+   "label": "Emails Sent by Month"
+  }
+ ],
+ "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"zs5OwikLZe\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Communications\", \"col\": 12}}, {\"id\": \"schedEmails\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Scheduled Emails\", \"col\": 6}}, {\"id\": \"lettersToShare\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Letters to Share\", \"col\": 6}}, {\"id\": \"emailsSentByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Emails Sent by Month\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.553969",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,110 +17,12 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Communications",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Communications Documents",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bulletins",
-   "link_count": 0,
-   "link_to": "Bulletin",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bulletin Settings",
-   "link_count": 0,
-   "link_to": "Bulletin Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Church Emails",
-   "link_count": 0,
-   "link_to": "Church Email",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Push Settings",
-   "link_count": 0,
-   "link_to": "Push Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Letter Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Missionary Letters",
-   "link_count": 0,
-   "link_to": "Missionary Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Person Letters",
-   "link_count": 0,
-   "link_to": "Person Letters",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Letters Not Yet Shared With Curch",
-   "link_count": 0,
-   "link_to": "Letters To Be Shared",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2026-10-27 02:45:02.000000",
+ "links": [],
+ "modified": "2026-11-03 01:02:55.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",
- "number_cards": [
-  {
-   "label": "Person Letters",
-   "number_card_name": "Person Letters"
-  },
-  {
-   "label": "Missionary Letters",
-   "number_card_name": "Missionary Letters"
-  }
- ],
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -132,7 +39,22 @@
   }
  ],
  "sequence_id": 3.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "label": "Scheduled Emails",
+   "link_to": "Scheduled Emails",
+   "report_ref_doctype": "Church Email",
+   "type": "Report"
+  },
+  {
+   "color": "Orange",
+   "label": "Letters to Share",
+   "link_to": "Letters To Be Shared",
+   "report_ref_doctype": "Person",
+   "type": "Report"
+  }
+ ],
  "standard": 1,
  "title": "Communications",
  "type": "Workspace"

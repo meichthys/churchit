@@ -1,19 +1,17 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-// Add button to goto `Collection Bank Reconciliation` report
 frappe.ui.form.on("Collection", {
 	refresh(frm) {
-		// Add 'Bank Reconciliation Report' button
-		frm.add_custom_button(__("Bank Reconciliation Report"), function () {
-			if (frm.is_new()) {
-				frappe.show_alert(__("Save the Collection first!"));
-				return;
-			}
-			frappe.set_route("query-report", "Collection Bank Reconciliation", {
-				parent_filter: frm.doc.name,
-			});
-		});
+		if (frm.is_new()) return;
+		frm.add_custom_button(
+			__("Bank Reconciliation Report"),
+			() =>
+				frappe.set_route("query-report", "Collection Bank Reconciliation", {
+					parent_filter: frm.doc.name,
+				}),
+			__("View")
+		);
 	},
 
 	// Recalculate imbalance when expected_total is changed

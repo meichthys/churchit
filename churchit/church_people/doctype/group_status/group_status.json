@@ -23,14 +23,13 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:13:19.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group Status",
@@ -73,8 +72,8 @@
  ],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "status",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "status"
 }

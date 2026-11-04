@@ -19,7 +19,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Description"
   },
   {
@@ -36,15 +35,19 @@
    "fieldname": "template_function",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
+   "in_list_view": 1,
    "label": "Template Function",
-   "options": "Function"
+   "options": "Function",
+   "show_description_on_click": 1
   },
   {
    "default": "0",
    "description": "Members may check themselves in to Functions of this type at a self check-in kiosk or with a pre check-in code.",
    "fieldname": "allow_self_check_in",
    "fieldtype": "Check",
-   "label": "Allow Self Check-In"
+   "in_list_view": 1,
+   "label": "Allow Self Check-In",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "section_break_pepr",
@@ -59,7 +62,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-10-22 21:48:34.000000",
+ "modified": "2026-10-31 13:18:57.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",
@@ -103,8 +106,8 @@
  "quick_entry": 1,
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "type",
+ "sort_order": "ASC",
  "states": [],
  "title_field": "type"
 }

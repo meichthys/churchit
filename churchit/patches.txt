@@ -3,6 +3,7 @@
 [pre_model_sync]
 churchit.patches.v1_0.number_repeated_bible_translation_abbreviations
 churchit.patches.v1_0.set_prayer_request_visibility
+churchit.patches.v1_0.rename_records_that_clash_with_erpnext
 
 
 # Patches added in this section will be executed after doctypes are migrated
@@ -117,3 +118,22 @@ churchit.patches.v1_0.add_benevolence_note_category
 churchit.patches.v1_0.add_church_task_due_notification
 churchit.patches.v1_0.add_prayer_request_approved_notification
 churchit.patches.v1_0.hide_sermons_on_the_home_page
+churchit.patches.v1_0.land_administrator_on_summary
+churchit.patches.v1_0.set_church_brand
+churchit.patches.v1_0.show_address_fields_for_erpnext
+churchit.patches.v1_0.relabel_visitation_follow_ups_card
+churchit.patches.v1_0.order_the_dock_by_weekly_use
+churchit.patches.v1_0.set_person_primary_email_and_phone
+churchit.patches.v1_0.fill_family_member_counts
+churchit.patches.v1_0.clear_saved_sort_and_filters_of_people_and_shared_lists
+churchit.patches.v1_0.add_churchit_to_global_search
+churchit.patches.v1_0.let_church_roles_read_addresses
+churchit.patches.v1_0.open_the_person_list_on_active_people
+churchit.patches.v1_0.forget_team_and_duplicate_history_of_anonymized_people
+churchit.patches.v1_0.retitle_collections
+churchit.patches.v1_0.retitle_fund_transfers
+churchit.patches.v1_0.retitle_alms_requests
+churchit.patches.v1_0.retitle_prayers
+churchit.patches.v1_0.set_weekly_metrics_titles
+churchit.patches.v1_0.clear_saved_sort_and_filters_of_module_lists
+churchit.patches.v1_0.forget_milestones_of_deleted_people

@@ -21,7 +21,7 @@
    "label": "Enabled"
   },
   {
-   "description": "A mailto: address that push services can write to about this site, such as mailto:office@example.org.",
+   "description": "An address push services can write to, such as mailto:office@example.org.",
    "fieldname": "vapid_subject",
    "fieldtype": "Data",
    "label": "Contact Address"
@@ -48,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-27 01:49:09.000000",
+ "modified": "2026-10-31 13:27:06.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Push Settings",

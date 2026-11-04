@@ -104,7 +104,26 @@ docker compose logs -f migrate            # watch upgrades / migrations
 ```
 
 **To Update, run: `docker compose pull && docker compose up -d`.**
-Upgrades add any newly-added dependencies, with no need for manual frappe `bench` commands.
+Upgrades need no manual frappe `bench` commands.
+
+## Optional apps
+
+The image has optional apps that the site does not get by default. To install one, add its name to `EXTRA_APPS` in `~/churchit/.env` and run `docker compose up -d`. Separate two or more names with spaces.
+
+| App | Use |
+|---|---|
+| `payments` | Online giving on the Give page, sign-up payments and form payments. |
+
+For example, to turn on online payments:
+
+```bash
+cd ~/churchit
+nano .env                       # set EXTRA_APPS=payments (add the line if .env has none)
+docker compose up -d
+docker compose logs -f migrate  # shows "Installing optional app: payments"
+```
+
+Then set up a payment gateway as the Finances manual tells (Online giving). Removing an app from `EXTRA_APPS` does not uninstall it.
 
 ## Making Churchit reachable from the internet
 
@@ -209,5 +228,5 @@ To also remove the downloaded docker images, you can run `docker image prune -a`
 | `setup.sh` | One-command installer for Linux, macOS, and Windows (via WSL). |
 | `docker-compose.yml` | The full docker stack: app, workers, MariaDB, Redis, Caddy. |
 | `Caddyfile` | Reverse proxy + automatic HTTPS. |
-| `.env.example` | Settings template (domain, passwords, image tag). |
-| `apps.json` | App list baked into the image (churchit and its dependencies). |
+| `.env.example` | Settings template (domain, passwords, image tag, optional apps). |
+| `apps.json` | App list baked into the image (churchit and the optional apps). |

@@ -22,12 +22,13 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
+   "in_preview": 1,
    "label": "Description"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-17 21:00:00.000000",
+ "modified": "2026-11-02 23:06:13.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communication Purpose",
@@ -77,7 +78,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "show_preview_popup": 1,
+ "sort_field": "purpose",
+ "sort_order": "ASC",
  "states": []
 }

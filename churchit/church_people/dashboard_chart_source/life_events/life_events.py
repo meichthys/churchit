@@ -23,13 +23,19 @@ def get(
 	"""Count of one Life Event type per period, limited to people the user may see.
 
 	The event type comes from the chart's own filters, so one source serves
-	the baptism and membership charts alike.
+	the baptism and membership charts alike. The period is the one the user
+	picked, else the chart's own.
 	"""
 	frappe.has_permission("Person", "report", throw=True)
+	if chart_name:
+		chart_doc = frappe.get_doc("Dashboard Chart", chart_name)
+		timespan, time_interval = timespan or chart_doc.timespan, time_interval or chart_doc.time_interval
+	time_interval = time_interval or "Monthly"
+
 	event_type = event_type_filter(filters)
-	buckets = time_buckets(timespan or "Last Year", time_interval or "Monthly", from_date, to_date)
+	buckets = time_buckets(timespan or "Last Year", time_interval, from_date, to_date)
 	return {
-		"labels": [bucket_label(start, time_interval or "Monthly") for start, _ in buckets],
+		"labels": [bucket_label(start, time_interval) for start, _ in buckets],
 		"datasets": [{"name": event_type, "values": [count_events(event_type, s, e) for s, e in buckets]}],
 	}
 

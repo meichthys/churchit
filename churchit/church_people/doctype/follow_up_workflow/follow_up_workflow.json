@@ -7,6 +7,7 @@
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "workflow_name",
   "church",
   "is_active",
@@ -15,10 +16,12 @@
   "kanban_board",
   "section_break_steps",
   "steps",
+  "automation_tab",
   "section_break_triggers",
   "triggers",
   "section_break_actions",
-  "actions"
+  "actions",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -58,14 +61,14 @@
    "description": "Kept in step with the steps below whenever you save.",
    "fieldname": "kanban_board",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Board",
    "options": "Kanban Board",
    "read_only": 1
   },
   {
    "fieldname": "section_break_steps",
-   "fieldtype": "Section Break",
-   "label": "Steps"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "steps",
@@ -88,8 +91,7 @@
   },
   {
    "fieldname": "section_break_actions",
-   "fieldtype": "Section Break",
-   "label": "Actions"
+   "fieldtype": "Section Break"
   },
   {
    "description": "Each action runs once for each card and event. It is never retried.",
@@ -97,11 +99,38 @@
    "fieldtype": "Table",
    "label": "Actions",
    "options": "Follow-up Action"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "automation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Automation"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 0,
- "links": [],
- "modified": "2026-10-27 08:45:50.000000",
+ "links": [
+  {
+   "group": "Cards",
+   "link_doctype": "Follow-up Card",
+   "link_fieldname": "workflow"
+  },
+  {
+   "group": "Action Runs",
+   "link_doctype": "Follow-up Action Run",
+   "link_fieldname": "workflow"
+  }
+ ],
+ "modified": "2026-10-31 13:13:30.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Workflow",
@@ -159,7 +188,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+ "sort_field": "workflow_name",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
 }

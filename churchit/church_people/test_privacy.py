@@ -70,7 +70,8 @@ class TestAnonymizePerson(RollbackEachTest):
 
 		person.reload()
 		self.assertEqual(
-			(person.first_name, person.full_name, person.last_name), (ANONYMIZED, ANONYMIZED, None)
+			(person.first_name, person.full_name, person.last_name),
+			(ANONYMIZED, f"{ANONYMIZED} Member", "Member"),
 		)
 		for fieldname in (
 			"nickname",

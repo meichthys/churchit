@@ -7,6 +7,12 @@
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
  "field_order": [
+  "person_section",
+  "person",
+  "security_code",
+  "column_break_lwzu",
+  "check_in_kind",
+  "notes",
   "function_section",
   "function",
   "church",
@@ -14,12 +20,6 @@
   "column_break_bkci",
   "start_date",
   "start_time",
-  "person_section",
-  "person",
-  "check_in_kind",
-  "column_break_lwzu",
-  "security_code",
-  "notes",
   "pickup_section",
   "collected_by",
   "collected_by_name",
@@ -49,8 +49,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "function",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Function",
    "options": "Function",
@@ -87,6 +85,7 @@
    "fetch_from": "function.start_date",
    "fieldname": "start_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Start Date",
    "read_only": 1
   },
@@ -100,15 +99,13 @@
   },
   {
    "fieldname": "person_section",
-   "fieldtype": "Section Break",
-   "label": "Person"
+   "fieldtype": "Section Break"
   },
   {
    "allow_in_quick_entry": 1,
    "fieldname": "person",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
@@ -123,7 +120,8 @@
    "in_standard_filter": 1,
    "label": "Kind",
    "options": "Regular\nGuest\nVolunteer",
-   "set_only_once": 1
+   "set_only_once": 1,
+   "show_description_on_click": 1
   },
   {
    "collapsible": 0,
@@ -192,20 +190,19 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Security Code",
-   "read_only": 1
+   "read_only": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Notes"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-23 00:21:04.000000",
+ "modified": "2026-10-31 13:18:43.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",
@@ -251,7 +248,7 @@
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "title"

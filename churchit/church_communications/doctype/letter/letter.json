@@ -8,61 +8,59 @@
  "engine": "InnoDB",
  "field_order": [
   "date",
-  "is_private",
+  "file",
   "column_break_zdbp",
+  "is_private",
   "share_with_church",
   "shared_date",
   "section_break_qmpt",
-  "file",
   "content"
  ],
  "fields": [
   {
    "allow_in_quick_entry": 1,
+   "columns": 2,
    "fieldname": "date",
    "fieldtype": "Date",
-   "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Date Received",
    "reqd": 1
   },
   {
-   "default": "0",
-   "description": "Check this to prevent the letter from being displayed publicly (i.e. on the website).",
-   "fieldname": "is_private",
-   "fieldtype": "Check",
-   "in_filter": 1,
+   "allow_in_quick_entry": 1,
+   "columns": 3,
+   "fieldname": "file",
+   "fieldtype": "Attach",
    "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
-   "label": "Is Private?"
+   "label": "File"
   },
   {
    "fieldname": "column_break_zdbp",
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
+   "default": "0",
+   "description": "Keep this letter in the office. Do not read it to the church or publish it.",
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Private"
+  },
+  {
    "allow_in_quick_entry": 1,
+   "columns": 1,
    "default": "0",
    "description": "If this letter should be shared with the church.",
    "fieldname": "share_with_church",
    "fieldtype": "Check",
-   "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
-   "label": "Share With Church?"
+   "label": "Share With Church"
   },
   {
    "description": "The date the letter was shared to the church.",
    "fieldname": "shared_date",
    "fieldtype": "Date",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
    "label": "Shared Date"
   },
   {
@@ -71,21 +69,9 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "fieldname": "file",
-   "fieldtype": "Attach",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
-   "label": "File"
-  },
-  {
-   "allow_in_quick_entry": 1,
    "description": "Content of letter (if not sent as a file)",
    "fieldname": "content",
    "fieldtype": "Text Editor",
-   "in_list_view": 1,
-   "in_preview": 1,
    "label": "Content"
   }
  ],
@@ -93,14 +79,14 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-13 23:58:34.793584",
+ "modified": "2026-10-31 01:51:05.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Letter",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "sort_field": "idx",
+ "sort_order": "ASC",
  "states": []
 }

@@ -3,7 +3,8 @@
 
 """Payments for any record with a church, through the payments app's gateways.
 
-A payable doctype gets its checkout URL from `get_payment_url`. The gateway calls back the record's
+The payments app is optional: `is_payments_on` tells whether this site has it. A payable doctype
+gets its checkout URL from `get_payment_url`. The gateway calls back the record's
 ``on_payment_authorized(status)``, which locks its row, records the payment once when `is_charge_confirmed`,
 and else calls `notify_finance`. The checkout takes the amount from the browser, so only the gateway's
 Integration Request proves what the payer paid.
@@ -23,6 +24,11 @@ from churchit.church_communications.scoped_notification import drop_out_of_scope
 PAYMENT_RECORDERS = ("Church Finance", "Church Manager")
 
 
+def is_payments_on() -> bool:
+	"""True when the payments app is installed on this site, which online payments need."""
+	return "payments" in frappe.get_installed_apps()
+
+
 def get_payment_url(
 	reference: Document,
 	amount: float,
@@ -36,9 +42,10 @@ def get_payment_url(
 	redirect_to: str | None = None,
 ) -> str:
 	"""The checkout URL of *payment_gateway* when *church* offers it, else of its default gateway."""
+	# get_gateway refuses first on a site without the payments app, so the import below never fails.
+	gateway = frappe.get_cached_doc("Giving Settings").get_gateway(church, payment_gateway)
 	from payments.utils import get_payment_gateway_controller
 
-	gateway = frappe.get_cached_doc("Giving Settings").get_gateway(church, payment_gateway)
 	controller = get_payment_gateway_controller(gateway.payment_gateway)
 	if hasattr(controller, "validate_transaction_currency"):
 		controller.validate_transaction_currency(currency)

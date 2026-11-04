@@ -28,8 +28,6 @@
   {
    "fieldname": "person",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
    "reqd": 1
@@ -77,11 +75,12 @@
    "reqd": 1
   },
   {
-   "description": "The screening service that ran the check (e.g. Protect My Ministry, Checkr, a state portal).",
+   "description": "The screening service that ran the check.",
    "fieldname": "provider",
    "fieldtype": "Data",
    "in_standard_filter": 1,
-   "label": "Provider"
+   "label": "Provider",
+   "placeholder": "Checkr"
   },
   {
    "description": "The provider's report or order number, so the result can be found on their site.",
@@ -136,7 +135,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-28 13:00:00",
+ "modified": "2026-10-31 13:19:10.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Background Check",
@@ -185,7 +184,28 @@
  "show_title_field_in_link": 1,
  "sort_field": "requested_on",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Requested"
+  },
+  {
+   "color": "Blue",
+   "title": "Pending"
+  },
+  {
+   "color": "Green",
+   "title": "Cleared"
+  },
+  {
+   "color": "Red",
+   "title": "Not Cleared"
+  },
+  {
+   "color": "Gray",
+   "title": "Expired"
+  }
+ ],
  "title_field": "person_name",
  "track_changes": 1
 }

@@ -8,25 +8,25 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "start",
+  "end",
   "item_type",
   "item",
   "song_key",
   "arrangement",
   "displayed",
   "printed",
-  "start",
-  "end",
   "description",
   "is_header",
   "notes"
  ],
  "fields": [
   {
+   "columns": 3,
    "fieldname": "start",
    "fieldtype": "Datetime",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Start"
   },
@@ -34,48 +34,47 @@
    "fieldname": "end",
    "fieldtype": "Datetime",
    "in_filter": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "End"
   },
   {
+   "columns": 3,
    "fieldname": "description",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "in_preview": 1,
-   "label": "Description",
-   "width": "2"
+   "label": "Description"
   },
   {
    "default": "0",
    "description": "Show this row as a heading that starts a part of the service, such as Worship or Response.",
    "fieldname": "is_header",
    "fieldtype": "Check",
-   "label": "Header"
+   "label": "Header",
+   "show_description_on_click": 1
   },
   {
    "description": "Only the team sees these notes, on the Ministry Team page. The bulletin never prints them.",
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "label": "Team Notes"
+   "label": "Team Notes",
+   "show_description_on_click": 1
   },
   {
+   "columns": 2,
    "fieldname": "item_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Item Type",
    "options": "DocType"
   },
   {
+   "columns": 3,
    "fieldname": "item",
    "fieldtype": "Dynamic Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Item",
    "options": "item_type"
@@ -116,7 +115,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-26 22:54:42.000000",
+ "modified": "2026-10-31 13:47:30.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Schedule",

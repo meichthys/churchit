@@ -12,7 +12,10 @@ from frappe.utils import set_request
 from frappe.website.serve import get_response
 
 from churchit.church_finances.doctype.fund.fund import get_give_link
-from churchit.church_finances.doctype.giving_settings.test_giving_settings import make_gateway
+from churchit.church_finances.doctype.giving_settings.test_giving_settings import (
+	make_gateway,
+	without_payments,
+)
 from churchit.church_finances.doctype.online_donation.test_online_donation import (
 	ensure_online_payment_type,
 	log_charge,
@@ -434,3 +437,20 @@ class TestGiveLinkInOneChurch(FrappeTestCase):
 		)
 
 		self.assertTrue(get_give_link(fund)["url"].endswith(f"/give?fund={fund}"))
+
+
+class TestGivePageWithoutPayments(RollbackEachTest):
+	"""Without the payments app the page shows the unavailable notice, not a form that cannot take a gift."""
+
+	def test_the_page_offers_no_form_and_sends_no_guest_to_log_in(self):
+		frappe.db.set_single_value("Giving Settings", {"enabled": 1, "allow_anonymous": 0})
+		frappe.local.form_dict = frappe._dict()
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		context = frappe._dict()
+		with without_payments():
+			get_context(context)
+
+		self.assertFalse(context.enabled)
+		self.assertEqual(context.gateways, [])
