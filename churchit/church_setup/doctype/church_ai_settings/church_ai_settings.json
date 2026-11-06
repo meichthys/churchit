@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "creation": "2026-11-06 00:00:00.000000",
+ "description": "Whether churchit uses AI at all. Off by default: while it is off, churchit's AI features refuse and Frappe's MCP server stays closed.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-foundations",
+ "engine": "InnoDB",
+ "field_order": [
+  "intro_html",
+  "enabled",
+  "acknowledged",
+  "column_break_stamp",
+  "acknowledged_by",
+  "acknowledged_on",
+  "exposure_section",
+  "exposure_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "intro_html",
+   "fieldtype": "HTML",
+   "label": "Where AI Sends Data"
+  },
+  {
+   "default": "0",
+   "description": "Off: churchit's AI features refuse and Frappe's MCP server stays closed.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Use AI in Churchit"
+  },
+  {
+   "default": "0",
+   "depends_on": "enabled",
+   "description": "Needed to turn AI on.",
+   "fieldname": "acknowledged",
+   "fieldtype": "Check",
+   "label": "I Understand Where AI Sends Our Data"
+  },
+  {
+   "fieldname": "column_break_stamp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Turned On By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_on",
+   "fieldtype": "Datetime",
+   "label": "Turned On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "exposure_section",
+   "fieldtype": "Section Break",
+   "label": "AI Access on This Site"
+  },
+  {
+   "fieldname": "exposure_html",
+   "fieldtype": "HTML",
+   "label": "AI Access"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-06 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Church AI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
