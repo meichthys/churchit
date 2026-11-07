@@ -41,7 +41,7 @@ SECRET_WORDS = ("prompt", "output", "completion", "response", "reply")
 
 # (function, rule) that an AI function may break, and why.
 EXEMPT = {
-	("churchit.ai.switch.get_exposure", "switch"): (
+	("churchit.ai.exposure.get_exposure", "switch"): (
 		"shows the AI switch itself, so it must work while AI is off; it asks for System Manager or "
 		"Church Manager first"
 	),

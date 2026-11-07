@@ -16,8 +16,9 @@ from urllib.parse import quote
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.ai.exposure import get_exposure
 from churchit.ai.flow_switch import GUEST_DOCTYPES, PEOPLE_DOCTYPES, is_church_doctype
-from churchit.ai.switch import SETTINGS, get_exposure, has_flow
+from churchit.ai.switch import SETTINGS, has_flow
 from churchit.tests.helpers import RollbackEachTest, ensure_user
 
 AI_OFF = "AI is turned off on this site."
@@ -370,7 +371,7 @@ class TestFlowExposure(RollbackEachTest):
 			frappe.set_user("Administrator")
 
 	def test_without_flow_the_panel_says_so(self):
-		with patch("churchit.ai.switch.has_flow", return_value=False):
+		with patch("churchit.ai.exposure.has_flow", return_value=False):
 			lines = self.lines()
 		self.assertEqual(lines["Flow"]["state"], "Not available")
 		self.assertNotIn("Flow triggers", lines)

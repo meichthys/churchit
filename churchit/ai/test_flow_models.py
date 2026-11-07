@@ -16,6 +16,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now_datetime
 
 import churchit
+from churchit.ai.exposure import get_exposure, get_flow_model_lines
 from churchit.ai.flow_models import (
 	BY_FIELD,
 	DEFAULT_LABEL,
@@ -27,7 +28,7 @@ from churchit.ai.flow_models import (
 	stamp_privacy_label,
 )
 from churchit.ai.flow_switch import GUEST_DOCTYPES, PEOPLE_DOCTYPES
-from churchit.ai.switch import get_exposure, get_flow_model_lines, has_flow
+from churchit.ai.switch import has_flow
 from churchit.tests.helpers import RollbackEachTest, ensure_user
 
 MANAGER = "_test_flow_models_system_manager@example.com"
@@ -81,7 +82,7 @@ class TestLabelFieldOnlyWhereFlowIs(FrappeTestCase):
 		self.assertIn(join_names(PEOPLE_DOCTYPES, "and"), blocks["AiKnow0000001"])
 
 	def test_the_panel_lists_no_model_without_flow(self):
-		with patch("churchit.ai.switch.has_flow", return_value=False):
+		with patch("churchit.ai.exposure.has_flow", return_value=False):
 			self.assertEqual(get_flow_model_lines(is_system_manager=True), [])
 			self.assertEqual(get_flow_model_lines(is_system_manager=False), [])
 

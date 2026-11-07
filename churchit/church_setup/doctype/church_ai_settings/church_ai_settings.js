@@ -102,7 +102,7 @@ function paragraphs(texts) {
 function show_exposure(frm) {
 	const wrapper = frm.get_field("exposure_html").$wrapper;
 	frappe
-		.xcall("churchit.ai.switch.get_exposure", {}, "GET")
+		.xcall("churchit.ai.exposure.get_exposure", {}, "GET")
 		.then((lines) => wrapper.html(exposure_html(lines)));
 }
 

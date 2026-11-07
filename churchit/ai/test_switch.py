@@ -18,6 +18,7 @@ from werkzeug.exceptions import NotFound
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
+from churchit.ai.exposure import get_exposure
 from churchit.ai.switch import (
 	AI_APPS_REPORT,
 	AI_ROLES,
@@ -25,7 +26,6 @@ from churchit.ai.switch import (
 	SETTINGS,
 	close_mcp_while_ai_off,
 	extend_bootinfo,
-	get_exposure,
 	get_mcp_closed_message,
 	has_flow,
 	is_ai_on,
