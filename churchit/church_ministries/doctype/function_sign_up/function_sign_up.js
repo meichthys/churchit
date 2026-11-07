@@ -123,6 +123,7 @@ frappe.ui.form.on("Function Sign-Up Item", {
 		if (!row.item || !frm.doc.function) return;
 		frappe.call({
 			method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_item_status",
+			type: "GET",
 			args: {
 				function: frm.doc.function,
 				item: row.item,
@@ -145,6 +146,7 @@ function populate_row_totals(frm) {
 	if (!frm.doc.function || !(frm.doc.table_iprj || []).length) return;
 	frappe.call({
 		method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		type: "GET",
 		args: {
 			function: frm.doc.function,
 		},

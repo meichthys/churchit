@@ -4,7 +4,7 @@ from churchit.church_scope import church_query_filters
 from churchit.dashboard import bucket_label, time_buckets
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get(
 	chart_name: str | None = None,
 	chart: str | dict | None = None,
@@ -15,8 +15,8 @@ def get(
 	timespan: str | None = None,
 	time_interval: str | None = None,
 	**kwargs,
-):
-	"""People added per period in the reader's churches.
+) -> dict:
+	"""Dashboard chart data: the people added per period in the caller's churches. Reads only.
 
 	Every church reads the people directory, so Frappe's own Count chart
 	totals the whole organisation for a branch. The period is the one the

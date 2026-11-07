@@ -12,10 +12,11 @@
 			if ($wrapper.data("keep") === keep && $wrapper.data("remove") === remove) return;
 			$wrapper.data({ keep, remove }).empty();
 			if (!keep || !remove) return;
-			const choices = await frappe.xcall("churchit.church_people.merge.get_merge_choices", {
-				keep,
-				remove,
-			});
+			const choices = await frappe.xcall(
+				"churchit.church_people.merge.get_merge_choices",
+				{ keep, remove },
+				"GET"
+			);
 			// The user picked another person while this one loaded.
 			if ($wrapper.data("keep") !== keep || !choices.fields.length) return;
 

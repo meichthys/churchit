@@ -32,6 +32,7 @@ frappe.ui.form.on("Function", {
 					}
 					frappe.call({
 						method: "churchit.church_ministries.doctype.function.function.apply_template",
+						type: "GET",
 						args: {
 							source_name: r.message.template_function,
 							start_date: frm.doc.start_date,
@@ -156,7 +157,8 @@ function email_the_team(frm) {
 	frappe
 		.xcall(
 			"churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment.get_team_emails",
-			{ function: frm.doc.name }
+			{ function: frm.doc.name },
+			"GET"
 		)
 		.then(({ emails, without_email }) => {
 			if (without_email.length) {
@@ -324,6 +326,7 @@ function populate_signed_up_totals(frm) {
 	if (frm.is_new() || !frm.doc.name || !(frm.doc.table_cxhh || []).length) return;
 	frappe.call({
 		method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		type: "GET",
 		args: { function: frm.doc.name },
 		callback: function (r) {
 			if (!r.message) return;

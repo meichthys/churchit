@@ -138,8 +138,8 @@ def setup_wizard_complete(args):
 
 
 @frappe.whitelist(methods=["POST"])
-def create():
-	"""Whitelisted method to create sample data from the browser console.
+def create() -> None:
+	"""Create the sample people, families, funds and events. Changes data.
 
 	Usage:  frappe.call("churchit.setup.sample_data.create")
 	"""
@@ -149,8 +149,8 @@ def create():
 
 
 @frappe.whitelist(methods=["POST"])
-def delete():
-	"""Whitelisted method to remove sample data.
+def delete() -> None:
+	"""Remove the sample data, and every record that points at it. Changes data.
 
 	Usage:  frappe.call("churchit.setup.sample_data.delete")
 	"""

@@ -194,9 +194,9 @@ class Function(Document):
 		template.save(ignore_permissions=True)
 
 
-@frappe.whitelist()
-def apply_template(source_name: str, start_date: str | None = None):
-	"""The shape of a template function, to start a new one from on `start_date`.
+@frappe.whitelist(methods=["GET"])
+def apply_template(source_name: str, start_date: str | None = None) -> dict:
+	"""The fields and rows of template *source_name* for a new Function, moved to *start_date*. Reads only.
 
 	Templates are shared configuration: a branch may apply the main church's, so
 	the source is not measured against the reader's church. It does have to be a
@@ -259,9 +259,11 @@ def get_time_window(function) -> tuple[datetime, datetime]:
 	return datetime.combine(start_date, _as_time(function.start_time)), datetime.combine(end_date, end_time)
 
 
-@frappe.whitelist()
-def get_calendar_events(start: str, end: str, filters: str | None = None, order_by: str | None = None):
-	"""The Functions the reader may see from *start* to *end*, for the desk calendar.
+@frappe.whitelist(methods=["GET"])
+def get_calendar_events(
+	start: str, end: str, filters: str | None = None, order_by: str | None = None
+) -> list[dict]:
+	"""The Functions the reader may see from *start* to *end*, for the desk calendar. Reads only.
 
 	Start Date and End Date carry the start and end time, so a timed function shows at its hours. A
 	function with no start time is all day. One with no end time lasts an hour.
@@ -283,7 +285,7 @@ def get_calendar_events(start: str, end: str, filters: str | None = None, order_
 
 @frappe.whitelist(methods=["POST"])
 def move_on_calendar(args: str) -> None:
-	"""Move a Function dragged or stretched on the desk calendar to its new days and times.
+	"""Move a Function dragged or stretched on the desk calendar to its new days and times. Changes data.
 
 	*args* holds the Function's name and the new start and end in Start Date and End Date.
 	"""

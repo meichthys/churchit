@@ -131,7 +131,7 @@ def record_recent_weeks() -> None:
 
 @frappe.whitelist(methods=["POST"])
 def backfill() -> None:
-	"""Queue the 52-week attendance and giving backfill (Church Manager)."""
+	"""Queue the 52-week attendance and giving backfill of Weekly Metrics (Church or System Manager). Changes data."""
 	frappe.only_for(BACKFILL_ROLES)
 	frappe.enqueue(
 		backfill_weeks, queue="long", job_id=BACKFILL_JOB, deduplicate=True, enqueue_after_commit=True

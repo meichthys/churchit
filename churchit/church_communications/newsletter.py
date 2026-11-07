@@ -71,15 +71,16 @@ def unsubscribe_filters(email, church):
 	return {"email": email, "reference_doctype": UNSUBSCRIBE_REFERENCE, "reference_name": church}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def unsubscribe(
 	email: str, church: str, purpose: str | None = None, person: str | None = None, **signed_params
-):
-	"""The link at the foot of every Church Email: stop that church's emails, or those for one purpose.
+) -> None:
+	"""The link at the foot of every Church Email: stop that church's emails, or those for one purpose. Changes data.
 
 	A link with no purpose, or Church News, stops all of the church's emails to the address, as links
 	always have. A purpose that no longer exists does the same, so the opt-out is still kept. *person*,
-	signed into links sent since, is the person the copy went to, whatever their church.
+	signed into links sent since, is the person the copy went to, whatever their church. Only the signed
+	link works, opened with GET as a mail client opens it.
 	"""
 	if not frappe.in_test and not verify_request():
 		return

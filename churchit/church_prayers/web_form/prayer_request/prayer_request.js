@@ -38,6 +38,7 @@ frappe.ready(function () {
 		timer = setTimeout(function () {
 			frappe.call({
 				method: "churchit.church_website.api.search_church_recipient",
+				type: "GET",
 				args: { doctype: doctype, txt: term || "" },
 				callback: function (r) {
 					$dd.empty().hide();
@@ -81,6 +82,7 @@ frappe.ready(function () {
 	// Populate recipient_type with the doctypes a request may name, then handle defaults
 	frappe.call({
 		method: "churchit.church_website.api.get_recipient_doctypes",
+		type: "GET",
 		args: {},
 		callback: function (r) {
 			// CHECK: If the input doesn't exist (read-only mode), just stop here.

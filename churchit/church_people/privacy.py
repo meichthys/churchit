@@ -135,7 +135,10 @@ MANAGERS = ("Church Manager", "System Manager")
 
 @frappe.whitelist(methods=["POST"])
 def anonymize_person(person: str) -> None:
-	"""Remove *person*'s personal data, for a Church Manager or System Manager who may change them."""
+	"""Remove *person*'s personal data and its copies on other records, keeping the record. Changes data.
+
+	For a Church Manager or System Manager who may change the person. It cannot be undone.
+	"""
 	frappe.only_for(MANAGERS, message=True)
 	frappe.get_doc("Person", person).check_permission("write")
 	anonymize(person)

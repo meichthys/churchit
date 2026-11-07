@@ -53,8 +53,8 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
-def get_events(start: str | date, end: str | date, include_branches: bool | str = False):
-	"""Return published Functions that take place on any day in [start, end]; a blank end_date means one day.
+def get_events(start: str | date, end: str | date, include_branches: bool | str = False) -> list[dict]:
+	"""Published Functions that take place on any day in [start, end] as calendar events. Reads only.
 
 	*include_branches* adds the Functions of the selected church's published branches.
 	"""
@@ -91,7 +91,7 @@ def get_events(start: str | date, end: str | date, include_branches: bool | str 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
 def get_event(name: str) -> dict | None:
-	"""One published Function for a ``?event=`` link, link-only ones too, or None.
+	"""One published Function for a ``?event=`` link, link-only ones too, or None. Reads only.
 
 	A Function of an unpublished church is refused like an unpublished Function.
 	"""

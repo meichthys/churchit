@@ -18,7 +18,7 @@ import frappe
 import pythonbible
 import requests
 from frappe import _
-from frappe.utils import escape_html
+from frappe.utils import escape_html, strip_html
 from pythonbible.regular_expressions import SCRIPTURE_REFERENCE_REGULAR_EXPRESSION
 from pythonbible.roman_numeral_util import convert_all_roman_numerals_to_integers
 
@@ -191,16 +191,22 @@ def format_references(references: list) -> str:
 	return "; ".join(_format_one_reference(reference) for reference in references)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def check_reference(text: str) -> dict:
-	"""The reference as it will be saved, or why it cannot be, for checking a field as it is typed."""
+	"""The reference as it will be saved, or why it cannot be, for checking a field as it is typed. Reads only.
+
+	*problem* is the reason without markup; *problem_html* is the same with the typed text in bold, for the
+	desk. Typed text stays escaped in both, because a desk script cached from an older release shows *problem*.
+	"""
 	references, problem = read_reference(text)
-	return {"problem": problem} if problem else {"reference": format_references(references)}
+	if problem:
+		return {"problem": strip_html(problem), "problem_html": problem}
+	return {"reference": format_references(references)}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_reference_outline() -> list[dict]:
-	"""Each book's title, the names a reader may type for it, and its verse count per chapter."""
+	"""Each book's title, the names a reader may type for it, and its verse count per chapter. Reads only."""
 	return [
 		{
 			"title": book.title,
@@ -273,21 +279,25 @@ def get_verses_by_chapter(reference: str) -> dict[tuple[str, int], list[int]]:
 # Reading a translation ---------------------------------------------------------------------------
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_books(translation: str | None = None) -> list[dict]:
-	"""The books a translation holds, as [{"id": "GEN", "name": "Genesis", "chapters": 50}, …]."""
+	"""The books a translation holds, as [{"id": "GEN", "name": "Genesis", "chapters": 50}, …]. Reads only."""
 	return get_text(translation, "books")
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_chapter(book: str, chapter: int, translation: str | None = None) -> list[dict]:
-	"""One chapter as Free Use Bible API content: heading, hebrew_subtitle, line_break and verse items."""
+	"""One chapter as Free Use Bible API content: heading, hebrew_subtitle, line_break and verse items. Reads only."""
 	return get_text(translation, f"{book.upper()}.{int(chapter)}") or []
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_passage(reference: str, translation: str | None = None) -> list[dict]:
-	"""The verses of a reference, one entry per chapter it touches."""
+	"""The verses of a reference, one entry per chapter it touches. Reads only.
+
+	*reference* is text such as "John 3:16-18; Psalms 23". Without *translation*, the church's default is
+	read. Guests read only Free Use Bible API translations (see is_readable).
+	"""
 	return list(iter_passage(reference, translation))
 
 
@@ -335,13 +345,13 @@ def get_printable_passage(
 
 @frappe.whitelist(methods=["POST"])
 def get_reference_preview(text: str, church: str | None = None, translation: str | None = None) -> dict:
-	"""A reference and the start of its text, for showing when a reference field is hovered.
+	"""A reference and the start of its text, for showing when a reference field is hovered. Reads only.
 
 	The church is the record's; a reader who cannot open it gets their own church's translation.
 	"""
 	references, problem = read_reference(text)
 	if problem:
-		return {"problem": problem}
+		return {"problem": strip_html(problem)}
 	if church and not (frappe.db.exists("Church", church) and frappe.has_permission("Church", doc=church)):
 		church = None
 	return get_printable_passage(format_references(references), church, translation, PREVIEW_LENGTH)
@@ -356,9 +366,9 @@ def get_default_translation(church: str | None = None) -> str | None:
 	return inherited_value(church, "default_bible_translation") if church else None
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_readable_translations() -> list[dict]:
-	"""Translations a reader may open: the church's default first, then by title.
+	"""Translations a reader may open: the church's default first, then by title. Reads only.
 
 	A Free Use Bible API translation is always offered, downloading its text the first time
 	someone opens it if that has not happened yet (see is_readable). A User Import is offered

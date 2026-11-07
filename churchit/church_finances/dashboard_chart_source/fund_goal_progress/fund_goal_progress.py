@@ -5,15 +5,15 @@ from churchit.church_scope import scoped
 from churchit.query import Round
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get(
 	chart_name: str | None = None,
 	chart: str | dict | None = None,
 	no_cache: bool | int | None = None,
 	filters: str | list | dict | None = None,
 	**kwargs,
-):
-	"""Goal amount next to current balance for each goal-bearing fund."""
+) -> dict:
+	"""Chart source: goal amount next to current balance for each goal-bearing fund. Reads only."""
 	frappe.has_permission("Fund", "report", throw=True)
 	Fund = frappe.qb.DocType("Fund")
 	query = (

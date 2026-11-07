@@ -29,7 +29,11 @@ class BibleReader {
 		this.page.set_secondary_action(__("Previous"), () => this.step(-1));
 		this.page.set_primary_action(__("Next"), () => this.step(1));
 		this.$text = $('<div class="bible-reader-text"></div>').appendTo(this.page.main);
-		this.translations = frappe.xcall("churchit.scripture.get_readable_translations");
+		this.translations = frappe.xcall(
+			"churchit.scripture.get_readable_translations",
+			{},
+			"GET"
+		);
 		this.books = {};
 	}
 
@@ -59,16 +63,20 @@ class BibleReader {
 		this.book = books.find((option) => option.id === book) || books[0];
 		this.chapter = Math.min(Math.max(cint(chapter), 1), this.book.chapters);
 		this.set_pickers(translations, books);
-		const items = await frappe.xcall("churchit.scripture.get_chapter", {
-			translation: chosen.name,
-			book: this.book.id,
-			chapter: this.chapter,
-		});
+		const items = await frappe.xcall(
+			"churchit.scripture.get_chapter",
+			{ translation: chosen.name, book: this.book.id, chapter: this.chapter },
+			"GET"
+		);
 		if (request === this.request) this.render(items);
 	}
 
 	get_books(translation) {
-		this.books[translation] ||= frappe.xcall("churchit.scripture.get_books", { translation });
+		this.books[translation] ||= frappe.xcall(
+			"churchit.scripture.get_books",
+			{ translation },
+			"GET"
+		);
 		return this.books[translation];
 	}
 

@@ -61,10 +61,15 @@ def get_report_people(source) -> list[str]:
 	return [row["person"] for row in rows]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.validate_and_sanitize_search_inputs
-def search_smart_lists(doctype, txt, searchfield, start, page_len, filters) -> list[list[str]]:
-	"""Link search for a smart list field: the reader's Report Builder lists on Person and saved `REPORT_LISTS`."""
+def search_smart_lists(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | None
+) -> list[list[str]]:
+	"""Link search for a smart list: the caller's Report Builder lists on Person and saved Attendance Counts. Reads only.
+
+	The saved reports are those of `REPORT_LISTS`.
+	"""
 	return frappe.get_list(
 		"Report",
 		filters={"name": ("like", f"%{txt}%"), "ref_doctype": SMART_LIST[1]},

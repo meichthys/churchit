@@ -5,14 +5,15 @@ from pypika import Order
 from churchit.church_scope import scoped
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get(
 	chart_name: str | None = None,
 	chart: str | dict | None = None,
 	no_cache: bool | int | None = None,
 	filters: str | list | dict | None = None,
 	**kwargs,
-):
+) -> dict:
+	"""Chart source: submitted giving of the ten largest funds, in the reader's churches. Reads only."""
 	frappe.has_permission("Collection", "report", throw=True)
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")

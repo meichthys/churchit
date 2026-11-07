@@ -69,7 +69,10 @@ class OnlineDonation(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def record_charged_gift(self):
-		"""Record a Pending gift the gateway charged when its callback never arrived."""
+		"""Record a Pending gift the gateway charged when its callback never arrived. Sends messages.
+
+		It emails the giver a receipt, or alerts Church Finance when the charge does not match the gift.
+		"""
 		self.reload()
 		self.check_permission("write")
 		if self.status != "Pending":

@@ -106,9 +106,12 @@ def get_grade_problem(bounds, person) -> str | None:
 	return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_bound_problems(function: str, persons: str | list[str]) -> dict[str, dict]:
-	"""{person: {full_name, problem}} for the *persons* outside *function*'s bounds, so the station asks first."""
+	"""{person: {full_name, problem}} for each of *persons* outside *function*'s age or grade bounds. Reads only.
+
+	The Check-In Station asks before it checks them in.
+	"""
 	from churchit.church_ministries.doctype.function_check_in.function_check_in import (
 		is_shared_function,  # function_check_in imports this module
 	)
@@ -152,9 +155,9 @@ def get_capacity_warning(function: str) -> str | None:
 	return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_rooms(function: str) -> list[str]:
-	"""The rooms of *function*'s Approved Room Bookings, which the station shows above its roster."""
+	"""The rooms of *function*'s Approved Room Bookings, which the station shows above its roster. Reads only."""
 	frappe.has_permission("Function", doc=function, throw=True)
 	# church-scope: Church Check-In has no Room Booking permission, and a Function's bookings follow it
 	rooms = frappe.get_all("Room Booking", filters={"function": function, "status": "Approved"}, pluck="room")

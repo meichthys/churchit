@@ -101,9 +101,9 @@ def refuse_changes_beyond(doc, allowed: set[str]) -> None:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=20, seconds=60 * 60)
 def add_household_child(first_name: str, last_name: str, birthday: str, gender: str) -> str:
-	"""/household: an Adult of a household adds a child under People Settings' adult age to it.
+	"""Add a child under People Settings' adult age to the caller's own household, for an Adult of it. Changes data.
 
-	The child is a Visitor of the household's church who shares nothing in the directory. The people
+	The /household page calls it. The child is a Visitor of the household's church who shares nothing in the directory. The people
 	they may be are left to staff as possible duplicates. Returns the new Person.
 	"""
 	from churchit.church_people.accounts import PORTAL  # accounts imports this module

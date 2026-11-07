@@ -32,9 +32,9 @@ def _session_person():
 	return session_person()
 
 
-@frappe.whitelist()
-def joinable_public_groups():
-	"""Return the public, portal-visible groups open to join that the current user isn't already a member of.
+@frappe.whitelist(methods=["GET", "POST"])
+def joinable_public_groups() -> list[dict]:
+	"""The public portal groups of the caller's church that they are not in and may join or ask to join. Reads only.
 
 	`requires_approval` marks a group whose leaders decide, and `requested` one the user already asked to join.
 	"""
@@ -67,8 +67,8 @@ def joinable_public_groups():
 
 
 @frappe.whitelist(methods=["POST"])
-def join_group(group: str | None, message: str | None = None):
-	"""Add the current session user's linked Person to a public group, or ask its leaders to.
+def join_group(group: str | None, message: str | None = None) -> dict:
+	"""Add the caller's own Person to a public portal group, or email its leaders a request to join. Sends messages.
 
 	The group must be public, shown in the portal and open (`Group.is_enrollment_open`); the user must
 	already have a linked Person record. A group that requires approval gets a Group Join Request, and
@@ -183,7 +183,7 @@ def get_open_join_requests(groups: list[str]) -> dict[str, list[dict]]:
 
 @frappe.whitelist(methods=["POST"])
 def decide_join_request(request: str, approve: bool | str) -> dict:
-	"""Approve or deny a Requested join request, for a leader of its group or a user who may edit the group.
+	"""Approve or deny a Group Join Request and email the person, for a leader or editor of its group. Sends messages.
 
 	Approval adds the person to the group. Either way the person gets one email, when the site can send one.
 	"""
@@ -226,10 +226,10 @@ def decide_join_request(request: str, approve: bool | str) -> dict:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=10, seconds=60 * 60)
 def message_group(group: str, subject: str, message: str, channel: str = EMAIL) -> int:
-	"""Leader page: send *message* to the living members of a group the session user leads.
+	"""Email or text *message* to the living members of a group the caller leads, and count who got it. Sends messages.
 
-	Each message gets its own send key, the Comment's name, so the same words sent twice both go out.
-	Returns the number of people it reached.
+	The /group-leader page calls it. Each message gets its own send key, the Comment's name, so the same
+	words sent twice both go out.
 	"""
 	leader = require_leader(group)
 	if not (subject or "").strip() or not (message or "").strip():

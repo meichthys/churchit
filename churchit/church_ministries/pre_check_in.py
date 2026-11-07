@@ -41,9 +41,13 @@ def get_functions() -> list[dict]:
 	return get_open_functions(church)
 
 
-@frappe.whitelist(methods=["POST"])
+@frappe.whitelist(methods=["GET"])
 def get_pre_check_in_code(function: str, persons: str | list[str]) -> dict:
-	"""A QR code that checks *persons* in to *function* when scanned, until the Function ends."""
+	"""A QR code that checks *persons* in to *function* when scanned, until the Function ends. Reads only.
+
+	For people the caller may edit, at a Function of their church open for self check-in. The code is
+	signed, so nothing is stored.
+	"""
 	persons = frappe.parse_json(persons)
 	if not persons or not isinstance(persons, list) or not all(isinstance(person, str) for person in persons):
 		frappe.throw(_("Choose who to check in."))
@@ -96,7 +100,11 @@ def redeem(function: str, persons: list[str]) -> tuple[list[str], list[str]]:
 
 @frappe.whitelist(methods=["POST"])
 def check_in(payload: str, print_tags: bool = False) -> dict:
-	"""Check in the people of a pre check-in code scanned at the station, and print the new check-ins' tags."""
+	"""Check in the people of a pre check-in code scanned at the station, and print their tags. Sends messages.
+
+	Only the new check-ins' tags print, and only with *print_tags*. A Network Printer station prints them
+	from the server.
+	"""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	function, persons = read_payload(payload)
 	frappe.has_permission("Function", doc=function, throw=True)

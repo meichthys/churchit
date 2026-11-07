@@ -133,12 +133,13 @@ class ChurchEmail(Document):
 
 	@frappe.whitelist()
 	def get_recipient_count(self) -> int:
+		"""How many people the saved message goes to. Reads only."""
 		self.load_saved("read")
 		return len(self.get_recipients())
 
 	@frappe.whitelist()
 	def get_preview(self, person: str | None = None) -> dict:
-		"""How *person*, or else the first person it goes to, gets this message, and how many people get it."""
+		"""How *person*, or else the first person it goes to, gets this message, and how many people get it. Reads only."""
 		self.load_saved("read")
 		recipients = self.get_recipients()
 		preview: dict = {"count": len(recipients)}
@@ -151,14 +152,20 @@ class ChurchEmail(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def send_test(self) -> str:
-		"""Send this message to the reader alone, straight away, with their own name. Returns where it went."""
+		"""Send this message to the reader alone, straight away, with their own name. Sends messages.
+
+		Returns where it went.
+		"""
 		self.load_saved("write")
 		self.require_sending_set_up()
 		return Delivery(self).send_test()
 
 	@frappe.whitelist(methods=["POST"])
 	def send(self) -> str:
-		"""Send it now, or schedule it when Send At is still ahead. Returns the new status."""
+		"""Send it now, or schedule it when Send At is still ahead. Sends messages.
+
+		Returns the new status.
+		"""
 		self.load_saved("write")
 		self.require_sending_set_up()
 		if frappe.db.get_value(self.doctype, self.name, "status", for_update=True) != DRAFT:
@@ -174,7 +181,7 @@ class ChurchEmail(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def unschedule(self):
-		"""Turn a scheduled message back into a draft, so it is not sent at Send At."""
+		"""Turn a scheduled message back into a draft, so it is not sent at Send At. Changes data."""
 		self.load_saved("write")
 		if frappe.db.get_value(self.doctype, self.name, "status", for_update=True) == SCHEDULED:
 			self.db_set("status", DRAFT)

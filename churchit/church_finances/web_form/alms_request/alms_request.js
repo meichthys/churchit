@@ -44,6 +44,7 @@ frappe.ready(function () {
 			timer = setTimeout(function () {
 				frappe.call({
 					method: "churchit.church_website.api.search_church_recipient",
+					type: "GET",
 					args: { doctype: doctype, txt: term || "" },
 					callback: function (r) {
 						$dd.empty().hide();
@@ -97,6 +98,7 @@ frappe.ready(function () {
 		if (real_name && frappe.web_form.doc.recipient_type) {
 			frappe.call({
 				method: "churchit.church_website.api.search_church_recipient",
+				type: "GET",
 				args: { doctype: frappe.web_form.doc.recipient_type, txt: real_name },
 				callback: function (r) {
 					var results = r.message || [];

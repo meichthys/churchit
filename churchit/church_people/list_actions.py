@@ -17,9 +17,12 @@ from churchit.church_people.membership import INACTIVE
 from churchit.contacts import get_primary_emails
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_people_emails(people: str | list[str]) -> frappe._dict:
-	"""The primary emails of *people*, each address once, and the names of those with none or who refuse email."""
+	"""The primary emails of *people*, each once, and the names of those with none or who refuse email. Reads only.
+
+	The caller needs the Email permission on each person.
+	"""
 	people = get_permitted("Person", people, "email")
 	allowed, refused = split_by_email_consent(people)
 	result = get_email_list("Person", allowed, get_primary_emails("Person", allowed))
@@ -27,9 +30,9 @@ def get_people_emails(people: str | list[str]) -> frappe._dict:
 	return result
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_household_emails(families: str | list[str]) -> frappe._dict:
-	"""Each household's own email, else its primary contact's, and the households with neither."""
+	"""The email of each of *families*, else of its primary contact, and the households with neither. Reads only."""
 	families = get_permitted("Family", families, "email")
 	emails = get_primary_emails("Family", families)
 	# church-scope: only the families named, each checked above
@@ -46,9 +49,9 @@ def get_household_emails(families: str | list[str]) -> frappe._dict:
 	return get_email_list("Family", families, emails)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_household_adult_emails(people: str | list[str]) -> frappe._dict:
-	"""The emails of the Adults in *people*'s households, each address once.
+	"""The emails of the Adults in *people*'s households, each address once. Reads only.
 
 	Also names the Adults with no email or who refuse email, and those of *people* whose household
 	has no Adult on file.
@@ -74,7 +77,7 @@ def get_household_adult_emails(people: str | list[str]) -> frappe._dict:
 
 @frappe.whitelist(methods=["POST"])
 def new_church_email(people: str | list[str]) -> str:
-	"""Start a draft Church Email to *people* and return its name, for the caller to write and send."""
+	"""Save a draft Church Email to *people* and return its name, for the caller to write and send. Changes data."""
 	people = get_permitted("Person", people, "email")
 	email = frappe.get_doc(
 		{
@@ -90,7 +93,10 @@ def new_church_email(people: str | list[str]) -> str:
 
 @frappe.whitelist(methods=["POST"])
 def mark_inactive(people: str | list[str], reason: str) -> frappe._dict:
-	"""Make each of *people* who is not Inactive yet Inactive for *reason*; Inactive Since is set on save."""
+	"""Make each of *people* who is not Inactive yet Inactive for *reason*, and count both. Changes data.
+
+	Inactive Since is set on save. The caller needs write on each person.
+	"""
 	if not frappe.db.exists("Inactive Reason", reason):
 		frappe.throw(_("Pick an Inactive Reason."))
 	docs = [frappe.get_doc("Person", person) for person in parse_names(people)]

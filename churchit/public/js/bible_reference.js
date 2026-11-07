@@ -15,7 +15,7 @@
 	let outline = null;
 
 	function get_outline() {
-		outline = outline || frappe.xcall("churchit.scripture.get_reference_outline");
+		outline = outline || frappe.xcall("churchit.scripture.get_reference_outline", {}, "GET");
 		return outline;
 	}
 
@@ -71,8 +71,8 @@
 		control.bible_reference_checked = text;
 		if (!text) return show_problem(control, null);
 		frappe
-			.xcall("churchit.scripture.check_reference", { text })
-			.then((result) => show_problem(control, result.problem));
+			.xcall("churchit.scripture.check_reference", { text }, "GET")
+			.then((result) => show_problem(control, result.problem_html));
 	}
 
 	function show_problem(control, problem) {

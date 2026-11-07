@@ -575,7 +575,8 @@ class Person(Document):
 			frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")
 
 	@frappe.whitelist(methods=["POST"])
-	def new_family_from_person(self):
+	def new_family_from_person(self) -> None:
+		"""Put this person in a new Family named after their household, or in that Family if it exists. Changes data."""
 		# The saved record, not the copy the browser sent, which the save below checks.
 		frappe.get_doc(self.doctype, self.name).check_permission("write")
 		# Check if a family with this person's name already exists in the person's own church
@@ -606,14 +607,18 @@ class Person(Document):
 		frappe.msgprint(f"👨‍👩‍👧‍👦 New family created: {family_link}")
 
 	@frappe.whitelist(methods=["POST"])
-	def resubscribe_to_church_emails(self):
-		"""Undo an unsubscribe for someone who asked the office, since only a portal login can do it otherwise."""
+	def resubscribe_to_church_emails(self) -> None:
+		"""Undo this person's unsubscribe from Church Emails, when they ask the office. Changes data.
+
+		Otherwise only the person's own portal login can do it.
+		"""
 		person = frappe.get_doc(self.doctype, self.name)  # the saved record, not the copy the browser sent
 		person.check_permission("write")
 		newsletter.resubscribe(person)
 
 	@frappe.whitelist(methods=["POST"])
-	def invite_to_portal(self):
+	def invite_to_portal(self) -> None:
+		"""Give this person a portal login with a welcome email, or link the login their email has. Sends messages."""
 		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
 		# Block invitation if outgoing email is not configured

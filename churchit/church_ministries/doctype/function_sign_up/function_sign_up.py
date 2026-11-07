@@ -568,8 +568,12 @@ class FunctionSignUp(Document):
 			frappe.msgprint(_("The associated attendance record has been removed."))
 
 	@frappe.whitelist(methods=["POST"])
-	def cancel_registration(self):
-		"""Cancel this sign-up and give its seats to the waitlist."""
+	def cancel_registration(self) -> None:
+		"""Cancel this sign-up and give its seats to the waitlist. Sends messages.
+
+		Each sign-up the waitlist confirms emails its registrant, and a paid sign-up tells Church Finance
+		to refund it.
+		"""
 		self.reload()
 		self.check_permission("write")
 		# The Function before the sign-up, the order every change to its seats takes the locks in.
@@ -579,8 +583,11 @@ class FunctionSignUp(Document):
 		self.cancel_sign_up()
 
 	@frappe.whitelist(methods=["POST"])
-	def approve(self):
-		"""Approve a Pending sign-up of a function whose sign-ups need approval."""
+	def approve(self) -> None:
+		"""Approve a Pending sign-up of a function whose sign-ups need approval. Sends messages.
+
+		For a Church Manager or Church People Editor. A sign-up this confirms emails its registrant.
+		"""
 		self.refuse_unless_waiting_for_approval()
 		self.approved_by = frappe.session.user
 		self.hold_seats(requires_approval=False)
@@ -588,8 +595,12 @@ class FunctionSignUp(Document):
 		self.save()
 
 	@frappe.whitelist(methods=["POST"])
-	def decline(self):
-		"""Decline a Pending sign-up and give its seats to the waitlist."""
+	def decline(self) -> None:
+		"""Decline a Pending sign-up and give its seats to the waitlist. Sends messages.
+
+		For a Church Manager or Church People Editor. Each sign-up the waitlist confirms emails its
+		registrant.
+		"""
 		self.refuse_unless_waiting_for_approval()
 		self.cancel_sign_up()
 
@@ -625,16 +636,22 @@ class FunctionSignUp(Document):
 			frappe.throw(_("This sign-up is not waiting for approval."))
 
 	@frappe.whitelist(methods=["POST"])
-	def record_offline_payment(self):
-		"""Church Finance: the registrant paid in person, so the cash goes in the weekly Collection."""
+	def record_offline_payment(self) -> None:
+		"""Record that the registrant paid in person, so the cash goes in the weekly Collection. Sends messages.
+
+		For Church Finance or a Church Manager. A sign-up this confirms emails its registrant.
+		"""
 		self.refuse_unless_payment_recorder()
 		if self.status == WAITLISTED or self.payment_status in PAYMENT_DONE or not self.amount_to_pay:
 			frappe.throw(_("This sign-up has no amount due."))
 		self.record_payment(self.amount_to_pay, get_seat_limits(self.function))
 
 	@frappe.whitelist(methods=["POST"])
-	def record_refund(self):
-		"""Church Finance: the payment was refunded at the processor."""
+	def record_refund(self) -> None:
+		"""Record that the payment was refunded at the processor. Changes data.
+
+		For Church Finance or a Church Manager.
+		"""
 		self.refuse_unless_payment_recorder()
 		if self.payment_status not in (PAID, REFUND_DUE):
 			frappe.throw(_("Only a paid sign-up can be refunded."))
@@ -701,12 +718,12 @@ class FunctionSignUp(Document):
 		)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.validate_and_sanitize_search_inputs
 def get_function_items(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | None
-):
-	"""Search query: only Sign-Up Items configured on the given Function."""
+) -> list | tuple:
+	"""Link search: the Sign-Up Items set on the Function in *filters*, as rows of [item]. Reads only."""
 	function = (filters or {}).get("function")
 	if not function:
 		return []
@@ -723,10 +740,11 @@ def get_function_items(
 	)
 
 
-@frappe.whitelist()
-def get_item_status(function: str, item: str, exclude_sign_up: str | None = None):
-	"""Return live quantity_needed (from the Function) and quantity_signed_up
-	(summed across all Function Sign-Ups for the same function/item).
+@frappe.whitelist(methods=["GET"])
+def get_item_status(function: str, item: str, exclude_sign_up: str | None = None) -> dict:
+	"""*item*'s live quantity_needed on *function* and its quantity_signed_up over the sign-ups. Reads only.
+
+	Only sign-ups that hold seats count.
 
 	Args:
 		function: Function document name.
@@ -769,11 +787,11 @@ def get_item_status(function: str, item: str, exclude_sign_up: str | None = None
 	}
 
 
-@frappe.whitelist()
-def get_function_item_totals(function: str, exclude_sign_up: str | None = None):
-	"""Return live quantity_signed_up totals for every item configured on a Function.
+@frappe.whitelist(methods=["GET"])
+def get_function_item_totals(function: str, exclude_sign_up: str | None = None) -> dict[str, dict]:
+	"""{item: {quantity_needed, quantity_signed_up}} for every Sign-Up Item set on *function*. Reads only.
 
-	Returns a dict mapping item -> {quantity_needed, quantity_signed_up}.
+	*exclude_sign_up* leaves one sign-up out of the totals, as the sign-up being edited.
 	"""
 	frappe.has_permission("Function", doc=function, throw=True)
 	return get_item_totals(function, exclude_sign_up)

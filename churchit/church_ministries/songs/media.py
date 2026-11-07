@@ -30,8 +30,8 @@ def get_media_link(assignment: str, media: frappe._dict) -> frappe._dict:
 
 
 @frappe.whitelist(methods=["GET"])
-def get_team_song_file(assignment: str, media: str):
-	"""Send the Song Media file, or redirect to its link, to the team member *assignment* belongs to."""
+def get_team_song_file(assignment: str, media: str) -> None:
+	"""The Song Media file, or a redirect to its link, for the team member *assignment* belongs to. Reads only."""
 	row = frappe.db.get_value("Song Media", media, ["parent", "parenttype", "file", "url"], as_dict=True)
 	if not row or row.parenttype != "Song" or not is_serving_with_song(assignment, row.parent):
 		frappe.throw(_("You cannot open this song file."), frappe.PermissionError)

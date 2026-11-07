@@ -91,9 +91,12 @@ def get_timeline_card(note: frappe._dict) -> dict:
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_alert_notes(person: str) -> list[dict]:
-	"""The alert notes on *person* the caller may read, pinned first, for the top of the Person form."""
+	"""The alert notes on *person* that the caller may read, pinned first. Reads only.
+
+	The top of the Person form shows them.
+	"""
 	frappe.has_permission("Person", doc=person, throw=True)
 	if not frappe.has_permission("Person Note"):
 		return []
@@ -105,10 +108,12 @@ def get_alert_notes(person: str) -> list[dict]:
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.validate_and_sanitize_search_inputs
-def search_categories_to_add(doctype, txt, searchfield, start, page_len, filters) -> list[list[str]]:
-	"""Link search for a note's category: only the categories the caller may add a note in."""
+def search_categories_to_add(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | None
+) -> list[list[str]]:
+	"""Link search for a note's category: only the categories the caller may add a note in. Reads only."""
 	names = frappe.get_list(
 		"Note Category", filters={"name": ("like", f"%{txt}%")}, pluck="name", order_by="name asc"
 	)

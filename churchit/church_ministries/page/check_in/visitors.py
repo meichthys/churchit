@@ -10,11 +10,11 @@ from churchit.church_ministries.page.check_in.check_in import get_people_scope, 
 from churchit.church_people.matching import find_matches, get_clean_candidate
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def find_visitor_matches(
 	function: str | None, first_name: str | None, last_name: str | None = None, phone: str | None = None
 ) -> list[dict]:
-	"""People on file who may be the new visitor, grouped by family as a station search finds them.
+	"""People on file who may be the new visitor, grouped by family as a station search finds them. Reads only.
 
 	The matcher reads every church, so its matches pass the station's one gate, `get_people_scope`.
 	A name alone scores under the match threshold, so people with the same first and last name are

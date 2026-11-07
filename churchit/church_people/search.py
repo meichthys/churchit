@@ -29,13 +29,23 @@ SEARCHED_FIELDTYPES = (
 )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.validate_and_sanitize_search_inputs
-def search_people(doctype, txt, searchfield, start, page_len, filters, as_dict=False, reference_doctype=None):
-	"""standard_queries for Person: Frappe's own Link search, plus the people holding *txt* as a phone or email.
+def search_people(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: dict | list | None,
+	as_dict: bool = False,
+	reference_doctype: str | None = None,
+) -> list:
+	"""Person Link search: Frappe's own, plus the people holding *txt* as a phone or email. Reads only.
 
-	It reads through `frappe.get_list` like Frappe does, so the user's permissions, the field's filters and the
-	page length all apply as usual. People whose personal data was removed are left out, so no form links them.
+	hooks.py makes it the standard_queries for Person. It reads through `frappe.get_list` like Frappe does,
+	so the user's permissions, the field's filters and the page length all apply as usual. People whose
+	personal data was removed are left out, so no form links them.
 	"""
 	meta = frappe.get_meta("Person")
 	if isinstance(filters, dict):

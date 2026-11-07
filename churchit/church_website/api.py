@@ -6,9 +6,9 @@ from churchit.church_website.menu import get_route
 from churchit.church_website.published_fields import published_field_map
 
 
-@frappe.whitelist(allow_guest=False)
-def get_published_fields(doctype: str | None = None):
-	"""Where the website shows each field, as ``{doctype: {fieldname: [source, …]}}``.
+@frappe.whitelist(allow_guest=False, methods=["GET", "POST"])
+def get_published_fields(doctype: str | None = None) -> dict:
+	"""Where the website shows each field, as ``{doctype: {fieldname: [source, …]}}``. Reads only.
 
 	*doctype* narrows the answer to that doctype's fields, which is what a
 	browser still running a cached copy of the badge script asks for.
@@ -18,15 +18,15 @@ def get_published_fields(doctype: str | None = None):
 	return published.get(doctype, {}) if doctype else published
 
 
-@frappe.whitelist(allow_guest=False)
-def get_recipient_doctypes():
-	"""The doctypes a prayer or alms request may name as its recipient."""
+@frappe.whitelist(allow_guest=False, methods=["GET"])
+def get_recipient_doctypes() -> list[dict]:
+	"""The doctypes a prayer or alms request may name as its recipient. Reads only."""
 	return [{"name": doctype} for doctype in RECIPIENT_DOCTYPES]
 
 
-@frappe.whitelist(allow_guest=False)
-def get_published_web_page(url: str | None):
-	"""The published Web Page a navbar/footer link points at, or None.
+@frappe.whitelist(allow_guest=False, methods=["GET", "POST"])
+def get_published_web_page(url: str | None) -> dict | None:
+	"""The published Web Page a navbar or footer link points at, or None. Reads only.
 
 	Only site-relative links can name a Web Page; www/ pages and external links
 	have nothing to un-publish.
@@ -40,9 +40,9 @@ def get_published_web_page(url: str | None):
 	)
 
 
-@frappe.whitelist(allow_guest=False)
-def get_website_home_page():
-	"""The route a visitor lands on at the site root, for the desk's website preview.
+@frappe.whitelist(allow_guest=False, methods=["GET"])
+def get_website_home_page() -> str:
+	"""The route a visitor lands on at the site root, for the desk's website preview. Reads only.
 
 	The route is public, but Website Settings is not readable by every desk user.
 	A site without a home page sends a visitor to the login page, as Frappe does.
@@ -50,9 +50,9 @@ def get_website_home_page():
 	return frappe.db.get_single_value("Website Settings", "home_page") or "login"
 
 
-@frappe.whitelist(allow_guest=False)
-def search_church_recipient(doctype: str, txt: str | None):
-	"""Names of the records a member may pray for or ask alms for, as ``[{name, label}]``.
+@frappe.whitelist(allow_guest=False, methods=["GET"])
+def search_church_recipient(doctype: str, txt: str | None) -> list[dict]:
+	"""Names of the records a member may pray for or ask alms for, as ``[{name, label}]``. Reads only.
 
 	Runs past DocPerms on purpose: a member reads only their own Person, and a
 	name and a title are all this returns.

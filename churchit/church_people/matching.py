@@ -377,11 +377,12 @@ def is_same_phone(digits: str, other: str) -> bool:
 	return shared >= MIN_PHONE_DIGITS and digits[-shared:] == other[-shared:]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_possible_matches(candidate: dict | str) -> list[dict]:
-	"""For the warning on a new Person: people the user may read who may already be *candidate*.
+	"""People the caller may read who may already be *candidate*, a new person's details, best first. Reads only.
 
-	Only readable people are returned, and nothing about the others, not even that they exist.
+	The new Person form shows them as a warning, for a user who may create people. Only readable people are
+	returned, and nothing about the others, not even that they exist.
 	"""
 	frappe.has_permission("Person", "create", throw=True)
 	candidate = frappe.parse_json(candidate)

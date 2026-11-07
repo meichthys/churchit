@@ -17,9 +17,9 @@ VARIABLE = re.compile(r"var\((--[\w-]+)\)")
 DARK_MEDIA = re.compile(r"@media[^{]*prefers-color-scheme\s*:\s*dark[^{]*\{")
 
 
-@frappe.whitelist()
-def get_website_theme_palette(theme: str):
-	"""Return ``[{"label", "color"}, …]`` for the swatches shown beside a theme picker."""
+@frappe.whitelist(methods=["GET", "POST"])
+def get_website_theme_palette(theme: str) -> list[dict]:
+	"""The swatches shown beside a theme picker, as ``[{"label", "color"}, …]``. Reads only."""
 	frappe.has_permission("Website Settings", throw=True)
 	tokens = get_root_tokens(read_stylesheet(theme))
 	swatches = {**BRAND_TOKENS} if "--ch-brand" in tokens else {**FALLBACK_BRAND_TOKENS}

@@ -4,9 +4,9 @@
 import frappe
 
 
-@frappe.whitelist()
-def get_count():
-	"""Comments on the prayer requests the reader may see.
+@frappe.whitelist(methods=["GET", "POST"])
+def get_count() -> int:
+	"""Number card: comments on the prayer requests the reader may see. Reads only.
 
 	A Document Type card on Comment counted every church's, and threw
 	`Insufficient Permission for Comment` for a Church Manager, who has no read

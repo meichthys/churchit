@@ -6,6 +6,7 @@ import frappe
 from churchit.dashboard import count_people_in_list
 
 
-@frappe.whitelist()
-def get_count():
+@frappe.whitelist(methods=["GET", "POST"])
+def get_count() -> dict:
+	"""Number card: the people on the Inactivity Candidates smart list in the caller's churches. Reads only."""
 	return count_people_in_list("Inactivity Candidates")

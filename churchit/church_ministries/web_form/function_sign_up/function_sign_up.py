@@ -64,9 +64,12 @@ def get_context(context):
 			break
 
 
-@frappe.whitelist()
-def get_user_context():
-	"""Return person and role info for the current user."""
+@frappe.whitelist(methods=["GET"])
+def get_user_context() -> dict | None:
+	"""The signed-in user's Person, and whether they may sign up someone else, for the form. Reads only.
+
+	None for a guest.
+	"""
 	if frappe.session.user == "Guest":
 		return None
 
@@ -77,9 +80,9 @@ def get_user_context():
 	}
 
 
-@frappe.whitelist()
-def get_function_sign_up_items(function: str):
-	"""Return the sign-up items configured on a Function, with live signed-up totals.
+@frappe.whitelist(methods=["GET"])
+def get_function_sign_up_items(function: str) -> list[dict]:
+	"""The sign-up items of *function*, with live totals, while the caller may sign up for it. Reads only.
 
 	Members hold no Function DocPerm, so the check is the one the form lists functions by.
 	"""

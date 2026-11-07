@@ -87,8 +87,8 @@ class ChurchBudget(Document):
 			)
 
 	@frappe.whitelist()
-	def get_progress(self, comparison: str | None = None):
-		"""Per-line spending against this budget as saved, optionally beside a comparison window.
+	def get_progress(self, comparison: str | None = None) -> dict:
+		"""Per-line spending against this budget as saved, optionally beside a comparison window. Reads only.
 
 		The form sends its own copy, whose church a caller can blank to total every church. Reloading
 		`self` instead would send the saved copy back over the form's unsaved edits.
@@ -138,7 +138,11 @@ class ChurchBudget(Document):
 		}
 
 	@frappe.whitelist()
-	def add_all_expense_types(self):
+	def add_all_expense_types(self) -> int:
+		"""Add a line for each expense type the form's budget lacks, and return how many. Reads only.
+
+		It changes only the copy the form sent; the user saves the form.
+		"""
 		existing = {row.expense_type for row in (self.lines or [])}
 		types = frappe.get_all("Expense Type", filters={"is_group": 0}, pluck="name")
 		added = 0
@@ -150,9 +154,9 @@ class ChurchBudget(Document):
 		return added
 
 
-@frappe.whitelist()
-def get_current_budget(filters: str | list | dict | None = None):
-	"""The budget covering today, else the most recently started one, within the church scope."""
+@frappe.whitelist(methods=["GET"])
+def get_current_budget(filters: str | list | dict | None = None) -> str | None:
+	"""The budget covering today, else the most recently started one, within the church scope. Reads only."""
 	frappe.has_permission("Church Budget", "read", throw=True)
 	today = nowdate()
 	scope = church_query_filters(filters)

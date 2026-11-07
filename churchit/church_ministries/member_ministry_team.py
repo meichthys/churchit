@@ -8,6 +8,7 @@ from frappe import _
 from frappe.query_builder.functions import Coalesce
 from frappe.rate_limiter import rate_limit
 from frappe.utils import add_days, cint, format_time, get_url, getdate, now_datetime, nowdate, sbool
+from werkzeug.wrappers import Response
 
 from churchit.church_ministries import availability
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
@@ -175,8 +176,12 @@ def answer(assignment, status: str, reason: str | None):
 
 
 @frappe.whitelist(methods=["POST"])
-def answer_own_assignment(assignment: str, status: str, reason: str | None = None):
-	"""Accept or decline one of the signed-in member's own assignments."""
+def answer_own_assignment(assignment: str, status: str, reason: str | None = None) -> None:
+	"""Accept or decline one of the signed-in member's own assignments. Sends messages.
+
+	A decline emails the ministry's team coordinator, and an answer to a replacement request emails
+	the person who asked.
+	"""
 	doc = frappe.get_doc("Ministry Team Assignment", assignment)
 	if not session_person() or doc.person != session_person():
 		frappe.throw(_("This assignment is not yours to answer."), frappe.PermissionError)
@@ -185,8 +190,11 @@ def answer_own_assignment(assignment: str, status: str, reason: str | None = Non
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=30, seconds=60 * 60)
-def answer_by_key(key: str, status: str, reason: str | None = None):
-	"""Accept or decline the assignment a request email's link points at, signed in or not."""
+def answer_by_key(key: str, status: str, reason: str | None = None) -> None:
+	"""Accept or decline the assignment a request email's link points at, signed in or not. Sends messages.
+
+	It sends the same emails as answer_own_assignment.
+	"""
 	answer(get_assignment_by_key(key), status, reason)
 
 
@@ -290,34 +298,37 @@ def send_replacement_request(request):
 
 @frappe.whitelist(methods=["GET"])
 def get_replacement_candidates(assignment: str) -> list[frappe._dict]:
-	"""Who the signed-in member can ask to take their place on one of their own assignments."""
+	"""Who the signed-in member can ask to take their place on one of their own assignments. Reads only."""
 	return get_candidates(get_own_assignment(assignment))
 
 
 @frappe.whitelist(methods=["POST"])
-def ask_for_replacement(assignment: str, replacement: str):
-	"""Ask *replacement* to take the signed-in member's place. Their place passes on when they accept."""
+def ask_for_replacement(assignment: str, replacement: str) -> None:
+	"""Ask *replacement* to take the signed-in member's place, and email them the request. Sends messages.
+
+	Their place passes on when they accept. Without an email address, the daily job sends the request.
+	"""
 	ask_replacement(get_own_assignment(assignment).name, replacement)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=30, seconds=60 * 60)
 def get_replacement_candidates_by_key(key: str) -> list[frappe._dict]:
-	"""Who the holder of a request email's link can ask to take their place."""
+	"""Who the holder of a request email's link can ask to take their place. Reads only."""
 	return get_candidates(get_assignment_by_key(key))
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=30, seconds=60 * 60)
-def ask_for_replacement_by_key(key: str, replacement: str):
-	"""Ask *replacement* to take the place a request email's link points at."""
+def ask_for_replacement_by_key(key: str, replacement: str) -> None:
+	"""Ask *replacement* to take the place a request email's link points at, and email them. Sends messages."""
 	ask_replacement(get_assignment_by_key(key).name, replacement)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
-def get_team_calendar(key: str):
-	"""The calendar feed a member's calendar link points at, for any calendar app that holds the link."""
+def get_team_calendar(key: str) -> Response:
+	"""The calendar feed a member's calendar link points at, for any calendar app that holds the link. Reads only."""
 	person = key and frappe.db.get_value("Person", {"team_calendar_key": key})
 	if not person:
 		frappe.throw(
@@ -329,8 +340,8 @@ def get_team_calendar(key: str):
 
 
 @frappe.whitelist(methods=["POST"])
-def make_own_calendar_key():
-	"""Give the signed-in member a new calendar link. Their old link stops working."""
+def make_own_calendar_key() -> None:
+	"""Give the signed-in member a new calendar link, which stops their old link. Changes data."""
 	person = session_person()
 	if not person:
 		frappe.throw(_("Your account is not linked to a member record."), frappe.PermissionError)
@@ -347,8 +358,8 @@ def add_own_block(
 	whole_household: str | int = 0,
 	repeat_frequency: str | None = None,
 	repeat_until: str | None = None,
-):
-	"""Block the signed-in member from serving from *from_date* to *to_date*, once or repeating."""
+) -> None:
+	"""Block the signed-in member from serving from *from_date* to *to_date*, once or repeating. Changes data."""
 	person = session_person()
 	if not person:
 		frappe.throw(_("Your account is not linked to a member record."), frappe.PermissionError)
@@ -370,8 +381,8 @@ def add_own_block(
 
 
 @frappe.whitelist(methods=["POST"])
-def remove_own_block(block: str):
-	"""Remove one of the signed-in member's own blocks."""
+def remove_own_block(block: str) -> None:
+	"""Remove one of the signed-in member's own blocks. Changes data."""
 	person = frappe.db.get_value("Ministry Team Block", block, "person")
 	if not person or person != session_person():
 		frappe.throw(_("This block is not yours to remove."), frappe.PermissionError)
@@ -379,8 +390,8 @@ def remove_own_block(block: str):
 
 
 @frappe.whitelist(methods=["POST"])
-def set_own_frequency(position: str, max_times_per_month: str | int):
-	"""Set the most times a month the signed-in member serves in *position*. 0 means no limit."""
+def set_own_frequency(position: str, max_times_per_month: str | int) -> None:
+	"""Set the most times a month the signed-in member serves in *position*, 0 for no limit. Changes data."""
 	person = session_person()
 	if not person:
 		frappe.throw(_("Your account is not linked to a member record."), frappe.PermissionError)

@@ -113,6 +113,14 @@ a login, and `PRSN-.####` names are a counter anyone can walk.
   never checks the CSRF token on a GET, and the session cookie still travels with a GET that another
   site starts. `tests/test_http_method_hygiene.py` fails on one that takes GET; one that must take
   GET (a signed email link, a guest read API) goes in its `GET_BY_DESIGN` with the reason.
+- A function that only reads takes `methods=["GET"]`, and every caller sends GET
+  (`frappe.xcall(method, args, "GET")`, `frappe.call({type: "GET"})`). Under MCP a GET method runs
+  with read permission and a rollback. A read that a script under `public/js` calls takes
+  `["GET", "POST"]` for one release, because browsers keep that script for 12 hours. The same test
+  fails on a function that takes every verb or GET and POST without a listed reason.
+- The first docstring line of a whitelisted function ends with "Reads only.", "Changes data." or
+  "Sends messages.", every parameter has a type hint, and a read has a return annotation. MCP
+  discovery shows only that first line. `tests/test_agent_docs_hygiene.py` enforces it.
 - A **has_permission hook sees the edited document.** A save checks write on the document after the
   caller's changes, and REST `PUT` returns the saved document. When a hook decides access from a
   field the caller can change (a category, a visibility), `validate` checks the stored document from

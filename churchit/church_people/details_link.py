@@ -23,7 +23,10 @@ LINK_DAYS = 7
 
 @frappe.whitelist(methods=["POST"])
 def send_details_link(person: str) -> str:
-	"""Email *person* a link to the Update Your Details form, and return the address it went to."""
+	"""Email *person* a one-time link to check their own details, and return the address. Sends messages.
+
+	The link opens the Update Your Details form. The caller needs write on the person.
+	"""
 	doc = frappe.get_doc("Person", person)
 	doc.check_permission("write")
 	email = primary_email(doc)

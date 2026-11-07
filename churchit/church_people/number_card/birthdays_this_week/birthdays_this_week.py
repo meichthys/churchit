@@ -6,8 +6,9 @@ from churchit.church_scope import scoped
 from churchit.query import month_day_this_week
 
 
-@frappe.whitelist()
-def get_count():
+@frappe.whitelist(methods=["GET", "POST"])
+def get_count() -> int:
+	"""Number card: the living people whose birthday falls this week, in the caller's churches. Reads only."""
 	frappe.has_permission("Person", "report", throw=True)
 	Person = frappe.qb.DocType("Person")
 	query = (

@@ -47,7 +47,8 @@ frappe.ui.form.on("Missionary", {
 				"churchit.church_missions.doctype.missionary.missionary.get_country_coordinates",
 				{
 					country: frm.doc.country,
-				}
+				},
+				"GET"
 			)
 			.then(([latitude, longitude]) => {
 				if ((!latitude && !longitude) || frm.doc.geolocation) return;

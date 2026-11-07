@@ -7,13 +7,14 @@ import frappe
 from frappe.desk import notifications
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_open_count(doctype: str, name: str | int, items: str | list[str] | None = None):
-	"""Frappe's `get_open_count`, counting only the connected records the caller may read.
+def get_open_count(doctype: str, name: str | int, items: str | list[str] | None = None) -> dict:
+	"""The counts on a form's Connections, of only the connected records the caller may read. Reads only.
 
-	Frappe counts with `get_all` and skips no doctype, so anyone who could open a person learned
-	how many counseling cases, care requests or gifts point at them, in every church.
+	It replaces Frappe's `get_open_count` (override_whitelisted_methods), which the form asks with GET.
+	Frappe counts with `get_all` and skips no doctype, so anyone who could open a person learned how many
+	counseling cases, care requests or gifts point at them, in every church.
 	"""
 	links = frappe.get_meta(doctype).get_dashboard_data()
 	if items is None:

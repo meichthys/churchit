@@ -97,9 +97,9 @@ def set_balance(fund: str, balance: float, goal_amount: float):
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_give_link(fund: str) -> dict:
-	"""The /give address that chooses *fund*, and its QR code, for a printed card or an NFC tag."""
+	"""The /give address that chooses *fund*, and its QR code, for a printed card or an NFC tag. Reads only."""
 	frappe.has_permission("Fund", "read", fund, throw=True)
 	query = {"fund": fund}
 	church = frappe.db.get_value("Fund", fund, "church")

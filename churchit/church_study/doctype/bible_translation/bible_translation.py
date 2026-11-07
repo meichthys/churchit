@@ -53,7 +53,8 @@ class BibleTranslation(Document):
 		self.status = "Ready"
 
 	@frappe.whitelist(methods=["POST"])
-	def download_again(self):
+	def download_again(self) -> None:
+		"""Download a Free Use Bible API translation's text again, in a background job. Changes data."""
 		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
 		if not self.is_free_use:

@@ -14,7 +14,10 @@
 
 	function openPicker() {
 		frappe
-			.call({ method: "churchit.church_people.group_api.joinable_public_groups" })
+			.call({
+				method: "churchit.church_people.group_api.joinable_public_groups",
+				type: "GET",
+			})
 			.then((r) => {
 				const groups = (r && r.message) || [];
 				if (!groups.length) {

@@ -42,9 +42,12 @@ class Missionary(Document):
 					"auto-creating expenses."
 				)
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def add_family(self, family: str) -> list[str]:
-		"""Add the members of *family* not listed in People yet, and return them."""
+		"""Add the members of *family* not listed in People yet to the form, and return them. Reads only.
+
+		Nothing is stored: the rows go to the form's unsaved copy, and the user saves it.
+		"""
 		family_doc = frappe.get_doc("Family", family)
 		family_doc.check_permission("read")
 
@@ -57,7 +60,7 @@ class Missionary(Document):
 
 @frappe.whitelist(methods=["GET"])
 def get_map_markers() -> list[dict]:
-	"""Missionaries with a Location set, for the Missionary Map workspace block."""
+	"""Missionaries with a Location set, for the Missionary Map workspace block. Reads only."""
 	missionaries = frappe.get_list(
 		"Missionary",
 		filters={"geolocation": ["is", "set"]},
@@ -68,7 +71,7 @@ def get_map_markers() -> list[dict]:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_public_map_markers() -> dict:
-	"""Published, non-sensitive missionaries with a Location set, for the public Missions map.
+	"""Published, non-sensitive missionaries with a Location set, for the public Missions map. Reads only.
 
 	Also reports how many otherwise-mappable missionaries were hidden for being sensitive,
 	so the page can note that some locations are intentionally not shown.
@@ -86,9 +89,9 @@ def get_public_map_markers() -> dict:
 	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_country_coordinates(country: str) -> tuple[float, float]:
-	"""(latitude, longitude) of *country* for an empty map pin, or (0, 0) while address lookups are off.
+	"""(latitude, longitude) of *country* for an empty map pin, or (0, 0) with address lookups off. Reads only.
 
 	The form asks here rather than asking Nominatim itself, so the setting, the lock and the User-Agent hold.
 	"""

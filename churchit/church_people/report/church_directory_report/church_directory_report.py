@@ -165,8 +165,11 @@ def get_directory_html(
 	booklet_printing: bool = 0,
 	padding_pages: int = 0,
 	church: str | None = None,
-):
-	"""Generate the full HTML for the church directory, ready to print."""
+) -> str:
+	"""The church directory as HTML ready to print, for users who may open the report. Changes data.
+
+	It downloads the church verse's Bible text when the site does not hold it yet.
+	"""
 	refuse_readers_without_the_report()
 	filters = {"church": church, "members_only": members_only, "hide_non_active": hide_non_active}
 	group_by_family = frappe.utils.cint(group_by_family)
@@ -511,9 +514,12 @@ def get_directory_html(
 	).render(context)
 
 
-@frappe.whitelist()
-def download_directory_pdf(**options):
-	"""The directory as a PDF, rendered here because only Chromium prints page numbers and footers."""
+@frappe.whitelist(methods=["GET"])
+def download_directory_pdf(**options) -> None:
+	"""The church directory as a PDF download, logged in Access Log, for users who may open the report. Reads only.
+
+	It takes get_directory_html's options. Rendered here because only Chromium prints page numbers and footers.
+	"""
 	refuse_readers_without_the_report()
 	booklet_printing = frappe.utils.cint(options.get("booklet_printing"))
 	document = get_paginated_directory(options)

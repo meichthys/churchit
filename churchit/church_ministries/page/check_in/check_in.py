@@ -34,9 +34,9 @@ RESULT_LIMIT = 12
 CARE_FIELDS = ("medical_notes", "emergency_contact_name", "emergency_contact_phone")
 
 
-@frappe.whitelist()
-def get_station_context():
-	"""Functions around today plus the printing settings the station shows."""
+@frappe.whitelist(methods=["GET"])
+def get_station_context() -> dict:
+	"""The Functions from yesterday to a week ahead, and the printing settings the station shows. Reads only."""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	settings = frappe.get_single("Check-In Settings").for_church(default_church())
 	today = getdate()
@@ -59,9 +59,13 @@ def get_station_context():
 	}
 
 
-@frappe.whitelist()
-def search_people(query: str | None, function: str | None = None):
-	"""People matching *query* by name, nickname, family name or phone digits, grouped by family."""
+@frappe.whitelist(methods=["GET"])
+def search_people(query: str | None, function: str | None = None) -> list[dict]:
+	"""People matching *query* by name, nickname, family name or phone digits, grouped by family. Reads only.
+
+	The results carry children, allergies and, for a reader of permlevel 1, medical notes and emergency
+	contacts.
+	"""
 	frappe.has_permission("Person", throw=True)
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	query = (query or "").strip()
@@ -76,9 +80,9 @@ def search_people(query: str | None, function: str | None = None):
 	return group_by_family(matched, scope)
 
 
-@frappe.whitelist()
-def find_card_holder(person: str, function: str | None = None):
-	"""The family of the person whose member card was scanned, found by the same rules as a search."""
+@frappe.whitelist(methods=["GET"])
+def find_card_holder(person: str, function: str | None = None) -> list[dict]:
+	"""The family of the person whose member card was scanned, found by the same rules as a search. Reads only."""
 	frappe.has_permission("Person", throw=True)
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	return group_by_family([person], get_people_scope(function))
@@ -182,9 +186,12 @@ def group_by_family(matched, scope):
 	return sorted(groups.values(), key=lambda group: group["members"][0].full_name)
 
 
-@frappe.whitelist()
-def get_check_ins(function: str):
-	"""Who is checked in to *function*, and who has left, newest first, whichever church they belong to."""
+@frappe.whitelist(methods=["GET"])
+def get_check_ins(function: str) -> list[dict]:
+	"""Who is checked in to *function* and who has left, newest first, whatever their church. Reads only.
+
+	The rows carry the pickup tag codes.
+	"""
 	frappe.has_permission("Function Check-In", throw=True)
 	frappe.has_permission("Function", doc=function, throw=True)
 	# church-scope: keyed to one function the caller may read; its roster spans churches on purpose
@@ -210,9 +217,9 @@ def get_check_ins(function: str):
 	return query.run(as_dict=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_pickup_families(code: str) -> list[dict]:
-	"""The families of the people checked in today with pickup tag *code*, with who may collect them.
+	"""The families of the people checked in today with pickup tag *code*, with who may collect them. Reads only.
 
 	The check-ins the caller may read are the gate. The people they name are read whatever their church,
 	as at a shared function the station checks in people of every church. Each child carries its check-in
@@ -291,7 +298,7 @@ def get_restrictions(children: list[str]) -> list[dict]:
 def release_children(
 	code: str, check_ins: str | list[str], collector: str, override_reason: str | None = None
 ) -> list[dict]:
-	"""Record that *collector* took the children of *check_ins*, checked in today with pickup tag *code*.
+	"""Record that *collector* took the children of *check_ins*, checked in today with tag *code*. Changes data.
 
 	The families the code finds are read again here, so only someone they let collect, and only a child
 	of this code, is ever released. A Church Manager may release a child to someone a Pickup Restriction
@@ -374,8 +381,13 @@ def get_living_people(names: list[str], fields: list[str] | None = None) -> dict
 
 
 @frappe.whitelist(methods=["POST"])
-def check_in(function: str, persons: str | list[str], print_tags: bool = False, kind: str | None = None):
-	"""Check people in as *kind* and, when asked, hand their name tags to the printer path."""
+def check_in(
+	function: str, persons: str | list[str], print_tags: bool = False, kind: str | None = None
+) -> dict:
+	"""Check people in as *kind* and, when asked, hand their name tags to the printer path. Sends messages.
+
+	A Network Printer station prints the tags from the server.
+	"""
 	names = check_in_persons(function, persons, kind)
 	result = {"check_ins": names}
 	if warning := get_capacity_warning(function):
@@ -388,8 +400,11 @@ def check_in(function: str, persons: str | list[str], print_tags: bool = False, 
 
 
 @frappe.whitelist(methods=["POST"])
-def undo_check_in(name: str):
-	"""Delete a check-in made by mistake. A person who has left keeps theirs, as the record of who took them."""
+def undo_check_in(name: str) -> None:
+	"""Delete a check-in made by mistake. Changes data.
+
+	A person who has left keeps theirs, as the record of who took them.
+	"""
 	frappe.has_permission("Function Check-In", "delete", doc=name, throw=True)
 	# Lock in the check-in order before the delete; FunctionCheckIn.on_trash refuses a checked-out row.
 	lock_check_in(name)
@@ -404,8 +419,8 @@ def add_visitor(
 	family: str | None = None,
 	emergency_contact_name: str | None = None,
 	emergency_contact_phone: str | None = None,
-):
-	"""Create a Person on the spot so a first-time visitor can be checked in.
+) -> dict:
+	"""Create a Person on the spot so a first-time visitor can be checked in. Changes data.
 
 	Checking people in is the right that counts: a check-in volunteer holds no
 	Person create, which would otherwise ask them to read every Person lookup too.

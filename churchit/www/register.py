@@ -18,6 +18,7 @@ from frappe.utils import (
 	validate_email_address,
 )
 from frappe.utils.verified_command import verify_request
+from werkzeug.wrappers import Response
 
 from churchit.church_finances.payments import get_payment_url
 from churchit.church_foundations.doctype.church.church import selected_church_name
@@ -96,7 +97,9 @@ def sign_up(
 	website: str | None = None,
 	**form,
 ) -> dict:
-	"""Register for an open function from /register. *form* holds the inputs the page's includes add.
+	"""Register for an open function from /register. Changes data.
+
+	*form* holds the inputs the page's includes add.
 
 	The status, amounts and person are worked out on the server. A signed-in member signs up as their
 	own Person, and a guest's person is linked after the commit.
@@ -194,8 +197,9 @@ def get_household() -> dict[str, str]:
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
 def get_attendee_choices(function: str) -> dict:
-	"""What /register offers for the attendees of an open function: its selections, and to a signed-in member
-	the other people of their household. The page fetches it, so its HTML holds no household name.
+	"""What /register offers the attendees of an open function: its selections and a member's household. Reads only.
+
+	The page fetches it, so its HTML holds no household name.
 	"""
 	if not get_open_functions(name=function):
 		frappe.throw(_("This function is not open for registration."), frappe.PermissionError)
@@ -245,7 +249,7 @@ def get_answer_rows(function_doc: Document, form: dict, attendees: list[dict]) -
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
 def get_questions(function: str) -> list[dict]:
-	"""The questions /register asks each attendee: the fields of the open function's Question Set."""
+	"""The questions /register asks each attendee: the fields of the open function's Question Set. Reads only."""
 	if not get_open_functions(name=function):
 		frappe.throw(_("This function is not open for registration."), frappe.PermissionError)
 	question_set = frappe.db.get_value("Function", function, "question_set")
@@ -264,8 +268,8 @@ def get_calendar_link(sign_up: Document) -> dict:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
-def get_event_calendar(function: str):
-	"""The calendar file of a function /register offers, for the "Add to calendar" link of its success view."""
+def get_event_calendar(function: str) -> Response:
+	"""The calendar file of a function /register offers, for its "Add to calendar" link. Reads only."""
 	# Only what /register lists, so that nobody walks the sequential names through past and far-off functions.
 	if not get_open_functions(name=function):
 		raise frappe.DoesNotExistError(_("This function is not open for registration."))
@@ -288,7 +292,7 @@ def get_payment_link(sign_up: Document) -> dict:
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=30, seconds=60 * 60)
 def pay(sign_up: str, **signed_params) -> None:
-	"""The signed Pay now link of /register and the payment email: on to the checkout of the amount due."""
+	"""The signed Pay now link of /register and the payment email: on to the checkout. Changes data."""
 	if not verify_request():
 		return
 

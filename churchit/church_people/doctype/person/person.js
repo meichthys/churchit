@@ -98,7 +98,8 @@ function show_background_check_status(frm) {
 function show_alert_notes(frm) {
 	if (!frappe.model.can_read("Person Note")) return;
 	const person = frm.doc.name;
-	frappe.xcall("churchit.church_people.notes.get_alert_notes", { person }).then((notes) => {
+	const method = "churchit.church_people.notes.get_alert_notes";
+	frappe.xcall(method, { person }, "GET").then((notes) => {
 		if (!notes.length || frm.doc.name !== person) return;
 		const lines = notes.map((note) => {
 			const category = frappe.utils.escape_html(__(note.category));
@@ -210,7 +211,7 @@ const check_for_possible_matches = frappe.utils.debounce((frm) => {
 		return;
 	}
 	frappe
-		.xcall("churchit.church_people.matching.get_possible_matches", { candidate })
+		.xcall("churchit.church_people.matching.get_possible_matches", { candidate }, "GET")
 		.then((matches) => {
 			if (frm.is_new()) frm.set_intro(possible_matches_note(matches), "yellow");
 		});

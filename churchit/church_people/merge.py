@@ -32,13 +32,13 @@ CONTACT_VALUE_FIELDS = {child_doctype: value_field for _f, child_doctype, value_
 
 @frappe.whitelist(methods=["POST"])
 def merge_people(keep: str, remove: str, take_from_removed: str | list[str] | None = None) -> str:
-	"""Merge the person *remove* into the person *keep*, and return *keep*."""
+	"""Merge the person *remove* into the person *keep*, which deletes *remove*, and return *keep*. Changes data."""
 	return merge("Person", keep, remove, frappe.parse_json(take_from_removed))
 
 
 @frappe.whitelist(methods=["POST"])
 def merge_families(keep: str, remove: str, take_from_removed: str | list[str] | None = None) -> str:
-	"""Merge the family *remove* into the family *keep*, and return *keep*."""
+	"""Merge the family *remove* into the family *keep*, which deletes *remove*, and return *keep*. Changes data."""
 	return merge("Family", keep, remove, frappe.parse_json(take_from_removed))
 
 
@@ -87,9 +87,9 @@ def choosable_fields(doc: Document) -> list[str]:
 	]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_merge_choices(keep: str, remove: str) -> dict:
-	"""The fields where the people *keep* and *remove* both have a value and the values differ.
+	"""The fields a merge may take from *remove*: both people have a value and the values differ. Reads only.
 
 	Each field the user may choose comes with its label and each person's value as the form shows it.
 	"""

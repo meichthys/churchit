@@ -92,8 +92,11 @@ def new_security_code():
 
 
 @frappe.whitelist(methods=["POST"])
-def check_in_persons(function_name: str, persons: str | list[str], kind: str | None = None):
-	"""Check *persons* in to a function as *kind* (Regular when not given), after the permission checks."""
+def check_in_persons(function_name: str, persons: str | list[str], kind: str | None = None) -> list[str]:
+	"""Check *persons* in to *function_name* as *kind* (Regular when not given). Changes data.
+
+	Returns the check-ins in the order of *persons*.
+	"""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	# The inserts below ignore permissions, so the function and every person are checked here.
 	frappe.has_permission("Function", doc=function_name, throw=True)
@@ -179,8 +182,12 @@ def get_security_code(persons: list[str]) -> str:
 
 
 @frappe.whitelist(methods=["POST"])
-def print_name_tags(check_ins: str | list[str] | None = None, persons: str | list[str] | None = None):
-	"""Name tags for saved check-ins, or plain tags for people who are not checked in."""
+def print_name_tags(check_ins: str | list[str] | None = None, persons: str | list[str] | None = None) -> dict:
+	"""Name tags for saved check-ins, or plain tags for people not checked in, for the printer. Sends messages.
+
+	A Network Printer station prints them from the server; otherwise the browser prints the returned
+	content. The tags carry pickup codes.
+	"""
 	docs = [frappe.get_doc("Function Check-In", name) for name in frappe.parse_json(check_ins) or []]
 	for doc in docs:
 		doc.check_permission("read")

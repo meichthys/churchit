@@ -226,6 +226,7 @@ frappe.ready(function () {
 		frappe
 			.call({
 				method: "churchit.church_ministries.pre_check_in.get_pre_check_in_code",
+				type: "GET",
 				args: { function: section.querySelector("select[name='function']").value, persons: persons },
 				btn: button,
 				error_msg: error,

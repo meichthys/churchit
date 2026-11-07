@@ -216,9 +216,9 @@ def can_open_members_only_pages() -> bool:
 	return bool(person) and is_directory_member(person)
 
 
-@frappe.whitelist()
-def get_list_data(doctype: str, **kwargs):
-	"""Frappe's portal list API, without the members-only Web Pages the caller may not open.
+@frappe.whitelist(methods=["GET", "POST"])
+def get_list_data(doctype: str, **kwargs) -> list[dict]:
+	"""Frappe's portal list API, without the members-only Web Pages the caller may not open. Reads only.
 
 	Frappe lists every published Web Page, with all its fields, to any signed-in user.
 	"""

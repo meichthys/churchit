@@ -140,15 +140,18 @@ def has_branches(church):
 
 
 @frappe.whitelist(methods=["POST"])
-def set_church_filter_expansion(expand: bool):
-	"""Remember whether a church picked in a report filter should bring its branches along."""
+def set_church_filter_expansion(expand: bool) -> bool:
+	"""Remember for the caller whether a church picked in a report filter brings its branches along. Changes data."""
 	frappe.defaults.set_user_default(EXPAND_FILTER_DEFAULT, "1" if sbool(expand) else "0")
 	return bool(sbool(expand))
 
 
 @frappe.whitelist(methods=["POST"])
-def set_include_branches(include: bool):
-	"""Flip branch visibility on the caller's own Church permission."""
+def set_include_branches(include: bool) -> bool:
+	"""Show or hide the branch churches' records for the caller, on their own Church permission. Changes data.
+
+	Returns whether the branches now show.
+	"""
 	user = frappe.session.user
 	if include_branches_state(user) is None:
 		frappe.throw(_("Your church has no branches to include."))

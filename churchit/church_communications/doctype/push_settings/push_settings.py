@@ -27,10 +27,10 @@ class PushSettings(Document):
 
 @frappe.whitelist(methods=["POST"])
 def generate_keys() -> None:
-	"""Make the VAPID key pair while the keys are blank.
+	"""Make the VAPID key pair while the keys are blank. Changes data.
 
-	New keys would end every browser's subscription, so keys that exist are kept. The public key is
-	stored as browsers take it (applicationServerKey): the uncompressed point, base64url.
+	For a System Manager. New keys would end every browser's subscription, so keys that exist are kept.
+	The public key is stored as browsers take it (applicationServerKey): the uncompressed point, base64url.
 	"""
 	frappe.only_for("System Manager")
 	settings = frappe.get_single("Push Settings")

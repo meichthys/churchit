@@ -6,7 +6,7 @@ from frappe.utils import now_datetime
 
 @frappe.whitelist(methods=["POST"])
 def create_prayer(prayer_request: str, content: str | None = None):
-	"""Record a Prayer for a Prayer Request on behalf of the current user.
+	"""Record a Prayer for a Prayer Request on behalf of the current user. Changes data.
 
 	Any logged-in user who can see the target request, in the desk or on the Community
 	Prayer Requests page, may pray for it. Prayer records are created with ignore_permissions

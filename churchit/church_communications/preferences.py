@@ -72,7 +72,7 @@ def is_globally_unsubscribed(email: str) -> bool:
 
 @frappe.whitelist(methods=["POST"])
 def set_preference(channel: str, purpose: str, allow: bool) -> dict:
-	"""Record the signed-in member's yes or no to *channel* for *purpose*.
+	"""Record the signed-in member's yes or no to *channel* for *purpose*. Changes data.
 
 	It acts only on the session's own Person, so no caller can change another person's choices.
 	"""

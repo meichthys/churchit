@@ -174,7 +174,10 @@ def record_group_attendance(
 	absent: str | list[str] | None = None,
 	did_not_meet: str | int = 0,
 ) -> None:
-	"""Leader page: record who came to a meeting of a group the session user leads, or that it did not meet."""
+	"""Record who came to a meeting of a group the caller leads, or that it did not meet. Changes data.
+
+	The /group-leader page calls it.
+	"""
 	meeting = frappe.get_doc("Function", function)
 	leader = require_leader(meeting.group)
 	if meeting.auto_repeat:

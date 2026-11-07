@@ -37,7 +37,10 @@ REQUESTS_PER_HOUR = 600
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=REQUESTS_PER_HOUR, seconds=60 * 60)
 def find_household(phone: str) -> dict:
-	"""The open Functions, and the people of *phone*'s households with the Functions each may check in to."""
+	"""The open Functions, and *phone*'s households with the Functions each person may check in to. Reads only.
+
+	Only a Church Check-In Kiosk login may ask.
+	"""
 	frappe.only_for(KIOSK_ROLE)
 	return get_households(phone, get_church())
 
@@ -45,7 +48,7 @@ def find_household(phone: str) -> dict:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=REQUESTS_PER_HOUR, seconds=60 * 60)
 def check_in(phone: str, choices: str | dict) -> dict:
-	"""Check each person of *choices* ({person: function}) in, and print the tags of the new check-ins.
+	"""Check each person of *choices* ({person: function}) in, and print the new check-ins' tags. Sends messages.
 
 	The households are found again from *phone*, so a kiosk checks in only whom it was offered, and where.
 	Only new check-ins print, and never with a code an earlier check-in holds: a phone number is no credential.
@@ -75,7 +78,10 @@ def check_in(phone: str, choices: str | dict) -> dict:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=REQUESTS_PER_HOUR, seconds=60 * 60)
 def check_in_code(payload: str) -> dict:
-	"""Check in the people of a scanned pre check-in code, at an open self check-in Function of this church."""
+	"""Check in the people of a scanned pre check-in code, and print the new check-ins' tags. Sends messages.
+
+	Only at an open self check-in Function of the kiosk's church.
+	"""
 	from churchit.church_ministries.pre_check_in import read_payload, redeem  # it imports this module
 
 	frappe.only_for(KIOSK_ROLE)

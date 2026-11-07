@@ -6,6 +6,7 @@ import frappe
 from churchit.dashboard import total_of_saved_list
 
 
-@frappe.whitelist()
-def get_value():
+@frappe.whitelist(methods=["GET", "POST"])
+def get_value() -> dict:
+	"""Number card: the open prayer requests the Active Prayer Requests list shows the reader. Reads only."""
 	return total_of_saved_list("Active Prayer Requests")

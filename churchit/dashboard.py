@@ -23,8 +23,9 @@ from churchit.church_people import smart_lists
 from churchit.church_scope import church_query_filters, scoped
 
 
-@frappe.whitelist()
-def count_weekly_attendance():
+@frappe.whitelist(methods=["GET", "POST"])
+def count_weekly_attendance() -> dict:
+	"""Number card: attendance counted at Functions of the last seven days, in the reader's churches. Reads only."""
 	frappe.has_permission("Function", "report", throw=True)
 	today = frappe.utils.nowdate()
 	last_week = frappe.utils.add_days(today, -7)
@@ -50,15 +51,15 @@ def count_weekly_attendance():
 	}
 
 
-@frappe.whitelist()
-def count_people(filters: str | list | dict | None = None):
-	"""Number card: people matching the card's filters in the reader's churches."""
+@frappe.whitelist(methods=["GET", "POST"])
+def count_people(filters: str | list | dict | None = None) -> dict:
+	"""Number card: people matching the card's filters in the reader's churches. Reads only."""
 	return count_in_readers_churches("Person", filters)
 
 
-@frappe.whitelist()
-def count_families(filters: str | list | dict | None = None):
-	"""Number card: families matching the card's filters in the reader's churches."""
+@frappe.whitelist(methods=["GET", "POST"])
+def count_families(filters: str | list | dict | None = None) -> dict:
+	"""Number card: families matching the card's filters in the reader's churches. Reads only."""
 	return count_in_readers_churches("Family", filters)
 
 

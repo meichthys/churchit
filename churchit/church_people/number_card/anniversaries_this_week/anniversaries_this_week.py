@@ -7,8 +7,9 @@ from churchit.church_scope import scoped
 from churchit.query import falls_this_week
 
 
-@frappe.whitelist()
-def get_count():
+@frappe.whitelist(methods=["GET", "POST"])
+def get_count() -> int:
+	"""Number card: the wedding anniversaries this week, one per household, in the caller's churches. Reads only."""
 	frappe.has_permission("Person", "report", throw=True)
 	Person = frappe.qb.DocType("Person")
 	Spouse = frappe.qb.DocType("Person").as_("spouse")
