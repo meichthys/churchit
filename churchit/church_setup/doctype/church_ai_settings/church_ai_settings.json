@@ -13,6 +13,22 @@
   "column_break_stamp",
   "acknowledged_by",
   "acknowledged_on",
+  "warning_app_section",
+  "warning_app_html",
+  "warning_data_section",
+  "warning_data_html",
+  "warning_text_section",
+  "warning_text_html",
+  "warning_turning_on_section",
+  "warning_turning_on_html",
+  "warning_flow_agents_section",
+  "warning_flow_agents_html",
+  "warning_turning_off_section",
+  "warning_turning_off_html",
+  "warning_no_switch_section",
+  "warning_no_switch_html",
+  "warning_knowledge_section",
+  "warning_knowledge_html",
   "knowledge_section",
   "blocked_knowledge_doctypes",
   "use_recommended_list",
@@ -62,6 +78,104 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
+   "description": "An AI app works as the person who connected it.",
+   "fieldname": "warning_app_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: An AI App Can See and Change What Its User Can"
+  },
+  {
+   "fieldname": "warning_app_html",
+   "fieldtype": "HTML",
+   "label": "An AI App Can See and Change What Its User Can"
+  },
+  {
+   "collapsible": 1,
+   "description": "That company's terms apply. A local model keeps the data on your computer.",
+   "fieldname": "warning_data_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Hosted AI Sends What It Reads to Another Company"
+  },
+  {
+   "fieldname": "warning_data_html",
+   "fieldtype": "HTML",
+   "label": "Hosted AI Sends What It Reads to Another Company"
+  },
+  {
+   "collapsible": 1,
+   "description": "Prayer requests, connection cards and forms can hold instructions for the AI.",
+   "fieldname": "warning_text_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Text That Guests and Members Write Can Steer the AI"
+  },
+  {
+   "fieldname": "warning_text_html",
+   "fieldtype": "HTML",
+   "label": "Text That Guests and Members Write Can Steer the AI"
+  },
+  {
+   "collapsible": 1,
+   "description": "Who can connect an AI app once MCP is open, and how to take that away.",
+   "fieldname": "warning_turning_on_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Choose Who Can Use AI Before You Turn It On"
+  },
+  {
+   "fieldname": "warning_turning_on_html",
+   "fieldtype": "HTML",
+   "label": "Choose Who Can Use AI Before You Turn It On"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "description": "Chats and triggers start at once, and frappe/Flow can change what you can.",
+   "fieldname": "warning_flow_agents_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Turning AI On Starts Flow's Agents at Once"
+  },
+  {
+   "fieldname": "warning_flow_agents_html",
+   "fieldtype": "HTML",
+   "label": "Turning AI On Starts Flow's Agents at Once"
+  },
+  {
+   "collapsible": 1,
+   "description": "Connected apps keep their tokens, and API keys keep working.",
+   "fieldname": "warning_turning_off_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Turning AI Off Does Not Sign Out Connected Apps"
+  },
+  {
+   "fieldname": "warning_turning_off_html",
+   "fieldtype": "HTML",
+   "label": "Turning AI Off Does Not Sign Out Connected Apps"
+  },
+  {
+   "collapsible": 1,
+   "description": "API keys, copy and paste, other apps' AI and browser assistants.",
+   "fieldname": "warning_no_switch_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: No Switch Stops Every Use of AI"
+  },
+  {
+   "fieldname": "warning_no_switch_html",
+   "fieldtype": "HTML",
+   "label": "No Switch Stops Every Use of AI"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "description": "Everyone who uses an agent can read what its knowledge copied.",
+   "fieldname": "warning_knowledge_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Flow Knowledge Copies Records Without Checking Permissions"
+  },
+  {
+   "fieldname": "warning_knowledge_html",
+   "fieldtype": "HTML",
+   "label": "Flow Knowledge Copies Records Without Checking Permissions"
+  },
+  {
    "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
    "fieldname": "knowledge_section",
    "fieldtype": "Section Break",
@@ -93,7 +207,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-07 10:13:58.000000",
+ "modified": "2026-11-07 11:30:48.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church AI Settings",

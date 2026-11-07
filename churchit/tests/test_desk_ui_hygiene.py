@@ -274,6 +274,14 @@ COLLAPSIBLE_EXCEPTIONS = {}
 ROUTINE_COLLAPSED = {
 	"Bible Memory Item.internal_section": "Mistake counts per word that the Bible Memory page keeps",
 	"Bulletin.section_break_sections": "Print toggles that Bulletin Settings defaults, set once",
+	"Church AI Settings.warning_app_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_data_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_text_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_turning_on_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_flow_agents_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_turning_off_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_no_switch_section": "A warning to read before AI is turned on; it holds no data",
+	"Church AI Settings.warning_knowledge_section": "A warning to read before AI is turned on; it holds no data",
 	"Missionary.location_section": "The map pin, which choosing a country places",
 }
 
