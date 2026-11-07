@@ -224,6 +224,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Optional multi-church mode: branch or satellite churches under one main church, with every record and user scoped to a church (parent-church users can include branches), per-church emails and notifications, and a Locations switcher on the public website
 - A people directory shared by every church: any church can look up a person or family, only their own church can change them, and a Church Features option keeps each church's people private instead
 - Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
+- AI is off by default. A Church Manager or System Manager turns it on in AI Settings, and until then Frappe's MCP server stays closed for every app on the site. When AI is on and a System Manager opens MCP, a Church Manager, a System Manager or a person with the Church AI User role can connect an AI app, such as Claude or ChatGPT. The app can see and change everything its user can see and change, and a hosted app sends what it reads to the company that runs it. AI Settings says this before anyone turns AI on. System Managers hear when a person connects an AI app, and the Connected AI Apps report lists the connections. See "AI and your church's data" in Manual: Foundations, and the unpublished starter page "How We Use AI". The [`skills/churchit`](skills/churchit) folder teaches an AI app how to work with Churchit.
 - Built-in documentation for each module
 - Guided setup/onboarding
 - A Take the Tour item on every form that has a guided tour
@@ -315,6 +316,8 @@ When both apps are on one site:
 
 Churchit renamed three records so that ERPNext can use their names: **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (`/app/budget`) and API calls (`/api/resource/Location`).
 
+**MCP after an update:** Churchit closes Frappe's MCP server (**System Settings > AI Agents > Enable MCP**, which a Frappe 16 update turned on in October 2026) until a church turns on AI. MCP is one setting for the site, so ERPNext and the other apps on the site lose MCP too. To open it again, turn on AI in **Settings > Module Settings > AI Settings**, then tick **Enable MCP** in System Settings. Only a Church Manager, a System Manager or a person with the new **Church AI User** role can then connect an AI app; give that role on the User record to the other people who need it. Each System Manager gets one bell notice that says so.
+
 To make the site reachable from the internet with your own domain, see [Setting up a public domain](#setting-up-a-public-domain).
 
 ### Online payments (optional)
@@ -386,7 +389,6 @@ Hopefully this roadmap will help avoid too much scope creep and provide a sense 
 
 - AI features, such as building a smart list from a sentence
 - Reading STOP and START replies to text messages
-- Read-only access for AI assistants (MCP)
 
 # 🆘 Support
 If you need help setting up the app or configuring it, you can reach out in our [Discord server](https://discord.gg/YxpdU6qM5w) or [Matrix Chat](https://matrix.to/#/#the-church-app:matrix.org).
