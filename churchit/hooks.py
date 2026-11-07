@@ -274,20 +274,10 @@ has_permission = {
 		"churchit.church_people.member_access.refuse_other_families_to_members",
 	],
 	"Person Note": "churchit.church_people.notes.has_note_permission",
-	"Prayer Request": [
-		"churchit.church_prayers.prayer_access.has_prayer_permission",
-		"churchit.ai.guard.has_never_to_ai_permission",
-	],
+	"Prayer Request": "churchit.church_prayers.prayer_access.has_prayer_permission",
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
-	# Records that never go to AI: refused inside an agent call (churchit.ai.guard).
-	"Counseling Case": "churchit.ai.guard.has_never_to_ai_permission",
-	"Counseling Session": "churchit.ai.guard.has_never_to_ai_permission",
-	"Background Check": "churchit.ai.guard.has_never_to_ai_permission",
-	"Pickup Restriction": "churchit.ai.guard.has_never_to_ai_permission",
-	"Function Check-In": "churchit.ai.guard.has_never_to_ai_permission",
-	"Missionary": "churchit.ai.guard.has_never_to_ai_permission",
 }
 
 # A portal member lists only their own Person, a Note Category limits who reads its
@@ -297,20 +287,11 @@ has_permission = {
 permission_query_conditions = {
 	"Person": "churchit.church_people.member_access.person_query_conditions",
 	"Family": "churchit.church_people.member_access.family_query_conditions",
-	"Prayer Request": [
-		"churchit.church_prayers.prayer_access.prayer_query_conditions",
-		"churchit.ai.guard.never_to_ai_query_conditions",
-	],
+	"Prayer Request": "churchit.church_prayers.prayer_access.prayer_query_conditions",
 	"Person Note": "churchit.church_people.notes.note_query_conditions",
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
-	"Counseling Case": "churchit.ai.guard.never_to_ai_query_conditions",
-	"Counseling Session": "churchit.ai.guard.never_to_ai_query_conditions",
-	"Background Check": "churchit.ai.guard.never_to_ai_query_conditions",
-	"Pickup Restriction": "churchit.ai.guard.never_to_ai_query_conditions",
-	"Function Check-In": "churchit.ai.guard.never_to_ai_query_conditions",
-	"Missionary": "churchit.ai.guard.never_to_ai_query_conditions",
 }
 
 # A person's notes, visits, care requests, life events, transfers and connection cards show on their
@@ -336,25 +317,19 @@ churchit_people_events = {
 # queues a refresh of the person summary fields it changes, a deleted person
 # takes their Possible Duplicate pairs along, an approved data deletion request
 # anonymizes the member's Person, a church's record is never shared (or assigned,
-# which shares it) with a user outside that church, and a bounce report that reaches
-# the inbox marks the address it names.
+# which shares it) with a user outside that church, a bounce report that reaches
+# the inbox marks the address it names, MCP stays closed while AI is off, a new AI app
+# signs in only people with an AI role, and System Managers hear when a person first
+# connects an AI app.
 doc_events = {
 	"*": {
-		"validate": [
-			"churchit.church_scope.ensure_church",
-			# An AI app drafts; a person saves (churchit.ai.guard).
-			"churchit.ai.guard.refuse_agent_write",
-		],
-		"before_cancel": [
-			"churchit.church_scope.refuse_changing_another_churches_record",
-			"churchit.ai.guard.refuse_agent_write",
-		],
+		"validate": "churchit.church_scope.ensure_church",
+		"before_cancel": "churchit.church_scope.refuse_changing_another_churches_record",
 		"before_update_after_submit": "churchit.church_scope.refuse_changing_another_churches_record",
 		"on_update": "churchit.church_people.summaries.on_change",
 		"on_cancel": "churchit.church_people.summaries.on_change",
 		"on_trash": [
 			"churchit.church_scope.refuse_deleting_another_churches_record",
-			"churchit.ai.guard.refuse_agent_write",
 			"churchit.church_people.summaries.on_change",
 		],
 	},
@@ -394,6 +369,12 @@ doc_events = {
 	},
 	"System Settings": {
 		"validate": "churchit.ai.switch.refuse_mcp_while_ai_off",
+	},
+	"OAuth Client": {
+		"before_insert": "churchit.ai.switch.limit_new_app_to_ai_roles",
+	},
+	"OAuth Bearer Token": {
+		"after_insert": "churchit.ai.switch.tell_system_managers_of_new_ai_app",
 	},
 	"Personal Data Deletion Request": {
 		"on_change": "churchit.church_people.privacy.anonymize_on_data_deletion",
@@ -499,8 +480,6 @@ override_whitelisted_methods = {
 	# Frappe's portal list API lists every published Web Page to any signed-in user; this one leaves
 	# out members-only pages for a non-member.
 	"frappe.www.list.get_list_data": "churchit.church_website.pages.get_list_data",
-	# The desk email dialog keeps working; an AI app connected over MCP cannot send email.
-	"frappe.core.doctype.communication.email.make": "churchit.ai.guard.make_email",
 }
 
 # Churchit's agents for Flow, Frappe's AI agents. A Frappe without Flow never reads this hook.
@@ -582,9 +561,8 @@ user_data_fields = [
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"churchit.auth.validate"
-# ]
+# Frappe's MCP server takes every desk user; only the AI roles may use it.
+auth_hooks = ["churchit.ai.switch.refuse_mcp_to_other_users"]
 
 
 # Automatically update python controller files with type annotations for this app.

@@ -1,12 +1,13 @@
 {
  "actions": [],
  "creation": "2026-11-06 00:00:00.000000",
- "description": "Whether churchit uses AI at all. Off by default: while it is off, churchit's AI features refuse and Frappe's MCP server stays closed.",
+ "description": "Whether AI apps may connect to this site. Off by default: while it is off, Frappe's MCP server stays closed and churchit's own AI features do not run.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-foundations",
  "engine": "InnoDB",
  "field_order": [
   "intro_html",
+  "switch_section",
   "enabled",
   "acknowledged",
   "column_break_stamp",
@@ -19,11 +20,15 @@
   {
    "fieldname": "intro_html",
    "fieldtype": "HTML",
-   "label": "Where AI Sends Data"
+   "label": "Before You Turn AI On"
+  },
+  {
+   "fieldname": "switch_section",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
-   "description": "Off: churchit's AI features refuse and Frappe's MCP server stays closed.",
+   "description": "Off: MCP stays closed. API keys and connected apps still reach the REST API.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Use AI in Churchit"
@@ -31,10 +36,10 @@
   {
    "default": "0",
    "depends_on": "enabled",
-   "description": "Needed to turn AI on.",
+   "description": "A hosted AI app sends what it reads to its company. Needed to turn AI on.",
    "fieldname": "acknowledged",
    "fieldtype": "Check",
-   "label": "I Understand Where AI Sends Our Data"
+   "label": "I Understand What an AI App Can See, Change and Send"
   },
   {
    "fieldname": "column_break_stamp",
@@ -67,7 +72,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-06 00:00:00.000000",
+ "modified": "2026-11-06 18:21:51.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church AI Settings",

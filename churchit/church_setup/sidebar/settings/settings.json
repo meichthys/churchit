@@ -216,9 +216,39 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
+   "label": "AI Settings",
+   "link_to": "Church AI Settings",
+   "link_type": "DocType",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
    "label": "SMS Settings",
    "link_to": "SMS Settings",
    "link_type": "DocType",
+   "open_in_new_tab": 1,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "Connected AI Apps",
+   "link_to": "Connected AI Apps",
+   "link_type": "Report",
    "open_in_new_tab": 1,
    "show_arrow": 0,
    "type": "Link"
@@ -479,7 +509,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-31 13:20:40.000000",
+ "modified": "2026-11-06 14:12:55.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",
