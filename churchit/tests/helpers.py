@@ -265,3 +265,16 @@ def make_team_assignment(function, position, person, **values):
 			**values,
 		}
 	).insert(ignore_permissions=True)
+
+
+def pop_logs(doctype, filters, field="name"):
+	"""*field* of each *doctype* log row that matches *filters*, deleted, since a rollback may keep them.
+
+	Error Log is MyISAM on Frappe 16; Frappe 17 keeps Error, Access and Activity Logs in a log database
+	that frappe.db does not reach, and pages a plain get_all at 20 rows. This reads and deletes them
+	through the document API instead.
+	"""
+	rows = frappe.get_all(doctype, filters=filters, fields=list({"name", field}), limit=1000)
+	for row in rows:
+		frappe.delete_doc(doctype, row.name, ignore_permissions=True)
+	return [row[field] for row in rows]

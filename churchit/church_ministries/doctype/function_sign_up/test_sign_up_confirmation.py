@@ -15,7 +15,7 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import make_sign_up
 from churchit.ics import calendar_times
 from churchit.patches.v1_0 import add_sign_up_confirmation_template
-from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person
+from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person, pop_logs
 
 SIGN_UP = "Function Sign-Up"
 CAN_SEND_EMAIL = "churchit.church_ministries.doctype.function_sign_up.function_sign_up.can_send_email"
@@ -164,7 +164,7 @@ class TestSignUpConfirmation(RollbackEachTest):
 			sign_up = make_sign_up(self.make_function().name, self.person, attending=1)
 
 		self.assertTrue(frappe.db.exists(SIGN_UP, {"name": sign_up.name, "status": CONFIRMED}))
-		self.assertTrue(frappe.db.exists("Error Log", {"reference_name": sign_up.name}))
+		self.assertTrue(pop_logs("Error Log", {"reference_name": sign_up.name}))
 
 	def test_a_church_that_deletes_the_template_sends_no_confirmation(self):
 		frappe.delete_doc("Email Template", CONFIRMATION_TEMPLATE, ignore_permissions=True)

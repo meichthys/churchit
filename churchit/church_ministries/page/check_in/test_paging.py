@@ -28,6 +28,7 @@ from churchit.tests.helpers import (
 	make_function,
 	make_person,
 	make_two_churches,
+	pop_logs,
 )
 
 MODULE = "churchit.church_ministries.page.check_in.paging"
@@ -217,7 +218,7 @@ class TestPageParents(RollbackEachTest):
 
 		self.assertEqual(reached, ["John Pageley", "Jane Pageley"])
 		self.assertEqual(self.copies(), {(self.father, EMAIL), (self.mother, EMAIL)})
-		self.assertTrue(frappe.db.exists("Error Log", {"reference_name": self.son}))
+		self.assertTrue(pop_logs("Error Log", {"reference_name": self.son}))
 
 	def test_no_check_in_row_is_locked_while_the_gateway_answers(self):
 		"""A gateway can hang, and every code draw on the site locks the day's coded check-ins."""

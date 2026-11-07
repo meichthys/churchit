@@ -9,6 +9,7 @@ Directory PDF and Data Import's Export Data.
 """
 
 import json
+from unittest import skipUnless
 
 import frappe
 from frappe.desk.reportview import export_query
@@ -17,14 +18,15 @@ from frappe.tests.classes.context_managers import patch_hooks
 
 from churchit.church_people.report.church_directory_report.church_directory_report import (
 	download_directory_pdf,
+	has_weasyprint,
 )
-from churchit.tests.helpers import RollbackEachTest, make_person
+from churchit.tests.helpers import RollbackEachTest, make_person, pop_logs
 
 DOWNLOAD_TEMPLATE = "frappe.core.doctype.data_import.data_import.download_template"
 
 
-def count_access_logs(**filters):
-	return frappe.db.count("Access Log", {"user": frappe.session.user, **filters})
+def pop_access_logs(**filters):
+	return pop_logs("Access Log", {"user": frappe.session.user, **filters})
 
 
 class TestAccessLog(RollbackEachTest):
@@ -35,7 +37,8 @@ class TestAccessLog(RollbackEachTest):
 		).name
 
 	def test_a_list_or_report_builder_export_is_logged(self):
-		before = count_access_logs(export_from="Person", file_type="CSV")
+		filters = {"export_from": "Person", "file_type": "CSV", "filters": ("like", f"%{self.person}%")}
+		pop_access_logs(**filters)
 		frappe.local.form_dict = frappe._dict(
 			doctype="Person",
 			fields=json.dumps(["`tabPerson`.`name`", "`tabPerson`.`full_name`"]),
@@ -47,37 +50,37 @@ class TestAccessLog(RollbackEachTest):
 
 		export_query()
 
-		self.assertEqual(count_access_logs(export_from="Person", file_type="CSV"), before + 1)
+		self.assertEqual(len(pop_access_logs(**filters)), 1)
 
 	def test_printing_a_person_is_logged_with_its_print_format(self):
 		for print_format in ("Mailing Label", "Church Directory", "Standard"):
 			with self.subTest(print_format):
 				filters = {"reference_document": self.person, "page": f"Print Format: {print_format}"}
-				before = count_access_logs(**filters)
+				pop_access_logs(**filters)
 
 				frappe.get_print("Person", self.person, print_format)
 
-				self.assertEqual(count_access_logs(**filters), before + 1)
+				self.assertEqual(len(pop_access_logs(**filters)), 1)
 
+	@skipUnless(has_weasyprint(), "This Frappe has no WeasyPrint to print the directory.")
 	def test_the_church_directory_pdf_is_logged(self):
-		before = count_access_logs(report_name="Church Directory Report", file_type="PDF")
+		filters = {"report_name": "Church Directory Report", "file_type": "PDF"}
+		pop_access_logs(**filters)
 
 		download_directory_pdf(show_email=1)
 
-		self.assertEqual(
-			count_access_logs(report_name="Church Directory Report", file_type="PDF"), before + 1
-		)
+		self.assertEqual(len(pop_access_logs(**filters)), 1)
 
 	def test_data_import_export_data_is_logged_only_with_records(self):
 		filters = {"export_from": "Person", "method": "Export Data"}
-		before = count_access_logs(**filters)
+		pop_access_logs(**filters)
 		export_fields = json.dumps({"Person": ["name", "first_name"], "emails": ["email_address"]})
 
 		export_data(export_fields, "blank_template")
-		self.assertEqual(count_access_logs(**filters), before)
+		self.assertEqual(pop_access_logs(**filters), [])
 
 		export_data(export_fields, "all")
-		self.assertEqual(count_access_logs(**filters), before + 1)
+		self.assertEqual(len(pop_access_logs(**filters)), 1)
 		self.assertIn("access.log@example.com", frappe.response.result)
 
 

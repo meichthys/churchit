@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.web_form.web_form import accept, has_link_option, process_link_field
+from frappe.website.doctype.web_form.web_form import accept, has_link_option
 
 from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
 	get_function_sign_up_items,
@@ -161,11 +161,14 @@ class TestPortalMembers(FrappeTestCase):
 		self.assertIn("_Test Portal Care", self.rendered_options("care-request-form", "category"))
 
 	def rendered_options(self, web_form, fieldname):
-		"""The options a web form renders into the page for one of its Link fields."""
-		field = next(
-			f for f in frappe.get_doc("Web Form", web_form).web_form_fields if f.fieldname == fieldname
-		)
-		return process_link_field(field, web_form).options
+		"""The options a new web form renders into the page for one of its Link fields."""
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		form = frappe.get_doc("Web Form", web_form)
+		frappe.local.form_dict = frappe._dict(is_new=1)
+		frappe.local.path = f"{form.route}/new"
+		context = frappe._dict()
+		form.get_context(context)
+		return next(f for f in context.web_form_doc.web_form_fields if f.fieldname == fieldname).options
 
 	def test_no_member_form_links_to_person(self):
 		"""A web form renders every name of a linked doctype it may list, hidden fields included."""

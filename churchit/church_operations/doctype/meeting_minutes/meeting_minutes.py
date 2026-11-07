@@ -6,11 +6,16 @@ import os
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 
 AUDIO_EXTENSIONS = {".mp3", ".m4a", ".aac", ".ogg", ".oga", ".opus", ".wav", ".flac", ".webm"}
 
 
 class MeetingMinutes(Document):
+	def autoname(self):
+		"""MM-0001 and on. Frappe 17's Expression naming reads the MM of "MM-.####" as the month."""
+		self.name = make_autoname(self.meta.autoname, doc=self)
+
 	def validate(self):
 		self.validate_audio_recording()
 

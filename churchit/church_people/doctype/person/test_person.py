@@ -792,7 +792,8 @@ class TestPersonAcrossChurches(RollbackEachTest):
 
 	def setUp(self):
 		super().setUp()
-		frappe.local.request = frappe._dict(method="POST")
+		# get_url reads the request's headers, which a real request always has.
+		frappe.local.request = frappe._dict(method="POST", headers={})
 		self.addCleanup(delattr, frappe.local, "request")
 
 	def test_a_person_cannot_join_another_churchs_family(self):
@@ -967,7 +968,10 @@ class TestPersonAcrossChurches(RollbackEachTest):
 				"/api/resource": read_doc("Person", person).as_dict(),
 			}
 			for path, doc in reads.items():
-				self.assertEqual({fieldname: doc[fieldname] for fieldname in figures}, expected, (key, path))
+				# Frappe 17's frappe.client.get leaves out the fields that are empty.
+				self.assertEqual(
+					{fieldname: doc.get(fieldname) for fieldname in figures}, expected, (key, path)
+				)
 				self.assertEqual(doc["first_name"], "_Test Across", (key, path))
 			self.assertEqual(
 				frappe.get_doc("Person", person).has_permlevel_access_to("last_gift_on"), key == "a"

@@ -196,8 +196,9 @@ ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
 """
 
 
-# Doctypes Frappe's standard-record sync skips: frappe.model.sync.IMPORTABLE_DOCTYPES
-# lists neither, so JSON shipped beside their module never reaches a site.
+# Doctypes Frappe 16's standard-record sync skips (frappe.model.sync.IMPORTABLE_DOCTYPES lists
+# neither), so JSON shipped beside their module never reaches a site. Frappe 17 syncs Letter Head
+# too, so its JSON carries Frappe 17's mandatory letter_head_for and standard.
 UNSYNCED_RECORD_FOLDERS = {
 	"Letter Head": "church_customizations/letter_head",
 	"Email Template": "church_communications/email_template",

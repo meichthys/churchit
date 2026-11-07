@@ -187,7 +187,8 @@ class TestRegisterSignUp(RegisterTestCase):
 
 	def test_the_endpoint_passes_every_form_value_to_the_extension_points(self):
 		frappe.set_user("Guest")
-		frappe.local.request = frappe._dict(method="POST")
+		# get_url reads the request's headers, which a real request always has.
+		frappe.local.request = frappe._dict(method="POST", headers={})
 		frappe.local.request_ip = "_test_register"
 		self.addCleanup(delattr, frappe.local, "request")
 		self.addCleanup(frappe.cache.delete_keys, "rl:")

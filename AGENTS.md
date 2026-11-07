@@ -988,6 +988,21 @@ replaces `MapView.setup_view` (see the next section).
   field.** In Frappe 16.54 `ControlData.set_input_attributes` returns early on a Single before it
   sets the placeholder. On a settings doctype, put a short example in the help instead.
 
+On Frappe 17 (the Flow bench) also:
+
+- Error, Access, Activity Log and Route History live in a log database. `frappe.db` cannot read or
+  delete them, a rollback does not undo them, and `get_all` returns 20 rows unless you pass a limit.
+  In tests, use `tests.helpers.pop_logs`.
+- An Expression autoname reads YY, MM, DD, WW, JJJ or YYYY before `-.####` as a date. Do not start a
+  series prefix with one of them (`MeetingMinutes.autoname` keeps `MM-`).
+- A File that an Attach field still names cannot be deleted. Pass `force=True` only when you replace
+  the field in the same step.
+- `frappe.client.get` leaves out empty fields. Read a result with `.get()`.
+- Every GET whitelisted method also allows QUERY. Compare allowed methods without QUERY.
+- A fake request needs `after_response` (`frappe._dict(method=..., headers={},
+  after_response=CallbackManager())`): the log database queues its closing there.
+- Letter Head is a synced standard record with mandatory `letter_head_for` and `standard`.
+
 ## Testing
 
 Run the whole suite before committing anything broad: `bench --site <site> run-tests --app churchit`.

@@ -108,6 +108,7 @@ class BibleTranslation(Document):
 		scripture.clear_cache(self.name)
 
 	def remove_text_file(self):
+		"""Delete the text's file, though text_file still names it (Frappe 17 refuses that unless forced)."""
 		for file in frappe.get_all(
 			"File",
 			filters={
@@ -117,4 +118,4 @@ class BibleTranslation(Document):
 			},
 			pluck="name",
 		):
-			frappe.delete_doc("File", file, ignore_permissions=True)
+			frappe.delete_doc("File", file, ignore_permissions=True, force=True)

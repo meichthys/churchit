@@ -1,14 +1,13 @@
 """Church Directory Report"""
 
 import calendar
+import importlib.util
 
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.query_builder.functions import Coalesce
 from frappe.utils import today as frappe_today
-from frappe.utils.pdf import inline_private_images
-from frappe.utils.weasyprint import import_weasyprint
 from markupsafe import Markup
 from pypika import Order
 
@@ -534,9 +533,20 @@ def download_directory_pdf(**options):
 
 def get_paginated_directory(options):
 	"""The directory laid out into pages, ready to write as a PDF."""
+	if not has_weasyprint():
+		frappe.throw(_("Print Directory is not available on this version of Frappe yet."))
+
+	from frappe.utils.pdf import inline_private_images
+	from frappe.utils.weasyprint import import_weasyprint
+
 	HTML, _CSS = import_weasyprint()
 	html = inline_private_images(frappe.call(get_directory_html, **options))
 	return HTML(string=html, base_url=frappe.utils.get_url()).render(dpi=200)
+
+
+def has_weasyprint() -> bool:
+	"""True on Frappe 16, which still ships WeasyPrint; Frappe 17 renders every PDF with Chrome."""
+	return importlib.util.find_spec("frappe.utils.weasyprint") is not None
 
 
 def get_css_string(text):

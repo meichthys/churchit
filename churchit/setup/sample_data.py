@@ -505,15 +505,32 @@ def _clear_history(emptied):
 	frappe.db.delete("Email Queue", {"name": ["in", emails or [""]]})
 
 	for doctype, field in _HISTORY:
-		if frappe.db.table_exists(doctype):
-			frappe.db.delete(doctype, {field: ["in", emptied]})
+		_delete_history(doctype, {field: ["in", emptied]})
 	for doctype, type_field, name_field in _MENTIONS:
-		frappe.db.set_value(
-			doctype,
-			{type_field: ["in", emptied]},
-			{type_field: None, name_field: None},
-			update_modified=False,
-		)
+		_drop_mentions(doctype, {type_field: ["in", emptied]}, {type_field: None, name_field: None})
+
+
+def _delete_history(doctype, filters):
+	"""Delete the rows of a history table that match *filters*.
+
+	Frappe 17 keeps Activity and Access Logs in a log database that frappe.db does not reach and
+	pages its lists, so their rows go a page of documents at a time. A doctype this Frappe lacks is skipped.
+	"""
+	if frappe.db.get_value("DocType", doctype, "is_virtual"):
+		while names := frappe.get_all(doctype, filters=filters, pluck="name", limit=500):
+			frappe.delete_doc(doctype, names, ignore_permissions=True)
+	elif frappe.db.table_exists(doctype):
+		frappe.db.delete(doctype, filters)
+
+
+def _drop_mentions(doctype, filters, values):
+	"""Set *values* on the rows that match *filters*; once set, a row no longer matches."""
+	if not frappe.db.get_value("DocType", doctype, "is_virtual"):
+		frappe.db.set_value(doctype, filters, values, update_modified=False)
+		return
+	while names := frappe.get_all(doctype, filters=filters, pluck="name", limit=500):
+		for name in names:
+			frappe.get_doc(doctype, name).db_set(values, update_modified=False)
 
 
 def _delete_communications(emptied):

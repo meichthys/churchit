@@ -67,13 +67,12 @@ class TestGeocoding(RollbackEachTest):
 		self.assertIn(frappe.utils.get_url(), get.call_args.kwargs["headers"]["User-Agent"])
 
 	def test_a_failed_lookup_leaves_the_coordinates_blank_and_logs_nothing(self):
-		errors = frappe.db.count("Error Log")
 		for answer in ({"side_effect": requests.ConnectionError()}, {"return_value": nominatim_answer([])}):
 			frappe.db.set_value("Address", self.address.name, {"latitude": 1, "longitude": 1})
-			with mock.patch("requests.get", **answer):
+			with mock.patch("requests.get", **answer), mock.patch("frappe.log_error") as log_error:
 				geocoding.geocode(self.address.name)
 			self.assertEqual(self.coordinates(), (0, 0))
-		self.assertEqual(frappe.db.count("Error Log"), errors)
+			log_error.assert_not_called()
 
 	def test_geolocation_settings_may_name_its_own_nominatim_server(self):
 		settings = frappe.get_single("Geolocation Settings")
