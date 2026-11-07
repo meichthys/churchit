@@ -139,7 +139,10 @@ class TestSwitch(SwitchTestCase):
 		bootinfo = frappe._dict(churchit={"multi_church": False})
 		with patch("churchit.ai.switch.has_flow", return_value=False):
 			extend_bootinfo(bootinfo)
-		self.assertEqual(bootinfo.churchit, {"multi_church": False, "ai": {"on": False, "flow_ready": False}})
+		self.assertEqual(
+			bootinfo.churchit,
+			{"multi_church": False, "ai": {"on": False, "flow": False, "flow_ready": False}},
+		)
 
 	def test_boot_says_whether_flow_can_run_churchits_agents(self):
 		if not has_flow():
@@ -148,6 +151,7 @@ class TestSwitch(SwitchTestCase):
 			bootinfo = frappe._dict()
 			with patch("churchit.ai.flow.is_ready", return_value=ready):
 				extend_bootinfo(bootinfo)
+			self.assertTrue(bootinfo.churchit["ai"]["flow"])
 			self.assertEqual(bootinfo.churchit["ai"]["flow_ready"], ready)
 
 	def test_boot_adds_ai_after_church_scope_sets_the_churchit_keys(self):

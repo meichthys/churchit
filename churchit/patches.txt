@@ -139,3 +139,4 @@ churchit.patches.v1_0.clear_saved_sort_and_filters_of_module_lists
 churchit.patches.v1_0.forget_milestones_of_deleted_people
 churchit.patches.v1_0.church_ai_off_by_default
 churchit.patches.v1_0.add_how_we_use_ai_page
+churchit.patches.v1_0.fill_blocked_knowledge_doctypes

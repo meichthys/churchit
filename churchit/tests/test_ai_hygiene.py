@@ -45,6 +45,14 @@ EXEMPT = {
 		"shows the AI switch itself, so it must work while AI is off; it asks for System Manager or "
 		"Church Manager first"
 	),
+	("churchit.ai.flow_switch.use_recommended_knowledge_doctypes", "switch"): (
+		"blocks doctypes from Flow knowledge, a protection that must work while AI is off; it asks for "
+		"System Manager or Church Manager first"
+	),
+	("churchit.ai.flow_switch.use_recommended_knowledge_doctypes", "calls"): (
+		"reads the doctype definitions (DocType, DocField and Custom Field) and never a record, to find "
+		"the doctypes that hold data about people; a Church Manager cannot read DocType"
+	),
 }
 
 

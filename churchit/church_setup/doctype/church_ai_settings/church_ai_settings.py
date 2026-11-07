@@ -16,7 +16,13 @@ ACKNOWLEDGMENT_FIELDS = ("acknowledged", "acknowledged_by", "acknowledged_on")
 
 
 class ChurchAISettings(Document):
-	"""The master AI switch (churchit.ai.switch.is_ai_on)."""
+	"""The master AI switch (churchit.ai.switch.is_ai_on) and the doctypes that Flow knowledge may not
+	read (churchit.ai.flow_switch)."""
+
+	@property
+	def blocked_doctypes(self) -> set[str]:
+		"""The doctypes in Blocked from Flow Knowledge."""
+		return {row.document_type for row in self.blocked_knowledge_doctypes}
 
 	def validate(self):
 		before = self.get_doc_before_save()
@@ -24,7 +30,16 @@ class ChurchAISettings(Document):
 			field for field in TURN_ON_FIELDS if self.get(field) and not (before and before.get(field))
 		]
 		if turned_on:
-			refuse_turning_on_for_some_churches()
+			refuse_for_some_churches(
+				_("Only a System Manager or a Church Manager of every church can turn AI on.")
+			)
+		if before and before.blocked_doctypes - self.blocked_doctypes:
+			refuse_for_some_churches(
+				_(
+					"Only a System Manager or a Church Manager of every church can remove a DocType from "
+					"Blocked from Flow Knowledge."
+				)
+			)
 		if "enabled" in turned_on:
 			self.stamp_acknowledgment()
 		elif self.enabled:
@@ -48,11 +63,9 @@ class ChurchAISettings(Document):
 			self.add_comment("Info", _("Turning AI off closed Frappe's MCP server in System Settings."))
 
 
-def refuse_turning_on_for_some_churches() -> None:
+def refuse_for_some_churches(message: str) -> None:
 	"""A Church Manager restricted to some churches would decide for churches they cannot see."""
 	roles = frappe.get_roles()
 	if "System Manager" in roles or ("Church Manager" in roles and allowed_churches() is None):
 		return
-	frappe.throw(
-		_("Only a System Manager or a Church Manager of every church can turn AI on."), frappe.PermissionError
-	)
+	frappe.throw(message, frappe.PermissionError)

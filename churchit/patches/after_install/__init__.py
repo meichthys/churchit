@@ -14,6 +14,7 @@ from frappe.permissions import add_permission
 from frappe.utils.global_search import rebuild_for_doctype
 
 from churchit.ai.flow_models import add_privacy_label_field
+from churchit.ai.flow_switch import fill_blocked_knowledge_doctypes
 from churchit.ai.policy import create_how_we_use_ai_page
 from churchit.ai.switch import close_mcp_and_tell_system_managers
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
@@ -149,10 +150,12 @@ def execute():
 	add_to_global_search(get_searched_doctypes())
 
 	# AI starts off: Frappe's MCP server closed (System Managers hear why), the starter
-	# "How We Use AI" page for the church to edit and, with Flow, a privacy label on each model.
+	# "How We Use AI" page for the church to edit, with Flow a privacy label on each model, and the
+	# recommended doctypes that Flow knowledge may not read.
 	close_mcp_and_tell_system_managers()
 	create_how_we_use_ai_page()
 	add_privacy_label_field()
+	fill_blocked_knowledge_doctypes()
 
 	# Cleanup
 	_clean_gender_options()

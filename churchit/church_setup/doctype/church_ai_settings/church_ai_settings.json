@@ -13,6 +13,9 @@
   "column_break_stamp",
   "acknowledged_by",
   "acknowledged_on",
+  "knowledge_section",
+  "blocked_knowledge_doctypes",
+  "use_recommended_list",
   "exposure_section",
   "exposure_html"
  ],
@@ -59,6 +62,24 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "knowledge_section",
+   "fieldtype": "Section Break",
+   "label": "Flow Knowledge"
+  },
+  {
+   "description": "Churchit refuses a Flow knowledge source that reads one of these.",
+   "fieldname": "blocked_knowledge_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Blocked from Flow Knowledge",
+   "options": "Church AI Blocked DocType"
+  },
+  {
+   "fieldname": "use_recommended_list",
+   "fieldtype": "Button",
+   "label": "Use the Recommended List"
+  },
+  {
    "fieldname": "exposure_section",
    "fieldtype": "Section Break",
    "label": "AI Access on This Site"
@@ -72,7 +93,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-06 18:21:51.000000",
+ "modified": "2026-11-07 10:13:58.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church AI Settings",

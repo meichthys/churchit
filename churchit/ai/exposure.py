@@ -15,7 +15,7 @@ from frappe import _
 from frappe.desk.utils import slug
 
 from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS
-from churchit.ai.flow_switch import get_trigger_warnings, is_church_doctype
+from churchit.ai.flow_switch import get_blocked_knowledge_doctypes, get_trigger_warnings, is_church_doctype
 from churchit.ai.switch import AI_ROLES, SETTINGS, get_setting, has_flow, is_ai_on
 
 # Roles that Frappe gives every signed-in user ("Guest", "All") or every desk user ("Desk User").
@@ -269,7 +269,9 @@ def get_flow_people_line() -> dict:
 
 
 def get_flow_knowledge_lines() -> list[dict]:
-	"""One line per Flow knowledge source on church records, made before churchit refused them."""
+	"""One line per Flow knowledge source on church records or on a blocked doctype, which says whether
+	Church AI Settings blocks the doctype."""
+	blocked = get_blocked_knowledge_doctypes()
 	sources = frappe.get_list(
 		"Flow Knowledge Source",
 		filters={"source_type": "DocType"},
@@ -277,24 +279,41 @@ def get_flow_knowledge_lines() -> list[dict]:
 		limit=0,
 	)
 	lines = [
-		make_line(
-			_("Flow knowledge from church records: {0}").format(source.title),
-			True,
-			"Flow Knowledge Source",
-			_(
-				"Flow copied these records without checking who may read them, and shows them to everyone "
-				"who chats with an agent that has this knowledge. With Auto Sync on, Flow copies them again "
-				"each day, even while AI is off. Delete this source."
-			),
-			state=_(source.reference_doctype),
-			link=f"/app/flow-knowledge-source/{quote(source.name)}",
-		)
+		get_flow_knowledge_line(source, source.reference_doctype in blocked)
 		for source in sources
-		if is_church_doctype(source.reference_doctype)
+		if source.reference_doctype in blocked or is_church_doctype(source.reference_doctype)
 	]
 	return lines or [
 		make_line(_("Flow knowledge from church records"), False, "Flow Knowledge Source", state=_("None"))
 	]
+
+
+def get_flow_knowledge_line(source, is_blocked: bool) -> dict:
+	"""The line of one source. A source on a blocked doctype was made before the block; one that is not
+	blocked saved with a warning."""
+	if is_blocked:
+		note = _(
+			"It reads {0}, which Church AI Settings blocks from Flow knowledge, but it was made before the "
+			"block. Flow copied these records without checking who may read them, and shows them to "
+			"everyone who chats with an agent that has this knowledge. With Auto Sync on, Flow copies "
+			"them again each day, even while AI is off. Delete this source."
+		)
+	else:
+		note = _(
+			"It reads {0}, which Church AI Settings does not block. Everyone who uses an agent with this "
+			"knowledge can read the copied fields of each record that the source reads, whatever their own "
+			"permissions, and Flow sends the text to the embedding model. With Auto Sync on, Flow copies "
+			"the records again each day, even while AI is off. Set Roles on each agent that has this "
+			"knowledge and on each agent that has one of them as a sub-agent, or delete this source."
+		)
+	return make_line(
+		_("Flow knowledge from church records: {0}").format(source.title),
+		True,
+		"Flow Knowledge Source",
+		note.format(_(source.reference_doctype)),
+		state=_("Blocked") if is_blocked else _("Not blocked"),
+		link=f"/app/flow-knowledge-source/{quote(source.name)}",
+	)
 
 
 def get_flow_trigger_lines() -> list[dict]:

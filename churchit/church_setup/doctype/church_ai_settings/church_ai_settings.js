@@ -2,15 +2,35 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 const escape = (text) => frappe.utils.escape_html(text || "");
-const EXPOSURE_ROLES = ["System Manager", "Church Manager"];
+const MANAGER_ROLES = ["System Manager", "Church Manager"];
 const PILL_COLORS = { true: "orange", false: "green", null: "gray" };
 
 frappe.ui.form.on("Church AI Settings", {
 	refresh(frm) {
 		frm.get_field("intro_html").$wrapper.html(intro_html());
-		const may_see_exposure = frappe.user.has_role(EXPOSURE_ROLES);
-		frm.toggle_display("exposure_section", may_see_exposure);
-		if (may_see_exposure) show_exposure(frm);
+		const is_manager = frappe.user.has_role(MANAGER_ROLES);
+		frm.toggle_display(["exposure_section", "use_recommended_list"], is_manager);
+		if (is_manager) show_exposure(frm);
+	},
+
+	use_recommended_list(frm) {
+		if (frm.is_dirty()) {
+			frappe.msgprint(__("Save the settings first, then use the recommended list."));
+			return;
+		}
+		frappe
+			.xcall("churchit.ai.flow_switch.use_recommended_knowledge_doctypes", {}, "POST", {
+				freeze: true,
+			})
+			.then((added) => {
+				frappe.show_alert({
+					message: added
+						? __("DocTypes added to the list: {0}.", [added])
+						: __("The list already has every recommended DocType."),
+					indicator: added ? "green" : "blue",
+				});
+				if (added) frm.reload_doc();
+			});
 	},
 });
 
@@ -84,7 +104,7 @@ function intro_html() {
 			__("Webhooks and Server Scripts that send records to an AI service."),
 			__("Browser extensions and browser assistants that read the desk page."),
 			__(
-				"On a site with Flow, the daily copy of a Flow knowledge source on church records that was added before Churchit refused them. The AI Access panel lists each one. Delete it, or untick its Auto Sync."
+				"On a site with Flow, the daily copy of a Flow knowledge source that already reads church records or a blocked DocType. The AI Access panel lists each one. Delete it, or untick its Auto Sync."
 			),
 		]
 			.map((item) => `<li>${escape(item)}</li>`)

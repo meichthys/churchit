@@ -201,6 +201,8 @@ after_migrate = [
 	"churchit.ai.switch.close_mcp_while_ai_off",
 	# On a Frappe with Flow, the privacy label on Flow Model.
 	"churchit.ai.flow_models.add_privacy_label_field",
+	# A doctype that the migrate deleted leaves Blocked from Flow Knowledge.
+	"churchit.ai.flow_switch.forget_missing_blocked_doctypes",
 ]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
@@ -241,7 +243,9 @@ after_app_install = "churchit.patches.after_install.keep_church_letter_head"
 # Name of the app being uninstalled is passed as an argument
 
 # before_app_uninstall = "churchit.utils.before_app_uninstall"
-# after_app_uninstall = "churchit.utils.after_app_uninstall"
+
+# The app's doctypes leave Blocked from Flow Knowledge.
+after_app_uninstall = "churchit.ai.flow_switch.forget_missing_blocked_doctypes"
 
 # Desk Notifications
 # ------------------

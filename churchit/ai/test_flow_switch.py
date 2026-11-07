@@ -2,7 +2,8 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 """The master AI switch over Flow: no chat, turn, trigger or new knowledge while AI is off, chats
-that ask before changes, no knowledge from church records, and the Flow lines of the exposure panel.
+that ask before changes, no knowledge from a blocked doctype, the recommended blocked list, and the
+Flow lines of the exposure panel.
 
 The tests reach Flow by dotted path, through frappe.call and mock.patch, as the desk and a trigger's
 job do, so no churchit module imports frappe.flow (ai/test_flow.py). A mock stands in for the flow
@@ -16,12 +17,47 @@ from urllib.parse import quote
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.ai import flow_switch
 from churchit.ai.exposure import get_exposure
-from churchit.ai.flow_switch import GUEST_DOCTYPES, PEOPLE_DOCTYPES, is_church_doctype
+from churchit.ai.flow_switch import (
+	FLOW_DATA_DOCTYPES,
+	GUEST_DOCTYPES,
+	PEOPLE_DOCTYPES,
+	PERSON_LINKS,
+	PUBLIC_AND_SETUP_DOCTYPES,
+	SENSITIVE_DOCTYPES,
+	fill_blocked_knowledge_doctypes,
+	forget_missing_blocked_doctypes,
+	get_recommended_knowledge_doctypes,
+	is_church_doctype,
+	use_recommended_knowledge_doctypes,
+)
 from churchit.ai.switch import SETTINGS, has_flow
 from churchit.tests.helpers import RollbackEachTest, ensure_user
 
 AI_OFF = "AI is turned off on this site."
+BLOCKED = "blocks {0} from Flow knowledge"
+# The roadmap's doctypes that must never reach AI.
+NEVER_TO_AI = (
+	"Alms Request",
+	"Authorized Pickup",
+	"Background Check",
+	"Care Request",
+	"Collection",
+	"Counseling Case",
+	"Counseling Session",
+	"Donation",
+	"Function Check-In",
+	"Giving Statement",
+	"Meeting Minutes",
+	"Member Transfer",
+	"Online Donation",
+	"Person Note",
+	"Pickup Restriction",
+	"Pledge",
+	"Prayer Request",
+	"Visitation Log",
+)
 CREATE_SESSION = "frappe.flow.api.create_session"
 OPEN_SESSION = "frappe.flow.api.session"
 RUN = "frappe.flow.api.run"
@@ -36,6 +72,18 @@ CHURCH_MANAGER = "_test_flow_switch_church_manager@example.com"
 
 def set_ai(enabled: int) -> None:
 	frappe.db.set_single_value(SETTINGS, "enabled", enabled)
+
+
+def set_blocked(*doctypes: str) -> None:
+	settings = frappe.get_single(SETTINGS)
+	settings.blocked_knowledge_doctypes = []
+	for doctype in doctypes:
+		settings.append("blocked_knowledge_doctypes", {"document_type": doctype})
+	settings.save()
+
+
+def get_blocked() -> list[str]:
+	return [row.document_type for row in frappe.get_single(SETTINGS).blocked_knowledge_doctypes]
 
 
 def get_messages() -> str:
@@ -280,6 +328,10 @@ class TestFlowKnowledgeFollowsTheSwitch(FlowTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def setUp(self):
+		super().setUp()
+		set_blocked("Contact", "Person", "Prayer Request")
+
 	def test_ai_off_refuses_a_new_knowledge_source(self):
 		set_ai(0)
 		self.assertRaisesRegex(frappe.ValidationError, AI_OFF, self.save_as_manager, self.make_source())
@@ -301,7 +353,7 @@ class TestFlowKnowledgeFollowsTheSwitch(FlowTestCase):
 		pages.auto_sync = 1
 		self.assertRaisesRegex(frappe.ValidationError, AI_OFF, self.save_as_manager, pages)
 
-	def test_ai_on_refuses_a_doctype_source_on_church_records(self):
+	def test_ai_on_refuses_a_doctype_source_on_a_blocked_doctype(self):
 		set_ai(1)
 		for doctype, fields in (
 			("Person", "first_name"),
@@ -310,12 +362,57 @@ class TestFlowKnowledgeFollowsTheSwitch(FlowTestCase):
 		):
 			source = self.make_doctype_source(doctype, fields)
 			self.assertRaisesRegex(
-				frappe.ValidationError, "cannot read church records", self.save_as_manager, source
+				frappe.ValidationError, BLOCKED.format(doctype), self.save_as_manager, source
 			)
-		self.assertTrue(self.save_as_manager(self.make_doctype_source("Web Page", "title")).name)
 
-	def test_an_older_source_on_church_records_can_stop_its_daily_copy(self):
-		"""A source made before the rule may be renamed or lose Auto Sync; no save makes Flow read it."""
+	def test_ai_on_refuses_a_change_to_a_blocked_doctype(self):
+		set_ai(1)
+		source = self.save_as_manager(self.make_doctype_source("Web Page", "title"))
+		source.reference_doctype = "Person"
+		self.assertRaisesRegex(frappe.ValidationError, BLOCKED.format("Person"), self.save_as_manager, source)
+
+	def test_a_church_doctype_that_is_not_blocked_saves_with_a_warning(self):
+		"""Removing Person from the list lets a source on it save, with a warning; while AI is off it is
+		still refused."""
+		set_blocked("Contact", "Prayer Request")
+		set_ai(1)
+		self.assertTrue(self.save_as_manager(self.make_doctype_source("Person", "first_name")).name)
+		warnings = get_warnings()
+		self.assertEqual(len(warnings), 1)
+		self.assertIn("each Person record", warnings[0])
+		self.assertIn("Set Roles on each agent", warnings[0])
+		self.assertIn("A sub-agent works for everyone", warnings[0])
+
+		set_ai(0)
+		frappe.clear_messages()
+		source = self.make_doctype_source("Person", "first_name")
+		self.assertRaisesRegex(frappe.ValidationError, AI_OFF, self.save_as_manager, source)
+		self.assertEqual(get_warnings(), [])
+
+	def test_a_recommended_frappe_child_table_that_is_not_blocked_saves_with_a_warning(self):
+		set_ai(1)
+		self.assertTrue(self.save_as_manager(self.make_doctype_source("Contact Email", "email_id")).name)
+		warnings = get_warnings()
+		self.assertEqual(len(warnings), 1)
+		self.assertIn("each Contact Email record", warnings[0])
+
+	def test_the_recommended_list_blocks_flows_own_chats_and_knowledge(self):
+		"""Other people's chats hold what they read with their own permissions."""
+		set_blocked(*get_recommended_knowledge_doctypes())
+		set_ai(1)
+		for doctype, fields in (("Flow Run", "input"), ("Flow Knowledge Chunk", "content")):
+			source = self.make_doctype_source(doctype, fields)
+			self.assertRaisesRegex(
+				frappe.ValidationError, BLOCKED.format(doctype), self.save_as_manager, source
+			)
+
+	def test_ai_on_saves_a_source_on_public_records_without_a_warning(self):
+		set_ai(1)
+		self.assertTrue(self.save_as_manager(self.make_doctype_source("Web Page", "title")).name)
+		self.assertEqual(get_warnings(), [])
+
+	def test_an_older_source_on_a_blocked_doctype_can_stop_its_daily_copy(self):
+		"""A source made before the block may be renamed or lose Auto Sync; no save makes Flow read it."""
 		set_ai(1)
 		older = {"knowledge_base": self.knowledge, "source_type": "DocType", "auto_sync": 1}
 		name = insert_without_controller(
@@ -331,35 +428,165 @@ class TestFlowKnowledgeFollowsTheSwitch(FlowTestCase):
 		self.save_as_manager(source)
 
 		source.auto_sync = 1
-		self.assertRaisesRegex(
-			frappe.ValidationError, "cannot read church records", self.save_as_manager, source
-		)
+		self.assertRaisesRegex(frappe.ValidationError, BLOCKED.format("Person"), self.save_as_manager, source)
 
 	def test_ai_on_accepts_a_text_source(self):
 		set_ai(1)
 		self.assertEqual(self.save_as_manager(self.make_source()).status, "Pending")
 
-	def test_an_update_saves_an_apps_text_but_never_church_records(self):
-		"""An app's update may add knowledge while AI is off, but never a copy of church records."""
+	def test_an_update_saves_an_apps_text_but_never_a_blocked_doctype(self):
+		"""An app's update may add knowledge while AI is off, but never a copy of a blocked doctype."""
 		set_ai(0)
 		with patch.dict(frappe.flags, {"in_migrate": True}):
 			self.assertTrue(self.make_source().insert(ignore_permissions=True).name)
 			source = self.make_doctype_source("Person", "first_name")
 			self.assertRaisesRegex(
-				frappe.ValidationError, "cannot read church records", source.insert, ignore_permissions=True
+				frappe.ValidationError, BLOCKED.format("Person"), source.insert, ignore_permissions=True
 			)
 
 
 class TestChurchRecords(FrappeTestCase):
 	def test_church_doctypes_are_churchits_and_frappes_people_records(self):
-		for doctype in ("Person", "Family Members", "Counseling Case", "Contact", "Deleted Document"):
+		people = (
+			"Person",
+			"Family Members",
+			"Counseling Case",
+			"Contact",
+			"Contact Email",
+			"Deleted Document",
+			"Notification Log",
+		)
+		for doctype in people:
 			self.assertTrue(is_church_doctype(doctype), doctype)
 		for doctype in ("Web Page", "Note", "_Test No Such Doctype", None):
 			self.assertFalse(is_church_doctype(doctype), doctype)
+		self.assertEqual(is_church_doctype("Flow Run"), has_flow())
 
 	def test_the_named_doctypes_exist(self):
-		for doctype in (*GUEST_DOCTYPES, *PEOPLE_DOCTYPES):
+		named = (
+			*GUEST_DOCTYPES,
+			*PEOPLE_DOCTYPES,
+			*PERSON_LINKS,
+			*PUBLIC_AND_SETUP_DOCTYPES,
+			*SENSITIVE_DOCTYPES,
+		)
+		for doctype in (*named, *NEVER_TO_AI):
 			self.assertTrue(frappe.db.exists("DocType", doctype), doctype)
+		for doctype in FLOW_DATA_DOCTYPES:
+			self.assertEqual(bool(frappe.db.exists("DocType", doctype)), has_flow(), doctype)
+
+
+class TestRecommendedKnowledgeDoctypes(FrappeTestCase):
+	"""The rule works on every Frappe: it reads churchit's doctypes, not Flow's."""
+
+	def test_it_holds_every_doctype_about_people(self):
+		recommended = get_recommended_knowledge_doctypes()
+		about_people = (
+			"Person",
+			"Family",
+			"Family Members",  # a child table that links to Person
+			"Follow-up Action Run",  # links to Follow-up Card, which links to Person
+			"Email Address",  # a child table of Person
+			"Question Answer",  # a child table of Form Response
+			"Connection Card Household Member",
+			"Missionary",
+			"Expense",  # a missionary's support names the missionary
+			"People Import",
+			"Church Email",  # its child table names the people
+			"Group File",
+			"Financial Transaction",  # names its giver through a Dynamic Link
+			"Contact Email",  # a child table of Contact, which Flow can read on its own
+			"Contact Phone",
+			"Event Participants",
+		)
+		for doctype in (*NEVER_TO_AI, *PEOPLE_DOCTYPES, *about_people):
+			self.assertIn(doctype, recommended)
+		self.assertEqual(recommended, sorted(set(recommended)))
+
+	def test_it_holds_flows_chats_and_knowledge_only_on_a_frappe_with_flow(self):
+		"""Without Flow its doctypes are missing, and a row for a missing doctype fails the save."""
+		recommended = get_recommended_knowledge_doctypes()
+		for doctype in FLOW_DATA_DOCTYPES:
+			self.assertEqual(doctype in recommended, has_flow(), doctype)
+
+	def test_it_leaves_out_public_content_and_setup(self):
+		recommended = get_recommended_knowledge_doctypes()
+		for doctype in (*PUBLIC_AND_SETUP_DOCTYPES, SETTINGS, "Function", "Group", "Song", "Web Page"):
+			self.assertNotIn(doctype, recommended)
+
+	def test_it_finds_a_doctype_by_its_links(self):
+		"""A new Link from Church Location to Person brings in Church Location, the doctypes that link to
+		it and their child tables, but not a setup table."""
+		get_field_options = flow_switch.get_field_options
+
+		def with_a_new_link(doctypes, fieldtypes):
+			options = get_field_options(doctypes, fieldtypes)
+			if fieldtypes == ("Link",):
+				options["Church Location"].add("Person")
+			return options
+
+		before = set(get_recommended_knowledge_doctypes())
+		with patch("churchit.ai.flow_switch.get_field_options", with_a_new_link):
+			after = set(get_recommended_knowledge_doctypes())
+		self.assertLessEqual({"Church Asset", "Church Location", "Room", "Room Setup"}, after - before)
+		self.assertNotIn("Room Approver", after)
+
+
+class TestBlockedKnowledgeDoctypes(RollbackEachTest):
+	"""The fill that starts the list and the button that adds the recommended doctypes, without Flow too."""
+
+	def test_the_fill_starts_an_empty_list_and_is_safe_to_run_again(self):
+		set_blocked()
+		fill_blocked_knowledge_doctypes()
+		self.assertEqual(get_blocked(), get_recommended_knowledge_doctypes())
+
+		modified = frappe.get_single(SETTINGS).modified
+		fill_blocked_knowledge_doctypes()
+		self.assertEqual(get_blocked(), get_recommended_knowledge_doctypes())
+		self.assertEqual(frappe.get_single(SETTINGS).modified, modified)
+
+		set_blocked("Note")
+		fill_blocked_knowledge_doctypes()
+		self.assertEqual(get_blocked(), ["Note"])
+
+	def test_a_doctype_that_a_migrate_or_an_uninstall_deletes_leaves_the_list(self):
+		"""Its row would fail every save of the settings, turning AI off included."""
+		method = "churchit.ai.flow_switch.forget_missing_blocked_doctypes"
+		self.assertIn(method, frappe.get_hooks("after_migrate"))
+		self.assertIn(method, frappe.get_hooks("after_app_uninstall"))
+
+		set_blocked("Person")
+		settings = frappe.get_single(SETTINGS)
+		settings.append("blocked_knowledge_doctypes", {"document_type": "_Test Deleted DocType"})
+		settings.flags.ignore_links = True
+		settings.save()
+		self.assertRaises(frappe.LinkValidationError, frappe.get_single(SETTINGS).save)
+
+		forget_missing_blocked_doctypes()
+		frappe.get_single(SETTINGS).save()
+		self.assertEqual(get_blocked(), ["Person"])
+
+	def test_the_button_adds_what_is_missing_and_keeps_every_row(self):
+		"""It works while AI is off, and keeps a doctype that an admin added."""
+		manager = ensure_user(CHURCH_MANAGER, "Flow Church Manager", roles=("Church Manager",))
+		set_ai(0)
+		set_blocked("Person", "Note")
+		recommended = get_recommended_knowledge_doctypes()
+
+		frappe.set_user(manager)
+		self.assertEqual(use_recommended_knowledge_doctypes(), len(recommended) - 1)
+		self.assertEqual(sorted(get_blocked()), sorted({*recommended, "Note"}))
+		self.assertEqual(use_recommended_knowledge_doctypes(), 0)
+
+	def test_the_button_is_for_system_and_church_managers(self):
+		staff = ensure_user("_test_flow_switch_staff@example.com", "Flow Staff", roles=("Church Staff",))
+		member = ensure_user("_test_flow_switch_member@example.com", "Flow Member", roles=())
+		set_blocked()
+		for user in (staff, member, "Guest"):
+			frappe.set_user(user)
+			self.assertRaises(frappe.PermissionError, use_recommended_knowledge_doctypes)
+		frappe.set_user("Administrator")
+		self.assertEqual(get_blocked(), [])
 
 
 class TestFlowExposure(RollbackEachTest):
@@ -401,21 +628,27 @@ class TestFlowExposureWithFlow(FlowTestCase):
 		self.assertEqual(int(line["state"].split()[0]), int(before.split()[0]) + 1)
 		self.assertIn("Flow+User", line["link"])
 
-	def test_a_system_manager_sees_older_knowledge_from_church_records(self):
+	def test_a_system_manager_sees_which_knowledge_sources_are_blocked_and_which_not(self):
+		"""Blocked: made before the block, with a blocked Note too. Not blocked: saved with the warning."""
+		set_blocked("Person", "Note")
 		knowledge = insert_without_controller("Flow Knowledge Base", "_Test Flow Switch Old Knowledge")
-		older = {"knowledge_base": knowledge, "source_type": "DocType", "content_fields": "first_name"}
-		person = insert_without_controller(
-			"Flow Knowledge Source", "_Test Older Person Source", reference_doctype="Person", **older
-		)
-		insert_without_controller(
-			"Flow Knowledge Source", "_Test Older Page Source", reference_doctype="Web Page", **older
-		)
+		older = {"knowledge_base": knowledge, "source_type": "DocType", "content_fields": "title"}
+		sources = {
+			doctype: insert_without_controller(
+				"Flow Knowledge Source", f"_Test {doctype} Source", reference_doctype=doctype, **older
+			)
+			for doctype in ("Person", "Note", "Prayer Request", "Web Page")
+		}
 
 		lines = self.lines(self.manager)
-		line = lines["Flow knowledge from church records: _Test Older Person Source"]
-		self.assertTrue(line["open"])
-		self.assertEqual(line["link"], f"/app/flow-knowledge-source/{quote(person)}")
-		self.assertNotIn("_Test Older Page Source", frappe.as_json(lines))
+		for doctype, state in (("Person", "Blocked"), ("Note", "Blocked"), ("Prayer Request", "Not blocked")):
+			line = lines[f"Flow knowledge from church records: _Test {doctype} Source"]
+			self.assertEqual((line["state"], line["open"]), (state, True), doctype)
+			self.assertIn(f"It reads {doctype}", line["note"])
+			self.assertEqual(line["link"], f"/app/flow-knowledge-source/{quote(sources[doctype])}")
+		not_blocked = lines["Flow knowledge from church records: _Test Prayer Request Source"]
+		self.assertIn("as a sub-agent", not_blocked["note"])
+		self.assertNotIn("_Test Web Page Source", frappe.as_json(lines))
 
 	def test_a_system_manager_sees_how_many_triggers_are_enabled(self):
 		def state() -> str:

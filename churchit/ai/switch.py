@@ -46,13 +46,13 @@ def has_flow() -> bool:
 
 
 def extend_bootinfo(bootinfo) -> None:
-	"""Tell the desk whether AI is on and Flow can run churchit's agents.
+	"""Tell the desk whether AI is on, Flow is present and Flow can run churchit's agents.
 
-	frappe.boot.churchit.ai = {"on": bool, "flow_ready": bool}. The Flow module loads only on a
-	Frappe that ships Flow.
+	frappe.boot.churchit.ai = {"on": bool, "flow": bool, "flow_ready": bool}. The Flow module loads
+	only on a Frappe that ships Flow.
 	"""
-	ai = {"on": is_ai_on(), "flow_ready": False}
-	if has_flow():
+	ai = {"on": is_ai_on(), "flow": has_flow(), "flow_ready": False}
+	if ai["flow"]:
 		from churchit.ai import flow
 
 		ai["flow_ready"] = flow.is_ready()

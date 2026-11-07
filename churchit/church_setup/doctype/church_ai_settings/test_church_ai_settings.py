@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Who may turn AI on, the acknowledgment, and MCP closing when AI turns off."""
+"""Who may turn AI on or unblock a doctype, the acknowledgment, and MCP closing when AI turns off."""
 
 import frappe
 from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
@@ -26,6 +26,16 @@ def turn_off():
 	settings.enabled = 0
 	settings.save()
 	return settings
+
+
+def make_branch_manager() -> str:
+	"""A Church Manager of one branch church."""
+	_root, branch, _other = make_two_churches()
+	ensure_user(BRANCH_MANAGER, "AI Branch Manager", roles=("Church Manager",))
+	frappe.get_doc(
+		{"doctype": "User Permission", "user": BRANCH_MANAGER, "allow": "Church", "for_value": branch}
+	).insert(ignore_permissions=True)
+	return BRANCH_MANAGER
 
 
 class TestChurchAISettings(RollbackEachTest):
@@ -87,13 +97,7 @@ class TestChurchAISettings(RollbackEachTest):
 		)
 
 	def test_a_branch_church_manager_cannot_turn_ai_on_but_can_turn_it_off(self):
-		_root, branch, _other = make_two_churches()
-		ensure_user(BRANCH_MANAGER, "AI Branch Manager", roles=("Church Manager",))
-		frappe.get_doc(
-			{"doctype": "User Permission", "user": BRANCH_MANAGER, "allow": "Church", "for_value": branch}
-		).insert(ignore_permissions=True)
-
-		frappe.set_user(BRANCH_MANAGER)
+		frappe.set_user(make_branch_manager())
 		self.assertRaises(frappe.PermissionError, turn_on)
 		frappe.set_user("Administrator")
 
@@ -111,3 +115,17 @@ class TestChurchAISettings(RollbackEachTest):
 		frappe.set_user(CHURCH_MANAGER)
 		turn_on()
 		self.assertTrue(is_ai_on())
+
+	def test_a_branch_church_manager_can_block_a_doctype_but_not_unblock_one(self):
+		"""Unblocking loosens Flow knowledge for every church, as turning AI on does."""
+		settings = frappe.get_single(SETTINGS)
+		settings.blocked_knowledge_doctypes = []
+		settings.append("blocked_knowledge_doctypes", {"document_type": "Person"})
+		settings.save()
+
+		frappe.set_user(make_branch_manager())
+		settings = frappe.get_single(SETTINGS)
+		settings.append("blocked_knowledge_doctypes", {"document_type": "Note"})
+		settings.save()
+		settings.blocked_knowledge_doctypes = settings.blocked_knowledge_doctypes[1:]
+		self.assertRaisesRegex(frappe.PermissionError, "remove a DocType", settings.save)
