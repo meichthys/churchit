@@ -5,6 +5,8 @@
 and the lines of the exposure panel. Tests that need Flow skip on a Frappe without it (Frappe 16).
 """
 
+import json
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote
@@ -13,6 +15,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now_datetime
 
+import churchit
 from churchit.ai.flow_models import (
 	BY_FIELD,
 	DEFAULT_LABEL,
@@ -23,12 +26,17 @@ from churchit.ai.flow_models import (
 	add_privacy_label_field,
 	stamp_privacy_label,
 )
+from churchit.ai.flow_switch import GUEST_DOCTYPES, PEOPLE_DOCTYPES
 from churchit.ai.switch import get_exposure, get_flow_model_lines, has_flow
 from churchit.tests.helpers import RollbackEachTest, ensure_user
 
 MANAGER = "_test_flow_models_system_manager@example.com"
 OTHER_MANAGER = "_test_flow_models_other_manager@example.com"
 CHURCH_MANAGER = "_test_flow_models_church_manager@example.com"
+FOUNDATIONS_MANUAL = (
+	Path(churchit.__file__).parent
+	/ "church_foundations/workspace/manual:_foundations/manual:_foundations.json"
+)
 
 
 class TestLabelFieldOnlyWhereFlowIs(FrappeTestCase):
@@ -59,6 +67,18 @@ class TestLabelFieldOnlyWhereFlowIs(FrappeTestCase):
 		without_field = SimpleNamespace(meta=SimpleNamespace(has_field=lambda fieldname: False))
 
 		self.assertIsNone(stamp_privacy_label(without_field))
+
+	def test_the_manual_explains_every_label(self):
+		text = " ".join(get_manual_blocks().values())
+
+		for label in PRIVACY_LABELS:
+			self.assertIn(f"<b>{label}</b>", text)
+
+	def test_the_manual_names_every_doctype_that_the_flow_hooks_check(self):
+		blocks = get_manual_blocks()
+
+		self.assertIn(join_names(GUEST_DOCTYPES, "or"), blocks["AiFlow000006"])
+		self.assertIn(join_names(PEOPLE_DOCTYPES, "and"), blocks["AiKnow0000001"])
 
 	def test_the_panel_lists_no_model_without_flow(self):
 		with patch("churchit.ai.switch.has_flow", return_value=False):
@@ -278,3 +298,14 @@ class TestPanelLines(FlowModelTestCase):
 
 		self.assertEqual(lines["Flow models"]["state"], "Ask a System Manager")
 		self.assertNotIn("_Test Panel Hidden", frappe.as_json(lines))
+
+
+def get_manual_blocks() -> dict[str, str]:
+	"""The text of each block of Manual: Foundations, by block id."""
+	blocks = json.loads(json.loads(FOUNDATIONS_MANUAL.read_text())["content"])
+	return {block["id"]: block["data"]["text"] for block in blocks}
+
+
+def join_names(names: tuple[str, ...], conjunction: str) -> str:
+	"""'A, B and C': the way the manual lists doctypes."""
+	return f"{', '.join(names[:-1])} {conjunction} {names[-1]}"
