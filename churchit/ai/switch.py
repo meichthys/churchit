@@ -173,6 +173,7 @@ def get_exposure() -> list[dict]:
 		*(get_connected_app_lines() if is_system_manager else [ask_line(_("Connected apps"))]),
 		get_api_key_line() if is_system_manager else ask_line(_("API keys")),
 		*get_flow_lines(is_system_manager),
+		*get_flow_model_lines(is_system_manager),
 		get_builder_line(),
 		get_assistant_core_line(),
 		get_raven_line(),
@@ -453,6 +454,50 @@ def get_flow_trigger_lines() -> list[dict]:
 					link=f"/app/flow-trigger/{quote(trigger.name)}",
 				)
 			)
+	return lines
+
+
+def get_flow_model_lines(is_system_manager: bool) -> list[dict]:
+	"""One line per enabled Flow Model with its Privacy Label, open for Unknown and May train.
+
+	Nothing on a Frappe without Flow. Flow lets only System Managers and Flow Users read a model.
+	"""
+	# flow_models imports this module, so load it here.
+	from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS
+
+	if not has_flow():
+		return []
+	if not is_system_manager:
+		return [ask_line(_("Flow models"))]
+
+	fields = ["name", "embedding"]
+	if frappe.get_meta("Flow Model").has_field(LABEL_FIELD):  # the first migrate adds it
+		fields.append(LABEL_FIELD)
+
+	models = frappe.get_list("Flow Model", filters={"enabled": 1}, fields=fields, order_by="name", limit=0)
+	if not models:
+		return [make_line(_("Flow models"), False, "Flow Model", state=_("None enabled"))]
+
+	notes = {
+		DEFAULT_LABEL: _(
+			"Nobody has said who sees what this model is sent. Set its Privacy Label from the provider's terms."
+		),
+		"May train": _("The provider may train on what this model is sent. Do not use it with church data."),
+	}
+	lines = []
+	for model in models:
+		label = model.get(LABEL_FIELD) or DEFAULT_LABEL
+		surface = _("Flow embedding model: {0}") if model.embedding else _("Flow model: {0}")
+		lines.append(
+			make_line(
+				surface.format(model.name),
+				label in UNSAFE_LABELS,
+				"Flow Model",
+				notes.get(label, ""),
+				state=_(label),
+				link=f"/app/flow-model/{quote(model.name)}",
+			)
+		)
 	return lines
 
 
