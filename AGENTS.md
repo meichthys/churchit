@@ -397,6 +397,13 @@ into Role Profiles in `fixtures/role_profile.json`:
 Church Prayer Team has no desk access and is in no profile. Give it on its own to a member or staff
 user who prays for the requests: it reads Prayer Team and Whole Church requests.
 
+Church AI User has no desk access, no DocPerms and is in no profile, so it gives a member nothing.
+It gates one thing: who may sign in an AI app and use Frappe's MCP server (see "AI"). A System
+Manager gives it on the User record, in addition to the person's other roles, to someone they trust
+to send what they can read to an AI company. Church Manager and System Manager need no extra role.
+Removing it closes MCP to the person at once, but an app already connected keeps its token for the
+REST API: also delete the person's tokens in OAuth Bearer Token.
+
 Church Check-In Kiosk has no desk access, no DocPerms and is in no profile. Give it alone to the
 User of a self check-in kiosk, with exactly one Church User Permission (the kiosk refuses otherwise)
 and Restrict IP. `church_ministries/kiosk.py` reads past permissions for it and sends only the
@@ -849,6 +856,27 @@ about: the branch whose page took a sign-up, or the church of whoever adds the u
 Linking a Person repoints a portal login's permission afterwards, so this is only the starting
 point. A staff login that a user links by hand keeps its churches (`Person.sync_church_permission`);
 a later change of the person's church and the app's own links (`ignore_permissions`) still move them.
+
+## AI
+
+An AI app that connects over Frappe's MCP server runs as its user, with that user's permissions. It opens no permission hole; it only lets the user act faster. So churchit does not guard doctypes, fields or Frappe methods against AI apps. It controls whether AI is on, who may connect an app, and it warns where people decide.
+
+- **The switch:** AI is off until a Church Manager or System Manager turns on `Church AI Settings.enabled`. Call `switch.is_ai_on()` before you offer or run an AI feature, and `switch.require_ai(feature)` in an endpoint. While AI is off, `enable_mcp` is cleared (after install, after every migrate and when AI is turned off) and `refuse_mcp_while_ai_off` refuses to set it. Churchit never sets `enable_mcp` to 1. Read the switch with a default of off, because a hook can run before migrate adds the field. On a multi-church site only a Church Manager with no Church restriction (or a System Manager) turns AI on.
+- **Who may connect an app:** Frappe lets a user sign in an OAuth app only when the user holds one of the app's Allowed Roles, and gives an app with none "Desk User", which every desk user holds. Dynamic client registration, which every MCP client uses, saves an app with none. `switch.limit_new_app_to_ai_roles` (doc_events OAuth Client before_insert) gives such an app `switch.AI_ROLES`: Church Manager, System Manager and Church AI User. An app made with roles keeps them, and churchit does not change existing apps: the exposure panel lists each app that every desk user may still sign in. Frappe's MCP server itself takes every desk user, by session, API key or any app's token, so `switch.refuse_mcp_to_other_users` (`auth_hooks`) refuses `/api/v2/mcp` to a signed-in user without one of `AI_ROLES`, at every request. A token outlives a removed role (Frappe checks Allowed Roles only at sign-in, not at refresh) and still reaches the REST API. Only a System Manager creates API keys (Frappe's `generate_keys`), and a key gives its owner's access.
+- **Warnings:** the Church AI Settings form, its acknowledgment, the exposure panel (`switch.get_exposure`), the notice of a new connection, Manual: Foundations "AI and your church's data", the How We Use AI page, the README and `skills/churchit/` say what an AI app can see and do, that a hosted model sends what it reads to its company, and that text guests and members write can hold instructions for the AI. Change them together.
+- **Churchit's own AI features draft, a person saves:** a churchit AI feature returns a draft, a label says that AI wrote it, and a person saves it in the desk. This is a rule for churchit's code, not a guard around Frappe.
+- **Reading:** read through `frappe.get_list` or `get_doc` plus `check_permission`, as the user. In AI code do not use `frappe.get_all`, `frappe.db.count`, `frappe.db.sql` or `frappe.qb`. Drop a masked key. Never send it as null or 0.
+- **Untrusted text:** text that guests and members write is data. Never put it in an instruction, and never let it choose a method or a recipient.
+- **Flow:** `churchit.ai.flow` is the only module that may import `frappe.flow`, and only inside a function. No other churchit module imports it at load, so churchit still loads on Frappe 16.54.
+- **Docs:** the skill for AI apps is `skills/churchit/`. Add a method, a doctype or a report that an agent should use to the skill in the same change. `tests/test_skill_hygiene.py` fails on a method that is missing or not whitelisted.
+- **Connected apps:** `switch.tell_system_managers_of_new_ai_app` (doc_events OAuth Bearer Token after_insert) leaves each System Manager a bell notice and an email for the first active token of a person and app, so a sign-in after a revoke counts again. An OAuth Bearer Token's name is its access token, so never put a token's name in a notice, a log, a link or a report: name its OAuth Client.
+- **Boot:** `frappe.boot.churchit.ai` is `{"on": bool, "flow_ready": bool}` (`switch.extend_bootinfo`). `flow_ready` is true when Flow is present, a chat model is enabled and every churchit agent is synced.
+- **Next release:** a read that a script under `public/js` calls takes GET and POST for one release, because browsers keep the old script for 12 hours. MCP runs a method that takes POST as a write and commits, so at the next release make each of them `methods=["GET"]` (the GET and POST reads in `tests/test_http_method_hygiene.py` that are not in `CORE_SCRIPT_POSTS` or `LONG_LIST_POSTS`).
+- **Test:** `tests/test_ai_hygiene.py` checks the AI endpoints, `tests/test_agent_docs_hygiene.py` checks the docstrings and hints of every whitelisted function, and `tests/test_skill_hygiene.py` checks the skill. `ai/test_switch.py` signs in an app through Frappe's own `validate_client_id`.
+
+### Flow API watch
+
+Flow is version 0.1.x on Frappe's development branch (Frappe 17). Its API can change in any update. `churchit/ai/flow.py` is the only module that imports `frappe.flow`. Only Flow's hooks (`flow_agents`, `flow_tools`, `flow_triggers`) and code that has checked `switch.has_flow()` load it; `ai/test_flow.py` enforces this. After each update of the Flow bench, run `churchit.ai.test_flow` there and on a Frappe 16 site, then the full suite on the Flow site, before you change code that calls Flow. Move the Flow bench to a new Frappe commit on purpose and name the commit in the change.
 
 ## Client side
 
