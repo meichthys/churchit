@@ -23,13 +23,19 @@ function intro_html() {
 		)}</div></div>
 		${section(__("What turning AI on does"), [
 			__(
-				"Turning AI on opens nothing by itself. After that, a System Manager can turn on Frappe's MCP server in System Settings, on the AI Agents tab. MCP is how an AI app, such as Claude or ChatGPT, connects to this site."
+				"Turning AI on does not open MCP by itself. After that, a System Manager can turn on Frappe's MCP server in System Settings, on the AI Agents tab. MCP is how an AI app, such as Claude or ChatGPT, connects to this site."
 			),
 			__(
 				"Only a Church Manager, a System Manager or a person with the Church AI User role can connect an AI app. A System Manager gives that role on the person's User record. Give it only to people you trust to send what they can read to an AI company."
 			),
 			__(
 				"Removing the role stops the person's AI app from using MCP at once. An app that is already connected keeps working with the REST API until you delete the person's tokens."
+			),
+			__(
+				"On a site with Flow, Frappe's AI agents, turning AI on starts Flow at once. People with the Flow User role, and System Managers, can chat with AI agents in the desk. A chat works with the person's own permissions and sends what it reads to the AI model that a System Manager added in Flow. Each Flow trigger that is on can start chats, and those chats approve their own changes."
+			),
+			__(
+				"Frappe's general assistant agent, frappe/Flow, can add, change and delete every record that the person can. To stop that, clear Enabled on it in the Flow Agent list right after you turn AI on. While AI is off, a System Manager cannot open an agent."
 			),
 		])}
 		${section(__("What a connected AI app can do"), [
@@ -57,6 +63,9 @@ function intro_html() {
 			__(
 				"Turning AI off closes MCP. It does not sign out the AI apps that are already connected: their tokens still work with the REST API until you revoke them. It does not stop API keys either."
 			),
+			__(
+				"On a site with Flow, turning AI off also stops new Flow chats and Flow triggers, but not a reply that Flow is writing at that moment, and after that only Administrator can stop the reply. So to stop a reply that changes records, first clear Enabled on its agent in the Flow Agent list, because Flow checks it before the agent uses each tool. Then turn AI off. People can still read their earlier chats, and Administrator can still continue them."
+			),
 		])}
 		<p><a href="/app/oauth-bearer-token" style="text-decoration: underline">${escape(
 			__("Revoke a connected app in the OAuth Bearer Token list")
@@ -74,6 +83,9 @@ function intro_html() {
 			),
 			__("Webhooks and Server Scripts that send records to an AI service."),
 			__("Browser extensions and browser assistants that read the desk page."),
+			__(
+				"On a site with Flow, the daily copy of a Flow knowledge source on church records that was added before Churchit refused them. The AI Access panel lists each one. Delete it, or untick its Auto Sync."
+			),
 		]
 			.map((item) => `<li>${escape(item)}</li>`)
 			.join("")}</ul></div>`;

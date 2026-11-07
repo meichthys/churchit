@@ -124,9 +124,13 @@ class TestSwitch(SwitchTestCase):
 		set_ai(0)
 		self.assertFalse(is_ai_on())
 
-	def test_require_ai_refuses_while_ai_is_off(self):
+	def test_require_ai_refuses_while_ai_is_off_and_says_why(self):
 		set_ai(0)
+		frappe.clear_messages()
 		self.assertRaises(frappe.PermissionError, require_ai, "test")
+		messages = [message.get("message") for message in frappe.local.message_log]
+		self.assertIn("AI is turned off on this site.", messages)
+
 		set_ai(1)
 		require_ai("test")
 

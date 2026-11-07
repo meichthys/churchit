@@ -382,7 +382,7 @@ doc_events = {
 		"before_insert": "churchit.ai.flow_switch.check_new_session",
 	},
 	"Flow Trigger": {
-		"validate": "churchit.ai.flow_switch.check_trigger",
+		"before_validate": "churchit.ai.flow_switch.check_trigger",
 	},
 	"Flow Knowledge Source": {
 		"validate": "churchit.ai.flow_switch.check_knowledge_source",

@@ -37,9 +37,10 @@ def is_ai_on() -> bool:
 
 
 def require_ai(feature: str | None = None) -> None:
-	"""Raise PermissionError while AI is off. Every churchit AI method and job asks this first."""
+	"""Refuse with PermissionError while AI is off, and tell the person why. Every churchit AI method
+	and job asks this first."""
 	if not is_ai_on():
-		raise frappe.PermissionError(_("AI is turned off on this site."))
+		frappe.throw(_("AI is turned off on this site."), frappe.PermissionError, title=_("AI Is Off"))
 
 
 def has_flow() -> bool:
@@ -171,6 +172,7 @@ def get_exposure() -> list[dict]:
 		*(get_open_app_lines() if is_system_manager else [ask_line(_("Apps open to every desk user"))]),
 		*(get_connected_app_lines() if is_system_manager else [ask_line(_("Connected apps"))]),
 		get_api_key_line() if is_system_manager else ask_line(_("API keys")),
+		*get_flow_lines(is_system_manager),
 		get_builder_line(),
 		get_assistant_core_line(),
 		get_raven_line(),
@@ -313,6 +315,145 @@ def get_api_key_line() -> dict:
 		),
 		state=count_people(len(users)),
 	)
+
+
+def get_flow_lines(is_system_manager: bool) -> list[dict]:
+	"""Flow, Frappe's AI agents: whether this Frappe has it, who may chat, how a chat asks, and what
+	reads or starts by itself. Flow lets only System Managers read knowledge sources and triggers."""
+	if not has_flow():
+		return [
+			make_line(
+				_("Flow"),
+				False,
+				note=_("Frappe's AI agents come with a later version of Frappe."),
+				state=_("Not available"),
+			)
+		]
+	return [
+		make_line(
+			_("Flow"),
+			is_ai_on(),
+			SETTINGS,
+			_(
+				"Frappe's AI agents in the desk. A chat works with the person's own permissions. While AI "
+				"is off, Flow refuses new chats, new messages except Administrator's, triggers and new "
+				"knowledge sources. It still shows its chat button to Flow Users, and then says that no "
+				"agent is enabled."
+			),
+		),
+		get_flow_people_line() if is_system_manager else ask_line(_("People who may use Flow")),
+		make_line(
+			_("Flow chats ask before changes"),
+			False,
+			note=_(
+				"A new chat starts in Ask, so Flow asks the person before each change. The person can "
+				"switch a chat to Auto, where a second AI model approves changes, or to Auto-approve."
+			),
+			state=_("Ask"),
+		),
+		*(
+			get_flow_knowledge_lines()
+			if is_system_manager
+			else [ask_line(_("Flow knowledge from church records"))]
+		),
+		*(get_flow_trigger_lines() if is_system_manager else [ask_line(_("Flow triggers"))]),
+	]
+
+
+def get_flow_people_line() -> dict:
+	"""How many enabled desk users may chat with Flow: Flow Users and System Managers."""
+	roles = ("Flow User", "System Manager")
+	users = frappe.get_list(
+		"User",
+		filters=[["enabled", "=", 1], ["user_type", "=", "System User"], ["Has Role", "role", "in", roles]],
+		pluck="name",
+		distinct=True,
+		limit=0,
+	)
+	return make_line(
+		_("People who may use Flow"),
+		bool(users),
+		"User",
+		_(
+			"Flow Users and System Managers. A System Manager gives the Flow User role on the person's "
+			"User record."
+		),
+		state=count_people(len(users)),
+		link="/app/user?"
+		+ urlencode({"enabled": 1, "user_type": "System User", "role": json.dumps(["in", roles])}),
+	)
+
+
+def get_flow_knowledge_lines() -> list[dict]:
+	"""One line per Flow knowledge source on church records, made before churchit refused them."""
+	from churchit.ai.flow_switch import is_church_doctype  # flow_switch imports this module
+
+	sources = frappe.get_list(
+		"Flow Knowledge Source",
+		filters={"source_type": "DocType"},
+		fields=["name", "title", "reference_doctype"],
+		limit=0,
+	)
+	lines = [
+		make_line(
+			_("Flow knowledge from church records: {0}").format(source.title),
+			True,
+			"Flow Knowledge Source",
+			_(
+				"Flow copied these records without checking who may read them, and shows them to everyone "
+				"who chats with an agent that has this knowledge. With Auto Sync on, Flow copies them again "
+				"each day, even while AI is off. Delete this source."
+			),
+			state=_(source.reference_doctype),
+			link=f"/app/flow-knowledge-source/{quote(source.name)}",
+		)
+		for source in sources
+		if is_church_doctype(source.reference_doctype)
+	]
+	return lines or [
+		make_line(_("Flow knowledge from church records"), False, "Flow Knowledge Source", state=_("None"))
+	]
+
+
+def get_flow_trigger_lines() -> list[dict]:
+	"""How many Flow Triggers are enabled, an app's included, and one line per enabled trigger that
+	needs a check. An update and Flow's own sync save an app's trigger without the warning."""
+	from churchit.ai.flow_switch import get_trigger_warnings  # flow_switch imports this module
+
+	triggers = frappe.get_list(
+		"Flow Trigger",
+		filters={"enabled": 1},
+		fields=["name", "title", "target_doctype", "run_as", "owner"],
+		order_by="title",
+		limit=0,
+	)
+	lines = [
+		make_line(
+			_("Flow triggers"),
+			bool(triggers),
+			"Flow Trigger",
+			_(
+				"A trigger starts a chat by itself when a record changes or on a schedule, and the chat "
+				"approves every change by itself. While AI is off, an enabled trigger, even one that an "
+				"app turned on, logs an error instead of starting a chat. It starts chats again as soon as "
+				"AI is on."
+			),
+			state=_("{0} enabled").format(len(triggers)) if triggers else _("None"),
+			link="/app/flow-trigger?enabled=1",
+		)
+	]
+	for trigger in triggers:
+		if warnings := get_trigger_warnings(trigger):
+			lines.append(
+				make_line(
+					_("Flow trigger to check: {0}").format(trigger.title),
+					True,
+					"Flow Trigger",
+					" ".join(warnings),
+					link=f"/app/flow-trigger/{quote(trigger.name)}",
+				)
+			)
+	return lines
 
 
 def get_builder_line() -> dict:
