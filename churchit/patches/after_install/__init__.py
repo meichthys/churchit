@@ -13,6 +13,7 @@ import frappe
 from frappe.permissions import add_permission
 from frappe.utils.global_search import rebuild_for_doctype
 
+from churchit.ai.flow_models import add_privacy_label_field
 from churchit.ai.policy import create_how_we_use_ai_page
 from churchit.ai.switch import close_mcp_and_tell_system_managers
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
@@ -147,10 +148,11 @@ def execute():
 	# reads only in the setup wizard, and this site may have run it before churchit was installed.
 	add_to_global_search(get_searched_doctypes())
 
-	# AI starts off: Frappe's MCP server closed (System Managers hear why), and the starter
-	# "How We Use AI" page for the church to edit.
+	# AI starts off: Frappe's MCP server closed (System Managers hear why), the starter
+	# "How We Use AI" page for the church to edit and, with Flow, a privacy label on each model.
 	close_mcp_and_tell_system_managers()
 	create_how_we_use_ai_page()
+	add_privacy_label_field()
 
 	# Cleanup
 	_clean_gender_options()

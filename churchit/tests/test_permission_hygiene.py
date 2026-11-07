@@ -41,7 +41,12 @@ from churchit.tests.test_doc_method_hygiene import (
 NOTE = "Person Note"
 
 # Doctypes that carry one of the two permission hooks on purpose, and why the other is not needed.
-ONE_SIDED_PERMISSION_HOOKS: dict[str, str] = {}
+ONE_SIDED_PERMISSION_HOOKS: dict[str, str] = {
+	"Flow Session": (
+		"refuses only starting or continuing a chat while AI is off; who lists and reads past chats "
+		"stays Flow's own rule"
+	),
+}
 
 # Functions that read Person Note past its hooks, and why nobody sees a note through them.
 RAW_NOTE_READS = {

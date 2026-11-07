@@ -199,6 +199,8 @@ after_migrate = [
 	"churchit.church_summary.home.add_return_to_framework_dock",
 	# A Frappe patch can turn MCP on directly; keep it closed while AI is off.
 	"churchit.ai.switch.close_mcp_while_ai_off",
+	# On a Frappe with Flow, the privacy label on Flow Model.
+	"churchit.ai.flow_models.add_privacy_label_field",
 ]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
@@ -278,6 +280,9 @@ has_permission = {
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
+	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
+	"Flow Agent": "churchit.ai.flow_switch.has_agent_permission",
+	"Flow Session": "churchit.ai.flow_switch.has_session_permission",
 }
 
 # A portal member lists only their own Person, a Note Category limits who reads its
@@ -292,6 +297,7 @@ permission_query_conditions = {
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
+	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
 }
 
 # A person's notes, visits, care requests, life events, transfers and connection cards show on their
@@ -369,6 +375,20 @@ doc_events = {
 	},
 	"System Settings": {
 		"validate": "churchit.ai.switch.refuse_mcp_while_ai_off",
+	},
+	# Flow, Frappe's AI agents: the master switch and its rules (churchit.ai.flow_switch,
+	# churchit.ai.flow_models). A Frappe without Flow never runs them.
+	"Flow Session": {
+		"before_insert": "churchit.ai.flow_switch.check_new_session",
+	},
+	"Flow Trigger": {
+		"validate": "churchit.ai.flow_switch.check_trigger",
+	},
+	"Flow Knowledge Source": {
+		"validate": "churchit.ai.flow_switch.check_knowledge_source",
+	},
+	"Flow Model": {
+		"validate": "churchit.ai.flow_models.stamp_privacy_label",
 	},
 	"OAuth Client": {
 		"before_insert": "churchit.ai.switch.limit_new_app_to_ai_roles",
