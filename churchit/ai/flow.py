@@ -15,6 +15,16 @@ def agents() -> list:
 	return []
 
 
+def sync_agents() -> None:
+	"""Stub for A3.9: write churchit's agents now, as Flow does after migrate."""
+	raise NotImplementedError
+
+
+def sync_manual_knowledge() -> None:
+	"""Stub for A3.10: bring the "Churchit Manual" knowledge base up to date with the manuals."""
+	raise NotImplementedError
+
+
 def is_ready() -> bool:
 	"""True when Flow can run churchit's agents: a chat model is enabled and every agent is synced.
 

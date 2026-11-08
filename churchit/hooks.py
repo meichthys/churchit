@@ -80,6 +80,7 @@ app_include_js = [
 	"/assets/churchit/js/questions.js",
 	"/assets/churchit/js/merge_choices.js",
 	"/assets/churchit/js/pwa.js",
+	"/assets/churchit/js/ai_drafts.js",
 ]
 
 # include js, css files in header of web template
@@ -203,6 +204,8 @@ after_migrate = [
 	"churchit.ai.flow_models.add_privacy_label_field",
 	# A doctype that the migrate deleted leaves Blocked from Flow Knowledge.
 	"churchit.ai.flow_switch.forget_missing_blocked_doctypes",
+	# With AI on and a Flow embedding model, the manuals become the Church Office agent's knowledge.
+	"churchit.ai.manual_knowledge.queue_sync",
 ]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
@@ -393,6 +396,7 @@ doc_events = {
 	},
 	"Flow Model": {
 		"validate": "churchit.ai.flow_models.stamp_privacy_label",
+		"on_update": "churchit.ai.flow_models.sync_agents_on_model",
 	},
 	"OAuth Client": {
 		"before_insert": "churchit.ai.switch.limit_new_app_to_ai_roles",

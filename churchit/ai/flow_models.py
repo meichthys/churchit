@@ -78,3 +78,7 @@ def stamp_privacy_label(doc, method=None) -> None:
 		doc.update({BY_FIELD: frappe.session.user, ON_FIELD: now_datetime()})
 	else:
 		doc.update({field: before.get(field) if before else None for field in (BY_FIELD, ON_FIELD)})
+
+
+def sync_agents_on_model(doc, method=None) -> None:
+	"""Stub for A3.9 (doc_events Flow Model on_update): sync churchit's agents once a chat model exists."""
