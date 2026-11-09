@@ -98,7 +98,11 @@ def get_context(context):
 	chosen_fund = frappe.form_dict.get("fund") or settings.default_fund
 	selected_missionary = frappe.form_dict.get("missionary")
 	if selected_missionary and context.is_payments_on:
-		missionary_fund = frappe.get_cached_value("Fund", {"fund": f"Missionary: {frappe.get_cached_value('Missionary', selected_missionary, 'title')}"}, "name")
+		missionary_fund = frappe.get_cached_value(
+			"Fund",
+			{"fund": f"Missionary: {frappe.get_cached_value('Missionary', selected_missionary, 'title')}"},
+			"name",
+		)
 		if missionary_fund:
 			chosen_fund = missionary_fund
 
@@ -151,7 +155,11 @@ def start_donation(
 
 	# Auto-select missionary fund if missionary is specified
 	if missionary:
-		missionary_fund = frappe.get_cached_value("Fund", {"fund": f"Missionary: {frappe.get_cached_value('Missionary', missionary, 'title')}"}, "name")
+		missionary_fund = frappe.get_cached_value(
+			"Fund",
+			{"fund": f"Missionary: {frappe.get_cached_value('Missionary', missionary, 'title')}"},
+			"name",
+		)
 		if missionary_fund:
 			fund = missionary_fund
 

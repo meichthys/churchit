@@ -20,7 +20,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_finances.doctype.collection.collection import add_single_donation
 from churchit.church_finances.doctype.donation.donation import Donation
-from churchit.church_finances.doctype.fund.fund import get_or_create_missionary_fund, get_missionary_fund
+from churchit.church_finances.doctype.fund.fund import get_missionary_fund, get_or_create_missionary_fund
 from churchit.church_finances.doctype.online_donation.online_donation import (
 	OnlineDonation,
 )
@@ -68,7 +68,12 @@ class TestMissionaryFundAutoCreation(FrappeTestCase):
 	def test_get_or_create_sets_shared_and_giving_flags(self):
 		"""The created fund is shared and allows giving."""
 		fund_name = get_or_create_missionary_fund(self.missionary)
-		fund = frappe.db.get_value("Fund", fund_name, ["is_shared", "allow_giving", "is_tax_deductible", "balance", "goal_amount"], as_dict=True)
+		fund = frappe.db.get_value(
+			"Fund",
+			fund_name,
+			["is_shared", "allow_giving", "is_tax_deductible", "balance", "goal_amount"],
+			as_dict=True,
+		)
 		self.assertTrue(fund.is_shared)
 		self.assertTrue(fund.allow_giving)
 		self.assertTrue(fund.is_tax_deductible)
@@ -207,6 +212,7 @@ class TestOnlineDonationMissionaryAllocation(FrappeTestCase):
 			make_gateway,
 			without_payments,
 		)
+
 		self.gateway = make_gateway("_Test Gateway")
 		settings = frappe.get_doc("Giving Settings")
 		settings.enabled = True
@@ -545,8 +551,16 @@ class TestPortalMemberView(RollbackEachTest):
 		)
 		cls.person_a = make_person("_Test Member A", "Member", user=cls.member_a)
 		cls.person_b = make_person("_Test Member B", "Member", user=cls.member_b)
-		cls.fund_a = ensure("Fund", {"fund": "_Test Missionary Fund A", "is_shared": 1, "allow_giving": 1}, {"church": cls.branch_a})
-		cls.fund_b = ensure("Fund", {"fund": "_Test Missionary Fund B", "is_shared": 1, "allow_giving": 1}, {"church": cls.branch_b})
+		cls.fund_a = ensure(
+			"Fund",
+			{"fund": "_Test Missionary Fund A", "is_shared": 1, "allow_giving": 1},
+			{"church": cls.branch_a},
+		)
+		cls.fund_b = ensure(
+			"Fund",
+			{"fund": "_Test Missionary Fund B", "is_shared": 1, "allow_giving": 1},
+			{"church": cls.branch_b},
+		)
 
 	def setUp(self):
 		force_single_church()
@@ -557,8 +571,16 @@ class TestPortalMemberView(RollbackEachTest):
 		)
 		self.person_a = make_person("_Test Member A", "Member", user=self.member_a)
 		self.person_b = make_person("_Test Member B", "Member", user=self.member_b)
-		self.fund_a = ensure("Fund", {"fund": "_Test Missionary Fund A", "is_shared": 1, "allow_giving": 1}, {"church": self.branch_a})
-		self.fund_b = ensure("Fund", {"fund": "_Test Missionary Fund B", "is_shared": 1, "allow_giving": 1}, {"church": self.branch_b})
+		self.fund_a = ensure(
+			"Fund",
+			{"fund": "_Test Missionary Fund A", "is_shared": 1, "allow_giving": 1},
+			{"church": self.branch_a},
+		)
+		self.fund_b = ensure(
+			"Fund",
+			{"fund": "_Test Missionary Fund B", "is_shared": 1, "allow_giving": 1},
+			{"church": self.branch_b},
+		)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

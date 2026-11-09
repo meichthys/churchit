@@ -46,8 +46,8 @@ class MissionarySupportSchedule(Document):
 			return 0
 
 		# Sum all donations to this fund
-		from churchit.church_scope import church_filters
 		from churchit.church_finances.doctype.donation.donation import Donation
+		from churchit.church_scope import church_filters
 
 		donations = frappe.get_all(
 			"Donation",

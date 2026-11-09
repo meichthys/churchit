@@ -103,8 +103,8 @@ def get_data(filters=None):
 
 		if frappe.db.exists("Fund", fund_name):
 			# Get donations to this fund
-			from churchit.church_finances.doctype.donation.donation import Donation
 			from churchit.church_finances.doctype.collection.collection import Collection as CollectionDoc
+			from churchit.church_finances.doctype.donation.donation import Donation
 			from churchit.church_scope import church_filters as cf
 
 			Collection = frappe.qb.DocType("Collection")
