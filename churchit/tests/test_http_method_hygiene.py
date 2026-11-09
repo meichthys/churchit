@@ -36,6 +36,14 @@ GET_BY_DESIGN = {
 		"the signed link at the foot of every Church Email, which a mail client opens with GET; the "
 		"signature is the check, not the session"
 	),
+	"churchit.church_people.ai.get_group_briefing": (
+		"an AI app reads a briefing with GET, so MCP runs it with read permission; it writes only the "
+		"Access Log entry of the read"
+	),
+	"churchit.church_people.ai.get_person_briefing": (
+		"an AI app reads a briefing with GET, so MCP runs it with read permission; it writes only the "
+		"Access Log entry of the read"
+	),
 	"churchit.church_people.report.church_directory_report.church_directory_report.download_directory_pdf": (
 		"Print Directory opens it in a new tab with GET; it writes only the Access Log entry of the "
 		"download and, for the church verse, the Bible text download of get_books, and the PDF goes "

@@ -1,0 +1,17 @@
+[
+	{"sentence": "People who came for the first time in the last 30 days and are not in a group", "filters": [["first_attended_on", "Timespan", "last 30 days"], ["group_count", "=", 0]]},
+	{"sentence": "Active members who have not attended in the last 90 days", "filters": [["membership", "=", "Member"], ["membership_status", "=", "Active"], ["last_attended_on", "is", "set"], ["times_attended_90d", "=", 0]]},
+	{"sentence": "Adults who are not in a group", "filters": [["life_stage", "=", "Adult"], ["group_count", "=", 0]]},
+	{"sentence": "Everyone in a group", "filters": [["Person Group", "group", "is", "set"]]},
+	{"sentence": "Everyone who serves on a ministry team", "filters": [["Person Ministry Team", "ministry", "is", "set"]]},
+	{"sentence": "Volunteers who have not served in the last 90 days", "filters": [["Person Team Position", "position", "is", "set"], ["times_served_90d", "=", 0]]},
+	{"sentence": "People with a skill in music", "filters": [["Person Skill", "skill", "like", "%Music%"]]},
+	{"sentence": "Lapsed givers (Finance and Church Manager only)", "filters": [["is_lapsed_giver", "=", 1]]},
+	{"sentence": "Visitors added this month", "filters": [["membership", "=", "Visitor"], ["creation", "Timespan", "this month"]]},
+	{"sentence": "People whose membership changed this year", "filters": [["membership", "=", "Member"], ["membership_changed_on", "Timespan", "this year"]]},
+	{"sentence": "People with no email address", "filters": [["primary_email", "is", "not set"]], "fields": ["primary_phone"]},
+	{"sentence": "Women aged 65 or more", "filters": [["gender", "=", "Female"], ["age", ">=", 65]], "fields": ["age"]},
+	{"sentence": "People who attended at least 6 times in the last 90 days", "filters": [["times_attended_90d", ">=", 6]], "fields": ["times_attended_90d", "last_attended_on"]},
+	{"sentence": "Inactive members", "filters": [["membership", "=", "Member"], ["membership_status", "=", "Inactive"]]},
+	{"sentence": "People with an open care request (Pastoral Care and Church Manager only)", "filters": [["open_care_requests", ">", 0]]}
+]

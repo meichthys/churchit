@@ -53,6 +53,14 @@ EXEMPT = {
 		"reads the doctype definitions (DocType, DocField and Custom Field) and never a record, to find "
 		"the doctypes that hold data about people; a Church Manager cannot read DocType"
 	),
+	("churchit.church_people.ai.get_person_briefing", "post"): (
+		"a read that writes only its Access Log row (AGENTS.md, Office reads); Frappe inserts it "
+		"deferred, so a GET and MCP's rollback keep it"
+	),
+	("churchit.church_people.ai.get_group_briefing", "post"): (
+		"a read that writes only its Access Log row (AGENTS.md, Office reads); Frappe inserts it "
+		"deferred, so a GET and MCP's rollback keep it"
+	),
 }
 
 

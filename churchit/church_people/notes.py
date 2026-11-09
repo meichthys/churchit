@@ -88,6 +88,7 @@ def get_timeline_card(note: frappe._dict) -> dict:
 		"content": frappe.render_template(  # nosemgrep: frappe-ssti
 			CARD_TEMPLATE, context
 		),
+		"url": context["url"],
 	}
 
 
