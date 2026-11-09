@@ -62,6 +62,9 @@ def get_context(context):
 		if row.offer_fee_cover
 	}
 
+	# Check if Payments app is installed for missionary selection
+	context.is_payments_on = frappe.utils.global_bool("is_payments_on()")
+
 	# Prefill the giver's details from their linked Person when logged in.
 	context.is_logged_in = frappe.session.user != "Guest"
 	context.donor_name = ""
@@ -80,6 +83,27 @@ def get_context(context):
 		if not context.donor_email:
 			context.donor_email = frappe.db.get_value("User", frappe.session.user, "email") or ""
 
+	# Missionary selection (available when Payments app is installed)
+	context.missionaries = []
+	if context.is_payments_on:
+		missionaries = frappe.get_all(
+			"Missionary",
+			filters={"church": church, "publish": 1},
+			fields=["name", "title"],
+			order_by="title",
+		)
+		context.missionaries = missionaries
+
+	# When a missionary is selected, use their fund
+	chosen_fund = frappe.form_dict.get("fund") or settings.default_fund
+	selected_missionary = frappe.form_dict.get("missionary")
+	if selected_missionary and context.is_payments_on:
+		missionary_fund = frappe.get_cached_value("Fund", {"fund": f"Missionary: {frappe.get_cached_value('Missionary', selected_missionary, 'title')}"}, "name")
+		if missionary_fund:
+			chosen_fund = missionary_fund
+
+	context.default_fund = chosen_fund if chosen_fund in {fund.name for fund in context.funds} else None
+
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def start_donation(
@@ -90,6 +114,7 @@ def start_donation(
 	email: str | None = None,
 	notes: str | None = None,
 	cover_fee: str | int = 0,
+	missionary: str | None = None,
 ):
 	"""Create a pending Online Donation and return the payment-gateway URL the
 	browser should redirect to. The gateway calls back into
@@ -123,6 +148,13 @@ def start_donation(
 			frappe.throw(_("Please provide your name and email."))
 
 	currency = settings.currency or "USD"
+
+	# Auto-select missionary fund if missionary is specified
+	if missionary:
+		missionary_fund = frappe.get_cached_value("Fund", {"fund": f"Missionary: {frappe.get_cached_value('Missionary', missionary, 'title')}"}, "name")
+		if missionary_fund:
+			fund = missionary_fund
+
 	gift = frappe.get_doc(
 		{
 			"doctype": "Online Donation",
@@ -136,6 +168,7 @@ def start_donation(
 			"currency": currency,
 			"payment_gateway": gateway.payment_gateway,
 			"status": "Pending",
+			"missionary": missionary,
 		}
 	)
 	if sbool(cover_fee) and gateway.offer_fee_cover:

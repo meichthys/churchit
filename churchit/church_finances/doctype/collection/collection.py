@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate, now
 
-from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
+from churchit.church_finances.doctype.fund.fund import add_transaction, get_or_create_missionary_fund, remove_transactions
 from churchit.church_scope import refuse_another_churches_record
 from churchit.contacts import get_primary_emails
 

@@ -1,0 +1,154 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "MSS-.####",
+  "creation": "2026-11-09 13:12:00.000000",
+  "description": "Tracks the financial support schedule for a missionary, including monthly commitments and received amounts.",
+  "doctype": "DocType",
+  "documentation": "/app/manual%3A-missions",
+  "engine": "InnoDB",
+  "field_order": [
+   "details_tab",
+   "missionary",
+   "monthly_amount",
+   "start_date",
+   "end_date",
+   "status",
+   "column_break_details",
+   "total_committed",
+   "section_break_summary",
+   "notes"
+  ],
+  "fields": [
+   {
+    "fieldname": "missionary",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "label": "Missionary",
+    "options": "Missionary",
+    "reqd": 1
+   },
+   {
+    "allow_in_quick_entry": 1,
+    "fieldname": "monthly_amount",
+    "fieldtype": "Currency",
+    "in_list_view": 1,
+    "label": "Monthly Amount",
+    "non_negative": 1
+   },
+   {
+    "allow_in_quick_entry": 1,
+    "fieldname": "start_date",
+    "fieldtype": "Date",
+    "in_list_view": 1,
+    "label": "Start Date",
+    "reqd": 1
+   },
+   {
+    "allow_in_quick_entry": 1,
+    "fieldname": "end_date",
+    "fieldtype": "Date",
+    "in_list_view": 1,
+    "label": "End Date"
+   },
+   {
+    "default": "Active",
+    "fieldname": "status",
+    "fieldtype": "Select",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "label": "Status",
+    "options": "Active\nPaused\nCompleted",
+    "reqd": 1
+   },
+   {
+    "fieldname": "column_break_details",
+    "fieldtype": "Column Break"
+   },
+   {
+    "fieldname": "total_committed",
+    "fieldtype": "Currency",
+    "label": "Total Committed",
+    "read_only": 1
+   },
+   {
+    "collapsible": 1,
+    "collapsible_depends_on": "eval:doc.monthly_amount || doc.start_date || doc.end_date",
+    "fieldname": "section_break_summary",
+    "fieldtype": "Section Break",
+    "label": "Summary"
+   },
+   {
+    "fieldname": "notes",
+    "fieldtype": "Small Text",
+    "label": "Notes"
+   }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2026-11-09 13:12:00.000000",
+  "modified_by": "Administrator",
+  "module": "Church Missions",
+  "name": "Missionary Support Schedule",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+   {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager",
+    "share": 1,
+    "write": 1
+   },
+   {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Church Manager",
+    "select": 1,
+    "share": 1,
+    "write": 1
+   },
+   {
+    "email": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Church Staff",
+    "select": 1
+   }
+  ],
+  "row_format": "Dynamic",
+  "search_fields": "missionary",
+  "show_preview_popup": 1,
+  "show_title_field_in_link": 1,
+  "sort_field": "start_date",
+  "sort_order": "ASC",
+  "states": [
+   {
+    "color": "Green",
+    "title": "Active"
+   },
+   {
+    "color": "Orange",
+    "title": "Paused"
+   },
+   {
+    "color": "Gray",
+    "title": "Completed"
+   }
+  ],
+  "title_field": "missionary",
+  "track_changes": 1
+}

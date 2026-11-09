@@ -1,0 +1,43 @@
+{
+  "actions": [],
+  "creation": "2026-11-09 13:23:00.000000",
+  "description": "Shows missionary support commitments, received amounts, and balances.",
+  "doctype": "Report",
+  "documentation": "/app/manual%3A-finances",
+  "engine": "InnoDB",
+  "field_order": [],
+  "fields": [],
+  "index_web_pages_for_search": 1,
+  "is_query_report": 1,
+  "modified": "2026-11-09 13:23:00.000000",
+  "modified_by": "Administrator",
+  "module": "Church Finances",
+  "name": "Missionary Support",
+  "owner": "Administrator",
+  "permissions": [
+    {
+     "email": 1,
+     "print": 1,
+     "read": 1,
+     "report": 1,
+     "role": "Church Finance"
+    },
+    {
+     "email": 1,
+     "print": 1,
+     "read": 1,
+     "report": 1,
+     "role": "Church Manager"
+    },
+    {
+     "email": 1,
+     "print": 1,
+     "read": 1,
+     "report": 1,
+     "role": "System Manager"
+    }
+  ],
+  "query": "churchit.church_finances.report.missionary_support.missionary_support.execute",
+  "ref_doctype": "Missionary Support Schedule",
+  "row_format": "Dynamic"
+}
