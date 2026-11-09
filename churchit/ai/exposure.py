@@ -3,8 +3,8 @@
 
 """The AI Access panel on Church AI Settings: each way AI can reach this site, one line each.
 
-It only reads, and it works while AI is off. It imports switch, flow_switch and flow_models, so none
-of them may import it.
+It only reads, and it works while AI is off. It imports switch, flow_switch, flow_models and guide, so
+none of them may import it.
 """
 
 import json
@@ -16,6 +16,7 @@ from frappe.desk.utils import slug
 
 from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS
 from churchit.ai.flow_switch import get_blocked_knowledge_doctypes, get_trigger_warnings, is_church_doctype
+from churchit.ai.guide import has_guide_pointer
 from churchit.ai.switch import AI_ROLES, SETTINGS, get_setting, has_flow, is_ai_on
 
 # Roles that Frappe gives every signed-in user ("Guest", "All") or every desk user ("Desk User").
@@ -46,6 +47,7 @@ def get_exposure() -> list[dict]:
 			"System Settings",
 			_("Lets a person connect their own AI app, such as Claude or ChatGPT, with their permissions."),
 		),
+		get_guide_pointer_line(is_system_manager),
 		make_line(
 			_("Dynamic client registration"),
 			get_setting("OAuth Settings", "enable_dynamic_client_registration"),
@@ -68,6 +70,27 @@ def get_exposure() -> list[dict]:
 		get_assistant_core_line(),
 		get_raven_line(),
 	]
+
+
+def get_guide_pointer_line(is_system_manager: bool) -> dict:
+	"""Whether System Settings Agent Instructions point AI apps to the Churchit guide.
+
+	While AI is on and the sentence is missing, a System Manager gets the button that adds it.
+	"""
+	has_pointer = has_guide_pointer()
+	line = make_line(
+		_("Agent Instructions"),
+		not has_pointer,
+		"System Settings",
+		_(
+			"Frappe gives these instructions to every AI app that connects. The Churchit sentence there "
+			"tells the app to read Churchit's rules first: church scoping, private fields and drafts."
+		),
+		state=_("Names the Churchit guide") if has_pointer else _("No Churchit guide"),
+	)
+	if is_system_manager and not has_pointer and is_ai_on():
+		line.update(action="add_guide_pointer", button=_("Add the Churchit Sentence"))
+	return line
 
 
 def make_line(

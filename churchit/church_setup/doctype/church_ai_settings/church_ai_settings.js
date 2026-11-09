@@ -155,9 +155,26 @@ function bullets(texts) {
 
 function show_exposure(frm) {
 	const wrapper = frm.get_field("exposure_html").$wrapper;
+	frappe.xcall("churchit.ai.exposure.get_exposure", {}, "GET").then((lines) => {
+		wrapper.html(exposure_html(lines));
+		wrapper
+			.find('[data-action="add_guide_pointer"]')
+			.on("click", () => add_guide_pointer(frm));
+	});
+}
+
+function add_guide_pointer(frm) {
 	frappe
-		.xcall("churchit.ai.exposure.get_exposure", {}, "GET")
-		.then((lines) => wrapper.html(exposure_html(lines)));
+		.xcall("churchit.ai.guide.add_guide_pointer", {}, "POST", { freeze: true })
+		.then((added) => {
+			frappe.show_alert({
+				message: added
+					? __("Agent Instructions now name the Churchit guide.")
+					: __("Agent Instructions already name the Churchit guide."),
+				indicator: "green",
+			});
+			show_exposure(frm);
+		});
 }
 
 function exposure_html(lines) {
@@ -175,7 +192,13 @@ function exposure_html(lines) {
 function exposure_row(line) {
 	const owner = escape(__(line.owner));
 	return `<tr>
-		<td>${escape(line.surface)}<div class="text-muted small">${escape(line.note)}</div></td>
+		<td>${escape(line.surface)}<div class="text-muted small">${escape(line.note)}</div>${
+		line.action
+			? `<button class="btn btn-xs btn-default mt-2" data-action="${escape(
+					line.action
+			  )}">${escape(line.button)}</button>`
+			: ""
+	}</td>
 		<td class="text-nowrap"><span class="indicator-pill ${PILL_COLORS[line.open]}">${escape(
 		line.state
 	)}</span></td>
