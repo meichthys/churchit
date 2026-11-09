@@ -16,13 +16,15 @@ class Donation(Document):
 		if self.missionary and self.status == "Paid":
 			exists = frappe.db.exists("Missionary Payment", {"donation": self.name})
 			if not exists:
-				payment = frappe.get_doc({
-					"doctype": "Missionary Payment",
-					"donation": self.name,
-					"missionary": self.missionary,
-					"fund": self.fund,
-					"amount": self.amount,
-					"status": "Scheduled",
-					"payment_date": frappe.utils.today()
-				})
+				payment = frappe.get_doc(
+					{
+						"doctype": "Missionary Payment",
+						"donation": self.name,
+						"missionary": self.missionary,
+						"fund": self.fund,
+						"amount": self.amount,
+						"status": "Scheduled",
+						"payment_date": frappe.utils.today(),
+					}
+				)
 				payment.insert(ignore_permissions=True)

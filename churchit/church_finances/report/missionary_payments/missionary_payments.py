@@ -1,11 +1,14 @@
 import frappe
 from frappe import _
+
 from churchit.church_scope import scoped
+
 
 def execute(filters=None):
 	columns = get_columns()
 	data = get_data(filters)
 	return columns, data
+
 
 def get_columns():
 	return [
@@ -53,22 +56,20 @@ def get_columns():
 			"label": _("Fund"),
 			"options": "Fund",
 			"width": 150,
-		}
+		},
 	]
+
 
 def get_data(filters=None):
 	MissionaryPayment = frappe.qb.DocType("Missionary Payment")
-	query = (
-		frappe.qb.from_(MissionaryPayment)
-		.select(
-			MissionaryPayment.name,
-			MissionaryPayment.missionary,
-			MissionaryPayment.status,
-			MissionaryPayment.amount,
-			MissionaryPayment.payment_date,
-			MissionaryPayment.reference,
-			MissionaryPayment.fund
-		)
+	query = frappe.qb.from_(MissionaryPayment).select(
+		MissionaryPayment.name,
+		MissionaryPayment.missionary,
+		MissionaryPayment.status,
+		MissionaryPayment.amount,
+		MissionaryPayment.payment_date,
+		MissionaryPayment.reference,
+		MissionaryPayment.fund,
 	)
 
 	query = scoped(query, MissionaryPayment, filters)

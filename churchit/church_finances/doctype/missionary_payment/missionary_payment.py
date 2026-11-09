@@ -1,6 +1,7 @@
 import frappe
 from frappe.model.document import Document
 
+
 class MissionaryPayment(Document):
 	def validate(self):
 		if self.status == "Sent" and not self.sent_date:
@@ -9,6 +10,7 @@ class MissionaryPayment(Document):
 		elif self.status == "Reconciled" and not self.reconciled_date:
 			self.reconciled_date = frappe.utils.today()
 			self.reconciled_by = frappe.session.user
+
 
 @frappe.whitelist()
 def mark_as_sent(name, reference):
@@ -20,6 +22,7 @@ def mark_as_sent(name, reference):
 	doc.sent_by = frappe.session.user
 	doc.save(ignore_permissions=True)
 	return doc
+
 
 @frappe.whitelist()
 def reconcile(name, reference):
