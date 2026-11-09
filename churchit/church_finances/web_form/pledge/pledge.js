@@ -7,6 +7,6 @@ frappe.ready(function () {
 	if (has_open_campaigns === "1") return;
 	$(".web-form").hide();
 	$(".web-form-introduction").html(
-		"<p>There are no campaigns open for pledges at this time. Please check back later.</p>"
+		"<p>There are no campaigns open for pledges at this time. Please check back later.</p>",
 	);
 });

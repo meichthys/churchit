@@ -5,7 +5,11 @@ frappe.ui.form.on("Church Location", {
 	parent_location(frm) {
 		if (frm.doc.parent_location && !frm.doc.address) {
 			frappe.db
-				.get_value("Church Location", frm.doc.parent_location, "address")
+				.get_value(
+					"Church Location",
+					frm.doc.parent_location,
+					"address",
+				)
 				.then(({ message }) => {
 					if (message && message.address) {
 						frm.set_value("address", message.address);
@@ -35,7 +39,10 @@ frappe.ui.form.on("Church Location", {
 					features: [
 						{
 							type: "Feature",
-							geometry: { type: "Point", coordinates: [longitude, latitude] },
+							geometry: {
+								type: "Point",
+								coordinates: [longitude, latitude],
+							},
 							properties: {},
 						},
 					],

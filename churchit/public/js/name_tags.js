@@ -46,7 +46,8 @@ church.name_tags = {
 	print_in_browser(job) {
 		return new Promise((resolve) => {
 			const frame = document.createElement("iframe");
-			frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+			frame.style.cssText =
+				"position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
 			frame.srcdoc = job.content;
 			frame.onload = () => {
 				const win = frame.contentWindow;
@@ -68,13 +69,15 @@ church.name_tags = {
 			.catch(() => {
 				throw new Error(
 					__(
-						"Zebra Browser Print is not running on this computer, or has not accepted this site yet."
-					)
+						"Zebra Browser Print is not running on this computer, or has not accepted this site yet.",
+					),
 				);
 			});
 		if (!device || !device.name) {
 			throw new Error(
-				__("Zebra Browser Print has no default printer. Open it and choose one.")
+				__(
+					"Zebra Browser Print has no default printer. Open it and choose one.",
+				),
 			);
 		}
 		const response = await fetch(`${base}/write`, {
@@ -83,7 +86,9 @@ church.name_tags = {
 		});
 		if (!response.ok) {
 			throw new Error(
-				__("Zebra Browser Print rejected the labels ({0}).", [response.status])
+				__("Zebra Browser Print rejected the labels ({0}).", [
+					response.status,
+				]),
 			);
 		}
 		church.name_tags.notify(job.count);
@@ -94,7 +99,9 @@ church.name_tags = {
 		return frappe.ui.form
 			.qz_connect()
 			.then(() => job.printer_name || qz.printers.getDefault())
-			.then((printer) => qz.print(qz.configs.create(printer), [job.content]))
+			.then((printer) =>
+				qz.print(qz.configs.create(printer), [job.content]),
+			)
 			.then(() => church.name_tags.notify(job.count));
 	},
 };

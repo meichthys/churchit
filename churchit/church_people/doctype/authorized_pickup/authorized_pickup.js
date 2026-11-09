@@ -16,7 +16,9 @@ frappe.ui.form.on("Authorized Pickup", {
 		if (!frm.doc.family) return;
 		frappe.db.get_doc("Family", frm.doc.family).then((family) => {
 			frm.household = (family.members || [])
-				.filter((row) => ["Adult", "Child"].includes(row.household_role))
+				.filter((row) =>
+					["Adult", "Child"].includes(row.household_role),
+				)
 				.map((row) => row.member);
 		});
 	},

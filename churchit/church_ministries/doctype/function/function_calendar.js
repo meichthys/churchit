@@ -10,6 +10,8 @@ frappe.views.calendar["Function"] = {
 		title: "function_name",
 		allDay: "all_day",
 	},
-	get_events_method: "churchit.church_ministries.doctype.function.function.get_calendar_events",
-	update_event_method: "churchit.church_ministries.doctype.function.function.move_on_calendar",
+	get_events_method:
+		"churchit.church_ministries.doctype.function.function.get_calendar_events",
+	update_event_method:
+		"churchit.church_ministries.doctype.function.function.move_on_calendar",
 };

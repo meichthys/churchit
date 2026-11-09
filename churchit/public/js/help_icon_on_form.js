@@ -5,7 +5,7 @@ $(document).on("form-refresh", function (e, frm) {
 			"help",
 			() => window.open(frm.meta.documentation, "_blank"),
 			"",
-			__("Documentation")
+			__("Documentation"),
 		);
 	}
 
@@ -25,7 +25,9 @@ function get_tour_names_by_doctype() {
 		})
 		.then((tours) => {
 			const names = {};
-			tours.forEach((tour) => (names[tour.reference_doctype] ||= tour.name));
+			tours.forEach(
+				(tour) => (names[tour.reference_doctype] ||= tour.name),
+			);
 			return names;
 		});
 
@@ -38,6 +40,6 @@ async function add_tour_menu_item(frm) {
 	if (!tour_name) return;
 
 	frm.page.add_menu_item(__("Take the Tour"), () =>
-		frm.tour.init({ tour_name }).then(() => frm.tour.start())
+		frm.tour.init({ tour_name }).then(() => frm.tour.start()),
 	);
 }

@@ -7,7 +7,8 @@ frappe.listview_settings["Fund"] = {
 	add_fields: ["balance", "allow_giving"],
 	get_indicator(doc) {
 		if (doc.balance < 0) return [__("Overdrawn"), "red", "balance,<,0"];
-		if (doc.allow_giving) return [__("Open for Giving"), "green", "allow_giving,=,1"];
+		if (doc.allow_giving)
+			return [__("Open for Giving"), "green", "allow_giving,=,1"];
 		return [__("Internal"), "gray", "allow_giving,=,0"];
 	},
 };

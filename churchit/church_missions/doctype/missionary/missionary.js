@@ -6,17 +6,22 @@ frappe.ui.form.on("Missionary", {
 		if (frm.doc.sensitive && frm.doc.publish) {
 			frm.set_intro(
 				__(
-					"This missionary is sensitive and published on the public website. Check that nothing sensitive shows there."
+					"This missionary is sensitive and published on the public website. Check that nothing sensitive shows there.",
 				),
-				"red"
+				"red",
 			);
 		} else if (frm.doc.sensitive) {
 			frm.set_intro(
-				__("This missionary is sensitive. Do not share their details outside the church."),
-				"yellow"
+				__(
+					"This missionary is sensitive. Do not share their details outside the church.",
+				),
+				"yellow",
 			);
 		} else if (frm.doc.publish) {
-			frm.set_intro(__("This missionary is published on the public website."), "blue");
+			frm.set_intro(
+				__("This missionary is published on the public website."),
+				"blue",
+			);
 		}
 
 		const grid = frm.fields_dict.people.grid;
@@ -32,7 +37,7 @@ frappe.ui.form.on("Missionary", {
 				},
 				(values) => add_family(frm, values.family),
 				__("Add Family"),
-				__("Add")
+				__("Add"),
 			);
 		}).appendTo(grid.grid_buttons);
 	},
@@ -47,7 +52,7 @@ frappe.ui.form.on("Missionary", {
 				"churchit.church_missions.doctype.missionary.missionary.get_country_coordinates",
 				{
 					country: frm.doc.country,
-				}
+				},
 			)
 			.then(([latitude, longitude]) => {
 				if ((!latitude && !longitude) || frm.doc.geolocation) return;
@@ -56,7 +61,10 @@ frappe.ui.form.on("Missionary", {
 					features: [
 						{
 							type: "Feature",
-							geometry: { type: "Point", coordinates: [longitude, latitude] },
+							geometry: {
+								type: "Point",
+								coordinates: [longitude, latitude],
+							},
 							properties: {},
 						},
 					],
@@ -70,7 +78,11 @@ function add_family(frm, family) {
 	frm.call("add_family", { family }).then(async (r) => {
 		const added = r.message || [];
 		// Rows from the server carry Person IDs; fetch titles so the grid shows names.
-		await Promise.all(added.map((person) => frappe.utils.fetch_link_title("Person", person)));
+		await Promise.all(
+			added.map((person) =>
+				frappe.utils.fetch_link_title("Person", person),
+			),
+		);
 		frm.refresh_field("people");
 		// Syncing the server's copy leaves a saved form looking unchanged.
 		if (added.length) frm.dirty();
