@@ -1,0 +1,55 @@
+{
+ "creation": "2026-11-09 21:09:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "payment",
+  "amount",
+  "status",
+  "payment_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "payment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment",
+   "options": "Missionary Payment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "fetch_from": "payment.amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Scheduled\nApproved\nSent\nReconciled\nCancelled",
+   "fetch_from": "payment.status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Payment Date",
+   "fetch_from": "payment.payment_date",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2026-11-09 21:09:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Missions",
+ "name": "Missionary Payment Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

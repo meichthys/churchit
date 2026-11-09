@@ -1,0 +1,73 @@
+{
+ "creation": "2026-11-09 21:05:00.000000",
+ "docstatus": 0,
+ "doctype": "Workflow",
+ "document_type": "Missionary Payment",
+ "is_active": 1,
+ "modified": "2026-11-09 21:05:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Missionary Payment Workflow",
+ "owner": "Administrator",
+ "send_email_alert": 0,
+ "states": [
+  {
+   "allow_edit": "System Manager",
+   "document_status": 0,
+   "state": "Scheduled"
+  },
+  {
+   "allow_edit": "Church Manager",
+   "document_status": 0,
+   "state": "Approved"
+  },
+  {
+   "allow_edit": "Church Manager",
+   "document_status": 0,
+   "state": "Sent"
+  },
+  {
+   "allow_edit": "Church Manager",
+   "document_status": 0,
+   "state": "Reconciled"
+  },
+  {
+   "allow_edit": "Church Manager",
+   "document_status": 0,
+   "state": "Cancelled"
+  }
+ ],
+ "transitions": [
+  {
+   "action": "Approve",
+   "allowed": "Church Manager",
+   "next_state": "Approved",
+   "state": "Scheduled"
+  },
+  {
+   "action": "Send",
+   "allowed": "Church Manager",
+   "next_state": "Sent",
+   "state": "Approved"
+  },
+  {
+   "action": "Reconcile",
+   "allowed": "Church Manager",
+   "next_state": "Reconciled",
+   "state": "Sent"
+  },
+  {
+   "action": "Cancel",
+   "allowed": "Church Manager",
+   "next_state": "Cancelled",
+   "state": "Scheduled"
+  },
+  {
+   "action": "Cancel",
+   "allowed": "Church Manager",
+   "next_state": "Cancelled",
+   "state": "Approved"
+  }
+ ],
+ "workflow_state_field": "status"
+}
