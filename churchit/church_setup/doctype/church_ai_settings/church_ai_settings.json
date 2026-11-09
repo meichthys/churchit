@@ -32,6 +32,9 @@
   "knowledge_section",
   "blocked_knowledge_doctypes",
   "use_recommended_list",
+  "private_records_section",
+  "private_model_doctypes",
+  "use_recommended_private_list",
   "exposure_section",
   "exposure_html"
  ],
@@ -194,6 +197,24 @@
    "label": "Use the Recommended List"
   },
   {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "private_records_section",
+   "fieldtype": "Section Break",
+   "label": "Private Records"
+  },
+  {
+   "description": "Churchit's AI features send these only to Local or Zero retention models.",
+   "fieldname": "private_model_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Only for Local or Zero Retention Models",
+   "options": "Church AI Blocked DocType"
+  },
+  {
+   "fieldname": "use_recommended_private_list",
+   "fieldtype": "Button",
+   "label": "Use the Recommended List"
+  },
+  {
    "fieldname": "exposure_section",
    "fieldtype": "Section Break",
    "label": "AI Access on This Site"
@@ -207,7 +228,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-07 11:30:48.000000",
+ "modified": "2026-11-09 16:07:34.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church AI Settings",

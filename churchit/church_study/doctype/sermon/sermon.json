@@ -21,6 +21,7 @@
   "publish",
   "section_break_zozg",
   "notes",
+  "transcript",
   "recording_section",
   "audio_recording",
   "column_break_recording",
@@ -148,6 +149,13 @@
    "max_height": "20rem"
   },
   {
+   "description": "A transcript of the sermon for the AI study helpers. It is not published.",
+   "fieldname": "transcript",
+   "fieldtype": "Long Text",
+   "label": "Transcript",
+   "max_height": "12rem"
+  },
+  {
    "fieldname": "column_break_wnxx",
    "fieldtype": "Column Break"
   },
@@ -183,7 +191,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-03 01:33:46.000000",
+ "modified": "2026-11-09 16:07:34.000000",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",

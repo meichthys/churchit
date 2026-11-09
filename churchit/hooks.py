@@ -81,6 +81,9 @@ app_include_js = [
 	"/assets/churchit/js/merge_choices.js",
 	"/assets/churchit/js/pwa.js",
 	"/assets/churchit/js/ai_drafts.js",
+	"/assets/churchit/js/ai_actions.js",
+	"/assets/churchit/js/ai_writing.js",
+	"/assets/churchit/js/ai_people.js",
 ]
 
 # include js, css files in header of web template

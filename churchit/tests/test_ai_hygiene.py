@@ -3,8 +3,8 @@
 
 """AI code cannot skip the switch, the POST rule, rate limits, the Guest refusal or the read rules.
 
-The rules read the source of churchit/ai/ and of every churchit/<module>/ai.py, the places AI code
-lives. They follow direct calls only, so a person still reads what an AI function calls.
+The rules read the source of churchit/ai/ and of every churchit/<module>/ai.py and ai_actions.py, the
+places AI code lives. They follow direct calls only, so a person still reads what an AI function calls.
 """
 
 import ast
@@ -65,11 +65,11 @@ EXEMPT = {
 
 
 def is_ai_module(module: Module) -> bool:
-	"""True for churchit/ai/<file>.py and churchit/<module>/ai.py."""
+	"""True for churchit/ai/<file>.py, churchit/<module>/ai.py and churchit/<module>/ai_actions.py."""
 	parts = module.name.split(".")
 	if parts[:2] == ["churchit", "ai"]:
 		return len(parts) > 2
-	return len(parts) == 3 and parts[2] == "ai"
+	return len(parts) == 3 and parts[2] in ("ai", "ai_actions")
 
 
 def whitelist_call(function: Function) -> ast.Call | None:
