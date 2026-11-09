@@ -16,15 +16,18 @@ GitHub Pages does not serve them). Needs markdown2, which the bench env has:
 
 import glob
 import html
-import json
 import os
 import re
+import sys
 
 import markdown2
 
 from screenshots import SHOTS, THEMES
 
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, APP_ROOT)  # churchit.manuals needs only the standard library
+from churchit.manuals import get_blocks, get_manuals, read_blocks
+
 DOCS = os.path.join(APP_ROOT, "docs")
 TEMPLATES = os.path.join(DOCS, "_templates")
 README = os.path.join(APP_ROOT, "README.md")
@@ -67,10 +70,6 @@ MODULE_COLORS = {
 }
 
 
-def strip_tags(html):
-	return re.sub(r"<[^>]+>", "", html or "").replace("&nbsp;", " ").strip()
-
-
 def clean_inline(html):
 	"""Keep meaningful inline markup (links, breaks, emphasis); drop the
 	styling <span> wrappers and inline style attributes the desk editor adds."""
@@ -89,44 +88,22 @@ def clean_inline(html):
 
 
 def load_manual(module):
-	matches = glob.glob(os.path.join(APP_ROOT, "churchit", "*", "workspace", "manual:_*", "manual:_*.json"))
-	for f in matches:
-		data = json.load(open(f))
-		if data.get("module") == module:
-			return json.loads(data.get("content") or "[]")
-	return []
+	return next((get_blocks(manual) for manual in get_manuals() if manual.get("module") == module), [])
 
 
 def render_blocks(blocks, slug):
 	"""Convert workspace editor blocks -> clean documentation HTML. Headings get `<slug>-<heading>` ids."""
 	out = []
-	for b in blocks:
-		btype = b.get("type")
-		data = b.get("data", {})
-		raw = data.get("text", "")
-
-		if btype in ("header",):
-			out.append(heading(min(int(data.get("level", 2)) + 1, 4), strip_tags(raw), slug))
-			continue
-
-		if btype == "list":
-			tag = "ol" if data.get("style") == "ordered" else "ul"
-			items = "".join(f"<li>{clean_inline(i)}</li>" for i in data.get("items", []))
-			out.append(f"<{tag}>{items}</{tag}>")
-			continue
-
-		if btype != "paragraph":
-			continue
-
-		# Paragraphs carry the manual's headings as styled spans (h1/h2 classes).
-		if 'class="h1"' in raw:
-			continue  # the manual title; we render our own section header
-		if 'class="h2"' in raw:
-			out.append(heading(3, strip_tags(raw), slug))
-			continue
-
-		text = clean_inline(raw)
-		if text:
+	for kind, *parts in read_blocks(blocks):
+		if kind == "heading":
+			level, text = parts
+			out.append(heading(min(level + 1, 4), text, slug))
+		elif kind == "list":
+			is_ordered, items = parts
+			tag = "ol" if is_ordered else "ul"
+			rendered = "".join(f"<li>{clean_inline(item)}</li>" for item in items)
+			out.append(f"<{tag}>{rendered}</{tag}>")
+		elif text := clean_inline(parts[0]):
 			out.append(f"<p>{text}</p>")
 	return "\n          ".join(out)
 

@@ -14,6 +14,7 @@ on:
       - deploy/README.md
       - "churchit/*/workspace/manual:_*/*.json"
       - docs/build_docs.py
+      - churchit/manuals.py # build_docs.py reads the manuals through it
       - docs/screenshots.py
       - docs/assets/screenshots/**
       - docs/_templates/**

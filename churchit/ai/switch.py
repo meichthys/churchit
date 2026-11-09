@@ -48,15 +48,17 @@ def has_flow() -> bool:
 def extend_bootinfo(bootinfo) -> None:
 	"""Tell the desk whether AI is on, Flow is present and Flow can run churchit's agents.
 
-	frappe.boot.churchit.ai = {"on": bool, "flow": bool, "flow_ready": bool}. The Flow module loads
-	only on a Frappe that ships Flow.
+	frappe.boot.churchit.ai = {"on": bool, "flow": bool, "flow_ready": bool}. It reads Flow's doctypes
+	only on a Frappe that ships Flow, and loads no Flow code.
 	"""
-	ai = {"on": is_ai_on(), "flow": has_flow(), "flow_ready": False}
-	if ai["flow"]:
-		from churchit.ai import flow
+	from churchit.ai.flow_models import is_flow_ready  # flow_models imports this module
 
-		ai["flow_ready"] = flow.is_ready()
-	bootinfo.setdefault("churchit", {})["ai"] = ai
+	flow = has_flow()
+	bootinfo.setdefault("churchit", {})["ai"] = {
+		"on": is_ai_on(),
+		"flow": flow,
+		"flow_ready": flow and is_flow_ready(),
+	}
 
 
 def refuse_mcp_while_ai_off(doc, method=None) -> None:

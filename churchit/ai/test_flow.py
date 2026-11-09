@@ -14,13 +14,12 @@ import importlib.util
 import re
 from functools import cache
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
 import churchit
+from churchit.ai.flow_models import is_flow_ready
 from churchit.ai.switch import has_flow
 from churchit.tests.helpers import RollbackEachTest
 
@@ -88,36 +87,21 @@ class TestChurchitWithOrWithoutFlow(FrappeTestCase):
 
 
 class TestFlowReady(RollbackEachTest):
+	"""test_flow_agents shows that Flow is ready once its sync writes the agents."""
+
 	def setUp(self):
 		if not has_flow():
 			self.skipTest("This Frappe has no Flow.")
 		super().setUp()
-		from churchit.ai import flow
-
-		self.flow = flow
 		frappe.db.set_value("Flow Model", {"enabled": 1}, "enabled", 0)
 
-	def insert_model(self, **values):
+	def test_flow_is_not_ready_without_an_enabled_chat_model(self):
+		self.assertFalse(is_flow_ready())
+
 		# db_insert: a saved model sets up Flow's Assistant and may ask its provider about itself.
 		model = {"doctype": "Flow Model", "title": "_Test Flow Model", "model_id": "_test", "enabled": 1}
-		frappe.get_doc({**model, **values}).db_insert()
-
-	def test_flow_is_not_ready_without_an_enabled_chat_model(self):
-		self.assertFalse(self.flow.is_ready())
-
-		self.insert_model(embedding=1)
-		self.assertFalse(self.flow.is_ready())
-
-	def test_flow_is_ready_once_a_chat_model_is_enabled_and_every_agent_is_synced(self):
-		self.insert_model()
-		self.assertTrue(self.flow.is_ready())
-
-		agent = SimpleNamespace(name="churchit/_test_agent")
-		with patch.object(self.flow, "agents", return_value=[agent]):
-			self.assertFalse(self.flow.is_ready())
-
-			frappe.get_doc({"doctype": "Flow Agent", "name": agent.name, "title": agent.name}).db_insert()
-			self.assertTrue(self.flow.is_ready())
+		frappe.get_doc({**model, "embedding": 1}).db_insert()
+		self.assertFalse(is_flow_ready())
 
 
 def get_modules() -> list[tuple[str, Path]]:

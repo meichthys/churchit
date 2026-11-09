@@ -6,6 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime
 
+from churchit.ai.flow_models import queue_agent_sync
+from churchit.ai.manual_knowledge import queue_sync
 from churchit.ai.switch import close_mcp
 from churchit.church_scope import allowed_churches
 
@@ -61,6 +63,9 @@ class ChurchAISettings(Document):
 		before = self.get_doc_before_save()
 		if before and before.enabled and not self.enabled and close_mcp():
 			self.add_comment("Info", _("Turning AI off closed Frappe's MCP server in System Settings."))
+		if self.enabled and not (before and before.enabled):
+			queue_agent_sync()
+			queue_sync()
 
 
 def refuse_for_some_churches(message: str) -> None:

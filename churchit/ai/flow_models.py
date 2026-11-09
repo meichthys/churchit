@@ -2,7 +2,9 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 """A privacy label on each Flow Model: where a model sends church data and what its provider may do
-with it. Flow owns providers and models; churchit only adds the label. A Frappe without Flow gets none.
+with it. Flow owns providers and models; churchit only adds the label, and writes its agents when a
+chat model is saved. A Frappe without Flow gets none. It never loads frappe.flow or churchit.ai.flow
+when it loads, because the desk boot reads is_flow_ready.
 """
 
 import frappe
@@ -18,6 +20,11 @@ UNSAFE_LABELS = (DEFAULT_LABEL, "May train")
 LABEL_FIELD = "church_privacy_label"
 BY_FIELD = "church_privacy_label_by"
 ON_FIELD = "church_privacy_label_on"
+AGENT_SYNC_JOB = "churchit.ai.flow.sync_agents"
+# churchit's Flow Agents (flow.agents); Flow names each "churchit/<name>".
+OFFICE = "Church Office"
+WRITER = "Writer"
+PRIVATE_WORK = "Private Work"
 
 PRIVACY_LABEL_FIELDS = {
 	"Flow Model": [
@@ -81,4 +88,31 @@ def stamp_privacy_label(doc, method=None) -> None:
 
 
 def sync_agents_on_model(doc, method=None) -> None:
-	"""Stub for A3.9 (doc_events Flow Model on_update): sync churchit's agents once a chat model exists."""
+	"""Flow Model on_update: write churchit's agents when a chat model is saved, so they need no migrate.
+
+	Flow writes them after each migrate too. An embedding model runs no agent.
+	"""
+	if doc.enabled and not doc.embedding and has_flow():
+		from churchit.ai import flow
+
+		flow.sync_agents()
+
+
+def is_flow_ready() -> bool:
+	"""True when Flow can run churchit's agents: a chat model is enabled and every agent is synced.
+
+	Every desk boot of a Flow site asks it, so it reads only the Flow Model and Flow Agent tables and
+	loads no Flow code, which a Flow update can move. Call it only after switch.has_flow(). An
+	embedding model only searches Knowledge, so it runs no agent.
+	"""
+	if not frappe.db.exists("Flow Model", {"enabled": 1, "embedding": 0}):
+		return False
+	return all(frappe.db.exists("Flow Agent", f"churchit/{name}") for name in (OFFICE, WRITER, PRIVATE_WORK))
+
+
+def queue_agent_sync() -> None:
+	"""Church AI Settings on_update, when AI is turned on: write churchit's agents again, in a job."""
+	if has_flow():
+		frappe.enqueue(
+			AGENT_SYNC_JOB, queue="long", job_id=AGENT_SYNC_JOB, deduplicate=True, enqueue_after_commit=True
+		)

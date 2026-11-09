@@ -4,6 +4,7 @@
 """The master AI switch: the desk boot, Frappe's MCP server, who may sign in an AI app and use MCP,
 the upgrade notice, the notice when a person connects an app, and the exposure panel."""
 
+import sys
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -149,10 +150,17 @@ class TestSwitch(SwitchTestCase):
 			self.skipTest("This Frappe does not ship Flow.")
 		for ready in (True, False):
 			bootinfo = frappe._dict()
-			with patch("churchit.ai.flow.is_ready", return_value=ready):
+			with patch("churchit.ai.flow_models.is_flow_ready", return_value=ready):
 				extend_bootinfo(bootinfo)
 			self.assertTrue(bootinfo.churchit["ai"]["flow"])
 			self.assertEqual(bootinfo.churchit["ai"]["flow_ready"], ready)
+
+	def test_boot_loads_no_flow_code(self):
+		"""A Flow update that moves a name must not stop the desk from booting."""
+		if flow := sys.modules.pop("churchit.ai.flow", None):
+			self.addCleanup(sys.modules.__setitem__, "churchit.ai.flow", flow)
+		extend_bootinfo(frappe._dict())
+		self.assertNotIn("churchit.ai.flow", sys.modules)
 
 	def test_boot_adds_ai_after_church_scope_sets_the_churchit_keys(self):
 		"""church_scope replaces frappe.boot.churchit, so it must run first."""

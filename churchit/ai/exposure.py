@@ -3,8 +3,8 @@
 
 """The AI Access panel on Church AI Settings: each way AI can reach this site, one line each.
 
-It only reads, and it works while AI is off. It imports switch, flow_switch, flow_models and guide, so
-none of them may import it.
+It only reads, and it works while AI is off. It imports switch, flow_switch, flow_models, guide and
+manual_knowledge, so none of them may import it.
 """
 
 import json
@@ -14,9 +14,10 @@ import frappe
 from frappe import _
 from frappe.desk.utils import slug
 
-from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS
+from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS, is_flow_ready
 from churchit.ai.flow_switch import get_blocked_knowledge_doctypes, get_trigger_warnings, is_church_doctype
 from churchit.ai.guide import has_guide_pointer
+from churchit.ai.manual_knowledge import KNOWLEDGE_BASE, has_embedding_model
 from churchit.ai.switch import AI_ROLES, SETTINGS, get_setting, has_flow, is_ai_on
 
 # Roles that Frappe gives every signed-in user ("Guest", "All") or every desk user ("Desk User").
@@ -65,6 +66,7 @@ def get_exposure() -> list[dict]:
 		*(get_connected_app_lines() if is_system_manager else [ask_line(_("Connected apps"))]),
 		get_api_key_line() if is_system_manager else ask_line(_("API keys")),
 		*get_flow_lines(is_system_manager),
+		*get_churchit_agent_lines(),
 		*get_flow_model_lines(is_system_manager),
 		get_builder_line(),
 		get_assistant_core_line(),
@@ -376,6 +378,52 @@ def get_flow_trigger_lines() -> list[dict]:
 				)
 			)
 	return lines
+
+
+def get_churchit_agent_lines() -> list[dict]:
+	"""Whether churchit's agents are ready in Flow, and whether Church Office can search the manuals.
+
+	Nothing on a Frappe without Flow.
+	"""
+	if not has_flow():
+		return []
+	is_ready = is_flow_ready()
+	has_manual = bool(frappe.db.exists("Flow Knowledge Base", KNOWLEDGE_BASE))
+	if has_manual:
+		manual_state = _("Added")
+	elif has_embedding_model():
+		manual_state = _("Not added yet")
+	else:
+		manual_state = _("Needs an embedding model")
+	return [
+		make_line(
+			_("Churchit agents in Flow"),
+			is_ready,
+			"Flow Agent",
+			_(
+				"Church Office answers office questions with the person's own permissions and proposes "
+				"each change as a draft that the person opens and saves. Writer and Private Work have no "
+				"tools and serve churchit's own AI features. They need an enabled chat model: Flow adds "
+				"them when one is saved and after each update. A System Manager can set Roles on each. A "
+				"chat that a person shares shows what Church Office read with their permissions, so never "
+				"share a chat that holds a briefing."
+			),
+			state=_("Ready") if is_ready else _("Not ready"),
+			link="/app/flow-agent?app=churchit",
+		),
+		make_line(
+			_("Churchit Manual in Flow knowledge"),
+			has_manual,
+			"Flow Knowledge Base",
+			_(
+				"Church Office searches churchit's user manuals. Churchit adds them after each update and "
+				"when AI is turned on, while Flow Knowledge Settings names an enabled embedding model. "
+				"Flow sends the manual text, and no church records, to that model."
+			),
+			state=manual_state,
+			link=f"/app/flow-knowledge-base/{quote(KNOWLEDGE_BASE)}" if has_manual else None,
+		),
+	]
 
 
 def get_flow_model_lines(is_system_manager: bool) -> list[dict]:
