@@ -7,7 +7,8 @@ Sending a Church Email, a text, an email from a form or a message to a group rea
 - A Church Email is one message to many people. `channel` is Email or Text Message. `status` is Draft, Scheduled, Sending or Sent.
 - `send_to` chooses the people: Active People, Active Members, Group, Smart List or Chosen People. `include_household` adds their households.
 - A message can use these placeholders, which Churchit fills in for each person: `{{ first_name }}`, `{{ last_name }}`, `{{ display_name }}` and `{{ full_name }}`. Use no other placeholder.
-- To help the person send one, write the subject and the message, and say which people it goes to. The person makes it at `/app/church-email/new`.
+- To help the person send one, draft it with `churchit.ai.drafts.propose` for `Church Email`: `channel`, `subject`, `message` (or `text_message` for a text), `send_to` and, for the people, `group`, `smart_list` or `people`. The draft never sets `status` or `send_after`, so the message stays a draft. The person opens the link, checks the text and the people, and clicks Send. Say who it goes to, and never send it yourself.
+- A smart list for a Church Email is a saved smart list. To make one from a sentence, see [people.md](people.md).
 - The Scheduled Emails report lists the messages that wait to go ([reports.md](reports.md)).
 
 ## Consent
