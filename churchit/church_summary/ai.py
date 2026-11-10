@@ -73,3 +73,7 @@ def get_follow_ups(sunday: date) -> dict:
 			for todo in todos
 		]
 	)
+
+
+def queue_weekly_notes() -> None:
+	"""Monday cron: queue one weekly AI note job for each user who asked for one (A7.2)."""

@@ -114,6 +114,8 @@ doctype_js = {
 	"Website Settings": "public/js/website_settings.js",
 	# A QR code of a web form's address, to print on a bulletin or a welcome card.
 	"Web Form": "public/js/web_form_qr.js",
+	# Translate with AI: a draft translation of a public page, for a fluent person to check.
+	"Web Page": "public/js/web_page_ai.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -390,6 +392,10 @@ doc_events = {
 	"Follow-up Card": {
 		"after_insert": "churchit.ai.triage.dispatch",
 	},
+	# With AI on, the photo of a paper connection card is read into a draft for a person to check.
+	"Connection Card Photo": {
+		"after_insert": "churchit.ai.card_capture.dispatch",
+	},
 	"ToDo": {
 		"after_insert": "churchit.church_operations.doctype.church_task.church_task.on_assignment",
 		"validate": "churchit.church_operations.doctype.church_task.church_task.refuse_moved_assignment",
@@ -501,6 +507,8 @@ scheduler_events = {
 			"churchit.church_communications.doctype.church_email.church_email.send_scheduled",
 			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.release_expired_holds",
 		],
+		# Monday morning: the weekly AI note to each user who asked for one.
+		"0 6 * * 1": ["churchit.church_summary.ai.queue_weekly_notes"],
 	},
 }
 
