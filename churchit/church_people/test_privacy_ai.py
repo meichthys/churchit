@@ -1,8 +1,9 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Anonymizing a person also erases the AI copies about them: the AI suggestion comments on their records,
-and the Flow chats whose runs reference them or a record about them. The chat tests need Flow."""
+"""Anonymizing a person also erases the AI copies about them: the AI suggestions and suggestion comments on
+their records, and the Flow chats whose runs reference them or a record about them. The chat tests need
+Flow."""
 
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ from churchit.ai.test_runner import PRIVATE_WORK, WRITER, WRITER_MODEL, FlowRunn
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.followup import CARD
 from churchit.church_people.privacy import anonymize_person
+from churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion import set_suggestion
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 MANAGER = "_test_privacy_ai_manager@example.com"
@@ -68,6 +70,37 @@ class TestSuggestionComments(RollbackEachTest):
 		anonymize_as(self.manager, people[0])
 
 		self.assertEqual([frappe.db.exists("Comment", name) for name in comments], [None, comments[1]])
+
+	def test_the_ai_suggestion_on_the_persons_request_goes_and_anothers_stays(self):
+		people = [make_person(name, "_Test Privacy AI", church=self.church).name for name in ("Gone", "Kept")]
+		requests = [record("Care Request", person=person, church=self.church) for person in people]
+		for request in requests:
+			set_suggestion("Care Request", request, {"suggested_urgency": "High"})
+
+		anonymize_as(self.manager, people[0])
+
+		suggestions = [
+			frappe.db.exists("Church AI Suggestion", {"reference_name": request}) for request in requests
+		]
+		self.assertEqual([bool(name) for name in suggestions], [False, True])
+
+	def test_the_ai_suggestion_on_a_prayer_request_for_the_person_goes(self):
+		people = [make_person(name, "_Test Privacy AI", church=self.church).name for name in ("Gone", "Kept")]
+		requests = [
+			record(
+				"Prayer Request", recipient_type="Person", recipient=person, church=self.church, title="Pray"
+			)
+			for person in people
+		]
+		for request in requests:
+			set_suggestion("Prayer Request", request, {"suggested_flags": "Health details"})
+
+		anonymize_as(self.manager, people[0])
+
+		suggestions = [
+			frappe.db.exists("Church AI Suggestion", {"reference_name": request}) for request in requests
+		]
+		self.assertEqual([bool(name) for name in suggestions], [False, True])
 
 
 class TestAIChats(FlowRunnerTestCase):

@@ -379,9 +379,13 @@ doc_events = {
 	# With AI and suggestions on, a reviewer's AI run suggests next steps on a new request.
 	"Prayer Request": {
 		"after_insert": "churchit.ai.triage.dispatch",
+		"on_update": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.follow_request_church",
+		"on_trash": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.delete_with_request",
 	},
 	"Care Request": {
 		"after_insert": "churchit.ai.triage.dispatch",
+		"on_update": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.follow_request_church",
+		"on_trash": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.delete_with_request",
 	},
 	"Follow-up Card": {
 		"after_insert": "churchit.ai.triage.dispatch",

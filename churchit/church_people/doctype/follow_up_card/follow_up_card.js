@@ -4,6 +4,7 @@
 frappe.ui.form.on("Follow-up Card", {
 	refresh(frm) {
 		render_contact_details(frm);
+		add_draft_email_button(frm);
 		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write")) return;
 
 		for (const step of frm.doc.__onload?.steps || []) {
@@ -34,6 +35,23 @@ function render_contact_details(frm) {
 	frm.get_field("contact_details").$wrapper.html(`
 		<p class="text-muted small">${__("Contact Details")}</p>
 		<p>${phone}<br>${email}</p>`);
+}
+
+// Open the email of the card's "AI suggestion" comment (churchit.ai.triage) as an unsaved Church
+// Email to the card's person. Nothing is sent until the person sends it from that form.
+function add_draft_email_button(frm) {
+	const comments = frm.get_docinfo()?.comments || [];
+	const has_email = comments.some((comment) =>
+		(comment.content || "").includes("data-ai-email")
+	);
+	if (!has_email || !frappe.boot.churchit?.ai?.on || !frappe.model.can_create("Church Email"))
+		return;
+	frm.add_custom_button(__("Draft the Email"), () =>
+		frappe.xcall("churchit.ai.triage.draft_email", { card: frm.doc.name }).then(({ url }) => {
+			const target = new URL(url, window.location.origin);
+			frappe.set_route(target.pathname + target.search);
+		})
+	);
 }
 
 function save_with(frm, values) {

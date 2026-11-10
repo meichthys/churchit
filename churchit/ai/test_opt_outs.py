@@ -16,6 +16,7 @@ from frappe.utils import today
 from churchit.ai import opt_outs, reports, writing
 from churchit.ai.switch import extend_bootinfo
 from churchit.ai.test_runner import STAFF, FlowRunnerTestCase, staff_user
+from churchit.ai.test_triage import TriageFlowCase
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations import ai as operations_ai
 from churchit.church_people import ai_actions
@@ -278,3 +279,28 @@ class TestTheBoot(FlowRunnerTestCase):
 		self.assertEqual(self.actions_of(STAFF_B), (False, False))
 		self.assertEqual(self.actions_of(STAFF), (True, True), "Branch A keeps its buttons")
 		self.assertEqual(as_user(STAFF_B, opt_outs.is_user_kept_away), True)
+
+
+class TestSuggestions(TriageFlowCase):
+	"""Suggestions on new requests leave out such people and churches (churchit.ai.triage). Needs Flow."""
+
+	def test_a_request_of_a_person_who_keeps_out_or_of_a_church_that_keeps_away_queues_nothing(self):
+		left_out = make_person("Left Out", LAST_NAME, church=self.church_a, exclude_from_ai=1).name
+		of_b = make_person("Branch B", LAST_NAME, church=self.church_b).name
+		keep_away(self.church_b)
+		queued = self.prayer_request(requestor=self.person)
+
+		self.prayer_request(requestor=left_out)
+		self.care_request(person=of_b)
+		keep_away(self.church_a)
+		self.prayer_request(requestor=self.person)
+
+		self.assertEqual([job["name"] for job in self.queued()], [queued.name])
+
+	def test_the_job_checks_again_before_it_sends_anything(self):
+		request = self.prayer_request(requestor=self.person)
+		self.run_job(request)[0].assert_called_once()
+
+		frappe.db.set_value("Person", self.person, opt_outs.PERSON_FIELD, 1)
+
+		self.run_job(request)[0].assert_not_called()

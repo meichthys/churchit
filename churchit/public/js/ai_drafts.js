@@ -39,13 +39,17 @@
 	async function fill_rows(frm, fieldname, rows) {
 		// A new form starts a mandatory table with an empty row, which would block the save.
 		if (frm.is_new()) frm.clear_table(fieldname);
+		// A Table MultiSelect has no grid, which frappe.model.set_value needs for a row.
+		const has_grid = Boolean(frm.fields_dict[fieldname]?.grid);
 		for (const { name, ...values } of rows) {
 			const row =
 				(name && (frm.doc[fieldname] || []).find((stored) => stored.name === name)) ||
 				frm.add_child(fieldname);
-			await frappe.model.set_value(row.doctype, row.name, values);
+			if (has_grid) await frappe.model.set_value(row.doctype, row.name, values);
+			else Object.assign(row, values);
 		}
 		frm.refresh_field(fieldname);
+		frm.dirty();
 	}
 
 	async function fill(frm, token) {

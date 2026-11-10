@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-10 04:26:00.000000",
+ "description": "What AI suggested for a new prayer request or care request: its type, its urgency, the flags it found and, for a prayer request, wording for the whole church. Only Church Pastoral Care, Church Managers and System Managers read it. AI never changes the request; a person decides.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-foundations",
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "reference_name",
+  "church",
+  "column_break_suggestion",
+  "suggested_type",
+  "suggested_urgent",
+  "suggested_urgency",
+  "section_break_flags",
+  "suggested_flags",
+  "public_wording"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Request Type",
+   "options": "DocType",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Request",
+   "options": "reference_doctype",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_suggestion",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "suggested_type",
+   "fieldtype": "Data",
+   "label": "Suggested Type",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.reference_doctype === \"Prayer Request\"",
+   "fieldname": "suggested_urgent",
+   "fieldtype": "Check",
+   "label": "Suggested as Urgent",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.reference_doctype === \"Care Request\"",
+   "fieldname": "suggested_urgency",
+   "fieldtype": "Data",
+   "label": "Suggested Urgency",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.reference_doctype === \"Prayer Request\"",
+   "fieldname": "section_break_flags",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Possible risk of harm assigns this suggestion to Pastoral Care. AI can miss a risk, so read every request.",
+   "fieldname": "suggested_flags",
+   "fieldtype": "Small Text",
+   "label": "Flags",
+   "read_only": 1,
+   "show_description_on_click": 1
+  },
+  {
+   "description": "Wording for the whole church that AI is asked to keep free of names, health and contact details. Check it. The request keeps its own text.",
+   "fieldname": "public_wording",
+   "fieldtype": "Small Text",
+   "label": "Suggested Wording",
+   "read_only": 1,
+   "show_description_on_click": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-10 05:57:18.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Church AI Suggestion",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Church Pastoral Care"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "reference_name"
+}

@@ -10,7 +10,9 @@ from churchit.ai.flow_models import queue_agent_sync
 from churchit.ai.manual_knowledge import queue_sync
 from churchit.ai.private_doctypes import RECOMMENDED
 from churchit.ai.switch import close_mcp
-from churchit.church_scope import allowed_churches
+from churchit.ai.triage import CHOICE_DOCTYPES, FEATURES, is_desk_user
+from churchit.church_scope import allowed_churches, is_multi_church
+from churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion import SUGGESTION_DOCTYPE
 
 # Checks that only a System Manager or a Church Manager of every church may turn on; anyone who
 # may write the settings may turn them off.
@@ -50,6 +52,7 @@ class ChurchAISettings(Document):
 			)
 		if before and before.private_doctypes - self.private_doctypes:
 			self.check_removed_private_doctypes(before.private_doctypes - self.private_doctypes)
+		self.validate_reviewers(before)
 		if "enabled" in turned_on:
 			self.stamp_acknowledgment()
 		elif self.enabled:
@@ -79,6 +82,32 @@ class ChurchAISettings(Document):
 				indicator="orange",
 			)
 
+	def validate_reviewers(self, before):
+		"""Only a manager of every church changes the suggestions or their reviewers, and each new or
+		changed reviewer is a desk user who reads the reviewed doctypes of their church."""
+		reviewers = {(row.church or None, row.user) for row in self.triage_reviewers}
+		previous = {(row.church or None, row.user) for row in before.triage_reviewers} if before else set()
+		turned_on = self.suggest_request_triage and not (before and before.suggest_request_triage)
+		if turned_on or reviewers != previous:
+			refuse_for_some_churches(
+				_(
+					"Only a System Manager or a Church Manager of every church can change the suggestions on "
+					"new requests or their reviewers."
+				)
+			)
+		churches = [row.church or None for row in self.triage_reviewers]
+		for row in self.triage_reviewers:
+			if (row.church or None, row.user) not in previous:
+				check_reviewer(row, churches.count(row.church or None) > 1)
+			elif not is_desk_user(row.user):
+				frappe.msgprint(
+					_(
+						"{0} is no longer an enabled desk user, so nobody reviews the new requests of {1}."
+					).format(frappe.bold(row.user), frappe.bold(row.church or _("your church"))),
+					_("Choose Another Reviewer"),
+					indicator="orange",
+				)
+
 	def stamp_acknowledgment(self):
 		if not self.acknowledged:
 			frappe.throw(_("Tick {0} to turn AI on.").format(_(self.meta.get_label("acknowledged"))))
@@ -92,6 +121,33 @@ class ChurchAISettings(Document):
 		if self.enabled and not (before and before.enabled):
 			queue_agent_sync()
 			queue_sync()
+
+
+def check_reviewer(row, is_repeated: bool) -> None:
+	"""Refuse a reviewer row that names no church on a site with several churches, repeats a church,
+	or names a user who cannot review that church's new requests."""
+	if is_multi_church() and not row.church:
+		frappe.throw(_("Row {0}: choose the church that {1} reviews.").format(row.idx, frappe.bold(row.user)))
+	if is_repeated:
+		frappe.throw(_("Row {0}: each church has one reviewer.").format(row.idx))
+	if not is_desk_user(row.user):
+		frappe.throw(_("Row {0}: {1} is not an enabled desk user.").format(row.idx, frappe.bold(row.user)))
+	for doctype in (*FEATURES, SUGGESTION_DOCTYPE):
+		record = frappe.new_doc(doctype)
+		record.church = row.church
+		if not frappe.has_permission(doctype, "read", doc=record, user=row.user):
+			frappe.throw(
+				_(
+					"Row {0}: {1} cannot read the {2} records of this church, so they cannot review them."
+				).format(row.idx, frappe.bold(row.user), _(doctype))
+			)
+	for doctype in CHOICE_DOCTYPES:
+		if not frappe.has_permission(doctype, "select", user=row.user):
+			frappe.throw(
+				_("Row {0}: {1} cannot select a {2}, so their suggestions cannot name one.").format(
+					row.idx, frappe.bold(row.user), _(doctype)
+				)
+			)
 
 
 def refuse_for_some_churches(message: str) -> None:

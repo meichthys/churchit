@@ -154,6 +154,45 @@ frappe.provide("churchit.ai");
 		);
 	}
 
+	// The Church AI Suggestion on a request (churchit.ai.triage), which only its readers fetch: Pastoral
+	// Care and Church Managers. describe(suggestion) returns {rows: [[label, text]], uses: [[label,
+	// action]], note}. Each value shows as text in a form section; a Use button fills the form unsaved.
+	churchit.ai.show_suggestion = function (frm, describe) {
+		const doctype = "Church AI Suggestion";
+		if (frm.is_new() || !frappe.boot.churchit?.ai?.on || !frappe.model.can_read(doctype))
+			return;
+		const name = frm.doc.name;
+		const fields = [
+			"suggested_type",
+			"suggested_urgent",
+			"suggested_urgency",
+			"suggested_flags",
+			"public_wording",
+		];
+		frappe.db
+			.get_value(doctype, { reference_doctype: frm.doctype, reference_name: name }, fields)
+			.then(({ message }) => {
+				if (!message || !Object.keys(message).length || frm.doc.name !== name) return;
+				const { rows, uses, note } = describe(message);
+				const html = rows
+					.filter(([, text]) => text)
+					.map(
+						([label, text]) =>
+							`<p><strong>${escape(label)}:</strong> ${escape(text)}</p>`
+					)
+					.join("");
+				frm.dashboard.add_section(
+					`${html}<p class="text-muted small">${escape(note)}</p>`,
+					__("AI Suggestion")
+				);
+				frm.dashboard.show();
+				if (!frm.has_perm("write")) return;
+				for (const [label, action] of uses) {
+					frm.add_custom_button(label, action, __("AI Suggestion"));
+				}
+			});
+	};
+
 	// Explain on churchit's script reports.
 
 	function is_explainable(report_doc) {

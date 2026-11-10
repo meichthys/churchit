@@ -1,4 +1,5 @@
 import frappe
+from frappe.model import get_permitted_fields
 
 from churchit.church_prayers.prayer_access import get_community_filters, get_open_request_filters
 from churchit.utils import resolve_link_titles
@@ -26,9 +27,10 @@ def get_list_context(context):
 		conditions = {**get_community_filters(), **open_filters}
 		filters += [[field, *condition] for field, condition in conditions.items()]
 
+		# The list skips permissions, so it asks only for the fields the member may read at their permlevels.
 		rows = frappe.get_list(
 			doctype,
-			fields="*",
+			fields=get_permitted_fields(doctype),
 			distinct=True,
 			filters=filters,
 			or_filters=or_filters,

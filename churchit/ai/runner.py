@@ -10,9 +10,12 @@ else Writer), checks the privacy label of the agent's model and starts a Flow ru
 as the run's owner when the run ends; complete reads the answer as JSON, passes it through the
 action's check and publishes it to the owner's browser (RESULT_EVENT), where public/js/ai_actions.js
 shows it; the browser can also ask for it with get_answer, because a realtime message sent while its
-socket reconnects is lost. Each run leaves a chat in the person's own Flow chat list, which nobody can
-continue or share (flow_switch.has_session_permission). It reads Flow's doctypes and loads no Flow
-code, so churchit loads on a Frappe without Flow.
+socket reconnects is lost. A run that no browser waits for, such as a suggestion on a new request
+(churchit.ai.triage), names a deliver function instead: Flow keeps it on the Flow Run as on_complete
+and calls it with the run as the caller, however long the run waits in the queue.
+Each run leaves a chat in the person's own Flow chat list, which nobody can continue or share
+(flow_switch.has_session_permission). It reads Flow's doctypes and loads no Flow code, so churchit
+loads on a Frappe without Flow.
 """
 
 import json
@@ -57,13 +60,16 @@ def start(
 	reference_doctype: str | None = None,
 	reference_name: str | None = None,
 	check: str | None = None,
+	deliver: str | None = None,
 ) -> dict:
 	"""Start a run of the churchit agent that may get *prompt*, as the caller; return {"token"}.
 
 	*sends* names the doctypes whose records the prompt holds; give none when it holds only text the
 	caller typed, text the church publishes, field labels and options or group names. *check* is the
 	dotted path of a function that takes the parsed answer and returns the result to show, or raises.
-	The caller checks its own rights and writes its Access Log row first.
+	*deliver* is the dotted path of a function that Flow calls with the ended Flow Run as the caller,
+	instead of complete; it reads the answer with get_result and checks its own gates again, and start
+	returns {}. The caller checks its own rights and writes its Access Log row first.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
@@ -71,7 +77,7 @@ def start(
 		frappe.throw(_("Churchit's AI actions need Flow with an enabled chat model. Ask your administrator."))
 
 	sends = set(sends)
-	agent = PRIVATE_WORK if sends & get_private_doctypes() else WRITER
+	agent = get_agent(sends)
 	check_label(feature, agent, bool(sends))
 	# A titled chat never goes to Flow's Helper Model (Flow Settings), which titles a chat from its prompt.
 	session = frappe.get_doc("Flow Agent", get_agent_name(agent)).new_session(title=_(feature))
@@ -79,14 +85,21 @@ def start(
 		prompt,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-		on_complete=ON_COMPLETE,
+		on_complete=deliver or ON_COMPLETE,
 	)
+	if deliver:
+		return {}
 
 	# Flow's run-end callback locks the session until this request commits, so it finds the key.
 	token = frappe.generate_hash(length=32)
 	job = {"token": token, "feature": feature, "user": frappe.session.user, "check": check}
 	frappe.cache.set_value(RUN_KEY + run.name, job, expires_in_sec=RUN_SECONDS)
 	return {"token": token}
+
+
+def get_agent(sends: set[str]) -> str:
+	"""Private Work for a prompt with a record of a doctype in get_private_doctypes(), else Writer."""
+	return PRIVATE_WORK if sends & get_private_doctypes() else WRITER
 
 
 def check_label(feature: str, agent: str, has_records: bool) -> None:
@@ -149,7 +162,7 @@ def wrap_data(text: str, source: str) -> str:
 def complete(run) -> None:
 	"""Flow Run on_complete, as the run's owner: send the checked answer, or why it failed, to the caller.
 
-	Publishes nothing while AI is off, for a run that churchit did not start, or to anyone but the caller.
+	Does nothing while AI is off, for a run that churchit did not start, or as anyone but the caller.
 	"""
 	key = RUN_KEY + run.name
 	job = frappe.cache.get_value(key)
@@ -164,9 +177,14 @@ def complete(run) -> None:
 		message["result"] = get_result(run, job["check"])
 	except frappe.ValidationError as error:
 		message["error"] = str(error) or _(UNUSABLE)
-	answer = {"user": job["user"], "message": message}
-	frappe.cache.set_value(ANSWER_KEY + job["token"], answer, expires_in_sec=ANSWER_SECONDS)
-	frappe.publish_realtime(RESULT_EVENT, message, user=job["user"], after_commit=True)
+	send_answer(job["user"], message)
+
+
+def send_answer(user: str, message: dict) -> None:
+	"""Publish *message* (with its token) to *user*'s browser, and keep it for get_answer."""
+	answer = {"user": user, "message": message}
+	frappe.cache.set_value(ANSWER_KEY + message["token"], answer, expires_in_sec=ANSWER_SECONDS)
+	frappe.publish_realtime(RESULT_EVENT, message, user=user, after_commit=True)
 
 
 @frappe.whitelist(methods=["GET"])

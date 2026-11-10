@@ -14,6 +14,7 @@ frappe.ui.form.on("Prayer Request", {
 				"blue"
 			);
 		}
+		add_suggestion_buttons(frm);
 	},
 	onload: function (frm) {
 		// Filter recipient_type to DocTypes in the church app
@@ -39,3 +40,35 @@ frappe.ui.form.on("Prayer Request", {
 		}
 	},
 });
+
+// AI's suggestion (churchit.ai.triage), for Pastoral Care and Church Managers. A Use button fills the
+// form unsaved and the person saves; the suggested wording is only copied, so the request keeps its
+// own text. An unclear answer leaves Suggested as Urgent unticked, so Use Urgency only marks urgent.
+function add_suggestion_buttons(frm) {
+	churchit.ai.show_suggestion(frm, (suggestion) => {
+		const uses = [
+			["type", suggestion.suggested_type, __("Use Type")],
+			["urgent", suggestion.suggested_urgent ? 1 : null, __("Use Urgency")],
+		]
+			.filter(([fieldname, value]) => value && value !== frm.doc[fieldname])
+			.map(([fieldname, value, label]) => [label, () => frm.set_value(fieldname, value)]);
+		if (suggestion.public_wording) {
+			uses.push([
+				__("Copy Wording"),
+				() => frappe.utils.copy_to_clipboard(suggestion.public_wording),
+			]);
+		}
+		return {
+			rows: [
+				[__("Suggested Type"), suggestion.suggested_type],
+				[__("Suggested as Urgent"), suggestion.suggested_urgent ? __("Yes") : null],
+				[__("Flags"), (suggestion.suggested_flags || "").split("\n").join(", ")],
+				[__("Suggested Wording"), suggestion.public_wording],
+			],
+			uses,
+			note: __(
+				"AI never replies to a prayer request and can miss a risk. Read every request."
+			),
+		};
+	});
+}

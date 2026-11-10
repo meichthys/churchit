@@ -34,10 +34,10 @@ loses the copies of their name and email addresses too (`scrub_history`), since 
 and shows a Link to a Person as the person's name. The history of the family, and the text and history of
 the records that show the family by its name, such as the other members, also lose their first name.
 
-On a Frappe with Flow, the Flow chats whose runs reference the person or a record about them (a prayer request
-for them included) go too, with the prompts and answers in them (`forget_ai_chats`). A chat that only names
-the person stays until Flow's retention removes it: a free chat, an explanation of a report, or a briefing on
-a group or a relative that lists them.
+The AI suggestions on the records about the person (a prayer request for them included) go too, and on a
+Frappe with Flow so do the Flow chats whose runs reference the person or such a record, with the prompts and
+answers in them (`forget_ai_chats`). A chat that only names the person stays until Flow's retention removes
+it: a free chat, an explanation of a report, or a briefing on a group or a relative that lists them.
 
 A member's Personal Data Deletion Request anonymizes their Person once Frappe has deleted their login
 (`anonymize_on_data_deletion`).
@@ -68,6 +68,7 @@ from churchit.church_people.doctype.person.person import (
 from churchit.church_people.followup import CARD, OPEN, close_quietly
 from churchit.church_people.membership import INACTIVE, living_people_filter
 from churchit.church_people.person_data_map import LinkedRecord, get_records_naming, linked_records
+from churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion import delete_suggestion
 from churchit.contacts import CONTACT_TABLES, stop_sharing_from
 from churchit.questions import clear_answers, get_answer_tables
 
@@ -194,7 +195,8 @@ def disable_login(user: str | None) -> None:
 
 
 def forget_ai_chats(person: str) -> None:
-	"""Delete the Flow chats whose runs reference *person* or a record about them, with their runs.
+	"""Delete the AI suggestions on the records about *person* and the Flow chats whose runs reference
+	the person or such a record, with their runs.
 
 	Churchit's AI actions and suggestions start their runs with such a reference. A record is about the
 	person through its field in the lists above, or a Dynamic Link to them (a prayer request for them).
@@ -202,8 +204,6 @@ def forget_ai_chats(person: str) -> None:
 	Settings) is the backstop. The Access Log rows of the AI sends stay: they hold no text. Run before
 	the notes about the person are deleted.
 	"""
-	if not has_flow():
-		return
 	references = defaultdict(set, {"Person": {person}})
 	# church-scope: every record about the one person being anonymized, whichever church holds it
 	for doctype, fieldname in (*PERSONAL_DOCTYPES, *RECORDS_ABOUT_THE_PERSON):
@@ -212,6 +212,11 @@ def forget_ai_chats(person: str) -> None:
 		for link in frappe.get_meta(doctype).get("fields", {"fieldtype": "Dynamic Link"}):
 			filters = {link.options: "Person", link.fieldname: person}
 			references[doctype].update(frappe.get_all(doctype, filters=filters, pluck="name"))
+	for doctype, names in references.items():
+		for name in names:
+			delete_suggestion(doctype, name)
+	if not has_flow():
+		return
 	sessions = {
 		session
 		for doctype, names in references.items()
