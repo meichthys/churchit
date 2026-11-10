@@ -104,6 +104,8 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] AI code reads with `frappe.get_list` or `get_doc` plus `check_permission`. It does not use `get_all`, `db.count`, `qb` or SQL.
 - [ ] Text that guests and members write is data. It never goes into an instruction, and it never chooses a method or a recipient.
 - [ ] The feature calls `opt_outs.refuse_kept_away` on its record and leaves kept-away people out of what it sends. A feature that runs without a person asking only enqueues in the request and runs as a named reviewer in a job.
+- [ ] A check gets only the answer. The answer names its record, the check reads it again as the caller, and it takes a model value only when it has the expected type. Model text that lands in a field, a title or a Notification Log goes through `escape_html`, and a check on links reads a URL as a browser does ([AI](../../../AGENTS.md#ai), rules 13 to 15).
+- [ ] A feature that reads a photo passes the File names to `runner.start(attachments=...)`, and the File is private and attached to its record.
 - [ ] An AI result about a request lives on its own record that only the right roles read, such as Church AI Suggestion, never on the request. An alert assigns that record, because every reader of the request sees the request's assignments.
 
 ## Tests
