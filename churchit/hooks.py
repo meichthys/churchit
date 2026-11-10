@@ -376,6 +376,16 @@ doc_events = {
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
 	},
+	# With AI and suggestions on, a reviewer's AI run suggests next steps on a new request.
+	"Prayer Request": {
+		"after_insert": "churchit.ai.triage.dispatch",
+	},
+	"Care Request": {
+		"after_insert": "churchit.ai.triage.dispatch",
+	},
+	"Follow-up Card": {
+		"after_insert": "churchit.ai.triage.dispatch",
+	},
 	"ToDo": {
 		"after_insert": "churchit.church_operations.doctype.church_task.church_task.on_assignment",
 		"validate": "churchit.church_operations.doctype.church_task.church_task.refuse_moved_assignment",
