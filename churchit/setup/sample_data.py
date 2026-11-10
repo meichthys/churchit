@@ -3283,6 +3283,7 @@ def _create_vendors(expense_types):
 	vendors = [
 		{
 			"vendor_name": "City Power & Light",
+			"is_business": 1,
 			"default_expense_type": expense_types.get("Utilities"),
 			"email": "billing@citypower.example.com",
 			"phone": "+1 202-555-1010",
@@ -3290,6 +3291,7 @@ def _create_vendors(expense_types):
 		},
 		{
 			"vendor_name": "Grace Print & Mail",
+			"is_business": 1,
 			"default_expense_type": expense_types.get("Office Supplies"),
 			"email": "orders@graceprint.example.com",
 			"phone": "+1 202-555-1020",
@@ -3297,6 +3299,7 @@ def _create_vendors(expense_types):
 		},
 		{
 			"vendor_name": "Faithful Facilities Co.",
+			"is_business": 1,
 			"default_expense_type": expense_types.get("Maintenance"),
 			"email": "service@faithfulfacilities.example.com",
 			"phone": "+1 202-555-1030",

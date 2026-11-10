@@ -4,6 +4,9 @@
 frappe.ui.form.on("Possible Duplicate", {
 	refresh(frm) {
 		render_comparison(frm);
+		if (churchit.ai.can_run()) {
+			frm.add_custom_button(__("Explain Match"), () => explain_match(frm), __("View"));
+		}
 		if (frm.doc.status !== "Open") return;
 
 		if (frappe.model.can_delete("Person")) {
@@ -122,4 +125,41 @@ function choose_person_to_keep(frm) {
 	};
 	dialog.show();
 	show_choices();
+}
+
+// Explain Match (church_people/ai_actions.py explain_duplicate): why the two records may be one person
+// and which value of each differing field to keep. It offers no merge: Merge stays the only way.
+function explain_match(frm) {
+	churchit.ai.run_action({
+		title: __("Explain Match"),
+		method: "churchit.church_people.ai_actions.explain_duplicate",
+		args: { possible_duplicate: frm.doc.name },
+		render: (result) => render_match_explanation(frm, result),
+		note: __("Suggestion. Check it before you merge. The AI never merges people."),
+	});
+}
+
+function render_match_explanation(frm, { pair, explanation, keep }) {
+	if (pair !== frm.doc.name) throw new Error("another pair");
+	const escape = churchit.ai.escape;
+	const people = frm.doc.__onload?.people || {};
+	const names = {
+		A: people[frm.doc.person]?.full_name || frm.doc.person,
+		B: people[frm.doc.other_person]?.full_name || frm.doc.other_person,
+	};
+	const rows = keep
+		.map(
+			({ label, value, record }) =>
+				`<tr><td>${escape(__(label))}</td><td>${escape(value)}</td><td>${escape(
+					names[record]
+				)}</td></tr>`
+		)
+		.join("");
+	const table = rows
+		? `<p class="mb-1"><b>${escape(__("Values to keep"))}</b></p>
+			<table class="table table-sm small"><thead><tr><th>${escape(__("Field"))}</th>
+			<th>${escape(__("Value"))}</th><th>${escape(__("From"))}</th></tr></thead>
+			<tbody>${rows}</tbody></table>`
+		: "";
+	return churchit.ai.paragraphs(explanation) + table;
 }

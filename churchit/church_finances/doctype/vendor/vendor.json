@@ -15,6 +15,7 @@
   "default_expense_type",
   "column_break_1",
   "is_active",
+  "is_business",
   "section_break_1",
   "phone",
   "email",
@@ -98,6 +99,15 @@
    "label": "Active"
   },
   {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "description": "Tick when this vendor is a company, shop or organization, not a person. Only then does Suggest Type with AI send its name to the AI.",
+   "fieldname": "is_business",
+   "fieldtype": "Check",
+   "label": "Is a Business",
+   "show_description_on_click": 1
+  },
+  {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break",
    "label": "Contact"
@@ -133,7 +143,7 @@
    "link_fieldname": "vendor"
   }
  ],
- "modified": "2026-10-31 13:16:01.000000",
+ "modified": "2026-11-10 10:46:00.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Vendor",

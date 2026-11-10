@@ -1,14 +1,17 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Churchit's own AI actions on people: describe a list, brief me, draft a note, map an import.
+"""Churchit's own AI actions on people: describe a list, brief me, draft a note, map an import,
+explain a possible duplicate and suggest data quality fixes.
 
 Each action is a POST from a desk button. It checks the caller's rights on what it reads, builds the
 prompt from the fields named beside it and starts a run through churchit.ai.runner, which picks
 Writer or Private Work from the doctypes the prompt holds and checks the model's label. The answer
 reaches the caller's browser only through the check named for the run, which runs as the caller and
 keeps what the caller could choose in the desk. Nothing is saved by itself: a note draft opens as an
-unsaved form through churchit.ai.drafts, and a mapping waits in the import form for its save.
+unsaved form through churchit.ai.drafts, and a mapping waits in the import form for its save. AI never
+merges people: the duplicate explanation has no merge button, and a quality fix is saved by the
+person, one ticked row at a time, through frappe.client.set_value.
 """
 
 import json
@@ -22,7 +25,14 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import get_permitted_fields, no_value_fields
 from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, escape_html, get_url_to_form, today
+from frappe.utils import (
+	cint,
+	escape_html,
+	get_url_to_form,
+	today,
+	validate_email_address,
+	validate_phone_number,
+)
 from frappe.utils.data import TimespanOptions
 
 from churchit.ai import opt_outs, runner
@@ -30,6 +40,14 @@ from churchit.ai.switch import require_ai
 from churchit.church_people import ai as people_ai
 from churchit.church_people import notes
 from churchit.church_people.followup import CARD
+from churchit.church_people.matching import POSSIBLE_DUPLICATE, WEIGHTS, get_match_threshold
+from churchit.church_people.merge import get_merge_choices
+from churchit.church_people.report.people_data_quality.people_data_quality import (
+	INVALID_EMAIL,
+	INVALID_PHONE,
+	PHONE_DIGITS_RANGE,
+)
+from churchit.contacts import EMAIL_FIELD, PHONE_FIELD, phone_digits
 from churchit.dashboard import count_people
 
 RUNS_AN_HOUR = 20
@@ -38,6 +56,9 @@ DESCRIBE_PEOPLE = "Describe people"
 BRIEF_ME = "Brief me"
 NOTE_DRAFT = "Note draft"
 IMPORT_MAPPING = "Import mapping"
+DUPLICATE_EXPLANATION = "Duplicate explanation"
+QUALITY_FIXES = "Data quality fixes"
+DATA_QUALITY = "People Data Quality"
 CHECKS = "churchit.church_people.ai_actions"
 MAX_REQUEST = 1000
 MAX_DICTATION = 6000
@@ -131,6 +152,26 @@ NOTE_INSTRUCTIONS = """Turn the notes in the data block, which a church worker d
 {json_only} Shape: {shape}.
 Use only the values listed for each field, or leave the field out. Dates are YYYY-MM-DD; today is {today}, and a date the notes do not give is today. Write the {text_field} as clear sentences that keep every fact of the notes and add none.
 Values: {choices}"""
+
+# A duplicate explanation sends the reasons of the match with their WEIGHTS and the two values of each
+# field that get_merge_choices offers, without health fields, the envelope number (giving), files and
+# links to another person, household, user or address.
+DUPLICATE_LEFT_OUT_FIELDS = (*runner.PERSON_HEALTH_FIELDS, "envelope_number")
+DUPLICATE_LINKS = ("Person", "Family", "User", "Address")
+DUPLICATE_FILE_TYPES = ("Attach", "Attach Image")
+MAX_SENTENCES = 4
+MAX_SENTENCE = 300
+# The People Data Quality problems that a fix can correct: the Person table and the value field.
+QUALITY_TABLES = {INVALID_EMAIL: (EMAIL_FIELD, "email_address"), INVALID_PHONE: (PHONE_FIELD, "phone_number")}
+MAX_FIXES = 50
+
+DUPLICATE_INSTRUCTIONS = """Explain to church staff why two person records, A and B, may be one person, from the match evidence in the data block. The matcher adds the points of each reason that agrees, up to 100, then takes away the points of each conflict.
+{json_only} Shape: {{"pair": "{pair}", "explanation": ["<sentence>", ...], "keep": [{{"field": "<fieldname>", "value": "<value>"}}, ...]}}.
+Write at most {sentences} plain sentences, and never say for certain that they are or are not one person. For each field that differs, give the value of A or the value of B to keep, copied exactly, or leave the field out."""
+
+QUALITY_INSTRUCTIONS = """Each row in the data block is an email address or a phone number of a church's directory that is not valid.
+{json_only} Shape: {{"fixes": [{{"person": "<person>", "row": "<row>", "value": "<the corrected value>"}}, ...]}}.
+Correct a value only when its typing mistake is clear, such as a comma for a dot, a space or a missing @, and keep the person and row of the data. Leave out a row you cannot correct. Never make up an address or a number."""
 
 IMPORT_INSTRUCTIONS = """Match each spreadsheet heading in the data block to a field of the import "{doctype}".
 {json_only} Shape: {{"import": "{doctype}", "mapping": [{{"column": <the heading's number>, "field": "<fieldname>"}}, ...]}}.
@@ -581,3 +622,228 @@ def check_text(text: str, longest: int) -> str:
 	if len(text) > longest:
 		frappe.throw(_("Use at most {0} characters.").format(longest))
 	return text
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=RUNS_AN_HOUR, seconds=HOUR, user_based=True)
+def explain_duplicate(possible_duplicate: str) -> dict:
+	"""Start an AI run that explains why the people of a Possible Duplicate may be one person. Changes data.
+
+	The prompt holds the reasons of the match with their points and the two values of each field that a
+	merge may choose, never notes, medical or emergency contact fields, giving or links to other people.
+	A person who keeps their details out of churchit's AI, or whose church keeps away, is refused. The
+	answer comes to your browser as plain sentences and the value of each field to keep; it never merges.
+	"""
+	require_ai()
+	frappe.only_for(SYSTEM_USER_ROLE, message=True)
+	pair = frappe.get_doc(POSSIBLE_DUPLICATE, possible_duplicate)
+	pair.check_permission("read")
+	people = (pair.person, pair.other_person)
+	for person in people:
+		frappe.has_permission("Person", doc=person, throw=True)
+		opt_outs.refuse_kept_away("Person", person)
+	opt_outs.refuse_kept_away(POSSIBLE_DUPLICATE, pair.name)
+
+	instructions = DUPLICATE_INSTRUCTIONS.format(json_only=JSON_ONLY, pair=pair.name, sentences=MAX_SENTENCES)
+	data = runner.wrap_data(get_match_evidence(pair), "match evidence")
+	for doctype, name in ((POSSIBLE_DUPLICATE, pair.name), *(("Person", person) for person in people)):
+		make_access_log(doctype=doctype, document=name, method=f"AI: {DUPLICATE_EXPLANATION}")
+	return runner.start(
+		DUPLICATE_EXPLANATION,
+		f"{instructions}\n\n{data}",
+		sends=("Person", POSSIBLE_DUPLICATE),
+		reference_doctype=POSSIBLE_DUPLICATE,
+		reference_name=pair.name,
+		check=f"{CHECKS}.check_duplicate_explanation",
+	)
+
+
+def get_match_evidence(pair) -> str:
+	"""The score, the reasons with their WEIGHTS and the fields that differ, as text for the data block."""
+	reasons = [reason for reason in (pair.reasons or "").splitlines() if reason in WEIGHTS]
+	lines = [f"Score: {pair.score} of 100; a match needs {get_match_threshold()}.", "Reasons:"]
+	lines += [f"- {reason}: {WEIGHTS[reason]:+d}" for reason in reasons]
+	lines.append("Fields that differ:")
+	lines += [
+		f"- {field['fieldname']} ({field['label']}): A = {field['keep']} | B = {field['remove']}"
+		for field in get_duplicate_fields(pair)
+	]
+	return "\n".join(lines)
+
+
+def get_duplicate_fields(pair) -> list[dict]:
+	"""get_merge_choices of the pair as the caller, A being person and B other_person, without
+	DUPLICATE_LEFT_OUT_FIELDS, files and links to other people, households, users or addresses."""
+	meta = frappe.get_meta("Person")
+	fields = []
+	for field in get_merge_choices(pair.person, pair.other_person)["fields"]:
+		df = meta.get_field(field["fieldname"])
+		left_out = (
+			df.fieldname in DUPLICATE_LEFT_OUT_FIELDS
+			or df.fieldtype in DUPLICATE_FILE_TYPES
+			or (df.fieldtype == "Link" and df.options in DUPLICATE_LINKS)
+		)
+		if not left_out:
+			fields.append(field)
+	return fields
+
+
+def check_duplicate_explanation(answer: dict) -> dict:
+	"""The runner's check for explain_duplicate: {pair, explanation, keep}. keep lists, for a field that
+	differs, the value of A or of B that the answer chose (record "A" or "B"); any other value is dropped."""
+	if not isinstance(answer, dict):
+		frappe.throw(_(runner.UNUSABLE))
+	name = answer.get("pair")
+	name = name if isinstance(name, str) else None
+	pairs = frappe.get_list(POSSIBLE_DUPLICATE, filters={"name": name}, pluck="name") if name else []
+	if not pairs:
+		frappe.throw(_("The AI answered for another pair."))
+	pair = frappe.get_doc(POSSIBLE_DUPLICATE, pairs[0])
+	for person in (pair.person, pair.other_person):
+		opt_outs.refuse_kept_away("Person", person)
+
+	texts = answer.get("explanation")
+	sentences = [
+		text.strip()[:MAX_SENTENCE]
+		for text in (texts if isinstance(texts, list) else [])
+		if isinstance(text, str) and text.strip()
+	][:MAX_SENTENCES]
+	if not sentences:
+		frappe.throw(_("The AI wrote no explanation."))
+	return {"pair": pair.name, "explanation": sentences, "keep": get_kept_values(pair, answer.get("keep"))}
+
+
+def get_kept_values(pair, keep) -> list[dict]:
+	"""The answer's choices that name a differing field and one of its two values, once per field."""
+	fields = {field["fieldname"]: field for field in get_duplicate_fields(pair)}
+	chosen = {}
+	for item in keep if isinstance(keep, list) else []:
+		field = fields.get(item.get("field")) if isinstance(item, dict) else None
+		value = str(item.get("value") or "").strip() if field else ""
+		record = {str(field["keep"]): "A", str(field["remove"]): "B"}.get(value) if field else None
+		if record and field["fieldname"] not in chosen:
+			chosen[field["fieldname"]] = {
+				"fieldname": field["fieldname"],
+				"label": field["label"],
+				"value": value,
+				"record": record,
+			}
+	return list(chosen.values())
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=RUNS_AN_HOUR, seconds=HOUR, user_based=True)
+def suggest_quality_fixes(filters: str | dict | None = None) -> dict:
+	"""Start an AI run that suggests a correction for each invalid email address and phone number on the People Data Quality report. Changes data.
+
+	The report runs again as you with *filters*, the report's filters on screen; only the invalid values
+	of the people you may edit go to the AI, without names and without the people who keep their details
+	out of churchit's AI. The answer comes to your browser as one suggested value per row; nothing is
+	saved until you tick a row and save it, which saves the person as the form does.
+	"""
+	require_ai()
+	frappe.only_for(SYSTEM_USER_ROLE, message=True)
+	frappe.has_permission("Person", "write", throw=True)
+	rows = people_ai.get_report_rows(DATA_QUALITY, frappe.parse_json(filters) or {})
+	items = get_fix_items(rows)
+	if not items:
+		frappe.throw(_("This report shows no invalid email address or phone number that you may fix."))
+
+	for person in sorted({item["person"] for item in items}):
+		make_access_log(doctype="Person", document=person, method=f"AI: {QUALITY_FIXES}")
+	instructions = QUALITY_INSTRUCTIONS.format(json_only=JSON_ONLY)
+	data = runner.wrap_data(json.dumps(items, indent=1), "invalid values")
+	return runner.start(
+		QUALITY_FIXES, f"{instructions}\n\n{data}", sends=("Person",), check=f"{CHECKS}.check_quality_fixes"
+	)
+
+
+def get_fix_items(rows: list[dict]) -> list[dict]:
+	"""{person, row, problem, value} of each invalid email or phone row of the report, at most MAX_FIXES,
+	for the people the caller may edit and who do not keep away from churchit's AI. A value shared from
+	another record is left out: it is fixed there."""
+	problems = {_(problem): problem for problem in QUALITY_TABLES}
+	flagged = {
+		(row["person"], problems[row["problem"]], row["detail"])
+		for row in rows
+		if row.get("problem") in problems and row.get("detail")
+	}
+	items = []
+	for person in sorted({person for person, _problem, _value in flagged}):
+		if len(items) >= MAX_FIXES:
+			break
+		may_fix = frappe.has_permission("Person", "write", doc=person)
+		if not may_fix or opt_outs.is_kept_away("Person", person):
+			continue
+		for problem, child in get_contact_rows(frappe.get_doc("Person", person)):
+			value = child.get(QUALITY_TABLES[problem][1])
+			if (person, problem, value) in flagged:
+				items.append({"person": person, "row": child.name, "problem": problem, "value": value})
+	return items[:MAX_FIXES]
+
+
+def get_contact_rows(doc) -> list[tuple[str, object]]:
+	"""(problem, row) of each row of *doc*'s QUALITY_TABLES that is its own, not shared from another record."""
+	return [
+		(problem, row)
+		for problem, (table, _fieldname) in QUALITY_TABLES.items()
+		for row in doc.get(table)
+		if not row.shared_from
+	]
+
+
+def is_valid_contact(problem: str, value: str) -> bool:
+	"""True when *value* is a valid email address or phone number, as the report checks it."""
+	if problem == INVALID_EMAIL:
+		return bool(validate_email_address(value))
+	return len(phone_digits(value)) in PHONE_DIGITS_RANGE and validate_phone_number(value)
+
+
+def check_quality_fixes(answer: dict) -> dict:
+	"""The runner's check for suggest_quality_fixes: {"fixes": [...]}, each a valid new value for a row
+	that is still invalid, of a person the caller may edit, with what frappe.client.set_value takes.
+
+	A fix of a person who keeps away from churchit's AI, of a row that is no longer invalid and a value
+	that is not valid either are dropped.
+	"""
+	fixes = answer.get("fixes") if isinstance(answer, dict) else None
+	if not isinstance(fixes, list):
+		frappe.throw(_(runner.UNUSABLE))
+	checked = {}
+	for fix in fixes[:MAX_FIXES]:
+		if isinstance(fix, dict) and (found := get_checked_fix(fix)) and found["row"] not in checked:
+			checked[found["row"]] = found
+	if not checked:
+		frappe.throw(_("The AI found no clear fix."))
+	return {"fixes": list(checked.values())}
+
+
+def get_checked_fix(fix: dict) -> dict | None:
+	"""*fix* as {person, person_name, doctype, row, fieldname, old, value, problem} when it can be saved:
+	a row that is still invalid, of a person the caller may edit, and a new value that is valid."""
+	person, value = fix.get("person"), str(fix.get("value") or "").strip()
+	if not (isinstance(person, str) and value and frappe.get_list("Person", filters={"name": person})):
+		return None
+	if not frappe.has_permission("Person", "write", doc=person) or opt_outs.is_kept_away("Person", person):
+		return None
+	doc = frappe.get_doc("Person", person)
+	found = next(
+		((problem, row) for problem, row in get_contact_rows(doc) if row.name == fix.get("row")), None
+	)
+	if not found:
+		return None
+	problem, row = found
+	fieldname = QUALITY_TABLES[problem][1]
+	old = row.get(fieldname)
+	if is_valid_contact(problem, old) or not is_valid_contact(problem, value) or value == old:
+		return None
+	return {
+		"person": person,
+		"person_name": doc.full_name,
+		"doctype": row.doctype,
+		"row": row.name,
+		"fieldname": fieldname,
+		"old": old,
+		"value": value,
+		"problem": _(problem),
+	}
