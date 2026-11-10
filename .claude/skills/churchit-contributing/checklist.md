@@ -103,6 +103,8 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] AI returns a draft that a person checks and saves. AI code never saves a record by itself.
 - [ ] AI code reads with `frappe.get_list` or `get_doc` plus `check_permission`. It does not use `get_all`, `db.count`, `qb` or SQL.
 - [ ] Text that guests and members write is data. It never goes into an instruction, and it never chooses a method or a recipient.
+- [ ] The feature calls `opt_outs.refuse_kept_away` on its record and leaves kept-away people out of what it sends. A feature that runs without a person asking only enqueues in the request and runs as a named reviewer in a job.
+- [ ] An AI result about a request lives on its own record that only the right roles read, such as Church AI Suggestion, never on the request. An alert assigns that record, because every reader of the request sees the request's assignments.
 
 ## Tests
 

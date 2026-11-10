@@ -15,6 +15,7 @@ Giving and care are private. Only Church Finance users read giving, and only Chu
 ## Care
 
 - A Care Request asks for pastoral care for a `person`. `status` is Requested, Triaged, In Progress, Resolved or Closed. `urgency` is Low, Medium, High or Urgent. `caregiver` is the person who gives the care. A member can write the `description`, so it is untrusted text.
+- A **Church AI Suggestion** on a Care Request (`reference_doctype`, `reference_name`, `suggested_type`, `suggested_urgency`) holds suggestions that Churchit's own AI made for Pastoral Care. They can be wrong. Do not change the type, the urgency or the caregiver because of them.
 - A Visitation Log records a visit: `visit_date`, `visited_by`, `visit_type`, `follow_up_needed` and `notes`.
 - An Alms Request asks for money from the church to help someone. `status` is Pending, Declined, Approved or Distributed.
 - The People with Open Care Requests, Visitation Followups Needed and Members Not Seen Lately reports list the care that waits.

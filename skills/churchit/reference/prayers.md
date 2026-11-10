@@ -15,6 +15,7 @@ A Prayer Request's `visibility` decides who reads it:
 - `status` tells if the request is still open. Answered, Archived and Closed requests are closed.
 - `urgent` marks an urgent request. `end_date` is the day it leaves the prayer lists.
 - `approved_for_list` puts the request on the Community Prayer Requests page and in bulletins. A request from the anonymous form on the website waits until the staff approve it. Approve a request only when the person asks, after they read it.
+- A **Church AI Suggestion** on a Prayer Request (`reference_doctype`, `reference_name`, `suggested_type`, `suggested_urgent`, `suggested_flags`, `public_wording`) holds suggestions that Churchit's own AI made for Pastoral Care. They can be wrong and can miss a risk. They are not a decision: do not reply to the request, approve it or change its status because of them. When `suggested_flags` holds "Possible risk of harm", tell the person to read the request now. Do not repeat the flags to anyone else.
 - `prayer_count` counts the times that people prayed for it. Do not record a prayer.
 
 ## Lists
