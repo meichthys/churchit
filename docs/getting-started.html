@@ -182,6 +182,8 @@ pilot -b church install-app church.example.org erpnext</code><button class="btn 
 
 <p>Churchit renamed three records so that ERPNext can use their names: <strong>Budget</strong> is now <strong>Church Budget</strong>, <strong>Location</strong> is now <strong>Church Location</strong>, and the <strong>Open Work Orders</strong> report is now <strong>Open Church Work Orders</strong>. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (<code>/app/budget</code>) and API calls (<code>/api/resource/Location</code>).</p>
 
+<p><strong>MCP after an update:</strong> Churchit closes Frappe's MCP server (<strong>System Settings &gt; AI Agents &gt; Enable MCP</strong>, which a Frappe 16 update turned on in October 2026) until a church turns on AI. MCP is one setting for the site, so ERPNext and the other apps on the site lose MCP too. To open it again, turn on AI in <strong>Settings &gt; Module Settings &gt; AI Settings</strong>, then tick <strong>Enable MCP</strong> in System Settings. Only a Church Manager, a System Manager or a person with the new <strong>Church AI User</strong> role can then connect an AI app; give that role on the User record to the other people who need it. Each System Manager gets one bell notice that says so.</p>
+
 <p>To make the site reachable from the internet with your own domain, see <a href="#setting-up-a-public-domain">Setting up a public domain</a>.</p>
 </div></article>
       </div>
