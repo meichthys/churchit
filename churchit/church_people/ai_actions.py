@@ -14,6 +14,7 @@ unsaved form through churchit.ai.drafts, and a mapping waits in the import form 
 import json
 from datetime import date
 from typing import get_args
+from urllib.parse import unquote
 
 import frappe
 from frappe import _
@@ -24,7 +25,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, escape_html, get_url_to_form, today
 from frappe.utils.data import TimespanOptions
 
-from churchit.ai import runner
+from churchit.ai import opt_outs, runner
 from churchit.ai.switch import require_ai
 from churchit.church_people import ai as people_ai
 from churchit.church_people import notes
@@ -87,6 +88,8 @@ BRIEF_PARTS = {
 	},
 }
 RECORD_DOCTYPES = ("Visitation Log", "Care Request", "Member Transfer", "Connection Card", "Person Note")
+# The parts of a briefing that list people, each row naming one in "person".
+PEOPLE_PARTS = ("household", "members", "leaders", "open_join_requests")
 # Person summary fields that churchit works out from giving, care and background check records
 # (church_people/summaries), and those records' doctype. A field of no value says nothing and is left out.
 SUMMARY_SOURCES = {
@@ -232,16 +235,18 @@ def brief(doctype: str, name: str) -> dict:
 	"""Start an AI run that summarizes a Person or a Group from what you may read about it. Changes data.
 
 	The prompt holds the briefing that get_person_briefing or get_group_briefing gives you, which the
-	Access Log keeps, without links and medical or emergency contact fields. A briefing that holds a
-	record of a private doctype (Church AI Settings) runs on Private Work. Returns token and sources,
-	the records the briefing used; the summary comes to your browser and is never stored.
+	Access Log keeps, without links and medical or emergency contact fields, and without the people and
+	records that keep away from churchit's AI (a person or group that does is refused). A briefing that
+	holds a record of a private doctype (Church AI Settings) runs on Private Work. Returns token and
+	sources, the records the briefing used; the summary comes to your browser and is never stored.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
 	if doctype not in BRIEF_PARTS:
 		frappe.throw(_("Brief Me works on a person or a group."))
 	frappe.has_permission(doctype, doc=name, throw=True)
-	briefing = get_briefing(doctype, name)
+	opt_outs.refuse_kept_away(doctype, name)
+	briefing = without_kept_away(get_briefing(doctype, name))
 	facts = get_brief_facts(doctype, briefing)
 	instructions = BRIEF_INSTRUCTIONS.format(subject=doctype.lower(), json_only=JSON_ONLY)
 	data = runner.wrap_data(json.dumps(facts, default=str, indent=1), "briefing")
@@ -261,6 +266,50 @@ def get_briefing(doctype: str, name: str) -> dict:
 	if doctype == "Person":
 		return people_ai.get_person_briefing(name)
 	return people_ai.get_group_briefing(name)
+
+
+def without_kept_away(briefing: dict) -> dict:
+	"""*briefing* without what churchit's AI features leave out (churchit.ai.opt_outs): each person who
+	keeps their details out of AI or whose church keeps away from AI, the spouse among them, and each
+	follow-up card and timeline card of a church that keeps away."""
+	kept = opt_outs.get_kept_away_records(get_brief_records(briefing))
+	briefing = dict(briefing)
+	for part in (*PEOPLE_PARTS, "open_follow_ups"):
+		if briefing.get(part):
+			briefing[part] = [row for row in briefing[part] if get_row_record(part, row) not in kept]
+	if briefing.get("records"):
+		rows = [row for row in briefing["records"]["rows"] if get_card_record(row) not in kept]
+		briefing["records"] = {**briefing["records"], "rows": rows}
+	summary = briefing.get("summary") or {}
+	if ("Person", summary.get("spouse")) in kept:
+		briefing["summary"] = {key: value for key, value in summary.items() if key != "spouse"}
+	return briefing
+
+
+def get_brief_records(briefing: dict) -> list[tuple[str, str]]:
+	"""(doctype, name) of each person and record that *briefing* lists."""
+	records = [
+		get_row_record(part, row)
+		for part in (*PEOPLE_PARTS, "open_follow_ups")
+		for row in briefing.get(part) or []
+	]
+	records += [get_card_record(row) for row in (briefing.get("records") or {}).get("rows", [])]
+	records.append(("Person", (briefing.get("summary") or {}).get("spouse")))
+	return [record for record in records if record and record[1]]
+
+
+def get_row_record(part: str, row: dict) -> tuple[str, str]:
+	return (CARD, row["name"]) if part == "open_follow_ups" else ("Person", row["person"])
+
+
+def get_card_record(card: dict) -> tuple[str, str] | None:
+	"""(doctype, name) of the record a timeline card links to, for a doctype of RECORD_DOCTYPES."""
+	url = card.get("url") or ""
+	for doctype in RECORD_DOCTYPES:
+		prefix = f"{get_url_to_form(doctype)}/"
+		if url.startswith(prefix):
+			return doctype, unquote(url[len(prefix) :])
+	return None
 
 
 def get_brief_facts(doctype: str, briefing: dict) -> dict:
@@ -296,13 +345,7 @@ def get_brief_sends(doctype: str, briefing: dict, facts: dict) -> set[str]:
 	sends = {BRIEF_PARTS[doctype][part] for part in facts}
 	sends |= {SUMMARY_SOURCES[key] for key in facts.get("summary", {}) if key in SUMMARY_SOURCES}
 	cards = briefing.get("records", {}).get("rows", []) if "records" in facts else []
-	prefixes = {f"{get_url_to_form(record_doctype)}/": record_doctype for record_doctype in RECORD_DOCTYPES}
-	return sends | {
-		record_doctype
-		for card in cards
-		for prefix, record_doctype in prefixes.items()
-		if (card.get("url") or "").startswith(prefix)
-	}
+	return sends | {record[0] for card in cards if (record := get_card_record(card))}
 
 
 def get_sources(value) -> list[dict]:
@@ -333,7 +376,8 @@ def draft_note(person: str, text: str, doctype: str = "Person Note") -> dict:
 
 	The prompt holds the notes and the categories, contact methods, visit types and statuses you may
 	choose; never the person's record. A Person Note offers only the categories you may add a note
-	in. The answer comes to your browser as the draft's fields; Use opens them in an unsaved form.
+	in. A person who keeps their details out of churchit's AI is refused. The answer comes to your
+	browser as the draft's fields; Use opens them in an unsaved form.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
@@ -341,6 +385,7 @@ def draft_note(person: str, text: str, doctype: str = "Person Note") -> dict:
 		frappe.throw(_("Draft a Person Note or a Visitation Log."))
 	frappe.has_permission("Person", doc=person, throw=True)
 	frappe.has_permission(doctype, "create", throw=True)
+	opt_outs.refuse_kept_away("Person", person)
 	dictation = check_text(text, MAX_DICTATION)
 	choices = get_note_choices(doctype)
 	if doctype == "Person Note" and not choices["category"]:

@@ -84,6 +84,7 @@
   "share_phone",
   "share_address",
   "share_birthday",
+  "exclude_from_ai",
   "section_break_eqre",
   "letters",
   "connections_tab",
@@ -350,6 +351,15 @@
    "fieldname": "share_birthday",
    "fieldtype": "Check",
    "label": "Show Birthday in the Member Directory"
+  },
+  {
+   "default": "0",
+   "description": "Churchit's own AI features (Brief Me, Draft Note, Explain and suggestions on new requests) leave this person out. Members can set this themselves on their Personal Details page. Only the person, a parent of a child, or a System Manager can clear it. Staff still read the person's details in the desk, and staff who use Flow chats or their own AI app read what their rights allow.",
+   "fieldname": "exclude_from_ai",
+   "fieldtype": "Check",
+   "label": "Keep Out of Churchit's AI Features",
+   "print_hide": 1,
+   "show_description_on_click": 1
   },
   {
    "description": "The secret part of this person's Ministry Team calendar link. Members make a new one on the Ministry Team page of the portal.",
@@ -974,7 +984,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-06 01:05:18.000000",
+ "modified": "2026-11-10 05:54:02.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

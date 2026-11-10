@@ -17,7 +17,7 @@ from frappe.core.utils import html_to_plain_text
 from frappe.rate_limiter import rate_limit
 from frappe.utils import get_datetime
 
-from churchit.ai import runner
+from churchit.ai import opt_outs, runner
 from churchit.ai.drafts import make_draft
 from churchit.ai.switch import require_ai
 from churchit.church_people.ai_actions import (
@@ -46,14 +46,16 @@ Take each task from the minutes and add none; at most {most}. The meeting was on
 def action_items(minutes: str) -> dict:
 	"""Start an AI run that finds the action items in Meeting Minutes, as Church Task drafts. Changes data.
 
-	For a Church Manager. The prompt holds the minutes' title, date and text. The answer comes to your
-	browser as proposed tasks, each with a link that opens it filled and unsaved; save the ones to
-	keep and assign them with Assign To.
+	For a Church Manager, on minutes of a church that does not keep away from churchit's AI. The
+	prompt holds the minutes' title, date and text. The answer comes to your browser as proposed
+	tasks, each with a link that opens it filled and unsaved; save the ones to keep and assign them
+	with Assign To.
 	"""
 	require_ai()
 	frappe.only_for("Church Manager", message=True)
 	record = frappe.get_doc("Meeting Minutes", minutes)
 	record.check_permission("read")
+	opt_outs.refuse_kept_away("Meeting Minutes", record.name)
 	frappe.has_permission("Church Task", "create", throw=True)
 	record.apply_fieldlevel_read_permissions()
 	sent = {field: record.get(field) for field in MINUTES_FIELDS}

@@ -20,7 +20,7 @@ from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, strip_html_tags
 
-from churchit.ai import runner, writing
+from churchit.ai import opt_outs, runner, writing
 from churchit.ai.switch import require_ai
 
 FEATURE = "Sermon study"
@@ -102,8 +102,9 @@ def study_helper(sermon: str, purpose: str) -> dict:
 	"""Start an AI study helper for a sermon: discussion questions, a summary, a series description, handout blanks, or for a published sermon a devotional or a social post. Changes data.
 
 	purpose is questions, summary, series_description, handout_blanks, devotional or social_post. It
-	never writes a sermon or a prayer. The answer reaches the caller's browser as a suggestion, and
-	nothing is saved. It starts a model run, which Flow keeps as a chat of the caller. Returns {"token"}.
+	never writes a sermon or a prayer, and refuses a sermon of a church that keeps away from
+	churchit's AI. The answer reaches the caller's browser as a suggestion, and nothing is saved. It
+	starts a model run, which Flow keeps as a chat of the caller. Returns {"token"}.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
@@ -112,6 +113,7 @@ def study_helper(sermon: str, purpose: str) -> dict:
 		frappe.throw(_("Churchit's AI writes study helpers for a sermon, never a sermon or a prayer."))
 	doc = frappe.get_doc("Sermon", sermon)
 	doc.check_permission("read")
+	opt_outs.refuse_kept_away("Sermon", doc.name)
 	is_public = doc.is_public
 	if helper.published_only and not is_public:
 		frappe.throw(_("A devotional and a social post are drafted only for a published sermon."))

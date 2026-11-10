@@ -9,6 +9,9 @@ apply as in the desk. It never takes rows from the browser. It sends the report'
 masked fields and PERSON_HEALTH_FIELDS, of at most MAX_ROWS rows. The rows are records of the report's
 doctype and of each doctype its Link columns name, so a report on a doctype of Only for Local or Zero
 Retention Models goes to the Private Work agent; so does a finance report, whose rows total gifts.
+A row whose Link value names a record that keeps away from churchit's AI (opt_outs) is left out. A
+report whose rows can come from a church that keeps away is refused: a total names no record, but it
+counts that church's records. The Church filter (church.report_filters) narrows the rows to one church.
 NO_EXPLAIN reports have no Explain item.
 """
 
@@ -22,17 +25,28 @@ from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.rate_limiter import rate_limit
 from frappe.utils import strip_html_tags
 
-from churchit.ai import runner
+from churchit.ai import opt_outs, runner
 from churchit.ai.switch import require_ai
+from churchit.church_scope import CHURCH_FIELD, church_filter
 
 FEATURE = "Explain report"
+# What a report's script holds when it has the Church filter (test_reports_hygiene checks it).
+CHURCH_FILTER = "church.report_filters()"
+PICK_A_CHURCH = (
+	"Some churches in this report keep their records away from churchit's AI features. In the Church "
+	"filter, pick a church that does not."
+)
 ACCESS_LOG_METHOD = "AI: Explain report"
 CHECK = "churchit.ai.reports.check_explanation"
-# Reports about children, and reports whose rows can hold or reveal Private prayer requests.
+# Reports about children or that list their names, ages or birthdays, and reports whose rows can hold
+# or reveal Private prayer requests.
 NO_EXPLAIN = (
 	"Active Prayer List",
 	"Children",
+	"Church Directory Report",
 	"Pastoral Care Watch List",
+	"Person Birthdays This Month",
+	"Person Birthdays This Week",
 	"Prayer Requests Recently Answered",
 	"Prayer Requests Recently Created",
 )
@@ -58,9 +72,12 @@ PROMPT = (
 def explain_report(report_name: str, filters: dict | str | None = None) -> dict:
 	"""Start an AI explanation of a churchit script report, run again as the caller with *filters*. Changes data.
 
-	It writes an Access Log row. Returns the token of the run, and the columns, rows and total_rows
-	that the AI gets, for the dialog to show beside the answer. The answer, {summary, trend,
-	questions}, reaches the caller's browser when the run ends; nothing is saved.
+	It leaves out each row that names a record churchit's AI features leave out (opt_outs), and refuses
+	filters that name one, a caller whose churches all keep away from AI, and rows that can come from a
+	church that keeps away (refuse_kept_away_churches). It writes an Access Log
+	row. Returns the token of the run, and the columns, rows and total_rows that the AI gets, for the
+	dialog to show beside the answer. The answer, {summary, trend, questions}, reaches the caller's
+	browser when the run ends; nothing is saved.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
@@ -68,11 +85,14 @@ def explain_report(report_name: str, filters: dict | str | None = None) -> dict:
 	filters = frappe.parse_json(filters) or {}
 	if not isinstance(filters, dict):
 		frappe.throw(_("Give the filters as an object of filter names and values."))
+	refuse_kept_away_filters(filters)
+	refuse_kept_away_churches(report.name, filters)
 
 	result = query_report.run(
 		report.name, filters=filters, ignore_prepared_report=True, are_default_filters=False
 	)
-	table = get_table(report.ref_doctype, result["columns"], result["result"])
+	rows = without_kept_away(report.ref_doctype, result["columns"], result["result"])
+	table = get_table(report.ref_doctype, result["columns"], rows)
 	make_access_log(
 		doctype=report.ref_doctype, report_name=report.name, filters=filters, method=ACCESS_LOG_METHOD
 	)
@@ -102,6 +122,64 @@ def get_explainable_report(report_name: str):
 	if report.report_type != "Script Report" or not is_churchit:
 		frappe.throw(_("AI explains only churchit's script reports."))
 	return report
+
+
+def refuse_kept_away_filters(filters: dict) -> None:
+	"""Refuse a caller whose churches all keep away from churchit's AI, and filters that name a church
+	that keeps away or a person who keeps their details out of AI: the rows would be theirs."""
+	if opt_outs.is_user_kept_away():
+		frappe.throw(_(opt_outs.CHURCH_REFUSAL), frappe.PermissionError)
+	values = [item for value in filters.values() for item in (value if isinstance(value, list) else [value])]
+	names = [value for value in values if isinstance(value, str)]
+	if opt_outs.get_kept_away_records((doctype, name) for doctype in ("Church", "Person") for name in names):
+		frappe.throw(
+			_("The filters name a church or a person that keeps away from churchit's AI features."),
+			frappe.PermissionError,
+		)
+
+
+def refuse_kept_away_churches(report_name: str, filters: dict) -> None:
+	"""Refuse while the report's rows can come from a church that keeps away from churchit's AI: the
+	churches its Church filter picks, or with no such filter every church the caller may see."""
+	kept = opt_outs.get_kept_away_churches()
+	if not kept:
+		return
+	has_church_filter = CHURCH_FILTER in query_report.get_script(report_name)["script"]
+	requested = filters.get(CHURCH_FIELD) if has_church_filter else None
+	churches = church_filter({CHURCH_FIELD: requested if isinstance(requested, str) else None})
+	if churches is None:
+		churches = frappe.db.get_values("Church", {}, "name", pluck=True)
+	if kept & set(churches):
+		frappe.throw(_(PICK_A_CHURCH), frappe.PermissionError, title=_("Kept Away From AI"))
+
+
+def without_kept_away(doctype: str, columns: list[dict], rows: list) -> list:
+	"""*rows* without each row that names a record churchit's AI features leave out (churchit.ai.opt_outs),
+	such as a person who keeps their details out of AI: in a Link column, or as the row's record of
+	*doctype*, the report's own, in its "name"."""
+	links = [
+		(index, column)
+		for index, column in enumerate(columns)
+		if column.get("fieldtype") == "Link" and column.get("options")
+	]
+	named = [get_row_records(doctype, row, links) for row in rows]
+	kept = opt_outs.get_kept_away_records(record for records in named for record in records)
+	return [row for row, records in zip(rows, named, strict=True) if not records & kept]
+
+
+def get_row_records(doctype: str, row: dict | list, links: list[tuple[int, dict]]) -> set[tuple[str, str]]:
+	"""(doctype, name) of each record a row names: its Link values, and in a dict row its "name"."""
+	values = {(column["options"], get_value(row, index, column)) for index, column in links}
+	if isinstance(row, dict):
+		values.add((doctype, row.get("name")))
+	return {(each, value) for each, value in values if value and isinstance(value, str)}
+
+
+def get_value(row: dict | list, index: int, column: dict):
+	"""One raw value of a row, which a report gives as a dict or a list."""
+	if isinstance(row, dict):
+		return row.get(column.get("fieldname"))
+	return row[index] if index < len(row) else None
 
 
 def get_table(doctype: str, columns: list[dict], rows: list) -> dict:

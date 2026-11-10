@@ -39,6 +39,7 @@
   "column_break_settings",
   "default_bible_translation",
   "contact_only_with_consent",
+  "keep_away_from_ai",
   "hidden_fields_section",
   "lft",
   "rgt",
@@ -186,6 +187,15 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.multi_church",
+   "description": "Tick this to keep this church away from Churchit's own AI features: Brief Me, Draft Note, Explain, Draft with AI, the study helpers, action items and suggestions on new requests. They then send no record of this church or its people, and staff who work only for churches that keep away no longer see their buttons. Flow chats, the Church Office agent and AI apps that connect over MCP still work on every church with each user's own permissions, so keep MCP off in System Settings while a church keeps away from AI.",
+   "fieldname": "keep_away_from_ai",
+   "fieldtype": "Check",
+   "label": "Keep This Church Away From AI",
+   "show_description_on_click": 1
+  },
+  {
+   "default": "0",
    "description": "Check this to show this church on the public website.",
    "fieldname": "publish",
    "fieldtype": "Check",
@@ -262,7 +272,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-10-31 13:35:24.000000",
+ "modified": "2026-11-10 02:26:37.000000",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

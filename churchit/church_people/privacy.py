@@ -34,6 +34,11 @@ loses the copies of their name and email addresses too (`scrub_history`), since 
 and shows a Link to a Person as the person's name. The history of the family, and the text and history of
 the records that show the family by its name, such as the other members, also lose their first name.
 
+On a Frappe with Flow, the Flow chats whose runs reference the person or a record about them (a prayer request
+for them included) go too, with the prompts and answers in them (`forget_ai_chats`). A chat that only names
+the person stays until Flow's retention removes it: a free chat, an explanation of a report, or a briefing on
+a group or a relative that lists them.
+
 A member's Personal Data Deletion Request anonymizes their Person once Frappe has deleted their login
 (`anonymize_on_data_deletion`).
 """
@@ -53,6 +58,7 @@ from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.query_builder.functions import Coalesce, Lower
 from frappe.utils.global_search import delete_for_document, update_global_search
 
+from churchit.ai.switch import has_flow
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.person.person import (
 	UNKNOWN_GENDER,
@@ -168,6 +174,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	if family:
 		leave_family(family, first_name)
 	stop_sharing_from("Person", person)
+	forget_ai_chats(person)
 	forget_records_about(person)
 	forget_sign_up_details(person, emails)
 	records = linked_records(person)
@@ -184,6 +191,39 @@ def disable_login(user: str | None) -> None:
 		login = frappe.get_doc("User", user)
 		login.enabled = 0
 		login.save(ignore_permissions=True)
+
+
+def forget_ai_chats(person: str) -> None:
+	"""Delete the Flow chats whose runs reference *person* or a record about them, with their runs.
+
+	Churchit's AI actions and suggestions start their runs with such a reference. A record is about the
+	person through its field in the lists above, or a Dynamic Link to them (a prayer request for them).
+	A chat that names the person without such a reference is not found, so Flow's own retention (Log
+	Settings) is the backstop. The Access Log rows of the AI sends stay: they hold no text. Run before
+	the notes about the person are deleted.
+	"""
+	if not has_flow():
+		return
+	references = defaultdict(set, {"Person": {person}})
+	# church-scope: every record about the one person being anonymized, whichever church holds it
+	for doctype, fieldname in (*PERSONAL_DOCTYPES, *RECORDS_ABOUT_THE_PERSON):
+		references[doctype].update(frappe.get_all(doctype, filters={fieldname: person}, pluck="name"))
+	for doctype in {doctype for doctype, _fieldname in (*PERSONAL_DOCTYPES, *RECORDS_ABOUT_THE_PERSON)}:
+		for link in frappe.get_meta(doctype).get("fields", {"fieldtype": "Dynamic Link"}):
+			filters = {link.options: "Person", link.fieldname: person}
+			references[doctype].update(frappe.get_all(doctype, filters=filters, pluck="name"))
+	sessions = {
+		session
+		for doctype, names in references.items()
+		if names
+		for session in frappe.get_all(
+			"Flow Run",
+			filters={"reference_doctype": doctype, "reference_name": ("in", list(names))},
+			pluck="session",
+		)
+	}
+	for session in sessions:
+		frappe.delete_doc("Flow Session", session, ignore_permissions=True, delete_permanently=True)
 
 
 def forget_records_about(person: str) -> None:

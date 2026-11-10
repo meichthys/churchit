@@ -11,7 +11,7 @@ from frappe.utils import cstr, get_link_to_form, today
 from churchit.church_communications import newsletter
 from churchit.church_foundations import church_access
 from churchit.church_ministries.attendance import COUNTED_TYPES
-from churchit.church_people import events, followup, matching, membership, summaries
+from churchit.church_people import events, followup, household, matching, membership, summaries
 from churchit.church_people.derived import BIRTH, DEATH, sync_derived, years_since
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
@@ -336,6 +336,7 @@ class Person(Document):
 
 	def validate(self):
 		refuse_member_edits_beyond_personal_details(self)
+		self.refuse_clearing_another_ai_opt_out()
 		self.refuse_linking_another_login()
 		self.take_imported_email_and_phone()
 		# Normalise the emails / phones / addresses tables before anything else
@@ -348,6 +349,22 @@ class Person(Document):
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
 		self.validate_relationships()
+
+	def refuse_clearing_another_ai_opt_out(self):
+		"""Only the person, a parent of a child (household.can_edit) or a System Manager clears the person's
+		Keep Out of Churchit's AI Features; anyone who may change the person can tick it."""
+		before = self.get_doc_before_save()
+		if self.exclude_from_ai or not (before and before.exclude_from_ai):
+			return
+		user = frappe.session.user
+		if "System Manager" in frappe.get_roles(user) or household.can_edit(user, self.name):
+			return
+		frappe.throw(
+			_("Only the person, a parent of a child, or a System Manager can clear {0}.").format(
+				_(self.meta.get_label("exclude_from_ai"))
+			),
+			frappe.PermissionError,
+		)
 
 	def take_imported_email_and_phone(self):
 		"""Make an email or phone from a Data Import's Email or Phone column the primary row of its table.

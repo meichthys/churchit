@@ -51,17 +51,19 @@ def extend_bootinfo(bootinfo) -> None:
 
 	frappe.boot.churchit.ai = {"on", "flow", "flow_ready", "actions", "private_actions": bool,
 	"no_explain": [report names]}. actions is true when AI is on, Flow is ready and the person may run
-	churchit/Writer; private_actions also needs churchit/Private Work. It reads Flow's doctypes only on
-	a Frappe that ships Flow, and loads no churchit.ai.flow.
+	churchit/Writer; private_actions also needs churchit/Private Work. Both are false for a person whose
+	churches all keep away from AI (opt_outs). It reads Flow's doctypes only on a Frappe that ships
+	Flow, and loads no churchit.ai.flow.
 	"""
 	# These modules import this one.
 	from churchit.ai.flow_models import PRIVATE_WORK, WRITER, is_flow_ready
+	from churchit.ai.opt_outs import is_user_kept_away
 	from churchit.ai.reports import NO_EXPLAIN
 	from churchit.ai.runner import get_usable_agents
 
 	on, flow = is_ai_on(), has_flow()
 	flow_ready = flow and is_flow_ready()
-	agents = get_usable_agents() if on and flow_ready else set()
+	agents = get_usable_agents() if on and flow_ready and not is_user_kept_away() else set()
 	bootinfo.setdefault("churchit", {})["ai"] = {
 		"on": on,
 		"flow": flow,

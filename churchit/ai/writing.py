@@ -26,7 +26,7 @@ from markdownify import markdownify
 from pythonbible.regular_expressions import SCRIPTURE_REFERENCE_REGULAR_EXPRESSION
 
 from churchit import scripture
-from churchit.ai import runner
+from churchit.ai import opt_outs, runner
 from churchit.ai.switch import require_ai
 from churchit.church_communications.sending import PLACEHOLDERS, check_placeholders
 from churchit.church_people.doctype.follow_up_action.follow_up_action import CONTEXT
@@ -156,25 +156,30 @@ def draft_text(
 	doctype); name is the form's saved record, if any. prompt is the request: what to write, the
 	tone, or the language. text is the field's current text, and values the form's unsaved values,
 	of which only the facts the prompt names are read. The answer reaches the caller's browser as
-	a suggestion, and the form fills the field unsaved; nothing is saved or sent. It starts a model
-	run, which Flow keeps as a chat of the caller. Returns {"token"}.
+	a suggestion, and the form fills the field unsaved; nothing is saved or sent. A record that keeps
+	away from churchit's AI is refused, and so is a new record of a church that keeps away. It starts
+	a model run, which Flow keeps as a chat of the caller. Returns {"token"}.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
 	purpose = get_purpose(doctype, fieldname, action)
 	form = purpose.form or doctype
+	values = frappe.parse_json(values) or {}
 	if name:
 		record = frappe.get_doc(form, name)
 		record.check_permission("write")
+		opt_outs.refuse_kept_away(form, name)
 	else:
 		frappe.has_permission(form, "create", throw=True)
+		church = values.get("church") if isinstance(values, dict) else None
+		opt_outs.refuse_kept_away_church(cstr(church) or None)
 		record = frappe.new_doc(form)
 
 	record.apply_fieldlevel_read_permissions()
 	if purpose.public_only:
 		refuse_unless_public(record)
 	else:
-		record.update(get_form_facts(form, frappe.parse_json(values) or {}))
+		record.update(get_form_facts(form, values))
 	request = cstr(prompt).strip()[:REQUEST_LENGTH]
 	if action != SHORTEN and purpose.kind != ALT_TEXT and not request:
 		frappe.throw(_("Say what to write, the tone or the language."))
