@@ -123,6 +123,13 @@ class TestRecordedCases(RollbackEachTest):
 			grade(trip, {**trip["answer"], "flags": ["risk"]}), "The suggestion adds: Possible risk of harm."
 		)
 
+	def test_a_weekly_note_with_a_link_or_too_few_sentences_fails(self):
+		[case] = get_cases(model_check.WEEKLY_NOTE)
+		sentences = case["answer"]["sentences"]
+		self.assertEqual(grade(case, {"sentences": sentences[:3]}), "The note does not have 5 sentences.")
+		linked = [*sentences[:4], "See www.example.org for more."]
+		self.assertEqual(grade(case, {"sentences": linked}), "The note writes a link.")
+
 	def test_the_prompts_are_the_ones_the_features_send(self):
 		"""A change of describe_people, Draft with AI or a prayer request suggestion must reach the model
 		check too."""

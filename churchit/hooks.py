@@ -49,7 +49,7 @@ fixtures = [
 	# every migrate, so they have to be re-applied alongside it.
 	{
 		"dt": "Custom HTML Block",
-		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview"]]],
+		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview", "WeeklyAINote"]]],
 	},
 ]
 # Apps

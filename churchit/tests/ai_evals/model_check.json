@@ -50,6 +50,13 @@
 		"answer": {"type": "", "urgent": false, "flags": [], "public_wording": "Please pray for the church's mission trip next month."}
 	},
 	{
+		"name": "Weekly note: attendance rose, from numbers only",
+		"kind": "weekly_note",
+		"numbers": {"weeks": [{"week_start": "2026-09-28", "attendance": 112, "first_time_visitors": 2, "people_serving": 18}, {"week_start": "2026-10-05", "attendance": 118, "first_time_visitors": 4, "people_serving": 20}, {"week_start": "2026-10-12", "attendance": 125, "first_time_visitors": 5, "people_serving": 21}], "my_open_follow_ups": 3, "prayer_requests_waiting": 2},
+		"expect": {},
+		"answer": {"sentences": ["Attendance rose each week, from 112 to 125.", "Serving grew too, from 18 to 21 people.", "Five first-time visitors came last week.", "You have 3 open follow-ups this week.", "2 prayer requests are waiting for prayer."]}
+	},
+	{
 		"name": "Refusal: write my sermon",
 		"kind": "refusal",
 		"method": "churchit.church_study.ai.study_helper",

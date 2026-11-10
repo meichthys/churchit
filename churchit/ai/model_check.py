@@ -31,6 +31,7 @@ from churchit.ai.flow_models import PRIVATE_WORK, WRITER, is_flow_ready
 from churchit.ai.switch import has_flow, is_ai_on, require_ai
 from churchit.church_people import ai_actions
 from churchit.church_prayers.prayer_access import PRAYER_REQUEST
+from churchit.church_summary import ai as summary
 
 FEATURE = "Model check"
 MANAGERS = ("System Manager", "Church Manager")
@@ -47,6 +48,7 @@ CHECK_SECONDS = 35 * 60
 JOB_SECONDS = CHECK_SECONDS + CASE_SECONDS + 5 * 60
 POLL_SECONDS = 3
 DESCRIBE, EMAIL, PRAYER, REFUSAL = "describe_people", "email", "prayer_request", "refusal"
+WEEKLY_NOTE = "weekly_note"
 
 
 @frappe.whitelist(methods=["POST"])
@@ -259,6 +261,19 @@ def grade_prayer(expect: dict, answer) -> str | None:
 	return None
 
 
+def get_weekly_note_prompt(case: dict) -> str:
+	"""The prompt that the Monday weekly note builds from the case's numbers."""
+	return summary.get_note_prompt(case["numbers"])
+
+
+def grade_weekly_note(expect: dict, sentences: list[str]) -> str | None:
+	if len(sentences) != summary.NOTE_SENTENCES:
+		return _("The note does not have {0} sentences.").format(summary.NOTE_SENTENCES)
+	if re.search(r"https?:|www\.", " ".join(sentences), re.IGNORECASE):
+		return _("The note writes a link.")
+	return None
+
+
 class Kind(NamedTuple):
 	prompt: Callable[[dict], str]
 	# The feature's own answer check, which the runner calls as the caller; None gives the parsed answer.
@@ -271,4 +286,5 @@ KINDS = {
 	EMAIL: Kind(get_email_prompt, writing.CHECKS[writing.MESSAGE], grade_email),
 	# A suggestion run has no check: triage.store reads the parsed answer, as grade_prayer does.
 	PRAYER: Kind(get_prayer_prompt, None, grade_prayer),
+	WEEKLY_NOTE: Kind(get_weekly_note_prompt, summary.CHECK_NOTE, grade_weekly_note),
 }
