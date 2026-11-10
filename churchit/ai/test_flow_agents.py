@@ -73,7 +73,8 @@ def insert_model(name: str, **values) -> str:
 
 
 class FlowAgentsTestCase(RollbackEachTest):
-	"""No churchit agent and no enabled model at the start of each test."""
+	"""No churchit agent, no enabled model and no Churchit Manual knowledge base at the start of each
+	test, whatever the site holds."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -87,6 +88,7 @@ class FlowAgentsTestCase(RollbackEachTest):
 
 		self.flow = flow
 		frappe.db.set_value("Flow Model", {"enabled": 1}, "enabled", 0)
+		frappe.db.delete("Flow Knowledge Base", {"name": KNOWLEDGE_BASE})
 		for agent in AGENTS:
 			if frappe.db.exists("Flow Agent", agent):
 				frappe.delete_doc("Flow Agent", agent, ignore_permissions=True, force=True)
