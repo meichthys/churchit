@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "autoname": "CCP-.#####",
+ "creation": "2026-11-10 07:41:00.000000",
+ "description": "A photo of a paper connection card. AI reads it into a draft beside the photo. A person checks the draft, creates the Connection Card from it and saves it; nothing is imported before that. The photo is a private file that only those who read this record can open.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "church",
+  "status",
+  "column_break_status",
+  "connection_card",
+  "error",
+  "section_break_card",
+  "photo",
+  "photo_html",
+  "column_break_card",
+  "draft_html",
+  "matches_html",
+  "draft"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "default": "Waiting",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Waiting\nReading\nReady to Check\nImported\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "connection_card",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Connection Card",
+   "options": "Connection Card",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Why It Failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_card",
+   "fieldtype": "Section Break",
+   "label": "Card"
+  },
+  {
+   "description": "A clear photo of one card, taken from above. It stays a private file.",
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "photo_html",
+   "fieldtype": "HTML",
+   "label": "Photo Preview"
+  },
+  {
+   "fieldname": "column_break_card",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "draft_html",
+   "fieldtype": "HTML",
+   "label": "AI Draft"
+  },
+  {
+   "fieldname": "matches_html",
+   "fieldtype": "HTML",
+   "label": "Likely Duplicates"
+  },
+  {
+   "fieldname": "draft",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Draft",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-10 07:41:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Connection Card Photo",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Waiting"
+  },
+  {
+   "color": "Blue",
+   "title": "Reading"
+  },
+  {
+   "color": "Orange",
+   "title": "Ready to Check"
+  },
+  {
+   "color": "Green",
+   "title": "Imported"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ],
+ "title_field": "title"
+}

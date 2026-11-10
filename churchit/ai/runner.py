@@ -61,6 +61,7 @@ def start(
 	reference_name: str | None = None,
 	check: str | None = None,
 	deliver: str | None = None,
+	attachments: Iterable[str] = (),
 ) -> dict:
 	"""Start a run of the churchit agent that may get *prompt*, as the caller; return {"token"}.
 
@@ -69,7 +70,9 @@ def start(
 	dotted path of a function that takes the parsed answer and returns the result to show, or raises.
 	*deliver* is the dotted path of a function that Flow calls with the ended Flow Run as the caller,
 	instead of complete; it reads the answer with get_result and checks its own gates again, and start
-	returns {}. The caller checks its own rights and writes its Access Log row first.
+	returns {}. *attachments* names Files that the caller may read, which Flow sends with the prompt as
+	chat attachments (an image goes to a model that sees images). The caller checks its own rights and
+	writes its Access Log row first.
 	"""
 	require_ai()
 	frappe.only_for(SYSTEM_USER_ROLE, message=True)
@@ -81,8 +84,10 @@ def start(
 	check_label(feature, agent, bool(sends))
 	# A titled chat never goes to Flow's Helper Model (Flow Settings), which titles a chat from its prompt.
 	session = frappe.get_doc("Flow Agent", get_agent_name(agent)).new_session(title=_(feature))
+	files = {"attachments": list(attachments)} if attachments else {}
 	run = session.chat(
 		prompt,
+		**files,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
 		on_complete=deliver or ON_COMPLETE,

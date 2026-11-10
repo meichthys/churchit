@@ -141,3 +141,5 @@ churchit.patches.v1_0.church_ai_off_by_default
 churchit.patches.v1_0.add_how_we_use_ai_page
 churchit.patches.v1_0.fill_blocked_knowledge_doctypes
 churchit.patches.v1_0.fill_private_model_doctypes
+churchit.patches.v1_0.add_connection_cards_to_private_doctypes
+churchit.patches.v1_0.block_connection_card_photos_from_knowledge

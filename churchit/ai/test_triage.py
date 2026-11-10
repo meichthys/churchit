@@ -776,7 +776,7 @@ class TestRunTriage(TriageFlowCase):
 		new_session, users = self.run_job(card)
 
 		self.assertEqual(users, [REVIEWER])
-		self.assertEqual(new_session.call_args.args[0].name, "churchit/Writer")
+		self.assertEqual(new_session.call_args.args[0].name, "churchit/Private Work")
 		[prompt] = new_session.return_value.chat.call_args.args
 		self.assertGreater(prompt.index(PLANTED), prompt.index("<data"))
 		self.assertIn(self.other_workflow, prompt.split("<data")[0], "The church's workflows are listed")

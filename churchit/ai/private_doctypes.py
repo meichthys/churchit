@@ -14,7 +14,8 @@ import frappe
 from churchit.ai.switch import SETTINGS
 
 # Care, counseling, private notes, prayer, giving, background checks, who may or may not pick up a
-# child, alms, member transfers and meeting minutes. Never Person or Church Email.
+# child, alms, member transfers, meeting minutes and connection cards with their photos (a family card
+# holds children's names). Never Person or Church Email.
 RECOMMENDED = (
 	"Alms Request",
 	"Authorized Pickup",
@@ -22,6 +23,8 @@ RECOMMENDED = (
 	"Care Assignment",
 	"Care Request",
 	"Collection",
+	"Connection Card",
+	"Connection Card Photo",
 	"Counseling Case",
 	"Giving Import",
 	"Giving Statement",
