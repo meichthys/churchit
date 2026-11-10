@@ -1,9 +1,22 @@
 import frappe
 
+
 def execute(filters=None):
 	columns = [
-		{"label": "Missionary Payment", "fieldname": "name", "fieldtype": "Link", "options": "Missionary Payment", "width": 140},
-		{"label": "Missionary", "fieldname": "missionary", "fieldtype": "Link", "options": "Missionary", "width": 160},
+		{
+			"label": "Missionary Payment",
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"options": "Missionary Payment",
+			"width": 140,
+		},
+		{
+			"label": "Missionary",
+			"fieldname": "missionary",
+			"fieldtype": "Link",
+			"options": "Missionary",
+			"width": 160,
+		},
 		{"label": "Fund", "fieldname": "fund", "fieldtype": "Link", "options": "Fund", "width": 160},
 		{"label": "Amount", "fieldname": "amount", "fieldtype": "Currency", "width": 120},
 		{"label": "Status", "fieldname": "status", "fieldtype": "Select", "width": 110},

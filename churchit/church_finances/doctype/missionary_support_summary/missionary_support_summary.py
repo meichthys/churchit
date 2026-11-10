@@ -93,10 +93,7 @@ def generate_990_summary(year):
 		church = frappe.db.get_value("Missionary", missionary, "church")
 
 		# Check if summary exists for missionary + year
-		existing = frappe.db.exists(
-			"Missionary Support Summary",
-			{"year": year, "missionary": missionary}
-		)
+		existing = frappe.db.exists("Missionary Support Summary", {"year": year, "missionary": missionary})
 
 		if existing:
 			summary_doc = frappe.get_doc("Missionary Support Summary", existing)
@@ -108,16 +105,18 @@ def generate_990_summary(year):
 			summary_doc.church = church
 			summary_doc.save(ignore_permissions=True)
 		else:
-			frappe.get_doc({
-				"doctype": "Missionary Support Summary",
-				"year": year,
-				"missionary": missionary,
-				"church": church,
-				"total_donations": total_donations,
-				"total_disbursed": total_disbursed,
-				"retained": retained,
-				"fiscal_year_start": start_date,
-				"fiscal_year_end": end_date,
-			}).insert(ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "Missionary Support Summary",
+					"year": year,
+					"missionary": missionary,
+					"church": church,
+					"total_donations": total_donations,
+					"total_disbursed": total_disbursed,
+					"retained": retained,
+					"fiscal_year_start": start_date,
+					"fiscal_year_end": end_date,
+				}
+			).insert(ignore_permissions=True)
 
 	return {"status": "success", "count": len(missionary_names)}

@@ -70,12 +70,14 @@ def get_data(filters=None):
 
 	result = []
 	for r in rows:
-		result.append({
-			"missionary": r.missionary,
-			"total_donations": frappe.utils.flt(r.total_donations),
-			"total_disbursed": frappe.utils.flt(r.total_disbursed),
-			"retained": frappe.utils.flt(r.retained),
-			"fiscal_year": r.fiscal_year,
-		})
+		result.append(
+			{
+				"missionary": r.missionary,
+				"total_donations": frappe.utils.flt(r.total_donations),
+				"total_disbursed": frappe.utils.flt(r.total_disbursed),
+				"retained": frappe.utils.flt(r.retained),
+				"fiscal_year": r.fiscal_year,
+			}
+		)
 
 	return result

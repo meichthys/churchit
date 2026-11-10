@@ -78,19 +78,22 @@ class MissionaryPaymentBatch(Document):
 def create_batch_from_payments(payment_names, payment_method="Wire", reference=None):
 	if isinstance(payment_names, str):
 		import json
+
 		payment_names = json.loads(payment_names)
 
 	if not payment_names:
 		frappe.throw("No payments provided to create batch.")
 
-	batch = frappe.get_doc({
-		"doctype": "Missionary Payment Batch",
-		"batch_date": today(),
-		"payment_method": payment_method,
-		"reference": reference,
-		"status": "Draft",
-		"payments": [{"payment": p} for p in payment_names]
-	})
+	batch = frappe.get_doc(
+		{
+			"doctype": "Missionary Payment Batch",
+			"batch_date": today(),
+			"payment_method": payment_method,
+			"reference": reference,
+			"status": "Draft",
+			"payments": [{"payment": p} for p in payment_names],
+		}
+	)
 	batch.insert(ignore_permissions=True)
 
 	# Update payments to link batch

@@ -92,15 +92,17 @@ def get_data(filters=None):
 		variance = frappe.utils.flt(r.variance)
 		pct = (abs(variance) / committed * 100) if committed > 0 else 0
 
-		result.append({
-			"missionary": r.missionary,
-			"total_committed": committed,
-			"total_disbursed": frappe.utils.flt(r.total_disbursed),
-			"variance": variance,
-			"variance_pct": pct,
-			"start_date": r.start_date,
-			"end_date": r.end_date,
-			"variance_flagged": r.variance_flagged,
-		})
+		result.append(
+			{
+				"missionary": r.missionary,
+				"total_committed": committed,
+				"total_disbursed": frappe.utils.flt(r.total_disbursed),
+				"variance": variance,
+				"variance_pct": pct,
+				"start_date": r.start_date,
+				"end_date": r.end_date,
+				"variance_flagged": r.variance_flagged,
+			}
+		)
 
 	return result

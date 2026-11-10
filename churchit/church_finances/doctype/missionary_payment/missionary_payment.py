@@ -34,16 +34,18 @@ def reconcile(name, reference):
 	doc.reconciled_by = frappe.session.user
 
 	# Create a Bank Transaction record (type: Outflow, status: Matched)
-	txn = frappe.get_doc({
-		"doctype": "Bank Transaction",
-		"date": frappe.utils.today(),
-		"amount": doc.amount,
-		"type": "Outflow",
-		"status": "Matched",
-		"bank_reference": reference,
-		"matched_payment": doc.name,
-		"notes": f"Reconciled from Missionary Payment {doc.name}"
-	})
+	txn = frappe.get_doc(
+		{
+			"doctype": "Bank Transaction",
+			"date": frappe.utils.today(),
+			"amount": doc.amount,
+			"type": "Outflow",
+			"status": "Matched",
+			"bank_reference": reference,
+			"matched_payment": doc.name,
+			"notes": f"Reconciled from Missionary Payment {doc.name}",
+		}
+	)
 	txn.insert(ignore_permissions=True)
 
 	doc.bank_transaction = txn.name

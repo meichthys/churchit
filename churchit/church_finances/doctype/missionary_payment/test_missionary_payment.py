@@ -1,12 +1,15 @@
-import frappe
 from unittest.mock import patch
+
+import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_finances.doctype.bank_transaction.bank_transaction import match_transaction
 from churchit.church_finances.doctype.donation.donation import Donation
 from churchit.church_finances.doctype.fund.fund import get_or_create_missionary_fund
 from churchit.church_finances.doctype.missionary_payment.missionary_payment import mark_as_sent, reconcile
-from churchit.church_finances.doctype.bank_transaction.bank_transaction import match_transaction
-from churchit.church_finances.doctype.missionary_support_summary.missionary_support_summary import generate_990_summary
+from churchit.church_finances.doctype.missionary_support_summary.missionary_support_summary import (
+	generate_990_summary,
+)
 from churchit.church_missions.doctype.missionary.missionary import Missionary
 from churchit.church_missions.doctype.missionary_support_schedule.missionary_support_schedule import (
 	MissionarySupportSchedule,
@@ -223,7 +226,7 @@ class TestMissionaryPayment(FrappeTestCase):
 		summaries = frappe.get_all(
 			"Missionary Support Summary",
 			filters={"year": 2026, "missionary": self.missionary.name},
-			fields=["name", "total_donations", "total_disbursed", "retained"]
+			fields=["name", "total_donations", "total_disbursed", "retained"],
 		)
 		self.assertEqual(len(summaries), 1)
 		self.assertEqual(summaries[0].total_donations, 500.0)
@@ -233,7 +236,6 @@ class TestMissionaryPayment(FrappeTestCase):
 		# Re-run to test idempotency
 		generate_990_summary(2026)
 		summaries_after = frappe.get_all(
-			"Missionary Support Summary",
-			filters={"year": 2026, "missionary": self.missionary.name}
+			"Missionary Support Summary", filters={"year": 2026, "missionary": self.missionary.name}
 		)
 		self.assertEqual(len(summaries_after), 1)

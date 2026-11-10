@@ -1,6 +1,6 @@
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, today, add_months, flt
+from frappe.utils import add_months, flt, getdate, today
 
 
 class MissionarySupportSchedule(Document):
@@ -72,7 +72,11 @@ class MissionarySupportSchedule(Document):
 	def recalculate(self):
 		self.recalculate_variance_fields()
 		self.save(ignore_permissions=True)
-		return {"total_disbursed": self.total_disbursed, "variance": self.variance, "variance_flagged": self.variance_flagged}
+		return {
+			"total_disbursed": self.total_disbursed,
+			"variance": self.variance,
+			"variance_flagged": self.variance_flagged,
+		}
 
 	@frappe.whitelist()
 	def get_received_to_date(self):
@@ -84,6 +88,7 @@ class MissionarySupportSchedule(Document):
 			return 0
 
 		from churchit.church_scope import church_filters
+
 		donations = frappe.get_all(
 			"Donation",
 			filters=church_filters(frappe.get_cached_doc("Fund", fund_name).church, {"fund": fund_name}),
@@ -112,7 +117,16 @@ def daily_variance_check():
 	schedules = frappe.get_all(
 		"Missionary Support Schedule",
 		filters={"status": "Active"},
-		fields=["name", "missionary", "total_committed", "total_disbursed", "variance", "variance_threshold", "variance_flagged", "notification_recipient"],
+		fields=[
+			"name",
+			"missionary",
+			"total_committed",
+			"total_disbursed",
+			"variance",
+			"variance_threshold",
+			"variance_flagged",
+			"notification_recipient",
+		],
 	)
 
 	for sched in schedules:
@@ -127,11 +141,17 @@ def daily_variance_check():
 
 
 def send_variance_alert(schedule_doc):
-	recipients = [schedule_doc.notification_recipient] if schedule_doc.notification_recipient else get_treasurer_emails()
+	recipients = (
+		[schedule_doc.notification_recipient]
+		if schedule_doc.notification_recipient
+		else get_treasurer_emails()
+	)
 	if not recipients:
 		return
 
-	missionary_name = frappe.db.get_value("Missionary", schedule_doc.missionary, "title") or schedule_doc.missionary
+	missionary_name = (
+		frappe.db.get_value("Missionary", schedule_doc.missionary, "title") or schedule_doc.missionary
+	)
 	committed = flt(schedule_doc.total_committed)
 	disbursed = flt(schedule_doc.total_disbursed)
 	variance = flt(schedule_doc.variance)
@@ -149,7 +169,16 @@ def create_recurring_missionary_payments():
 	schedules = frappe.get_all(
 		"Missionary Support Schedule",
 		filters={"status": "Active"},
-		fields=["name", "missionary", "monthly_amount", "start_date", "end_date", "last_payment_month", "notify_treasurer", "notification_recipient"],
+		fields=[
+			"name",
+			"missionary",
+			"monthly_amount",
+			"start_date",
+			"end_date",
+			"last_payment_month",
+			"notify_treasurer",
+			"notification_recipient",
+		],
 	)
 
 	for sched in schedules:
@@ -177,36 +206,49 @@ def create_recurring_missionary_payments():
 			},
 		)
 		if existing:
-			frappe.db.set_value("Missionary Support Schedule", sched.name, "last_payment_month", payment_date_str, update_modified=False)
+			frappe.db.set_value(
+				"Missionary Support Schedule",
+				sched.name,
+				"last_payment_month",
+				payment_date_str,
+				update_modified=False,
+			)
 			continue
 
 		from churchit.church_finances.doctype.fund.fund import get_or_create_missionary_fund
+
 		fund_name = get_or_create_missionary_fund(sched.missionary)
 
-		donation = frappe.get_doc({
-			"doctype": "Donation",
-			"fund": fund_name,
-			"missionary": sched.missionary,
-			"amount": sched.monthly_amount,
-			"currency": "USD",
-			"status": "Paid",
-		}).insert(ignore_permissions=True)
+		donation = frappe.get_doc(
+			{
+				"doctype": "Donation",
+				"fund": fund_name,
+				"missionary": sched.missionary,
+				"amount": sched.monthly_amount,
+				"currency": "USD",
+				"status": "Paid",
+			}
+		).insert(ignore_permissions=True)
 
 		payments = frappe.get_all("Missionary Payment", filters={"donation": donation.name}, fields=["name"])
 		if payments:
 			payment_name = payments[0].name
-			frappe.db.set_value("Missionary Payment", payment_name, "payment_date", payment_date_str, update_modified=False)
+			frappe.db.set_value(
+				"Missionary Payment", payment_name, "payment_date", payment_date_str, update_modified=False
+			)
 		else:
-			payment = frappe.get_doc({
-				"doctype": "Missionary Payment",
-				"donation": donation.name,
-				"missionary": sched.missionary,
-				"fund": fund_name,
-				"amount": sched.monthly_amount,
-				"payment_date": payment_date_str,
-				"status": "Scheduled",
-				"tax_deductible": 1,
-			}).insert(ignore_permissions=True)
+			payment = frappe.get_doc(
+				{
+					"doctype": "Missionary Payment",
+					"donation": donation.name,
+					"missionary": sched.missionary,
+					"fund": fund_name,
+					"amount": sched.monthly_amount,
+					"payment_date": payment_date_str,
+					"status": "Scheduled",
+					"tax_deductible": 1,
+				}
+			).insert(ignore_permissions=True)
 			payment_name = payment.name
 
 		sched_doc = frappe.get_doc("Missionary Support Schedule", sched.name)
@@ -238,11 +280,17 @@ def get_treasurer_emails():
 
 
 def send_missionary_payment_due_notification(schedule_doc, payment_name, month_year):
-	recipients = [schedule_doc.notification_recipient] if schedule_doc.notification_recipient else get_treasurer_emails()
+	recipients = (
+		[schedule_doc.notification_recipient]
+		if schedule_doc.notification_recipient
+		else get_treasurer_emails()
+	)
 	if not recipients:
 		return
 
-	missionary_name = frappe.db.get_value("Missionary", schedule_doc.missionary, "title") or schedule_doc.missionary
+	missionary_name = (
+		frappe.db.get_value("Missionary", schedule_doc.missionary, "title") or schedule_doc.missionary
+	)
 	payment_doc = frappe.get_doc("Missionary Payment", payment_name)
 
 	context = {
@@ -266,4 +314,5 @@ def send_missionary_payment_due_notification(schedule_doc, payment_name, month_y
 
 def frapy_get_url(payment_name):
 	from frappe.utils import get_url
+
 	return f"{get_url()}/app/missionary-payment/{payment_name}"
