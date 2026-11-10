@@ -21,6 +21,7 @@ frappe.listview_settings["Person"] = {
 			frappe.route_options = { view: "people" };
 			frappe.set_route("rolodex");
 		});
+		churchit.ai.add_describe_people(listview);
 		const add_action = (label, action) =>
 			listview.page.add_action_item(label, () => {
 				const people = listview.get_checked_items(true);
