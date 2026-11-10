@@ -46,18 +46,29 @@ def has_flow() -> bool:
 
 
 def extend_bootinfo(bootinfo) -> None:
-	"""Tell the desk whether AI is on, Flow is present and Flow can run churchit's agents.
+	"""Tell the desk whether AI is on, Flow is present, Flow can run churchit's agents and the person
+	may use churchit's AI actions.
 
-	frappe.boot.churchit.ai = {"on": bool, "flow": bool, "flow_ready": bool}. It reads Flow's doctypes
-	only on a Frappe that ships Flow, and loads no Flow code.
+	frappe.boot.churchit.ai = {"on", "flow", "flow_ready", "actions", "private_actions": bool,
+	"no_explain": [report names]}. actions is true when AI is on, Flow is ready and the person may run
+	churchit/Writer; private_actions also needs churchit/Private Work. It reads Flow's doctypes only on
+	a Frappe that ships Flow, and loads no churchit.ai.flow.
 	"""
-	from churchit.ai.flow_models import is_flow_ready  # flow_models imports this module
+	# These modules import this one.
+	from churchit.ai.flow_models import PRIVATE_WORK, WRITER, is_flow_ready
+	from churchit.ai.reports import NO_EXPLAIN
+	from churchit.ai.runner import get_usable_agents
 
-	flow = has_flow()
+	on, flow = is_ai_on(), has_flow()
+	flow_ready = flow and is_flow_ready()
+	agents = get_usable_agents() if on and flow_ready else set()
 	bootinfo.setdefault("churchit", {})["ai"] = {
-		"on": is_ai_on(),
+		"on": on,
 		"flow": flow,
-		"flow_ready": flow and is_flow_ready(),
+		"flow_ready": flow_ready,
+		"actions": WRITER in agents,
+		"private_actions": {WRITER, PRIVATE_WORK} <= agents,
+		"no_explain": list(NO_EXPLAIN),
 	}
 
 

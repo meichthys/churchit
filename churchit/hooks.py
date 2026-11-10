@@ -516,9 +516,9 @@ override_whitelisted_methods = {
 # Churchit's agents for Flow, Frappe's AI agents. A Frappe without Flow never reads this hook.
 flow_agents = ["churchit.ai.flow.agents"]
 
-# AI drafts (churchit.ai.drafts) last an hour and survive a full clear_cache, such as a migrate or a
-# Church Features save.
-persistent_cache_keys = ["churchit:ai_draft:*"]
+# AI drafts (churchit.ai.drafts), and the caller and the answer of each AI action run
+# (churchit.ai.runner), survive a full clear_cache, such as a migrate or a Church Features save.
+persistent_cache_keys = ["churchit:ai_draft:*", "churchit:ai_run:*"]
 
 # A Person Link field also finds people by phone number or email address.
 standard_queries = {"Person": "churchit.church_people.search.search_people"}

@@ -16,30 +16,37 @@ frappe.ui.form.on("Church AI Settings", {
 		}
 
 		const is_manager = frappe.user.has_role(MANAGER_ROLES);
-		frm.toggle_display(["exposure_section", "use_recommended_list"], is_manager);
+		frm.toggle_display(
+			["exposure_section", "use_recommended_list", "use_recommended_private_list"],
+			is_manager
+		);
 		if (is_manager) show_exposure(frm);
 	},
 
 	use_recommended_list(frm) {
-		if (frm.is_dirty()) {
-			frappe.msgprint(__("Save the settings first, then use the recommended list."));
-			return;
-		}
-		frappe
-			.xcall("churchit.ai.flow_switch.use_recommended_knowledge_doctypes", {}, "POST", {
-				freeze: true,
-			})
-			.then((added) => {
-				frappe.show_alert({
-					message: added
-						? __("DocTypes added to the list: {0}.", [added])
-						: __("The list already has every recommended DocType."),
-					indicator: added ? "green" : "blue",
-				});
-				if (added) frm.reload_doc();
-			});
+		use_recommended(frm, "churchit.ai.flow_switch.use_recommended_knowledge_doctypes");
+	},
+
+	use_recommended_private_list(frm) {
+		use_recommended(frm, "churchit.ai.private_doctypes.use_recommended_private_doctypes");
 	},
 });
+
+function use_recommended(frm, method) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(__("Save the settings first, then use the recommended list."));
+		return;
+	}
+	frappe.xcall(method, {}, "POST", { freeze: true }).then((added) => {
+		frappe.show_alert({
+			message: added
+				? __("DocTypes added to the list: {0}.", [added])
+				: __("The list already has every recommended DocType."),
+			indicator: added ? "green" : "blue",
+		});
+		if (added) frm.reload_doc();
+	});
+}
 
 function intro_html() {
 	const summary = [

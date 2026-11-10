@@ -19,7 +19,12 @@ BRANCH_MANAGER = "_test_ai_branch_manager@example.com"
 CHURCH_MANAGER = "_test_ai_church_manager@example.com"
 
 FORM_FOLDER = Path(__file__).parent
-FLOW_SECTIONS = ("warning_flow_agents_section", "warning_knowledge_section", "knowledge_section")
+FLOW_SECTIONS = (
+	"warning_flow_agents_section",
+	"warning_knowledge_section",
+	"knowledge_section",
+	"private_records_section",
+)
 ONE_LINE = 80
 # What the manual and AGENTS.md say the form tells.
 PROMISED = (

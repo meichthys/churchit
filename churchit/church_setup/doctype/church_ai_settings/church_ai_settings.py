@@ -8,6 +8,7 @@ from frappe.utils import now_datetime
 
 from churchit.ai.flow_models import queue_agent_sync
 from churchit.ai.manual_knowledge import queue_sync
+from churchit.ai.private_doctypes import RECOMMENDED
 from churchit.ai.switch import close_mcp
 from churchit.church_scope import allowed_churches
 
@@ -26,6 +27,11 @@ class ChurchAISettings(Document):
 		"""The doctypes in Blocked from Flow Knowledge."""
 		return {row.document_type for row in self.blocked_knowledge_doctypes}
 
+	@property
+	def private_doctypes(self) -> set[str]:
+		"""The doctypes in Only for Local or Zero Retention Models (churchit.ai.private_doctypes)."""
+		return {row.document_type for row in self.get("private_model_doctypes") or []}
+
 	def validate(self):
 		before = self.get_doc_before_save()
 		turned_on = [
@@ -42,6 +48,8 @@ class ChurchAISettings(Document):
 					"Blocked from Flow Knowledge."
 				)
 			)
+		if before and before.private_doctypes - self.private_doctypes:
+			self.check_removed_private_doctypes(before.private_doctypes - self.private_doctypes)
 		if "enabled" in turned_on:
 			self.stamp_acknowledgment()
 		elif self.enabled:
@@ -52,6 +60,24 @@ class ChurchAISettings(Document):
 			self.acknowledged = 0
 			self.acknowledged_by = None
 			self.acknowledged_on = None
+
+	def check_removed_private_doctypes(self, removed: set[str]):
+		"""Only a manager of every church loosens the list, and removing a recommended doctype warns."""
+		refuse_for_some_churches(
+			_(
+				"Only a System Manager or a Church Manager of every church can remove a DocType from "
+				"Only for Local or Zero Retention Models."
+			)
+		)
+		if recommended := sorted(removed & set(RECOMMENDED)):
+			frappe.msgprint(
+				_(
+					"Churchit recommends keeping {0} in Only for Local or Zero Retention Models. Churchit's "
+					"own AI features can now send these records to a model labelled No training."
+				).format(", ".join(_(doctype) for doctype in recommended)),
+				_("Recommended DocType Removed"),
+				indicator="orange",
+			)
 
 	def stamp_acknowledgment(self):
 		if not self.acknowledged:

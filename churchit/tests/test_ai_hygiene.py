@@ -29,7 +29,16 @@ from churchit.tests.test_http_method_hygiene import accepted_verbs
 
 SWITCH_CALLS = ("require_ai", "is_ai_on")
 # Calls that start a model run or queue work. The function is a write and takes a rate limit.
-RUN_CALLS = ("enqueue", "enqueue_doc", "run_agent", "start_run", "run_flow", "run_model", "ask_model")
+RUN_CALLS = (
+	"enqueue",
+	"enqueue_doc",
+	"start",
+	"run_agent",
+	"start_run",
+	"run_flow",
+	"run_model",
+	"ask_model",
+)
 # Calls that check the right to use the AI function or the record it names.
 ROLE_CHECKS = ("only_for",)
 RECORD_CHECKS = ("has_permission", "check_permission")
@@ -52,6 +61,10 @@ EXEMPT = {
 	("churchit.ai.flow_switch.use_recommended_knowledge_doctypes", "calls"): (
 		"reads the doctype definitions (DocType, DocField and Custom Field) and never a record, to find "
 		"the doctypes that hold data about people; a Church Manager cannot read DocType"
+	),
+	("churchit.ai.private_doctypes.use_recommended_private_doctypes", "switch"): (
+		"keeps private records away from hosted models, a protection that must work while AI is off; it "
+		"asks for System Manager or Church Manager first"
 	),
 	("churchit.church_people.ai.get_person_briefing", "post"): (
 		"a read that writes only its Access Log row (AGENTS.md, Office reads); Frappe inserts it "

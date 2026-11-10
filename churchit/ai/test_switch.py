@@ -20,6 +20,7 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 from churchit.ai.exposure import get_exposure
+from churchit.ai.reports import NO_EXPLAIN
 from churchit.ai.switch import (
 	AI_APPS_REPORT,
 	AI_ROLES,
@@ -142,7 +143,17 @@ class TestSwitch(SwitchTestCase):
 			extend_bootinfo(bootinfo)
 		self.assertEqual(
 			bootinfo.churchit,
-			{"multi_church": False, "ai": {"on": False, "flow": False, "flow_ready": False}},
+			{
+				"multi_church": False,
+				"ai": {
+					"on": False,
+					"flow": False,
+					"flow_ready": False,
+					"actions": False,
+					"private_actions": False,
+					"no_explain": list(NO_EXPLAIN),
+				},
+			},
 		)
 
 	def test_boot_says_whether_flow_can_run_churchits_agents(self):

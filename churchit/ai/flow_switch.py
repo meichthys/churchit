@@ -6,10 +6,11 @@
 While AI is off, no Flow chat or trigger can start, only Administrator can continue an old chat, and
 no save makes Flow read a knowledge source; an install, a migrate or a patch still writes the
 agents, tools and triggers that apps ship. While AI is on, a person's new chat asks before each
-change. No save, in an update too, makes Flow copy a doctype that Church AI Settings blocks from Flow
-knowledge, because Flow reads its records without checking who may read each one; a source on other
-church records saves with a warning. These hooks work on Flow's documents and never import
-frappe.flow; a Frappe without Flow never calls them. The blocked list works on every Frappe.
+change, and nobody continues or shares the chat of a churchit AI action. No save, in an update too,
+makes Flow copy a doctype that Church AI Settings blocks from Flow knowledge, because Flow reads its
+records without checking who may read each one; a source on other church records saves with a
+warning. These hooks work on Flow's documents and never import frappe.flow; a Frappe without Flow
+never calls them. The blocked list works on every Frappe.
 """
 
 from collections import defaultdict
@@ -19,6 +20,7 @@ from frappe import _
 from frappe.model import table_fields
 from frappe.permissions import push_perm_check_log
 
+from churchit.ai.flow_models import PRIVATE_WORK, WRITER
 from churchit.ai.switch import SETTINGS, is_ai_on
 
 # Doctypes that guests and members write. Their text can hold instructions for an agent.
@@ -60,6 +62,8 @@ PEOPLE_DOCTYPES = (
 	"User",
 	"Version",
 )
+# The agents of churchit's AI actions (churchit.ai.runner). Their chats hold the records an action sent.
+ACTION_AGENTS = tuple(f"churchit/{agent}" for agent in (WRITER, PRIVATE_WORK))
 # Flow's own records of chats, memories and knowledge: what each person read with their own
 # permissions, and what each knowledge source copied.
 FLOW_DATA_DOCTYPES = (
@@ -135,10 +139,16 @@ def agent_query_conditions(user=None, doctype=None) -> str:
 
 
 def has_session_permission(doc, ptype=None, user=None) -> bool:
-	"""Flow Session has_permission: while AI is off, nobody starts or continues a chat.
+	"""Flow Session has_permission: while AI is off, nobody starts or continues a chat; nobody
+	continues or shares a chat of an AI action.
 
-	People still read their past chats. Frappe never asks this hook about Administrator.
+	People still read and delete their past chats. An AI action's chat holds the records the action
+	sent with the label that its model had then, so a new message, a model switch or a share would
+	send them on unchecked; the runner starts its run without this check. Frappe never asks this hook
+	about Administrator.
 	"""
+	if doc.agent in ACTION_AGENTS and ptype in ("write", "share"):
+		return False
 	return ptype not in ("create", "write") or is_flow_allowed()
 
 

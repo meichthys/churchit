@@ -3,8 +3,8 @@
 
 """The AI Access panel on Church AI Settings: each way AI can reach this site, one line each.
 
-It only reads, and it works while AI is off. It imports switch, flow_switch, flow_models, guide and
-manual_knowledge, so none of them may import it.
+It only reads, and it works while AI is off. It imports switch, flow_switch, flow_models, guide,
+manual_knowledge and runner, so none of them may import it.
 """
 
 import json
@@ -14,10 +14,18 @@ import frappe
 from frappe import _
 from frappe.desk.utils import slug
 
-from churchit.ai.flow_models import DEFAULT_LABEL, LABEL_FIELD, UNSAFE_LABELS, is_flow_ready
+from churchit.ai.flow_models import (
+	DEFAULT_LABEL,
+	LABEL_FIELD,
+	PRIVATE_WORK,
+	UNSAFE_LABELS,
+	WRITER,
+	is_flow_ready,
+)
 from churchit.ai.flow_switch import get_blocked_knowledge_doctypes, get_trigger_warnings, is_church_doctype
 from churchit.ai.guide import has_guide_pointer
 from churchit.ai.manual_knowledge import KNOWLEDGE_BASE, has_embedding_model
+from churchit.ai.runner import PRIVATE_LABELS, RECORD_LABELS, get_agent_model, get_agent_name
 from churchit.ai.switch import AI_ROLES, SETTINGS, get_setting, has_flow, is_ai_on
 
 # Roles that Frappe gives every signed-in user ("Guest", "All") or every desk user ("Desk User").
@@ -40,7 +48,10 @@ def get_exposure() -> list[dict]:
 			_("Churchit AI"),
 			is_ai_on(),
 			SETTINGS,
-			_("Churchit's own AI features. None of them sends data in this release."),
+			_(
+				"Churchit's own AI features. They send data to a model only on a Frappe with Flow, through "
+				"the Writer and Private Work agents."
+			),
 		),
 		make_line(
 			_("Frappe MCP server"),
@@ -67,6 +78,7 @@ def get_exposure() -> list[dict]:
 		get_api_key_line() if is_system_manager else ask_line(_("API keys")),
 		*get_flow_lines(is_system_manager),
 		*get_churchit_agent_lines(),
+		*get_ai_action_lines(is_system_manager),
 		*get_flow_model_lines(is_system_manager),
 		get_builder_line(),
 		get_assistant_core_line(),
@@ -423,6 +435,40 @@ def get_churchit_agent_lines() -> list[dict]:
 			state=manual_state,
 			link=f"/app/flow-knowledge-base/{quote(KNOWLEDGE_BASE)}" if has_manual else None,
 		),
+	]
+
+
+def get_ai_action_lines(is_system_manager: bool) -> list[dict]:
+	"""The model and privacy label of Writer and Private Work, open when an AI action would be refused.
+
+	Writer gets church records only with No training, Zero retention or Local; Private Work gets the
+	doctypes of Only for Local or Zero Retention Models only with Zero retention or Local. Nothing on a
+	Frappe without Flow. Flow lets only System Managers and Flow Users read a model.
+	"""
+	if not has_flow():
+		return []
+	if not is_system_manager:
+		return [ask_line(_("Churchit AI actions"))]
+	states, is_refused = [], False
+	for agent, allowed in ((WRITER, RECORD_LABELS), (PRIVATE_WORK, PRIVATE_LABELS)):
+		model, label = get_agent_model(agent)
+		states.append(_("{0}: {1} ({2})").format(get_agent_name(agent), model or _("no model"), _(label)))
+		is_refused = is_refused or label not in allowed
+	note = _(
+		"Churchit's AI actions in the desk, such as Explain on a report, send their request to Writer, "
+		"or to Private Work when it holds a record of a DocType in Only for Local or Zero Retention "
+		"Models. Writer gets church records only from a model labelled No training, Zero retention or "
+		"Local, and Private Work only from Zero retention or Local. Other actions are refused."
+	)
+	return [
+		make_line(
+			_("Churchit AI actions"),
+			is_refused,
+			"Flow Agent",
+			note,
+			state="; ".join(states),
+			link="/app/flow-agent?app=churchit",
+		)
 	]
 
 
