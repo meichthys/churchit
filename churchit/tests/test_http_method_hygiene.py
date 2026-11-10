@@ -107,6 +107,7 @@ for _card in (
 	"church_people.number_card.new_members_30_days.new_members_30_days.get_count",
 	"church_prayers.number_card.active_prayer_requests.active_prayer_requests.get_value",
 	"church_prayers.number_card.prayer_request_comments.prayer_request_comments.get_count",
+	"church_setup.number_card.ai_sends_this_month.ai_sends_this_month.get_value",
 	"church_setup.number_card.total_answered_prayers_this_month.total_answered_prayers_this_month.get_value",
 	"church_setup.number_card.total_collection_this_month.total_collection_this_month.get_value",
 	"church_setup.number_card.total_expenses_this_month.total_expenses_this_month.get_value",

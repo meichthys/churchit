@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"kHOUji9YHL\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"But everything should be done in a fitting and orderly way.\\\"</i>\", \"col\": 12}}]",
+ "content": "[{\"id\": \"kHOUji9YHL\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"But everything should be done in a fitting and orderly way.\\\"</i>\", \"col\": 12}}, {\"id\": \"AISends0001\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"AI Sends This Month\", \"col\": 4}}]",
  "creation": "2026-07-07 19:43:06.898779",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,11 +13,16 @@
  "is_hidden": 0,
  "label": "Settings",
  "links": [],
- "modified": "2026-10-31 13:35:54.000000",
+ "modified": "2026-11-10 02:27:19.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "AI Sends This Month",
+   "number_card_name": "AI Sends This Month"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

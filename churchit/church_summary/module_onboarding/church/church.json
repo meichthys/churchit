@@ -16,7 +16,7 @@
  "documentation_url": "https://github.com/meichthys/churchit",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-10-22 15:59:00.000000",
+ "modified": "2026-11-09 23:16:00.000000",
  "modified_by": "Administrator",
  "module": "Church Summary",
  "name": "Church",
@@ -45,6 +45,9 @@
   },
   {
    "step": "Prayer Request"
+  },
+  {
+   "step": "Church AI Settings"
   }
  ],
  "subtitle": "People, Families, Functions, Ministries, Collections, Funds, and more...",

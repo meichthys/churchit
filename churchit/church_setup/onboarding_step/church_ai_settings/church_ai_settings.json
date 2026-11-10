@@ -1,0 +1,22 @@
+{
+ "action": "Show Form Tour",
+ "action_label": "Decide About AI",
+ "creation": "2026-11-09 23:16:00.000000",
+ "description": "AI is off until a Church Manager or a System Manager turns it on, and your church can leave it off. Read what an AI app can see, change and send before you decide.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "Church AI Settings",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-11-09 23:16:00.000000",
+ "modified_by": "Administrator",
+ "name": "Church AI Settings",
+ "owner": "Administrator",
+ "reference_document": "Church AI Settings",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "AI Settings",
+ "validate_action": 1
+}

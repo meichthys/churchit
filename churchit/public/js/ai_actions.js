@@ -10,7 +10,7 @@ frappe.provide("churchit.ai");
 	const EVENT = "churchit_ai_result";
 	const ANSWER_METHOD = "churchit.ai.runner.get_answer";
 	// A local model can take many minutes. The runner keeps the caller for an hour (RUN_SECONDS).
-	const WAIT_MS = 30 * 60 * 1000;
+	const WAIT_MINUTES = 30;
 	// A realtime message sent while the socket reconnects is lost, so the dialog also asks the server.
 	const ASK_MS = 20 * 1000;
 	const answers = {};
@@ -41,7 +41,7 @@ frappe.provide("churchit.ai");
 	}
 
 	// The answer for *token*, until the dialog closes; a closed dialog resolves with an empty message.
-	function wait_for(token, dialog) {
+	function wait_for(token, dialog, wait_ms) {
 		return new Promise((resolve) => {
 			const finish = (message) => {
 				clearTimeout(timer);
@@ -56,7 +56,7 @@ frappe.provide("churchit.ai");
 							"The AI did not answer in time. Try again, or ask your administrator to check Flow."
 						),
 					}),
-				WAIT_MS
+				wait_ms
 			);
 			const asking = setInterval(() => {
 				if (!dialog.display) return finish({});
@@ -92,8 +92,7 @@ frappe.provide("churchit.ai");
 		);
 	}
 
-	function show_answer(dialog, html, on_use, use_label) {
-		const note = __("Suggestion. Check it before you use it.");
+	function show_answer(dialog, html, on_use, use_label, note) {
 		show_html(
 			dialog,
 			`<div class="form-message yellow mb-3"><div>${escape(note)}</div></div>${html}`
@@ -107,21 +106,31 @@ frappe.provide("churchit.ai");
 
 	// Run a churchit AI action. *title* is text; *method* is a POST endpoint that returns {token, ...};
 	// render(result, response) returns HTML built with churchit.ai.escape; on_use(result, response)
-	// applies it.
-	churchit.ai.run_action = function ({ title, method, args, render, on_use, use_label }) {
+	// applies it. *note* is the text above the result; *wait_minutes* how long the dialog waits for it.
+	churchit.ai.run_action = function ({
+		title,
+		method,
+		args,
+		render,
+		on_use,
+		use_label,
+		note = __("Suggestion. Check it before you use it."),
+		wait_minutes = WAIT_MINUTES,
+	}) {
 		listen();
 		const dialog = new frappe.ui.Dialog({
 			title: escape(title),
 			size: "large",
 			fields: [{ fieldtype: "HTML", fieldname: "answer" }],
 		});
-		show_html(dialog, `<p class="text-muted">${escape(__("Working..."))}</p>`);
+		const working = `${__("Working...")} ${__("A local model can take several minutes.")}`;
+		show_html(dialog, `<p class="text-muted">${escape(working)}</p>`);
 		dialog.show();
 
 		frappe
 			.xcall(method, args || {}, "POST")
 			.then(async (response) => {
-				const message = await wait_for(response.token, dialog);
+				const message = await wait_for(response.token, dialog, wait_minutes * 60 * 1000);
 				if (!dialog.display) return;
 				if (message.error || message.result === undefined) {
 					show_error(dialog, message.error);
@@ -140,7 +149,8 @@ frappe.provide("churchit.ai");
 					dialog,
 					html,
 					on_use && (() => on_use(message.result, response)),
-					use_label
+					use_label,
+					note
 				);
 			})
 			// Frappe shows the server's message, such as a refusal.

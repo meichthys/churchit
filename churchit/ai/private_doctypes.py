@@ -13,10 +13,11 @@ import frappe
 
 from churchit.ai.switch import SETTINGS
 
-# Care, counseling, private notes, prayer, giving, background checks, pickup restrictions, alms,
-# member transfers and meeting minutes. Never Person or Church Email.
+# Care, counseling, private notes, prayer, giving, background checks, who may or may not pick up a
+# child, alms, member transfers and meeting minutes. Never Person or Church Email.
 RECOMMENDED = (
 	"Alms Request",
+	"Authorized Pickup",
 	"Background Check",
 	"Care Assignment",
 	"Care Request",

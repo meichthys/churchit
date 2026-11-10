@@ -4,6 +4,8 @@
 const escape = (text) => frappe.utils.escape_html(text || "");
 const MANAGER_ROLES = ["System Manager", "Church Manager"];
 const PILL_COLORS = { true: "orange", false: "green", null: "gray" };
+// Longer than a model check runs (JOB_SECONDS in churchit/ai/model_check.py).
+const DIALOG_MINUTES = 65;
 
 frappe.ui.form.on("Church AI Settings", {
 	refresh(frm) {
@@ -17,7 +19,12 @@ frappe.ui.form.on("Church AI Settings", {
 
 		const is_manager = frappe.user.has_role(MANAGER_ROLES);
 		frm.toggle_display(
-			["exposure_section", "use_recommended_list", "use_recommended_private_list"],
+			[
+				"exposure_section",
+				"use_recommended_list",
+				"use_recommended_private_list",
+				"check_models",
+			],
 			is_manager
 		);
 		if (is_manager) show_exposure(frm);
@@ -30,7 +37,77 @@ frappe.ui.form.on("Church AI Settings", {
 	use_recommended_private_list(frm) {
 		use_recommended(frm, "churchit.ai.private_doctypes.use_recommended_private_doctypes");
 	},
+
+	check_models() {
+		frappe.confirm(
+			escape(
+				__(
+					"Churchit's sample tasks, with made-up data, run one after another on the models of the Writer and Private Work agents. A hosted model bills each task, and a local model can take an hour, so keep the dialog open until the result shows. Each task leaves a chat in your Flow chat list. Start the check?"
+				)
+			),
+			() =>
+				churchit.ai.run_action({
+					title: __("Check the Models"),
+					method: "churchit.ai.model_check.check_models",
+					render: model_check_html,
+					note: __("Sample tasks with made-up data. Nothing was stored."),
+					wait_minutes: DIALOG_MINUTES,
+				})
+		);
+	},
 });
+
+function model_check_html(result) {
+	const stopped = result.stopped
+		? `<p class="text-warning">${churchit.ai.escape(result.stopped)}</p>`
+		: "";
+	const refusals = result.refusals || [];
+	const refused = refusals.filter((task) => task.passed).length;
+	return `${stopped}${(result.agents || []).map(agent_check_html).join("")}
+		<p class="mt-3"><b>${churchit.ai.escape(
+			__("Refused by Churchit's input checks, with no model")
+		)}</b>:
+		${churchit.ai.escape(__("{0} of {1}", [refused, refusals.length]))}</p>
+		${tasks_html(refusals)}`;
+}
+
+function agent_check_html(agent) {
+	const model = __("{0}, labelled {1}", [agent.model || __("no model"), agent.label]);
+	const passed = __("{0} of {1} tasks passed in {2}.", [
+		agent.passed,
+		agent.total,
+		duration(agent.seconds),
+	]);
+	return `<p class="mb-1"><b>${churchit.ai.escape(agent.agent)}</b>: ${churchit.ai.escape(
+		model
+	)}</p>
+		<p>${churchit.ai.escape(passed)}</p>
+		${tasks_html(agent.cases)}`;
+}
+
+function tasks_html(tasks) {
+	const rows = tasks
+		.map(
+			(task) => `<tr>
+				<td>${churchit.ai.escape(task.name)}</td>
+				<td class="text-nowrap"><span class="indicator-pill ${
+					task.passed ? "green" : "red"
+				}">${churchit.ai.escape(task.passed ? __("Passed") : __("Failed"))}</span></td>
+				<td class="text-nowrap">${
+					task.seconds === undefined ? "" : churchit.ai.escape(duration(task.seconds))
+				}</td>
+				<td>${churchit.ai.escape(task.reason)}</td>
+			</tr>`
+		)
+		.join("");
+	return `<table class="table table-bordered table-sm small"><tbody>${rows}</tbody></table>`;
+}
+
+function duration(seconds) {
+	return seconds < 60
+		? __("{0} s", [seconds])
+		: __("{0} min {1} s", [Math.floor(seconds / 60), seconds % 60]);
+}
 
 function use_recommended(frm, method) {
 	if (frm.is_dirty()) {
@@ -78,6 +155,11 @@ function get_warnings(has_flow) {
 			__(
 				"A local AI model on your own computer, for example in Ollama or LM Studio, keeps the data on that computer."
 			),
+			...only_with_flow([
+				__(
+					"Churchit's own AI buttons and suggestions send the records that they name, and only to a model whose privacy label allows them: No training, Zero retention or Local, and for a DocType in Only for Local or Zero Retention Models, Zero retention or Local."
+				),
+			]),
 		]),
 		warning_text: paragraphs([
 			__(
