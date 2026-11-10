@@ -24,7 +24,7 @@
  "is_hidden": 0,
  "label": "Missions",
  "links": [],
- "modified": "2026-11-09 21:13:00.000000",
+ "modified": "2026-11-09 23:40:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",
@@ -50,6 +50,14 @@
   {
    "label": "Missionary Payments",
    "report": "Missionary Payments"
+  },
+  {
+   "label": "Bank Transactions",
+   "document_type": "Bank Transaction"
+  },
+  {
+   "label": "Missionary Support Summaries",
+   "document_type": "Missionary Support Summary"
   }
  ],
  "roles": [

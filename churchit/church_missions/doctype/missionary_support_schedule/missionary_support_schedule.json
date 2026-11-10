@@ -16,6 +16,10 @@
   "status",
   "column_break_details",
   "total_committed",
+  "total_disbursed",
+  "variance",
+  "variance_threshold",
+  "variance_flagged",
   "payments_tab",
   "missionary_payments",
   "section_break_summary",
@@ -75,6 +79,31 @@
    "read_only": 1
   },
   {
+   "fieldname": "total_disbursed",
+   "fieldtype": "Currency",
+   "label": "Total Disbursed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "variance",
+   "fieldtype": "Currency",
+   "label": "Variance",
+   "read_only": 1
+  },
+  {
+   "default": 10,
+   "fieldname": "variance_threshold",
+   "fieldtype": "Percent",
+   "label": "Variance Threshold (%)"
+  },
+  {
+   "default": 0,
+   "fieldname": "variance_flagged",
+   "fieldtype": "Check",
+   "label": "Variance Flagged",
+   "read_only": 1
+  },
+  {
    "fieldname": "payments_tab",
    "fieldtype": "Tab Break",
    "label": "Payments"
@@ -101,7 +130,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-09 21:10:00.000000",
+ "modified": "2026-11-09 23:24:00.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Support Schedule",

@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "MSSUM-.####",
+ "creation": "2026-11-09 23:40:00.000000",
+ "description": "Missionary support financial summary for tax and 990 reporting.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-missions",
+ "engine": "InnoDB",
+ "field_order": [
+  "year",
+  "missionary",
+  "church",
+  "column_break_1",
+  "fiscal_year_start",
+  "fiscal_year_end",
+  "section_break_amounts",
+  "total_donations",
+  "total_disbursed",
+  "retained",
+  "section_break_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Year",
+   "reqd": 1
+  },
+  {
+   "fieldname": "missionary",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Missionary",
+   "options": "Missionary",
+   "reqd": 1
+  },
+  {
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "label": "Church",
+   "options": "Church",
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fiscal_year_start",
+   "fieldtype": "Date",
+   "label": "Fiscal Year Start"
+  },
+  {
+   "fieldname": "fiscal_year_end",
+   "fieldtype": "Date",
+   "label": "Fiscal Year End"
+  },
+  {
+   "fieldname": "section_break_amounts",
+   "fieldtype": "Section Break",
+   "label": "Amounts"
+  },
+  {
+   "fieldname": "total_donations",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Donations",
+   "read_only": 1,
+   "precision": 2
+  },
+  {
+   "fieldname": "total_disbursed",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Disbursed",
+   "read_only": 1,
+   "precision": 2
+  },
+  {
+   "fieldname": "retained",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Retained",
+   "read_only": 1,
+   "precision": 2
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 0,
+ "links": [],
+ "modified": "2026-11-09 23:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church Finances",
+ "name": "Missionary Support Summary",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Finance",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "year",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
