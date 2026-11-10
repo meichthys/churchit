@@ -107,6 +107,8 @@ These methods only read, and only what the person may read in the desk. A list h
 
 Read the parameters of a method before you call it. In Flow's Church Office, each method has a tool named `churchit__` and the function name, for example `churchit__get_week_overview`. Flow's `read_records` and `run_report` replace `list_documents` and `frappe.desk.query_report.run`. Church Office has no tool that changes a record. Every change goes through `churchit__propose`.
 
+The desk has its own AI buttons (Describe People, Brief Me, Draft with AI, Explain and others). Each one starts a Flow run that answers in the person's browser. Do not call these methods: use the methods above, and `churchit.ai.drafts.propose` for a change.
+
 For a "how do I" question, answer from the manuals. In Flow, search the Churchit Manual and name the section. Over MCP, call `get_document` on Workspace with the name `Manual: People` (or Foundations, Finances, Ministries, Missions, Prayers, Study, Communications, Operations or Website). Its `content` holds the text as blocks.
 
 ## Drafts
