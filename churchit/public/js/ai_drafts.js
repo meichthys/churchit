@@ -37,6 +37,8 @@
 	}
 
 	async function fill_rows(frm, fieldname, rows) {
+		// A new form starts a mandatory table with an empty row, which would block the save.
+		if (frm.is_new()) frm.clear_table(fieldname);
 		for (const { name, ...values } of rows) {
 			const row =
 				(name && (frm.doc[fieldname] || []).find((stored) => stored.name === name)) ||

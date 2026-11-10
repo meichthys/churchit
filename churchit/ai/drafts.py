@@ -34,6 +34,8 @@ SENDING_FIELDS = {
 	# followup.start_cards opens cards on an active workflow, and its actions send email and texts.
 	"Follow-up Workflow": ("is_active",),
 }
+# The value of a sending field that sends nothing, which a draft keeps: Active defaults to on.
+QUIET_VALUES = {("Follow-up Workflow", "is_active"): 0}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -110,7 +112,7 @@ def get_allowed_values(stored: Document, values: dict, dropped: list[str]) -> di
 	kept: dict = {}
 	for df in stored.meta.fields:
 		value = values.get(df.fieldname)
-		if df.fieldname not in values or not can_draft(stored, df, levels):
+		if df.fieldname not in values or not can_draft(stored, df, value, levels):
 			continue
 		if df.fieldtype not in table_fields:
 			if isinstance(value, SCALAR_TYPES):
@@ -120,15 +122,23 @@ def get_allowed_values(stored: Document, values: dict, dropped: list[str]) -> di
 	return kept
 
 
-def can_draft(stored: Document, df, levels: list[int]) -> bool:
-	"""True when the caller could set the field in the form and saving it sends nothing."""
+def can_draft(stored: Document, df, value, levels: list[int]) -> bool:
+	"""True when the caller could set the field to *value* in the form and saving it sends nothing."""
 	if df.fieldtype in display_fieldtypes or df.read_only or df.hidden or df.is_virtual:
 		return False
-	if df.permlevel not in levels or df.fieldname in SENDING_FIELDS.get(stored.doctype, ()):
+	if df.permlevel not in levels or not is_quiet(stored.doctype, df.fieldname, value):
 		return False
 	if stored.docstatus == 1 and not df.allow_on_submit:
 		return False
 	return not (df.set_only_once and not stored.is_new() and stored.get(df.fieldname))
+
+
+def is_quiet(doctype: str, fieldname: str, value) -> bool:
+	"""False for a field whose save sends a message (SENDING_FIELDS), unless *value* sends nothing."""
+	if fieldname not in SENDING_FIELDS.get(doctype, ()):
+		return True
+	key = (doctype, fieldname)
+	return key in QUIET_VALUES and value == QUIET_VALUES[key]
 
 
 def get_allowed_rows(record: Document, fieldname: str, rows: list, dropped: list[str]) -> list[dict]:

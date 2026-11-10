@@ -184,6 +184,11 @@ class TestPropose(DraftTestCase):
 		self.assertEqual(result["dropped"], ["is_active"])
 		self.assertNotIn("is_active", get_draft(get_token(result["url"]))["values"])
 
+		# Active defaults to on, so a draft keeps Active off.
+		result = propose("Follow-up Workflow", {**values, "is_active": 0})
+		self.assertEqual(result["dropped"], [])
+		self.assertEqual(get_draft(get_token(result["url"]))["values"]["is_active"], 0)
+
 	def test_a_birth_date_is_drafted_as_a_birth_life_event(self):
 		"""derived.sync_derived sets the read-only birth_date from the first Birth row (people.md)."""
 		self.as_user(EDITOR)

@@ -430,6 +430,7 @@ extend_bootinfo = [
 	"churchit.church_communications.staff_chat.extend_bootinfo",
 	"churchit.church_website.pwa.extend_bootinfo",
 	"churchit.ai.switch.extend_bootinfo",
+	"churchit.ai.writing.extend_bootinfo",
 ]
 
 # User menu switch for parent-church users; hidden for everyone else. One
