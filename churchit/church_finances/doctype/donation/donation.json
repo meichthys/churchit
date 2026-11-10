@@ -1,145 +1,125 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-09-02 00:57:15.831405",
- "description": "A donation made to the church (Generally by `Person`s).",
- "doctype": "DocType",
- "documentation": "/app/manual%3A-finances",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "person",
-  "amount",
-  "fund",
-  "payment_type",
-  "check_number",
-  "section_break_more",
-  "notes",
-  "is_non_cash",
-  "description",
-  "column_break_more",
-  "person_email",
-  "legacy_id"
- ],
- "fields": [
-  {
-   "allow_in_quick_entry": 1,
-   "columns": 2,
-   "default": "Check",
-   "fieldname": "payment_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Payment Type",
-   "options": "Payment Type",
-   "reqd": 1
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "columns": 2,
-   "fieldname": "fund",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Fund",
-   "options": "Fund",
-   "reqd": 1
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "columns": 3,
-   "description": "Leave blank for anonymous cash.",
-   "fieldname": "person",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Person",
-   "mandatory_depends_on": "eval:doc.payment_type==\"Check\"",
-   "options": "Person",
-   "placeholder": "Name or envelope number"
-  },
-  {
-   "description": "Copied from the giver's primary email when the Collection is saved.",
-   "fieldname": "person_email",
-   "fieldtype": "Data",
-   "label": "Person Email",
-   "no_copy": 1,
-   "options": "Email",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "notes",
-   "fieldtype": "Data",
-   "label": "Notes"
-  },
-  {
-   "default": "0",
-   "fetch_from": "payment_type.is_non_cash",
-   "fieldname": "is_non_cash",
-   "fieldtype": "Check",
-   "label": "Non-Cash",
-   "read_only": 1
-  },
-  {
-   "depends_on": "is_non_cash",
-   "description": "What was given, as the statement prints it. Do not state a value.",
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description"
-  },
-  {
-   "description": "The gift id in the system it was imported from.",
-   "fieldname": "legacy_id",
-   "fieldtype": "Data",
-   "label": "Legacy ID",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "columns": 2,
-   "depends_on": "eval:doc.payment_type==\"Check\";",
-   "fieldname": "check_number",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Check #",
-   "mandatory_depends_on": "eval:doc.payment_type==\"Check\";",
-   "read_only_depends_on": "eval:doc.payment_type!=\"Check\""
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "columns": 2,
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Amount",
-   "reqd": 1
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.is_non_cash || doc.notes",
-   "fieldname": "section_break_more",
-   "fieldtype": "Section Break",
-   "label": "More"
-  },
-  {
-   "fieldname": "column_break_more",
-   "fieldtype": "Column Break"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2026-10-31 13:25:34.000000",
- "modified_by": "Administrator",
- "module": "Church Finances",
- "name": "Donation",
- "owner": "Administrator",
- "permissions": [],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+  "allow_in_quick_entry": 0,
+  "autoname": "field:name",
+  "creation": "2026-11-09 14:59:27.347000",
+  "doctype": "DocType",
+  "field_order": [
+    "name",
+    "fund",
+    "missionary",
+    "amount",
+    "column_break_giver",
+    "donor_name",
+    "email",
+    "person",
+    "status",
+    "section_break_notes",
+    "notes",
+    "section_break_payment",
+    "currency",
+    "payment_gateway",
+    "column_break_link",
+    "transaction_reference"
+  ],
+  "fields": [
+    {
+     "fieldname": "name",
+     "fieldtype": "Data",
+     "label": "ID"
+    },
+    {
+     "fieldname": "fund",
+     "fieldtype": "Link",
+     "label": "Fund",
+     "options": "Fund",
+     "reqd": 1
+    },
+    {
+     "fieldname": "missionary",
+     "fieldtype": "Link",
+     "label": "Missionary",
+     "options": "Missionary"
+    },
+    {
+     "fieldname": "amount",
+     "fieldtype": "Currency",
+     "label": "Amount",
+     "reqd": 1,
+     "precision": 2
+    },
+    {
+     "fieldname": "column_break_giver",
+     "fieldtype": "Column Break"
+    },
+    {
+     "fieldname": "donor_name",
+     "fieldtype": "Data",
+     "label": "Donor Name"
+    },
+    {
+     "fieldname": "email",
+     "fieldtype": "Data",
+     "label": "Email"
+    },
+    {
+     "fieldname": "person",
+     "fieldtype": "Link",
+     "label": "Person",
+     "options": "Person"
+    },
+    {
+     "fieldname": "status",
+     "fieldtype": "Select",
+     "label": "Status",
+     "options": "Paid,Refunded,Cancelled",
+     "default": "Paid"
+    },
+    {
+     "fieldname": "section_break_notes",
+     "fieldtype": "Section Break"
+    },
+    {
+     "fieldname": "notes",
+     "fieldtype": "Text Editor",
+     "label": "Notes"
+    },
+    {
+     "fieldname": "section_break_payment",
+     "fieldtype": "Section Break"
+    },
+    {
+     "fieldname": "currency",
+     "fieldtype": "Currency",
+     "label": "Currency",
+     "reqd": 1
+    },
+    {
+     "fieldname": "payment_gateway",
+     "fieldtype": "Link",
+     "label": "Payment Gateway",
+     "options": "Payment Gateway"
+    },
+    {
+     "fieldname": "column_break_link",
+     "fieldtype": "Column Break"
+    },
+    {
+     "fieldname": "transaction_reference",
+     "fieldtype": "Data",
+     "label": "Transaction Reference"
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2026-11-09 14:59:27.347000",
+  "modified_by": "Administrator",
+  "module": "Church Finances",
+  "name": "Donation",
+  "owner": "Administrator",
+  "permissions": [],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC"
 }

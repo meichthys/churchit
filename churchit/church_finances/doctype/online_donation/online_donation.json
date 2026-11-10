@@ -1,231 +1,237 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "GIVE-.#####",
- "creation": "2026-06-05 00:00:00.000000",
- "description": "An online gift made through the public /give page and paid via the Payments app. On successful payment it records a submitted Collection so the gift flows through the normal Fund and reporting logic.",
- "doctype": "DocType",
- "documentation": "/app/manual%3A-finances",
- "engine": "InnoDB",
- "field_order": [
-  "donor_name",
-  "church",
-  "amount",
-  "fee_amount",
-  "fund",
-  "column_break_giver",
-  "email",
-  "person",
-  "status",
-  "collection",
-  "section_break_notes",
-  "notes",
-  "section_break_payment",
-  "currency",
-  "payment_gateway",
-  "column_break_link",
-  "transaction_reference"
- ],
- "fields": [
-  {
-   "bold": 1,
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Amount",
-   "reqd": 1
-  },
-  {
-   "depends_on": "eval:doc.fee_amount",
-   "description": "The processing fee the giver chose to cover. It is part of the gift.",
-   "fieldname": "fee_amount",
-   "fieldtype": "Currency",
-   "label": "Covered Fee",
-   "options": "currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "fund",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Fund",
-   "options": "Fund",
-   "reqd": 1
-  },
-  {
-   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
-   "description": "A shared fund names no church, so the gift keeps the church it was given to.",
-   "fieldname": "church",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "in_standard_filter": 0,
-   "label": "Church",
-   "options": "Church"
-  },
-  {
-   "default": "Pending",
-   "description": "Needs Review means the payment gateway charged a different amount or currency than the gift, so the gift was not recorded. Check the payment in the gateway. Refunded means Finance cancelled the gift's Collection after a refund at the processor.",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Status",
-   "options": "Pending\nPaid\nNeeds Review\nFailed\nCancelled\nRefunded",
-   "show_description_on_click": 1
-  },
-  {
-   "fieldname": "column_break_giver",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "Set automatically when the giver is logged in. Blank for anonymous gifts.",
-   "fieldname": "person",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Person",
-   "options": "Person"
-  },
-  {
-   "fieldname": "donor_name",
-   "fieldtype": "Data",
-   "label": "Donor Name"
-  },
-  {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Email",
-   "options": "Email"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:[\"Needs Review\", \"Failed\"].includes(doc.status)",
-   "description": "The gateway, the currency and the payment reference.",
-   "fieldname": "section_break_payment",
-   "fieldtype": "Section Break",
-   "label": "Payment"
-  },
-  {
-   "default": "USD",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
-  },
-  {
-   "fieldname": "payment_gateway",
-   "fieldtype": "Link",
-   "label": "Payment Gateway",
-   "options": "Payment Gateway"
-  },
-  {
-   "description": "Reference id from the payment gateway / Integration Request.",
-   "fieldname": "transaction_reference",
-   "fieldtype": "Data",
-   "in_standard_filter": 1,
-   "label": "Transaction Reference",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_link",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "The Collection created in the Finance module once the gift is paid.",
-   "fieldname": "collection",
-   "fieldtype": "Link",
-   "label": "Collection",
-   "no_copy": 1,
-   "options": "Collection",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.notes",
-   "fieldname": "section_break_notes",
-   "fieldtype": "Section Break",
-   "label": "Notes"
-  },
-  {
-   "fieldname": "notes",
-   "fieldtype": "Small Text",
-   "label": "Notes"
-  }
- ],
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-10-31 13:36:17.000000",
- "modified_by": "Administrator",
- "module": "Church Finances",
- "name": "Online Donation",
- "naming_rule": "Expression",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Church Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Church Finance",
-   "select": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "sort_field": "creation",
- "sort_order": "DESC",
- "states": [
-  {
-   "color": "Orange",
-   "title": "Pending"
-  },
-  {
-   "color": "Green",
-   "title": "Paid"
-  },
-  {
-   "color": "Red",
-   "title": "Needs Review"
-  },
-  {
-   "color": "Red",
-   "title": "Failed"
-  },
-  {
-   "color": "Gray",
-   "title": "Cancelled"
-  },
-  {
-   "color": "Purple",
-   "title": "Refunded"
-  }
- ],
- "title_field": "donor_name",
- "track_changes": 1
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "GIVE-.#####",
+  "creation": "2026-06-05 00:00:00.000000",
+  "description": "An online gift made through the public /give page and paid via the Payments app. On successful payment it records a submitted Collection so the gift flows through the normal Fund and reporting logic.",
+  "doctype": "DocType",
+  "documentation": "/app/manual%3A-finances",
+  "engine": "InnoDB",
+  "field_order": [
+   "donor_name",
+   "church",
+   "amount",
+   "fee_amount",
+   "fund",
+   "missionary",
+   "column_break_giver",
+   "email",
+   "person",
+   "status",
+   "collection",
+   "section_break_notes",
+   "notes",
+   "section_break_payment",
+   "currency",
+   "payment_gateway",
+   "column_break_link",
+   "transaction_reference"
+  ],
+  "fields": [
+   {
+    "bold": 1,
+    "fieldname": "amount",
+    "fieldtype": "Currency",
+    "in_list_view": 1,
+    "label": "Amount",
+    "reqd": 1
+   },
+   {
+    "depends_on": "eval:doc.fee_amount",
+    "description": "The processing fee the giver chose to cover. It is part of the gift.",
+    "fieldname": "fee_amount",
+    "fieldtype": "Currency",
+    "label": "Covered Fee",
+    "options": "currency",
+    "read_only": 1
+   },
+   {
+    "fieldname": "fund",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Fund",
+    "options": "Fund",
+    "reqd": 1
+   },
+   {
+    "allow_in_quick_entry": 1,
+    "columns": 2,
+    "fieldname": "missionary",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Missionary",
+    "options": "Missionary"
+   },
+   {
+    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+    "description": "A shared fund names no church, so the gift keeps the church it was given to.",
+    "fieldname": "church",
+    "fieldtype": "Link",
+    "hidden": 1,
+    "in_standard_filter": 0,
+    "label": "Church",
+    "options": "Church"
+   },
+   {
+    "default": "Pending",
+    "description": "Needs Review means the payment gateway charged a different amount or currency than the gift, so the gift was not recorded. Refunded means Finance cancelled the gift's Collection after a refund at the processor.",
+    "fieldname": "status",
+    "fieldtype": "Select",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "label": "Status",
+    "options": "Pending\nPaid\nNeeds Review\nFailed\nCancelled\nRefunded",
+    "show_description_on_click": 1
+   },
+   {
+    "fieldname": "column_break_giver",
+    "fieldtype": "Column Break"
+   },
+   {
+    "description": "Set automatically when the giver is logged in. Blank for anonymous gifts.",
+    "fieldname": "person",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "label": "Person",
+    "options": "Person"
+   },
+   {
+    "fieldname": "donor_name",
+    "fieldtype": "Data",
+    "label": "Donor Name"
+   },
+   {
+    "fieldname": "email",
+    "fieldtype": "Data",
+    "in_list_view": 1,
+    "label": "Email",
+    "options": "Email"
+   },
+   {
+    "collapsible": 1,
+    "collapsible_depends_on": "eval:[\"Needs Review\", \"Failed\"].includes(doc.status)",
+    "description": "The gateway, the currency and the payment reference.",
+    "fieldname": "section_break_payment",
+    "fieldtype": "Section Break",
+    "label": "Payment"
+   },
+   {
+    "default": "USD",
+    "fieldname": "currency",
+    "fieldtype": "Link",
+    "label": "Currency",
+    "options": "Currency"
+   },
+   {
+    "fieldname": "payment_gateway",
+    "fieldtype": "Link",
+    "label": "Payment Gateway",
+    "options": "Payment Gateway"
+   },
+   {
+    "description": "Reference id from the payment gateway / Integration Request.",
+    "fieldname": "transaction_reference",
+    "fieldtype": "Data",
+    "in_standard_filter": 1,
+    "label": "Transaction Reference",
+    "no_copy": 1,
+    "read_only": 1
+   },
+   {
+    "fieldname": "column_break_link",
+    "fieldtype": "Column Break"
+   },
+   {
+    "description": "The Collection created in the Finance module once the gift is paid.",
+    "fieldname": "collection",
+    "fieldtype": "Link",
+    "label": "Collection",
+    "no_copy": 1,
+    "options": "Collection",
+    "read_only": 1
+   },
+   {
+    "collapsible": 1,
+    "collapsible_depends_on": "eval:doc.notes",
+    "fieldname": "section_break_notes",
+    "fieldtype": "Section Break",
+    "label": "Notes"
+   },
+   {
+    "fieldname": "notes",
+    "fieldtype": "Small Text",
+    "label": "Notes"
+   }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2026-10-31 13:36:17.000000",
+  "modified_by": "Administrator",
+  "module": "Church Finances",
+  "name": "Online Donation",
+  "naming_rule": "Expression",
+  "owner": "Administrator",
+  "permissions": [
+   {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager"
+   },
+   {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Church Manager"
+   },
+   {
+    "email": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Church Finance",
+    "select": 1,
+    "write": 1
+   }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "creation",
+  "sort_order": "DESC",
+  "states": [
+   {
+    "color": "Orange",
+    "title": "Pending"
+   },
+   {
+    "color": "Green",
+    "title": "Paid"
+   },
+   {
+    "color": "Red",
+    "title": "Needs Review"
+   },
+   {
+    "color": "Red",
+    "title": "Failed"
+   },
+   {
+    "color": "Gray",
+    "title": "Cancelled"
+   },
+   {
+    "color": "Purple",
+    "title": "Refunded"
+   }
+  ],
+  "title_field": "donor_name",
+  "track_changes": 1
 }

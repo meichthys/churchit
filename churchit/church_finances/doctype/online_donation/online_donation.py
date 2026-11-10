@@ -10,6 +10,7 @@ from frappe.query_builder.functions import Coalesce
 from frappe.utils import flt, fmt_money, formatdate, nowdate
 
 from churchit.church_finances.doctype.collection.collection import add_single_donation
+from churchit.church_finances.doctype.fund.fund import get_or_create_missionary_fund
 from churchit.church_finances.payments import get_integration_request, is_charge_confirmed, notify_finance
 from churchit.church_people import summaries
 from churchit.church_scope import refuse_another_churches_record
@@ -117,8 +118,15 @@ class OnlineDonation(Document):
 		"""Create and submit a Collection holding this single gift so it flows
 		through the existing Fund / report / dashboard logic, then mark this
 		record Paid and email a receipt."""
+		fund = self.fund
+		missionary = self.missionary
+
+		if missionary:
+			# Auto-create the missionary's fund if it doesn't exist, then use it.
+			fund = get_or_create_missionary_fund(missionary)
+
 		self.collection = add_single_donation(
-			self.church, self.fund, self.charged_amount, self.notes, person=self.person
+			self.church, fund, self.charged_amount, self.notes, person=self.person
 		)
 		self.status = "Paid"
 		self.flags.recording_gift = True

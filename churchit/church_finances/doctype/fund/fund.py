@@ -108,3 +108,52 @@ def get_give_link(fund: str) -> dict:
 
 	url = get_url(f"/give?{urlencode(query)}")
 	return {"url": url, "qr_code": get_qr_code(url)}
+
+
+@frappe.whitelist()
+def get_or_create_missionary_fund(missionary: str) -> str:
+	"""Get or create a fund for a missionary.
+
+	Creates a fund named "Missionary: {missionary_name}" if it doesn't exist.
+	The fund is shared (is_shared = 1) and has the church from the missionary.
+	"""
+	if not missionary:
+		return None
+
+	missionary_doc = frappe.get_doc("Missionary", missionary)
+	missionary_name = missionary_doc.title
+	fund_name = f"Missionary: {missionary_name}"
+
+	fund = frappe.db.get_value("Fund", fund_name, ["name", "is_shared", "church"], as_dict=True)
+	if fund:
+		return fund.name
+
+	# Create the fund
+	fund_doc = frappe.new_doc("Fund")
+	fund_doc.fund = fund_name
+	fund_doc.is_shared = 1
+	fund_doc.church = missionary_doc.church
+	fund_doc.description = f"Fund for supporting missionary {missionary_name}"
+	fund_doc.allow_giving = 1
+	fund_doc.is_tax_deductible = 1
+	fund_doc.balance = 0
+	fund_doc.goal_amount = 0
+	fund_doc.insert(ignore_permissions=True)
+
+	return fund_doc.name
+
+
+@frappe.whitelist()
+def get_missionary_fund(missionary: str) -> str | None:
+	"""Get the fund name for a missionary, or None if it doesn't exist."""
+	if not missionary:
+		return None
+
+	missionary_doc = frappe.get_doc("Missionary", missionary)
+	missionary_name = missionary_doc.title
+	fund_name = f"Missionary: {missionary_name}"
+
+	if frappe.db.exists("Fund", fund_name):
+		return fund_name
+
+	return None
