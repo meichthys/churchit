@@ -438,6 +438,8 @@ The hooks are listed in `.pre-commit-config.yaml`. Frappe renders web form scrip
 
 See `AGENTS.md` for the cross-cutting rules that are easy to miss, especially church scoping.
 
+If you work with Claude Code, the `churchit-contributing` skill (`.claude/skills/`) guides each change through these rules, and the `churchit-reviewer` agent (`.claude/agents/`) checks your branch before you open the pull request.
+
 ## Steps for adding a new doctype:
   - Add a doctype description on the settings tab
   - Add fields for the doctype (if necessary add field descriptions).
