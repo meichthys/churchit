@@ -4,11 +4,16 @@
 frappe.ui.form.on("Follow-up Card", {
 	refresh(frm) {
 		render_contact_details(frm);
-		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write")) return;
+		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write"))
+			return;
 
 		for (const step of frm.doc.__onload?.steps || []) {
 			if (step === frm.doc.step) continue;
-			frm.add_custom_button(step, () => save_with(frm, { step }), __("Move To"));
+			frm.add_custom_button(
+				step,
+				() => save_with(frm, { step }),
+				__("Move To"),
+			);
 		}
 		frm.add_custom_button(__("Snooze"), () => snooze(frm));
 		frm.add_custom_button(__("Close"), () => close_card(frm));
@@ -23,13 +28,13 @@ function render_contact_details(frm) {
 	}
 	const phone = contact.phone
 		? `<a href="tel:${encodeURIComponent(contact.phone)}">${frappe.utils.escape_html(
-				contact.phone
-		  )}</a>`
+				contact.phone,
+			)}</a>`
 		: __("No phone number on file");
 	const email = contact.email
 		? `<a href="mailto:${encodeURIComponent(contact.email)}">${frappe.utils.escape_html(
-				contact.email
-		  )}</a>`
+				contact.email,
+			)}</a>`
 		: __("No email address on file");
 	frm.get_field("contact_details").$wrapper.html(`
 		<p class="text-muted small">${__("Contact Details")}</p>
@@ -51,7 +56,7 @@ function snooze(frm) {
 		},
 		(values) => save_with(frm, values),
 		__("Snooze Card"),
-		__("Snooze")
+		__("Snooze"),
 	);
 }
 
@@ -61,11 +66,14 @@ function close_card(frm) {
 			fieldname: "outcome",
 			fieldtype: "Small Text",
 			label: __("Outcome"),
-			description: __("What happened, for whoever reads this card later."),
+			description: __(
+				"What happened, for whoever reads this card later.",
+			),
 			default: frm.doc.outcome,
 		},
-		(values) => save_with(frm, { status: "Closed", outcome: values.outcome || "" }),
+		(values) =>
+			save_with(frm, { status: "Closed", outcome: values.outcome || "" }),
 		__("Close Card"),
-		__("Close")
+		__("Close"),
 	);
 }

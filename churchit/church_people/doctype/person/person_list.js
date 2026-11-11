@@ -14,7 +14,11 @@ frappe.listview_settings["Person"] = {
 		const colors = { Active: "green", Inactive: "gray" };
 		const status = doc.membership_status;
 		if (!status) return;
-		return [__(status), colors[status] || "blue", `membership_status,=,${status}`];
+		return [
+			__(status),
+			colors[status] || "blue",
+			`membership_status,=,${status}`,
+		];
 	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Rolodex"), () => {
@@ -24,52 +28,73 @@ frappe.listview_settings["Person"] = {
 		const add_action = (label, action) =>
 			listview.page.add_action_item(label, () => {
 				const people = listview.get_checked_items(true);
-				if (!people.length) return frappe.msgprint(__("Select at least one person."));
+				if (!people.length)
+					return frappe.msgprint(__("Select at least one person."));
 				action(people);
 			});
 
 		if (frappe.model.can_create("Church Email"))
 			add_action(__("New Church Email"), new_church_email);
-		add_action(__("Email"), (people) => email_in_bcc("get_people_emails", { people }));
+		add_action(__("Email"), (people) =>
+			email_in_bcc("get_people_emails", { people }),
+		);
 		add_action(__("Email Household Adults"), (people) =>
-			email_in_bcc("get_household_adult_emails", { people })
+			email_in_bcc("get_household_adult_emails", { people }),
 		);
 		add_action(__("Open in Rolodex"), (people) => {
 			frappe.route_options = { view: "people", people };
 			frappe.set_route("rolodex");
 		});
-		if (frappe.model.can_write("Group")) add_action(__("Add to Group"), add_to_group);
+		if (frappe.model.can_write("Group"))
+			add_action(__("Add to Group"), add_to_group);
 		if (frappe.model.can_write("Person"))
-			add_action(__("Mark Inactive"), (people) => mark_inactive(listview, people));
+			add_action(__("Mark Inactive"), (people) =>
+				mark_inactive(listview, people),
+			);
 		add_action(__("Check In"), (people) => check_in(listview, people));
-		add_action(__("Print Name Tags"), (persons) => church.name_tags.print_for({ persons }));
+		add_action(__("Print Name Tags"), (persons) =>
+			church.name_tags.print_for({ persons }),
+		);
 	},
 };
 
 // The people go in BCC, so no one sees the others' addresses.
 function email_in_bcc(method, args) {
 	frappe.xcall(`${LIST_ACTIONS}.${method}`, args).then((result) => {
-		const names = (list) => (list || []).map(frappe.utils.escape_html).join(", ");
+		const names = (list) =>
+			(list || []).map(frappe.utils.escape_html).join(", ");
 		const notes = [
 			result.without_email.length &&
 				__("No email address for {0}.", [names(result.without_email)]),
 			result.refused?.length &&
-				__("Left out because they do not allow email: {0}.", [names(result.refused)]),
+				__("Left out because they do not allow email: {0}.", [
+					names(result.refused),
+				]),
 			result.without_adults?.length &&
-				__("No Adult on file in the household of {0}.", [names(result.without_adults)]),
+				__("No Adult on file in the household of {0}.", [
+					names(result.without_adults),
+				]),
 		].filter(Boolean);
 		if (!result.emails.length) {
-			frappe.msgprint(notes.join("<br>") || __("No one picked has an email address."));
+			frappe.msgprint(
+				notes.join("<br>") || __("No one picked has an email address."),
+			);
 			return;
 		}
-		if (notes.length) frappe.show_alert({ message: notes.join(" "), indicator: "orange" }, 10);
+		if (notes.length)
+			frappe.show_alert(
+				{ message: notes.join(" "), indicator: "orange" },
+				10,
+			);
 		const composer = new frappe.views.CommunicationComposer({
 			recipients: frappe.session.user_email,
 			bcc: result.emails.join(", "),
 		});
 		// The composer shows a filled BCC row only once it has loaded, and loading stops early
 		// for a user who cannot read Email Account.
-		composer.$composer?.find('.email-composer-toggle[data-target="bcc"]').trigger("click");
+		composer.$composer
+			?.find('.email-composer-toggle[data-target="bcc"]')
+			.trigger("click");
 	});
 }
 
@@ -100,18 +125,26 @@ function add_to_group(people) {
 		],
 		primary_action_label: __("Add"),
 		primary_action: ({ group, group_role }) => {
-			frappe.xcall(ADD_TO_GROUP, { group, group_role, people }).then((result) => {
-				dialog.hide();
-				const title = frappe.utils.get_link_title("Group", group) || group;
-				let message = __("Added {0} to {1}.", [
-					result.added,
-					frappe.utils.escape_html(title),
-				]);
-				if (result.already_members === 1) message += " " + __("1 was already a member.");
-				if (result.already_members > 1)
-					message += " " + __("{0} were already members.", [result.already_members]);
-				frappe.show_alert({ message, indicator: "green" });
-			});
+			frappe
+				.xcall(ADD_TO_GROUP, { group, group_role, people })
+				.then((result) => {
+					dialog.hide();
+					const title =
+						frappe.utils.get_link_title("Group", group) || group;
+					let message = __("Added {0} to {1}.", [
+						result.added,
+						frappe.utils.escape_html(title),
+					]);
+					if (result.already_members === 1)
+						message += " " + __("1 was already a member.");
+					if (result.already_members > 1)
+						message +=
+							" " +
+							__("{0} were already members.", [
+								result.already_members,
+							]);
+					frappe.show_alert({ message, indicator: "green" });
+				});
 		},
 	});
 	frappe.db
@@ -131,20 +164,28 @@ function mark_inactive(listview, people) {
 				options: "Inactive Reason",
 				reqd: 1,
 				description: __(
-					"Status becomes Inactive and Inactive Since today. Anyone already Inactive keeps their reason."
+					"Status becomes Inactive and Inactive Since today. Anyone already Inactive keeps their reason.",
 				),
 			},
 		],
 		primary_action_label: __("Mark Inactive"),
 		primary_action: ({ reason }) => {
-			frappe.xcall(`${LIST_ACTIONS}.mark_inactive`, { people, reason }).then((result) => {
-				dialog.hide();
-				listview.refresh();
-				let message = __("Marked {0} inactive.", [count_people(result.marked)]);
-				if (result.already_inactive)
-					message += " " + __("{0} already inactive.", [result.already_inactive]);
-				frappe.show_alert({ message, indicator: "green" });
-			});
+			frappe
+				.xcall(`${LIST_ACTIONS}.mark_inactive`, { people, reason })
+				.then((result) => {
+					dialog.hide();
+					listview.refresh();
+					let message = __("Marked {0} inactive.", [
+						count_people(result.marked),
+					]);
+					if (result.already_inactive)
+						message +=
+							" " +
+							__("{0} already inactive.", [
+								result.already_inactive,
+							]);
+					frappe.show_alert({ message, indicator: "green" });
+				});
 		},
 	});
 	dialog.show();
@@ -173,7 +214,9 @@ function check_in(listview, people) {
 				callback(r) {
 					if (!r.exc) {
 						frappe.show_alert({
-							message: __("{0} person(s) checked in.", [people.length]),
+							message: __("{0} person(s) checked in.", [
+								people.length,
+							]),
 							indicator: "green",
 						});
 						dialog.hide();

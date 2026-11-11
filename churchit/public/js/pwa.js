@@ -17,7 +17,8 @@ window.church = window.church || {};
 		(/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
 	const is_mac = /Macintosh/.test(agent) && !is_ios;
 	const is_safari =
-		/Safari/.test(agent) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/.test(agent);
+		/Safari/.test(agent) &&
+		!/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/.test(agent);
 	const is_android = /Android/.test(agent);
 
 	let install_event = null;
@@ -29,11 +30,17 @@ window.church = window.church || {};
 
 	// The desk renders Frappe's own <head>; its boot carries what the website puts there.
 	if (frappe.boot && frappe.boot.pwa_install_tags) {
-		document.head.insertAdjacentHTML("beforeend", frappe.boot.pwa_install_tags);
+		document.head.insertAdjacentHTML(
+			"beforeend",
+			frappe.boot.pwa_install_tags,
+		);
 	}
 
 	function is_installed() {
-		return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+		return (
+			matchMedia("(display-mode: standalone)").matches ||
+			navigator.standalone === true
+		);
 	}
 
 	function is_signed_in() {
@@ -43,7 +50,8 @@ window.church = window.church || {};
 
 	function manual_steps() {
 		if (is_ios) return __("Tap Share, then Add to Home Screen.");
-		if (is_mac && is_safari) return __("In the menu bar, choose File, then Add to Dock.");
+		if (is_mac && is_safari)
+			return __("In the menu bar, choose File, then Add to Dock.");
 		if (is_android && /Firefox/.test(agent))
 			return __("Open the browser menu, then tap Install.");
 		return null;
@@ -59,7 +67,10 @@ window.church = window.church || {};
 
 	function snooze() {
 		try {
-			localStorage.setItem(SNOOZE_KEY, Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000);
+			localStorage.setItem(
+				SNOOZE_KEY,
+				Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000,
+			);
 		} catch (e) {
 			// Storage is blocked: the card comes back on the next page instead.
 		}
@@ -67,7 +78,9 @@ window.church = window.church || {};
 
 	function should_offer() {
 		return (
-			Boolean(document.querySelector('meta[name="churchit-offer-install"]')) &&
+			Boolean(
+				document.querySelector('meta[name="churchit-offer-install"]'),
+			) &&
 			is_signed_in() &&
 			!is_installed() &&
 			!NO_OFFER_PAGES.includes(location.pathname) &&
@@ -83,14 +96,20 @@ window.church = window.church || {};
 			return { title: __("Add {0} to the Dock", [name]), text: steps };
 		}
 		if (is_ios || is_android) {
-			const text = steps || __("Open it from your home screen and get notifications.");
+			const text =
+				steps ||
+				__("Open it from your home screen and get notifications.");
 			return { title: __("Get the {0} app", [name]), text: text };
 		}
 		return {
 			title: __("Install {0} on this computer", [name]),
 			text: is_mac
-				? __("It opens in its own window, and you can keep it in the Dock.")
-				: __("It opens in its own window, and you can pin it to the taskbar."),
+				? __(
+						"It opens in its own window, and you can keep it in the Dock.",
+					)
+				: __(
+						"It opens in its own window, and you can pin it to the taskbar.",
+					),
 		};
 	}
 
@@ -110,10 +129,10 @@ window.church = window.church || {};
 		element.setAttribute("aria-label", title);
 		element.querySelector(".churchit-install-title").textContent = title;
 		element.querySelector(".churchit-install-text").textContent = text;
-		element.querySelector('[data-action="later"]').textContent = __("Not now");
-		element.querySelector('[data-action="install"]').textContent = install_event
-			? __("Install")
-			: __("Got it");
+		element.querySelector('[data-action="later"]').textContent =
+			__("Not now");
+		element.querySelector('[data-action="install"]').textContent =
+			install_event ? __("Install") : __("Got it");
 		element.addEventListener("click", on_card_click);
 		return element;
 	}
@@ -121,7 +140,8 @@ window.church = window.church || {};
 	function on_card_click(event) {
 		const button = event.target.closest("[data-action]");
 		if (!button) return;
-		if (button.dataset.action === "install" && install_event) return prompt_install();
+		if (button.dataset.action === "install" && install_event)
+			return prompt_install();
 		snooze();
 		hide_card();
 	}
@@ -168,7 +188,8 @@ window.church = window.church || {};
 	}
 
 	document.addEventListener("click", (event) => {
-		if (event.target.closest("[data-install-app-button]")) church.install_app();
+		if (event.target.closest("[data-install-app-button]"))
+			church.install_app();
 	});
 
 	// Only a signed-in user's prompt is ours: a guest keeps the browser's own install hint.

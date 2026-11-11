@@ -7,9 +7,11 @@ frappe.listview_settings["Collection"] = {
 	has_indicator_for_cancelled: true,
 	add_fields: ["imbalance"],
 	get_indicator(doc) {
-		if (doc.docstatus === 2) return [__("Cancelled"), "gray", "docstatus,=,2"];
+		if (doc.docstatus === 2)
+			return [__("Cancelled"), "gray", "docstatus,=,2"];
 		if (doc.docstatus !== 0) return;
-		if (flt(doc.imbalance)) return [__("Unbalanced"), "red", "docstatus,=,0|imbalance,!=,0"];
+		if (flt(doc.imbalance))
+			return [__("Unbalanced"), "red", "docstatus,=,0|imbalance,!=,0"];
 		return [__("Ready to Submit"), "orange", "docstatus,=,0|imbalance,=,0"];
 	},
 };

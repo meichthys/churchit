@@ -6,6 +6,8 @@ frappe.listview_settings["Planning Center Import"] = {
 	// In refresh, after the import list has used the route options, so the target list gets the filter.
 	refresh() {
 		frappe.route_flags.replace_route = true;
-		frappe.set_route("List", "Person", { legacy_system: "Planning Center" });
+		frappe.set_route("List", "Person", {
+			legacy_system: "Planning Center",
+		});
 	},
 };

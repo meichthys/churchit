@@ -7,7 +7,8 @@ frappe.listview_settings["Bible Memory Item"] = {
 	add_fields: ["memorized", "progress"],
 	get_indicator(doc) {
 		if (doc.memorized) return [__("Memorized"), "green", "memorized,=,1"];
-		if (doc.progress > 0) return [__("In Progress"), "blue", "memorized,=,0|progress,>,0"];
+		if (doc.progress > 0)
+			return [__("In Progress"), "blue", "memorized,=,0|progress,>,0"];
 		return [__("Not Started"), "gray", "progress,=,0"];
 	},
 	formatters: {
@@ -40,7 +41,9 @@ frappe.listview_settings["Bible Memory Item"] = {
 						fieldtype: "Link",
 						label: __("Group"),
 						options: "Group",
-						description: __("Everyone in the group who has a portal login."),
+						description: __(
+							"Everyone in the group who has a portal login.",
+						),
 					},
 					{
 						fieldname: "user",
@@ -67,10 +70,10 @@ frappe.listview_settings["Bible Memory Item"] = {
 							dialog.hide();
 							listview.refresh();
 							frappe.show_alert({
-								message: __("{0} assigned, {1} already had it.", [
-									message.created,
-									message.skipped,
-								]),
+								message: __(
+									"{0} assigned, {1} already had it.",
+									[message.created, message.skipped],
+								),
 								indicator: "green",
 							});
 							if (!message.missing_users.length) return;

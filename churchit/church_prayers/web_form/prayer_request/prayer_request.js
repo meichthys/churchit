@@ -4,7 +4,9 @@ frappe.ready(function () {
 
 	// Guard: If fields don't exist OR if we are in read-only mode (no $input)
 	if (!name_ctrl || !type_ctrl || !type_ctrl.$input) {
-		console.log("Web Form is in read-only mode; skipping search initialization.");
+		console.log(
+			"Web Form is in read-only mode; skipping search initialization.",
+		);
 		return;
 	}
 
@@ -50,7 +52,10 @@ frappe.ready(function () {
 								$input.val(d.label);
 								$dd.hide();
 								frappe.web_form.set_value("recipient", d.name);
-								frappe.web_form.set_value("recipient_type", type_ctrl.get_value());
+								frappe.web_form.set_value(
+									"recipient_type",
+									type_ctrl.get_value(),
+								);
 							})
 							.appendTo($dd);
 					});
@@ -97,7 +102,8 @@ frappe.ready(function () {
 				$el.append($("<option>").val(d.name).text(d.name));
 			});
 
-			var existing = frappe.web_form.doc && frappe.web_form.doc.recipient_type;
+			var existing =
+				frappe.web_form.doc && frappe.web_form.doc.recipient_type;
 			if (existing) {
 				$el.val(existing);
 			} else if (!frappe.web_form.doc.name) {
@@ -126,13 +132,13 @@ frappe.ready(function () {
 				// Setting recipient_type fires our change handler which clears state;
 				// assign recipient/recipient_name afterwards so they aren't clobbered.
 				$type_select.val("Person");
-				Promise.resolve(frappe.web_form.set_value("recipient_type", "Person")).then(
-					function () {
-						frappe.web_form.set_value("recipient", person_name);
-						frappe.web_form.set_value("recipient_name", person_label);
-						$input.val(person_label);
-					}
-				);
+				Promise.resolve(
+					frappe.web_form.set_value("recipient_type", "Person"),
+				).then(function () {
+					frappe.web_form.set_value("recipient", person_name);
+					frappe.web_form.set_value("recipient_name", person_label);
+					$input.val(person_label);
+				});
 			},
 		});
 	}

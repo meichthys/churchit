@@ -7,7 +7,11 @@ frappe.listview_settings["Pickup Restriction"] = {
 	add_fields: ["valid_until"],
 	get_indicator(doc) {
 		if (doc.valid_until && doc.valid_until < frappe.datetime.get_today()) {
-			return [__("Ended"), "gray", "valid_until,is,set|valid_until,<,Today"];
+			return [
+				__("Ended"),
+				"gray",
+				"valid_until,is,set|valid_until,<,Today",
+			];
 		}
 		return [__("Active"), "red", "valid_until,is,not set"];
 	},

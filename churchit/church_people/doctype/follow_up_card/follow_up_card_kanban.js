@@ -8,7 +8,8 @@ frappe.kanban_v2.settings["Follow-up Card"] = {
 		// the open board is reached through its view, and reloads once the move has settled.
 		onAfterCardMove() {
 			setTimeout(() => {
-				if (cur_list?.doctype === "Follow-up Card") cur_list._kanban?.board?.refresh();
+				if (cur_list?.doctype === "Follow-up Card")
+					cur_list._kanban?.board?.refresh();
 			});
 		},
 	},

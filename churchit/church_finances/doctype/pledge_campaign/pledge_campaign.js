@@ -6,8 +6,11 @@ frappe.ui.form.on("Pledge Campaign", {
 		if (frm.is_new()) return;
 		frm.add_custom_button(
 			__("Pledge Progress"),
-			() => frappe.set_route("query-report", "Pledge Progress", { campaign: frm.doc.name }),
-			__("View")
+			() =>
+				frappe.set_route("query-report", "Pledge Progress", {
+					campaign: frm.doc.name,
+				}),
+			__("View"),
 		);
 	},
 });

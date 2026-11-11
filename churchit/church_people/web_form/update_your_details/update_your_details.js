@@ -4,7 +4,7 @@ frappe.ready(function () {
 		frappe.web_form.fields_dict[fieldname].grid.update_docfield_property(
 			"shared_from",
 			"hidden",
-			1
+			1,
 		);
 	}
 });
