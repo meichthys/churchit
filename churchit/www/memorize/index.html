@@ -86,8 +86,11 @@
 
 {% block style %}
 <style>
-    #memorize-page .memorize-progress { height: 6px; width: 200px; }
+    #memorize-page .memorize-progress { height: 6px; width: 200px; max-width: 100%; }
     #memorize-page .memorize-item-actions .btn + .btn { margin-left: 4px; }
+    @media (max-width: 480px) {
+        #memorize-page .memorize-item-actions { width: 100%; margin-top: 8px; }
+    }
 </style>
 {% endblock %}
 
