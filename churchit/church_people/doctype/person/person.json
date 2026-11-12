@@ -75,6 +75,9 @@
   "status_changed_on",
   "legacy_system",
   "legacy_id",
+  "section_break_osjz",
+  "positions",
+  "skills",
   "directory_section",
   "photo",
   "user",
@@ -88,10 +91,6 @@
   "section_break_eqre",
   "letters",
   "connections_tab",
-  "section_break_osjz",
-  "positions",
-  "section_break_skills",
-  "skills",
   "involvement_section",
   "first_attended_on",
   "last_attended_on",
@@ -264,10 +263,6 @@
    "options": "Position"
   },
   {
-   "fieldname": "section_break_skills",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "skills",
    "fieldtype": "Table MultiSelect",
    "label": "Skills, Interests and Gifts",
@@ -286,7 +281,8 @@
   },
   {
    "fieldname": "section_break_osjz",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Roles and Gifts"
   },
   {
    "fieldname": "column_break_agva",
@@ -984,7 +980,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-10 05:54:02.000000",
+ "modified": "2026-11-11 23:02:43.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
