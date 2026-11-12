@@ -51,7 +51,6 @@ frappe.ready(function () {
 								$input.val(d.label);
 								$dd.hide();
 								frappe.web_form.set_value("recipient", d.name);
-								frappe.web_form.set_value("recipient_type", type_ctrl.get_value());
 							})
 							.appendTo($dd);
 					});
