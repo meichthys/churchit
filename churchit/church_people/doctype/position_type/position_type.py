@@ -10,7 +10,7 @@ class PositionType(Document):
 
 
 @frappe.whitelist()
-def assign_position_to_person(position_type, person, start_date, end_date=None, notes=None):
+def assign_position_to_person(position_type, person, start_date=None, end_date=None, notes=None):
 	frappe.has_permission("Person", "write", throw=True)
 
 	position_type_doc = frappe.get_doc("Position Type", position_type)
@@ -33,11 +33,10 @@ def assign_position_to_person(position_type, person, start_date, end_date=None, 
 		"positions",
 		{
 			"position": position_type,
-			"start_date": start_date,
+			"start_date": start_date or None,
 			"end_date": end_date or None,
 			"notes": notes or "",
 		},
 	)
 	doc.save()
-	frappe.db.commit()
 	return doc.name

@@ -272,7 +272,7 @@ def get_directory_html(
 			.where(
 				(Position.parenttype == "Person")
 				& Position.position.isnotnull()
-				& (Position.start_date <= today)
+				& (Position.start_date.isnull() | (Position.start_date <= today))
 				& (Position.end_date.isnull() | (Position.end_date >= today))
 			)
 			.orderby(Position.parent)
