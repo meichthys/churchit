@@ -199,6 +199,7 @@ after_install = "churchit.patches.after_install.execute"
 # Workspaces ship as standard records, so migrate re-imports them and resets the
 # visibility Church Features set. Re-apply it, and add newly shipped dock entries.
 after_migrate = [
+	"churchit.church_setup.manual_workspaces.hide_manual_workspaces",
 	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
 	"churchit.church_summary.home.add_return_to_framework_dock",
 	# A Frappe patch can turn MCP on directly; keep it closed while AI is off.
