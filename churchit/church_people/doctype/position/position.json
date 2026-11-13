@@ -21,13 +21,11 @@
    "columns": 3
   },
   {
-   "default": "Today",
    "fieldname": "start_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Start Date",
-   "reqd": 1,
    "columns": 2
   },
   {
@@ -53,7 +51,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-02 23:11:31.000000",
+ "modified": "2026-11-11 22:30:34.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position",

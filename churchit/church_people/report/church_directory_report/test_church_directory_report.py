@@ -444,6 +444,20 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		birthdays = html[html.index('<div class="appendix-heading">Birthdays</div>') :]
 		self.assertRegex(birthdays, r"_Test Yearless Birthday</span>\s*<span class=\"calendar-date\">July 4<")
 
+	def test_positions_without_a_start_date_are_shown_as_held(self):
+		undated = ensure("Position Type", {"position": "_Test Undated Role"})
+		future = ensure("Position Type", {"position": "_Test Future Role"})
+		make_person(
+			"_Test Ward",
+			"Directory",
+			positions=[{"position": undated}, {"position": future, "start_date": "2040-01-01"}],
+		)
+
+		html = self.render(show_roles="1", group_by_family="0")
+
+		self.assertIn("<td>_Test Undated Role</td>", html)
+		self.assertNotIn("_Test Future Role", html)
+
 	def test_record_values_are_escaped(self):
 		self.set_church_value("church_name", 'Saint "Mary" </style><script>x()</script>')
 		make_person("_Test", "<b>Directory Escaped</b>", photo='/files/_test.png" onerror="alert(1)')
