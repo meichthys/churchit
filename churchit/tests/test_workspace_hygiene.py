@@ -70,7 +70,7 @@ WORKSPACES_WITH_LINK_CARDS = {}
 WORKSPACES_WITH_QUICK_LISTS = {}
 
 WORKSPACES_OVER_THEIR_CAPS = {
-	"Settings": "Settings is the setup menu: no work waits there, so it shows no shortcut or chart, only the AI Sends card",
+	"Settings": "Settings is the setup menu: no work waits there, so it shows no chart, only its 3 setup shortcuts and the AI Sends card",
 }
 
 COUNT_FILTER_EXCEPTIONS = {

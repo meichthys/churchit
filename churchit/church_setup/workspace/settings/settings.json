@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\": \"kHOUji9YHL\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"But everything should be done in a fitting and orderly way.\\\"</i>\", \"col\": 12}}, {\"id\": \"AISends0001\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"AI Sends This Month\", \"col\": 4}}]",
+ "content": "[{\"id\": \"kHOUji9YHL\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"But everything should be done in a fitting and orderly way.\\\"</i>\", \"col\": 12}}, {\"id\": \"setChurchFeatures\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Church Features\", \"col\": 4}}, {\"id\": \"setUsers\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Users\", \"col\": 4}}, {\"id\": \"setDataImport\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Data Import\", \"col\": 4}}, {\"id\": \"AISends0001\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"AI Sends This Month\", \"col\": 4}}]",
  "creation": "2026-07-07 19:43:06.898779",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Settings",
  "links": [],
- "modified": "2026-11-10 02:27:19.000000",
+ "modified": "2026-11-14 18:02:05.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Settings",
@@ -36,7 +36,26 @@
   }
  ],
  "sequence_id": 23.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "label": "Church Features",
+   "link_to": "Church Features",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "Users",
+   "link_to": "User",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "Data Import",
+   "link_to": "Data Import",
+   "type": "DocType"
+  }
+ ],
  "standard": 1,
  "title": "Settings",
  "type": "Workspace"
