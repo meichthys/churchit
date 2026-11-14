@@ -94,6 +94,8 @@ SENSITIVE_DOCTYPES = (
 	"Breeze Import",
 	"Church Email",
 	"Collection",
+	# Its rows hold notes about people and the photos of their returned cards.
+	"Contact Verification",
 	"Expense",
 	"Financial Transaction",
 	"Giving Import",

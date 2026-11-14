@@ -291,6 +291,7 @@ PERSON_HISTORY_EXCEPTIONS = {
 	"Church Email": "Kept for its other recipients; anonymizing removes the person's name and email from its history",
 	"Church Task": "Kept for the task; anonymizing removes the person's name and email from its history",
 	"Collection": "Kept for its other donors; anonymizing removes the person's name and email from its history",
+	"Contact Verification": "Kept for its other people; anonymizing removes the person's name and email from its history",
 	"Family": "Kept for its other members; anonymizing removes the person's name, email and first name from its history and from its members' histories",
 	"Function": "Kept for its other attendees; anonymizing removes the person's name and email from its history",
 	"Group": "Kept for its other members; anonymizing removes the person's name and email from its history",

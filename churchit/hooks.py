@@ -402,6 +402,7 @@ doc_events = {
 	},
 	"Web Form Request": {
 		"validate": "churchit.church_people.details_link.close_details_request",
+		"on_update": "churchit.church_people.contact_cards.mark_answered_online",
 	},
 	"System Settings": {
 		"validate": "churchit.ai.switch.refuse_mcp_while_ai_off",

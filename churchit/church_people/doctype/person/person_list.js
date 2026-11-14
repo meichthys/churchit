@@ -40,6 +40,8 @@ frappe.listview_settings["Person"] = {
 			frappe.set_route("rolodex");
 		});
 		if (frappe.model.can_write("Group")) add_action(__("Add to Group"), add_to_group);
+		if (frappe.model.can_create("Contact Verification"))
+			add_action(__("Verify Contact Info"), new_contact_verification);
 		if (frappe.model.can_write("Person"))
 			add_action(__("Mark Inactive"), (people) => mark_inactive(listview, people));
 		add_action(__("Check In"), (people) => check_in(listview, people));
@@ -71,6 +73,15 @@ function email_in_bcc(method, args) {
 		// The composer shows a filled BCC row only once it has loaded, and loading stops early
 		// for a user who cannot read Email Account.
 		composer.$composer?.find('.email-composer-toggle[data-target="bcc"]').trigger("click");
+	});
+}
+
+// A new Contact Verification with a card for each person picked, opened unsaved for its title.
+function new_contact_verification(people) {
+	frappe.model.with_doctype("Contact Verification", () => {
+		const doc = frappe.model.get_new_doc("Contact Verification");
+		for (const person of people) frappe.model.add_child(doc, "people").person = person;
+		frappe.set_route("Form", "Contact Verification", doc.name);
 	});
 }
 

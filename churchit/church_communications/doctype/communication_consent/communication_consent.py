@@ -19,6 +19,7 @@ WITHDRAWN = "Withdrawn"
 
 DESK = "Desk"
 WEB_FORM = "Web Form"
+PAPER_FORM = "Paper Form"
 MEMBER_PORTAL = "Member Portal"
 UNSUBSCRIBE_LINK = "Unsubscribe Link"
 EMAIL_LINK = "Email Link"

@@ -47,13 +47,14 @@ def send_details_link(person: str) -> str:
 	return email
 
 
-def make_details_request(person: str):
-	"""A Web Form Request that opens Update Your Details on *person* until it expires or is used."""
+def make_details_request(person: str, expires_on=None):
+	"""A Web Form Request that opens Update Your Details on *person* until it is used or expires, on
+	*expires_on* or LINK_DAYS from now."""
 	request = frappe.get_doc(
 		{
 			"doctype": "Web Form Request",
 			"web_form": DETAILS_FORM,
-			"expires_on": add_days(now_datetime(), LINK_DAYS),
+			"expires_on": expires_on or add_days(now_datetime(), LINK_DAYS),
 			"references": [{"link_doctype": "Person", "link_name": person}],
 		}
 	)

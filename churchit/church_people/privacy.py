@@ -59,6 +59,7 @@ from frappe.query_builder.functions import Coalesce, Lower
 from frappe.utils.global_search import delete_for_document, update_global_search
 
 from churchit.ai.switch import has_flow
+from churchit.church_people.contact_cards import forget_card_photos
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.person.person import (
 	UNKNOWN_GENDER,
@@ -177,6 +178,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	stop_sharing_from("Person", person)
 	forget_ai_chats(person)
 	forget_records_about(person)
+	forget_card_photos(person)
 	forget_sign_up_details(person, emails)
 	records = linked_records(person)
 	remove_copies(records, histories, names, emails)

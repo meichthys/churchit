@@ -1,0 +1,242 @@
+{
+ "actions": [],
+ "autoname": "CV-.####",
+ "creation": "2026-11-14 00:15:00.000000",
+ "default_print_format": "Contact Verification Cards",
+ "description": "A set of paper cards that ask people to check the contact information the church has for them. Print two cards on each page, hand them out, and record each card that comes back. A returned card updates the person and their Contact Verified On date.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "church",
+  "group",
+  "column_break_details",
+  "handed_out_on",
+  "status",
+  "returned_count",
+  "card_count",
+  "people_section",
+  "people",
+  "cards_section",
+  "show_photo",
+  "show_emails",
+  "show_phones",
+  "show_addresses",
+  "show_birthday",
+  "column_break_cards",
+  "show_anniversary",
+  "show_emergency_contact",
+  "show_texting",
+  "show_online_link",
+  "print_only_not_returned"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "placeholder": "Senior Saints, spring 2027",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "fieldname": "church",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 0,
+   "label": "Church",
+   "options": "Church"
+  },
+  {
+   "description": "Saving adds the group's members who are not on the list yet.",
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Group",
+   "options": "Group"
+  },
+  {
+   "fieldname": "column_break_details",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "handed_out_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Handed Out On",
+   "reqd": 1
+  },
+  {
+   "default": "In Progress",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "In Progress\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "returned_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Returned",
+   "read_only": 1
+  },
+  {
+   "fieldname": "card_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Cards",
+   "read_only": 1
+  },
+  {
+   "description": "Print the cards with Print. When a card comes back, click Record Returned Card or Scan Card.",
+   "fieldname": "people_section",
+   "fieldtype": "Section Break",
+   "label": "Cards"
+  },
+  {
+   "fieldname": "people",
+   "fieldtype": "Table",
+   "label": "People",
+   "options": "Contact Verification Person"
+  },
+  {
+   "description": "Each card shows what the church has on file for each ticked item, and blank lines for what is missing.",
+   "fieldname": "cards_section",
+   "fieldtype": "Section Break",
+   "label": "Show on the Cards"
+  },
+  {
+   "default": "1",
+   "description": "Prints the person's photo beside the QR code, when they have one.",
+   "fieldname": "show_photo",
+   "fieldtype": "Check",
+   "label": "Photo"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_emails",
+   "fieldtype": "Check",
+   "label": "Emails"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_phones",
+   "fieldtype": "Check",
+   "label": "Phones"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_addresses",
+   "fieldtype": "Check",
+   "label": "Addresses"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_birthday",
+   "fieldtype": "Check",
+   "label": "Birthday"
+  },
+  {
+   "fieldname": "column_break_cards",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_anniversary",
+   "fieldtype": "Check",
+   "label": "Anniversary"
+  },
+  {
+   "default": "0",
+   "description": "AI does not read a card that shows the emergency contact.",
+   "fieldname": "show_emergency_contact",
+   "fieldtype": "Check",
+   "label": "Emergency Contact"
+  },
+  {
+   "default": "1",
+   "description": "Asks whether the church may send text messages.",
+   "fieldname": "show_texting",
+   "fieldtype": "Check",
+   "label": "May We Text You"
+  },
+  {
+   "default": "1",
+   "description": "A second QR code that opens Update Your Details for 30 days after Handed Out On.",
+   "fieldname": "show_online_link",
+   "fieldtype": "Check",
+   "label": "Update Online Code"
+  },
+  {
+   "default": "0",
+   "description": "Print again for the people whose card has not come back.",
+   "fieldname": "print_only_not_returned",
+   "fieldtype": "Check",
+   "label": "Print Only Cards Not Returned"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-14 01:02:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Contact Verification",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church People Editor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "handed_out_on",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "In Progress"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  }
+ ],
+ "title_field": "title",
+ "track_changes": 1
+}

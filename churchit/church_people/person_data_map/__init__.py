@@ -21,6 +21,7 @@ PERSON = "Person"
 
 # Child tables that list a person at most once on each record, by the field that names them.
 ROSTERS = {
+	"Contact Verification Person": "person",
 	"Family Members": "member",
 	"Function Attendance": "person",
 	"Function Sign-Up Attendee": "person",

@@ -73,6 +73,7 @@
   "column_break_record",
   "membership_changed_on",
   "status_changed_on",
+  "contact_verified_on",
   "legacy_system",
   "legacy_id",
   "section_break_osjz",
@@ -484,6 +485,13 @@
    "fieldname": "status_changed_on",
    "fieldtype": "Date",
    "label": "Status Changed On",
+   "read_only": 1
+  },
+  {
+   "description": "The day a returned contact verification card was recorded.",
+   "fieldname": "contact_verified_on",
+   "fieldtype": "Date",
+   "label": "Contact Verified On",
    "read_only": 1
   },
   {
@@ -980,7 +988,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-11 23:02:43.000000",
+ "modified": "2026-11-14 00:20:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

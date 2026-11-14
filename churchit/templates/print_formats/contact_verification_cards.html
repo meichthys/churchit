@@ -1,0 +1,108 @@
+{#- Contact verification cards, two to a Letter page with a cut line between them. Each card lists what
+    the church has on file for one person, with Right and Wrong boxes and a line to correct it, blank
+    lines for what is missing, a QR code for the office that opens the card's person on the Contact
+    Verification and, when the person has one, a QR code of their Update Your Details link.
+    A table lays it out, because wkhtmltopdf has no flexbox. Values are typed in, so they are escaped.
+    The class names start with cvc- to stay clear of Bootstrap and the Print Style. -#}
+<style>
+  .print-format { page-size: Letter; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
+  @page { size: Letter; margin: 0; }
+  .cvc-card { width: 8.5in; height: 5.49in; box-sizing: border-box; padding: 0.3in 0.4in 0.2in; overflow: hidden; position: relative; font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; page-break-inside: avoid; break-inside: avoid; }
+  .cvc-card.cvc-page-end { page-break-after: always; break-after: page; }
+  .cvc-cut { position: absolute; top: 0.1in; left: 0; right: 0; height: 0; border-top: 1px dashed #777; text-align: center; }
+  .cvc-cut span { position: relative; top: -0.65em; padding: 0 6px; font-size: 7pt; color: #555; background: #fff; }
+  .cvc-card table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .cvc-card td, .cvc-card th { padding: 0 !important; border: 0 !important; vertical-align: bottom; }
+  .cvc-church { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cvc-title { font-size: 15pt; font-weight: 700; margin-top: 2px; }
+  .cvc-how { font-size: 9pt; line-height: 1.3; margin-top: 3px; }
+  .cvc-card td.cvc-qr { width: 0.95in; text-align: right; vertical-align: top; }
+  .cvc-card td.cvc-photo { width: 0.85in; text-align: right; vertical-align: top; }
+  .cvc-photo img { width: 0.7in; height: 0.85in; object-fit: cover; border: 1px solid #bbb; }
+  .cvc-qr img { width: 0.8in; height: 0.8in; }
+  .cvc-id { font-family: monospace; font-size: 7pt; }
+  .cvc-name { font-size: 14pt; font-weight: 700; margin: 4px 0 2px; padding-bottom: 3px; border-bottom: 1.5px solid #000; }
+  .cvc-card th { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; text-align: center; color: #333; }
+  .cvc-card td.cvc-label { font-size: 8pt; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #333; padding: 6px 0 3px !important; border-bottom: 1px solid #ccc !important; }
+  .cvc-card td.cvc-value { font-size: 11pt; padding: 6px 0 3px !important; border-bottom: 1px solid #ccc !important; }
+  .cvc-value small { display: block; font-size: 7.5pt; color: #333; }
+  .cvc-card td.cvc-box { text-align: center; border-bottom: 1px solid #ccc !important; padding-bottom: 4px !important; }
+  .cvc-box span, .cvc-tick span { display: inline-block; width: 12px; height: 12px; border: 1.3px solid #000; vertical-align: middle; }
+  .cvc-card td.cvc-fix { border-bottom: 1px solid #000 !important; }
+  .cvc-card td.cvc-blank { font-size: 8.5pt; font-style: italic; color: #555; padding: 6px 0 3px !important; border-bottom: 1px solid #000 !important; }
+  .cvc-card td.cvc-add { font-size: 9.5pt; padding-top: 8px !important; }
+  .cvc-card td.cvc-line { border-bottom: 1px solid #000 !important; }
+  .cvc-tick { font-size: 8.5pt; white-space: nowrap; }
+  .cvc-tick span { margin: 0 2px 0 8px; }
+  .cvc-texts { font-size: 9.5pt; margin-top: 8px; }
+  .cvc-texts span { display: inline-block; width: 12px; height: 12px; border: 1.3px solid #000; vertical-align: middle; margin: 0 3px 0 10px; }
+  .cvc-card td.cvc-sign { font-size: 9.5pt; padding-top: 12px !important; }
+  .cvc-card td.cvc-online { width: 1.3in; padding-left: 0.2in !important; text-align: center; vertical-align: bottom; font-size: 7.5pt; line-height: 1.3; }
+  .cvc-online img { width: 0.85in; height: 0.85in; margin: 2px 0; }
+</style>
+{%- set church = church_name(doc) or "" -%}
+{%- set cards = doc.get_cards() -%}
+{%- for card in cards %}
+<div class="cvc-card{% if loop.index is even and not loop.last %} cvc-page-end{% endif %}">
+  {%- if loop.index is even %}<div class="cvc-cut"><span>{{ _("Cut here") }}</span></div>{% endif %}
+  <table>
+    <tr>
+      <td style="vertical-align: top;">
+        <div class="cvc-church">{{ church|e }}</div>
+        <div class="cvc-title">{{ _("Is your information correct?") }}</div>
+        <div class="cvc-how">{{ _("Tick Right or Wrong on each line, and write the correct one on the line. Fill in anything that is blank.") }}<br>{{ _("Sign the card and give it to an usher or the church office.") }}</div>
+      </td>
+      {%- if card.photo %}<td class="cvc-photo"><img src="{{ card.photo|e }}" alt=""></td>{% endif %}
+      <td class="cvc-qr"><img src="{{ card.qr_code }}" alt=""><div class="cvc-id">{{ _("Office use") }}<br>{{ card.person|e }}</div></td>
+    </tr>
+  </table>
+  <div class="cvc-name">{{ card.full_name|e }}</div>
+  <table>
+    <colgroup><col style="width: 1.35in"><col style="width: 3.05in"><col style="width: 0.5in"><col style="width: 0.5in"><col></colgroup>
+    <tr><th></th><th></th><th>{{ _("Right") }}</th><th>{{ _("Wrong") }}</th><th>{{ _("Correct it here") }}</th></tr>
+    {%- for line in card.lines %}
+    <tr>
+      <td class="cvc-label">{{ line.label|e }}</td>
+      {%- if line.value %}
+      <td class="cvc-value">{{ line.value|e }}{% if line.note %}<small>{{ line.note|e }}</small>{% endif %}</td>
+      <td class="cvc-box"><span></span></td>
+      <td class="cvc-box"><span></span></td>
+      <td class="cvc-fix"></td>
+      {%- else %}
+      <td class="cvc-blank" colspan="4">{{ (line.hint or "")|e }}</td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </table>
+  <table>
+    <tr>
+      <td style="vertical-align: top;">
+        {%- if card.adds %}
+        <table>
+          <colgroup><col style="width: 1.35in"><col><col style="width: 2.4in"></colgroup>
+          {%- for add in card.adds %}
+          <tr>
+            <td class="cvc-add">{{ add.label|e }}:</td>
+            <td class="cvc-line"></td>
+            <td class="cvc-add cvc-tick">{% for tick in add.ticks %}<span></span>{{ tick|e }}{% endfor %}</td>
+          </tr>
+          {%- endfor %}
+        </table>
+        {%- endif %}
+        {%- if card.asks_texting %}
+        <div class="cvc-texts">{{ _("May we send you text messages?") }}<span></span>{{ _("Yes") }}<span></span>{{ _("No") }}</div>
+        {%- endif %}
+        <table>
+          <colgroup><col style="width: 0.8in"><col><col style="width: 0.6in"><col style="width: 1.4in"></colgroup>
+          <tr><td class="cvc-sign">{{ _("Signature") }}</td><td class="cvc-line"></td><td class="cvc-sign" style="padding-left: 12px !important;">{{ _("Date") }}</td><td class="cvc-line"></td></tr>
+        </table>
+      </td>
+      {%- if card.online_qr_code %}
+      <td class="cvc-online"><div>{{ _("Or update online:") }}</div><img src="{{ card.online_qr_code }}" alt=""><div>{{ _("Scan with your phone camera") }}</div></td>
+      {%- endif %}
+    </tr>
+  </table>
+</div>
+{%- else %}
+<p>{{ _("No cards to print. Add people to the list, or untick Print Only Cards Not Returned.") }}</p>
+{%- endfor %}
