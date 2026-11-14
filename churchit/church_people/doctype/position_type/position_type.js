@@ -24,7 +24,6 @@ function assign_to_person(frm) {
 				fieldname: "start_date",
 				fieldtype: "Date",
 				label: __("Start Date"),
-				reqd: 1,
 				default: frappe.datetime.get_today(),
 			},
 			{
@@ -46,7 +45,7 @@ function assign_to_person(frm) {
 					args: {
 						position_type: frm.doc.name,
 						person: values.person,
-						start_date: values.start_date,
+						start_date: values.start_date || null,
 						end_date: values.end_date || null,
 						notes: values.notes || "",
 					},

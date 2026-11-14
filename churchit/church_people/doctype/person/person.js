@@ -246,6 +246,13 @@ frappe.ui.form.on("Phone Number", {
 	phones_remove: check_for_possible_matches,
 });
 
+// Set on the form, not as a field default: the server would fill a cleared date back in.
+frappe.ui.form.on("Position", {
+	positions_add(frm, cdt, cdn) {
+		frappe.model.set_value(cdt, cdn, "start_date", frappe.datetime.get_today());
+	},
+});
+
 // A merge deletes this person, so it needs the right to delete.
 function add_merge_menu_item(frm) {
 	if (!frappe.model.can_delete("Person")) return;

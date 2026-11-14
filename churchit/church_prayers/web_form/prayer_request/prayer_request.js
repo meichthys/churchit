@@ -1,4 +1,12 @@
+function update_request_reqd() {
+	var type = frappe.web_form.get_value("type");
+	var optional = !type || type === "Unspoken" || type === "Salvation";
+	frappe.web_form.set_df_property("request", "reqd", optional ? 0 : 1);
+}
+
 frappe.ready(function () {
+	frappe.web_form.on("type", update_request_reqd);
+	update_request_reqd();
 	var name_ctrl = frappe.web_form.fields_dict["recipient_name"];
 	var type_ctrl = frappe.web_form.fields_dict["recipient_type"];
 
@@ -51,7 +59,6 @@ frappe.ready(function () {
 								$input.val(d.label);
 								$dd.hide();
 								frappe.web_form.set_value("recipient", d.name);
-								frappe.web_form.set_value("recipient_type", type_ctrl.get_value());
 							})
 							.appendTo($dd);
 					});
