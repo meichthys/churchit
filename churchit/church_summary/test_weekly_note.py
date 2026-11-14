@@ -33,6 +33,8 @@ from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_p
 
 DATA_BLOCK = re.compile(r"<data[^>]*>\n(.*)\n</data>", re.DOTALL)
 NOTICE = "Notification Log"
+# Frappe calls it for a new Notification Log of a type that the user gets by email.
+SEND_EMAIL = "frappe.desk.doctype.notification_log.notification_log.send_notification_email"
 GIVING = {"giving_total": 98765.43, "givers": 4321}
 
 
@@ -47,6 +49,13 @@ def read_app_json(*path: str):
 
 def notices_for(user: str) -> list[dict]:
 	return frappe.get_all(NOTICE, filters={"for_user": user}, fields=["type", "subject", "email_content"])
+
+
+def get_email_types(user: str) -> list[str]:
+	return [
+		row.notification_type
+		for row in frappe.get_doc("Notification Settings", user).email_notification_types
+	]
 
 
 class WeeklyNoteTestCase(RollbackEachTest):
@@ -237,10 +246,12 @@ class TestDelivery(WeeklyNoteTestCase):
 			'Read <a href="https://evil.example/a">this</a> or https://evil.example/b today.',
 		]
 
-		self.deliver(self.staff, json.dumps({"sentences": sentences}))
+		with patch(SEND_EMAIL) as send_email:
+			self.deliver(self.staff, json.dumps({"sentences": sentences}))
 
 		[notice] = notices_for(self.staff)
-		self.assertEqual(notice.type, "Alert")
+		self.assertEqual(notice.type, summary.NOTE_TYPE)
+		self.assertEqual([call.args[0].for_user for call in send_email.call_args_list], [self.staff])
 		self.assertIn("&lt;img", notice.email_content)
 		self.assertNotIn("<img", notice.email_content)
 		self.assertNotIn("evil.example", notice.email_content)
@@ -260,6 +271,20 @@ class TestDelivery(WeeklyNoteTestCase):
 		answer = {"sentences": [f"Line\n{number}" for number in range(8)] + [3, " "]}
 		self.assertEqual(summary.check_note(answer), [f"Line {number}" for number in range(5)])
 		self.assertRaises(frappe.ValidationError, summary.check_note, {"note": "Attendance rose."})
+
+
+class TestTheNoteType(RollbackEachTest):
+	def test_the_type_is_added_once_and_emailed_to_the_users_there_already(self):
+		user = ensure_user("_test_note_type@example.com", "Note Type", ["Church Staff"])
+		frappe.db.delete("Notification Type Preference", {"notification_type": summary.NOTE_TYPE})
+		frappe.delete_doc("Notification Type", summary.NOTE_TYPE, force=True, ignore_missing=True)
+
+		summary.create_note_type()
+		self.assertIn(summary.NOTE_TYPE, get_email_types(user))
+
+		frappe.db.set_value("Notification Type", summary.NOTE_TYPE, "enabled", 0)
+		summary.create_note_type()
+		self.assertEqual(frappe.db.get_value("Notification Type", summary.NOTE_TYPE, "enabled"), 0)
 
 
 class TestTheToggle(unittest.TestCase):

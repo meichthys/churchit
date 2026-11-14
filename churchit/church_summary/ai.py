@@ -16,6 +16,7 @@ from urllib.parse import urlencode
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.notification_type.notification_type import seed_type_into_settings
 from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.utils import cint, escape_html, get_url_to_form, get_url_to_list, getdate, today
 
@@ -38,6 +39,8 @@ NOTE_KEY = "churchit_weekly_ai_note"
 NOTE_JOB = "churchit.church_summary.ai.run_weekly_note"
 DELIVER_NOTE = "churchit.church_summary.ai.deliver_weekly_note"
 CHECK_NOTE = "churchit.church_summary.ai.check_note"
+# The note's Notification Type. Frappe emails it, as it never emails an Alert.
+NOTE_TYPE = "Weekly AI Note"
 METRICS = "Weekly Metrics"
 # The Weekly Metrics fields a note sends: never giving_total or givers.
 NOTE_METRICS = ("attendance", "first_time_visitors", "people_serving")
@@ -152,6 +155,15 @@ def queue_weekly_notes() -> None:
 		frappe.enqueue(NOTE_JOB, queue="long", job_id=f"ai-weekly-note:{user}", deduplicate=True, user=user)
 
 
+def create_note_type() -> None:
+	"""Add the note's Notification Type and email it to each user who has notification settings, as
+	Frappe does for a new user. A type that is there already stays as the church set it."""
+	if frappe.db.exists("Notification Type", NOTE_TYPE):
+		return
+	frappe.get_doc({"doctype": "Notification Type", "type_name": NOTE_TYPE}).insert(ignore_permissions=True)
+	seed_type_into_settings(NOTE_TYPE)
+
+
 def get_note_users() -> list[str]:
 	"""The enabled desk users who turned on their own weekly AI note."""
 	users = frappe.db.get_values("DefaultValue", {"defkey": NOTE_KEY, "defvalue": "1"}, "parent", pluck=True)
@@ -255,9 +267,10 @@ def deliver_weekly_note(run) -> None:
 	frappe.get_doc(
 		{
 			"doctype": "Notification Log",
-			"type": "Alert",
+			"type": NOTE_TYPE,
 			"for_user": frappe.session.user,
 			"subject": escape_html(_("Your weekly AI note")),
+			"email_header": _("Weekly AI Note"),
 			"email_content": get_note_html(sentences),
 		}
 	).insert(ignore_permissions=True)

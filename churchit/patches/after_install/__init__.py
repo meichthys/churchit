@@ -49,6 +49,7 @@ from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 	create_new_prayer_request_notifications,
 )
+from churchit.church_summary.ai import create_note_type
 from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
 from churchit.church_website.pages import sync_page_switches
 
@@ -153,12 +154,14 @@ def execute():
 	# AI starts off: Frappe's MCP server closed (System Managers hear why), the starter
 	# "How We Use AI" page for the church to edit, with Flow a privacy label on each model, and the
 	# recommended doctypes that Flow knowledge may not read, and the doctypes whose records churchit's
-	# own AI features send only to Local or Zero retention models.
+	# own AI features send only to Local or Zero retention models, and the Notification Type that emails
+	# the weekly AI note.
 	close_mcp_and_tell_system_managers()
 	create_how_we_use_ai_page()
 	add_privacy_label_field()
 	fill_blocked_knowledge_doctypes()
 	fill_private_doctypes()
+	create_note_type()
 
 	# Cleanup
 	_clean_gender_options()
