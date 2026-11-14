@@ -137,7 +137,8 @@
    "in_global_search": 1,
    "label": "Full Name",
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church) || !!(frappe.boot.churchit && frappe.boot.churchit.shared_people)",
@@ -988,7 +989,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-14 00:20:00.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

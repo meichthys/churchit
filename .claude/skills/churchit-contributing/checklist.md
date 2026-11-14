@@ -92,6 +92,7 @@ Work through "Every change" and each section that the change touches. Each item 
 [Desk lists and forms](../../../AGENTS.md#desk-lists-and-forms), [Desk navigation](../../../AGENTS.md#desk-navigation), `test_desk_ui_hygiene`, `test_navigation_hygiene`, `test_workspace_hygiene`.
 
 - [ ] A Frappe setting does the job before a form script or a hook does. A script or hook gives its reason in the change.
+- [ ] A list of 6 desktop columns or more sets a `width` on its title field, so it scrolls sideways instead of cutting the titles (`test_desk_ui_hygiene`).
 - [ ] Form tour steps follow the order of the fields on the form.
 - [ ] The pull request has before and after screenshots, desktop and mobile ([Before and after screenshots](../../../AGENTS.md#before-and-after-screenshots)).
 

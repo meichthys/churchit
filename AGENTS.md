@@ -1234,6 +1234,11 @@ shorter. The value of an exception is the reason it stays. Every ratchet uses
   `fetch_from` fills the title, because the subject shows it. The desk leaves the title field itself
   out of the field columns, so its `in_list_view` flag adds no column, but the budget still counts
   it (`test_lists_never_repeat_the_title`).
+- A list that draws 6 columns or more on a desktop (the subject, the status pill, the field columns
+  and the ID) sets `"width": "220px"` on its title field. Frappe squeezes every column to fit the
+  screen, so a wide list cuts each title to a few letters. With the width, the title stays whole and
+  the list scrolls sideways to the last columns. Memory Session has no title field, so its ID subject
+  takes no width (`test_wide_lists_give_the_title_a_width`).
 - 4 `in_standard_filter` fields at most. Frappe adds the title filter by itself. A multi-church site
   also shows the church and sharing filters, and the budget does not count them. A Check filter
   finds only ticked records, so use one only when ticked is what users look for, such as Publish or

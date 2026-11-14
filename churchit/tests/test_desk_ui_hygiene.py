@@ -67,6 +67,8 @@ STATE_LINKED_STATUSES = {
 # U4 is the list sweep, U7 to U11 are the module phases.
 
 MAX_LIST_COLUMNS = 6
+# A desktop list this wide squeezes every column, so its title field sets a width (Lists in AGENTS.md).
+WIDE_LIST_COLUMNS = 6
 MAX_STANDARD_FILTERS = 4
 MAX_SEARCH_FIELDS = 3
 MAX_PERSON_SEARCH_FIELDS = 5  # the Person link search reads every search field
@@ -143,6 +145,29 @@ def has_status_pill(data: dict) -> bool:
 	)
 
 
+def get_desktop_column_count(data: dict, script: str) -> int:
+	"""The columns a desktop list draws, as Frappe 16.54 `ListView.setup_columns` builds them: the subject,
+	the status pill, the other `in_list_view` fields and the ID."""
+	fieldnames = {field["fieldname"] for field in data["fields"]}
+	has_pill = bool(
+		data.get("is_submittable")
+		or has_list_option(script, "get_indicator")
+		or fieldnames & {"enabled", "disabled"}
+		or ("status" in fieldnames and data.get("states"))
+	)
+	title = data.get("title_field")
+	fields = [
+		field
+		for field in data["fields"]
+		if field.get("in_list_view")
+		and not field.get("is_virtual")
+		and field["fieldname"] != title
+		and not (has_pill and field["fieldname"] == "status")
+	]
+	has_id_column = bool(title) and title != "name" and not has_list_option(script, "hide_name_column")
+	return 1 + has_pill + len(fields) + has_id_column
+
+
 def get_id_rule(data: dict) -> tuple[bool, bool]:
 	"""(hide the ID column, hide the ID filter) that the ID rule asks of a doctype."""
 	hide_column = bool(data.get("title_field")) and data["name"] not in ID_KEPT
@@ -209,6 +234,10 @@ def assert_list_ratchet(test: FrappeTestCase, found: dict, exceptions: dict[str,
 # Today's breaks of each rule. A phase deletes the entries it fixes.
 
 COLUMN_BUDGET_EXCEPTIONS = {}
+
+TITLE_WIDTH_EXCEPTIONS = {
+	"Memory Session": "it has no title field, so its subject is the ID, which takes no width",
+}
 
 TEXT_COLUMN_EXCEPTIONS = {}
 
@@ -508,6 +537,22 @@ class TestDeskUiHygiene(FrappeTestCase):
 				found[data["name"]] = f"{len(columns)} list columns: {', '.join(columns)}"
 		rule = f"A list has {MAX_LIST_COLUMNS} columns at most"
 		assert_list_ratchet(self, found, COLUMN_BUDGET_EXCEPTIONS, rule)
+
+	def test_wide_lists_give_the_title_a_width(self):
+		"""Frappe squeezes a desktop list's columns to fit the screen, so a wide list cuts every title.
+
+		A `width` on the title field keeps the title whole, and the list scrolls sideways to the rest.
+		"""
+		found = {}
+		for path, data in list_doctypes():
+			columns = get_desktop_column_count(data, get_list_script(path))
+			title = next(
+				(field for field in data["fields"] if field["fieldname"] == data.get("title_field")), {}
+			)
+			if columns >= WIDE_LIST_COLUMNS and not title.get("width"):
+				found[data["name"]] = f"{columns} columns"
+		rule = f"A list of {WIDE_LIST_COLUMNS} columns or more sets `width` on its title field"
+		assert_list_ratchet(self, found, TITLE_WIDTH_EXCEPTIONS, rule)
 
 	def test_lists_have_no_text_columns(self):
 		"""A text, map or table column is clipped to a few words and adds no fact."""

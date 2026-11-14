@@ -175,7 +175,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Subject",
-   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\""
+   "mandatory_depends_on": "eval:doc.channel!=\"Text Message\"",
+   "width": "220px"
   },
   {
    "depends_on": "eval:doc.channel!=\"Text Message\"",
@@ -200,7 +201,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-03 01:11:22.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Church Email",

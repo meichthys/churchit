@@ -33,7 +33,8 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
-   "reqd": 1
+   "reqd": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -190,7 +191,7 @@
    "table_fieldname": "topics"
   }
  ],
- "modified": "2026-11-03 11:54:14.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request",
