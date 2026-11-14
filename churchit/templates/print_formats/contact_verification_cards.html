@@ -1,7 +1,8 @@
 {#- Contact verification cards, two to a Letter page with a cut line between them. Each card lists what
     the church has on file for one person, with Right and Wrong boxes and a line to correct it, blank
-    lines for what is missing, a QR code for the office that opens the card's person on the Contact
-    Verification and, when the person has one, a QR code of their Update Your Details link.
+    lines for what is missing, an empty photo box when the person has no photo, a QR code for the office
+    that opens the card's person on the Contact Verification and, when the person has one, a QR code of
+    their Update Your Details link.
     A table lays it out, because wkhtmltopdf has no flexbox. Values are typed in, so they are escaped.
     The class names start with cvc- to stay clear of Bootstrap and the Print Style. -#}
 <style>
@@ -19,6 +20,7 @@
   .cvc-card td.cvc-qr { width: 0.95in; text-align: right; vertical-align: top; }
   .cvc-card td.cvc-photo { width: 0.85in; text-align: right; vertical-align: top; }
   .cvc-photo img { width: 0.7in; height: 0.85in; object-fit: cover; border: 1px solid #bbb; }
+  .cvc-no-photo { display: inline-block; width: 0.7in; height: 0.85in; box-sizing: border-box; padding-top: 0.28in; border: 1px solid #bbb; text-align: center; font-size: 7pt; line-height: 1.25; color: #555; }
   .cvc-qr img { width: 0.8in; height: 0.8in; }
   .cvc-id { font-family: monospace; font-size: 7pt; }
   .cvc-name { font-size: 14pt; font-weight: 700; margin: 4px 0 2px; padding-bottom: 3px; border-bottom: 1.5px solid #000; }
@@ -52,7 +54,7 @@
         <div class="cvc-title">{{ _("Is your information correct?") }}</div>
         <div class="cvc-how">{{ _("Tick Right or Wrong on each line, and write the correct one on the line. Fill in anything that is blank.") }}<br>{{ _("Sign the card and give it to an usher or the church office.") }}</div>
       </td>
-      {%- if card.photo %}<td class="cvc-photo"><img src="{{ card.photo|e }}" alt=""></td>{% endif %}
+      {%- if doc.show_photo %}<td class="cvc-photo">{% if card.photo %}<img src="{{ card.photo|e }}" alt="">{% else %}<div class="cvc-no-photo">{{ _("No Photo Provided") }}</div>{% endif %}</td>{% endif %}
       <td class="cvc-qr"><img src="{{ card.qr_code }}" alt=""><div class="cvc-id">{{ _("Office use") }}<br>{{ card.person|e }}</div></td>
     </tr>
   </table>

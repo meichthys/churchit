@@ -264,6 +264,16 @@ class TestContactVerification(RollbackEachTest):
 		self.assertEqual(html.count("Is your information correct?"), 2)
 		self.assertIn("_test.cards.ann@example.com", html)
 		self.assertIn("Cut here", html)
+		self.assertEqual(html.count("No Photo Provided"), 2)
+
+		self.ann.db_set("photo", "/files/_test_cards_ann.jpg")
+		html = frappe.get_print(VERIFICATION, verification.name, "Contact Verification Cards")
+		self.assertIn("/files/_test_cards_ann.jpg", html)
+		self.assertEqual(html.count("No Photo Provided"), 1)
+
+		verification.db_set("show_photo", 0)
+		html = frappe.get_print(VERIFICATION, verification.name, "Contact Verification Cards")
+		self.assertNotIn("No Photo Provided", html)
 
 	def test_contact_verified_on_never_moves_back(self):
 		verification = make_verification([self.ann.name])
