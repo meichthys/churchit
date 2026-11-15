@@ -109,6 +109,19 @@ class TestContactVerification(RollbackEachTest):
 		verification.print_only_not_returned = 1
 		self.assertEqual([card["person"] for card in verification.get_cards()], [self.bob.name])
 
+	def test_cards_print_by_last_name_then_first_name(self):
+		zoe = make_person("Zoe", "_Test Cards Adams")
+		amy = make_person("Amy", "_Test Cards Adams")
+		cher = make_person("_Test Cards Baker")
+		dan = make_person("Dan", "_Test Cards Carter")
+		listed = [dan.name, zoe.name, cher.name, amy.name]
+		verification = make_verification(listed)
+
+		self.assertEqual(
+			[card["person"] for card in verification.get_cards()], [amy.name, zoe.name, cher.name, dan.name]
+		)
+		self.assertEqual([row.person for row in verification.people], listed)
+
 	def test_an_unchanged_card_is_confirmed_and_stamps_the_person(self):
 		verification = make_verification([self.ann.name])
 		status = record_returned_card(
