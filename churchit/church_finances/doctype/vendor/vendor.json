@@ -101,7 +101,7 @@
   {
    "allow_in_quick_entry": 1,
    "default": "0",
-   "description": "Tick when this vendor is a company, shop or organization, not a person. Only then does Suggest Type with AI send its name to the AI.",
+   "description": "Tick when this vendor is a company, shop or organization, not a person. When AI is on, Suggest Type sends a vendor's name only when this is ticked.",
    "fieldname": "is_business",
    "fieldtype": "Check",
    "label": "Is a Business",
@@ -143,7 +143,7 @@
    "link_fieldname": "vendor"
   }
  ],
- "modified": "2026-11-10 10:46:00.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Vendor",

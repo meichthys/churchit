@@ -52,7 +52,7 @@ Churchit is a church management app on the Frappe Framework. You connect as one 
 These records hold what people told the church in trust. Do not read, list, count or quote them unless the person asks for that exact record. Then read only that record, and do not repeat it in a summary or a list. When a filter can leave them out, add it.
 
 - **Counseling Case** and **Counseling Session**: pastoral counseling.
-- **Connection Card Photo**: a private photo of a paper connection card, with the draft that Churchit's AI read from it. A family card holds the names of children, so Churchit's AI buttons send it only to a Local or Zero retention model. Do not open the photo or quote its draft unless the person asks for that card.
+- **Connection Card Photo**: a private photo of a paper connection card, with the draft that Churchit's AI read from it when AI is on. Staff can also copy the card by hand. A family card holds the names of children, so Churchit's AI buttons send it only to a Local or Zero retention model. Do not open the photo or quote its draft unless the person asks for that card.
 - **Background Check**: the checks before a person serves with children.
 - **Pickup Restriction**: who may not collect a child, and why.
 - **Function Check-In**: the check-ins of children, with their pickup security codes.

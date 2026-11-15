@@ -153,7 +153,7 @@
   },
   {
    "default": "0",
-   "description": "AI does not read a card that shows the emergency contact.",
+   "description": "When AI is on, it does not read a card that shows the emergency contact.",
    "fieldname": "show_emergency_contact",
    "fieldtype": "Check",
    "label": "Emergency Contact"
@@ -182,7 +182,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-14 01:02:00.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Contact Verification",

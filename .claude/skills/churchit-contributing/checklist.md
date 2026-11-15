@@ -9,6 +9,7 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] `pre-commit run --files <changed files>` passes. Ruff 0.8.1 formatted only the changed files.
 - [ ] New or changed behavior has a test, and the full suite ran on a test site. The pull request reports the result.
 - [ ] A user-facing change updates the matching `Manual: <Module>` workspace in the same pull request, with `modified` set to now ([Documentation obligations](../../../AGENTS.md#documentation-obligations), `test_workspace_hygiene`, `test_json_hygiene`).
+- [ ] A manual, field description or README line that names an AI feature says that it needs AI turned on ([Documentation obligations](../../../AGENTS.md#documentation-obligations)).
 - [ ] A new user-facing feature is in the README feature list.
 - [ ] User-facing text is in `_()` or `__()`.
 - [ ] Existing sites keep working after migrate: no renamed or removed field, setting, whitelisted method or route without a patch and an upgrade path.
