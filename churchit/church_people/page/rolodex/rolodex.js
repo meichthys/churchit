@@ -11,7 +11,20 @@ frappe.pages["rolodex"].on_page_show = function (wrapper) {
 };
 
 const API = "churchit.church_people.page.rolodex.rolodex";
-const ADD_TO_GROUP_API = "churchit.church_people.doctype.group.group.add_people";
+// The tray's Actions menu, in two sections, from churchit.people_actions.
+const SAVED_ACTIONS = [
+	["edit", "check_in", "add_to_group", "add_tags", "assign_to"],
+	[
+		"new_church_email",
+		"email_household_adults",
+		"mark_inactive",
+		"verify_contact_info",
+		"print_name_tags",
+		"open_in_people_list",
+	],
+];
+// The actions that change what a card shows, so the cards are read again after them.
+const CARD_CHANGES = new Set(["edit", "add_to_group", "mark_inactive"]);
 const LETTERS = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ", "#"];
 const NOT_SET = "__none__";
 const DESKTOP = "(min-width: 992px)";
@@ -27,7 +40,7 @@ const ICONS = {
 	map: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
 	bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
 	print: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
-	group: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+	more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
 	open: '<path d="M15 3h6v6M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
 	chevron: '<path d="m18 15-6-6-6 6"/>',
 	x: '<path d="M18 6 6 18M6 6l12 12"/>',
@@ -66,7 +79,14 @@ class Rolodex {
 		this.$facets = this.$root.find(".rolodex-facets");
 		this.$chips = this.$root.find(".rolodex-chips");
 		this.$tray = this.$root.find(".rolodex-tray");
-		this.$root.find('[data-action="add-to-group"]').toggle(frappe.model.can_write("Group"));
+		const actions_menu = new frappe.ui.Dropdown({
+			trigger: this.$tray.find(".rolodex-actions"),
+			side: "top",
+			align: "end",
+			options: () => this.get_saved_actions(),
+		});
+		// The menu sits on the body, so it would stay open over the next page.
+		this.page.wrapper.on("hide", () => actions_menu.close("owner"));
 		this.bind();
 		this.bind_rail();
 		// The desk sidebar can fold away without the window resizing, so watch the page itself.
@@ -174,11 +194,24 @@ class Rolodex {
 		frappe.xcall(`${API}.get_directory`, {}, "GET").then((directory) => {
 			this.set_directory(directory);
 			this.apply_settings(directory.settings);
-			this.render_facets();
-			this.render();
-			this.render_tray();
+			this.render_all();
 			this.apply_route_options();
 		});
+	}
+
+	// After an action changed people, keeping the search, filters and saved cards.
+	reload() {
+		frappe.xcall(`${API}.get_directory`, {}, "GET").then((directory) => {
+			this.set_directory(directory);
+			this.set_saved(this.saved.filter((name) => this.by_name[name]));
+			this.render_all();
+		});
+	}
+
+	render_all() {
+		this.render_facets();
+		this.render();
+		this.render_tray();
 	}
 
 	// The Person and Family lists open the Rolodex in their own view, and Open in Rolodex
@@ -573,12 +606,11 @@ class Rolodex {
 				this.render();
 			},
 			"save-shown": () => this.save_all(shown),
-			"email-shown": () => this.email(shown),
+			"email-shown": () => churchit.people_actions.email(shown, this.open_email),
 			"print-shown": () =>
 				this.print(shown, __("People Directory"), this.view === "households"),
-			"email-saved": () => this.email(this.saved),
+			"email-saved": () => churchit.people_actions.email(this.saved, this.open_email),
 			"print-saved": () => this.print(this.saved, __("Saved People"), false),
-			"add-to-group": () => this.add_to_group(this.saved),
 			"clear-saved": () =>
 				frappe.confirm(__("Remove every saved card?"), () => this.update_saved([])),
 		};
@@ -704,35 +736,28 @@ class Rolodex {
 		setTimeout(() => card.classList.remove("is-flash"), 1400);
 	}
 
-	email(names) {
-		const e = frappe.utils.escape_html;
-		const people = names.map((name) => this.by_name[name]).filter(Boolean);
-		const emails = [...new Set(people.map((person) => person.email).filter(Boolean))];
-		if (!emails.length)
-			return frappe.msgprint(__("None of these people have an email address on file."));
+	// The device's own email app, with the addresses in BCC.
+	open_email = (emails, notes) => {
 		const mailto = `mailto:?bcc=${emails.map(encodeURIComponent).join(",")}`;
-		const missing = people
-			.filter((person) => !person.email)
-			.map((person) => e(person.full_name));
-		const notes = [
+		const lines = [
 			emails.length === 1
 				? __("The address goes in BCC.")
 				: __("{0} addresses go in BCC, so no one sees the others.", [emails.length]),
+			...notes,
 		];
-		if (missing.length) notes.push(__("No email on file for {0}.", [missing.join(", ")]));
 		if (mailto.length > MAILTO_LIMIT)
-			notes.push(
+			lines.push(
 				__(
 					"That is a long list, and some email apps cut it short. Copy the addresses instead."
 				)
 			);
 		const dialog = new frappe.ui.Dialog({
-			title: __("Email {0}", [count_people(people.length)]),
+			title: __("Email"),
 			fields: [
 				{
 					fieldtype: "HTML",
 					fieldname: "notes",
-					options: notes.map((note) => `<p>${note}</p>`).join(""),
+					options: lines.map((line) => `<p>${line}</p>`).join(""),
 				},
 			],
 			primary_action_label: __("Open Email"),
@@ -745,7 +770,7 @@ class Rolodex {
 				frappe.utils.copy_to_clipboard(emails.join(", "), __("Addresses copied")),
 		});
 		dialog.show();
-	}
+	};
 
 	print(names, title, as_households) {
 		const people = names.map((name) => this.by_name[name]).filter(Boolean);
@@ -784,54 +809,20 @@ class Rolodex {
 		});
 	}
 
-	add_to_group(names) {
-		const dialog = new frappe.ui.Dialog({
-			title: __("Add {0} to a group", [count_people(names.length)]),
-			fields: [
-				{
-					fieldtype: "Link",
-					fieldname: "group",
-					label: __("Group"),
-					options: "Group",
-					reqd: 1,
-				},
-				{
-					fieldtype: "Link",
-					fieldname: "group_role",
-					label: __("Role"),
-					options: "Group Role",
-				},
-			],
-			primary_action_label: __("Add"),
-			primary_action: ({ group, group_role }) => {
-				frappe
-					.xcall(ADD_TO_GROUP_API, { group, group_role, people: names })
-					.then((result) => {
-						dialog.hide();
-						for (const name of names) {
-							const groups = this.by_name[name]?.groups;
-							if (groups && !groups.includes(group)) groups.push(group);
-						}
-						this.render_facets();
-						this.render();
-						const title = this.group_titles[group] || group;
-						let message = __("Added {0} to {1}.", [
-							result.added,
-							frappe.utils.escape_html(title),
-						]);
-						if (result.already_members === 1)
-							message += " " + __("1 was already a member.");
-						if (result.already_members > 1)
-							message +=
-								" " + __("{0} were already members.", [result.already_members]);
-						frappe.show_alert({ message, indicator: "green" });
-					});
-			},
-		});
-		frappe.db
-			.get_value("Group Role", { role: "Member" }, "name")
-			.then((r) => dialog.set_value("group_role", r.message?.name));
-		dialog.show();
+	get_saved_actions() {
+		return SAVED_ACTIONS.map((keys) => ({
+			group: "",
+			hide_label: true,
+			options: churchit.people_actions
+				.get(keys, { open_email: this.open_email })
+				.map((action) => ({
+					label: action.label,
+					onclick: () => {
+						const done = CARD_CHANGES.has(action.key) ? () => this.reload() : () => {};
+						action.run([...this.saved], done);
+					},
+				})),
+		}));
 	}
 
 	// The toolbar sticks under the desk's own header; the letter tabs and rail stick under the toolbar.
@@ -912,7 +903,10 @@ function rolodex_html() {
 				</button>
 				${action_button("email-saved", "email", __("Email"))}
 				${action_button("print-saved", "print", __("Print"))}
-				${action_button("add-to-group", "group", __("Add to Group"))}
+				<button type="button" class="btn btn-default btn-sm rolodex-btn rolodex-actions"
+					title="${__("Actions")}" aria-label="${__("Actions")}">${icon(
+		"more"
+	)}<span class="rolodex-label">${__("Actions")}</span></button>
 				${action_button("clear-saved", "x", __("Clear"))}
 			</div>
 			<ul class="rolodex-tray-list"></ul>

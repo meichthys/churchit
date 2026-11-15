@@ -932,6 +932,14 @@ matching if a Frappe upgrade moves that method; if list filters stop expanding a
 look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, and it
 replaces `MapView.setup_view` (see the next section).
 
+`churchit/public/js/people_actions.js` holds the actions on a set of people: the Person list runs
+them on the people ticked, the Rolodex on its saved cards. `churchit.people_actions.get(keys)`
+returns the actions named by `keys` that the user may run, and each page lists its keys in its own
+order. Add a people action there, not to one page. Browsers keep this `app_include_js` script for 12
+hours while list and page scripts arrive fresh after a migrate, so never rename or remove a key or
+an exported function. A new key shows once the browser has the new script: `get` skips a key it
+does not know.
+
 ## Frappe behaviours worth knowing
 
 - **Administrator is never restricted.** User permissions do not apply to it, so it always sees every

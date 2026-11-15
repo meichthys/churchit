@@ -95,6 +95,7 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] A Frappe setting does the job before a form script or a hook does. A script or hook gives its reason in the change.
 - [ ] A list of 6 desktop columns or more sets a `width` on its title field, so it scrolls sideways instead of cutting the titles (`test_desk_ui_hygiene`).
 - [ ] Form tour steps follow the order of the fields on the form.
+- [ ] An action on a set of people goes in `churchit/public/js/people_actions.js` for the Person list and the Rolodex to share, and no key or export there is renamed or removed ([Client side](../../../AGENTS.md#client-side)).
 - [ ] The pull request has before and after screenshots, desktop and mobile ([Before and after screenshots](../../../AGENTS.md#before-and-after-screenshots)).
 
 ## AI features

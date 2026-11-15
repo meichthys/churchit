@@ -53,6 +53,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Follow-up workflows send emails and texts, add people to groups and tags, and start other workflows by themselves
 - Smart lists: saved reports of people with email, Rolodex, group and Church Email actions
 - Smart lists filter on skills, ministry teams and team positions, when the membership changed, life events by date, and how many times a person attended since a date (the Attendance Count report)
+- Rolodex: each person as a card to search, filter, call, text or email, and saved cards to email, print, edit, check in, tag, assign or add to a group
 - Skills, interests and spiritual gifts on each person, with twelve starting spiritual gifts
 - Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
 - Relationships to people in other households, such as grandparents, shown on both people's forms
