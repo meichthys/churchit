@@ -1082,8 +1082,17 @@ On Frappe 17 (the Flow bench) also:
 
 ## Testing
 
-Run the whole suite before committing anything broad: `bench --site <site> run-tests --app churchit`.
-CI does not run it.
+While you work, run only the tests that your change can break. Run the whole suite once, before you
+push or open a pull request. It takes more than 15 minutes, and CI does not run it.
+
+- **While you work**, run the test module of each file that you changed (`bench --site <site>
+  run-tests --module churchit.church_people.doctype.person.test_person`), and the hygiene tests that
+  [checklist.md](.claude/skills/churchit-contributing/checklist.md) names for each kind of change you
+  made. `--module` takes one module per run. `--module-def "Church People"` runs the doctype tests of
+  one module.
+- **Before you push**, run `bench --site <test-site> run-tests --app churchit` on a test site that
+  you migrated first. Do not wait for it: run it in the background and keep working. A test can fail
+  because you edited its code during the run. Run that module again by itself before you fix it.
 
 - The suite is **destructive on a site you care about**. `TestSampleDataRoundTrip` deletes the
   sample data and creates it again, and the site keeps the result. Restore with

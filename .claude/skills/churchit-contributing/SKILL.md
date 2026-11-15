@@ -123,8 +123,8 @@ From the bench root. Do the first two once:
 bench set-config -g developer_mode 1                    # the desk saves doctype changes as JSON
 bench --site <test-site> set-config allow_tests true
 bench --site <site> migrate                             # after a doctype, fixture, workspace or patch change
-bench --site <test-site> run-tests --module churchit.church_people.doctype.person.test_person
-bench --site <test-site> run-tests --app churchit       # the full suite, a few minutes
+bench --site <test-site> run-tests --module churchit.church_people.doctype.person.test_person   # while you work
+bench --site <test-site> run-tests --app churchit       # the full suite, once before the pull request
 ```
 
 From the app directory:
@@ -133,6 +133,7 @@ From the app directory:
 pre-commit run --files <changed files>
 ```
 
+- While you work, run only the test modules of the files that you changed and the hygiene tests that [checklist.md](checklist.md) names for your kinds of change. Run the full suite once, at the end. It takes more than 15 minutes: start it in the background and keep working ([Testing](../../../AGENTS.md#testing)).
 - The full suite deletes and creates the sample data again on its site. Run it on a test site, not on a site with data that you need.
 - CI runs only the lint checks, not the tests. The maintainer relies on the test run that you report.
 - When a test also fails on a clean `develop`, do not fix it in your pull request. Name it in the pull request.
