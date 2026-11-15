@@ -198,7 +198,7 @@ function date_fields(card, shown) {
 			{
 				fieldtype: "Check",
 				fieldname: "birthday_year_unknown",
-				label: __("Year Unknown"),
+				label: __("No Year"),
 				default: card.birthday_year_unknown,
 			}
 		);

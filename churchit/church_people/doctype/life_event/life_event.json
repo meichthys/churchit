@@ -34,11 +34,13 @@
    "label": "Date"
   },
   {
+   "columns": 1,
    "default": "0",
    "depends_on": "eval:doc.event_type == \"Birth\"",
    "fieldname": "year_unknown",
    "fieldtype": "Check",
-   "label": "Year Unknown",
+   "in_list_view": 1,
+   "label": "No Year",
    "description": "Tick when only the month and day are known. The year in Date is then ignored."
   },
   {
@@ -65,17 +67,15 @@
    "fieldtype": "Section Break"
   },
   {
-   "columns": 2,
    "fieldname": "notes",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Notes"
   }
  ],
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-31 13:12:47.000000",
+ "modified": "2026-11-14 22:25:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Life Event",
