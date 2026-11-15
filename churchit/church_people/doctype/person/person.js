@@ -10,27 +10,6 @@ frappe.ui.form.on("Person", {
 			doc?.event_type === "Birth" ? frappe.form.formatters.Check(value) : "<span></span>";
 	},
 	refresh(frm) {
-		// Calculate marriage years from anniversary
-		if (frm.doc.anniversary) {
-			const today = frappe.datetime.get_today();
-			const anniversary = frm.doc.anniversary;
-			const anniversaryDate = new Date(anniversary);
-			const todayDate = new Date(today);
-
-			let years = todayDate.getFullYear() - anniversaryDate.getFullYear();
-
-			if (
-				todayDate.getMonth() < anniversaryDate.getMonth() ||
-				(todayDate.getMonth() === anniversaryDate.getMonth() &&
-					todayDate.getDate() < anniversaryDate.getDate())
-			) {
-				years--;
-			}
-
-			frm.doc.marriage_years = years;
-			frm.refresh_field("marriage_years");
-		}
-
 		// The Connections tab holds the dashboard, so this alert sits above the tabs instead.
 		if (frm.doc.__onload?.has_unsubscribed) {
 			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");

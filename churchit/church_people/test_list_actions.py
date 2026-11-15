@@ -127,6 +127,49 @@ class TestListEmails(RollbackEachTest):
 
 		self.assertEqual(result.emails, ["_test_list_home@example.com", "_test_list_father@example.com"])
 		self.assertEqual(result.without_email, [frappe.db.get_value("Family", empty.name, "family_name")])
+		self.assertEqual(result.refused, [])
+
+	def test_a_household_address_that_no_holder_allows_gives_way_to_the_primary_contacts(self):
+		home = make_family("_Test List Refused Home", emails=emails("_test_list_refused_home@example.com"))
+		holder = make_person(
+			"_Test List", "Holder", family=home.name, emails=emails("_test_list_refused_home@example.com")
+		)
+		contact = make_person(
+			"_Test List", "Allows", family=home.name, emails=emails("_test_list_allows@example.com")
+		)
+		make_primary_contact(contact)
+		record([holder.name], EMAIL, WITHDRAWN)
+
+		result = get_household_emails([home.name])
+
+		self.assertEqual((result.emails, result.refused), (["_test_list_allows@example.com"], []))
+
+	def test_a_household_that_no_one_lets_the_church_email_is_left_out_and_named(self):
+		record([self.father], EMAIL, WITHDRAWN)
+
+		result = get_household_emails([self.family])
+
+		self.assertEqual(result.emails, [])
+		self.assertEqual(result.without_email, [])
+		self.assertEqual(result.refused, [frappe.db.get_value("Family", self.family, "family_name")])
+
+	def test_a_household_address_that_no_person_holds_goes_out_while_someone_in_the_household_allows(self):
+		home = make_family("_Test List Own Home", emails=emails("_test_list_own_home@example.com"))
+		contact = make_primary_contact(
+			make_person(
+				"_Test List", "Refuses", family=home.name, emails=emails("_test_list_refuses@example.com")
+			)
+		)
+		other = make_person("_Test List", "Other", family=home.name)
+		record([contact.name], EMAIL, WITHDRAWN)
+
+		self.assertEqual(get_household_emails([home.name]).emails, ["_test_list_own_home@example.com"])
+
+		record([other.name], EMAIL, WITHDRAWN)
+		result = get_household_emails([home.name])
+
+		self.assertEqual(result.emails, [])
+		self.assertEqual(result.refused, [frappe.db.get_value("Family", home.name, "family_name")])
 
 
 class TestMarkInactive(RollbackEachTest):

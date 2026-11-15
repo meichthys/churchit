@@ -37,3 +37,12 @@ class TestAnniversaryLists(FrappeTestCase):
 		self.assertNotIn(widowed.name, names)
 		self.assertNotIn(departed.name, names)
 		self.assertEqual(anniversaries_this_week.get_count(), count)
+
+	def test_an_anniversary_with_no_year_is_listed_without_its_years(self):
+		known = marry("Known", make_person("Spouse", "_Test Anniversary"))
+		unknown = marry("Unknown", make_person("Other", "_Test Anniversary"), anniversary_year_unknown=1)
+
+		years = {row["name"]: row["marriage_years"] for row in person_anniversaries_this_month.execute({})[1]}
+
+		self.assertEqual(years[known.name], 20)
+		self.assertIsNone(years[unknown.name])

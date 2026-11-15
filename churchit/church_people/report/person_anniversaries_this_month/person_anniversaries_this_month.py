@@ -32,7 +32,13 @@ def get_data(filters=None):
 		frappe.qb.from_(Person)
 		.left_join(Spouse)
 		.on(Spouse.name == Person.spouse)
-		.select(Person.name, Person.anniversary, Person.marriage_years, Person.spouse)
+		.select(
+			Person.name,
+			Person.anniversary,
+			Person.anniversary_year_unknown,
+			Person.marriage_years,
+			Person.spouse,
+		)
 		.where(
 			Person.anniversary.isnotnull()
 			& (Month(Person.anniversary) == Month(CurDate()))
@@ -42,4 +48,8 @@ def get_data(filters=None):
 		.orderby(DayOfMonth(Person.anniversary))
 		.orderby(Person.full_name)
 	)
-	return scoped(query, Person, filters).run(as_dict=True)
+	rows = scoped(query, Person, filters).run(as_dict=True)
+	for row in rows:
+		if row.pop("anniversary_year_unknown"):
+			row.marriage_years = None
+	return rows

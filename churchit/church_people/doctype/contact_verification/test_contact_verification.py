@@ -220,6 +220,21 @@ class TestContactVerification(RollbackEachTest):
 		self.assertEqual(record_returned_card(verification.name, self.bob.name, card), CONFIRMED)
 		self.assertEqual(frappe.db.count("Communication Consent", {"person": bob.name}), 1)
 
+	def test_an_anniversary_without_a_year_is_recorded_and_printed_without_one(self):
+		verification = make_verification([self.bob.name], show_anniversary=1)
+		card = self.returned(
+			verification, self.bob.name, anniversary="2000-06-05", anniversary_year_unknown=1
+		)
+
+		self.assertEqual(record_returned_card(verification.name, self.bob.name, card), UPDATED)
+		bob = frappe.get_doc("Person", self.bob.name)
+		self.assertEqual((str(bob.anniversary), bob.anniversary_year_unknown), ("2000-06-05", 1))
+		lines = {line["label"]: line for line in verification.get_cards()[0]["lines"]}
+		self.assertEqual(lines["Anniversary"]["value"], "June 5")
+
+		card = self.returned(verification, self.bob.name)
+		self.assertEqual(record_returned_card(verification.name, self.bob.name, card), CONFIRMED)
+
 	def test_a_person_changed_since_the_card_opened_is_not_overwritten(self):
 		verification = make_verification([self.ann.name])
 		card = get_returned_card(verification.name, self.ann.name)

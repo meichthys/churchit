@@ -253,3 +253,23 @@ frappe.views.MapView.prototype.setup_view = function () {
 		frappe.require("leaflet.bundle.css"),
 	]).then(() => this.setup_map());
 };
+
+// A child table's filter row matches a Link cell by the record ID only, but the cell shows the title
+// (a person's name, not PRSN-0392). Match the title too. Grid is not global, so patch it from a table.
+(function patchGridFilterForLinkTitles() {
+	const make = frappe.ui.form.ControlTable.prototype.make;
+	frappe.ui.form.ControlTable.prototype.make = function () {
+		make.call(this);
+		const grid = Object.getPrototypeOf(this.grid);
+		if (grid._church_filters_titles) return;
+		const matches = grid.get_data_based_on_fieldtype;
+		grid.get_data_based_on_fieldtype = function (df, data, value) {
+			const title =
+				df.fieldtype === "Link" &&
+				frappe.utils.get_link_title(df.options, data[df.fieldname]);
+			if (title && title.toLowerCase().includes(value)) return data;
+			return matches.call(this, df, data, value);
+		};
+		grid._church_filters_titles = true;
+	};
+})();

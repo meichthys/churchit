@@ -293,6 +293,16 @@ class TestOfficeReads(AITestCase):
 		couple = [row for row in rows if row["kind"] == "Anniversary" and spouse in (row["person"], husband)]
 		self.assertEqual([row["years"] for row in couple], [30])
 
+	def test_an_anniversary_with_no_year_gives_no_years(self):
+		spouse = make_person("Spouse", LAST_NAME, church=self.branch_a).name
+		married = {"marital_status": "Married", "anniversary": "2001-03-06", "anniversary_year_unknown": 1}
+		husband = make_person("Husband", LAST_NAME, church=self.branch_a, spouse=spouse, **married).name
+
+		rows = as_user(self.manager, ai.birthdays_and_anniversaries, **WINDOW)["rows"]
+
+		couple = [row for row in rows if row["kind"] == "Anniversary" and spouse in (row["person"], husband)]
+		self.assertEqual([row.get("years") for row in couple], [None])
+
 	def test_a_window_longer_than_the_cap_is_refused(self):
 		self.assertRaises(
 			frappe.ValidationError,

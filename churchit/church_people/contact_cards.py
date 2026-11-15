@@ -103,6 +103,7 @@ def get_details(verification: Document, person: Document) -> dict:
 		details["birthday_year_unknown"] = birth.year_unknown if birth and birth.date else 0
 	if "anniversary" in shown:
 		details["anniversary"] = person.anniversary
+		details["anniversary_year_unknown"] = person.anniversary_year_unknown if person.anniversary else 0
 	if "emergency_contact" in shown and can_read_emergency_contact(person):
 		details.update({field: person.get(field) for field in EMERGENCY_FIELDS})
 	if "texting" in shown:
@@ -251,7 +252,9 @@ def get_date_lines(details: dict) -> list[dict]:
 		value = details["birthday"] and format_day(details["birthday"], not details["birthday_year_unknown"])
 		lines.append(get_line(_("Birthday"), value, hint=_("Month and day:")))
 	if "anniversary" in details:
-		value = details["anniversary"] and format_day(details["anniversary"], True)
+		value = details["anniversary"] and format_day(
+			details["anniversary"], not details["anniversary_year_unknown"]
+		)
 		lines.append(get_line(_("Anniversary"), value, hint=_("Wedding date, if married:")))
 	return lines
 
@@ -517,6 +520,15 @@ class ReturnedCard:
 			if cstr(self.person.get(field)) != cstr(value):
 				self.person.set(field, value)
 				self.has_changes = True
+		if "anniversary" in self.shown:
+			self.apply_anniversary_year()
+
+	def apply_anniversary_year(self) -> None:
+		"""Tick or untick the person's No Year as the card does, once the card's anniversary is set."""
+		year_unknown = cint(self.card.get("anniversary_year_unknown")) if self.person.anniversary else 0
+		if cint(self.person.anniversary_year_unknown) != year_unknown:
+			self.person.anniversary_year_unknown = year_unknown
+			self.has_changes = True
 
 	def apply_birthday(self) -> None:
 		"""Give the person's Birth life event the card's date: add the event when needed, or clear its date."""

@@ -28,6 +28,7 @@
   "marital_status",
   "spouse",
   "anniversary",
+  "anniversary_year_unknown",
   "primary_email",
   "birthday",
   "birth_month",
@@ -298,7 +299,15 @@
    "label": "Anniversary"
   },
   {
+   "default": "0",
    "depends_on": "eval:doc.anniversary",
+   "description": "Tick when only the month and day are known. The year is then ignored.",
+   "fieldname": "anniversary_year_unknown",
+   "fieldtype": "Check",
+   "label": "No Year"
+  },
+  {
+   "depends_on": "eval:doc.anniversary && !doc.anniversary_year_unknown",
    "fieldname": "marriage_years",
    "fieldtype": "Int",
    "label": "Years Married",
@@ -995,7 +1004,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-14 20:32:39.570403",
+ "modified": "2026-11-14 23:53:15.422392",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

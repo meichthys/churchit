@@ -379,6 +379,10 @@ the age. For a window of days use `celebrations.get_birthday_rows`; for this wee
 `query.month_day_this_week(Person.birth_month, Person.birth_day)`, since a week across the new year
 needs (month, day) pairs rather than a range.
 
+An anniversary's month and day always count, its year only when `anniversary_year_unknown` (No
+Year) is off. `marriage_years` stores 0 for an unknown year, so test the check, not the years. The
+check goes with the anniversary: `Person.link_spouse` gives it to the spouse.
+
 ## Roles
 
 Church User is the **portal member** role, with no desk access. Staff hold desk roles, bundled
@@ -929,8 +933,9 @@ Anything keyed on it must behave when multi-church is off.
 `churchit/public/js/church_utils.js` wraps `frappe.views.BaseList.prototype.get_filters_for_args` so
 the "expand filters to branches" option reaches list views. It is guarded and falls back to exact
 matching if a Frappe upgrade moves that method; if list filters stop expanding after an upgrade,
-look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, and it
-replaces `MapView.setup_view` (see the next section).
+look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, makes a
+child table's filter row match a Link cell by its title as well as its ID, and replaces
+`MapView.setup_view` (see the next section).
 
 `churchit/public/js/people_actions.js` holds the actions on a set of people: the Person list runs
 them on the people ticked, the Rolodex on its saved cards. `churchit.people_actions.get(keys)`
@@ -2494,9 +2499,11 @@ Consent is answered only by `consent.allowed`, or `consent.allowed_people` for a
 record decides, ties by creation; a blank-purpose Given never undoes a withdrawal for one purpose.
 Recorded On may not be in the future. A Notification has no purpose, so only consent for every
 purpose counts, and staff (System Users) are never dropped. An address or number is refused only
-when every Person holding it is refused. An unsubscribe link or an Email Unsubscribe withdraws every
-holder of the address. A Communication Preferences switch, and any Given, records only the person
-who chose it. An Email Unsubscribe made with `db_insert` runs no hooks, so call
+when every Person holding it is refused. A household's own address that no Person holds is refused
+when every member of the household is refused (`list_actions.get_household_emails`). An
+unsubscribe link or an Email Unsubscribe withdraws every holder of the address. A Communication
+Preferences switch, and any Given, records only the person who chose it. An Email Unsubscribe made
+with `db_insert` runs no hooks, so call
 `consent.record_unsubscribe` after it, as `newsletter.set_subscribed` does. Texts and push
 notifications are opt-in: with no record for SMS or Push nobody gets them, whatever the church's
 setting (`consent.default_statuses`).

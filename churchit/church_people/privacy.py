@@ -87,6 +87,7 @@ PERSONAL_FIELDS = (
 	"emergency_contact_phone",
 	"alergies",
 	"anniversary",
+	"anniversary_year_unknown",
 	"graduation_year",
 	"grade",
 	"spouse",
