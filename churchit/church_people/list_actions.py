@@ -9,7 +9,7 @@ Each function takes names from the browser, so it checks the caller's right on e
 import frappe
 from frappe import _
 
-from churchit.church_communications.consent import allowed_people
+from churchit.church_communications.consent import allowed_people, people_with_email, refused_values
 from churchit.church_communications.doctype.church_email.church_email import CHOSEN_PEOPLE
 from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL
 from churchit.church_people.household import ADULT, members
@@ -32,21 +32,39 @@ def get_people_emails(people: str | list[str]) -> frappe._dict:
 
 @frappe.whitelist(methods=["GET", "POST"])
 def get_household_emails(families: str | list[str]) -> frappe._dict:
-	"""The email of each of *families*, else of its primary contact, and the households with neither. Reads only."""
+	"""The email of each of *families* or its primary contact, and the households with none or that refuse email. Reads only.
+
+	A household's own address goes out while someone holding it allows email, or, when no person
+	holds it, someone in the household does. Otherwise its primary contact's address is tried.
+	"""
 	families = get_permitted("Family", families, "email")
-	emails = get_primary_emails("Family", families)
+	own_emails = get_primary_emails("Family", families)
 	# church-scope: only the families named, each checked above
-	contacts = dict(
-		frappe.get_all(
-			"Family", filters={"name": ("in", families)}, fields=["name", "primary_contact"], as_list=True
-		)
+	rows = frappe.get_all(
+		"Family", filters={"name": ("in", families)}, fields=["name", "primary_contact"], as_list=True
 	)
-	contact_emails = get_primary_emails(
-		"Person", [contact for contact in contacts.values() if contact and may_email(contact)]
-	)
-	for family in families:
-		emails[family] = emails.get(family) or contact_emails.get(contacts.get(family))
-	return get_email_list("Family", families, emails)
+	contacts = {family: contact for family, contact in rows if contact and may_email(contact)}
+	contact_emails = get_primary_emails("Person", list(contacts.values()))
+	candidates = {
+		family: list(filter(None, (own_emails.get(family), contact_emails.get(contacts.get(family)))))
+		for family in families
+	}
+	refused_emails = refused_values([email for found in candidates.values() for email in found], EMAIL)
+	refused_emails |= {
+		email
+		for family, email in own_emails.items()
+		if not people_with_email(email) and not allowed_people(members(family), EMAIL)
+	}
+	emails = {
+		family: next((email for email in found if email not in refused_emails), None)
+		for family, found in candidates.items()
+	}
+	refused = [family for family, found in candidates.items() if found and not emails[family]]
+
+	result = get_email_list("Family", [family for family in families if family not in refused], emails)
+	titles = get_titles("Family", refused)
+	result.refused = [titles[family] for family in refused]
+	return result
 
 
 @frappe.whitelist(methods=["GET", "POST"])

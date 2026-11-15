@@ -2499,9 +2499,11 @@ Consent is answered only by `consent.allowed`, or `consent.allowed_people` for a
 record decides, ties by creation; a blank-purpose Given never undoes a withdrawal for one purpose.
 Recorded On may not be in the future. A Notification has no purpose, so only consent for every
 purpose counts, and staff (System Users) are never dropped. An address or number is refused only
-when every Person holding it is refused. An unsubscribe link or an Email Unsubscribe withdraws every
-holder of the address. A Communication Preferences switch, and any Given, records only the person
-who chose it. An Email Unsubscribe made with `db_insert` runs no hooks, so call
+when every Person holding it is refused. A household's own address that no Person holds is refused
+when every member of the household is refused (`list_actions.get_household_emails`). An
+unsubscribe link or an Email Unsubscribe withdraws every holder of the address. A Communication
+Preferences switch, and any Given, records only the person who chose it. An Email Unsubscribe made
+with `db_insert` runs no hooks, so call
 `consent.record_unsubscribe` after it, as `newsletter.set_subscribed` does. Texts and push
 notifications are opt-in: with no record for SMS or Push nobody gets them, whatever the church's
 setting (`consent.default_statuses`).

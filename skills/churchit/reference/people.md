@@ -26,7 +26,7 @@ Call `churchit.dashboard.count_people` or `churchit.dashboard.count_families`, n
 
 - `primary_email` and `primary_phone` on a person are the first email address and phone number. The `emails`, `phones` and `addresses` tables hold all of them.
 - `churchit.church_people.list_actions.get_people_emails` with `people`, a list of Person names, gives `emails`, the people `without_email`, and in `refused` the people who do not want church email.
-- `churchit.church_people.list_actions.get_household_emails` with `families`, a list of Family names, gives one address for each household.
+- `churchit.church_people.list_actions.get_household_emails` with `families`, a list of Family names, gives `emails`, one address for each household, the households `without_email`, and in `refused` the households that do not want church email. A household's own address is used while a person who holds it allows email, or, when no person holds it, someone in the household does. Otherwise its primary contact's address is used.
 - Both refuse the whole call when the person may not email one of the names.
 
 ## Groups
