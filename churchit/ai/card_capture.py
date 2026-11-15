@@ -11,7 +11,9 @@ Only for Local or Zero Retention Models list, because family cards hold children
 only real Connection Card fields, and choices the person may pick, as the photo's draft. Nothing here
 makes a Connection Card: create_card opens the draft as an unsaved Connection Card through
 churchit.ai.drafts, and the person's own save of that card links it to the photo, marks the photo
-Imported and runs ConnectionCard.process as for any new card.
+Imported and runs ConnectionCard.process as for any new card. Where AI does not read photos (AI is off,
+the church keeps away or Flow is not ready) the photo is Ready to Copy, and a person types the card
+from it in the desk (Copy by Hand), which links and imports it the same way.
 """
 
 import json
@@ -28,11 +30,12 @@ from frappe.utils import add_to_date, getdate, now_datetime, validate_email_addr
 from churchit.ai import runner
 from churchit.ai.drafts import make_draft
 from churchit.ai.flow_models import is_flow_ready
-from churchit.ai.opt_outs import CHURCH_REFUSAL, is_kept_away, refuse_kept_away
+from churchit.ai.opt_outs import is_kept_away, refuse_kept_away
 from churchit.ai.switch import has_flow, is_ai_on, require_ai
 from churchit.ai.triage import get_choices, get_options
 from churchit.church_people.ai_actions import HOUR, JSON_ONLY, RUNS_AN_HOUR
 from churchit.church_people.doctype.connection_card_photo.connection_card_photo import (
+	COPY,
 	FAILED,
 	PHOTO,
 	READING,
@@ -65,7 +68,6 @@ MAX_LINE = 140
 MAX_MESSAGE = 2000
 MAX_MEMBERS = 12
 OLDEST_BIRTH_YEAR = 1900
-AI_OFF = "AI is turned off on this site, so nobody read the photo."
 NOT_READY = "Reading a card needs Flow with an enabled chat model. Ask your administrator."
 NO_FILE = "The photo's private file is missing. Delete this record and upload the photo again."
 NOTHING_READ = "AI found no name on this card. Check the photo, or read it again."
@@ -80,25 +82,33 @@ visit is one of: {visits}. interests lists the ticked boxes, each one of: {inter
 
 
 def dispatch(doc: Document, method=None) -> None:
-	"""After insert of a Connection Card Photo: queue the reading of the photo (A7.1) after the commit, or
-	say on the photo why nobody reads it. Nothing goes to a model here."""
+	"""After insert of a Connection Card Photo: queue the reading of the photo (A7.1) after the commit,
+	leave it Ready to Copy when AI does not read photos here, or say on the photo why nobody reads it.
+	Nothing goes to a model here."""
 	if frappe.flags.in_import:
 		return
-	if refusal := get_refusal(doc) or get_upload_refusal():
-		# Not db_set: on Frappe 17 it loads the saved record as the one before the save, and Frappe's
-		# on_update then sees no new photo and leaves the File unattached.
+	if is_left_to_copy(doc):
+		values = {"status": COPY}
+	elif refusal := get_refusal(doc) or get_upload_refusal():
 		values = {"status": FAILED, "error": refusal}
-		frappe.db.set_value(PHOTO, doc.name, values, update_modified=False)
-		doc.update(values)
+	else:
+		queue(doc.name)
 		return
-	queue(doc.name)
+	# Not db_set: on Frappe 17 it loads the saved record as the one before the save, and Frappe's
+	# on_update then sees no new photo and leaves the File unattached.
+	frappe.db.set_value(PHOTO, doc.name, values, update_modified=False)
+	doc.update(values)
+
+
+def is_left_to_copy(photo: Document) -> bool:
+	"""True when AI does not read *photo* on this site, so a person copies it by hand: AI is off, the
+	photo's church keeps away from AI or Flow is not ready."""
+	return is_kept_from_ai(photo) or not (has_flow() and is_flow_ready())
 
 
 def get_refusal(photo: Document) -> str | None:
-	"""Why the photo cannot be read now, as one sentence, or None: AI is off, the photo's church keeps
-	away from AI, Flow is not ready or the label of the reading agent's model does not allow the photo."""
-	if refusal := get_draft_refusal(photo):
-		return refusal
+	"""Why AI cannot read the photo now, as one sentence, or None: Flow is not ready or the label of the
+	reading agent's model does not allow the photo. Callers check is_left_to_copy or require_ai first."""
 	if not (has_flow() and is_flow_ready()):
 		return _(NOT_READY)
 	try:
@@ -117,13 +127,9 @@ def get_upload_refusal() -> str | None:
 	return _(TOO_MANY) if uploads > RUNS_AN_HOUR else None
 
 
-def get_draft_refusal(photo: Document) -> str | None:
-	"""Why no draft may come from the photo, as one sentence, or None: AI is off or its church keeps away."""
-	if not is_ai_on():
-		return _(AI_OFF)
-	if is_kept_away(PHOTO, photo.name):
-		return _(CHURCH_REFUSAL)
-	return None
+def is_kept_from_ai(photo: Document) -> bool:
+	"""True when no draft may come from the photo: AI is off or its church keeps away."""
+	return not is_ai_on() or is_kept_away(PHOTO, photo.name)
 
 
 def queue(name: str) -> None:
@@ -153,7 +159,11 @@ def read_photo(name: str, user: str) -> None:
 
 
 def start_reading(photo: Document) -> None:
-	"""Send the photo with the instructions to the model, with one Access Log row, or mark it Failed."""
+	"""Send the photo with the instructions to the model, with one Access Log row, or mark it Ready to
+	Copy or Failed."""
+	if is_left_to_copy(photo):
+		set_to_copy(photo)
+		return
 	file = photo.get_file()
 	refusal = get_refusal(photo) or (None if file else _(NO_FILE))
 	if refusal:
@@ -195,6 +205,10 @@ def set_failed(photo: Document, sentence: str) -> None:
 	photo.db_set({"status": FAILED, "error": sentence}, notify=True)
 
 
+def set_to_copy(photo: Document) -> None:
+	photo.db_set({"status": COPY, "error": None}, notify=True)
+
+
 def store(run) -> None:
 	"""The reading run's on_complete, which Flow calls as the run's owner when the run ends: keep the
 	checked answer as the photo's draft when the owner still writes the photo and every gate allows it.
@@ -204,8 +218,8 @@ def store(run) -> None:
 	photo = frappe.get_doc(PHOTO, run.reference_name)
 	if photo.status != READING or not photo.has_permission("write"):
 		return
-	if refusal := get_draft_refusal(photo):
-		set_failed(photo, refusal)
+	if is_kept_from_ai(photo):
+		set_to_copy(photo)
 		return
 
 	try:

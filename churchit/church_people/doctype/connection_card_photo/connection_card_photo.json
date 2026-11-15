@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "CCP-.#####",
  "creation": "2026-11-10 07:41:00.000000",
- "description": "A photo of a paper connection card. AI reads it into a draft beside the photo. A person checks the draft, creates the Connection Card from it and saves it; nothing is imported before that. The photo is a private file that only those who read this record can open.",
+ "description": "A photo of a paper connection card. When AI is on, AI reads it into a draft beside the photo. A person checks the draft, or copies the card by hand, and saves the Connection Card; nothing is imported before that. The photo is a private file that only those who read this record can open.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
@@ -45,7 +45,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Waiting\nReading\nReady to Check\nImported\nFailed",
+   "options": "Waiting\nReading\nReady to Check\nReady to Copy\nImported\nFailed",
    "read_only": 1
   },
   {
@@ -108,7 +108,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-10 07:41:00.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Connection Card Photo",
@@ -156,6 +156,10 @@
   {
    "color": "Orange",
    "title": "Ready to Check"
+  },
+  {
+   "color": "Orange",
+   "title": "Ready to Copy"
   },
   {
    "color": "Green",

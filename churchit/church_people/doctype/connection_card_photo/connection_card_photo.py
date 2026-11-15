@@ -13,9 +13,11 @@ CARD = "Connection Card"
 WAITING = "Waiting"
 READING = "Reading"
 READY = "Ready to Check"
+# AI does not read the photo on this site (AI is off, the church keeps away or Flow is not ready).
+COPY = "Ready to Copy"
 IMPORTED = "Imported"
 FAILED = "Failed"
-READ_AGAIN_STATUSES = (FAILED, READY)
+READ_AGAIN_STATUSES = (FAILED, READY, COPY)
 # A photo that waits or reads this long lost its job or its run (a Data Import, a Flow restart).
 STUCK_SECONDS = 60 * 60
 PRIVATE_FILES = "/private/files/"
@@ -23,7 +25,7 @@ PRIVATE_FILES = "/private/files/"
 
 class ConnectionCardPhoto(Document):
 	"""A photo of a paper connection card, the draft AI read from it (churchit.ai.card_capture) and the
-	Connection Card that a person made from that draft."""
+	Connection Card that a person made from that draft or copied by hand."""
 
 	def validate(self):
 		if self.photo and not self.photo.startswith(PRIVATE_FILES):
@@ -39,8 +41,8 @@ class ConnectionCardPhoto(Document):
 
 	@property
 	def is_readable_again(self) -> bool:
-		"""True when Read Again may queue the photo: it failed, its draft is ready to check, or it has
-		waited or been reading for STUCK_SECONDS."""
+		"""True when Read Again may queue the photo: it failed, its draft is ready to check, it waits for
+		a person to copy it, or it has waited or been reading for STUCK_SECONDS."""
 		if self.status in READ_AGAIN_STATUSES:
 			return True
 		since = add_to_date(now_datetime(), seconds=-STUCK_SECONDS)
@@ -68,10 +70,11 @@ class ConnectionCardPhoto(Document):
 
 	def check_can_import(self) -> None:
 		"""Connection Card validate: refuse a new card from a photo that the user cannot change, or one
-		that has no draft to import."""
+		that has its connection card already. A card from an AI draft or one that a person copied by
+		hand both pass."""
 		self.check_permission("write")
-		if self.status != READY:
-			frappe.throw(_("This card photo has no draft to import, or it has its connection card already."))
+		if self.status == IMPORTED or self.connection_card:
+			frappe.throw(_("This card photo has its connection card already."))
 
 	def mark_imported(self, card: str) -> None:
 		"""Connection Card after_insert: link the photo to its new card."""

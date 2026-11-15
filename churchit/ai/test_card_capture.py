@@ -20,11 +20,12 @@ from frappe.utils import add_to_date, now_datetime
 from churchit.ai import card_capture, private_doctypes, runner
 from churchit.ai.drafts import get_draft
 from churchit.ai.flow_switch import get_recommended_knowledge_doctypes
-from churchit.ai.opt_outs import CHURCH_FIELD, CHURCH_REFUSAL
+from churchit.ai.opt_outs import CHURCH_FIELD
 from churchit.ai.switch import SETTINGS
 from churchit.ai.test_runner import FlowRunnerTestCase, fake_run, flow_session, set_ai
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.connection_card_photo.connection_card_photo import (
+	COPY,
 	FAILED,
 	IMPORTED,
 	PHOTO,
@@ -226,13 +227,13 @@ class TestStore(CardCase):
 
 		set_ai(0)
 		self.store_as(EDITOR_A, photo, ANSWER)
-		self.assertEqual((photo.status, photo.error, photo.draft), (FAILED, card_capture.AI_OFF, None))
+		self.assertEqual((photo.status, photo.error, photo.draft), (COPY, None, None))
 
 	def test_a_church_that_keeps_away_gets_no_draft(self):
 		photo = self.make_photo(status=READING)
 		frappe.db.set_value("Church", self.church_a, CHURCH_FIELD, 1)
 		self.store_as(EDITOR_A, photo, ANSWER)
-		self.assertEqual((photo.status, photo.error, photo.draft), (FAILED, CHURCH_REFUSAL, None))
+		self.assertEqual((photo.status, photo.error, photo.draft), (COPY, None, None))
 
 
 class TestPhotoFile(CardCase):
@@ -297,7 +298,7 @@ class TestCreateCard(CardCase):
 				{"first_name": "Jane", "last_name": "Doe", "card_photo": photo.name}, user=EDITOR_B
 			)
 		self.save_card({"first_name": "Jane", "last_name": "Doe", "card_photo": photo.name})
-		with self.assertRaisesRegex(frappe.ValidationError, "no draft to import"):
+		with self.assertRaisesRegex(frappe.ValidationError, "its connection card already"):
 			self.save_card({"first_name": "Jane", "last_name": "Doe", "card_photo": photo.name})
 		with self.assertRaisesRegex(frappe.ValidationError, "no draft"):
 			self.create_card(photo)
@@ -324,6 +325,40 @@ class TestCreateCard(CardCase):
 		card = self.save_card({"first_name": "Jane", "last_name": "Doe", "card_photo": other.name})
 		frappe.delete_doc(PHOTO, other.name)
 		self.assertIsNone(frappe.db.get_value("Connection Card", card.name, "card_photo"))
+
+	def test_a_person_copies_a_photo_by_hand_with_ai_off_or_while_ai_reads_it(self):
+		set_ai(0)
+		for status in (COPY, FAILED, WAITING, READING):
+			photo = self.make_photo(status=status)
+			card = self.save_card({"first_name": "Jane", "last_name": "Doe", "card_photo": photo.name})
+			photo.reload()
+			self.assertEqual((photo.status, photo.connection_card), (IMPORTED, card.name), status)
+
+	def test_a_late_ai_answer_leaves_a_photo_copied_by_hand_alone(self):
+		photo = self.make_photo(status=READING)
+		card = self.save_card({"first_name": "Jane", "last_name": "Doe", "card_photo": photo.name})
+		self.store_as(EDITOR_A, photo, ANSWER)
+		self.assertEqual((photo.status, photo.connection_card, photo.draft), (IMPORTED, card.name, None))
+
+
+class TestLeftToCopy(CardCase):
+	def test_a_new_photo_is_ready_to_copy_where_ai_does_not_read_photos(self):
+		"""AI is off, the church keeps away or the site has no Flow: nothing is queued and nothing failed."""
+		set_ai(0)
+		ai_off = self.make_photo()
+		set_ai(1)
+		frappe.db.set_value("Church", self.church_a, CHURCH_FIELD, 1)
+		kept_away = self.make_photo()
+		frappe.db.set_value("Church", self.church_a, CHURCH_FIELD, 0)
+		with patch.object(card_capture, "has_flow", return_value=False):
+			no_flow = self.make_photo()
+
+		for photo in (ai_off, kept_away, no_flow):
+			self.assertEqual((photo.status, photo.error), (COPY, None))
+		self.assertFalse(
+			[call for call in self.enqueue.call_args_list if call.args[:1] == (card_capture.JOB,)]
+		)
+		self.assertTrue(ai_off.is_readable_again, "Read Again can send it to AI once AI reads photos")
 
 
 class TestPrivateDoctypes(CardCase):
@@ -409,11 +444,11 @@ class TestDispatch(CardFlowCase):
 		)
 		self.assertEqual(photo.status, WAITING)
 
-	def test_with_ai_off_nothing_is_queued_and_the_photo_says_why(self):
+	def test_with_ai_off_nothing_is_queued_and_the_photo_is_left_to_copy(self):
 		set_ai(0)
 		photo = self.make_photo()
 		self.assertEqual(self.queued(), [])
-		self.assertEqual((photo.status, photo.error), (FAILED, card_capture.AI_OFF))
+		self.assertEqual((photo.status, photo.error), (COPY, None))
 
 	def test_more_photos_in_an_hour_than_ai_reads_are_kept_unread(self):
 		with patch.object(card_capture, "RUNS_AN_HOUR", 1):
@@ -426,12 +461,12 @@ class TestDispatch(CardFlowCase):
 		frappe.db.set_value("Church", self.church_a, CHURCH_FIELD, 1)
 		photo = self.make_photo()
 		self.assertEqual(self.queued(), [])
-		self.assertEqual((photo.status, photo.error), (FAILED, CHURCH_REFUSAL))
+		self.assertEqual((photo.status, photo.error), (COPY, None))
 
 		photo.db_set("status", WAITING)
 		new_session, _users = self.run_job(photo)
 		new_session.assert_not_called()
-		self.assertEqual(photo.status, FAILED)
+		self.assertEqual(photo.status, COPY)
 		frappe.set_user(EDITOR_A)
 		with self.assertRaises(frappe.PermissionError):
 			card_capture.read_again(photo.name)

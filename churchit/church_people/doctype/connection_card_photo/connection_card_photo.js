@@ -2,7 +2,8 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 // The photo beside the draft that AI read from it (churchit.ai.card_capture), with the people the
-// draft may already be. Every value of the draft is the model's text, so it is shown escaped.
+// draft may already be. Every value of the draft is the model's text, so it is shown escaped. Copy by
+// Hand works with AI on or off: a person types the card with the photo above the form.
 const CARD_PHOTO_FIELDS = [
 	["first_name", __("First Name")],
 	["last_name", __("Last Name")],
@@ -89,6 +90,7 @@ function card_photo_note(frm) {
 	const notes = {
 		Waiting: __("Waiting for AI to read the photo."),
 		Reading: __("AI is reading the photo. A local model can take several minutes."),
+		"Ready to Copy": __("AI does not read this photo. Click Copy by Hand to type the card."),
 	};
 	const note = notes[frm.doc.status];
 	return note ? `<p class="text-muted">${frappe.utils.escape_html(note)}</p>` : "";
@@ -145,9 +147,28 @@ function card_match_line(person, matches) {
 }
 
 function add_card_photo_buttons(frm) {
-	if (frm.is_new() || !frm.has_perm("write") || !frappe.boot.churchit?.ai?.on) return;
+	if (frm.is_new() || !frm.has_perm("write")) return;
 
-	if (frm.doc.status === "Ready to Check" && frappe.model.can_create("Connection Card")) {
+	const is_ai_on = Boolean(frappe.boot.churchit?.ai?.on);
+	const can_create = frappe.model.can_create("Connection Card");
+	const has_draft = is_ai_on && frm.doc.status === "Ready to Check" && can_create;
+	if (frm.doc.status !== "Imported" && can_create) {
+		// A new card with the photo above the form; its save links and imports the photo. card_photo is
+		// No Copy, which route options skip, so it is set on the new document itself.
+		frm.add_custom_button(
+			__("Copy by Hand"),
+			() =>
+				frappe.model.with_doctype("Connection Card", () => {
+					const card = frappe.model.get_new_doc("Connection Card");
+					Object.assign(card, { card_photo: frm.doc.name, church: frm.doc.church });
+					frappe.set_route("Form", "Connection Card", card.name);
+				}),
+			has_draft ? __("Actions") : undefined
+		);
+	}
+	if (!is_ai_on) return;
+
+	if (has_draft) {
 		frm.add_custom_button(__("Create Connection Card"), () =>
 			frappe
 				.xcall("churchit.ai.card_capture.create_card", { photo: frm.doc.name })
