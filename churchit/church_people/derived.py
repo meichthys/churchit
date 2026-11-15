@@ -46,6 +46,11 @@ def years_since(date):
 	return years_between(date, nowdate())
 
 
+def get_marriage_years(anniversary, is_year_unknown) -> int:
+	"""Whole years married since *anniversary*; 0 when it is empty or its year is unknown."""
+	return 0 if is_year_unknown else years_since(anniversary)
+
+
 def sync_derived(person) -> None:
 	"""Set *person*'s fields that come from their life events, household role, anniversary, graduation year and
 	contact tables.
@@ -55,7 +60,7 @@ def sync_derived(person) -> None:
 	# A new or changed family has no roster row for this person until on_update adds it.
 	role = None if person.has_value_changed("family") else household.role_of(person.name)
 	person.update(get_derived_values(person.life_events or [], role))
-	person.marriage_years = years_since(person.anniversary)
+	person.marriage_years = get_marriage_years(person.anniversary, person.anniversary_year_unknown)
 	person.grade = get_grade(person.graduation_year)
 	person.primary_email = primary_email(person)
 	person.primary_phone = primary_phone(person)
@@ -153,6 +158,7 @@ def refresh_daily():
 			"name",
 			"family",
 			"anniversary",
+			"anniversary_year_unknown",
 			"marriage_years",
 			"graduation_year",
 			"grade",
@@ -162,7 +168,7 @@ def refresh_daily():
 	for person in people:
 		role = household.role_of(person.name) if person.family else None
 		current = get_derived_values(life_events.get(person.name, []), role)
-		current["marriage_years"] = years_since(person.anniversary)
+		current["marriage_years"] = get_marriage_years(person.anniversary, person.anniversary_year_unknown)
 		current["grade"] = get_grade(person.graduation_year)
 		changed = {
 			field: value for field, value in current.items() if (person[field] or None) != (value or None)

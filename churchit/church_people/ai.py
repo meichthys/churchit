@@ -381,7 +381,15 @@ def get_anniversaries(start: date, end: date) -> list[dict]:
 	people = frappe.get_list(
 		"Person",
 		filters=in_readers_churches(married),
-		fields=["name", "first_name", "last_name", "full_name", "spouse", "anniversary"],
+		fields=[
+			"name",
+			"first_name",
+			"last_name",
+			"full_name",
+			"spouse",
+			"anniversary",
+			"anniversary_year_unknown",
+		],
 	)
 	spouses = [person.spouse for person in people if person.spouse]
 	died = set(frappe.get_list("Person", filters={"name": ("in", spouses), "is_deceased": 1}, pluck="name"))
@@ -394,7 +402,11 @@ def get_anniversaries(start: date, end: date) -> list[dict]:
 			"kind": "Anniversary",
 			"person": row.name,
 			"title": row.couple,
-			"years": row.anniversary_on.year - getdate(row.anniversary).year,
+			**(
+				{}
+				if row.anniversary_year_unknown
+				else {"years": row.anniversary_on.year - getdate(row.anniversary).year}
+			),
 			"url": get_url_to_form("Person", row.name),
 		}
 		for row in couples

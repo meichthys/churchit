@@ -233,6 +233,41 @@ class TestPerson(FrappeTestCase):
 		self.assertEqual(husband.marriage_years, 10)
 		self.assertEqual(frappe.db.get_value("Person", wife.name, "marriage_years"), 10)
 
+	def test_an_anniversary_with_no_year_has_no_years_married_and_goes_to_the_spouse(self):
+		wife = self._make_person(
+			first_name="Nora",
+			last_name="Noyear",
+			anniversary=add_years(nowdate(), -10),
+			anniversary_year_unknown=1,
+		)
+		husband = self._make_person(
+			first_name="Ned", last_name="Noyear", spouse=wife.name, marital_status="Married"
+		)
+		self.assertEqual((wife.marriage_years, husband.marriage_years), (0, 0))
+		self.assertEqual(husband.anniversary_year_unknown, 1)
+		frappe.db.set_value("Person", wife.name, "marriage_years", 9, update_modified=False)
+		refresh_daily()
+		self.assertEqual(frappe.db.get_value("Person", wife.name, "marriage_years"), 0)
+
+		husband.anniversary_year_unknown = 0
+		husband.save(ignore_permissions=True)
+
+		self.assertEqual(husband.marriage_years, 10)
+		wife_values = frappe.db.get_value("Person", wife.name, ["anniversary_year_unknown", "marriage_years"])
+		self.assertEqual(wife_values, (0, 10))
+
+	def test_an_anniversary_typed_on_the_portal_has_a_known_year(self):
+		person = self._make_person(first_name="Pat", anniversary="2000-06-05", anniversary_year_unknown=1)
+		frappe.flags.in_web_form = True
+		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
+
+		person.save(ignore_permissions=True)
+		self.assertEqual(person.anniversary_year_unknown, 1)
+
+		person.anniversary = "1998-06-05"
+		person.save(ignore_permissions=True)
+		self.assertEqual(person.anniversary_year_unknown, 0)
+
 	def test_divorce_ends_the_marriage_on_both_sides(self):
 		wife = self._make_person(first_name="Ann", last_name="Split", gender="Female")
 		husband = self._make_person(
@@ -242,15 +277,18 @@ class TestPerson(FrappeTestCase):
 			spouse=wife.name,
 			marital_status="Married",
 			anniversary="2001-01-01",
+			anniversary_year_unknown=1,
 		)
 
 		husband.marital_status = "Divorced"
 		husband.save(ignore_permissions=True)
 
 		self.assertIsNone(husband.spouse)
-		self.assertIsNone(husband.anniversary)
-		wife_values = frappe.db.get_value("Person", wife.name, ["spouse", "marital_status", "anniversary"])
-		self.assertEqual(wife_values, (None, "Divorced", None))
+		self.assertEqual((husband.anniversary, husband.anniversary_year_unknown), (None, 0))
+		wife_values = frappe.db.get_value(
+			"Person", wife.name, ["spouse", "marital_status", "anniversary", "anniversary_year_unknown"]
+		)
+		self.assertEqual(wife_values, (None, "Divorced", None, 0))
 
 	def test_a_widow_keeps_the_spouse_and_anniversary(self):
 		wife = self._make_person(first_name="Wanda", gender="Female")

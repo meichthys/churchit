@@ -379,6 +379,10 @@ the age. For a window of days use `celebrations.get_birthday_rows`; for this wee
 `query.month_day_this_week(Person.birth_month, Person.birth_day)`, since a week across the new year
 needs (month, day) pairs rather than a range.
 
+An anniversary's month and day always count, its year only when `anniversary_year_unknown` (No
+Year) is off. `marriage_years` stores 0 for an unknown year, so test the check, not the years. The
+check goes with the anniversary: `Person.link_spouse` gives it to the spouse.
+
 ## Roles
 
 Church User is the **portal member** role, with no desk access. Staff hold desk roles, bundled

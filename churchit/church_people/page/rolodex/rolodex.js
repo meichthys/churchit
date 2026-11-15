@@ -372,10 +372,7 @@ class Rolodex {
 				person.groups.map((name) => e(this.group_titles[name] || name)).join(", "),
 			],
 			[__("Birthday"), birthday_text(person)],
-			[
-				__("Anniversary"),
-				person.anniversary && frappe.datetime.str_to_user(person.anniversary),
-			],
+			[__("Anniversary"), anniversary_text(person)],
 			[__("Membership"), e(membership_text(person))],
 			[__("Address"), e(person.address || "")],
 		].filter(([, value]) => value);
@@ -981,6 +978,14 @@ function birthday_text(person) {
 	}
 	const born = frappe.datetime.str_to_user(person.birth_date);
 	return person.age ? `${born} · ${__("age {0}", [person.age])}` : born;
+}
+
+// An anniversary whose year is unknown shows its month and day only.
+function anniversary_text(person) {
+	if (!person.anniversary) return "";
+	if (!person.anniversary_year_unknown) return frappe.datetime.str_to_user(person.anniversary);
+	const day = moment(person.anniversary);
+	return `${moment.months(day.month())} ${day.date()}`;
 }
 
 function print_card(person) {

@@ -103,6 +103,7 @@ class TestContactCardReading(ReadingCase):
 				],
 				new_phones=[{"phone": "+1 217 555 0182", "kind": "home"}],
 				birthday={"month": 2, "day": 29},
+				anniversary={"month": 6, "day": 5, "year": 1975},
 				texting="YES",
 				status="Updated",
 			)
@@ -116,6 +117,7 @@ class TestContactCardReading(ReadingCase):
 		)
 		self.assertEqual(result["new_phones"][0]["phone_type"], "Home")
 		self.assertEqual(result["birthday"], {"birthday": "2000-02-29", "birthday_year_unknown": 1})
+		self.assertEqual(result["anniversary"], {"anniversary": "1975-06-05", "anniversary_year_unknown": 0})
 		self.assertEqual(result["texting"], "Yes")
 		self.assertNotIn("status", result)
 

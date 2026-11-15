@@ -11,6 +11,7 @@ const CARD_VALUES = [
 	"birthday",
 	"birthday_year_unknown",
 	"anniversary",
+	"anniversary_year_unknown",
 	"emergency_contact_name",
 	"emergency_contact_phone",
 	"texting",
@@ -210,6 +211,12 @@ function date_fields(card, shown) {
 				fieldname: "anniversary",
 				label: __("Anniversary"),
 				default: card.anniversary,
+			},
+			{
+				fieldtype: "Check",
+				fieldname: "anniversary_year_unknown",
+				label: __("No Year"),
+				default: card.anniversary_year_unknown,
 			}
 		);
 	return fields.length ? [{ fieldtype: "Section Break" }, ...fields] : [];
@@ -364,15 +371,14 @@ function fill_from_reading(dialog, result) {
 		if (row && !line.correction) row.remove = 1;
 		else if (row && line.item === "addresses") Object.assign(row, line.correction);
 		else if (row) row[value_fields[line.item]] = line.correction;
-		else if (line.item === "birthday" && line.correction) dialog.set_values(line.correction);
-		else if (line.item === "anniversary" && line.correction)
-			dialog.set_value("anniversary", line.correction);
+		else if (["birthday", "anniversary"].includes(line.item) && line.correction)
+			dialog.set_values(line.correction);
 	}
 	add_grid_rows(dialog, "emails", result.new_emails);
 	add_grid_rows(dialog, "phones", result.new_phones);
 	add_grid_rows(dialog, "addresses", result.new_addresses);
 	if (result.birthday) dialog.set_values(result.birthday);
-	if (result.anniversary) dialog.set_value("anniversary", result.anniversary);
+	if (result.anniversary) dialog.set_values(result.anniversary);
 	if (result.texting) dialog.set_value("texting", result.texting);
 	CARD_TABLES.forEach((fieldname) => dialog.fields_dict[fieldname]?.grid.refresh());
 }

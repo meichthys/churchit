@@ -6,13 +6,13 @@ from collections import Counter
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cstr, get_link_to_form, today
+from frappe.utils import cint, cstr, get_link_to_form, today
 
 from churchit.church_communications import newsletter
 from churchit.church_foundations import church_access
 from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people import events, followup, household, matching, membership, summaries
-from churchit.church_people.derived import BIRTH, DEATH, sync_derived, years_since
+from churchit.church_people.derived import BIRTH, DEATH, get_marriage_years, sync_derived
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED, WIDOWED, WITH_SPOUSE
@@ -349,12 +349,19 @@ class Person(Document):
 		validate_contact_tables(self)
 
 		self.refuse_another_churches_spouse()
+		self.sync_anniversary_year()
 		self.sync_spouse()
 		self.share_family_with_spouse()
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
 		refuse_second_holders(self)
 		self.validate_relationships()
+
+	def sync_anniversary_year(self):
+		"""Untick No Year when there is no anniversary, or when a member types one on the portal, as a typed
+		Birthday has a known year."""
+		if not self.anniversary or (frappe.flags.in_web_form and self.has_value_changed("anniversary")):
+			self.anniversary_year_unknown = 0
 
 	def refuse_clearing_another_ai_opt_out(self):
 		"""Only the person, a parent of a child (household.can_edit) or a System Manager clears the person's
@@ -520,7 +527,7 @@ class Person(Document):
 			return
 		if previous:
 			self.unlink_spouse(previous, self.marital_status)
-			self.anniversary = None
+			self.anniversary, self.anniversary_year_unknown = None, 0
 		self.spouse = None
 
 	@property
@@ -571,7 +578,11 @@ class Person(Document):
 		A spouse who already points here keeps their own marital status, so a widow stays Widowed.
 		"""
 		spouse = frappe.get_doc("Person", self.spouse)
-		self.anniversary = self.anniversary or spouse.anniversary
+		if not self.anniversary:
+			self.anniversary, self.anniversary_year_unknown = (
+				spouse.anniversary,
+				spouse.anniversary_year_unknown,
+			)
 		values = {}
 		if spouse.spouse != self.name:
 			if spouse.spouse:
@@ -579,8 +590,16 @@ class Person(Document):
 			values.update(spouse=self.name, marital_status=MARRIED)
 			if not frappe.flags.in_import:
 				frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
-		if cstr(spouse.anniversary) != cstr(self.anniversary):
-			values.update(anniversary=self.anniversary, marriage_years=years_since(self.anniversary))
+		year_unknown = cint(self.anniversary_year_unknown)
+		if (cstr(spouse.anniversary), spouse.anniversary_year_unknown) != (
+			cstr(self.anniversary),
+			year_unknown,
+		):
+			values.update(
+				anniversary=self.anniversary,
+				anniversary_year_unknown=year_unknown,
+				marriage_years=get_marriage_years(self.anniversary, year_unknown),
+			)
 		if values:
 			frappe.db.set_value("Person", spouse.name, values)
 
@@ -592,7 +611,13 @@ class Person(Document):
 		frappe.db.set_value(
 			"Person",
 			spouse.name,
-			{"spouse": None, "marital_status": marital_status, "anniversary": None, "marriage_years": 0},
+			{
+				"spouse": None,
+				"marital_status": marital_status,
+				"anniversary": None,
+				"anniversary_year_unknown": 0,
+				"marriage_years": 0,
+			},
 		)
 		if not frappe.flags.in_import:
 			frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")

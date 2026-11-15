@@ -28,6 +28,7 @@ PERSON_FIELDS = [
 	"birth_month",
 	"birth_day",
 	"anniversary",
+	"anniversary_year_unknown",
 	"church",
 ]
 # A user default rather than Frappe's user settings, which wait in the cache for an
