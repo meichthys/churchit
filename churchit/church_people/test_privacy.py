@@ -173,7 +173,8 @@ class TestAnonymizePerson(RollbackEachTest):
 				"reference_name": person.name,
 			}
 		).insert(ignore_permissions=True)
-		self.assertIn("peanuts", frappe.db.get_value("Person", person.name, "_comments"))
+		# Frappe keeps only each comment's name in _comments now, for the list view's comment count.
+		self.assertEqual(len(json.loads(frappe.db.get_value("Person", person.name, "_comments"))), 2)
 
 		anonymize_person(person.name)
 

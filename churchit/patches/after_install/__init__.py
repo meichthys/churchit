@@ -13,6 +13,11 @@ import frappe
 from frappe.permissions import add_permission
 from frappe.utils.global_search import rebuild_for_doctype
 
+from churchit.ai.flow_models import add_privacy_label_field
+from churchit.ai.flow_switch import fill_blocked_knowledge_doctypes
+from churchit.ai.policy import create_how_we_use_ai_page
+from churchit.ai.private_doctypes import fill_private_doctypes
+from churchit.ai.switch import close_mcp_and_tell_system_managers
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
 	create_communication_purposes,
 )
@@ -44,6 +49,7 @@ from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 	create_new_prayer_request_notifications,
 )
+from churchit.church_summary.ai import create_note_type
 from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
 from churchit.church_website.pages import sync_page_switches
 
@@ -145,6 +151,18 @@ def execute():
 	# reads only in the setup wizard, and this site may have run it before churchit was installed.
 	add_to_global_search(get_searched_doctypes())
 
+	# AI starts off: Frappe's MCP server closed (System Managers hear why), the starter
+	# "How We Use AI" page for the church to edit, with Flow a privacy label on each model, and the
+	# recommended doctypes that Flow knowledge may not read, and the doctypes whose records churchit's
+	# own AI features send only to Local or Zero retention models, and the Notification Type that emails
+	# the weekly AI note.
+	close_mcp_and_tell_system_managers()
+	create_how_we_use_ai_page()
+	add_privacy_label_field()
+	fill_blocked_knowledge_doctypes()
+	fill_private_doctypes()
+	create_note_type()
+
 	# Cleanup
 	_clean_gender_options()
 	_hide_default_workspaces()
@@ -188,8 +206,9 @@ ADDRESS_TEMPLATE = """{{ address_line1 }}<br>
 """
 
 
-# Doctypes Frappe's standard-record sync skips: frappe.model.sync.IMPORTABLE_DOCTYPES
-# lists neither, so JSON shipped beside their module never reaches a site.
+# Doctypes Frappe 16's standard-record sync skips (frappe.model.sync.IMPORTABLE_DOCTYPES lists
+# neither), so JSON shipped beside their module never reaches a site. Frappe 17 syncs Letter Head
+# too, so its JSON carries Frappe 17's mandatory letter_head_for and standard.
 UNSYNCED_RECORD_FOLDERS = {
 	"Letter Head": "church_customizations/letter_head",
 	"Email Template": "church_communications/email_template",

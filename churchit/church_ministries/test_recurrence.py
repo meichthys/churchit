@@ -24,6 +24,7 @@ from churchit.tests.helpers import (
 	make_function,
 	make_person,
 	make_two_churches,
+	pop_logs,
 )
 from churchit.tests.test_ics import request_feed, unfold
 from churchit.www.calendar import get_events
@@ -344,7 +345,7 @@ class TestRecurrence(RollbackEachTest):
 			create_scheduled_functions()
 
 		self.assertEqual(occurrences(template), [])
-		self.assertTrue(frappe.db.exists("Error Log", {"reference_name": template.name}))
+		self.assertTrue(pop_logs("Error Log", {"reference_name": template.name}))
 
 	def test_the_recurring_functions_report_names_the_weekday_of_the_month(self):
 		template = self.make_template(

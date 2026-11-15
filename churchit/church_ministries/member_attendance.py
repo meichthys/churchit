@@ -50,8 +50,8 @@ def get_member_choices():
 
 
 @frappe.whitelist(methods=["POST"])
-def change_own_attendance(function: str, attendance_type: str):
-	"""Set the signed-in member's attendance type on one function their Attendance page lists."""
+def change_own_attendance(function: str, attendance_type: str) -> None:
+	"""Set the signed-in member's attendance type on one function their Attendance page lists. Changes data."""
 	if attendance_type not in get_member_choices():
 		frappe.throw(_("You cannot choose {0}.").format(attendance_type), frappe.PermissionError)
 

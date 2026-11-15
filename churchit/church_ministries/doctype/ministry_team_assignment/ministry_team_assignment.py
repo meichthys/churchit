@@ -273,16 +273,19 @@ def send_team_emails() -> int:
 
 @frappe.whitelist(methods=["POST"])
 def send_team_emails_now() -> int:
-	"""Send what the daily job would send next, for the churches the user may see."""
+	"""Send the team requests and reminders the daily job would send next, and count them. Sends messages.
+
+	Only for the churches the user may see.
+	"""
 	frappe.has_permission("Ministry Team Assignment", "create", throw=True)
 	if not (can_send_email() or TeamTexts().is_on):
 		frappe.throw(_("Set up an outgoing Email Account or SMS Settings first."))
 	return send_team_emails()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_team_emails(function: str) -> frappe._dict:
-	"""Email addresses of the people asked to serve at *function* who did not decline, and who has none."""
+	"""The email addresses of *function*'s team, leaving out who declined, and who has none. Reads only."""
 	frappe.has_permission("Function", doc=function, throw=True)
 	assignments = frappe.get_list(
 		"Ministry Team Assignment",

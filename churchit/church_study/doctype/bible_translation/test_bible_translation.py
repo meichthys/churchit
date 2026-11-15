@@ -9,7 +9,7 @@ from frappe.handler import run_doc_method
 from frappe.tests.utils import FrappeTestCase
 
 from churchit import scripture
-from churchit.tests.helpers import ensure_user
+from churchit.tests.helpers import ensure_user, pop_logs
 from churchit.tests.test_scripture import free_use_bible
 
 CHAPTER = [{"type": "verse", "number": 1, "text": "In the beginning."}]
@@ -103,7 +103,7 @@ class TestBibleTranslation(FrappeTestCase):
 		with patch.object(scripture, "download_free_use_bible", side_effect=requests.ConnectionError):
 			doc.download_text()
 		self.assertEqual(frappe.db.get_value("Bible Translation", doc.name, "status"), "Failed")
-		self.assertTrue(frappe.db.exists("Error Log", {"reference_name": doc.name}))
+		self.assertTrue(pop_logs("Error Log", {"reference_name": doc.name}))
 
 	def test_a_queued_download_leaves_a_translation_switched_to_import_alone(self):
 		doc, _enqueue = self.free_translation()

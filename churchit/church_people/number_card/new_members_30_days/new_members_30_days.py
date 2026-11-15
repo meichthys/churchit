@@ -5,8 +5,9 @@ from frappe.utils import add_days, nowdate
 from churchit.church_scope import scoped
 
 
-@frappe.whitelist()
-def get_count():
+@frappe.whitelist(methods=["GET", "POST"])
+def get_count() -> int:
+	"""Number card: the Membership life events of the last 30 days, in the caller's churches. Reads only."""
 	frappe.has_permission("Person", "report", throw=True)
 	Person = frappe.qb.DocType("Person")
 	LifeEvent = frappe.qb.DocType("Life Event")

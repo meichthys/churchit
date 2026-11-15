@@ -76,6 +76,13 @@ class TestReferences(FrappeTestCase):
 		self.assertEqual(scripture.check_reference("jn 3:16; ps 23"), {"reference": "John 3:16; Psalms 23"})
 		self.assertIn("Mark 16 has 20 verses.", scripture.check_reference("Mark 16:21")["problem"])
 
+	def test_a_problem_comes_as_plain_text_and_as_html(self):
+		result = scripture.check_reference("Mark 16:21")
+
+		self.assertNotIn("<", result["problem"])
+		self.assertIn("<", result["problem_html"])
+		self.assertEqual(result["problem"], frappe.utils.strip_html(result["problem_html"]))
+
 	def test_the_outline_has_every_book_with_its_names_and_verse_counts(self):
 		outline = {book["title"]: book for book in scripture.get_reference_outline()}
 

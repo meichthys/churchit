@@ -61,7 +61,11 @@ class BibleMemoryItem(Document):
 		frappe.db.delete("Memory Session", {"bible_memory_item": self.name})
 
 	@frappe.whitelist(methods=["POST"])
-	def record_mistake(self, word_index: int):
+	def record_mistake(self, word_index: int) -> dict:
+		"""Count a mistake on word *word_index* and lower the item's progress. Changes data.
+
+		Only the item's own user may. Returns the new progress and word mistakes.
+		"""
 		self._require_self()
 		mistakes = self._load_word_mistakes()
 		key = str(int(word_index))
@@ -74,7 +78,12 @@ class BibleMemoryItem(Document):
 	@frappe.whitelist(methods=["POST"])
 	def complete_session(
 		self, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
-	):
+	) -> dict:
+		"""Score a finished practice session in *mode* (type or blur), and log it. Changes data.
+
+		Only the item's own user may. Returns the new progress, whether the passage is memorized, and the
+		word mistakes.
+		"""
 		self._require_self()
 		if mode not in ("type", "blur"):
 			frappe.throw(_("Invalid mode for completion"))
@@ -166,8 +175,8 @@ class BibleMemoryItem(Document):
 @frappe.whitelist(methods=["POST"])
 def assign_memory(
 	reference: str, translation: str, users: str | list[str] | None = None, group: str | None = None
-):
-	"""Add a passage to the memory list of each user, and of each group member with a portal login.
+) -> dict:
+	"""Add a passage to the memory lists of *users* and of *group*'s members with a portal login. Changes data.
 
 	Only managers may assign, and a user who already has the passage is skipped.
 	The items made for the group's members keep the group.
@@ -258,8 +267,8 @@ def as_list(value):
 
 
 @frappe.whitelist(methods=["POST"])
-def record_mistake(name: str, word_index: int):
-	"""Module-level wrapper for BibleMemoryItem.record_mistake"""
+def record_mistake(name: str, word_index: int) -> dict:
+	"""Count a mistake on word *word_index* of memory item *name*, for its own user. Changes data."""
 	doc = frappe.get_doc("Bible Memory Item", name)
 	return doc.record_mistake(word_index)
 
@@ -267,7 +276,7 @@ def record_mistake(name: str, word_index: int):
 @frappe.whitelist(methods=["POST"])
 def complete_session(
 	name: str, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
-):
-	"""Module-level wrapper for BibleMemoryItem.complete_session"""
+) -> dict:
+	"""Score a finished practice session of memory item *name*, for its own user. Changes data."""
 	doc = frappe.get_doc("Bible Memory Item", name)
 	return doc.complete_session(mode, mistakes, correct_word_indices)

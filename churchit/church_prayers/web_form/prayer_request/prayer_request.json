@@ -194,7 +194,7 @@
       "max_value": 0,
       "precision": "",
       "read_only": 0,
-      "reqd": 1,
+      "reqd": 0,
       "show_in_filter": 0
     }
   ],

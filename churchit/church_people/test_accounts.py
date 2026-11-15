@@ -11,7 +11,14 @@ from churchit.church_people.accounts import PORTAL, link_portal_user
 from churchit.church_people.doctype.people_settings.people_settings import SHARE_DEFAULTS
 from churchit.church_people.matching import is_paired
 from churchit.church_people.membership import VISITOR
-from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_person,
+	make_two_churches,
+	pop_logs,
+)
 
 MEMBER = "_test_accounts_member@example.com"
 
@@ -54,6 +61,9 @@ class TestPortalAccounts(RollbackEachTest):
 			link_portal_user()
 		finally:
 			frappe.set_user("Administrator")
+
+	def pop_link_errors(self):
+		return pop_logs("Error Log", {"method": ("like", f"%{MEMBER}%")})
 
 	def holder(self, first_name, church, email=MEMBER, last_name="_Test Accounts", **values):
 		return make_person(first_name, last_name, church=church, emails=[{"email_address": email}], **values)
@@ -181,15 +191,17 @@ class TestPortalAccounts(RollbackEachTest):
 			link_portal_user()
 
 	def test_a_link_that_fails_leaves_the_sign_in_alone(self):
+		self.pop_link_errors()
 		with mock.patch(
 			"churchit.church_people.accounts.find_or_add_person", side_effect=frappe.ValidationError
 		):
 			self.sign_in()
 		self.assertIsNone(self.person_of())
-		self.assertTrue(frappe.db.exists("Error Log", {"method": ("like", f"%{MEMBER}%")}))
+		self.assertEqual(len(self.pop_link_errors()), 1)
 
 	def test_any_failure_undoes_the_half_made_link_and_leaves_the_sign_in_alone(self):
 		holder = self.holder("Half Linked", self.branch_a).name
+		self.pop_link_errors()
 
 		def link_then_clash(user):
 			frappe.db.set_value("Person", holder, "user", user)
@@ -199,10 +211,11 @@ class TestPortalAccounts(RollbackEachTest):
 			self.sign_in()
 
 		self.assertIsNone(self.person_of())
-		self.assertTrue(frappe.db.exists("Error Log", {"method": ("like", f"%{MEMBER}%")}))
+		self.assertEqual(len(self.pop_link_errors()), 1)
 
 	def test_a_deadlock_rolls_back_the_transaction_the_database_already_undid(self):
 		"""A deadlock takes the savepoint with it, so rolling back to it would fail the sign-in."""
+		self.pop_link_errors()
 		with (
 			mock.patch(
 				"churchit.church_people.accounts.find_or_add_person", side_effect=frappe.QueryDeadlockError
@@ -212,4 +225,4 @@ class TestPortalAccounts(RollbackEachTest):
 			self.sign_in()
 
 		rollback.assert_called_once_with()
-		self.assertTrue(frappe.db.exists("Error Log", {"method": ("like", f"%{MEMBER}%")}))
+		self.assertEqual(len(self.pop_link_errors()), 1)

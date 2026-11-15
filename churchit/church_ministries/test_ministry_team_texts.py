@@ -29,6 +29,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_team_assignment,
 	make_team_position,
+	pop_logs,
 )
 
 ASSIGNMENT = "Ministry Team Assignment"
@@ -182,9 +183,7 @@ class TestMinistryTeamTexts(RollbackEachTest):
 			self.assertEqual(self.texts(assignment, "request"), [])
 		self.assertIsNotNone(frappe.db.get_value(ASSIGNMENT, reminder.name, "reminded_on"))
 		self.assertTrue(
-			frappe.db.exists(
-				"Error Log", {"reference_doctype": ASSIGNMENT, "reference_name": requests[0].name}
-			)
+			pop_logs("Error Log", {"reference_doctype": ASSIGNMENT, "reference_name": requests[0].name})
 		)
 
 	def test_without_an_email_account_a_person_not_texted_is_not_marked_sent(self):

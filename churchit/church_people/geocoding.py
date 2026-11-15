@@ -70,8 +70,9 @@ def geocode(address: str) -> None:
 
 @frappe.whitelist(methods=["POST"])
 def get_address_coordinates(address: str) -> tuple[float, float] | None:
-	"""(latitude, longitude) of *address* for a form's map pin, looked up first when it has none.
+	"""(latitude, longitude) of *address* for a map pin, looked up and stored when it has none. Changes data.
 
+	A lookup sends the address text to Nominatim, and only while People Settings allows address lookups.
 	None when it has none and address lookups are off, so the form can tell that from a failed lookup.
 	A form asks here rather than asking Nominatim itself, so the setting, the lock and the User-Agent hold.
 	"""

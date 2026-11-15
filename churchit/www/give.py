@@ -90,10 +90,11 @@ def start_donation(
 	email: str | None = None,
 	notes: str | None = None,
 	cover_fee: str | int = 0,
-):
-	"""Create a pending Online Donation and return the payment-gateway URL the
-	browser should redirect to. The gateway calls back into
-	``OnlineDonation.on_payment_authorized`` once the donor pays."""
+) -> str:
+	"""Start a gift: a pending Online Donation and the gateway URL to open. Changes data.
+
+	The gateway calls back into ``OnlineDonation.on_payment_authorized`` once the donor pays.
+	"""
 	settings = frappe.get_cached_doc("Giving Settings")
 	if not settings.enabled:
 		frappe.throw(_("Online giving is currently unavailable."))

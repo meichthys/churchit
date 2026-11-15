@@ -133,6 +133,7 @@ frappe.ready(function () {
 	if (list.dataset.isGuest === "1") return;
 	frappe.call({
 		method: "churchit.church_people.group_api.joinable_public_groups",
+		type: "GET",
 		callback: function (r) {
 			var requested = (r.message || []).filter(function (g) { return g.requested; })
 				.map(function (g) { return g.name; });

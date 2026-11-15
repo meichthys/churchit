@@ -118,7 +118,7 @@ class FormResponse(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def record_refund(self):
-		"""Church Finance: the payment was refunded at the processor."""
+		"""Church Finance: record that the payment was refunded at the processor. Changes data."""
 		frappe.only_for(PAYMENT_RECORDERS)
 		self.reload()
 		self.check_permission("write")
@@ -154,7 +154,7 @@ def refuse_a_closed_form(question_set: str | None) -> None:
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
 def get_form(question_set: str | None = None) -> dict:
-	"""The title and question fields of *question_set* for the form web form, when it is open to the reader."""
+	"""The title, price and questions of *question_set* for the form web form, when it is open to the reader. Reads only."""
 	refuse_a_closed_form(question_set)
 	form = frappe.db.get_value("Question Set", question_set, ["title", "price"], as_dict=True)
 	return {"title": form.title, "price": flt(form.price), "fields": get_fields(question_set)}
@@ -163,7 +163,7 @@ def get_form(question_set: str | None = None) -> dict:
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=10, seconds=60 * 60)
 def pay(response: str) -> str:
-	"""The gateway checkout of a priced form, which the form opens after the save."""
+	"""The gateway checkout address of a priced form, which the form opens after the save. Changes data."""
 	doc = frappe.get_doc("Form Response", response)
 	form = frappe.db.get_value("Question Set", doc.question_set, ["title", "price"], as_dict=True)
 	if doc.payment_status in (PAID, REFUNDED):

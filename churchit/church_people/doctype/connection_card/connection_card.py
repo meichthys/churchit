@@ -16,6 +16,7 @@ from churchit.church_communications.doctype.communication_consent.communication_
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
 from churchit.church_people.derived import BIRTH
+from churchit.church_people.doctype.connection_card_photo.connection_card_photo import PHOTO
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
 from churchit.church_people.doctype.person.person import get_display_name
 from churchit.church_people.family_relations import ROLE_OF_TYPE, ROLE_TYPES
@@ -43,9 +44,18 @@ class ConnectionCard(Document):
 	def validate(self):
 		self.full_name = get_display_name(self.first_name, self.last_name)
 		self.keep_only_a_published_church()
+		if self.is_new() and self.card_photo:
+			frappe.get_doc(PHOTO, self.card_photo, for_update=True).check_can_import()
 
 	def after_insert(self):
+		if self.card_photo:
+			frappe.get_doc(PHOTO, self.card_photo).mark_imported(self.name)
 		frappe.enqueue_doc(self.doctype, self.name, "process", enqueue_after_commit=True)
+
+	def on_trash(self):
+		"""The photo of the paper card goes with the card, so removing a person's data removes it too."""
+		if self.card_photo and frappe.db.exists(PHOTO, self.card_photo):
+			frappe.delete_doc(PHOTO, self.card_photo, ignore_permissions=True, delete_permanently=True)
 
 	def keep_only_a_published_church(self):
 		"""Keep the church the web form carried from the page's address only when it names a published church.

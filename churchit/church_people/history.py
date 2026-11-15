@@ -186,4 +186,5 @@ def make_card(
 		"content": frappe.render_template(  # nosemgrep: frappe-ssti
 			CARD_TEMPLATE, context
 		),
+		"url": url,
 	}

@@ -11,7 +11,7 @@ from frappe.utils import cstr, get_link_to_form, today
 from churchit.church_communications import newsletter
 from churchit.church_foundations import church_access
 from churchit.church_ministries.attendance import COUNTED_TYPES
-from churchit.church_people import events, followup, matching, membership, summaries
+from churchit.church_people import events, followup, household, matching, membership, summaries
 from churchit.church_people.derived import BIRTH, DEATH, sync_derived, years_since
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
@@ -78,8 +78,12 @@ def get_display_name(first_name, last_name=None, nickname=None, suffix=None) -> 
 
 class Person(Document):
 	def onload(self):
+		# opt_outs reads churchit.church_people.privacy, which imports this module.
+		from churchit.ai.opt_outs import get_staff_ai_state
+
 		self.set_onload("is_primary_contact", self.is_primary_contact)
 		self.set_onload("has_unsubscribed", newsletter.has_unsubscribed(self))
+		self.set_onload("ai_state", get_staff_ai_state(self.church))
 
 	def on_update(self):
 		self.sync_church_permission()
@@ -336,6 +340,7 @@ class Person(Document):
 
 	def validate(self):
 		refuse_member_edits_beyond_personal_details(self)
+		self.refuse_clearing_another_ai_opt_out()
 		self.refuse_linking_another_login()
 		self.take_imported_email_and_phone()
 		# Normalise the emails / phones / addresses tables before anything else
@@ -348,6 +353,22 @@ class Person(Document):
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
 		self.validate_relationships()
+
+	def refuse_clearing_another_ai_opt_out(self):
+		"""Only the person, a parent of a child (household.can_edit) or a System Manager clears the person's
+		Keep Out of Churchit's AI Features; anyone who may change the person can tick it."""
+		before = self.get_doc_before_save()
+		if self.exclude_from_ai or not (before and before.exclude_from_ai):
+			return
+		user = frappe.session.user
+		if "System Manager" in frappe.get_roles(user) or household.can_edit(user, self.name):
+			return
+		frappe.throw(
+			_("Only the person, a parent of a child, or a System Manager can clear {0}.").format(
+				_(self.meta.get_label("exclude_from_ai"))
+			),
+			frappe.PermissionError,
+		)
 
 	def take_imported_email_and_phone(self):
 		"""Make an email or phone from a Data Import's Email or Phone column the primary row of its table.
@@ -575,7 +596,8 @@ class Person(Document):
 			frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")
 
 	@frappe.whitelist(methods=["POST"])
-	def new_family_from_person(self):
+	def new_family_from_person(self) -> None:
+		"""Put this person in a new Family named after their household, or in that Family if it exists. Changes data."""
 		# The saved record, not the copy the browser sent, which the save below checks.
 		frappe.get_doc(self.doctype, self.name).check_permission("write")
 		# Check if a family with this person's name already exists in the person's own church
@@ -606,14 +628,18 @@ class Person(Document):
 		frappe.msgprint(f"👨‍👩‍👧‍👦 New family created: {family_link}")
 
 	@frappe.whitelist(methods=["POST"])
-	def resubscribe_to_church_emails(self):
-		"""Undo an unsubscribe for someone who asked the office, since only a portal login can do it otherwise."""
+	def resubscribe_to_church_emails(self) -> None:
+		"""Undo this person's unsubscribe from Church Emails, when they ask the office. Changes data.
+
+		Otherwise only the person's own portal login can do it.
+		"""
 		person = frappe.get_doc(self.doctype, self.name)  # the saved record, not the copy the browser sent
 		person.check_permission("write")
 		newsletter.resubscribe(person)
 
 	@frappe.whitelist(methods=["POST"])
-	def invite_to_portal(self):
+	def invite_to_portal(self) -> None:
+		"""Give this person a portal login with a welcome email, or link the login their email has. Sends messages."""
 		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
 		# Block invitation if outgoing email is not configured

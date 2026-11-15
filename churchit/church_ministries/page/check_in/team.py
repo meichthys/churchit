@@ -8,9 +8,12 @@ import frappe
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import ACCEPTED
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_team(function: str) -> list[dict]:
-	"""The people with an Accepted assignment at *function*, their position, and whether they are checked in."""
+	"""The people serving at *function*, their positions, and whether each is checked in. Reads only.
+
+	Serving means an Accepted assignment.
+	"""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	frappe.has_permission("Function", doc=function, throw=True)
 	# church-scope: keyed to one Function the caller may read; Church Check-In has no DocPerm on assignments

@@ -6,5 +6,11 @@ frappe.ui.form.on("Church", {
 		if (frm.doc.publish) {
 			frm.set_intro("🌐 This church is published to the public website", "blue");
 		}
+
+		// Whether AI is in use, under Keep This Church Away From AI (churchit.ai.opt_outs).
+		const ai_state = frm.doc.__onload?.ai_state;
+		frm.get_field("ai_status").$wrapper.html(
+			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
+		);
 	},
 });

@@ -28,7 +28,8 @@
    "fieldtype": "Link",
    "label": "Person",
    "options": "Person",
-   "reqd": 1
+   "reqd": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -130,7 +131,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-31 13:12:40.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",

@@ -57,7 +57,7 @@ def get_public_key() -> str | None:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=20, seconds=60 * 60)
 def subscribe(subscription: str | dict) -> None:
-	"""Keep the browser *subscription* (PushSubscription.toJSON()) for the signed-in user.
+	"""Keep the browser *subscription* (PushSubscription.toJSON()) for the signed-in user. Changes data.
 
 	One row per endpoint. An endpoint is one browser, so a row made by another user who signed in
 	on the same browser moves to whoever is signed in now. A user keeps at most MAX_BROWSERS rows.
@@ -94,7 +94,10 @@ def subscribe(subscription: str | dict) -> None:
 
 @frappe.whitelist(methods=["POST"])
 def unsubscribe(endpoint: str) -> None:
-	"""Delete the signed-in user's subscription of *endpoint*. Another user's row is left alone."""
+	"""Delete the signed-in user's subscription of *endpoint*. Changes data.
+
+	Another user's row is left alone.
+	"""
 	for name in frappe.get_all(
 		SUBSCRIPTION, filters={"endpoint": endpoint, "user": frappe.session.user}, pluck="name"
 	):

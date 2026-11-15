@@ -89,7 +89,10 @@ def refresh_started_totals():
 
 @frappe.whitelist(methods=["POST"])
 def set_headcount(function: str, headcount: int) -> int:
-	"""Station: store the people counted in *function*'s room, named or not. Returns the new total."""
+	"""Store the headcount the station took in *function*'s room, and return the new total. Changes data.
+
+	The headcount counts everyone in the room, named or not.
+	"""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	frappe.has_permission("Function", "read", doc=function, throw=True)
 	headcount = cint(headcount)

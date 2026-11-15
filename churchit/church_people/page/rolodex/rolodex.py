@@ -35,9 +35,9 @@ PERSON_FIELDS = [
 SETTINGS_DEFAULT = "rolodex_settings"
 
 
-@frappe.whitelist()
-def get_directory():
-	"""Every living person and family the reader may see, what their cards show, and the filter choices.
+@frappe.whitelist(methods=["GET"])
+def get_directory() -> dict:
+	"""The Rolodex: every living person and family the caller may see, their cards and the filter choices. Reads only.
 
 	`frappe.get_list` applies the reader's churches and the directory privacy
 	setting. Child tables carry no church, so they are read only for those people.
@@ -74,8 +74,8 @@ def get_directory():
 
 
 @frappe.whitelist(methods=["POST"])
-def save_settings(saved: str | list[str], view: str, filters_open: bool | str):
-	"""Keep the reader's saved cards and layout, on every device they sign in from."""
+def save_settings(saved: str | list[str], view: str, filters_open: bool | str) -> None:
+	"""Keep the caller's saved Rolodex cards and layout, on every device they sign in from. Changes data."""
 	settings = {"saved": list(frappe.parse_json(saved)), "view": view, "filters_open": sbool(filters_open)}
 	frappe.defaults.set_user_default(SETTINGS_DEFAULT, json.dumps(settings))
 

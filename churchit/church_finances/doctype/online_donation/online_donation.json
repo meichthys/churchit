@@ -89,7 +89,8 @@
   {
    "fieldname": "donor_name",
    "fieldtype": "Data",
-   "label": "Donor Name"
+   "label": "Donor Name",
+   "width": "220px"
   },
   {
    "fieldname": "email",
@@ -156,7 +157,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 13:36:17.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Online Donation",

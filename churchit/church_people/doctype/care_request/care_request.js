@@ -2,6 +2,9 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Care Request", {
+	refresh(frm) {
+		add_suggestion_buttons(frm);
+	},
 	person(frm) {
 		if (!frm.doc.person || frm.doc.caregiver) return;
 		// If the person has a current care assignment, pre-fill Caregiver
@@ -24,3 +27,23 @@ frappe.ui.form.on("Care Request", {
 			});
 	},
 });
+
+// AI's suggestion (churchit.ai.triage), for Pastoral Care and Church Managers. A Use button fills the
+// form unsaved: the person checks it and saves. AI itself never changes the request or assigns it.
+function add_suggestion_buttons(frm) {
+	churchit.ai.show_suggestion(frm, (suggestion) => ({
+		rows: [
+			[__("Suggested Category"), suggestion.suggested_type],
+			[__("Suggested Urgency"), suggestion.suggested_urgency],
+		],
+		uses: [
+			["category", suggestion.suggested_type, __("Use Category")],
+			["urgency", suggestion.suggested_urgency, __("Use Urgency")],
+		]
+			.filter(([fieldname, value]) => value && value !== frm.doc[fieldname])
+			.map(([fieldname, value, label]) => [label, () => frm.set_value(fieldname, value)]),
+		note: __(
+			"AI suggests and never replies or assigns. Use a suggestion only after you check it."
+		),
+	}));
+}

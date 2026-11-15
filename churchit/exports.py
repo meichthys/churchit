@@ -20,8 +20,11 @@ def download_template(
 	export_records: str | None = None,
 	export_filters: str | dict | list | None = None,
 	file_type: str = "CSV",
-):
-	"""override_whitelisted_methods for Data Import's export: Frappe's own, logged when it carries records."""
+) -> None:
+	"""Data Import's Export Data file, Frappe's own, logged in Access Log when it holds records. Reads only.
+
+	It replaces Frappe's `download_template` (override_whitelisted_methods).
+	"""
 	data_import.download_template(doctype, export_fields, export_records, export_filters, file_type)
 	if export_records != "blank_template":
 		make_access_log(doctype=doctype, file_type=file_type, method="Export Data", filters=export_filters)

@@ -198,7 +198,7 @@ class CheckInStation {
 	}
 
 	load_context() {
-		frappe.call({ method: `${API}.get_station_context` }).then((r) => {
+		frappe.call({ method: `${API}.get_station_context`, type: "GET" }).then((r) => {
 			this.context = r.message;
 			this.apply_route_options();
 		});
@@ -302,6 +302,7 @@ class CheckInStation {
 		frappe
 			.call({
 				method: `${API}.search_people`,
+				type: "GET",
 				args: { query, function: this.function },
 			})
 			.then((r) => {
@@ -358,6 +359,7 @@ class CheckInStation {
 		frappe
 			.call({
 				method: `${API}.find_card_holder`,
+				type: "GET",
 				args: { person, function: this.function },
 			})
 			.then((r) => {
@@ -516,6 +518,7 @@ class CheckInStation {
 		return frappe
 			.call({
 				method: "churchit.church_ministries.check_in_limits.get_bound_problems",
+				type: "GET",
 				args: { function: this.function, persons },
 			})
 			.then((r) => {
@@ -575,20 +578,22 @@ class CheckInStation {
 		const name = this.function;
 		if (!name) return Promise.resolve();
 		const args = { function: name };
-		return frappe.call({ method: `${API}.get_check_ins`, args, silent }).then((r) => {
-			const rows = r.message || [];
-			// A poll that finds no change leaves the page alone, so a tap in progress is not lost.
-			if (
-				name !== this.function ||
-				JSON.stringify(rows) === JSON.stringify(this.roster_rows)
-			)
-				return;
-			this.roster_rows = rows;
-			this.checked_in = new Set(rows.map((row) => row.person));
-			this.$body.find(".roster-count").text(rows.length);
-			this.render_roster();
-			this.render_results();
-		});
+		return frappe
+			.call({ method: `${API}.get_check_ins`, type: "GET", args, silent })
+			.then((r) => {
+				const rows = r.message || [];
+				// A poll that finds no change leaves the page alone, so a tap in progress is not lost.
+				if (
+					name !== this.function ||
+					JSON.stringify(rows) === JSON.stringify(this.roster_rows)
+				)
+					return;
+				this.roster_rows = rows;
+				this.checked_in = new Set(rows.map((row) => row.person));
+				this.$body.find(".roster-count").text(rows.length);
+				this.render_roster();
+				this.render_results();
+			});
 	}
 
 	render_roster() {
@@ -647,6 +652,7 @@ class CheckInStation {
 		frappe
 			.call({
 				method: "churchit.church_ministries.check_in_limits.get_rooms",
+				type: "GET",
 				args: { function: name },
 			})
 			.then((r) => {
@@ -726,6 +732,7 @@ class CheckInStation {
 		frappe
 			.call({
 				method: "churchit.church_ministries.page.check_in.team.get_team",
+				type: "GET",
 				args: { function: this.function },
 			})
 			.then((r) => {
@@ -797,10 +804,12 @@ class CheckInStation {
 	}
 
 	show_pickup(dialog, code) {
-		return frappe.call({ method: `${API}.get_pickup_families`, args: { code } }).then((r) => {
-			this.render_pickup(dialog, code, r.message || []);
-			dialog.fields_dict.code.$input.trigger("select");
-		});
+		return frappe
+			.call({ method: `${API}.get_pickup_families`, type: "GET", args: { code } })
+			.then((r) => {
+				this.render_pickup(dialog, code, r.message || []);
+				dialog.fields_dict.code.$input.trigger("select");
+			});
 	}
 
 	render_pickup(dialog, code, families) {
@@ -1021,6 +1030,7 @@ class CheckInStation {
 				frappe
 					.call({
 						method: "churchit.church_ministries.page.check_in.visitors.find_visitor_matches",
+						type: "GET",
 						args: {
 							function: this.function,
 							first_name: values.first_name,

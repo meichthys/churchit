@@ -73,7 +73,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Title",
-   "reqd": 1
+   "reqd": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -206,7 +207,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-11-03 01:33:46.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Task",

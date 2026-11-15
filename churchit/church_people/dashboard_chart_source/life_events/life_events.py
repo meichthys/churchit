@@ -8,7 +8,7 @@ from churchit.church_scope import scoped
 from churchit.dashboard import bucket_label, time_buckets
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get(
 	chart_name: str | None = None,
 	chart: str | dict | None = None,
@@ -19,8 +19,8 @@ def get(
 	timespan: str | None = None,
 	time_interval: str | None = None,
 	**kwargs,
-):
-	"""Count of one Life Event type per period, limited to people the user may see.
+) -> dict:
+	"""Dashboard chart data: the Life Events of one type per period, of people the caller may see. Reads only.
 
 	The event type comes from the chart's own filters, so one source serves
 	the baptism and membership charts alike. The period is the one the user

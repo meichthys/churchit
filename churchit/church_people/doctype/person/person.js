@@ -29,6 +29,12 @@ frappe.ui.form.on("Person", {
 			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");
 		}
 
+		// Whether AI is in use, under Keep Out of Churchit's AI Features (churchit.ai.opt_outs).
+		const ai_state = frm.doc.__onload?.ai_state;
+		frm.get_field("ai_status").$wrapper.html(
+			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
+		);
+
 		if (!frm.is_new()) {
 			add_actions(frm);
 			show_background_check_status(frm);
@@ -98,7 +104,8 @@ function show_background_check_status(frm) {
 function show_alert_notes(frm) {
 	if (!frappe.model.can_read("Person Note")) return;
 	const person = frm.doc.name;
-	frappe.xcall("churchit.church_people.notes.get_alert_notes", { person }).then((notes) => {
+	const method = "churchit.church_people.notes.get_alert_notes";
+	frappe.xcall(method, { person }, "GET").then((notes) => {
 		if (!notes.length || frm.doc.name !== person) return;
 		const lines = notes.map((note) => {
 			const category = frappe.utils.escape_html(__(note.category));
@@ -210,7 +217,7 @@ const check_for_possible_matches = frappe.utils.debounce((frm) => {
 		return;
 	}
 	frappe
-		.xcall("churchit.church_people.matching.get_possible_matches", { candidate })
+		.xcall("churchit.church_people.matching.get_possible_matches", { candidate }, "GET")
 		.then((matches) => {
 			if (frm.is_new()) frm.set_intro(possible_matches_note(matches), "yellow");
 		});
@@ -243,6 +250,13 @@ frappe.ui.form.on("Email Address", {
 frappe.ui.form.on("Phone Number", {
 	phone_number: check_for_possible_matches,
 	phones_remove: check_for_possible_matches,
+});
+
+// Set on the form, not as a field default: the server would fill a cleared date back in.
+frappe.ui.form.on("Position", {
+	positions_add(frm, cdt, cdn) {
+		frappe.model.set_value(cdt, cdn, "start_date", frappe.datetime.get_today());
+	},
 });
 
 // A merge deletes this person, so it needs the right to delete.

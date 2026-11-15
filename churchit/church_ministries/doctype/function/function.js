@@ -32,6 +32,7 @@ frappe.ui.form.on("Function", {
 					}
 					frappe.call({
 						method: "churchit.church_ministries.doctype.function.function.apply_template",
+						type: "GET",
 						args: {
 							source_name: r.message.template_function,
 							start_date: frm.doc.start_date,
@@ -156,7 +157,8 @@ function email_the_team(frm) {
 	frappe
 		.xcall(
 			"churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment.get_team_emails",
-			{ function: frm.doc.name }
+			{ function: frm.doc.name },
+			"GET"
 		)
 		.then(({ emails, without_email }) => {
 			if (without_email.length) {
@@ -324,6 +326,7 @@ function populate_signed_up_totals(frm) {
 	if (frm.is_new() || !frm.doc.name || !(frm.doc.table_cxhh || []).length) return;
 	frappe.call({
 		method: "churchit.church_ministries.doctype.function_sign_up.function_sign_up.get_function_item_totals",
+		type: "GET",
 		args: { function: frm.doc.name },
 		callback: function (r) {
 			if (!r.message) return;
@@ -391,4 +394,68 @@ function show_freely_given_hint(frm) {
 		frm.refresh_field("discounts");
 		frm.save();
 	});
+}
+
+// Suggest Songs (church_ministries/ai.py suggest_songs): the AI picks songs from the church's own list;
+// the ticked ones are added to the schedule unsaved.
+frappe.ui.form.on("Function", {
+	refresh(frm) {
+		if (frm.is_new() || !frm.has_perm("write") || !churchit.ai.can_run()) return;
+		frm.add_custom_button(
+			__("Suggest Songs"),
+			() => suggest_function_songs(frm),
+			__("Actions")
+		);
+	},
+});
+
+function suggest_function_songs(frm) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(
+			__("Save the function first, so the AI reads the sermon on its schedule.")
+		);
+		return;
+	}
+	const dialog = churchit.ai.run_action({
+		title: __("Suggest Songs"),
+		method: "churchit.church_ministries.ai.suggest_songs",
+		args: { function: frm.doc.name },
+		render: render_song_suggestions,
+		on_use: (result) => add_suggested_songs(frm, result, dialog),
+		use_label: __("Add"),
+	});
+}
+
+function render_song_suggestions({ songs }) {
+	const escape = churchit.ai.escape;
+	const rows = songs
+		.map(
+			(song, index) => `<tr>
+				<td><input type="checkbox" class="song-suggestion" data-index="${index}" checked></td>
+				<td>${escape(song.title)}</td>
+				<td>${escape(song.default_key)}</td>
+				<td>${escape(song.last_used ? frappe.datetime.str_to_user(song.last_used) : __("Not lately"))}</td>
+			</tr>`
+		)
+		.join("");
+	return `<table class="table table-sm small"><thead><tr><th></th>
+			<th>${escape(__("Song"))}</th><th>${escape(__("Key"))}</th><th>${escape(__("Last Used"))}</th>
+		</tr></thead><tbody>${rows}</tbody></table>
+		<p class="text-muted small">${escape(
+			__("Add puts the ticked songs on the schedule. Save the function to keep them.")
+		)}</p>`;
+}
+
+function add_suggested_songs(frm, { function: name, songs }, dialog) {
+	if (name !== frm.doc.name) return;
+	const ticked = dialog.$wrapper.find(".song-suggestion:checked").toArray();
+	for (const box of ticked) {
+		const song = songs[Number(box.dataset.index)];
+		frm.add_child("schedule", {
+			item_type: "Song",
+			item: song.name,
+			song_key: song.default_key,
+		});
+	}
+	frm.refresh_field("schedule");
 }

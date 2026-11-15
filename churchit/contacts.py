@@ -418,10 +418,15 @@ def stop_sharing_from(doctype: str, name: str) -> None:
 		)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @frappe.validate_and_sanitize_search_inputs
-def search_holders(doctype, txt, searchfield, start, page_len, filters):
-	"""Link search for Shared From: the records the user may read that already hold the row's value."""
+def search_holders(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict
+) -> list:
+	"""Link search for Shared From: the records the caller may read that already hold the row's value. Reads only.
+
+	*filters* names the row's `child_doctype`, its `value` and the record being edited (`parent`).
+	"""
 	value_field = UNIQUE_VALUE_FIELDS.get(filters.get("child_doctype"))
 	if doctype not in CONTACT_PARENTS or not value_field:
 		frappe.throw(_("Shared From can only search records that carry emails and phones"))
@@ -504,12 +509,12 @@ def _ensure_single_flag(rows, flag, flagged_before, default_to_first):
 # ---------------------------------------------------------------------------
 
 
-@frappe.whitelist()
-def get_emails_for(parenttype: str, parents: str | list[str]):
-	"""Return ``{"emails": [...], "missing": [...]}`` for a set of records.
+@frappe.whitelist(methods=["GET", "POST"])
+def get_emails_for(parenttype: str, parents: str | list[str]) -> dict:
+	"""The primary emails of *parents*, records the caller may read, and the names of those with none. Reads only.
 
-	Used by the Group form's "Email Members" action, which needs a mailto list
-	plus the names of anyone it had to leave out.
+	Returns ``{"emails": [...], "missing": [...]}``. Used by the Group form's "Email Members" action, which
+	needs a mailto list plus the names of anyone it had to leave out.
 	"""
 	if parenttype not in CONTACT_PARENTS:
 		frappe.throw(_("{0} does not carry contact tables").format(parenttype))

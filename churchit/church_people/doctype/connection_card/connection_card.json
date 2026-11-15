@@ -29,7 +29,8 @@
   "section_break_processing",
   "status",
   "column_break_processing",
-  "processed_on"
+  "processed_on",
+  "card_photo"
  ],
  "fields": [
   {
@@ -181,11 +182,21 @@
    "label": "Processed On",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "card_photo",
+   "description": "The photo of the paper card that AI read this card from.",
+   "fieldname": "card_photo",
+   "fieldtype": "Link",
+   "label": "Card Photo",
+   "no_copy": 1,
+   "options": "Connection Card Photo",
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-31 13:13:40.000000",
+ "modified": "2026-11-10 07:50:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Connection Card",
@@ -219,6 +230,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "delete": 1,
    "email": 1,
    "print": 1,

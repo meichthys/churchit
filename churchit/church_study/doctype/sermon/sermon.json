@@ -21,6 +21,7 @@
   "publish",
   "section_break_zozg",
   "notes",
+  "transcript",
   "recording_section",
   "audio_recording",
   "column_break_recording",
@@ -38,7 +39,8 @@
    "in_list_view": 1,
    "label": "Title",
    "reqd": 1,
-   "unique": 1
+   "unique": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!doc.is_shared && !(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -148,6 +150,13 @@
    "max_height": "20rem"
   },
   {
+   "description": "It is not published. When AI is on, the study helpers read it.",
+   "fieldname": "transcript",
+   "fieldtype": "Long Text",
+   "label": "Transcript",
+   "max_height": "12rem"
+  },
+  {
    "fieldname": "column_break_wnxx",
    "fieldtype": "Column Break"
   },
@@ -183,7 +192,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-03 01:33:46.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon",

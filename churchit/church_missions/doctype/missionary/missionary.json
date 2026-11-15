@@ -110,7 +110,8 @@
    "in_global_search": 1,
    "label": "Title",
    "reqd": 1,
-   "unique": 1
+   "unique": 1,
+   "width": "220px"
   },
   {
    "default": "Active",
@@ -311,7 +312,7 @@
    "link_fieldname": "missionary"
   }
  ],
- "modified": "2026-11-02 23:15:00.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",

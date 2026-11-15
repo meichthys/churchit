@@ -121,10 +121,11 @@ def calendar_text(value: str) -> str:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=300, seconds=60 * 60)
-def get_public_calendar(ministry: str | None = None):
-	"""The selected church's published Functions over the /calendar window, as a calendar feed.
+def get_public_calendar(ministry: str | None = None) -> Response:
+	"""The selected church's published Functions over the /calendar window, as an iCalendar feed. Reads only.
 
-	The church comes from ``?church=``. A ``?ministry=`` that is not published gives an empty calendar.
+	Anyone may read it, guests included. The church comes from ``?church=``. A ``?ministry=`` that is
+	not published gives an empty calendar.
 	"""
 	church = selected_church_name()
 	today = getdate()

@@ -125,6 +125,36 @@ docker compose logs -f migrate  # shows "Installing optional app: payments"
 
 Then set up a payment gateway as the Finances manual tells (Online giving). Removing an app from `EXTRA_APPS` does not uninstall it.
 
+## Flow server for AI (optional)
+
+Flow, the AI agents of Frappe, needs one more process, the Flow server. The `flow` profile in `docker-compose.yml` starts it. The profile is off by default. AI stays off in Churchit until a manager turns it on in Church AI Settings.
+
+The default image uses Frappe 16, which has no Flow. Churchit does not publish an image with Flow yet. Use the profile only with an image that you build on a Frappe version with Flow.
+
+To turn it on, do these steps in `~/churchit`:
+
+1. In `.env`, set `IMAGE` and `TAG` to an image that has Frappe with Flow.
+2. Add the line `COMPOSE_PROFILES=flow` to `.env`. A newer `.env` has this line with a `#` in front of it: remove the `#`.
+3. Run `docker compose up -d`.
+
+To check the Flow server, run these commands:
+
+```bash
+docker compose ps flow-server                          # the state of the container
+docker compose exec backend bench flow-server status   # "flow server running on ..." and your site name
+docker compose logs -f flow-server                     # the log of the Flow server
+```
+
+If `flow-server` restarts all the time and its log says `No such command: flow-server`, the image has no Flow. Use an image with Flow, or turn the profile off.
+
+To restart the Flow server, run `docker compose restart flow-server`. Docker also starts it again if it crashes.
+
+To turn it off, delete the `COMPOSE_PROFILES` line from `.env`. Then run `docker compose rm -sf flow-server flow-configurator`. Deleting the line alone does not stop a Flow server that already runs.
+
+The Flow server has no network port. The backend and the workers reach it through a unix socket in the `flow-server` volume, which Docker keeps in memory. The `flow-configurator` service sets two keys in `common_site_config.json`. `flow_server_manager` is `supervisor`, so Flow does not start a Flow server of its own. `flow_server_url` is `http://backend:8000`, the address where the Flow server calls the backend.
+
+The Flow server calls the AI model from inside its container. A model on the same machine, such as Ollama, must listen on an address that the container can reach. `localhost` does not work, because inside the container it is the container itself.
+
 ## Making Churchit reachable from the internet
 
 By default Churchit runs locally (`http://churchit.localhost`). To let people
@@ -226,7 +256,7 @@ To also remove the downloaded docker images, you can run `docker image prune -a`
 | File | Purpose |
 |---|---|
 | `setup.sh` | One-command installer for Linux, macOS, and Windows (via WSL). |
-| `docker-compose.yml` | The full docker stack: app, workers, MariaDB, Redis, Caddy. |
+| `docker-compose.yml` | The full docker stack: app, workers, MariaDB, Redis, Caddy, and the optional Flow server. |
 | `Caddyfile` | Reverse proxy + automatic HTTPS. |
-| `.env.example` | Settings template (domain, passwords, image tag, optional apps). |
+| `.env.example` | Settings template (domain, passwords, image tag, optional apps, the Flow profile). |
 | `apps.json` | App list baked into the image (churchit and the optional apps). |

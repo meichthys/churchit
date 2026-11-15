@@ -38,6 +38,7 @@ function fill_defaults(frm, { sections }) {
 	frappe
 		.call({
 			method: "churchit.church_communications.doctype.bulletin.bulletin.get_defaults",
+			type: "GET",
 			args: { function: frm.doc.function },
 		})
 		.then((r) => {

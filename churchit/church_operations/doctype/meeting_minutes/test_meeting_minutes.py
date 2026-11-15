@@ -29,3 +29,8 @@ class TestMeetingMinutes(FrappeTestCase):
 		doc = self.minutes().insert()
 		self.addCleanup(doc.delete)
 		self.assertFalse(doc.audio_recording)
+
+	def test_minutes_are_numbered_from_mm_and_not_the_month(self):
+		doc = self.minutes().insert()
+		self.addCleanup(doc.delete)
+		self.assertRegex(doc.name, r"^MM-\d{4}$")

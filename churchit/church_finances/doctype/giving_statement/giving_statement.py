@@ -266,7 +266,7 @@ def household_recipient(family, fallback):
 
 @frappe.whitelist(methods=["POST"])
 def generate_statements(from_date: str, to_date: str):
-	"""Create a statement for every giver in the period. Returns how many were made.
+	"""Create a statement for every giver in the period, and return how many were made or rebuilt. Changes data.
 
 	Re-running is safe: a statement already covering the same period for the same
 	recipient is rebuilt rather than duplicated.
@@ -303,7 +303,7 @@ def generate_statements(from_date: str, to_date: str):
 
 @frappe.whitelist(methods=["POST"])
 def email_statements(from_date: str, to_date: str, resend: bool = False) -> int:
-	"""Queue an email of every statement for the period that the user can read. Returns how many.
+	"""Queue an email of every statement for the period that the user can read, and return how many. Sends messages.
 
 	The job skips a statement with no email, and one already emailed unless *resend* is set.
 	"""

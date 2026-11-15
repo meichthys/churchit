@@ -18,7 +18,7 @@ from pywebpush import WebPushException
 
 from churchit.church_communications import push
 from churchit.church_communications.doctype.push_settings.push_settings import generate_keys
-from churchit.tests.helpers import RollbackEachTest, ensure_user
+from churchit.tests.helpers import RollbackEachTest, ensure_user, pop_logs
 
 SUBSCRIPTION = "Push Subscription"
 MEMBER = "_test_push_member@example.com"
@@ -95,11 +95,10 @@ class TestSendPush(PushTestCase):
 		return sent, webpush
 
 	def pop_error_log(self, subscription: str) -> list[str]:
-		"""The Error Log text about *subscription*, deleted: Error Log is MyISAM, so a rollback keeps it."""
-		filters = {"reference_doctype": SUBSCRIPTION, "reference_name": subscription}
-		log = frappe.get_all("Error Log", filters=filters, pluck="error")
-		frappe.db.delete("Error Log", filters)
-		return log
+		"""The Error Log text about *subscription*, deleted."""
+		return pop_logs(
+			"Error Log", {"reference_doctype": SUBSCRIPTION, "reference_name": subscription}, "error"
+		)
 
 	def test_one_push_per_subscription_of_the_user(self):
 		self.subscribe_as(MEMBER, "phone")

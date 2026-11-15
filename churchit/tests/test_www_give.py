@@ -199,7 +199,8 @@ class TestGivePage(FrappeTestCase):
 		gateway = {"payment_gateway": self.gateway, "fee_percent": 2.9, "fee_fixed": 0.30}
 		self._configure(gateways=[{**gateway, "offer_fee_cover": offer_fee_cover}])
 		frappe.set_user("Guest")
-		frappe.local.request = frappe._dict(method="POST")
+		# get_url reads the request's headers, which a real request always has.
+		frappe.local.request = frappe._dict(method="POST", headers={})
 		self.addCleanup(delattr, frappe.local, "request")
 		frappe.local.form_dict = frappe._dict(
 			amount=100,

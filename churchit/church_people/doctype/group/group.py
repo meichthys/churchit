@@ -51,8 +51,8 @@ class Group(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def add_people(group: str, people: str | list[str], group_role: str | None = None):
-	"""Add *people* to a Group, skipping anyone already in it."""
+def add_people(group: str, people: str | list[str], group_role: str | None = None) -> dict:
+	"""Add *people* to a Group, skipping anyone already in it, and count both. Changes data."""
 	doc = frappe.get_doc("Group", group)
 	doc.check_permission("write")
 	people = list(dict.fromkeys(frappe.parse_json(people)))

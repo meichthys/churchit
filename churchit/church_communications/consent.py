@@ -226,9 +226,12 @@ def consent_renewal_link(doc) -> str:
 	return get_url(f"{RENEW_METHOD}?{get_signed_params({'person': doc.person})}")
 
 
-@frappe.whitelist(allow_guest=True)
-def renew_consent(person: str, **signed_params):
-	"""The "Yes, keep in touch" link: say yes again to everything the person allows by email."""
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def renew_consent(person: str, **signed_params) -> None:
+	"""The "Yes, keep in touch" link: say yes again to everything the person allows by email. Changes data.
+
+	Only the signed link of the Consent Renewal email works, opened with GET as a mail client opens it.
+	"""
 	if not frappe.in_test and not verify_request():
 		return
 

@@ -7,6 +7,9 @@ app_license = "mit"
 app_logo_url = "/assets/churchit/media/church_logo.png"
 develop_version = "develop"
 
+# Frappe's method discovery shows agents the source of churchit's whitelisted methods (A0.3).
+expose_discovery_source = True
+
 update_website_context = "churchit.church_website.context.update_website_context"
 before_request = ["churchit.church_website.context.before_request"]
 
@@ -46,7 +49,7 @@ fixtures = [
 	# every migrate, so they have to be re-applied alongside it.
 	{
 		"dt": "Custom HTML Block",
-		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview"]]],
+		"filters": [["name", "in", ["MissionaryMap", "ModuleShortcuts", "WebsitePreview", "WeeklyAINote"]]],
 	},
 ]
 # Apps
@@ -77,6 +80,10 @@ app_include_js = [
 	"/assets/churchit/js/questions.js",
 	"/assets/churchit/js/merge_choices.js",
 	"/assets/churchit/js/pwa.js",
+	"/assets/churchit/js/ai_drafts.js",
+	"/assets/churchit/js/ai_actions.js",
+	"/assets/churchit/js/ai_writing.js",
+	"/assets/churchit/js/ai_people.js",
 ]
 
 # include js, css files in header of web template
@@ -107,6 +114,8 @@ doctype_js = {
 	"Website Settings": "public/js/website_settings.js",
 	# A QR code of a web form's address, to print on a bulletin or a welcome card.
 	"Web Form": "public/js/web_form_qr.js",
+	# Translate with AI: a draft translation of a public page, for a fluent person to check.
+	"Web Page": "public/js/web_page_ai.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -194,6 +203,14 @@ after_install = "churchit.patches.after_install.execute"
 after_migrate = [
 	"churchit.church_setup.doctype.church_features.church_features.apply_on_migrate",
 	"churchit.church_summary.home.add_return_to_framework_dock",
+	# A Frappe patch can turn MCP on directly; keep it closed while AI is off.
+	"churchit.ai.switch.close_mcp_while_ai_off",
+	# On a Frappe with Flow, the privacy label on Flow Model.
+	"churchit.ai.flow_models.add_privacy_label_field",
+	# A doctype that the migrate deleted leaves Blocked from Flow Knowledge.
+	"churchit.ai.flow_switch.forget_missing_blocked_doctypes",
+	# With AI on and a Flow embedding model, the manuals become the Church Office agent's knowledge.
+	"churchit.ai.manual_knowledge.queue_sync",
 ]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
@@ -234,7 +251,9 @@ after_app_install = "churchit.patches.after_install.keep_church_letter_head"
 # Name of the app being uninstalled is passed as an argument
 
 # before_app_uninstall = "churchit.utils.before_app_uninstall"
-# after_app_uninstall = "churchit.utils.after_app_uninstall"
+
+# The app's doctypes leave Blocked from Flow Knowledge.
+after_app_uninstall = "churchit.ai.flow_switch.forget_missing_blocked_doctypes"
 
 # Desk Notifications
 # ------------------
@@ -273,6 +292,9 @@ has_permission = {
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
+	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
+	"Flow Agent": "churchit.ai.flow_switch.has_agent_permission",
+	"Flow Session": "churchit.ai.flow_switch.has_session_permission",
 }
 
 # A portal member lists only their own Person, a Note Category limits who reads its
@@ -287,6 +309,7 @@ permission_query_conditions = {
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
+	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
 }
 
 # A person's notes, visits, care requests, life events, transfers and connection cards show on their
@@ -312,8 +335,10 @@ churchit_people_events = {
 # queues a refresh of the person summary fields it changes, a deleted person
 # takes their Possible Duplicate pairs along, an approved data deletion request
 # anonymizes the member's Person, a church's record is never shared (or assigned,
-# which shares it) with a user outside that church, and a bounce report that reaches
-# the inbox marks the address it names.
+# which shares it) with a user outside that church, a bounce report that reaches
+# the inbox marks the address it names, MCP stays closed while AI is off, a new AI app
+# signs in only people with an AI role, and System Managers hear when a person first
+# connects an AI app.
 doc_events = {
 	"*": {
 		"validate": "churchit.church_scope.ensure_church",
@@ -353,12 +378,55 @@ doc_events = {
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
 	},
+	# With AI and suggestions on, a reviewer's AI run suggests next steps on a new request.
+	"Prayer Request": {
+		"after_insert": "churchit.ai.triage.dispatch",
+		"on_update": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.follow_request_church",
+		"on_trash": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.delete_with_request",
+	},
+	"Care Request": {
+		"after_insert": "churchit.ai.triage.dispatch",
+		"on_update": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.follow_request_church",
+		"on_trash": "churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion.delete_with_request",
+	},
+	"Follow-up Card": {
+		"after_insert": "churchit.ai.triage.dispatch",
+	},
+	# With AI on, the photo of a paper connection card is read into a draft for a person to check.
+	"Connection Card Photo": {
+		"after_insert": "churchit.ai.card_capture.dispatch",
+	},
 	"ToDo": {
 		"after_insert": "churchit.church_operations.doctype.church_task.church_task.on_assignment",
 		"validate": "churchit.church_operations.doctype.church_task.church_task.refuse_moved_assignment",
 	},
 	"Web Form Request": {
 		"validate": "churchit.church_people.details_link.close_details_request",
+		"on_update": "churchit.church_people.contact_cards.mark_answered_online",
+	},
+	"System Settings": {
+		"validate": "churchit.ai.switch.refuse_mcp_while_ai_off",
+	},
+	# Flow, Frappe's AI agents: the master switch and its rules (churchit.ai.flow_switch,
+	# churchit.ai.flow_models). A Frappe without Flow never runs them.
+	"Flow Session": {
+		"before_insert": "churchit.ai.flow_switch.check_new_session",
+	},
+	"Flow Trigger": {
+		"before_validate": "churchit.ai.flow_switch.check_trigger",
+	},
+	"Flow Knowledge Source": {
+		"validate": "churchit.ai.flow_switch.check_knowledge_source",
+	},
+	"Flow Model": {
+		"validate": "churchit.ai.flow_models.stamp_privacy_label",
+		"on_update": "churchit.ai.flow_models.sync_agents_on_model",
+	},
+	"OAuth Client": {
+		"before_insert": "churchit.ai.switch.limit_new_app_to_ai_roles",
+	},
+	"OAuth Bearer Token": {
+		"after_insert": "churchit.ai.switch.tell_system_managers_of_new_ai_app",
 	},
 	"Personal Data Deletion Request": {
 		"on_change": "churchit.church_people.privacy.anonymize_on_data_deletion",
@@ -382,6 +450,8 @@ extend_bootinfo = [
 	"churchit.scripture.extend_bootinfo",
 	"churchit.church_communications.staff_chat.extend_bootinfo",
 	"churchit.church_website.pwa.extend_bootinfo",
+	"churchit.ai.switch.extend_bootinfo",
+	"churchit.ai.writing.extend_bootinfo",
 ]
 
 # User menu switch for parent-church users; hidden for everyone else. One
@@ -438,6 +508,8 @@ scheduler_events = {
 			"churchit.church_communications.doctype.church_email.church_email.send_scheduled",
 			"churchit.church_ministries.doctype.function_sign_up.function_sign_up.release_expired_holds",
 		],
+		# Monday morning: the weekly AI note to each user who asked for one.
+		"0 6 * * 1": ["churchit.church_summary.ai.queue_weekly_notes"],
 	},
 }
 
@@ -464,6 +536,13 @@ override_whitelisted_methods = {
 	# out members-only pages for a non-member.
 	"frappe.www.list.get_list_data": "churchit.church_website.pages.get_list_data",
 }
+
+# Churchit's agents for Flow, Frappe's AI agents. A Frappe without Flow never reads this hook.
+flow_agents = ["churchit.ai.flow.agents"]
+
+# AI drafts (churchit.ai.drafts), and the caller and the answer of each AI action run
+# (churchit.ai.runner), survive a full clear_cache, such as a migrate or a Church Features save.
+persistent_cache_keys = ["churchit:ai_draft:*", "churchit:ai_run:*"]
 
 # A Person Link field also finds people by phone number or email address.
 standard_queries = {"Person": "churchit.church_people.search.search_people"}
@@ -541,9 +620,8 @@ user_data_fields = [
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"churchit.auth.validate"
-# ]
+# Frappe's MCP server takes every desk user; only the AI roles may use it.
+auth_hooks = ["churchit.ai.switch.refuse_mcp_to_other_users"]
 
 
 # Automatically update python controller files with type annotations for this app.

@@ -14,7 +14,7 @@ from frappe.utils import now_datetime
 
 @frappe.whitelist(methods=["POST"])
 def check_out(check_in: str) -> None:
-	"""Record that the person of *check_in*, who has no pickup tag, has left."""
+	"""Record that the person of *check_in*, who has no pickup tag, has left. Changes data."""
 	frappe.get_doc("Function Check-In", check_in).check_permission("write")
 	row = lock_check_in(check_in)
 	if row.security_code:

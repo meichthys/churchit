@@ -171,7 +171,7 @@ class Rolodex {
 
 	load() {
 		this.$cards.html(`<div class="rolodex-empty">${__("Loading…")}</div>`);
-		frappe.xcall(`${API}.get_directory`).then((directory) => {
+		frappe.xcall(`${API}.get_directory`, {}, "GET").then((directory) => {
 			this.set_directory(directory);
 			this.apply_settings(directory.settings);
 			this.render_facets();

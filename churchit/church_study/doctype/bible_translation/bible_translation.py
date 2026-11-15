@@ -53,7 +53,8 @@ class BibleTranslation(Document):
 		self.status = "Ready"
 
 	@frappe.whitelist(methods=["POST"])
-	def download_again(self):
+	def download_again(self) -> None:
+		"""Download a Free Use Bible API translation's text again, in a background job. Changes data."""
 		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
 		if not self.is_free_use:
@@ -108,6 +109,7 @@ class BibleTranslation(Document):
 		scripture.clear_cache(self.name)
 
 	def remove_text_file(self):
+		"""Delete the text's file, though text_file still names it (Frappe 17 refuses that unless forced)."""
 		for file in frappe.get_all(
 			"File",
 			filters={
@@ -117,4 +119,4 @@ class BibleTranslation(Document):
 			},
 			pluck="name",
 		):
-			frappe.delete_doc("File", file, ignore_permissions=True)
+			frappe.delete_doc("File", file, ignore_permissions=True, force=True)

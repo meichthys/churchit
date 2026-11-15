@@ -7,6 +7,7 @@ import csv
 import io
 import os
 import warnings
+from functools import partial
 from unittest.mock import patch
 
 import frappe
@@ -70,7 +71,7 @@ class ImportCase(RollbackEachTest):
 		return self.start(self.new_import(doctype, rows, import_type, xlsx))
 
 	def new_import(self, doctype: str, rows: list[list], import_type: str = INSERT, xlsx: bool = False):
-		return frappe.get_doc(
+		data_import = frappe.get_doc(
 			{
 				"doctype": "Data Import",
 				"reference_doctype": doctype,
@@ -78,6 +79,12 @@ class ImportCase(RollbackEachTest):
 				"import_file": self.make_file(rows, xlsx).file_url,
 			}
 		).insert()
+		# Data Import Log is MyISAM, so a rollback keeps it. Frappe 17 numbers imports from a series the
+		# rollback resets, and an import skips each row that a log of its name already holds.
+		forget_logs = partial(frappe.db.delete, "Data Import Log", {"data_import": data_import.name})
+		forget_logs()
+		self.addCleanup(forget_logs)
+		return data_import
 
 	def start(self, data_import):
 		# The importer commits after each row; keep its writes in the test's transaction instead.

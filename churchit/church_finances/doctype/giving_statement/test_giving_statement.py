@@ -33,6 +33,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_primary_contact,
 	make_two_churches,
+	pop_logs,
 	set_multi_church,
 )
 
@@ -460,6 +461,14 @@ class TestStatementEmail(RollbackEachTest):
 		return frappe.get_all("Email Queue", filters={"reference_name": name}, pluck="attachments")
 
 	def test_one_run_queues_one_email_with_the_pdf_and_one_access_log(self):
+		logs = {
+			"reference_document": self.statement,
+			"method": "Email",
+			"file_type": "PDF",
+			"user": self.finance_a,
+		}
+		pop_logs("Access Log", logs)
+
 		self.run_job()
 
 		attachments = self.queued(self.statement)
@@ -471,18 +480,7 @@ class TestStatementEmail(RollbackEachTest):
 		with patch("frappe.utils.pdf.get_pdf", return_value=b"%PDF") as get_pdf:
 			self.assertTrue(frappe.attach_print(**attachment)["fname"].endswith(".pdf"))
 		self.assertIn(self.statement_title, get_pdf.call_args.args[0])
-		self.assertEqual(
-			frappe.db.count(
-				"Access Log",
-				{
-					"reference_document": self.statement,
-					"method": "Email",
-					"file_type": "PDF",
-					"user": self.finance_a,
-				},
-			),
-			1,
-		)
+		self.assertEqual(len(pop_logs("Access Log", logs)), 1)
 		self.assertTrue(frappe.db.get_value("Giving Statement", self.statement, "emailed_on"))
 		self.assertEqual(self.queued(self.unreachable), [], "a statement with no email is skipped")
 
@@ -537,13 +535,13 @@ class TestStatementEmail(RollbackEachTest):
 			}
 		).insert(ignore_permissions=True)
 		logs = {"reference_document": self.statement, "method": "Email"}
-		logged = frappe.db.count("Access Log", logs)
+		pop_logs("Access Log", logs)
 
 		self.run_job()
 
 		self.assertEqual(self.queued(self.statement), [])
 		self.assertFalse(frappe.db.get_value("Giving Statement", self.statement, "emailed_on"))
-		self.assertEqual(frappe.db.count("Access Log", logs), logged)
+		self.assertEqual(pop_logs("Access Log", logs), [])
 
 	def test_the_job_sends_to_the_persons_address_at_the_time_of_the_run(self):
 		person = frappe.get_doc("Person", self.giver)

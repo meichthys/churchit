@@ -137,3 +137,11 @@ churchit.patches.v1_0.retitle_prayers
 churchit.patches.v1_0.set_weekly_metrics_titles
 churchit.patches.v1_0.clear_saved_sort_and_filters_of_module_lists
 churchit.patches.v1_0.forget_milestones_of_deleted_people
+churchit.patches.v1_0.church_ai_off_by_default
+churchit.patches.v1_0.add_how_we_use_ai_page
+churchit.patches.v1_0.fill_blocked_knowledge_doctypes
+churchit.patches.v1_0.fill_private_model_doctypes
+churchit.patches.v1_0.add_connection_cards_to_private_doctypes
+churchit.patches.v1_0.block_connection_card_photos_from_knowledge
+churchit.patches.v1_0.block_contact_verifications_from_knowledge
+churchit.patches.v1_0.add_weekly_ai_note_type

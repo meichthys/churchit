@@ -43,7 +43,10 @@ HYMNS_FOLDER = os.path.join(os.path.dirname(__file__), "hymns")
 
 @frappe.whitelist(methods=["POST"])
 def import_song_files(files: str | list[str]) -> frappe._dict:
-	"""Import each uploaded File as a Song: `{"imported": [{"file", "song"}], "skipped": [file]}`."""
+	"""Import each uploaded File as a Song, then delete the caller's loose uploads. Changes data.
+
+	Returns `{"imported": [{"file", "song"}], "skipped": [file]}`.
+	"""
 	names = parse_names(files)
 	if len(names) > MAX_IMPORT_FILES:
 		frappe.throw(_("Import at most {0} files at a time.").format(MAX_IMPORT_FILES))
@@ -214,7 +217,10 @@ def split_list(value: str | None, separator: str) -> list[str]:
 
 @frappe.whitelist(methods=["GET"])
 def get_public_domain_hymns() -> list[dict]:
-	"""The hymns shipped in `hymns/`, by title, for a checklist: `[{"file", "title", "authors"}]`."""
+	"""The public-domain hymns shipped in `hymns/`, by title, for a checklist. Reads only.
+
+	Returns `[{"file", "title", "authors"}]`.
+	"""
 	frappe.has_permission("Song", "create", throw=True)
 	hymns = []
 	for filename in get_hymn_files():
@@ -225,7 +231,10 @@ def get_public_domain_hymns() -> list[dict]:
 
 @frappe.whitelist(methods=["POST"])
 def add_public_domain_hymns(files: str | list[str]) -> frappe._dict:
-	"""Import each shipped hymn as a public-domain Song: `{"imported": [{"file", "song"}], "skipped": [file]}`."""
+	"""Import each shipped hymn in *files* as a public-domain Song. Changes data.
+
+	Returns `{"imported": [{"file", "song"}], "skipped": [file]}`.
+	"""
 	frappe.has_permission("Song", "create", throw=True)
 	shipped, result = get_hymn_files(), frappe._dict(imported=[], skipped=[])
 	for filename in parse_names(files):
@@ -249,8 +258,8 @@ def read_hymn(filename: str) -> str:
 
 
 @frappe.whitelist(methods=["GET"])
-def export_songs(songs: str | list[str], file_format: str):
-	"""Download *songs* as OpenLyrics or ChordPro: one file, or a zip with a list of the skipped songs."""
+def export_songs(songs: str | list[str], file_format: str) -> None:
+	"""Download *songs* as OpenLyrics or ChordPro: one file, or a zip with a list of the skipped songs. Reads only."""
 	names = parse_names(songs)
 	if not names:
 		frappe.throw(_("Select at least one song."))

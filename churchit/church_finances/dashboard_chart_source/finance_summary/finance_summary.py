@@ -6,7 +6,7 @@ from churchit.church_scope import scoped
 from churchit.dashboard import bucket_label, time_buckets
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get(
 	chart_name: str | None = None,
 	chart: str | dict | None = None,
@@ -17,7 +17,8 @@ def get(
 	timespan: str | None = None,
 	time_interval: str | None = None,
 	**kwargs,
-):
+) -> dict:
+	"""Chart source: collections beside expenses for each period of the timespan, in the reader's churches. Reads only."""
 	frappe.has_permission("Collection", "report", throw=True)
 	time_interval = time_interval or "Monthly"
 	timespan = timespan or "Last Year"

@@ -25,9 +25,10 @@ from churchit.church_scope import church_query_filters, default_church, is_multi
 
 @frappe.whitelist(methods=["POST"])
 def fill_open_needs(function: str, ministry: str | None = None) -> frappe._dict:
-	"""Ask people to fill the open places of *function*, and return the places assigned and still open.
+	"""Assign people to *function*'s open places, and return the places assigned and still open. Changes data.
 
-	With *ministry*, only its positions are filled.
+	With *ministry*, only its positions are filled. The new assignments are Pending, and the daily job
+	emails the requests.
 	"""
 	frappe.has_permission("Function", doc=function, throw=True)
 	frappe.has_permission("Ministry Team Assignment", "create", throw=True)
@@ -46,10 +47,11 @@ def fill_open_needs(function: str, ministry: str | None = None) -> frappe._dict:
 def fill_open_needs_between(
 	from_date: str, to_date: str, ministry: str | None = None, church: str | None = None
 ) -> frappe._dict:
-	"""Fill the open places of the functions the user may read from *from_date* to *to_date* that have not started.
+	"""Fill the open places of the functions the user may read from *from_date* to *to_date*. Changes data.
 
-	With *ministry*, only its positions are filled. With *church*, only that church's functions and the
-	shared ones are filled, as a report with that Church filter shows them.
+	Functions that have started are left as they are. With *ministry*, only its positions are filled. With
+	*church*, only that church's functions and the shared ones are filled, as a report with that Church
+	filter shows them. The new assignments are Pending, and the daily job emails the requests.
 	"""
 	frappe.has_permission("Ministry Team Assignment", "create", throw=True)
 	if ministry:

@@ -235,11 +235,13 @@ class RoomBooking(Document):
 		return not (self.can_share_room and other.can_share_room)
 
 	@frappe.whitelist(methods=["POST"])
-	def approve(self):
+	def approve(self) -> None:
+		"""Approve a Requested booking, as an approver of its room. Changes data."""
 		self.decide("Approved")
 
 	@frappe.whitelist(methods=["POST"])
-	def deny(self):
+	def deny(self) -> None:
+		"""Deny a Requested booking, as an approver of its room. Changes data."""
 		self.decide("Denied")
 
 	def decide(self, status: str) -> None:
@@ -251,8 +253,8 @@ class RoomBooking(Document):
 		self.save(ignore_permissions=True)
 
 	@frappe.whitelist(methods=["POST"])
-	def resolve_conflict(self, action: str):
-		"""Keep this booking and deny the requests it clashes with, or share the room with them."""
+	def resolve_conflict(self, action: str) -> None:
+		"""Keep this booking and deny the requests it clashes with, or share the room with them. Changes data."""
 		self.load_stored_for_an_approver()
 		if self.status != "Conflict" or action not in ("keep", "share"):
 			frappe.throw(_("Only a Conflict booking can be resolved, by keep or share."))
@@ -400,8 +402,8 @@ class RoomBooking(Document):
 			)
 
 	@frappe.whitelist(methods=["POST"])
-	def check_out(self):
-		"""Lend the equipment of an Approved booking until check_in."""
+	def check_out(self) -> None:
+		"""Lend the equipment of an Approved booking until check_in. Changes data."""
 		frappe.only_for(APPROVER_ROLES)
 		self.reload()
 		self.check_permission("write")
@@ -414,8 +416,8 @@ class RoomBooking(Document):
 		self.save()
 
 	@frappe.whitelist(methods=["POST"])
-	def check_in(self):
-		"""Take back the equipment of a checked out booking, which completes it."""
+	def check_in(self) -> None:
+		"""Take back the equipment of a checked out booking, which completes it. Changes data."""
 		frappe.only_for(APPROVER_ROLES)
 		self.reload()
 		self.check_permission("write")
@@ -582,7 +584,7 @@ def create_decided_notification() -> None:
 
 @frappe.whitelist(methods=["GET"])
 def get_room_questions(room: str) -> list[dict]:
-	"""The fields that ask the questions of *room*'s Question Set, for the booking form."""
+	"""The fields that ask the questions of *room*'s Question Set, for the booking form. Reads only."""
 	doc = frappe.get_doc("Room", room)
 	doc.check_permission("read")
 	return get_fields(doc.question_set) if doc.question_set else []

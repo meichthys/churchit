@@ -16,7 +16,7 @@
 	function fetch_published_fields() {
 		if (!_published) {
 			_published = frappe
-				.xcall("churchit.church_website.api.get_published_fields")
+				.xcall("churchit.church_website.api.get_published_fields", {}, "GET")
 				.then(function (data) {
 					return data || {};
 				})

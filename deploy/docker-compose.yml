@@ -13,6 +13,8 @@ x-backend: &backend
   volumes:
     - sites:/home/frappe/frappe-bench/sites
     - logs:/home/frappe/frappe-bench/logs
+    # Holds the socket of the Flow server. Images without Flow ignore it.
+    - flow-server:/home/frappe/frappe-bench/flow-server
 
 services:
   db:
@@ -179,6 +181,40 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  flow-configurator:
+    container_name: churchit-flow-configurator
+    # Temp container. Tells Flow that this stack runs the server,
+    # and where the server calls the backend.
+    <<: *backend
+    profiles: ["flow"]
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        bench set-config -g flow_server_manager supervisor;
+        bench set-config -g flow_server_url "http://backend:8000";
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  flow-server:
+    container_name: churchit-flow-server
+    # The Flow server (AI daemon). The backend and the workers reach it
+    # through the unix socket in the flow-server volume.
+    <<: *backend
+    profiles: ["flow"]
+    # A stopped server leaves its pid file in the volume. Flow checks that file with ps.
+    # The image has no ps, so the next start would fail. Remove the file first.
+    command:
+      - bash
+      - -c
+      - rm -f flow-server/daemon.pid && exec bench flow-server serve
+    environment:
+      FLOW_SERVER_MANAGER: supervisor
+    depends_on:
+      flow-configurator:
+        condition: service_completed_successfully
+
   frontend:
     container_name: churchit-frontend
     # Nginx server which serves static assets and reverse-proxies to backend + websocket.
@@ -227,3 +263,10 @@ volumes:
   redis-queue-data:
   caddy-data:
   caddy-config:
+  # In memory and owned by the frappe user (uid 1000). A plain volume at this path belongs to root.
+  flow-server:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: uid=1000,gid=1000,mode=0700

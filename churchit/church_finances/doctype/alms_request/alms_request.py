@@ -71,7 +71,7 @@ def get_expense_title(alms_request: str) -> str:
 
 @frappe.whitelist(methods=["POST"])
 def create_expense(alms_request_name: str):
-	"""Create the one Expense for the given Alms Request, in the request's church."""
+	"""Create and submit the one Expense for the given Alms Request, in the request's church. Changes data."""
 	alms = frappe.get_doc("Alms Request", alms_request_name)
 	alms.check_permission("write")
 	if frappe.db.get_value("Alms Request", alms.name, "associated_expense", for_update=True):

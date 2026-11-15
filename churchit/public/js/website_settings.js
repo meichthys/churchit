@@ -38,9 +38,11 @@ function remember_removed_link(frm, cdt, cdn) {
 
 async function offer_to_unpublish(urls) {
 	for (const url of urls) {
-		const page = await frappe.xcall("churchit.church_website.api.get_published_web_page", {
-			url,
-		});
+		const page = await frappe.xcall(
+			"churchit.church_website.api.get_published_web_page",
+			{ url },
+			"GET"
+		);
 		if (page) await confirm_unpublish(page);
 	}
 }
@@ -99,7 +101,8 @@ async function show_theme_palette(frm) {
 
 	const swatches = await frappe.xcall(
 		"churchit.church_website.theme_palette.get_website_theme_palette",
-		{ theme }
+		{ theme },
+		"GET"
 	);
 	if (frm.doc.website_theme !== theme) return;
 	$host.find(".ch-theme-palette").remove();

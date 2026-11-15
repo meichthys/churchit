@@ -33,6 +33,13 @@
   "birth_month",
   "birth_day",
   "team_calendar_key",
+  "other_names_section",
+  "prefix",
+  "suffix",
+  "previous_last_name",
+  "column_break_names",
+  "full_name",
+  "display_name",
   "health_section",
   "alergies",
   "medical_notes",
@@ -58,13 +65,6 @@
   "deceased_date",
   "section_break_relationships",
   "relationships",
-  "other_names_section",
-  "prefix",
-  "suffix",
-  "previous_last_name",
-  "column_break_names",
-  "full_name",
-  "display_name",
   "records_tab",
   "record_section",
   "envelope_number",
@@ -73,8 +73,12 @@
   "column_break_record",
   "membership_changed_on",
   "status_changed_on",
+  "contact_verified_on",
   "legacy_system",
   "legacy_id",
+  "section_break_osjz",
+  "positions",
+  "skills",
   "directory_section",
   "photo",
   "user",
@@ -84,13 +88,11 @@
   "share_phone",
   "share_address",
   "share_birthday",
+  "exclude_from_ai",
+  "ai_status",
   "section_break_eqre",
   "letters",
   "connections_tab",
-  "section_break_osjz",
-  "positions",
-  "section_break_skills",
-  "skills",
   "involvement_section",
   "first_attended_on",
   "last_attended_on",
@@ -136,7 +138,8 @@
    "in_global_search": 1,
    "label": "Full Name",
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church) || !!(frappe.boot.churchit && frappe.boot.churchit.shared_people)",
@@ -263,10 +266,6 @@
    "options": "Position"
   },
   {
-   "fieldname": "section_break_skills",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "skills",
    "fieldtype": "Table MultiSelect",
    "label": "Skills, Interests and Gifts",
@@ -285,7 +284,8 @@
   },
   {
    "fieldname": "section_break_osjz",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Roles and Gifts"
   },
   {
    "fieldname": "column_break_agva",
@@ -350,6 +350,20 @@
    "fieldname": "share_birthday",
    "fieldtype": "Check",
    "label": "Show Birthday in the Member Directory"
+  },
+  {
+   "default": "0",
+   "description": "Churchit's own AI features (Brief Me, Draft Note, Explain and suggestions on new requests) leave this person out. Members can set this themselves on their Personal Details page. Only the person, a parent of a child, or a System Manager can clear it. Staff still read the person's details in the desk, and staff who use Flow chats or their own AI app read what their rights allow.",
+   "fieldname": "exclude_from_ai",
+   "fieldtype": "Check",
+   "label": "Keep Out of Churchit's AI Features",
+   "print_hide": 1,
+   "show_description_on_click": 1
+  },
+  {
+   "fieldname": "ai_status",
+   "fieldtype": "HTML",
+   "label": "AI Status"
   },
   {
    "description": "The secret part of this person's Ministry Team calendar link. Members make a new one on the Ministry Team page of the portal.",
@@ -478,6 +492,13 @@
    "fieldname": "status_changed_on",
    "fieldtype": "Date",
    "label": "Status Changed On",
+   "read_only": 1
+  },
+  {
+   "description": "The day a returned contact verification card was recorded.",
+   "fieldname": "contact_verified_on",
+   "fieldtype": "Date",
+   "label": "Contact Verified On",
    "read_only": 1
   },
   {
@@ -974,7 +995,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-10-31 01:33:29.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

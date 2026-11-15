@@ -8,10 +8,12 @@
  "footer_image": null,
  "header_image": null,
  "is_default": 1,
+ "letter_head_for": "DocType",
  "letter_head_name": "Church Letter Head",
- "modified": "2026-09-25 00:00:00.000000",
+ "modified": "2026-11-06 14:06:00.000000",
  "modified_by": "Administrator",
  "name": "Church Letter Head",
  "owner": "Administrator",
- "source": "HTML"
+ "source": "HTML",
+ "standard": "No"
 }

@@ -168,13 +168,13 @@ class TestPledgeWebForm(RollbackEachTest):
 		frappe.set_user(self.member)
 		options, script = self.new_form()
 		self.assertEqual(options, {self.open_a})
-		self.assertIn('if ("1" === "1") return;', script)
+		self.assertIn('const has_open_campaigns = "1";', script)
 
 	def test_a_login_with_no_person_is_offered_no_campaign(self):
 		frappe.set_user(ensure_user("_test_pledge_no_person@example.com", "NoPerson"))
 		options, script = self.new_form()
 		self.assertEqual(options, set())
-		self.assertIn('if ("0" === "1") return;', script)
+		self.assertIn('const has_open_campaigns = "0";', script)
 
 	def test_a_single_church_site_lists_every_open_campaign(self):
 		force_single_church()

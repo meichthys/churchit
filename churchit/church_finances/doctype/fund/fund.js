@@ -24,9 +24,11 @@ function sort_transactions_by_date(frm) {
 
 // The /give address that chooses this fund, as a link, a QR code to print, or the text of an NFC tag.
 async function show_give_link(frm) {
-	const link = await frappe.xcall("churchit.church_finances.doctype.fund.fund.get_give_link", {
-		fund: frm.doc.name,
-	});
+	const link = await frappe.xcall(
+		"churchit.church_finances.doctype.fund.fund.get_give_link",
+		{ fund: frm.doc.name },
+		"GET"
+	);
 	const safe_url = frappe.utils.escape_html(link.url);
 	const dialog = new frappe.ui.Dialog({
 		title: __("Give Link"),

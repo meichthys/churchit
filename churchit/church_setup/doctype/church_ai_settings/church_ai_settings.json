@@ -1,0 +1,301 @@
+{
+ "actions": [],
+ "creation": "2026-11-06 00:00:00.000000",
+ "description": "Whether AI apps may connect to this site. Off by default: while it is off, Frappe's MCP server stays closed and churchit's own AI features do not run.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-foundations",
+ "engine": "InnoDB",
+ "field_order": [
+  "intro_html",
+  "switch_section",
+  "enabled",
+  "acknowledged",
+  "column_break_stamp",
+  "acknowledged_by",
+  "acknowledged_on",
+  "warning_app_section",
+  "warning_app_html",
+  "warning_data_section",
+  "warning_data_html",
+  "warning_text_section",
+  "warning_text_html",
+  "warning_turning_on_section",
+  "warning_turning_on_html",
+  "warning_flow_agents_section",
+  "warning_flow_agents_html",
+  "warning_turning_off_section",
+  "warning_turning_off_html",
+  "warning_no_switch_section",
+  "warning_no_switch_html",
+  "warning_knowledge_section",
+  "warning_knowledge_html",
+  "knowledge_section",
+  "blocked_knowledge_doctypes",
+  "use_recommended_list",
+  "private_records_section",
+  "private_model_doctypes",
+  "use_recommended_private_list",
+  "triage_section",
+  "suggest_request_triage",
+  "triage_reviewers",
+  "model_check_section",
+  "check_models",
+  "exposure_section",
+  "exposure_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "intro_html",
+   "fieldtype": "HTML",
+   "label": "Before You Turn AI On"
+  },
+  {
+   "fieldname": "switch_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Off: MCP stays closed. API keys and connected apps still reach the REST API.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Use AI in Churchit"
+  },
+  {
+   "default": "0",
+   "depends_on": "enabled",
+   "description": "A hosted AI app sends what it reads to its company. Needed to turn AI on.",
+   "fieldname": "acknowledged",
+   "fieldtype": "Check",
+   "label": "I Understand What an AI App Can See, Change and Send"
+  },
+  {
+   "fieldname": "column_break_stamp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Turned On By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_on",
+   "fieldtype": "Datetime",
+   "label": "Turned On",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "description": "An AI app works as the person who connected it.",
+   "fieldname": "warning_app_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: An AI App Can See and Change What Its User Can"
+  },
+  {
+   "fieldname": "warning_app_html",
+   "fieldtype": "HTML",
+   "label": "An AI App Can See and Change What Its User Can"
+  },
+  {
+   "collapsible": 1,
+   "description": "That company's terms apply. A local model keeps the data on your computer.",
+   "fieldname": "warning_data_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Hosted AI Sends What It Reads to Another Company"
+  },
+  {
+   "fieldname": "warning_data_html",
+   "fieldtype": "HTML",
+   "label": "Hosted AI Sends What It Reads to Another Company"
+  },
+  {
+   "collapsible": 1,
+   "description": "Prayer requests, connection cards and forms can hold instructions for the AI.",
+   "fieldname": "warning_text_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Text That Guests and Members Write Can Steer the AI"
+  },
+  {
+   "fieldname": "warning_text_html",
+   "fieldtype": "HTML",
+   "label": "Text That Guests and Members Write Can Steer the AI"
+  },
+  {
+   "collapsible": 1,
+   "description": "Who can connect an AI app once MCP is open, and how to take that away.",
+   "fieldname": "warning_turning_on_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Choose Who Can Use AI Before You Turn It On"
+  },
+  {
+   "fieldname": "warning_turning_on_html",
+   "fieldtype": "HTML",
+   "label": "Choose Who Can Use AI Before You Turn It On"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "description": "Chats and triggers start at once, and frappe/Flow can change what you can.",
+   "fieldname": "warning_flow_agents_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Turning AI On Starts Flow's Agents at Once"
+  },
+  {
+   "fieldname": "warning_flow_agents_html",
+   "fieldtype": "HTML",
+   "label": "Turning AI On Starts Flow's Agents at Once"
+  },
+  {
+   "collapsible": 1,
+   "description": "Connected apps keep their tokens, and API keys keep working.",
+   "fieldname": "warning_turning_off_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Turning AI Off Does Not Sign Out Connected Apps"
+  },
+  {
+   "fieldname": "warning_turning_off_html",
+   "fieldtype": "HTML",
+   "label": "Turning AI Off Does Not Sign Out Connected Apps"
+  },
+  {
+   "collapsible": 1,
+   "description": "API keys, copy and paste, other apps' AI and browser assistants.",
+   "fieldname": "warning_no_switch_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: No Switch Stops Every Use of AI"
+  },
+  {
+   "fieldname": "warning_no_switch_html",
+   "fieldtype": "HTML",
+   "label": "No Switch Stops Every Use of AI"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "description": "Everyone who uses an agent can read what its knowledge copied.",
+   "fieldname": "warning_knowledge_section",
+   "fieldtype": "Section Break",
+   "label": "Warning: Flow Knowledge Copies Records Without Checking Permissions"
+  },
+  {
+   "fieldname": "warning_knowledge_html",
+   "fieldtype": "HTML",
+   "label": "Flow Knowledge Copies Records Without Checking Permissions"
+  },
+  {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "knowledge_section",
+   "fieldtype": "Section Break",
+   "label": "Flow Knowledge"
+  },
+  {
+   "description": "Churchit refuses a Flow knowledge source that reads one of these.",
+   "fieldname": "blocked_knowledge_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Blocked from Flow Knowledge",
+   "options": "Church AI Blocked DocType"
+  },
+  {
+   "fieldname": "use_recommended_list",
+   "fieldtype": "Button",
+   "label": "Use the Recommended List"
+  },
+  {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "private_records_section",
+   "fieldtype": "Section Break",
+   "label": "Private Records"
+  },
+  {
+   "description": "Churchit's AI features send these only to Local or Zero retention models.",
+   "fieldname": "private_model_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Only for Local or Zero Retention Models",
+   "options": "Church AI Blocked DocType"
+  },
+  {
+   "fieldname": "use_recommended_private_list",
+   "fieldtype": "Button",
+   "label": "Use the Recommended List"
+  },
+  {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "triage_section",
+   "fieldtype": "Section Break",
+   "label": "Suggestions on New Requests"
+  },
+  {
+   "default": "0",
+   "description": "AI suggests next steps on new requests for a reviewer. It never replies.",
+   "fieldname": "suggest_request_triage",
+   "fieldtype": "Check",
+   "label": "Suggest Next Steps on New Requests"
+  },
+  {
+   "description": "Whose AI runs suggest for each church's new requests.",
+   "fieldname": "triage_reviewers",
+   "fieldtype": "Table",
+   "label": "Reviewers",
+   "options": "Church AI Reviewer"
+  },
+  {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.ai && frappe.boot.churchit.ai.flow",
+   "fieldname": "model_check_section",
+   "fieldtype": "Section Break",
+   "label": "Model Check"
+  },
+  {
+   "fieldname": "check_models",
+   "fieldtype": "Button",
+   "label": "Check the Models"
+  },
+  {
+   "fieldname": "exposure_section",
+   "fieldtype": "Section Break",
+   "label": "AI Access on This Site"
+  },
+  {
+   "fieldname": "exposure_html",
+   "fieldtype": "HTML",
+   "label": "AI Access"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-09 22:50:59.000000",
+ "modified_by": "Administrator",
+ "module": "Church Setup",
+ "name": "Church AI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church Staff"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

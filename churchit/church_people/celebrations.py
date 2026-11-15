@@ -76,16 +76,28 @@ def anniversaries(start, end, members_only=True, church=None):
 		query = query.where(is_active_member(Person))
 	if church:
 		query = query.where(Person.church == church)
+	return [
+		frappe._dict(day=formatdate(row.anniversary_on, "MMM d"), name=row.couple)
+		for row in get_anniversary_rows(query.run(as_dict=True), start, end)
+	]
+
+
+def get_anniversary_rows(people, start, end):
+	"""One row for each couple of *people* whose wedding anniversary falls between *start* and *end*, by day then name.
+
+	Each row is the first spouse listed, with its `anniversary_on` in the window and its `couple` name. A person
+	row needs name, first_name, last_name, full_name, spouse and anniversary.
+	"""
 	rows = []
 	listed = set()
-	for person in query.run(as_dict=True):
+	for person in people:
 		anniversary = getdate(person.anniversary)
 		occurrence = occurrence_between(anniversary.month, anniversary.day, start, end)
 		if not occurrence or person.name in listed:
 			continue
 		listed.update({person.name, person.spouse})
-		rows.append((occurrence, couple_name(person)))
-	return [frappe._dict(day=formatdate(day, "MMM d"), name=name) for day, name in sorted(rows)]
+		rows.append(frappe._dict(person, anniversary_on=occurrence, couple=couple_name(person)))
+	return sorted(rows, key=lambda row: (row.anniversary_on, row.couple))
 
 
 def occurrence_between(month, day, start, end):

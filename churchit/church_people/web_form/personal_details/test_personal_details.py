@@ -1,17 +1,23 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The Personal Details form: a Birthday kept on the Birth life event, the directory choices, and a parent's edits."""
+"""The Personal Details form: a Birthday kept on the Birth life event, the directory and AI choices, and a
+parent's edits."""
 
 import frappe
+from frappe.client import set_value
 from frappe.website.doctype.web_form.web_form import accept
 
+from churchit.ai.opt_outs import AI_OFF, AI_ON, MEMBER_AI_STATES
+from churchit.ai.switch import SETTINGS
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.member_access import PERSONAL_DETAILS, personal_details_fields
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
-from churchit.tests.helpers import RollbackEachTest, ensure
+from churchit.church_website.published_fields import MEMBERS, published_field_map
+from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user
 
 SHARE_FIELDS = ("share_email", "share_phone", "share_address", "share_birthday")
+EDITOR = "_test_details_editor@example.com"
 
 
 def births(person):
@@ -140,3 +146,69 @@ class TestPersonalDetails(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			accept(PERSONAL_DETAILS, values)
 		self.assertFalse(frappe.db.get_value("Person", self.father, "alergies"))
+
+	def test_a_member_keeps_their_own_and_their_childs_details_out_of_ai_and_not_their_spouses(self):
+		"""A parent who may edit a child's details sets it for the child too, as for the rest of the form."""
+		own, spouse, child = (
+			form_values(person, exclude_from_ai=1) for person in (self.father, self.mother, self.son)
+		)
+		frappe.set_user(self.father_user)
+
+		accept(PERSONAL_DETAILS, own)
+		with self.assertRaises(frappe.PermissionError):
+			accept(PERSONAL_DETAILS, spouse)
+		accept(PERSONAL_DETAILS, child)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(
+			[
+				frappe.db.get_value("Person", person, "exclude_from_ai")
+				for person in (self.father, self.mother, self.son)
+			],
+			[1, 0, 1],
+		)
+
+	def test_only_the_person_a_parent_or_a_system_manager_clears_the_ai_choice(self):
+		"""Staff may tick it for a person who asks, and may not clear it."""
+		ensure_user(EDITOR, "Details Editor", roles=("Church People Editor",))
+		for person in (self.father, self.mother, self.son):
+			frappe.db.set_value("Person", person, "exclude_from_ai", 1)
+
+		frappe.set_user(EDITOR)
+		with self.assertRaisesRegex(frappe.PermissionError, "Only the person, a parent of a child"):
+			set_value("Person", self.father, "exclude_from_ai", 0)
+		set_value("Person", self.grandmother, "exclude_from_ai", 1)
+
+		frappe.set_user(self.father_user)
+		accept(PERSONAL_DETAILS, form_values(self.father, exclude_from_ai=0))
+		accept(PERSONAL_DETAILS, form_values(self.son, exclude_from_ai=0))
+
+		frappe.set_user("Administrator")
+		set_value("Person", self.mother, "exclude_from_ai", 0)
+		self.assertEqual(
+			[
+				frappe.db.get_value("Person", person, "exclude_from_ai")
+				for person in (self.father, self.mother, self.son, self.grandmother)
+			],
+			[0, 0, 0, 1],
+		)
+
+	def test_the_ai_section_says_whether_the_church_uses_ai_now(self):
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.set_user(self.father_user)
+		frappe.local.form_dict = frappe._dict(name=self.father, is_edit=1)
+		frappe.local.path = f"{PERSONAL_DETAILS}/{self.father}/edit"
+		for enabled, state in ((0, AI_OFF), (1, AI_ON)):
+			frappe.db.set_single_value(SETTINGS, "enabled", enabled)
+			context = frappe._dict()
+			frappe.get_doc("Web Form", PERSONAL_DETAILS).get_context(context)
+			[section] = [f for f in context.web_form_doc.web_form_fields if f.fieldname == "ai_section"]
+			self.assertTrue(section.description.startswith(MEMBER_AI_STATES[state]), section.description)
+			self.assertIn("briefings", section.description, "The section's own help stays")
+
+	def test_the_badge_marks_the_ai_choice_as_shown_to_members(self):
+		sources = published_field_map()["Person"]["exclude_from_ai"]
+
+		self.assertIn(
+			(PERSONAL_DETAILS, MEMBERS), {(source["route"], source["access"]) for source in sources}
+		)

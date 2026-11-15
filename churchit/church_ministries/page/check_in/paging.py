@@ -31,7 +31,7 @@ PAGE_INTERVAL_SECONDS = 120
 
 @frappe.whitelist(methods=["POST"])
 def page_parents(check_in: str) -> list[str]:
-	"""Ask the household Adults of *check_in*'s child to come, and return the full names of those reached."""
+	"""Text or email the household Adults of *check_in*'s child to come, and return who was reached. Sends messages."""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	doc = frappe.get_doc("Function Check-In", check_in)
 	doc.check_permission("read")

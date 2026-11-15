@@ -137,9 +137,9 @@ def open_prayer_requests(church=None):
 	)
 
 
-@frappe.whitelist()
-def get_defaults(function: str | None = None):
-	"""A new bulletin's sections, missionary and prayer requests, for the form to fill in before the first save."""
+@frappe.whitelist(methods=["GET"])
+def get_defaults(function: str | None = None) -> dict:
+	"""A new bulletin's sections, missionary and prayer requests, for the form to fill in before saving. Reads only."""
 	frappe.has_permission("Bulletin", "write", throw=True)
 	if function:
 		# The defaults are read from the function's church, so the caller must be able to see it.
@@ -155,9 +155,9 @@ def get_defaults(function: str | None = None):
 	return values
 
 
-@frappe.whitelist()
-def download_pdf(name: str):
-	"""The bulletin as a PDF named after its date, for the portal."""
+@frappe.whitelist(methods=["GET"])
+def download_pdf(name: str) -> None:
+	"""The bulletin as a PDF named after its date, for the portal's download link. Reads only."""
 	download_print_pdf("Bulletin", name, format=PRINT_FORMAT, no_letterhead=1)
 	function_date = frappe.db.get_value("Bulletin", name, "function_date")
 	frappe.local.response.filename = f"Bulletin {formatdate(function_date, 'yyyy-MM-dd')}.pdf"

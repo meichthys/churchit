@@ -90,8 +90,9 @@ class TestAppClashes(RollbackEachTest):
 		refuse_clashing_app(CLASHING_APP)
 
 	def test_an_app_without_shared_names_installs(self):
-		refuse_clashing_app("payments")
 		refuse_clashing_app("frappe")
+		if "payments" in frappe.get_all_apps():
+			refuse_clashing_app("payments")
 
 	def test_frappe_learning_shares_function(self):
 		if "lms" not in frappe.get_all_apps():

@@ -491,7 +491,8 @@
    "hidden": 1,
    "in_global_search": 1,
    "label": "Title",
-   "read_only": 1
+   "read_only": 1,
+   "width": "220px"
   },
   {
    "description": "The recurring function this one was made from.",
@@ -704,7 +705,7 @@
    "link_fieldname": "function"
   }
  ],
- "modified": "2026-10-31 13:16:25.000000",
+ "modified": "2026-11-14 18:01:02.000000",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function",

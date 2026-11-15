@@ -3,18 +3,22 @@
 
 import base64
 import io
+from unittest import skipUnless
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from PIL import Image
 from pypdf import PdfReader
 
+from churchit.church_people.report.church_directory_report import church_directory_report
 from churchit.church_people.report.church_directory_report.booklet import SHEET_WIDTH, get_booklet_spreads
 from churchit.church_people.report.church_directory_report.church_directory_report import (
 	download_directory_pdf,
 	execute,
 	get_directory_html,
 	get_paginated_directory,
+	has_weasyprint,
 )
 from churchit.tests.helpers import (
 	ensure,
@@ -25,6 +29,8 @@ from churchit.tests.helpers import (
 	make_primary_contact,
 	make_translation,
 )
+
+needs_weasyprint = skipUnless(has_weasyprint(), "This Frappe has no WeasyPrint to print the directory.")
 
 
 class TestChurchDirectoryReport(FrappeTestCase):
@@ -55,6 +61,11 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			download_directory_pdf(church=self.church)
 
+	def test_print_directory_is_refused_on_a_frappe_without_weasyprint(self):
+		with patch.object(church_directory_report, "has_weasyprint", return_value=False):
+			with self.assertRaisesRegex(frappe.ValidationError, "not available on this version of Frappe"):
+				download_directory_pdf(church=self.church)
+
 	def test_cover_shows_the_church_verse_and_website(self):
 		translation = make_translation(self, "_TDV", [("JOS", 24, 15, "We will serve the LORD.")])
 		self.set_church_value("default_bible_translation", translation)
@@ -81,6 +92,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 			'<img class="cover-image" src="/files/_test_church.png"', self.render(show_church_image="1")
 		)
 
+	@needs_weasyprint
 	def test_cover_image_fills_the_space_under_the_text_on_one_page(self):
 		for width, height in ((1600, 900), (600, 1200)):
 			self.set_church_value("image", make_png_data_uri(width, height))
@@ -432,6 +444,20 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		birthdays = html[html.index('<div class="appendix-heading">Birthdays</div>') :]
 		self.assertRegex(birthdays, r"_Test Yearless Birthday</span>\s*<span class=\"calendar-date\">July 4<")
 
+	def test_positions_without_a_start_date_are_shown_as_held(self):
+		undated = ensure("Position Type", {"position": "_Test Undated Role"})
+		future = ensure("Position Type", {"position": "_Test Future Role"})
+		make_person(
+			"_Test Ward",
+			"Directory",
+			positions=[{"position": undated}, {"position": future, "start_date": "2040-01-01"}],
+		)
+
+		html = self.render(show_roles="1", group_by_family="0")
+
+		self.assertIn("<td>_Test Undated Role</td>", html)
+		self.assertNotIn("_Test Future Role", html)
+
 	def test_record_values_are_escaped(self):
 		self.set_church_value("church_name", 'Saint "Mary" </style><script>x()</script>')
 		make_person("_Test", "<b>Directory Escaped</b>", photo='/files/_test.png" onerror="alert(1)')
@@ -462,6 +488,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 	def render_pdf_pages(self, **options):
 		return [page.extract_text().split() for page in self.render_pdf(include_notes_page="1", **options)]
 
+	@needs_weasyprint
 	def test_pdf_numbers_the_pages_and_ends_on_a_blank_back_cover(self):
 		plain = self.render_pdf_pages()
 		booklet = self.render_pdf_pages(show_page_numbers="1", blank_back_cover="1")
@@ -478,6 +505,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		self.assertEqual(get_booklet_spreads(8), folded)
 		self.assertEqual(get_booklet_spreads(5), folded)
 
+	@needs_weasyprint
 	def test_booklet_pdf_puts_the_cover_in_front_and_page_numbers_on_the_outer_edge(self):
 		cover = "".join(word for x, word in get_positioned_words(self.render_pdf()[0]))
 		sides = self.render_pdf(booklet_printing="1", show_page_numbers="1")
@@ -491,6 +519,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		self.assertEqual(len(page_two_number), 1)
 		self.assertLess(page_two_number[0], SHEET_WIDTH / 8)
 
+	@needs_weasyprint
 	def test_booklet_pads_before_the_notes_page_so_it_stays_inside_the_back_cover(self):
 		sides = self.render_pdf(booklet_printing="1", show_page_numbers="1", include_notes_page="1")
 
@@ -498,6 +527,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		self.assertEqual(inside_back_cover[0], "Notes")
 		self.assertIn(str(len(sides) * 2 - 1), inside_back_cover)
 
+	@needs_weasyprint
 	def test_booklet_fills_its_empty_pages_with_notes_pages(self):
 		self.assertEqual(self.render(padding_pages="2").count('<div class="appendix-heading">Notes</div>'), 2)
 

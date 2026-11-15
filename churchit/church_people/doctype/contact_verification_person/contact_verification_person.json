@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "creation": "2026-11-14 00:15:00.000000",
+ "description": "A person who gets a card of a Contact Verification, and whether their card came back.",
+ "doctype": "DocType",
+ "documentation": "/app/manual%3A-people",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "person",
+  "status",
+  "returned_on",
+  "card_photo",
+  "note",
+  "details_request"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Person",
+   "options": "Person",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "default": "Not Returned",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Card",
+   "options": "Not Returned\nConfirmed\nUpdated\nAnswered Online",
+   "read_only": 1
+  },
+  {
+   "columns": 3,
+   "fieldname": "returned_on",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Returned On",
+   "read_only": 1
+  },
+  {
+   "description": "The photo of the returned card, when one was taken.",
+   "fieldname": "card_photo",
+   "fieldtype": "Attach Image",
+   "label": "Card Photo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "details_request",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Update Online Link",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-14 01:02:00.000000",
+ "modified_by": "Administrator",
+ "module": "Church People",
+ "name": "Contact Verification Person",
+ "owner": "Administrator",
+ "quick_entry": 0,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

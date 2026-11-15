@@ -54,7 +54,7 @@ class Song(Document):
 
 @frappe.whitelist(methods=["GET"])
 def render_chord_chart(song: str, arrangement: str, key: str | None = None) -> str:
-	"""The arrangement's chord chart as HTML, transposed to *key* when it is given."""
+	"""The arrangement's chord chart as HTML, transposed to *key* when it is given. Reads only."""
 	doc = frappe.get_doc("Song", song)
 	doc.check_permission("read")
 	row = doc.get_arrangement_with_chart(arrangement)
@@ -76,7 +76,7 @@ def render_chord_chart(song: str, arrangement: str, key: str | None = None) -> s
 
 @frappe.whitelist(methods=["POST"])
 def make_slides(song: str, arrangement: str) -> int:
-	"""Replace the song's slides with one slide for each section of the arrangement's lyrics."""
+	"""Replace the song's slides with one slide for each section of the arrangement's lyrics. Changes data."""
 	doc = frappe.get_doc("Song", song)
 	doc.check_permission("write")
 	sections = chordpro.lyrics(doc.get_arrangement_with_chart(arrangement).chordpro)
