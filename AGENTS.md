@@ -933,8 +933,9 @@ Anything keyed on it must behave when multi-church is off.
 `churchit/public/js/church_utils.js` wraps `frappe.views.BaseList.prototype.get_filters_for_args` so
 the "expand filters to branches" option reaches list views. It is guarded and falls back to exact
 matching if a Frappe upgrade moves that method; if list filters stop expanding after an upgrade,
-look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, and it
-replaces `MapView.setup_view` (see the next section).
+look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, makes a
+child table's filter row match a Link cell by its title as well as its ID, and replaces
+`MapView.setup_view` (see the next section).
 
 `churchit/public/js/people_actions.js` holds the actions on a set of people: the Person list runs
 them on the people ticked, the Rolodex on its saved cards. `churchit.people_actions.get(keys)`
