@@ -2,6 +2,13 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Person", {
+	setup() {
+		// The grid draws a Check on every row: draw No Year on Birth rows only, like the row form.
+		// The blank must be a non-empty string, because the grid formats an empty cell again against the Person.
+		const year_unknown = frappe.meta.docfield_map["Life Event"].year_unknown;
+		year_unknown.formatter = (value, df, options, doc) =>
+			doc?.event_type === "Birth" ? frappe.form.formatters.Check(value) : "<span></span>";
+	},
 	refresh(frm) {
 		// Calculate marriage years from anniversary
 		if (frm.doc.anniversary) {

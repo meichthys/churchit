@@ -16,6 +16,7 @@ from churchit.church_people.derived import BIRTH, DEATH, sync_derived, years_sin
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED, WIDOWED, WITH_SPOUSE
+from churchit.church_people.doctype.position_type.position_type import refuse_second_holders
 from churchit.church_people.imports.record import add_contacts
 from churchit.church_people.member_access import (
 	is_portal_member,
@@ -352,6 +353,7 @@ class Person(Document):
 		self.share_family_with_spouse()
 		self.refuse_another_churches_family()
 		self.refuse_a_taken_envelope_number()
+		refuse_second_holders(self)
 		self.validate_relationships()
 
 	def refuse_clearing_another_ai_opt_out(self):

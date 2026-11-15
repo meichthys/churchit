@@ -114,18 +114,27 @@ class ContactVerification(Document):
 		return row
 
 	def get_cards(self) -> list[dict]:
-		"""The cards to print, in list order: the living people the reader may see, and only those whose
-		card has not come back when Print Only Cards Not Returned is ticked."""
-		rows = [row for row in self.people if not (self.print_only_not_returned and row.status in RETURNED)]
-		readable = set(get_living_people([row.person for row in rows]))
+		"""The cards to print, by last name then first name: the living people the reader may see, and only
+		those whose card has not come back when Print Only Cards Not Returned is ticked."""
+		rows = {
+			row.person: row
+			for row in self.people
+			if not (self.print_only_not_returned and row.status in RETURNED)
+		}
+		people = [frappe.get_doc("Person", person) for person in get_living_people(list(rows))]
+		people.sort(
+			key=lambda person: (
+				(person.last_name or person.first_name).casefold(),
+				person.first_name.casefold(),
+			)
+		)
 		return [
 			get_printed_card(
 				self,
-				frappe.get_doc("Person", row.person),
-				get_online_link(row.details_request) if self.show_online_link else None,
+				person,
+				get_online_link(rows[person.name].details_request) if self.show_online_link else None,
 			)
-			for row in rows
-			if row.person in readable
+			for person in people
 		]
 
 

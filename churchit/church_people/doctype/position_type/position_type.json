@@ -20,7 +20,7 @@
    "label": "Description"
   },
   {
-   "description": "Only one active person can hold this position at a time.",
+   "description": "Only one active person in each church can hold this position at a time.",
    "fieldname": "is_single_person_role",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -45,7 +45,7 @@
    "table_fieldname": "positions"
   }
  ],
- "modified": "2026-11-11 00:00:00.000000",
+ "modified": "2026-11-14 21:37:15.568790",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position Type",

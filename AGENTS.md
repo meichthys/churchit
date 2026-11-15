@@ -932,6 +932,14 @@ matching if a Frappe upgrade moves that method; if list filters stop expanding a
 look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, and it
 replaces `MapView.setup_view` (see the next section).
 
+`churchit/public/js/people_actions.js` holds the actions on a set of people: the Person list runs
+them on the people ticked, the Rolodex on its saved cards. `churchit.people_actions.get(keys)`
+returns the actions named by `keys` that the user may run, and each page lists its keys in its own
+order. Add a people action there, not to one page. Browsers keep this `app_include_js` script for 12
+hours while list and page scripts arrive fresh after a migrate, so never rename or remove a key or
+an exported function. A new key shows once the browser has the new script: `get` skips a key it
+does not know.
+
 ## Frappe behaviours worth knowing
 
 - **Administrator is never restricted.** User permissions do not apply to it, so it always sees every
@@ -1082,8 +1090,17 @@ On Frappe 17 (the Flow bench) also:
 
 ## Testing
 
-Run the whole suite before committing anything broad: `bench --site <site> run-tests --app churchit`.
-CI does not run it.
+While you work, run only the tests that your change can break. Run the whole suite once, before you
+push or open a pull request. It takes more than 15 minutes, and CI does not run it.
+
+- **While you work**, run the test module of each file that you changed (`bench --site <site>
+  run-tests --module churchit.church_people.doctype.person.test_person`), and the hygiene tests that
+  [checklist.md](.claude/skills/churchit-contributing/checklist.md) names for each kind of change you
+  made. `--module` takes one module per run. `--module-def "Church People"` runs the doctype tests of
+  one module.
+- **Before you push**, run `bench --site <test-site> run-tests --app churchit` on a test site that
+  you migrated first. Do not wait for it: run it in the background and keep working. A test can fail
+  because you edited its code during the run. Run that module again by itself before you fix it.
 
 - The suite is **destructive on a site you care about**. `TestSampleDataRoundTrip` deletes the
   sample data and creates it again, and the site keeps the result. Restore with

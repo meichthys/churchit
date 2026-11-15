@@ -76,6 +76,7 @@ app_include_js = [
 	"/assets/churchit/js/published_fields_indicator.js",
 	"/assets/churchit/js/contact_tables.js",
 	"/assets/churchit/js/name_tags.js",
+	"/assets/churchit/js/people_actions.js",
 	"/assets/churchit/js/bible_reference.js",
 	"/assets/churchit/js/questions.js",
 	"/assets/churchit/js/merge_choices.js",

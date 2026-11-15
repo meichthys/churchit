@@ -120,6 +120,25 @@ This runs 11 tests in about 3 s. The exit code is non-zero on failure. Run modul
 full `run-tests --app churchit` run commits to the dev site: it re-creates the sample data and leaves
 multi-church switched off.
 
+While you work, run the modules of the files you changed and the hygiene tests. All 15 hygiene
+modules take about 90 s together:
+
+```bash
+for f in churchit/tests/test_*hygiene.py churchit/tests/test_house_style.py; do
+  pilot -b dev frappe --site churchit.localhost run-tests --module "churchit.tests.$(basename "$f" .py)" \
+    2>&1 | grep -E "^(FAIL|ERROR|FAILED)" && echo "^ in $f"
+done
+```
+
+Run the full suite only before a push, never after each change. It takes more than 15 minutes. Run
+it on `churchit-test.localhost` as a background command, keep working, and read the result when it
+ends. Check `pgrep -af run-tests` first: another session may already run it on that site.
+
+```bash
+pilot -b dev frappe --site churchit-test.localhost migrate && \
+  pilot -b dev frappe --site churchit-test.localhost run-tests --app churchit 2>&1 | tail -40
+```
+
 ## Gotchas
 
 - **`wait_for_load_state` returns at once after the first load.** A "wait for idle" after a click
