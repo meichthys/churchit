@@ -78,8 +78,12 @@ def get_display_name(first_name, last_name=None, nickname=None, suffix=None) -> 
 
 class Person(Document):
 	def onload(self):
+		# opt_outs reads churchit.church_people.privacy, which imports this module.
+		from churchit.ai.opt_outs import get_staff_ai_state
+
 		self.set_onload("is_primary_contact", self.is_primary_contact)
 		self.set_onload("has_unsubscribed", newsletter.has_unsubscribed(self))
+		self.set_onload("ai_state", get_staff_ai_state(self.church))
 
 	def on_update(self):
 		self.sync_church_permission()

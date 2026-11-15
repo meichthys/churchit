@@ -8,6 +8,8 @@ import frappe
 from frappe.client import set_value
 from frappe.website.doctype.web_form.web_form import accept
 
+from churchit.ai.opt_outs import AI_OFF, AI_ON, MEMBER_AI_STATES
+from churchit.ai.switch import SETTINGS
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.member_access import PERSONAL_DETAILS, personal_details_fields
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
@@ -190,6 +192,19 @@ class TestPersonalDetails(RollbackEachTest):
 			],
 			[0, 0, 0, 1],
 		)
+
+	def test_the_ai_section_says_whether_the_church_uses_ai_now(self):
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.set_user(self.father_user)
+		frappe.local.form_dict = frappe._dict(name=self.father, is_edit=1)
+		frappe.local.path = f"{PERSONAL_DETAILS}/{self.father}/edit"
+		for enabled, state in ((0, AI_OFF), (1, AI_ON)):
+			frappe.db.set_single_value(SETTINGS, "enabled", enabled)
+			context = frappe._dict()
+			frappe.get_doc("Web Form", PERSONAL_DETAILS).get_context(context)
+			[section] = [f for f in context.web_form_doc.web_form_fields if f.fieldname == "ai_section"]
+			self.assertTrue(section.description.startswith(MEMBER_AI_STATES[state]), section.description)
+			self.assertIn("briefings", section.description, "The section's own help stays")
 
 	def test_the_badge_marks_the_ai_choice_as_shown_to_members(self):
 		sources = published_field_map()["Person"]["exclude_from_ai"]

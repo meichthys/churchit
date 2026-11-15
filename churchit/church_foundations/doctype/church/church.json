@@ -40,6 +40,7 @@
   "default_bible_translation",
   "contact_only_with_consent",
   "keep_away_from_ai",
+  "ai_status",
   "hidden_fields_section",
   "lft",
   "rgt",
@@ -195,6 +196,12 @@
    "show_description_on_click": 1
   },
   {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.multi_church",
+   "fieldname": "ai_status",
+   "fieldtype": "HTML",
+   "label": "AI Status"
+  },
+  {
    "default": "0",
    "description": "Check this to show this church on the public website.",
    "fieldname": "publish",
@@ -272,7 +279,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-11-10 02:26:37.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

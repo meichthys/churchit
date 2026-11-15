@@ -29,6 +29,12 @@ frappe.ui.form.on("Person", {
 			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");
 		}
 
+		// Whether AI is in use, under Keep Out of Churchit's AI Features (churchit.ai.opt_outs).
+		const ai_state = frm.doc.__onload?.ai_state;
+		frm.get_field("ai_status").$wrapper.html(
+			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
+		);
+
 		if (!frm.is_new()) {
 			add_actions(frm);
 			show_background_check_status(frm);

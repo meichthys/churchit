@@ -89,6 +89,7 @@
   "share_address",
   "share_birthday",
   "exclude_from_ai",
+  "ai_status",
   "section_break_eqre",
   "letters",
   "connections_tab",
@@ -358,6 +359,11 @@
    "label": "Keep Out of Churchit's AI Features",
    "print_hide": 1,
    "show_description_on_click": 1
+  },
+  {
+   "fieldname": "ai_status",
+   "fieldtype": "HTML",
+   "label": "AI Status"
   },
   {
    "description": "The secret part of this person's Ministry Team calendar link. Members make a new one on the Ministry Team page of the portal.",
@@ -989,7 +995,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-14 18:01:02.000000",
+ "modified": "2026-11-14 20:32:39.570403",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

@@ -9,7 +9,8 @@ the study helpers, action items and suggestions on new requests. A person of suc
 out too, and so is a record of such a church or about such a person. The desk hides churchit's AI
 buttons from a user whose churches all keep away (switch.extend_bootinfo). Flow chats, the Church
 Office agent and AI apps that connect over MCP work with each user's own permissions and are not
-limited (D5).
+limited (D5). Each opt-out shows a line from get_ai_state, so people can opt out before AI is on and
+still see whether AI is in use.
 
 The flags are read with frappe.db and not as the caller, because what churchit's AI may send must not
 depend on what the caller may read.
@@ -21,6 +22,7 @@ from collections.abc import Iterable
 import frappe
 from frappe import _
 
+from churchit.ai.switch import is_ai_on
 from churchit.church_people.privacy import PERSONAL_DOCTYPES, RECORDS_ABOUT_THE_PERSON
 from churchit.church_scope import SHARED_BY_FIELD, allowed_churches, is_multi_church, is_scoped, root_church
 
@@ -31,6 +33,20 @@ REFUSAL = (
 	"for that."
 )
 CHURCH_REFUSAL = "Your church keeps its records away from churchit's AI features."
+AI_OFF = "Off"
+AI_ON = "On"
+AI_KEPT_AWAY = "Kept Away"
+# What the opt-outs show beside their checkbox, so that people know whether AI is in use.
+STAFF_AI_STATES = {
+	AI_OFF: "AI is off on this site. This choice applies when someone turns AI on.",
+	AI_ON: "AI is turned on for this site.",
+	AI_KEPT_AWAY: "AI is turned on for this site, but {0} keeps away from it.",
+}
+MEMBER_AI_STATES = {
+	AI_OFF: "The church does not use AI now. Your choice applies if the church turns AI on.",
+	AI_ON: "The church uses AI now.",
+	AI_KEPT_AWAY: "Your church keeps away from AI, so its AI features leave you out now.",
+}
 
 
 def is_kept_away(doctype: str, name: str) -> bool:
@@ -97,6 +113,26 @@ def get_kept_away_churches() -> set[str]:
 	if not frappe.get_meta("Church").has_field(CHURCH_FIELD):  # migrate adds it
 		return set()
 	return set(frappe.db.get_values("Church", {CHURCH_FIELD: 1}, "name", pluck=True))
+
+
+def get_ai_state(church: str | None) -> str:
+	"""Whether churchit's own AI features run for *church*: AI_OFF on the site, AI_KEPT_AWAY when the
+	church keeps away from AI, else AI_ON."""
+	if not is_ai_on():
+		return AI_OFF
+	return AI_KEPT_AWAY if church in get_kept_away_churches() else AI_ON
+
+
+def get_staff_ai_state(church: str | None) -> str:
+	"""The sentence for the desk opt-outs (Person, Church) on whether AI is in use for *church*."""
+	state = get_ai_state(church)
+	name = frappe.db.get_value("Church", church, "church_name") if state == AI_KEPT_AWAY else None
+	return _(STAFF_AI_STATES[state]).format(name)
+
+
+def get_member_ai_state(church: str | None) -> str:
+	"""The sentence for the member's opt-out on Personal Details on whether their church uses AI now."""
+	return _(MEMBER_AI_STATES[get_ai_state(church)])
 
 
 def is_user_kept_away(user: str | None = None) -> bool:

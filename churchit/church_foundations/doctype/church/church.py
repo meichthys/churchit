@@ -22,6 +22,11 @@ class Church(NestedSet):
 	nsm_parent_field = "parent_church"
 	allow_root_deletion = False
 
+	def onload(self):
+		from churchit.ai.opt_outs import get_staff_ai_state  # opt_outs reads modules that import this one
+
+		self.set_onload("ai_state", get_staff_ai_state(self.name))
+
 	def validate(self):
 		from churchit.scripture import format_reference  # scripture reads the church tree from here
 

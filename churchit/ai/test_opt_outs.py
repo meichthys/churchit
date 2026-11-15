@@ -21,7 +21,7 @@ from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations import ai as operations_ai
 from churchit.church_people import ai_actions
 from churchit.church_people.followup import CARD
-from churchit.church_people.test_ai import AITestCase, as_user
+from churchit.church_people.test_ai import AITestCase, as_user, set_ai
 from churchit.church_people.test_ai_actions import data_of, run_action
 from churchit.church_scope import root_church
 from churchit.church_study import ai as study_ai
@@ -118,6 +118,32 @@ class TestWhatIsKeptAway(OptOutTestCase):
 		self.assertTrue(opt_outs.is_user_kept_away(MANAGER_B))
 		self.assertFalse(opt_outs.is_user_kept_away(self.manager))
 		self.assertFalse(opt_outs.is_user_kept_away("Administrator"), "Branch A and the root take AI")
+
+
+class TestTheLineBesideEachOptOut(OptOutTestCase):
+	def onload(self, doctype: str, name: str) -> str:
+		doc = frappe.get_doc(doctype, name)
+		doc.run_method("onload")
+		return doc.get_onload().ai_state
+
+	def test_the_person_and_church_forms_say_whether_ai_is_in_use_for_the_church(self):
+		branch_b = frappe.db.get_value("Church", self.branch_b, "church_name")
+		self.assertEqual(self.onload("Person", self.left_out), opt_outs.STAFF_AI_STATES[opt_outs.AI_ON])
+		self.assertIn(branch_b, self.onload("Person", self.of_b), "It names the church that keeps away")
+		self.assertEqual(self.onload("Church", self.branch_b), self.onload("Person", self.of_b))
+
+		set_ai(0)
+		off = opt_outs.STAFF_AI_STATES[opt_outs.AI_OFF]
+		self.assertEqual([self.onload("Person", self.of_b), self.onload("Church", self.branch_a)], [off, off])
+
+	def test_a_member_reads_whether_their_church_uses_ai_now(self):
+		self.assertEqual(opt_outs.get_ai_state(self.branch_a), opt_outs.AI_ON)
+		self.assertEqual(opt_outs.get_ai_state(self.branch_b), opt_outs.AI_KEPT_AWAY)
+		set_ai(0)
+		self.assertEqual(
+			{opt_outs.get_member_ai_state(church) for church in (self.branch_a, self.branch_b, None)},
+			{opt_outs.MEMBER_AI_STATES[opt_outs.AI_OFF]},
+		)
 
 
 class TestBriefMeAndNotes(OptOutTestCase):
