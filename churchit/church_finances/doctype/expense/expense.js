@@ -10,18 +10,24 @@ frappe.ui.form.on("Expense", {
 		const can_suggest =
 			frm.doc.docstatus === 0 &&
 			!frm.doc.missionary &&
-			(frappe.user.has_role("Church Finance") || frappe.user.has_role("Church Manager")) &&
+			(frappe.user.has_role("Church Finance") ||
+				frappe.user.has_role("Church Manager")) &&
 			churchit.ai.can_run();
 		if (can_suggest)
-			frm.add_custom_button(__("Suggest Type"), () => suggest_expense_type(frm));
+			frm.add_custom_button(__("Suggest Type"), () =>
+				suggest_expense_type(frm),
+			);
 	},
 
 	vendor(frm) {
 		if (!frm.doc.vendor) return;
-		frappe.db.get_value("Vendor", frm.doc.vendor, "default_expense_type").then((r) => {
-			const default_type = r && r.message && r.message.default_expense_type;
-			if (default_type) frm.set_value("type", default_type);
-		});
+		frappe.db
+			.get_value("Vendor", frm.doc.vendor, "default_expense_type")
+			.then((r) => {
+				const default_type =
+					r && r.message && r.message.default_expense_type;
+				if (default_type) frm.set_value("type", default_type);
+			});
 	},
 
 	type(frm) {
@@ -30,7 +36,10 @@ frappe.ui.form.on("Expense", {
 			return;
 		}
 		frappe.db.get_value("Expense Type", frm.doc.type, "fund").then((r) => {
-			frm.set_value("associated_fund", (r && r.message && r.message.fund) || null);
+			frm.set_value(
+				"associated_fund",
+				(r && r.message && r.message.fund) || null,
+			);
 		});
 	},
 });
@@ -39,14 +48,20 @@ frappe.ui.form.on("Expense", {
 // filled unsaved. A new expense sends its church, vendor and notes; a saved one its name.
 function suggest_expense_type(frm) {
 	if (!frm.is_new() && frm.is_dirty()) {
-		frappe.msgprint(__("Save the expense first, so the AI reads its vendor and notes."));
+		frappe.msgprint(
+			__("Save the expense first, so the AI reads its vendor and notes."),
+		);
 		return;
 	}
 	const { church, vendor, notes } = frm.doc;
 	churchit.ai.run_action({
 		title: __("Suggest Type"),
 		method: "churchit.church_finances.ai.suggest_expense_type",
-		args: { expense: frm.is_new() ? JSON.stringify({ church, vendor, notes }) : frm.doc.name },
+		args: {
+			expense: frm.is_new()
+				? JSON.stringify({ church, vendor, notes })
+				: frm.doc.name,
+		},
 		// The answer names its church; an answer for another church shows the fixed error of run_action.
 		render: ({ church, type }) => {
 			const is_other_church =

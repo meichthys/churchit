@@ -1,7 +1,11 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-const TEAM_GRID_COLORS = { Accepted: "green", Pending: "orange", Declined: "gray" };
+const TEAM_GRID_COLORS = {
+	Accepted: "green",
+	Pending: "orange",
+	Declined: "gray",
+};
 
 frappe.query_reports["Ministry Team Grid"] = {
 	filters: [
@@ -20,7 +24,12 @@ frappe.query_reports["Ministry Team Grid"] = {
 			default: frappe.datetime.add_days(frappe.datetime.get_today(), 56),
 			reqd: 1,
 		},
-		{ fieldname: "ministry", label: __("Ministry"), fieldtype: "Link", options: "Ministry" },
+		{
+			fieldname: "ministry",
+			label: __("Ministry"),
+			fieldtype: "Link",
+			options: "Ministry",
+		},
 	],
 
 	formatter(value, row, column, data, default_formatter) {
@@ -31,17 +40,18 @@ frappe.query_reports["Ministry Team Grid"] = {
 		const pills = cell.open
 			? [
 					`<a class="indicator-pill red team-grid-open" data-function="${escape(
-						cell.function
-					)}" data-position="${escape(data.position)}">${__("{0} open", [
-						cell.open,
-					])}</a>`,
-			  ]
+						cell.function,
+					)}" data-position="${escape(data.position)}">${__(
+						"{0} open",
+						[cell.open],
+					)}</a>`,
+				]
 			: [];
 		for (const person of cell.people) {
 			pills.push(
 				`<span class="indicator-pill ${TEAM_GRID_COLORS[person.status]}" title="${escape(
-					__(person.status)
-				)}">${escape(person.name)}</span>`
+					__(person.status),
+				)}">${escape(person.name)}</span>`,
 			);
 		}
 		return pills.join(" ");
@@ -58,7 +68,9 @@ frappe.query_reports["Ministry Team Grid"] = {
 				});
 			});
 		if (!frappe.model.can_create("Ministry Team Assignment")) return;
-		report.page.add_inner_button(__("Fill Open Needs"), () => this.fill_open_needs(report));
+		report.page.add_inner_button(__("Fill Open Needs"), () =>
+			this.fill_open_needs(report),
+		);
 	},
 
 	// The Ministry Team Schedule report has the same button.
@@ -66,7 +78,7 @@ frappe.query_reports["Ministry Team Grid"] = {
 		const filters = report.get_filter_values();
 		frappe.confirm(
 			__(
-				"Ask people from each position's roster to fill the open places? The daily job sends them the requests."
+				"Ask people from each position's roster to fill the open places? The daily job sends them the requests.",
 			),
 			() =>
 				frappe.call({
@@ -79,20 +91,23 @@ frappe.query_reports["Ministry Team Grid"] = {
 					},
 					freeze: true,
 					callback: ({ message }) => {
-						const open = message.unfilled.reduce((total, row) => total + row.open, 0);
+						const open = message.unfilled.reduce(
+							(total, row) => total + row.open,
+							0,
+						);
 						frappe.show_alert(
 							{
-								message: __("Asked {0} people to serve. Places still open: {1}.", [
-									message.assigned.length,
-									open,
-								]),
+								message: __(
+									"Asked {0} people to serve. Places still open: {1}.",
+									[message.assigned.length, open],
+								),
 								indicator: open ? "orange" : "green",
 							},
-							10
+							10,
 						);
 						report.refresh();
 					},
-				})
+				}),
 		);
 	},
 };

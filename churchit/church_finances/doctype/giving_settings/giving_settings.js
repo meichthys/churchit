@@ -10,9 +10,11 @@ frappe.ui.form.on("Giving Settings", {
 			frm.set_intro(
 				__(
 					"Online payments are off, because the Payments app is not installed on this site. Gifts on the Give page, sign-up payments and form payments need it. The {0} tells how to install it.",
-					[`<a href="/app/manual%3A-finances">${__("Finances manual")}</a>`]
+					[
+						`<a href="/app/manual%3A-finances">${__("Finances manual")}</a>`,
+					],
 				),
-				"orange"
+				"orange",
 			);
 		}
 	},

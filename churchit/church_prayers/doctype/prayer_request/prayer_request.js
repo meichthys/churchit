@@ -5,13 +5,17 @@ frappe.ui.form.on("Prayer Request", {
 	refresh(frm) {
 		if (frm.doc.visibility === "Private") {
 			frm.set_intro(
-				__("This request is private. Do not share it with the prayer team or the church."),
-				"yellow"
+				__(
+					"This request is private. Do not share it with the prayer team or the church.",
+				),
+				"yellow",
 			);
 		} else if (frm.doc.visibility === "Prayer Team") {
 			frm.set_intro(
-				__("Only the prayer team may see this request. Do not share it with the church."),
-				"blue"
+				__(
+					"Only the prayer team may see this request. Do not share it with the church.",
+				),
+				"blue",
 			);
 		}
 		add_suggestion_buttons(frm);
@@ -22,15 +26,21 @@ frappe.ui.form.on("Prayer Request", {
 
 		if (frm.is_new()) {
 			// Pre-populate the requestor field with the current user's name
-			frappe.db.get_value("Person", { user: frappe.session.user }, "name").then((r) => {
-				if (r && r.message) {
-					frm.set_value("requestor", r.message.name);
-				}
-			});
+			frappe.db
+				.get_value("Person", { user: frappe.session.user }, "name")
+				.then((r) => {
+					if (r && r.message) {
+						frm.set_value("requestor", r.message.name);
+					}
+				});
 			// Set default status
 			if (!frm.doc.status) {
 				frappe.db
-					.get_value("Prayer Request Status", { status: "Requested" }, "name")
+					.get_value(
+						"Prayer Request Status",
+						{ status: "Requested" },
+						"name",
+					)
 					.then((r) => {
 						if (r && r.message) {
 							frm.set_value("status", r.message.name);
@@ -48,10 +58,19 @@ function add_suggestion_buttons(frm) {
 	churchit.ai.show_suggestion(frm, (suggestion) => {
 		const uses = [
 			["type", suggestion.suggested_type, __("Use Type")],
-			["urgent", suggestion.suggested_urgent ? 1 : null, __("Use Urgency")],
+			[
+				"urgent",
+				suggestion.suggested_urgent ? 1 : null,
+				__("Use Urgency"),
+			],
 		]
-			.filter(([fieldname, value]) => value && value !== frm.doc[fieldname])
-			.map(([fieldname, value, label]) => [label, () => frm.set_value(fieldname, value)]);
+			.filter(
+				([fieldname, value]) => value && value !== frm.doc[fieldname],
+			)
+			.map(([fieldname, value, label]) => [
+				label,
+				() => frm.set_value(fieldname, value),
+			]);
 		if (suggestion.public_wording) {
 			uses.push([
 				__("Copy Wording"),
@@ -61,13 +80,19 @@ function add_suggestion_buttons(frm) {
 		return {
 			rows: [
 				[__("Suggested Type"), suggestion.suggested_type],
-				[__("Suggested as Urgent"), suggestion.suggested_urgent ? __("Yes") : null],
-				[__("Flags"), (suggestion.suggested_flags || "").split("\n").join(", ")],
+				[
+					__("Suggested as Urgent"),
+					suggestion.suggested_urgent ? __("Yes") : null,
+				],
+				[
+					__("Flags"),
+					(suggestion.suggested_flags || "").split("\n").join(", "),
+				],
 				[__("Suggested Wording"), suggestion.public_wording],
 			],
 			uses,
 			note: __(
-				"AI never replies to a prayer request and can miss a risk. Read every request."
+				"AI never replies to a prayer request and can miss a risk. Read every request.",
 			),
 		};
 	});

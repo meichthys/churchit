@@ -25,13 +25,20 @@ frappe.ui.form.on("Follow-up Workflow", {
 				return { filters };
 			}
 			if (row.trigger !== "On Smart List") return {};
-			return { query: "churchit.church_people.smart_lists.search_smart_lists" };
+			return {
+				query: "churchit.church_people.smart_lists.search_smart_lists",
+			};
 		});
 	},
 	refresh(frm) {
 		if (!frm.doc.kanban_board) return;
 		frm.add_custom_button(__("Open Board"), () =>
-			frappe.set_route("List", "Follow-up Card", "Kanban", frm.doc.kanban_board)
+			frappe.set_route(
+				"List",
+				"Follow-up Card",
+				"Kanban",
+				frm.doc.kanban_board,
+			),
 		);
 	},
 });

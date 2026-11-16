@@ -13,6 +13,10 @@ frappe.listview_settings["Care Assignment"] = {
 		if (doc.start_date > today) {
 			return [__("Upcoming"), "blue", "start_date,>,Today"];
 		}
-		return [__("Current"), "green", "start_date,<=,Today|end_date,is,not set"];
+		return [
+			__("Current"),
+			"green",
+			"start_date,<=,Today|end_date,is,not set",
+		];
 	},
 };

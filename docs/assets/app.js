@@ -10,12 +10,13 @@
 		var syncPressed = function () {
 			themeBtn.setAttribute(
 				"aria-pressed",
-				root.getAttribute("data-theme") === "dark" ? "true" : "false"
+				root.getAttribute("data-theme") === "dark" ? "true" : "false",
 			);
 		};
 		syncPressed();
 		themeBtn.addEventListener("click", function () {
-			var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+			var next =
+				root.getAttribute("data-theme") === "dark" ? "light" : "dark";
 			root.setAttribute("data-theme", next);
 			try {
 				localStorage.setItem("theme", next);
@@ -26,11 +27,17 @@
 		});
 		// Follow the OS theme as long as the visitor hasn't picked one explicitly.
 		try {
-			matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-				if (localStorage.getItem("theme")) return;
-				root.setAttribute("data-theme", e.matches ? "dark" : "light");
-				syncPressed();
-			});
+			matchMedia("(prefers-color-scheme: dark)").addEventListener(
+				"change",
+				function (e) {
+					if (localStorage.getItem("theme")) return;
+					root.setAttribute(
+						"data-theme",
+						e.matches ? "dark" : "light",
+					);
+					syncPressed();
+				},
+			);
 		} catch (e) {
 			// matchMedia may be unavailable.
 		}
@@ -57,12 +64,14 @@
 		}
 		btn.addEventListener("click", function () {
 			var code = btn.parentNode.querySelector("code");
-			navigator.clipboard.writeText(code.textContent.trim()).then(function () {
-				btn.textContent = "Copied ✓";
-				setTimeout(function () {
-					btn.textContent = "Copy";
-				}, 1600);
-			});
+			navigator.clipboard
+				.writeText(code.textContent.trim())
+				.then(function () {
+					btn.textContent = "Copied ✓";
+					setTimeout(function () {
+						btn.textContent = "Copy";
+					}, 1600);
+				});
 		});
 	});
 
@@ -72,9 +81,13 @@
 		tabs.forEach(function (tab) {
 			tab.addEventListener("click", function () {
 				tabs.forEach(function (other) {
-					other.setAttribute("aria-selected", other === tab ? "true" : "false");
-					document.getElementById(other.getAttribute("aria-controls")).hidden =
-						other !== tab;
+					other.setAttribute(
+						"aria-selected",
+						other === tab ? "true" : "false",
+					);
+					document.getElementById(
+						other.getAttribute("aria-controls"),
+					).hidden = other !== tab;
 				});
 			});
 		});
@@ -105,7 +118,7 @@
 					}
 				});
 			},
-			{ rootMargin: "0px 0px -10% 0px" }
+			{ rootMargin: "0px 0px -10% 0px" },
 		);
 		reveals.forEach(function (el) {
 			io.observe(el);
@@ -123,9 +136,11 @@
 		document.querySelectorAll("[data-zoom]").forEach(function (link) {
 			link.addEventListener("click", function (e) {
 				e.preventDefault();
-				var shown = Array.from(link.querySelectorAll("img")).find(function (img) {
-					return img.offsetParent;
-				});
+				var shown = Array.from(link.querySelectorAll("img")).find(
+					function (img) {
+						return img.offsetParent;
+					},
+				);
 				zoomImage.src = shown.src;
 				zoomImage.alt = shown.alt;
 				zoom.showModal();
@@ -138,8 +153,14 @@
 
 	// Scrollspy: highlight the documentation sidebar or screenshots tab for the section in view
 	var sections = document.querySelectorAll(".doc-section[id], .shot[id]");
-	var navLinks = document.querySelectorAll(".doc-side a[href^='#'], .shots-nav a[href^='#']");
-	if (sections.length && navLinks.length && "IntersectionObserver" in window) {
+	var navLinks = document.querySelectorAll(
+		".doc-side a[href^='#'], .shots-nav a[href^='#']",
+	);
+	if (
+		sections.length &&
+		navLinks.length &&
+		"IntersectionObserver" in window
+	) {
 		var map = {};
 		navLinks.forEach(function (a) {
 			map[a.getAttribute("href").slice(1)] = a;
@@ -151,11 +172,12 @@
 						navLinks.forEach(function (a) {
 							a.classList.remove("active");
 						});
-						if (map[en.target.id]) map[en.target.id].classList.add("active");
+						if (map[en.target.id])
+							map[en.target.id].classList.add("active");
 					}
 				});
 			},
-			{ rootMargin: "-45% 0px -50% 0px" }
+			{ rootMargin: "-45% 0px -50% 0px" },
 		);
 		sections.forEach(function (s) {
 			spy.observe(s);

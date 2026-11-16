@@ -11,7 +11,11 @@ frappe.listview_settings["Person"] = {
 		const colors = { Active: "green", Inactive: "gray" };
 		const status = doc.membership_status;
 		if (!status) return;
-		return [__(status), colors[status] || "blue", `membership_status,=,${status}`];
+		return [
+			__(status),
+			colors[status] || "blue",
+			`membership_status,=,${status}`,
+		];
 	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Rolodex"), () => {
@@ -34,7 +38,8 @@ frappe.listview_settings["Person"] = {
 		for (const action of actions) {
 			listview.page.add_action_item(action.label, () => {
 				const people = listview.get_checked_items(true);
-				if (!people.length) return frappe.msgprint(__("Select at least one person."));
+				if (!people.length)
+					return frappe.msgprint(__("Select at least one person."));
 				action.run(people, () => listview.refresh());
 			});
 		}
