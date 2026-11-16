@@ -4,7 +4,9 @@
 frappe.ui.form.on("Push Settings", {
 	refresh(frm) {
 		if (!frm.doc.vapid_public_key) {
-			frm.add_custom_button(__("Generate Keys"), () => generate_keys(frm));
+			frm.add_custom_button(__("Generate Keys"), () =>
+				generate_keys(frm),
+			);
 		}
 	},
 });

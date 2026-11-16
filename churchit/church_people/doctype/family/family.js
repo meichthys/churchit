@@ -4,7 +4,9 @@
 frappe.ui.form.on("Family", {
 	setup(frm) {
 		frm.set_query("primary_contact", () => ({
-			filters: { name: ["in", (frm.doc.members || []).map((row) => row.member)] },
+			filters: {
+				name: ["in", (frm.doc.members || []).map((row) => row.member)],
+			},
 		}));
 	},
 	refresh(frm) {
@@ -28,10 +30,12 @@ function add_merge_menu_item(frm) {
 					options: "Family",
 					label: __("Family to Keep"),
 					reqd: 1,
-					get_query: () => ({ filters: { name: ["!=", frm.doc.name] } }),
+					get_query: () => ({
+						filters: { name: ["!=", frm.doc.name] },
+					}),
 					description: __(
 						"The members of {0} and everything that names it move to this family, and {0} is deleted. This family keeps its own details and gets the ones it does not have from {0}. You cannot undo a merge.",
-						[name]
+						[name],
 					),
 				},
 			],

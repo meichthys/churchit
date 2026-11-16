@@ -5,12 +5,18 @@ frappe.ui.form.on("Possible Duplicate", {
 	refresh(frm) {
 		render_comparison(frm);
 		if (churchit.ai.can_run()) {
-			frm.add_custom_button(__("Explain Match"), () => explain_match(frm), __("View"));
+			frm.add_custom_button(
+				__("Explain Match"),
+				() => explain_match(frm),
+				__("View"),
+			);
 		}
 		if (frm.doc.status !== "Open") return;
 
 		if (frappe.model.can_delete("Person")) {
-			frm.add_custom_button(__("Merge"), () => choose_person_to_keep(frm));
+			frm.add_custom_button(__("Merge"), () =>
+				choose_person_to_keep(frm),
+			);
 		}
 		if (frm.has_perm("write")) {
 			frm.add_custom_button(__("Not a Duplicate"), () => {
@@ -42,18 +48,20 @@ function render_comparison(frm) {
 	const people = frm.doc.__onload?.people || {};
 	const names = [frm.doc.person, frm.doc.other_person];
 	const fields = COMPARED_FIELDS.filter(
-		([field]) => field !== "church" || frappe.boot.churchit?.multi_church
+		([field]) => field !== "church" || frappe.boot.churchit?.multi_church,
 	);
 
 	const header = names
 		.map((name) => {
-			const label = frappe.utils.escape_html(people[name]?.full_name || name);
+			const label = frappe.utils.escape_html(
+				people[name]?.full_name || name,
+			);
 			return `<th>${frappe.utils.get_form_link("Person", name, true, label)}</th>`;
 		})
 		.join("");
 	const rows = fields.map(([field, label, fieldtype]) => {
 		const values = names.map((name) =>
-			people[name] ? format_value(people[name][field], fieldtype) : ""
+			people[name] ? format_value(people[name][field], fieldtype) : "",
 		);
 		const muted = values[0] === values[1] ? "text-muted" : "";
 		const cells = values.map((value) => `<td>${value}</td>`).join("");
@@ -97,7 +105,7 @@ function choose_person_to_keep(frm) {
 				default: frm.doc.person,
 				reqd: 1,
 				description: __(
-					"The other person is merged into this one. Everything that names them moves to the person you keep, and their record is deleted. You cannot undo this."
+					"The other person is merged into this one. Everything that names them moves to the person you keep, and their record is deleted. You cannot undo this.",
 				),
 				onchange: () => show_choices(),
 			},
@@ -105,7 +113,8 @@ function choose_person_to_keep(frm) {
 		],
 		primary_action_label: __("Merge"),
 		primary_action({ keep }) {
-			const take_from_removed = churchit.merge_choices.get_taken(choices());
+			const take_from_removed =
+				churchit.merge_choices.get_taken(choices());
 			dialog.hide();
 			frappe
 				.call({
@@ -117,7 +126,8 @@ function choose_person_to_keep(frm) {
 				.then(() => frm.reload_doc());
 		},
 	});
-	const other = (keep) => (keep === frm.doc.person ? frm.doc.other_person : frm.doc.person);
+	const other = (keep) =>
+		keep === frm.doc.person ? frm.doc.other_person : frm.doc.person;
 	const choices = () => dialog.get_field("choices").$wrapper;
 	const show_choices = () => {
 		const keep = dialog.get_value("keep");
@@ -135,7 +145,9 @@ function explain_match(frm) {
 		method: "churchit.church_people.ai_actions.explain_duplicate",
 		args: { possible_duplicate: frm.doc.name },
 		render: (result) => render_match_explanation(frm, result),
-		note: __("Suggestion. Check it before you merge. The AI never merges people."),
+		note: __(
+			"Suggestion. Check it before you merge. The AI never merges people.",
+		),
 	});
 }
 
@@ -151,8 +163,8 @@ function render_match_explanation(frm, { pair, explanation, keep }) {
 		.map(
 			({ label, value, record }) =>
 				`<tr><td>${escape(__(label))}</td><td>${escape(value)}</td><td>${escape(
-					names[record]
-				)}</td></tr>`
+					names[record],
+				)}</td></tr>`,
 		)
 		.join("");
 	const table = rows

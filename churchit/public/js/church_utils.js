@@ -30,15 +30,20 @@ church.toggle_branch_churches = function () {
 	const include = !frappe.boot.churchit.include_branches;
 	frappe.confirm(
 		include
-			? __("Include branch churches in your lists, reports and dashboards?")
+			? __(
+					"Include branch churches in your lists, reports and dashboards?",
+				)
 			: __("Show only your own church again?"),
 		() => {
 			frappe
-				.xcall("churchit.church_foundations.church_access.set_include_branches", {
-					include,
-				})
+				.xcall(
+					"churchit.church_foundations.church_access.set_include_branches",
+					{
+						include,
+					},
+				)
 				.then(() => window.location.reload());
-		}
+		},
 	);
 };
 
@@ -66,7 +71,9 @@ church.prefill_church = function (frm) {
 // without this the only clue is the PermissionError you get after unticking it.
 church.note_shared_by_another_church = function (frm) {
 	const owner = frm.doc.is_shared ? frm.doc.shared_by_church : null;
-	const mine = church.is_multi_church() ? frappe.boot.churchit.churches : null;
+	const mine = church.is_multi_church()
+		? frappe.boot.churchit.churches
+		: null;
 	const from_another_church = Boolean(owner && mine && !mine.includes(owner));
 
 	if (frm.__churchit_shared_note && !from_another_church) {
@@ -80,8 +87,11 @@ church.note_shared_by_another_church = function (frm) {
 
 	const note = (name) =>
 		frm.set_intro(
-			__("Shared with your church by {0}. Only they can stop sharing it.", [name]),
-			"blue"
+			__(
+				"Shared with your church by {0}. Only they can stop sharing it.",
+				[name],
+			),
+			"blue",
 		);
 	const title = frappe.utils.get_link_title("Church", owner);
 	if (title) {
@@ -99,9 +109,14 @@ frappe.ui.form.on("*", {
 // Every church reads the people directory, but only a person's own church may
 // change them. The server refuses the save either way; this says so up front.
 church.lock_another_churchs_people = function (frm) {
-	const mine = church.is_multi_church() ? frappe.boot.churchit.churches : null;
+	const mine = church.is_multi_church()
+		? frappe.boot.churchit.churches
+		: null;
 	const theirs = Boolean(
-		mine && !frm.is_new() && frm.doc.church && !mine.includes(frm.doc.church)
+		mine &&
+		!frm.is_new() &&
+		frm.doc.church &&
+		!mine.includes(frm.doc.church),
 	);
 
 	if (frm.__churchit_people_lock && !theirs) {
@@ -113,7 +128,10 @@ church.lock_another_churchs_people = function (frm) {
 	frm.disable_form();
 	frm.__churchit_people_lock = true;
 	const note = (name) =>
-		frm.set_intro(__("This belongs to {0}. Only that church can change it.", [name]), "blue");
+		frm.set_intro(
+			__("This belongs to {0}. Only that church can change it.", [name]),
+			"blue",
+		);
 	const title = frappe.utils.get_link_title("Church", frm.doc.church);
 	if (title) {
 		note(title);
@@ -128,18 +146,22 @@ frappe.ui.form.on("Family", { refresh: church.lock_another_churchs_people });
 // Persistent note while branch churches are included, in the same spot and
 // style as Frappe's own announcement widget at the top of the desk.
 church.show_branches_banner = function () {
-	if (!church.is_multi_church() || frappe.boot.churchit.include_branches !== true) return;
+	if (
+		!church.is_multi_church() ||
+		frappe.boot.churchit.include_branches !== true
+	)
+		return;
 	if ($("header .churchit-branches-banner").length) return;
 	const expand = frappe.boot.churchit.expand_church_filters ? "checked" : "";
 	const banner = $(`
 		<div class="churchit-branches-banner announcement-widget form-message blue">
 			<div class="container flex justify-between align-center mx-auto">
 				<span>${__(
-					"Branch churches are included: lists, reports and dashboards show every church you can see."
+					"Branch churches are included: lists, reports and dashboards show every church you can see.",
 				)}</span>
 				<span class="churchit-banner-actions">
 					<label class="churchit-expand-filters" title="${__(
-						"When a church is picked in a list or report Church filter, also show the records of its branches. Remembered for you only."
+						"When a church is picked in a list or report Church filter, also show the records of its branches. Remembered for you only.",
 					)}">
 						<input type="checkbox" ${expand}>
 						${__("Expand filters to branches")}
@@ -150,9 +172,12 @@ church.show_branches_banner = function () {
 		</div>`);
 	banner.find(".churchit-expand-filters input").on("change", (event) => {
 		frappe
-			.xcall("churchit.church_foundations.church_access.set_church_filter_expansion", {
-				expand: event.target.checked,
-			})
+			.xcall(
+				"churchit.church_foundations.church_access.set_church_filter_expansion",
+				{
+					expand: event.target.checked,
+				},
+			)
 			.then(() => window.location.reload());
 	});
 	banner.find(".churchit-hide-branches").on("click", (event) => {
@@ -168,18 +193,39 @@ church.show_branches_banner = function () {
 // as well. User permissions still apply on top. Falls back to exact matching
 // if a Frappe upgrade moves the hook.
 (function expandListChurchFilters() {
-	const base = frappe.views && frappe.views.BaseList && frappe.views.BaseList.prototype;
-	if (!base || !base.get_filters_for_args || base.get_filters_for_args._churchPatched) return;
+	const base =
+		frappe.views &&
+		frappe.views.BaseList &&
+		frappe.views.BaseList.prototype;
+	if (
+		!base ||
+		!base.get_filters_for_args ||
+		base.get_filters_for_args._churchPatched
+	)
+		return;
 	const original = base.get_filters_for_args;
 	const patched = function () {
 		const filters = original.call(this);
-		if (!church.is_multi_church() || !frappe.boot.churchit.expand_church_filters)
+		if (
+			!church.is_multi_church() ||
+			!frappe.boot.churchit.expand_church_filters
+		)
 			return filters;
 		return filters.map((filter) => {
 			const [doctype, fieldname, operator, value] = filter;
 			const field = frappe.meta.get_docfield(doctype, fieldname);
-			if (operator === "=" && value && field && field.options === "Church") {
-				return [doctype, fieldname, "descendants of (inclusive)", value];
+			if (
+				operator === "=" &&
+				value &&
+				field &&
+				field.options === "Church"
+			) {
+				return [
+					doctype,
+					fieldname,
+					"descendants of (inclusive)",
+					value,
+				];
 			}
 			return filter;
 		});
@@ -235,7 +281,12 @@ church.set_church_doctype_query = function (frm, fieldname, child_table) {
 		if (doc && docfield && docfield.fieldname && value) {
 			const title = doc[`_${docfield.fieldname}_link_title`];
 			const doctype = docfield._options || docfield.options;
-			if (title && doctype && frappe.utils && frappe.utils.add_link_title) {
+			if (
+				title &&
+				doctype &&
+				frappe.utils &&
+				frappe.utils.add_link_title
+			) {
 				frappe.utils.add_link_title(doctype, value, title);
 			}
 		}

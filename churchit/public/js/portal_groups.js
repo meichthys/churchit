@@ -23,7 +23,9 @@
 				if (!groups.length) {
 					frappe.msgprint({
 						title: __("Nothing to join"),
-						message: __("There are no public groups available to join right now."),
+						message: __(
+							"There are no public groups available to join right now.",
+						),
 					});
 					return;
 				}
@@ -32,8 +34,8 @@
 					g.requested
 						? __("{0} (request sent)", [g.group_name])
 						: g.requires_approval
-						? __("{0} (a leader approves)", [g.group_name])
-						: g.group_name;
+							? __("{0} (a leader approves)", [g.group_name])
+							: g.group_name;
 				const labels = groups.map(label);
 				const dialog = new frappe.ui.Dialog({
 					title: __("Join a public group"),
@@ -48,7 +50,9 @@
 					],
 					primary_action_label: __("Join"),
 					primary_action(values) {
-						const chosen = groups.find((g) => label(g) === values.group);
+						const chosen = groups.find(
+							(g) => label(g) === values.group,
+						);
 						if (!chosen) return;
 						frappe
 							.call({
@@ -60,14 +64,20 @@
 								dialog.hide();
 								if (rr.message && rr.message.requested) {
 									frappe.show_alert(
-										{ message: __("Request sent"), indicator: "blue" },
-										5
+										{
+											message: __("Request sent"),
+											indicator: "blue",
+										},
+										5,
 									);
 									return;
 								}
 								frappe.show_alert(
-									{ message: __("Joined!"), indicator: "green" },
-									3
+									{
+										message: __("Joined!"),
+										indicator: "green",
+									},
+									3,
 								);
 								setTimeout(() => window.location.reload(), 700);
 							});
@@ -79,7 +89,8 @@
 
 	function place() {
 		const actions = document.querySelector(".web-list-actions");
-		if (!actions || actions.querySelector(".group-join-action")) return false;
+		if (!actions || actions.querySelector(".group-join-action"))
+			return false;
 		const btn = document.createElement("button");
 		btn.className = "btn btn-primary btn-sm group-join-action";
 		btn.textContent = "+ Join a public group";

@@ -9,7 +9,10 @@ frappe.query_reports["Attendance Count"] = {
 			label: __("Since"),
 			fieldtype: "Date",
 			reqd: 1,
-			default: frappe.datetime.add_months(frappe.datetime.get_today(), -3),
+			default: frappe.datetime.add_months(
+				frappe.datetime.get_today(),
+				-3,
+			),
 		},
 		{
 			fieldname: "to_date",

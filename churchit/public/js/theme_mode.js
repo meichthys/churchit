@@ -23,11 +23,17 @@
 		if (theme_color) theme_color.content = theme_color.dataset[mode];
 	}
 
-	apply(saved_mode() || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+	apply(
+		saved_mode() ||
+			(matchMedia("(prefers-color-scheme: dark)").matches
+				? "dark"
+				: "light"),
+	);
 
 	document.addEventListener("click", function (event) {
 		if (!event.target.closest(".theme-switch")) return;
-		const mode = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+		const mode =
+			root.getAttribute("data-theme") === "dark" ? "light" : "dark";
 		apply(mode);
 		try {
 			localStorage.setItem(STORAGE_KEY, mode);

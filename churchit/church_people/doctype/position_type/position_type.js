@@ -4,7 +4,9 @@
 frappe.ui.form.on("Position Type", {
 	refresh(frm) {
 		if (!frm.is_new() && frappe.model.can_write("Person")) {
-			frm.add_custom_button(__("Assign to Person"), () => assign_to_person(frm));
+			frm.add_custom_button(__("Assign to Person"), () =>
+				assign_to_person(frm),
+			);
 		}
 	},
 });
@@ -53,7 +55,9 @@ function assign_to_person(frm) {
 				.then(() => {
 					dialog.hide();
 					frappe.show_alert({
-						message: __("Position assigned to {0}", [values.person]),
+						message: __("Position assigned to {0}", [
+							values.person,
+						]),
 						indicator: "green",
 					});
 					frm.reload_doc();

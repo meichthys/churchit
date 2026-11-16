@@ -22,7 +22,11 @@
 		const url = new URL(window.location.href);
 		if (url.searchParams.has(PARAM)) {
 			url.searchParams.delete(PARAM);
-			history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+			history.replaceState(
+				history.state,
+				"",
+				url.pathname + url.search + url.hash,
+			);
 		}
 		return token;
 	}
@@ -30,9 +34,11 @@
 	function show_banner(frm, is_stale) {
 		frm.set_intro(
 			is_stale
-				? __("This record changed after the AI draft. Check each field before you save.")
+				? __(
+						"This record changed after the AI draft. Check each field before you save.",
+					)
 				: __("AI draft: check every field before you save."),
-			is_stale ? "orange" : "yellow"
+			is_stale ? "orange" : "yellow",
 		);
 	}
 
@@ -43,9 +49,13 @@
 		const has_grid = Boolean(frm.fields_dict[fieldname]?.grid);
 		for (const { name, ...values } of rows) {
 			const row =
-				(name && (frm.doc[fieldname] || []).find((stored) => stored.name === name)) ||
+				(name &&
+					(frm.doc[fieldname] || []).find(
+						(stored) => stored.name === name,
+					)) ||
 				frm.add_child(fieldname);
-			if (has_grid) await frappe.model.set_value(row.doctype, row.name, values);
+			if (has_grid)
+				await frappe.model.set_value(row.doctype, row.name, values);
 			else Object.assign(row, values);
 		}
 		frm.refresh_field(fieldname);
@@ -67,7 +77,11 @@
 			if (Array.isArray(value)) await fill_rows(frm, fieldname, value);
 			else await frm.set_value(fieldname, value);
 		}
-		frm.__ai_draft = { token, docname: frm.doc.name, is_stale: draft.stale };
+		frm.__ai_draft = {
+			token,
+			docname: frm.doc.name,
+			is_stale: draft.stale,
+		};
 		show_banner(frm, draft.stale);
 	}
 
@@ -87,7 +101,9 @@
 
 		after_save(frm) {
 			const draft = frm.__ai_draft;
-			const names = draft ? [draft.docname, frappe.model.new_names[draft.docname]] : [];
+			const names = draft
+				? [draft.docname, frappe.model.new_names[draft.docname]]
+				: [];
 			if (!names.includes(frm.doc.name)) return;
 
 			frm.__ai_draft = null;

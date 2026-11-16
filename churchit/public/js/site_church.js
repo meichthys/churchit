@@ -15,7 +15,12 @@
 
 	frappe.ready(function () {
 		document.querySelectorAll("a[href]").forEach(function (link) {
-			if (link.origin !== window.location.origin || link.search || link.hash) return;
+			if (
+				link.origin !== window.location.origin ||
+				link.search ||
+				link.hash
+			)
+				return;
 			if (!link.pathname || link.pathname.startsWith("/app")) return;
 			if (link.hasAttribute("download")) return;
 			link.search = "?church=" + encodeURIComponent(church);

@@ -18,35 +18,44 @@ frappe.ui.form.on("Church Email", {
 		if (frm.is_new()) return;
 
 		const can_send = frappe.model.can_write("Church Email");
-		const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
+		const action = (label, fn) =>
+			frm.add_custom_button(label, fn, __("Actions"));
 		if (["Draft", "Scheduled"].includes(frm.doc.status)) {
 			action(__("Preview"), () => preview(frm));
 		}
 		if (frm.doc.status === "Draft" && can_send) {
-			const test_label = is_text(frm) ? __("Send Test Text") : __("Send Test Email");
+			const test_label = is_text(frm)
+				? __("Send Test Text")
+				: __("Send Test Email");
 			action(test_label, () => send_test(frm));
-			frm.add_custom_button(__("Send"), () => send(frm)).addClass("btn-primary");
+			frm.add_custom_button(__("Send"), () => send(frm)).addClass(
+				"btn-primary",
+			);
 		} else if (frm.doc.status === "Scheduled") {
 			frm.set_intro(
 				__("This message will be sent at {0}.", [
 					frappe.datetime.str_to_user(frm.doc.send_after),
 				]),
-				"blue"
+				"blue",
 			);
 			if (can_send) {
 				action(__("Unschedule"), () =>
-					frm.call("unschedule").then(() => frm.reload_doc())
+					frm.call("unschedule").then(() => frm.reload_doc()),
 				);
 			}
 		} else if (frm.doc.status === "Sending") {
 			frm.set_intro(
-				__("This message is being sent. Reload the page to see when it is done."),
-				"blue"
+				__(
+					"This message is being sent. Reload the page to see when it is done.",
+				),
+				"blue",
 			);
 		} else if (frm.doc.status === "Sent") {
 			frm.set_intro(
-				__("This message has been sent, so it can no longer be changed."),
-				"green"
+				__(
+					"This message has been sent, so it can no longer be changed.",
+				),
+				"green",
 			);
 			frm.disable_form();
 		}
@@ -69,7 +78,9 @@ frappe.ui.form.on("Church Email", {
 				frm.set_value("subject", template.subject);
 				frm.set_value(
 					"message",
-					template.use_html ? template.response_html : template.response
+					template.use_html
+						? template.response_html
+						: template.response,
 				);
 			});
 	},
@@ -86,8 +97,8 @@ function saved(frm) {
 function nobody_gets_it(frm) {
 	return is_text(frm)
 		? __(
-				"No one gets this text. Check Send To and Purpose: texts go only to people who agreed to get them."
-		  )
+				"No one gets this text. Check Send To and Purpose: texts go only to people who agreed to get them.",
+			)
 		: __("No one gets this email. Check Send To and Purpose.");
 }
 
@@ -100,9 +111,11 @@ function send_test(frm) {
 		.then(() => frm.call("send_test"))
 		.then(({ message: address }) =>
 			frappe.show_alert({
-				message: __("Test sent to {0}", [frappe.utils.escape_html(address)]),
+				message: __("Test sent to {0}", [
+					frappe.utils.escape_html(address),
+				]),
 				indicator: "green",
-			})
+			}),
 		);
 }
 
@@ -115,7 +128,8 @@ function send(frm) {
 				return;
 			}
 			const later =
-				frm.doc.send_after && frappe.datetime.str_to_obj(frm.doc.send_after) > new Date();
+				frm.doc.send_after &&
+				frappe.datetime.str_to_obj(frm.doc.send_after) > new Date();
 			const people = count_people(count);
 			const at = frappe.datetime.str_to_user(frm.doc.send_after);
 			let question = is_text(frm)
@@ -126,7 +140,9 @@ function send(frm) {
 					? __("Send this text to {0} at {1}?", [people, at])
 					: __("Send this email to {0} at {1}?", [people, at]);
 			}
-			frappe.confirm(question, () => frm.call("send").then(() => frm.reload_doc()));
+			frappe.confirm(question, () =>
+				frm.call("send").then(() => frm.reload_doc()),
+			);
 		});
 }
 
@@ -155,7 +171,8 @@ function preview(frm) {
 	const show = (person) =>
 		frm.call("get_preview", { person }).then(({ message: result }) => {
 			shown = result.person;
-			if (result.person && !dialog.get_value("person")) dialog.set_value("person", shown);
+			if (result.person && !dialog.get_value("person"))
+				dialog.set_value("person", shown);
 			render_preview(frm, dialog.fields_dict.preview.$wrapper, result);
 		});
 	saved(frm).then(() => {

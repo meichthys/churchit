@@ -11,9 +11,12 @@ frappe.listview_settings["Family"] = {
 		});
 		listview.page.add_action_item(__("Email"), () => {
 			const families = listview.get_checked_items(true);
-			if (!families.length) return frappe.msgprint(__("Select at least one family."));
+			if (!families.length)
+				return frappe.msgprint(__("Select at least one family."));
 			// Each household's own email, else its primary contact's.
-			churchit.people_actions.email_in_bcc("get_household_emails", { families });
+			churchit.people_actions.email_in_bcc("get_household_emails", {
+				families,
+			});
 		});
 	},
 };

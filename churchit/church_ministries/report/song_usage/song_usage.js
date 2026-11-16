@@ -8,7 +8,10 @@ frappe.query_reports["Song Usage"] = {
 			fieldname: "from_date",
 			label: __("From Date"),
 			fieldtype: "Date",
-			default: frappe.datetime.add_months(frappe.datetime.get_today(), -6),
+			default: frappe.datetime.add_months(
+				frappe.datetime.get_today(),
+				-6,
+			),
 			reqd: 1,
 		},
 		{
