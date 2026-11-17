@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "field:status",
  "creation": "2026-10-11 16:00:00",
- "description": "Where a `Missionary` stands with the church: Active, Pending, Inactive, or a status the church adds. Inactive missionaries are left out of the Church Directory and the bulletin's Missionary of the Week.",
+ "description": "Where a missionary stands with the church: Active, Pending, Inactive, or a status the church adds. Inactive missionaries are left out of the Church Directory and the bulletin's Missionary of the Week.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-missions",
  "engine": "InnoDB",
@@ -35,7 +35,7 @@
    "link_fieldname": "status"
   }
  ],
- "modified": "2026-10-31 13:15:42.000000",
+ "modified": "2026-11-15 05:42:25.574252",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary Status",

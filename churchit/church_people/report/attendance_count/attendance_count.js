@@ -29,4 +29,8 @@ frappe.query_reports["Attendance Count"] = {
 			options: "Function Type",
 		},
 	],
+	onload: function (report) {
+		const filter = report.get_filter("min_times");
+		filter.$input.attr("title", filter.df.label);
+	},
 };

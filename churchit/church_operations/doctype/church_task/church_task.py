@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.desk.form.assign_to import close_all_assignments
 from frappe.utils import getdate
 from frappe.utils.nestedset import NestedSet
@@ -11,7 +12,7 @@ from churchit.church_scope import refuse_another_churches_record
 LINKED_RECORDS = {"requester": "Person", "asset": "Church Asset", "room": "Room"}
 
 DUE_NOTIFICATION = "Church Task Due"
-DUE_MESSAGE = """<p>A task assigned to you is due {{ frappe.utils.format_datetime(doc.due_date) }}.</p>
+DUE_MESSAGE = """<p>A task assigned to you is due {{ frappe.utils.format_datetime(doc.due_date, "EEEE, MMMM d, yyyy h:mm a") }}.</p>
 
 <ul>
   <li><strong>Task:</strong> {{ doc.title | e }}</li>
@@ -32,9 +33,16 @@ class ChurchTask(NestedSet):
 
 	def on_update(self):
 		super().on_update()
-		# Frappe's assignments (ToDo) own the assignee, and the task owns their date.
+		# Frappe's assignments (ToDo) own the assignee, and the task owns their date and priority.
 		if self.has_value_changed("due_date"):
 			self.date_assignments()
+		if self.has_value_changed("priority"):
+			frappe.db.set_value(
+				"ToDo",
+				{"reference_type": self.doctype, "reference_name": self.name, "status": "Open"},
+				"priority",
+				get_todo_priority(self.priority),
+			)
 		if self.has_value_changed("status") and self.status == "Completed":
 			close_all_assignments(self.doctype, self.name, ignore_permissions=True)
 
@@ -45,6 +53,11 @@ class ChurchTask(NestedSet):
 			"date",
 			getdate(self.due_date) if self.due_date else None,
 		)
+
+
+def get_todo_priority(priority: str | None) -> str:
+	"""A ToDo has no Urgent, so an Urgent task's ToDo is High."""
+	return "High" if priority == "Urgent" else priority or "Medium"
 
 
 def on_assignment(doc, method=None):
@@ -58,6 +71,9 @@ def on_assignment(doc, method=None):
 		return
 	if task.due_date:
 		doc.db_set("date", getdate(task.due_date))
+	doc.db_set("priority", get_todo_priority(task.priority))
+	if not doc.description or doc.description == _("Assignment for {0} {1}").format(task.doctype, task.name):
+		doc.db_set("description", task.title)
 	if task.status == "Open":
 		# A real save, so the timeline and an open form see the change.
 		task.status = "Assigned"

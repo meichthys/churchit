@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from churchit.church_foundations import church_access
+
 # What a per-church row replaces. `roles` is absent because Frappe has no child
 # table inside a child table. It costs little: `roles` lists which job titles the
 # leadership section prints, and `sections.position_holders` reads who holds them
@@ -30,6 +32,12 @@ SECTION_SETTINGS = (
 
 
 class BulletinSettings(Document):
+	def onload(self):
+		self.set_onload("has_every_church", church_access.has_every_church(frappe.session.user))
+
+	def validate(self):
+		church_access.refuse_changing_shared_settings(self, ("church_sections",))
+
 	def for_church(self, church=None):
 		"""These settings with *church*'s row applied, or unchanged when it has none.
 

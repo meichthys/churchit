@@ -2,7 +2,8 @@ frappe.ready(function () {
 	var recipient_ctrl = frappe.web_form.fields_dict["recipient"];
 	var type_ctrl = frappe.web_form.fields_dict["recipient_type"];
 
-	if (recipient_ctrl && type_ctrl) {
+	// The read view draws its fields without an input, so there is nothing to search from
+	if (recipient_ctrl && type_ctrl && recipient_ctrl.$input) {
 		var $input = recipient_ctrl.$input;
 		var $wrap = recipient_ctrl.$wrapper;
 		var real_name = (frappe.web_form.doc && frappe.web_form.doc.recipient) || "";
@@ -13,23 +14,18 @@ frappe.ready(function () {
 			return real_name || original_get_value();
 		};
 
-		// Custom dropdown for searching recipients by label
-		var $dd = $("<ul>").css({
-			position: "absolute",
-			background: "#fff",
-			border: "1px solid #d1d8dd",
-			borderRadius: "0 0 4px 4px",
-			boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-			listStyle: "none",
-			padding: 0,
-			margin: 0,
-			maxHeight: "180px",
-			overflowY: "auto",
-			zIndex: 9999,
-			display: "none",
-			left: 0,
-			right: 0,
-		});
+		// A name typed without a click on the list has no record behind it
+		frappe.web_form.validate = function () {
+			if (real_name || !$input.val()) return true;
+			frappe.msgprint({
+				message: __("Choose who it is for from the list that shows as you type."),
+				indicator: "orange",
+			});
+			return false;
+		};
+
+		// Custom dropdown for searching recipients by label; styled in website.css
+		var $dd = $('<ul class="recipient-search-results">').hide();
 		$wrap.css("position", "relative").append($dd);
 
 		var timer;
@@ -52,15 +48,6 @@ frappe.ready(function () {
 						results.forEach(function (d) {
 							$("<li>")
 								.text(d.label)
-								.css({ padding: "6px 12px", cursor: "pointer" })
-								.hover(
-									function () {
-										$(this).css("background", "#f4f5f7");
-									},
-									function () {
-										$(this).css("background", "#fff");
-									}
-								)
 								.on("mousedown", function (e) {
 									e.preventDefault();
 									real_name = d.name;

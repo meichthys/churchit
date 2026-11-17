@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import sbool
 
-from churchit.church_communications.consent import allowed
+from churchit.church_communications.consent import allowed_for_purposes
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
 	EMAIL,
 	GIVEN,
@@ -18,7 +18,12 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	record,
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import CHURCH_NEWS
-from churchit.church_communications.newsletter import email_church, lift_global_unsubscribe, set_subscribed
+from churchit.church_communications.newsletter import (
+	email_church,
+	is_subscribed,
+	lift_global_unsubscribe,
+	set_subscribed,
+)
 from churchit.church_communications.push import SUBSCRIPTION, is_push_on
 from churchit.church_communications.sending import can_send_texts
 from churchit.church_scope import session_church, session_person
@@ -38,8 +43,10 @@ def get_member_preferences() -> dict:
 	purposes = frappe.get_all(
 		"Communication Purpose", fields=["purpose", "description"], order_by="creation asc"
 	)
+	names = [row.purpose for row in purposes]
+	by_channel = {channel: allowed_for_purposes(person, channel, names) for channel in channels}
 	for row in purposes:
-		row.allowed = {channel: allowed(person, channel, row.purpose) for channel in channels}
+		row.allowed = {channel: by_channel[channel][row.purpose] for channel in channels}
 	return {
 		"person": person,
 		"church_name": church_name,
@@ -48,6 +55,7 @@ def get_member_preferences() -> dict:
 		"channels": channels,
 		"purposes": purposes,
 		"is_globally_unsubscribed": bool(email) and is_globally_unsubscribed(email),
+		"has_stopped_church_emails": has_stopped_church_emails(email),
 	}
 
 
@@ -68,6 +76,11 @@ def get_channels(email: str | None, phone: str | None) -> list[str]:
 def is_globally_unsubscribed(email: str) -> bool:
 	"""True when *email* stopped every email the site sends."""
 	return bool(frappe.db.exists("Email Unsubscribe", {"email": email, "global_unsubscribe": 1}))
+
+
+def has_stopped_church_emails(email: str | None) -> bool:
+	"""True when *email* stopped all of the session's church's emails, which only Church News starts again."""
+	return bool(email) and not is_subscribed(email, email_church(session_church()))
 
 
 @frappe.whitelist(methods=["POST"])
@@ -95,18 +108,20 @@ def set_preference(channel: str, purpose: str, allow: bool) -> dict:
 	return {
 		"message": get_saved_message(channel, purpose, allow),
 		"is_globally_unsubscribed": bool(email) and is_globally_unsubscribed(email),
+		"has_stopped_church_emails": has_stopped_church_emails(email),
 	}
 
 
 def update_email_unsubscribes(email: str, church: str, purpose: str, allow: bool):
 	"""Keep Frappe's Email Unsubscribe records in step with a member's email choice.
 
-	Church News starts or stops the church's emails to the address. A yes to any purpose
-	also lifts a stop on every email, because the member asked for this one.
+	A switch never stops the church's other emails: only the consent for its purpose changes.
+	A yes lifts a stop on every email, because the member asked for this one, and a yes to
+	Church News also lifts an older unsubscribe from all of the church's emails.
 	"""
-	if purpose == CHURCH_NEWS:
-		set_subscribed(email, church, allow)
 	if allow:
+		if purpose == CHURCH_NEWS:
+			set_subscribed(email, church, True)
 		lift_global_unsubscribe(email)
 
 

@@ -5,9 +5,16 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from churchit.unique_names import refuse_a_second_with_this_name
+
 
 class Ministry(Document):
 	def validate(self):
+		refuse_a_second_with_this_name(
+			self,
+			"ministry_name",
+			_("There is already a ministry called {0}. Give this ministry another name."),
+		)
 		if self.end_date and self.start_date and self.end_date < self.start_date:
 			frappe.throw(_("End Date cannot be before Start Date."))
 		self._refresh_recurring_functions()

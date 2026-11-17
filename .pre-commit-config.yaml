@@ -54,6 +54,7 @@ repos:
                 .*boilerplate.*|
                 churchit/templates/includes/.*|
                 churchit/public/js/lib/.*|
+                churchit/church_finances/web_form/pledge/pledge\.js|
                 churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
             )$
 
@@ -74,6 +75,7 @@ repos:
                 .*boilerplate.*|
                 churchit/templates/includes/.*|
                 churchit/public/js/lib/.*|
+                churchit/church_finances/web_form/pledge/pledge\.js|
                 churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
             )$
 

@@ -1,6 +1,7 @@
-{#- Shadows frappe's contact page: the address column also lists the church's
-    own Address (filled in by contact.py) and drops the FontAwesome icons the
-    website bundle no longer ships. -#}
+{#- Shadows frappe's contact page: the address column lists the church's own
+    name and Address (filled in by contact.py), the form sends the message to
+    that church (church_website/contact.py), and the FontAwesome icons the
+    website bundle no longer ships are gone. -#}
 {% extends "templates/web.html" %}
 
 {% set title = heading or "Contact Us" %}
@@ -23,7 +24,8 @@
 			<p id="contact-alert" class="alert alert-warning"
 				style="display: none;">&nbsp;</p>
 			<div class="form-group">
-				<select name="subject" class="form-control">
+				<label for="contact-subject">{{ _("What is this about?") }}</label>
+				<select name="subject" id="contact-subject" class="form-control">
 				{% if query_options %}
 					{% for option in query_options %}
 					<option value="{{ option }}">{{ _(option) }}</option>
@@ -34,11 +36,19 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<input class="form-control" name="email" type="text"
+				<label for="contact-email">{{ _("Your email") }}</label>
+				<input class="form-control" name="email" id="contact-email" type="text"
 				placeholder="{{ _('Your email address') }}" />
 			</div>
 			<div class="form-group">
-				<textarea rows="10" name="message" class="form-control"></textarea>
+				<label for="contact-message">{{ _("Your message") }}</label>
+				<textarea rows="10" name="message" id="contact-message" class="form-control"
+				placeholder="{{ _('Write your question or message here.') }}"></textarea>
+			</div>
+			{#- Hidden from people; a bot that fills it in sends nothing. -#}
+			<div style="position: absolute; left: -10000px;" aria-hidden="true">
+				<label for="contact-website">{{ _("Website") }}</label>
+				<input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off">
 			</div>
 			<div class="form-group">
 				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
@@ -46,7 +56,7 @@
 		</div>
 		{% if address_line1 or phone or email_id %}
 		<div class="col-md-3 offset-md-1 address" itemscope itemtype="https://schema.org/PostalAddress">
-			<h4 style="margin-top: 0px;">{{ address_title or _("Address") }}</h4>
+			<h4 style="margin-top: 0px;">{{ address_title or (_("Address") if address_line1 else _("Contact")) }}</h4>
 			{% if address_line1 %}
 				<span itemprop="streetAddress">{{ address_line1 }}</span><br>
 			{% endif %}
@@ -72,6 +82,45 @@
 	</div>
 </div>
 <script>
-	{% include "templates/includes/contact.js" %}
+frappe.ready(function () {
+	var subject = frappe.utils.get_url_arg("subject");
+	if (subject) $('[name="subject"]').val(subject);
+
+	$(".btn-send").off("click").on("click", function () {
+		var email = $('[name="email"]').val().trim();
+		var message = $('[name="message"]').val().trim();
+		if (!(email && message)) {
+			frappe.msgprint({{ _("Please enter your email and your message, so that we can answer you.") | tojson }});
+			return false;
+		}
+		if (!validate_email(email)) {
+			frappe.msgprint({{ _("Please enter a valid email address, so that we can answer you.") | tojson }});
+			$('[name="email"]').focus();
+			return false;
+		}
+
+		var button = $(this).prop("disabled", true);
+		frappe.call({
+			type: "POST",
+			method: "churchit.church_website.contact.send_message",
+			// the page's ?church= picks the church that gets the message
+			args: churchit.with_church({
+				subject: $('[name="subject"]').val(),
+				email: email,
+				message: message,
+				website: $('[name="website"]').val(),
+			}),
+			callback: function (r) {
+				if (r.exc) return;
+				frappe.msgprint(r.message, {{ _("Message Sent") | tojson }});
+				$('[name="email"], [name="message"]').val("");
+			},
+			always: function () {
+				button.prop("disabled", false);
+			},
+		});
+		return false;
+	});
+});
 </script>
 {% endblock %}

@@ -1,11 +1,13 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from datetime import timedelta
+
 import frappe
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.model.document import Document
-from frappe.utils import get_datetime, now_datetime
+from frappe.utils import escape_html, format_datetime, get_datetime, get_link_to_form, now_datetime
 
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_scope import (
@@ -29,10 +31,14 @@ DECIDED_MESSAGE = """<p>Your room booking is {{ doc.status | lower }}.</p>
 <ul>
   {% if doc.room %}<li><strong>Room:</strong> {{ frappe.db.get_value("Room", doc.room, "room_name") }}</li>{% endif %}
   <li><strong>Purpose:</strong> {{ doc.purpose }}</li>
-  <li><strong>Start:</strong> {{ frappe.utils.format_datetime(doc.start_datetime) }}</li>
-  <li><strong>End:</strong> {{ frappe.utils.format_datetime(doc.end_datetime) }}</li>
+  <li><strong>Start:</strong> {{ frappe.utils.format_datetime(doc.start_datetime, "EEEE, MMMM d, yyyy h:mm a") }}</li>
+  <li><strong>End:</strong> {{ frappe.utils.format_datetime(doc.end_datetime, "EEEE, MMMM d, yyyy h:mm a") }}</li>
 </ul>
+
+{% if frappe.db.get_value("User", doc.owner, "user_type") == "Website User" %}<p><a href="{{ frappe.utils.get_url("/room-request/" ~ doc.name) }}">See your booking</a></p>{% else %}<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the booking</a></p>{% endif %}
 """
+# The longest booking a member makes from the Room Request page.
+LONGEST_MEMBER_BOOKING = timedelta(days=1)
 
 
 class RoomBooking(Document):
@@ -51,6 +57,7 @@ class RoomBooking(Document):
 			self.end_datetime = get_datetime(self.end_datetime)
 			if self.end_datetime <= self.start_datetime:
 				frappe.throw(_("End time must be after start time."))
+			self.refuse_a_member_booking_in_the_past_or_too_long()
 		self.refuse_a_booking_of_nothing()
 		# No room: the mandatory-field check reports it.
 		room = frappe.db.get_value(
@@ -142,6 +149,25 @@ class RoomBooking(Document):
 
 	def onload(self):
 		self.set_onload("is_approver", self.is_approver())
+		self.set_onload("has_unmovable_clash", self.has_unmovable_clash())
+
+	def has_unmovable_clash(self) -> bool:
+		"""Whether an Approved or Blocked booking holds the room, so Keep This Booking would be refused."""
+		if self.status != "Conflict" or not self.room:
+			return False
+		# church-scope: a shared room is booked by several churches
+		return bool(
+			frappe.db.exists(
+				"Room Booking",
+				{
+					"room": self.room,
+					"name": ("!=", self.name),
+					"status": ("in", ("Approved", "Blocked")),
+					"start_datetime": ("<", self.end_datetime),
+					"end_datetime": (">", self.start_datetime),
+				},
+			)
+		)
 
 	def set_initial_status(self, requires_approval):
 		"""Approve a new booking at once on an open room, or when its room's approver makes it.
@@ -241,14 +267,18 @@ class RoomBooking(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def deny(self) -> None:
-		"""Deny a Requested booking, as an approver of its room. Changes data."""
-		self.decide("Denied")
+		"""Deny a Requested or Conflict booking, as an approver of its room. Changes data."""
+		self.decide("Denied", ("Requested", "Conflict"))
 
-	def decide(self, status: str) -> None:
-		"""Set a Requested booking to *status*, for an approver of its room."""
+	def decide(self, status: str, from_statuses: tuple[str, ...] = ("Requested",)) -> None:
+		"""Set a waiting booking to *status*, for an approver of its room."""
 		self.load_stored_for_an_approver()
-		if self.status != "Requested":
-			frappe.throw(_("Only a Requested booking can be approved or denied."))
+		if self.status not in from_statuses:
+			frappe.throw(
+				_("Only a Requested booking can be approved.")
+				if status == "Approved"
+				else _("Only a Requested or Conflict booking can be denied.")
+			)
 		self.status = status
 		self.save(ignore_permissions=True)
 
@@ -297,6 +327,18 @@ class RoomBooking(Document):
 			return
 		if self.room and self.has_value_changed("room") and self.room not in get_bookable_rooms():
 			frappe.throw(_("You can ask only for a bookable room of your church."), frappe.PermissionError)
+
+	def refuse_a_member_booking_in_the_past_or_too_long(self):
+		"""A member books a time still to come, for a day at most. Staff book any time on the desk form."""
+		if not (is_portal_member() or frappe.flags.in_web_form):
+			return
+		if self.has_value_changed("start_datetime") and self.start_datetime < now_datetime():
+			frappe.throw(_("Pick a time that has not passed yet."))
+		is_retimed = self.has_value_changed("start_datetime") or self.has_value_changed("end_datetime")
+		if is_retimed and self.end_datetime - self.start_datetime > LONGEST_MEMBER_BOOKING:
+			frappe.throw(
+				_("A booking from this page can last up to one day. Ask the church office for a longer one.")
+			)
 
 	def refuse_a_booking_of_nothing(self):
 		if not self.room and not self.assets:
@@ -457,8 +499,20 @@ class RoomBooking(Document):
 			user for user in frappe.get_doc("Room", self.room).get_approvers() if user not in assigned
 		]
 		if approvers:
+			room_name = frappe.get_cached_value("Room", self.room, "room_name")
 			assign_to._add(
-				{"assign_to": approvers, "doctype": self.doctype, "name": self.name}, ignore_permissions=True
+				{
+					"assign_to": approvers,
+					"doctype": self.doctype,
+					"name": self.name,
+					"description": _("Decide {0} for {1}, {2} to {3}").format(
+						room_name,
+						self.purpose or _("a booking"),
+						format_datetime(self.start_datetime, "EEE MMM d, h:mm a"),
+						format_booking_end(self.start_datetime, self.end_datetime),
+					),
+				},
+				ignore_permissions=True,
 			)
 
 	def deny_requests_a_block_overlaps(self):
@@ -518,12 +572,42 @@ class RoomBooking(Document):
 
 
 def describe_clashes(conflicts: list[tuple[str, str]]) -> str:
-	"""The clashing bookings, as (name, church) pairs, named only where the user can see their church."""
-	clashes = [name for name, church in conflicts if has_church_access(frappe.session.user, church)]
+	"""The clashing bookings, as (name, church) pairs, named only where the user can see their church.
+
+	A desk user gets a link with the purpose and times; a member gets the times only.
+	"""
+	is_member = is_portal_member() or frappe.flags.in_web_form
+	clashes = []
+	for name, church in conflicts:
+		if not has_church_access(frappe.session.user, church):
+			continue
+		clashes.append(describe_booking(name, is_member))
 	hidden = len(conflicts) - len(clashes)
 	if hidden:
 		clashes.append(_("{0} booking(s) of another church").format(hidden))
 	return ", ".join(clashes)
+
+
+def describe_booking(name: str, is_member: bool) -> str:
+	"""One booking as 'purpose, start to end', linked to its form for a desk user."""
+	# A locking read, as the clash query was: a plain read may not see a booking that just committed.
+	purpose, start, end = frappe.db.get_value(
+		"Room Booking", name, ["purpose", "start_datetime", "end_datetime"], for_update=True
+	)
+	times = _("{0} to {1}").format(
+		format_datetime(start, "EEE MMM d, h:mm a"), format_booking_end(start, end)
+	)
+	if is_member:
+		return times
+	return get_link_to_form("Room Booking", name, f"{escape_html(purpose)}, {times}" if purpose else times)
+
+
+def format_booking_end(start, end) -> str:
+	"""The end of a booking as its time, with the day too when it ends on another day, and the year in another year."""
+	start, end = get_datetime(start), get_datetime(end)
+	if end.date() == start.date():
+		return format_datetime(end, "h:mm a")
+	return format_datetime(end, "EEE MMM d, h:mm a" if end.year == start.year else "EEE MMM d, yyyy, h:mm a")
 
 
 def get_bookable_rooms() -> dict[str, str]:

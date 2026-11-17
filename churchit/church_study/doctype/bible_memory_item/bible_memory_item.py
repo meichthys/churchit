@@ -10,7 +10,12 @@ from frappe.model.document import Document
 from frappe.utils import escape_html, today
 
 from churchit.church_scope import has_church_access, is_multi_church
-from churchit.scripture import format_reference, is_readable
+from churchit.scripture import (
+	format_reference,
+	get_default_translation,
+	get_readable_translations,
+	is_readable,
+)
 
 ASSIGNING_ROLES = {"Church Manager", "System Manager", "Administrator"}
 
@@ -49,7 +54,10 @@ class BibleMemoryItem(Document):
 			frappe.throw(_("Only a group assignment sets the group."), frappe.PermissionError)
 		if self.has_value_changed("translation") and not is_readable(self.translation):
 			frappe.throw(
-				_("You cannot read the translation {0}.").format(self.translation), frappe.PermissionError
+				_("{0} has no Bible text on this site yet. Pick another translation.").format(
+					self.translation
+				),
+				frappe.PermissionError,
 			)
 		if self.user == frappe.session.user or not self.has_value_changed("user"):
 			return
@@ -185,7 +193,10 @@ def assign_memory(
 	if not set(frappe.get_roles()) & ASSIGNING_ROLES:
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
 	if not is_readable(translation):
-		frappe.throw(_("You cannot read the translation {0}.").format(translation), frappe.PermissionError)
+		frappe.throw(
+			_("{0} has no Bible text on this site yet. Pick another translation.").format(translation),
+			frappe.PermissionError,
+		)
 	users = as_list(users)
 	refuse_users_of_another_church(users)
 	group_users, missing_users = get_group_users(group) if group else ([], [])
@@ -247,11 +258,19 @@ def get_group_users(group):
 		.run(as_dict=True)
 	)
 	missing = [
-		f'<a href="/app/person/{quote(member.name)}">{escape_html(member.full_name or member.name)}</a>'
+		f'<a href="/desk/person/{quote(member.name)}">{escape_html(member.full_name or member.name)}</a>'
 		for member in members
 		if not member.user
 	]
 	return [member.user for member in members if member.user], missing
+
+
+@frappe.whitelist(methods=["GET"])
+def get_translation_choices() -> dict:
+	"""The translations the form may offer and the church's default among them. Reads only."""
+	names = [translation["name"] for translation in get_readable_translations()]
+	default = get_default_translation()
+	return {"names": names, "default": default if default in names else None}
 
 
 def clear_group(doc, method=None):
@@ -269,7 +288,8 @@ def as_list(value):
 @frappe.whitelist(methods=["POST"])
 def record_mistake(name: str, word_index: int) -> dict:
 	"""Count a mistake on word *word_index* of memory item *name*, for its own user. Changes data."""
-	doc = frappe.get_doc("Bible Memory Item", name)
+	# Locked: two quick wrong letters send two calls, and the later save would fail as stale.
+	doc = frappe.get_doc("Bible Memory Item", name, for_update=True)
 	return doc.record_mistake(word_index)
 
 
@@ -278,5 +298,5 @@ def complete_session(
 	name: str, mode: str, mistakes: int = 0, correct_word_indices: str | list[int] | None = None
 ) -> dict:
 	"""Score a finished practice session of memory item *name*, for its own user. Changes data."""
-	doc = frappe.get_doc("Bible Memory Item", name)
+	doc = frappe.get_doc("Bible Memory Item", name, for_update=True)
 	return doc.complete_session(mode, mistakes, correct_word_indices)

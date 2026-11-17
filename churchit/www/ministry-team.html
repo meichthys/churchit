@@ -35,14 +35,14 @@
 
 {% block page_content %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-4">{{ _("Ministry Team") }}</h3>
+	<h1 class="my-account-header mb-4">{{ _("Ministry Team") }}</h1>
 
 	{% if not person %}
 		<p class="text-muted">
 			{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
 		</p>
 	{% else %}
-		<h5>{{ _("Where you are asked to serve") }}</h5>
+		<h2 class="h5">{{ _("Where you are asked to serve") }}</h2>
 		{% if not assignments %}
 			<p class="text-muted mb-5">{{ _("You are not asked to serve at any upcoming function.") }}</p>
 		{% else %}
@@ -93,7 +93,7 @@
 		</ul>
 		{% endif %}
 
-		<h5>{{ _("Dates you cannot serve") }}</h5>
+		<h2 class="h5">{{ _("Dates you cannot serve") }}</h2>
 		{% if blocks %}
 		<ul class="team-list">
 			{% for block in blocks %}
@@ -130,7 +130,7 @@
 		</form>
 
 		{% if positions %}
-		<h5 class="mt-5">{{ _("How often you serve") }}</h5>
+		<h2 class="h5 mt-5">{{ _("How often you serve") }}</h2>
 		<p class="text-muted">{{ _("Choose the most times a month you serve in each position. 0 means no limit.") }}</p>
 		<ul class="team-list">
 			{% for row in positions %}
@@ -146,7 +146,7 @@
 		</ul>
 		{% endif %}
 
-		<h5 class="mt-5">{{ _("Your calendar") }}</h5>
+		<h2 class="h5 mt-5">{{ _("Your calendar") }}</h2>
 		<p class="text-muted">
 			{{ _("See the functions you accepted in the calendar on your phone or computer. It keeps itself up to date.") }}
 		</p>

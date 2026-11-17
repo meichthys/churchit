@@ -6,12 +6,13 @@ import json
 import frappe
 from frappe.api.v1 import create_doc, update_doc
 from frappe.desk.doctype.kanban_board.kanban_board import update_order_for_single_card
+from frappe.desk.form import assign_to
 from frappe.desk.form.load import getdoc
 from frappe.desk.form.save import savedocs
-from frappe.email.doctype.notification.notification import get_context
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, getdate, today
 
+from churchit.church_people.doctype.people_settings.people_settings import create_reminders
 from churchit.church_people.followup import (
 	CARD,
 	CLOSED,
@@ -30,7 +31,6 @@ from churchit.tests.helpers import (
 	make_person,
 	make_two_churches,
 )
-from churchit.tests.test_notification_templates import shipped_templates
 
 
 def make_workflow(name, steps, **values):
@@ -193,6 +193,29 @@ class TestFollowupCard(RollbackEachTest):
 		frappe.set_user(self.staff)
 		self.assertTrue({mine, theirs} <= set(frappe.get_list(CARD, pluck="name")))
 
+	def test_a_card_moved_on_stays_readable_but_not_writable_for_its_old_assignee(self):
+		card = frappe.get_doc(CARD, add_card(self.person.name, self.workflow))
+		card.step = "Visit"
+		card.save()
+
+		frappe.set_user(self.caller)
+		self.assertTrue(frappe.has_permission(CARD, "read", doc=card.name))
+		self.assertFalse(frappe.has_permission(CARD, "write", doc=card.name))
+		getdoc(CARD, card.name)
+		self.assertTrue(frappe.response.docs[-1].get("__onload")["read_only"])
+
+	def test_a_card_never_assigned_stays_unreadable(self):
+		card = add_card(self.person.name, self.workflow, assignee=self.visitor)
+		frappe.set_user(self.caller)
+		self.assertFalse(frappe.has_permission(CARD, "read", doc=card))
+
+	def test_a_card_whose_assignment_was_taken_away_stays_unreadable(self):
+		card = add_card(self.person.name, self.workflow)
+		assign_to._remove(CARD, card, self.caller, ignore_permissions=True)
+
+		frappe.set_user(self.caller)
+		self.assertFalse(frappe.has_permission(CARD, "read", doc=card))
+
 	def test_the_follow_up_role_saves_its_card_from_the_form_but_cannot_claim_another(self):
 		mine = frappe.get_doc(CARD, add_card(self.person.name, self.workflow)).as_dict()
 		theirs = frappe.get_doc(
@@ -219,8 +242,9 @@ class TestFollowupCard(RollbackEachTest):
 		frappe.set_user(self.caller)
 		getdoc(CARD, card)
 
-		contact = frappe.response.docs[-1].get("__onload")["contact"]
-		self.assertEqual(contact, {"phone": "555 0100", "email": "_test_card_newcomer@example.com"})
+		onload = frappe.response.docs[-1].get("__onload")
+		self.assertEqual(onload["contact"], {"phone": "555 0100", "email": "_test_card_newcomer@example.com"})
+		self.assertNotIn("read_only", onload)
 
 	def test_after_a_merge_only_the_oldest_open_card_on_a_workflow_stays_open(self):
 		other = make_workflow("_Test Card Other", [("Call", self.caller, 1)]).name
@@ -235,19 +259,6 @@ class TestFollowupCard(RollbackEachTest):
 		self.assertEqual(frappe.db.get_value(CARD, elsewhere, "status"), "Open")
 		self.assertEqual(open_todos(repeated), [])
 
-	def test_the_overdue_notice_names_the_card_and_reaches_its_assignee(self):
-		card = frappe.get_doc(CARD, add_card(self.person.name, self.workflow))
-		notification, markdown = shipped_templates("church_communications", "Follow-up Card Overdue")
-		context = get_context(card)
-
-		for template in (notification["subject"], notification["message"], markdown):
-			self.assertIn("_Test Card Newcomer", frappe.render_template(template, context))
-		self.assertIn("Call", frappe.render_template(markdown, context))
-		self.assertEqual(markdown, notification["message"])
-		self.assertTrue(frappe.safe_eval(notification["condition"], None, context))
-		recipients, _cc, _bcc = frappe.get_doc(notification).get_list_of_recipients(card, context)
-		self.assertIn(self.caller, recipients)
-
 	def test_the_overdue_notice_picks_open_cards_due_yesterday_that_are_awake(self):
 		cards = {}
 		for key in ("overdue", "snoozed", "closed"):
@@ -257,6 +268,8 @@ class TestFollowupCard(RollbackEachTest):
 			)
 			cards[key] = card.name
 		frappe.db.set_value(CARD, cards["closed"], "status", CLOSED)
+		create_reminders()
+		frappe.db.set_value("Notification", "Follow-up Card Overdue", "days_in_advance", 1)
 
 		due = [
 			doc.name

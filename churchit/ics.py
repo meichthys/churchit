@@ -130,7 +130,9 @@ def get_public_calendar(ministry: str | None = None) -> Response:
 	church = selected_church_name()
 	today = getdate()
 	window_start = add_months(today, -1)
-	filters = church_filters(church, publish=1, is_link_only=0, start_date=["<=", add_months(today, 6)])
+	filters = church_filters(
+		church, publish=1, is_link_only=0, auto_repeat=0, start_date=["<=", add_months(today, 6)]
+	)
 	if ministry:
 		filters["associated_ministry"] = ministry
 

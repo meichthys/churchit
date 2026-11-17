@@ -53,7 +53,7 @@ class TestAccessLog(RollbackEachTest):
 		self.assertEqual(len(pop_access_logs(**filters)), 1)
 
 	def test_printing_a_person_is_logged_with_its_print_format(self):
-		for print_format in ("Mailing Label", "Church Directory", "Standard"):
+		for print_format in ("Mailing Label", "Member Profile Card", "Standard"):
 			with self.subTest(print_format):
 				filters = {"reference_document": self.person, "page": f"Print Format: {print_format}"}
 				pop_access_logs(**filters)

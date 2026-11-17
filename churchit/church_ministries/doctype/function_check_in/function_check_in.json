@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "autoname": "FCHK-.######",
  "creation": "2026-04-19 16:37:15.283115",
+ "description": "One person checked in to a Function, with the time and the pickup code for a child. Use the Check-In Station to check people in.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
@@ -110,7 +111,8 @@
    "in_standard_filter": 1,
    "label": "Person",
    "options": "Person",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "default": "Regular",
@@ -203,7 +205,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-14 18:01:02.000000",
+ "modified": "2026-11-15 15:18:37.971406",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Check-In",

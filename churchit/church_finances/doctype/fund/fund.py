@@ -4,18 +4,38 @@
 from urllib.parse import urlencode
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Max
-from frappe.utils import flt, get_url
+from frappe.utils import flt, fmt_money, get_link_to_form, get_url, getdate
 from frappe.utils.print_format_generator import get_qr_code
 
 from churchit.church_scope import is_multi_church
+from churchit.unique_names import refuse_a_second_with_this_name
 
 
 class Fund(Document):
+	def validate(self):
+		refuse_a_second_with_this_name(
+			self, "fund", _("There is already a fund called {0}. Give this fund another name.")
+		)
+		if self.is_goal_period_reversed:
+			frappe.throw(_("The End Date cannot be before the Start Date."))
+
 	def before_save(self):
 		self.recalculate_balance()
 		self.update_goal_progress()
+
+	@property
+	def is_goal_period_reversed(self) -> bool:
+		"""True when this save sets an end before the start. A period stored that way can still be saved."""
+		changed = self.is_new() or self.has_value_changed("start_date") or self.has_value_changed("end_date")
+		return bool(
+			changed
+			and self.start_date
+			and self.end_date
+			and getdate(self.end_date) < getdate(self.start_date)
+		)
 
 	def recalculate_balance(self):
 		self.balance = sum(transaction.amount or 0 for transaction in self.transactions)
@@ -95,6 +115,39 @@ def set_balance(fund: str, balance: float, goal_amount: float):
 	frappe.db.set_value(
 		"Fund", fund, {"balance": balance, "goal_progress": get_goal_progress(balance, goal_amount)}
 	)
+
+
+def format_amount(amount: float) -> str:
+	"""*amount* in the site currency, which the desk also shows on Currency fields."""
+	return fmt_money(amount, currency=frappe.db.get_default("currency"))
+
+
+def show_fund_change(fund: str, message: str, amount: float) -> None:
+	"""Show a short alert that *amount* went into or out of *fund*.
+
+	*message* gets the fund as a link for {0} and the amount for {1}.
+	"""
+	label = frappe.db.get_value("Fund", fund, "fund")
+	frappe.msgprint(
+		message.format(get_link_to_form("Fund", fund, label), format_amount(amount)),
+		alert=True,
+		indicator="green",
+	)
+
+
+def warn_of_negative_balance(fund: str, message: str, change: float = 0) -> None:
+	"""Warn in orange when *change* takes *fund* below zero.
+
+	*message* gets the fund as a link for {0} and the balance after *change* for {1}.
+	"""
+	label, balance = frappe.db.get_value("Fund", fund, ["fund", "balance"])
+	balance = (balance or 0) + change
+	if balance < 0:
+		frappe.msgprint(
+			message.format(get_link_to_form("Fund", fund, label), format_amount(balance)),
+			indicator="orange",
+			title=_("Negative Fund Balance"),
+		)
 
 
 @frappe.whitelist(methods=["GET"])

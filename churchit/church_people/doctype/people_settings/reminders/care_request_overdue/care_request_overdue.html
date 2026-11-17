@@ -1,0 +1,11 @@
+<p>This care request was due on {{ frappe.utils.format_date(doc.due_on, "EEEE, MMMM d, yyyy") }} and is still open.</p>
+
+<ul>
+  <li><strong>Person:</strong> {{ (doc.person_name or doc.person) | e }}</li>
+  <li><strong>Category:</strong> {{ doc.category | e }}</li>
+  <li><strong>Urgency:</strong> {{ doc.urgency }}</li>
+  <li><strong>Status:</strong> {{ doc.status }}</li>
+  <li><strong>Caregiver:</strong> {% if doc.caregiver %}{{ frappe.db.get_value("Person", doc.caregiver, "full_name") | e }}{% else %}Nobody yet{% endif %}</li>
+</ul>
+
+<p>Please follow up, then update the request for <a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">{{ (doc.person_name or doc.person) | e }}</a>.</p>

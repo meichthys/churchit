@@ -31,7 +31,7 @@
 		{% endif %}
 		{% set links = footer_items | selectattr("label") | rejectattr("parent_label") | list %}
 		{% if links %}
-		<nav class="footer-links">
+		<nav class="footer-links" aria-label="{{ _('Footer') }}">
 			{% for item in links %}
 			<a href="{{ item.url | abs_url }}" class="footer-link" {% if item.open_in_new_tab %}target="_blank"{% endif %} rel="noreferrer">{{ _(item.label) }}</a>
 			{% endfor %}

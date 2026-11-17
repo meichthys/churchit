@@ -23,6 +23,8 @@ from churchit.church_scope import (
 # Property Setters that reveal the fields once branches exist. They are
 # site-local: hooks.py only exports setters on the Frappe doctypes it lists.
 REVEALED_PROPERTIES = {"hidden": "0", "in_standard_filter": "1"}
+# The church field also gets a list column, so rows of different churches tell apart.
+CHURCH_COLUMN_PROPERTIES = {**REVEALED_PROPERTIES, "in_list_view": "1"}
 # Every field this module ever reveals, so a setter can be found again and pruned
 # after its doctype stops offering the field.
 MANAGED_FIELDS = (CHURCH_FIELD, SHARED_FIELD, SHARED_BY_FIELD)
@@ -41,6 +43,11 @@ def revealed_fields():
 		if doctype in shareable:
 			yield doctype, SHARED_FIELD
 			yield doctype, SHARED_BY_FIELD
+
+
+def get_revealed_properties(fieldname):
+	"""The properties a revealed field gets: the church field also shows as a list column."""
+	return CHURCH_COLUMN_PROPERTIES if fieldname == CHURCH_FIELD else REVEALED_PROPERTIES
 
 
 def apply_field_visibility(enabled):
@@ -63,7 +70,7 @@ def get_managed_setters():
 		filters={
 			"doc_type": ("in", scoped_doctypes()),
 			"field_name": ("in", list(MANAGED_FIELDS)),
-			"property": ("in", list(REVEALED_PROPERTIES)),
+			"property": ("in", list(CHURCH_COLUMN_PROPERTIES)),
 		},
 		fields=["doc_type", "field_name", "property", "value"],
 	)
@@ -88,7 +95,7 @@ def add_missing_setters(current, wanted):
 	missing = [
 		(doctype, fieldname, prop, value)
 		for doctype, fieldname in sorted(wanted)
-		for prop, value in REVEALED_PROPERTIES.items()
+		for prop, value in get_revealed_properties(fieldname).items()
 		if current.get((doctype, fieldname, prop)) != value
 	]
 	stale = [

@@ -1,9 +1,15 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
+from datetime import date
+from pathlib import Path
+from unittest.mock import patch
+
 import frappe
+from frappe.email.doctype.notification.notification import evaluate_alert
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_years, getdate, nowdate
+from frappe.utils import add_days, add_years, getdate, nowdate
 
 from churchit.church_people.derived import (
 	ADULT,
@@ -11,16 +17,32 @@ from churchit.church_people.derived import (
 	get_derived_values,
 	get_grade,
 	get_grade_number,
+	get_next_anniversary,
+	get_next_occurrence,
 	life_stage_for,
 	refresh_daily,
 )
 from churchit.church_people.membership import living_people_filter
-from churchit.patches.v1_0 import derive_birth_death_and_life_stage, store_new_people_settings_defaults
-from churchit.tests.helpers import ensure, make_person
+from churchit.patches.v1_0 import (
+	derive_birth_death_and_life_stage,
+	send_birthday_and_anniversary_greetings,
+	sign_greeting_templates_and_greet_active_people,
+	store_new_people_settings_defaults,
+)
+from churchit.tests.helpers import RollbackEachTest, ensure, make_person, make_primary_contact
 
 
 def row(event_type, date=None, year_unknown=0):
 	return frappe._dict(event_type=event_type, date=date, year_unknown=year_unknown)
+
+
+def on_today(year):
+	"""Today's month and day in *year*. Pass a leap year, so that February 29 exists in it."""
+	return getdate().replace(year=year)
+
+
+def email(address):
+	return [{"email_address": address, "is_primary": 1}]
 
 
 def set_adult_age(age):
@@ -77,6 +99,51 @@ class TestDerivedValues(FrappeTestCase):
 		self.assertEqual((values["is_deceased"], values["deceased_date"]), (1, None))
 		self.assertEqual(values["age"], 0)
 		self.assertIsNone(values["life_stage"])
+
+
+class TestNextBirthdayAndAnniversary(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		ensure("Life Event Type", {"type": "Birth"})
+		ensure("Marital Status", {"status": "Married"})
+
+	def test_the_day_itself_stays_next_until_it_ends(self):
+		self.assertEqual(get_next_occurrence(9, 30, "2026-09-30"), date(2026, 9, 30))
+		self.assertEqual(get_next_occurrence(9, 30, "2026-10-01"), date(2027, 9, 30))
+
+	def test_february_29_falls_on_february_28_in_a_common_year(self):
+		self.assertEqual(get_next_occurrence(2, 29, "2027-01-10"), date(2027, 2, 28))
+		self.assertEqual(get_next_occurrence(2, 29, "2027-03-01"), date(2028, 2, 29))
+
+	def test_the_birth_row_gives_the_next_birthday_even_when_its_year_is_unknown(self):
+		for year_unknown in (0, 1):
+			values = get_derived_values([row("Birth", on_today(1980), year_unknown)], None)
+			self.assertEqual(values["next_birthday"], getdate())
+
+	def test_someone_who_died_has_no_next_birthday_or_anniversary(self):
+		values = get_derived_values([row("Birth", on_today(1952)), row("Death", "2020-01-01")], None)
+
+		self.assertIsNone(values["next_birthday"])
+		self.assertIsNone(get_next_anniversary(on_today(1972), is_deceased=1))
+
+	def test_no_birth_or_anniversary_gives_no_next_date(self):
+		self.assertIsNone(get_derived_values([row("Baptism", "2000-01-01")], None)["next_birthday"])
+		self.assertIsNone(get_next_anniversary(None, is_deceased=0))
+
+	def test_saving_a_person_sets_the_next_birthday_and_anniversary(self):
+		person = make_person(
+			"_Test Next",
+			"Dates",
+			marital_status="Married",
+			anniversary=on_today(1988),
+			life_events=[row("Birth", on_today(1980))],
+		)
+
+		self.assertEqual(
+			frappe.db.get_value("Person", person.name, ["next_birthday", "next_anniversary"]),
+			(getdate(), getdate()),
+		)
 
 
 class TestLifeStage(FrappeTestCase):
@@ -181,6 +248,7 @@ class TestRefreshDaily(FrappeTestCase):
 		set_adult_age(18)
 		for event_type in ("Birth", "Death"):
 			ensure("Life Event Type", {"type": event_type})
+		ensure("Marital Status", {"status": "Married"})
 
 	def stored(self, person, *fields):
 		return frappe.db.get_value("Person", person.name, fields, as_dict=True)
@@ -213,6 +281,29 @@ class TestRefreshDaily(FrappeTestCase):
 		refresh_daily()
 
 		self.assertEqual(self.stored(person, "age").age, 49)
+
+	def test_a_birthday_and_anniversary_that_passed_move_to_next_year(self):
+		yesterday = getdate(add_days(nowdate(), -1))
+		person = make_person(
+			"_Test Last Year",
+			marital_status="Married",
+			anniversary=yesterday.replace(year=1988),
+			life_events=[row("Birth", yesterday.replace(year=1980))],
+		)
+		frappe.db.set_value(
+			"Person",
+			person.name,
+			{"next_birthday": yesterday, "next_anniversary": yesterday},
+			update_modified=False,
+		)
+
+		refresh_daily()
+
+		next_year = getdate(add_years(yesterday, 1))
+		self.assertEqual(
+			self.stored(person, "next_birthday", "next_anniversary"),
+			{"next_birthday": next_year, "next_anniversary": next_year},
+		)
 
 	def test_the_patch_derives_the_fields_of_people_saved_before_they_existed(self):
 		person = make_person(
@@ -283,3 +374,235 @@ class TestLivingPeopleFilter(FrappeTestCase):
 			"Person", filters=[{"last_name": "_Test Filter"}, living_people_filter()], pluck="name"
 		)
 		self.assertCountEqual(names, [self.living.name, self.dead.name])
+
+
+OLD_BIRTHDAY_CONDITION = (
+	'doc.event_type == "Birth" and frappe.db.get_value("Email Address", '
+	'{"parenttype": "Person", "parent": doc.parent, "is_primary": 1}, "email_address")'
+)
+OLD_BIRTHDAY_CC = (
+	'{{ frappe.db.get_value("Email Address", {"parenttype": "Person", "parent": doc.parent, "is_primary": 1}, '
+	'"email_address") or "" }}'
+)
+
+
+class TestGreetings(RollbackEachTest):
+	"""Birthday Greeting and Anniversary Greeting send on the day itself, as a church's enabled copy."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		for event_type in ("Birth", "Death"):
+			ensure("Life Event Type", {"type": event_type})
+		for status in ("Married", "Widowed"):
+			ensure("Marital Status", {"status": status})
+
+	def shipped(self, name):
+		"""The shipped *name* as a church's enabled copy of it."""
+		folder = Path(
+			frappe.get_app_path("churchit", "church_communications", "notification", frappe.scrub(name))
+		)
+		notification = json.loads((folder / f"{frappe.scrub(name)}.json").read_text())
+		return frappe.get_doc({**notification, "is_standard": 0, "enabled": 1})
+
+	def emailed(self, notification):
+		"""The email that *notification* sends today to each address, by address.
+
+		The site may have no outgoing Email Account, so the account check is passed as well.
+		"""
+		with (
+			patch("frappe.sendmail") as sendmail,
+			patch("churchit.church_communications.outgoing_email.can_send_email", return_value=True),
+		):
+			for doc in notification.get_documents_for_today():
+				evaluate_alert(doc, notification, notification.event)
+		return {
+			address: frappe._dict(call.kwargs)
+			for call in sendmail.call_args_list
+			for address in call.kwargs["recipients"] + call.kwargs["cc"]
+		}
+
+	def make_copy(self, name, **values):
+		"""A church's Notification *name* made before the greetings moved to the next dates."""
+		return frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": name,
+				"channel": "Email",
+				"subject": "_Test greeting",
+				"message": "<p>_Test greeting</p>",
+				"event": "Days After",
+				"days_in_advance": 0,
+				"condition_type": "Python",
+				**values,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_the_birthday_greeting_reaches_a_person_on_their_birthday_only(self):
+		greeted = make_person(
+			"_Test Greeted",
+			"Birthday",
+			life_events=[row("Birth", on_today(1980))],
+			emails=email("_test_greeted@example.com"),
+		)
+		tomorrow = getdate(add_days(nowdate(), 1)).replace(year=1980)
+		make_person(
+			"_Test Tomorrow",
+			"Birthday",
+			life_events=[row("Birth", tomorrow)],
+			emails=email("_test_later@example.com"),
+		)
+		no_email = make_person("_Test Unreachable", "Birthday", life_events=[row("Birth", on_today(1980))])
+		greeting = self.shipped("Birthday Greeting")
+
+		sent = self.emailed(greeting)
+
+		self.assertNotIn(no_email.name, [doc.name for doc in greeting.get_documents_for_today()])
+		self.assertNotIn("_test_later@example.com", sent)
+		self.assertEqual(sent["_test_greeted@example.com"].subject, "Happy Birthday, _Test Greeted!")
+		self.assertIn("Dear _Test Greeted,", sent["_test_greeted@example.com"].message)
+		self.assertEqual(sent["_test_greeted@example.com"].reference_name, greeted.name)
+
+	def test_the_birthday_greeting_leaves_out_someone_who_died(self):
+		make_person(
+			"_Test Late",
+			"Birthday",
+			life_events=[row("Birth", on_today(1940)), row("Death", "2020-01-01")],
+			emails=email("_test_late@example.com"),
+		)
+
+		self.assertNotIn("_test_late@example.com", self.emailed(self.shipped("Birthday Greeting")))
+
+	def test_the_anniversary_greeting_reaches_a_married_couple_once_and_no_widow(self):
+		couple = frappe.get_doc({"doctype": "Family", "family_name": "_Test Greeted Couple"}).insert(
+			ignore_permissions=True
+		)
+		wife = make_person(
+			"_Test Wife",
+			"Couple",
+			family=couple.name,
+			marital_status="Married",
+			anniversary=on_today(1988),
+			emails=email("_test_wife@example.com"),
+		)
+		husband = make_person(
+			"_Test Husband",
+			"Couple",
+			family=couple.name,
+			marital_status="Married",
+			spouse=wife.name,
+			emails=email("_test_husband@example.com"),
+		)
+		make_primary_contact(husband)
+		alone = frappe.get_doc({"doctype": "Family", "family_name": "_Test Greeted Widow"}).insert(
+			ignore_permissions=True
+		)
+		widow = make_person(
+			"_Test Widow",
+			"Alone",
+			family=alone.name,
+			marital_status="Widowed",
+			anniversary=on_today(1960),
+			emails=email("_test_widow@example.com"),
+		)
+		make_primary_contact(widow)
+		addresses = {"_test_wife@example.com", "_test_husband@example.com", "_test_widow@example.com"}
+
+		sent = self.emailed(self.shipped("Anniversary Greeting"))
+
+		self.assertEqual(addresses & set(sent), {"_test_husband@example.com"})
+		self.assertIn("Dear _Test Husband and _Test Wife,", sent["_test_husband@example.com"].message)
+
+	def test_linking_and_unlinking_a_spouse_keeps_their_next_anniversary(self):
+		wife = make_person("_Test Linked", "Wife", marital_status="Married")
+		husband = make_person(
+			"_Test Linked", "Husband", marital_status="Married", spouse=wife.name, anniversary=on_today(1988)
+		)
+		self.assertEqual(frappe.db.get_value("Person", wife.name, "next_anniversary"), getdate())
+
+		husband.spouse = None
+		husband.save(ignore_permissions=True)
+		self.assertIsNone(frappe.db.get_value("Person", wife.name, "next_anniversary"))
+
+	def test_the_patch_fills_the_next_dates_of_people_saved_before_they_existed(self):
+		person = make_person(
+			"_Test Before Greetings",
+			marital_status="Married",
+			anniversary=on_today(1988),
+			life_events=[row("Birth", on_today(1980))],
+		)
+		frappe.db.set_value(
+			"Person", person.name, {"next_birthday": None, "next_anniversary": None}, update_modified=False
+		)
+
+		send_birthday_and_anniversary_greetings.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Person", person.name, ["next_birthday", "next_anniversary"]),
+			(getdate(), getdate()),
+		)
+
+	def test_the_patch_moves_a_copied_birthday_greeting_onto_the_person_and_keeps_its_text(self):
+		copy = self.make_copy(
+			"_Test Birthday Copy",
+			document_type="Life Event",
+			date_changed="date",
+			condition=OLD_BIRTHDAY_CONDITION,
+			subject='Happy Birthday, {{ frappe.db.get_value("Person", doc.parent, "first_name") }}!',
+			message='{% set person = frappe.get_doc("Person", doc.parent) %}<p>Dear {{ person.first_name }}, _Test from our pastor</p>',
+			recipients=[{"cc": OLD_BIRTHDAY_CC}],
+		)
+		make_person(
+			"_Test Copied",
+			"Birthday",
+			life_events=[row("Birth", on_today(1980))],
+			emails=email("_test_copied@example.com"),
+		)
+
+		send_birthday_and_anniversary_greetings.execute()
+		send_birthday_and_anniversary_greetings.execute()
+
+		moved = frappe.get_doc("Notification", copy.name)
+		self.assertEqual(
+			(moved.document_type, moved.event, moved.date_changed, moved.days_in_advance),
+			("Person", "Days Before", "next_birthday", 0),
+		)
+		moved.enabled = 1
+		sent = self.emailed(moved)["_test_copied@example.com"]
+		self.assertEqual(sent.subject, "Happy Birthday, _Test Copied!")
+		self.assertIn("Dear _Test Copied, _Test from our pastor", sent.message)
+
+	def test_the_patch_moves_a_copied_anniversary_greeting_and_asks_for_a_married_couple(self):
+		copy = self.make_copy(
+			"_Test Anniversary Copy",
+			document_type="Person",
+			date_changed="anniversary",
+			condition="doc.emails and doc.is_primary_contact",
+		)
+
+		send_birthday_and_anniversary_greetings.execute()
+		send_birthday_and_anniversary_greetings.execute()
+		# The next patch in patches.txt adds the active-people part of the shipped condition.
+		sign_greeting_templates_and_greet_active_people.execute()
+
+		shipped = self.shipped("Anniversary Greeting")
+		self.assertEqual(
+			frappe.db.get_value("Notification", copy.name, ["event", "date_changed", "condition"]),
+			(shipped.event, shipped.date_changed, shipped.condition),
+		)
+
+	def test_the_patch_leaves_a_church_notification_that_sends_days_after_the_date(self):
+		copy = self.make_copy(
+			"_Test Week After Anniversary",
+			document_type="Person",
+			date_changed="anniversary",
+			days_in_advance=7,
+			condition="doc.emails",
+		)
+
+		send_birthday_and_anniversary_greetings.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Notification", copy.name, ["event", "date_changed", "condition"]),
+			("Days After", "anniversary", "doc.emails"),
+		)

@@ -7,6 +7,7 @@
 {% if not translations %}
 	<p class="text-muted">{{ _("No Bible translation is ready to read yet.") }}</p>
 {% else %}
+	{% if notice %}<div class="alert alert-info" role="status">{{ notice | e }}</div>{% endif %}
 	<form class="bible-picker" method="get" action="/bible">
 		{% if church %}<input type="hidden" name="church" value="{{ church | e }}">{% endif %}
 		<select class="form-control" name="translation" aria-label="{{ _('Translation') }}">
@@ -24,14 +25,14 @@
 			<option value="{{ number }}" {% if number == chapter %}selected{% endif %}>{{ number }}</option>
 			{% endfor %}
 		</select>
-		<noscript><button class="btn btn-primary btn-sm">{{ _("Read") }}</button></noscript>
+		<button class="btn btn-primary btn-sm">{{ _("Read") }}</button>
 	</form>
 
 	<h1 class="bible-title">{{ book.name | e }} {{ chapter }}</h1>
 	{#- A line break ends a paragraph; headings and subtitles stand between paragraphs. #}
 	<div class="bible-text" dir="{{ translation.text_direction or 'ltr' }}"><p>
 		{%- for item in content %}
-		{%- if item.type == "heading" %}</p><h3>{{ item.text | e }}</h3><p>
+		{%- if item.type == "heading" %}</p><h2>{{ item.text | e }}</h2><p>
 		{%- elif item.type == "hebrew_subtitle" %}</p><p class="bible-subtitle">{{ item.text | e }}</p><p>
 		{%- elif item.type == "line_break" %}</p><p>
 		{%- elif item.type == "verse" %}<span class="bible-verse"><sup>{{ item.number }}</sup>{{ item.text | e }} </span>
@@ -55,12 +56,12 @@
 	.bible-picker select { flex: 1 1 8rem; width: auto; }
 	.bible-title { font-size: 2rem; margin-bottom: 1rem; }
 	.bible-text { font-size: 1.125rem; line-height: 1.8; }
-	.bible-text h3 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+	.bible-text h2 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
 	.bible-text p { margin: 0 0 0.75rem; }
 	.bible-text p:empty { display: none; }
 	.bible-text .bible-subtitle { font-style: italic; }
 	.bible-text .bible-verse { white-space: pre-line; }
-	.bible-text sup { opacity: 0.6; margin-right: 0.25em; }
+	.bible-text sup { color: var(--text-muted); margin-right: 0.25em; }
 	.bible-pager { display: flex; margin: 2rem 0 1rem; }
 </style>
 {% endblock %}
@@ -68,9 +69,12 @@
 {% block script %}
 <script>
 	document.querySelectorAll(".bible-picker select").forEach((select) => {
+		let usesPointer = false;
+		select.addEventListener("pointerdown", () => (usesPointer = true));
+		select.addEventListener("keydown", () => (usesPointer = false));
 		select.addEventListener("change", () => {
 			if (select.name === "book") select.form.chapter.value = "1";
-			select.form.submit();
+			if (usesPointer) select.form.submit();
 		});
 	});
 </script>

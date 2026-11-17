@@ -5,6 +5,7 @@ import frappe
 from frappe.utils import add_days, getdate, today
 
 from churchit.church_finances.doctype.online_donation.test_online_donation import log_charge
+from churchit.church_finances.doctype.payment_type.payment_type import create_non_cash_payment_type
 from churchit.church_people.summaries import giving, refresh
 from churchit.church_people.summaries.test_serving import queued_people
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
@@ -83,6 +84,27 @@ class TestGivingSummary(RollbackEachTest):
 		frappe.get_doc(
 			{"doctype": "Online Donation", "amount": 5, "fund": self.fund, "person": self.person}
 		).insert(ignore_permissions=True)
+
+		self.assertEqual(self.summary(), NO_GIFTS)
+
+	def test_donated_property_is_no_gift(self):
+		create_non_cash_payment_type()
+		frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": add_days(today(), -2),
+				"expected_total": 0,
+				"donations": [
+					{
+						"person": self.person,
+						"fund": self.fund,
+						"payment_type": frappe.db.get_value("Payment Type", {"is_non_cash": 1}),
+						"amount": 0,
+						"description": "_Test piano",
+					}
+				],
+			}
+		).insert(ignore_permissions=True).submit()
 
 		self.assertEqual(self.summary(), NO_GIFTS)
 

@@ -8,7 +8,7 @@
  "anonymous": 0,
  "apply_document_permissions": 0,
  "button_label": "Submit",
- "client_script": "var doc = frappe.web_form && frappe.web_form.doc;\nif (doc && doc.name) {\n\t// Portal pages lack the desk CSS that hides each control's fieldname tooltip.\n\tvar style = document.createElement(\"style\");\n\tstyle.textContent = \".modal .tooltip-content { display: none !important; }\";\n\tdocument.head.appendChild(style);\n\tvar $actions = $(\".web-form-header .web-form-actions\").first();\n\tif ($actions.length && !$actions.find(\".btn-create-prayer\").length) {\n\t\tvar $btn = $('<button type=\"button\" class=\"btn btn-primary btn-sm ml-2 btn-create-prayer\">' + __(\"Pray for this request\") + '</button>');\n\t\t$actions.append($btn);\n\t\t$btn.on(\"click\", function(e) {\n\t\t\te.preventDefault();\n\t\t\tvar d = new frappe.ui.Dialog({\n\t\t\t\ttitle: __(\"Pray for {0}\", [doc.title || doc.name]),\n\t\t\t\tfields: [\n\t\t\t\t\t{ fieldname: \"content\", fieldtype: \"Small Text\", label: __(\"Prayer\") }\n\t\t\t\t],\n\t\t\t\tprimary_action_label: __(\"Save Prayer\"),\n\t\t\t\tprimary_action: function(values) {\n\t\t\t\t\tfrappe.call({\n\t\t\t\t\t\tmethod: \"churchit.church_prayers.api.create_prayer\",\n\t\t\t\t\t\targs: { prayer_request: doc.name, content: values.content || null },\n\t\t\t\t\t\tfreeze: true,\n\t\t\t\t\t\tcallback: function(r) {\n\t\t\t\t\t\t\tif (r.message) {\n\t\t\t\t\t\t\t\tfrappe.show_alert({ message: __(\"Prayer saved\"), indicator: \"green\" });\n\t\t\t\t\t\t\t\td.hide();\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t\td.show();\n\t\t});\n\t}\n}\n",
+ "client_script": "var doc = frappe.web_form && frappe.web_form.doc;\nif (doc && doc.name) {\n\t// Portal pages lack the desk CSS that hides each control's fieldname tooltip.\n\tvar style = document.createElement(\"style\");\n\tstyle.textContent = \".modal .tooltip-content { display: none !important; }\";\n\tdocument.head.appendChild(style);\n\tif (doc.visibility === \"Prayer Team\") {\n\t\t$(\".web-form-header\").after(\n\t\t\t$('<div class=\"alert alert-info\"></div>').text(\n\t\t\t\t__(\"Only the prayer team sees this request. Please keep it within the team.\")\n\t\t\t)\n\t\t);\n\t}\n\tvar $actions = $(\".web-form-header .web-form-actions\").first();\n\tif ($actions.length && !$actions.find(\".btn-create-prayer\").length) {\n\t\tvar $btn = $('<button type=\"button\" class=\"btn btn-primary btn-sm ml-2 btn-create-prayer\">' + __(\"Pray for this request\") + '</button>');\n\t\t$actions.append($btn);\n\t\t$btn.on(\"click\", function(e) {\n\t\t\te.preventDefault();\n\t\t\tvar d = new frappe.ui.Dialog({\n\t\t\t\ttitle: __(\"Pray for {0}\", [doc.title || doc.name]),\n\t\t\t\tfields: [\n\t\t\t\t\t{ fieldname: \"content\", fieldtype: \"Small Text\", label: __(\"Prayer\") }\n\t\t\t\t],\n\t\t\t\tprimary_action_label: __(\"Save Prayer\"),\n\t\t\t\tprimary_action: function(values) {\n\t\t\t\t\tfrappe.call({\n\t\t\t\t\t\tmethod: \"churchit.church_prayers.api.create_prayer\",\n\t\t\t\t\t\targs: { prayer_request: doc.name, content: values.content || null },\n\t\t\t\t\t\tfreeze: true,\n\t\t\t\t\t\tcallback: function(r) {\n\t\t\t\t\t\t\tif (r.message) {\n\t\t\t\t\t\t\t\tfrappe.show_alert({ message: __(\"Prayer saved\"), indicator: \"green\" });\n\t\t\t\t\t\t\t\td.hide();\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t\td.show();\n\t\t});\n\t}\n}\n",
  "condition_json": "[[\"Prayer Request\",\"visibility\",\"!=\",\"Private\"]]",
  "creation": "2026-04-23 00:00:00",
  "doc_type": "Prayer Request",
@@ -18,16 +18,6 @@
  "introduction_text": "<div class=\"ql-editor read-mode\"><p>Shared prayer requests from the church body. Please pray for these needs.</p></div>",
  "is_standard": 1,
  "list_columns": [
-  {
-   "fieldname": "status",
-   "fieldtype": "Link",
-   "label": "Status"
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Link",
-   "label": "Type"
-  },
   {
    "fieldname": "recipient_name",
    "fieldtype": "Data",
@@ -39,20 +29,35 @@
    "label": "Request"
   },
   {
+   "fieldname": "prayer_count",
+   "fieldtype": "Int",
+   "label": "Prayed"
+  },
+  {
    "fieldname": "urgent",
    "fieldtype": "Check",
    "label": "Urgent"
   },
   {
-   "fieldname": "prayer_count",
-   "fieldtype": "Int",
-   "label": "Prayed"
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Shared With"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Link",
+   "label": "Type"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "label": "Status"
   }
  ],
  "list_title": "Community Prayer Requests",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-10-27 12:22:41.000000",
+ "modified": "2026-11-15 05:45:33.883151",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "community-prayer-requests",

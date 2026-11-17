@@ -12,6 +12,7 @@ from churchit.church_missions.doctype.missionary_status.missionary_status import
 from churchit.church_prayers.prayer_access import WHOLE_CHURCH, get_open_request_filters
 from churchit.church_scope import church_filters, has_church_access, refuse_another_churches_parent
 from churchit.scripture import format_reference
+from churchit.utils import get_dated_title
 
 PRINT_FORMAT = "Bulletin"
 
@@ -36,7 +37,7 @@ class Bulletin(BulletinSections, Document):
 		refuse_another_churches_parent(
 			self, "function", _("{0} belongs to another church, so only that church can make its bulletin.")
 		)
-		self.title = f"{self.function_name} ({formatdate(self.function_date)})"
+		self.title = get_dated_title(self.function_name, self.function_date)
 		self.verse = format_reference(self.verse)
 		self.validate_missionary_is_printable()
 		self.validate_prayer_requests_are_printable()
@@ -153,6 +154,28 @@ def get_defaults(function: str | None = None) -> dict:
 		for row in bulletin.prayer_requests
 	]
 	return values
+
+
+@frappe.whitelist(methods=["GET"])
+def get_last_week_text(function: str | None = None, name: str | None = None) -> dict:
+	"""The welcome message and announcements of the newest other bulletin of the same church. Reads only.
+
+	The church is the function's, else the reader's own. Empty when no other bulletin exists.
+	"""
+	frappe.has_permission("Bulletin", "read", throw=True)
+	filters = {"name": ("!=", name)} if name else {}
+	if function:
+		frappe.has_permission("Function", doc=function, throw=True)
+		filters["church"] = frappe.db.get_value("Function", function, "church")
+	# get_list keeps each reader to their own church.
+	newest = frappe.get_list(
+		"Bulletin",
+		filters=filters,
+		fields=["welcome", "announcements"],
+		order_by="function_date desc, creation desc",
+		limit=1,
+	)
+	return newest[0] if newest else {"welcome": None, "announcements": None}
 
 
 @frappe.whitelist(methods=["GET"])

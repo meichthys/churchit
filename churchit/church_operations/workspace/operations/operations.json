@@ -9,7 +9,7 @@
    "label": "Room Bookings by Week"
   }
  ],
- "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i>\", \"col\": 12}}, {\"id\": \"9adGE55P2Z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Operations\", \"col\": 12}}, {\"id\": \"OpeTas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Open Tasks\", \"col\": 4}}, {\"id\": \"BooReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Booking Requests\", \"col\": 4}}, {\"id\": \"TasBoa\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tasks Board\", \"col\": 4}}, {\"id\": \"OpeTasByPri\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Open Tasks by Priority\", \"col\": 6}}, {\"id\": \"RooBooByWee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Room Bookings by Week\", \"col\": 6}}]",
+ "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.\\\"</i> (1 Peter 4:10)\", \"col\": 12}}, {\"id\": \"9adGE55P2Z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Operations\", \"col\": 12}}, {\"id\": \"OpeTas\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Open Tasks\", \"col\": 4}}, {\"id\": \"BooReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Booking Requests\", \"col\": 4}}, {\"id\": \"TasBoa\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tasks Board\", \"col\": 4}}, {\"id\": \"OpeTasByPri\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Open Tasks by Priority\", \"col\": 6}}, {\"id\": \"RooBooByWee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Room Bookings by Week\", \"col\": 6}}]",
  "creation": "2026-07-07 19:43:06.744443",
  "custom_blocks": [],
  "docstatus": 0,
@@ -22,7 +22,7 @@
  "is_hidden": 0,
  "label": "Operations",
  "links": [],
- "modified": "2026-10-31 13:19:28.000000",
+ "modified": "2026-11-15 05:57:16.122994",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Operations",
@@ -55,10 +55,12 @@
   },
   {
    "color": "Orange",
+   "doc_view": "Report Builder",
+   "format": "{} waiting",
    "label": "Booking Requests",
-   "link_to": "Booking Requests",
-   "report_ref_doctype": "Room Booking",
-   "type": "Report"
+   "link_to": "Room Booking",
+   "stats_filter": "[[\"Room Booking\", \"status\", \"in\", [\"Requested\", \"Conflict\"]]]",
+   "type": "DocType"
   },
   {
    "color": "Blue",

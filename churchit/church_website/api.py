@@ -14,7 +14,7 @@ def get_published_fields(doctype: str | None = None) -> dict:
 	browser still running a cached copy of the badge script asks for.
 	"""
 	frappe.only_for(["Church Manager", "System Manager"])
-	published = published_field_map()
+	published = published_field_map(use_cache=True)
 	return published.get(doctype, {}) if doctype else published
 
 

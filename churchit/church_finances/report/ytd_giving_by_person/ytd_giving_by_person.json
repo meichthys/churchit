@@ -1,5 +1,5 @@
 {
- "add_total_row": 1,
+ "add_total_row": 0,
  "add_translate_data": 0,
  "columns": [],
  "creation": "2026-05-29 00:00:00.000000",
@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "json": "{}",
  "letterhead": null,
- "modified": "2026-10-28 16:16:20.000000",
+ "modified": "2026-11-15 03:51:17.752629",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "YTD Giving by Person",

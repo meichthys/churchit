@@ -3,6 +3,9 @@
 
 """Church scoping shared by reports, public pages and the wildcard validate hook."""
 
+from collections.abc import Callable
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -84,9 +87,29 @@ def is_feature_enabled(fieldname):
 	return meta.has_field(fieldname) and bool(cint(frappe.db.get_single_value("Church Features", fieldname)))
 
 
+def get_transaction_cached(doctype: str, key: tuple, compute: Callable[[], Any]) -> Any:
+	"""The value that *compute* returns, kept in Frappe's per-transaction value cache of *doctype*.
+
+	Frappe empties that cache when a *doctype* record is saved, deleted or changed with set_value,
+	and at each commit or rollback. So a value that one website request asks for several times is
+	read once, and a save in the same request makes the next call read it again. A raw SQL write
+	does not empty the cache. The key is a tuple, so it never matches a record name.
+	"""
+	cache = frappe.db.value_cache[doctype]
+	if key not in cache:
+		cache[key] = compute()
+	return cache[key]
+
+
 def root_church():
 	"""Name of the church without a parent, or None before setup creates it."""
-	return frappe.db.get_value("Church", {"parent_church": ("is", "not set")}, "name", order_by="lft asc")
+	return get_transaction_cached(
+		"Church",
+		("root_church",),
+		lambda: frappe.db.get_value(
+			"Church", {"parent_church": ("is", "not set")}, "name", order_by="lft asc"
+		),
+	)
 
 
 def is_scoped(meta):
@@ -212,6 +235,33 @@ def church_query_filters(filters):
 	return {CHURCH_FIELD: ("in", [*churches, SHARED])} if churches is not None else {}
 
 
+def has_church_column(filters) -> bool:
+	"""True when a report may mix churches: no church picked and the reader sees more than one."""
+	if not is_multi_church() or (filters or {}).get(CHURCH_FIELD):
+		return False
+	allowed = allowed_churches()
+	return allowed is None or len(allowed) > 1
+
+
+def get_church_columns(filters) -> list[dict]:
+	"""The Church column of a scoped report, or no column.
+
+	Add it to the columns and select `church` in the query:
+	`columns = [*get_columns(), *get_church_columns(filters)]`.
+	"""
+	if not has_church_column(filters):
+		return []
+	return [
+		{
+			"label": _("Church"),
+			"fieldname": CHURCH_FIELD,
+			"fieldtype": "Link",
+			"options": "Church",
+			"width": 140,
+		}
+	]
+
+
 def church_filters(church, **filters):
 	"""Filters for a public page: the selected church and whatever is shared with it."""
 	if is_multi_church() and church:
@@ -232,9 +282,12 @@ def selected_church_filters(**filters):
 
 def session_person():
 	"""The Person linked to the logged-in user, or None."""
-	if frappe.session.user == "Guest":
+	user = frappe.session.user
+	if user == "Guest":
 		return None
-	return frappe.db.get_value("Person", {"user": frappe.session.user}, "name")
+	return get_transaction_cached(
+		"Person", ("session_person", user), lambda: frappe.db.get_value("Person", {"user": user}, "name")
+	)
 
 
 def session_church():
@@ -394,11 +447,19 @@ def refuse_another_churches_record(doc, doctype, name, church=None):
 			"{0} {1} belongs to another church. Tick Shared with all churches on it, or choose one of {2}."
 		).format(
 			_(doctype),
-			frappe.bold(name),
+			frappe.bold(readable_title(doctype, name)),
 			frappe.db.get_value("Church", church, "church_name") or church,
 		),
 		frappe.PermissionError,
 	)
+
+
+def readable_title(doctype: str, name: str) -> str:
+	"""The title of *name* when the user may read it, else *name*, so a guessed name reveals nothing."""
+	title_field = frappe.get_meta(doctype).get_title_field()
+	if title_field == "name" or not frappe.has_permission(doctype, "read", doc=name):
+		return name
+	return frappe.db.get_value(doctype, name, title_field) or name
 
 
 def refuse_another_churches_fund(doc: Document, fund: str | None) -> None:
@@ -416,7 +477,8 @@ def refuse_another_churches_fund(doc: Document, fund: str | None) -> None:
 
 	frappe.throw(
 		_("Fund {0} belongs to another church. Choose a fund of {1} or a shared one.").format(
-			frappe.bold(fund), frappe.db.get_value("Church", church, "church_name") or church
+			frappe.bold(readable_title("Fund", fund)),
+			frappe.db.get_value("Church", church, "church_name") or church,
 		),
 		frappe.PermissionError,
 	)
@@ -546,9 +608,10 @@ def extend_bootinfo(bootinfo):
 		# Every church reads the people directory, so Person and Family show whose they are.
 		"shared_people": multi_church and not is_people_directory_private(),
 		"include_branches": include_branches_state(frappe.session.user),
-		# One church to deal with: the church field, its filter and the per-church
-		# rows of a settings page would only ever name that one church. Always true
-		# with the switch off, which is the case every `!single_church` field reads.
+		# One church to deal with: the church field and its filter would only ever
+		# name that one church. Always true with the switch off, which is the case
+		# every `!single_church` field reads. The per-church rows of a settings page
+		# show whenever the switch is on, so a branch can keep its own row.
 		"single_church": not multi_church or (allowed is not None and len(allowed) == 1),
 		# Which churches are the reader's own, so the form can tell a record shared
 		# with them from one they shared. None means unrestricted.

@@ -161,6 +161,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Total Expenses",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -214,7 +215,7 @@
    "link_fieldname": "ministry"
   }
  ],
- "modified": "2026-11-02 23:52:08.000000",
+ "modified": "2026-11-17 00:28:30.834318",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry",
@@ -253,6 +254,28 @@
    "report": 1,
    "role": "Church Staff",
    "select": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Check-In",
+   "select": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Church Finance"
   }
  ],
  "row_format": "Dynamic",

@@ -152,3 +152,15 @@ class TestReportsHygiene(FrappeTestCase):
 			"reference doctype, point the report at a parent doctype, or drop the role: "
 			+ ", ".join(sorted(closed))
 		)
+
+	def test_reports_use_the_sites_date(self):
+		"""CURDATE() reads the database clock, which can be a day off the site's time zone."""
+		found = []
+		for path in _walk_report_python_files():
+			with open(path) as fh:
+				if "CURDATE" in fh.read().upper():
+					found.append(os.path.relpath(path, REPORTS_DIR))
+		assert not found, (
+			"These reports read the database date. Pass frappe.utils.getdate() as a value instead: "
+			+ ", ".join(sorted(found))
+		)

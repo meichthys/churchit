@@ -9,7 +9,11 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, getdate, now_datetime, today
 
-from churchit.church_ministries.check_in_limits import get_capacity_warning
+from churchit.church_ministries.check_in_limits import (
+	get_age_problem,
+	get_capacity_warning,
+	get_grade_problem,
+)
 from churchit.church_ministries.doctype.function_check_in.function_check_in import (
 	check_in_persons,
 	is_shared_function,
@@ -17,6 +21,7 @@ from churchit.church_ministries.doctype.function_check_in.function_check_in impo
 )
 from churchit.church_ministries.page.check_in.checkout import lock_check_in
 from churchit.church_people import household
+from churchit.church_people.derived import BIRTH
 from churchit.church_people.doctype.people_settings.people_settings import SHARE_DEFAULTS
 from churchit.church_people.doctype.person.person import SOURCE_CHECK_IN
 from churchit.church_people.membership import VISITOR, living_people_filter
@@ -411,6 +416,21 @@ def undo_check_in(name: str) -> None:
 	frappe.delete_doc("Function Check-In", name)
 
 
+@frappe.whitelist(methods=["GET"])
+def get_visitor_bound_problem(function: str, birth_date: str | None = None) -> str | None:
+	"""Why a new visitor born on *birth_date* is outside *function*'s age or grade bounds, or None. Reads only.
+
+	The station asks before it adds the visitor, so a No adds nobody. A new visitor has no graduation year.
+	"""
+	frappe.has_permission("Function Check-In", "create", throw=True)
+	frappe.has_permission("Function", doc=function, throw=True)
+	bounds = frappe.db.get_value(
+		"Function", function, ["start_date", "min_age", "max_age", "min_grade", "max_grade"], as_dict=True
+	)
+	visitor = frappe._dict(birth_date=birth_date or None, graduation_year=None)
+	return get_age_problem(bounds, visitor) or get_grade_problem(bounds, visitor)
+
+
 @frappe.whitelist(methods=["POST"])
 def add_visitor(
 	first_name: str | None,
@@ -419,6 +439,7 @@ def add_visitor(
 	family: str | None = None,
 	emergency_contact_name: str | None = None,
 	emergency_contact_phone: str | None = None,
+	birth_date: str | None = None,
 ) -> dict:
 	"""Create a Person on the spot so a first-time visitor can be checked in. Changes data.
 
@@ -426,6 +447,7 @@ def add_visitor(
 	Person create, which would otherwise ask them to read every Person lookup too.
 	A volunteer adds a visitor only to a Family of a church they can see.
 	The visitor never saw the directory's share choices, so they share nothing.
+	A *birth_date* becomes the visitor's Birth life event.
 	"""
 	frappe.has_permission("Function Check-In", "create", throw=True)
 	if not (first_name or "").strip():
@@ -447,5 +469,7 @@ def add_visitor(
 	)
 	if phone:
 		person.append("phones", {"phone_number": phone.strip(), "is_primary": 1})
+	if birth_date:
+		person.append("life_events", {"event_type": BIRTH, "date": birth_date})
 	person.insert(ignore_permissions=True)
 	return {"name": person.name, "full_name": person.full_name, "family": person.family}

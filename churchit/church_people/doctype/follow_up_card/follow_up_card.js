@@ -3,9 +3,13 @@
 
 frappe.ui.form.on("Follow-up Card", {
 	refresh(frm) {
+		// frm.has_perm knows only the role's rights; a past assignee may read the card, not change it.
+		const read_only = frm.doc.__onload?.read_only;
+		if (read_only) frm.disable_form();
 		render_contact_details(frm);
 		add_draft_email_button(frm);
-		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write")) return;
+		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write") || read_only)
+			return;
 
 		for (const step of frm.doc.__onload?.steps || []) {
 			if (step === frm.doc.step) continue;

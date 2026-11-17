@@ -7,14 +7,14 @@ from frappe.query_builder import Order
 from frappe.utils import add_days, today
 
 from churchit.church_people.membership import TRACKED_FIELDS
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.query import Date
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -56,6 +56,7 @@ def get_data(filters):
 		.select(
 			Date(Milestone.creation).as_("date"),
 			Person.name.as_("person"),
+			Person.church,
 			Milestone.track_field.as_("field"),
 			previous_value.as_("previous_value"),
 			Milestone.value,

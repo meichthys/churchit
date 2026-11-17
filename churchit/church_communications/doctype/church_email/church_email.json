@@ -163,11 +163,12 @@
   },
   {
    "depends_on": "eval:doc.channel!=\"Text Message\"",
-   "description": "Fills in the Subject and Message. You can change them after.",
+   "description": "Fills in the Subject and Message. You can change them after. Only templates that use the person placeholders are listed. A System Manager adds templates.",
    "fieldname": "email_template",
    "fieldtype": "Link",
    "label": "Template",
-   "options": "Email Template"
+   "options": "Email Template",
+   "show_description_on_click": 1
   },
   {
    "depends_on": "eval:doc.channel!=\"Text Message\"",
@@ -201,7 +202,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-14 18:01:02.000000",
+ "modified": "2026-11-17 00:23:04.101173",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Church Email",
@@ -240,6 +241,15 @@
    "report": 1,
    "role": "Church Staff",
    "select": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

@@ -6,17 +6,43 @@ from datetime import datetime
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import getdate, now
+from frappe.utils import (
+	add_days,
+	add_years,
+	flt,
+	fmt_money,
+	formatdate,
+	get_first_day_of_week,
+	getdate,
+	now,
+	today,
+)
 
-from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
+from churchit.church_finances.doctype.fund.fund import (
+	add_transaction,
+	format_amount,
+	remove_transactions,
+	show_fund_change,
+	warn_of_negative_balance,
+)
+from churchit.church_finances.doctype.giving_settings.giving_settings import get_currency
+from churchit.church_foundations.doctype.church.church import church_name
+from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
+	can_send_email,
+)
 from churchit.church_scope import refuse_another_churches_record
+from churchit.church_summary.metrics import record_week
 from churchit.contacts import get_primary_emails
+from churchit.utils import LONG_DATE_FORMAT, get_dated_title
 
 # Payment Type of the money a gateway takes (created in after_install / patch).
 ONLINE_PAYMENT_TYPE = "Online"
 
 
 class Collection(Document):
+	def onload(self):
+		self.set_onload("email_receipts", frappe.db.get_single_value("Giving Settings", "email_receipts"))
+
 	def before_insert(self):
 		# Its cancel marked the gift Refunded, so an amended copy would count a gift with no record.
 		# church-scope: the gifts of the Collection this one amends, which the user could cancel
@@ -28,6 +54,7 @@ class Collection(Document):
 			)
 
 	def validate(self):
+		warn_of_unlikely_date(self)
 		for donation in self.donations:
 			refuse_another_churches_record(self, "Fund", donation.fund)
 			# Statements describe donated property and never value it (IRS Publication 1771).
@@ -56,6 +83,45 @@ class Collection(Document):
 		by_person = get_primary_emails("Person", people)
 		for donation in self.donations:
 			donation.person_email = by_person.get(donation.person) if donation.person else None
+
+	def send_receipts(self):
+		"""Email each giver one receipt with their total, while Giving Settings asks for it.
+
+		An online gift sends its own receipt and an imported batch sends none.
+		"""
+		if self.flags.skip_receipts or self.import_batch:
+			return
+		if not frappe.db.get_single_value("Giving Settings", "email_receipts") or not can_send_email():
+			return
+
+		gifts = {}
+		for donation in self.donations:
+			if donation.person_email and flt(donation.amount) > 0:
+				gifts.setdefault(donation.person_email, []).append(donation)
+
+		template = frappe.get_doc("Email Template", "Donation Acknowledgment")
+		for email, donations in gifts.items():
+			funds = dict.fromkeys(
+				frappe.get_cached_value("Fund", row.fund, "fund") or row.fund for row in donations
+			)
+			first_name = frappe.db.get_value("Person", donations[0].person, "first_name")
+			message = template.get_formatted_email(
+				{
+					"first_name": first_name or _("Friend"),
+					"amount": fmt_money(sum(flt(row.amount) for row in donations), currency=get_currency()),
+					"fund": ", ".join(funds),
+					"date": formatdate(self.date, LONG_DATE_FORMAT),
+					"church_name": church_name(self) or "",
+					"doc": self,
+				}
+			)
+			frappe.sendmail(
+				recipients=[email],
+				subject=message["subject"],
+				message=message["message"],
+				reference_doctype=self.doctype,
+				reference_name=self.name,
+			)
 
 	def update_totals(self):
 		# Recalculate entered total
@@ -89,11 +155,13 @@ class Collection(Document):
 	def before_submit(self):
 		if self.imbalance != 0:
 			frappe.throw(
-				f"Imbalance of {frappe.utils.fmt_money(self.imbalance)} must be resolved before submitting."
+				_("Resolve the imbalance of {0} before you submit.").format(format_amount(self.imbalance))
 			)
 
 	def on_submit(self):
 		self.update_funds(reverse=False)
+		self.recount_old_week()
+		self.send_receipts()
 
 	def on_cancel(self):
 		# Finance cancels a gift's Collection after a refund at the processor. The gifts
@@ -104,8 +172,14 @@ class Collection(Document):
 			frappe.db.set_value("Online Donation", gift, "status", "Refunded")
 
 		self.update_funds(reverse=True)
+		self.recount_old_week()
 
 	def update_funds(self, reverse=False):
+		"""Add or remove the ledger rows of each fund, and tell the user how each fund changed.
+
+		Only money going out warns of a negative balance. An online gift sets `flags.hide_fund_messages`,
+		so its giver never sees the church's fund balances.
+		"""
 		fund_totals = {}
 		for donation in self.donations:
 			if donation.fund and donation.amount:
@@ -114,29 +188,62 @@ class Collection(Document):
 		if reverse:
 			remove_transactions("Collection", self.name)
 
-		messages = []
 		for fund, total in sorted(fund_totals.items()):
 			if not reverse:
 				add_transaction(fund, total, "Collection", self.name, self.date)
-			label, balance = frappe.db.get_value("Fund", fund, ["fund", "balance"])
-			messages.append(
-				f"💸 {label} fund decreased by ${total}"
-				if reverse
-				else f"💰 {label} fund increased by ${total}"
-			)
-			if balance < 0:
-				messages.append(f"⚠️ {label} fund balance is negative: {balance}")
+			change = flt(-total if reverse else total, self.precision("total_amount"))
+			if self.flags.hide_fund_messages or not change:
+				continue
+			if change > 0:
+				show_fund_change(fund, _("{0} fund increased by {1}"), change)
+			else:
+				show_fund_change(fund, _("{0} fund decreased by {1}"), -change)
+				warn_of_negative_balance(fund, _("The {0} fund balance is now {1}."))
 
-		if messages:
-			frappe.msgprint("<br>".join(messages))
+	def recount_old_week(self):
+		"""Queue a recount of the Weekly Metrics of this collection's week, when the daily job no longer recounts it.
+
+		The daily job recounts this week and last week. `record_week` writes every church's row, so one
+		job for each week is enough, and it keeps two jobs from adding the same row.
+		"""
+		week_start = get_first_day_of_week(getdate(self.date))
+		if week_start >= add_days(get_first_day_of_week(today()), -7):
+			return
+		frappe.enqueue(
+			record_week,
+			week_start=week_start,
+			job_id=f"weekly_metrics_{week_start}",
+			deduplicate=True,
+			enqueue_after_commit=True,
+		)
+
+
+def warn_of_unlikely_date(doc: Document) -> None:
+	"""Warn in orange when a person sets a money record's date more than 30 days ahead or more than a year back.
+
+	A typo year still changes the fund balances, and the money then misses its statement and this
+	month's reports. Back-entry stays possible, so this only warns. An import or a save by code says nothing.
+	"""
+	if (
+		frappe.flags.in_import
+		or doc.flags.ignore_permissions
+		or not doc.date
+		or not doc.has_value_changed("date")
+	):
+		return
+	date = getdate(doc.date)
+	if date > add_days(getdate(), 30):
+		message = _("The date {0} is more than 30 days after today.")
+	elif date < add_years(getdate(), -1):
+		message = _("The date {0} is more than a year before today.")
+	else:
+		return
+	frappe.msgprint(message.format(formatdate(date)), indicator="orange", title=_("Check the Date"))
 
 
 def get_title(function_name: str | None, date: str | datetime) -> str:
-	"""The day and the Function's name, such as "2026-10-20 Sunday Worship".
-
-	The day comes first, so a narrow list column does not cut it off.
-	"""
-	return f"{getdate(date)} {function_name or _('Collection')}"
+	"""The Function's name and the long date, such as "Sunday Worship, Tuesday, October 20, 2026"."""
+	return get_dated_title(function_name or _("Collection"), date)
 
 
 def add_single_donation(church: str, fund: str, amount: float, notes: str, person: str | None = None) -> str:
@@ -160,6 +267,8 @@ def add_single_donation(church: str, fund: str, amount: float, notes: str, perso
 	)
 	# A single-donation collection balances exactly, so before_submit() passes.
 	collection.expected_total = amount
+	collection.flags.hide_fund_messages = True
+	collection.flags.skip_receipts = True
 	collection.insert(ignore_permissions=True)
 	collection.submit()
 	return collection.name

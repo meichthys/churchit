@@ -8,6 +8,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import flt, fmt_money
 
 from churchit.church_finances.doctype.collection.collection import add_single_donation
+from churchit.church_finances.doctype.giving_settings.giving_settings import get_currency
 from churchit.church_finances.doctype.online_donation.online_donation import PAID_STATUSES
 from churchit.church_finances.payments import (
 	PAYMENT_RECORDERS,
@@ -33,6 +34,7 @@ class FormResponse(Document):
 	"""One answer to a Question Set published as a form, and the person Churchit found or added for it."""
 
 	def validate(self):
+		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
 		self.restore_payment_fields()
 		refuse_another_churches_parent(
 			self,
@@ -94,7 +96,7 @@ class FormResponse(Document):
 		self.reload()
 		form = frappe.db.get_value("Question Set", self.question_set, ["price", "fund"], as_dict=True)
 		church = self.payment_church
-		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		currency = get_currency()
 		# A gateway calls back once for each charge, so a callback on a paid response is a second charge.
 		if self.payment_status in (PAID, REFUNDED):
 			reason = _(
@@ -174,7 +176,7 @@ def pay(response: str) -> str:
 	return get_payment_url(
 		doc,
 		form.price,
-		frappe.get_cached_doc("Giving Settings").currency or "USD",
+		get_currency(),
 		doc.payment_church,
 		form.title,
 		_("Payment for {0}").format(form.title),

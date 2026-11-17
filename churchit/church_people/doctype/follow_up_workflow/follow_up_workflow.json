@@ -130,7 +130,7 @@
    "link_fieldname": "workflow"
   }
  ],
- "modified": "2026-10-31 13:13:30.000000",
+ "modified": "2026-11-15 02:36:18.637797",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Workflow",
@@ -191,5 +191,6 @@
  "sort_field": "workflow_name",
  "sort_order": "ASC",
  "states": [],
+ "title_field": "workflow_name",
  "track_changes": 1
 }

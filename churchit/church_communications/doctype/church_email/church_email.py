@@ -5,20 +5,26 @@ import frappe
 from frappe import _
 from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission
 from frappe.model.document import Document
-from frappe.utils import add_to_date, get_datetime, now_datetime
+from frappe.utils import add_to_date, cstr, get_datetime, now_datetime, strip_html
+from jinja2 import TemplateError
 from rq.timeouts import JobTimeoutException
 
 from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL, SMS
 from churchit.church_communications.newsletter import email_church
 from churchit.church_communications.sending import (
+	PLACEHOLDERS,
 	Delivery,
 	Recipient,
 	can_send_texts,
 	check_placeholders,
 	get_copy,
+	get_left_out,
 	get_people_sent,
 	get_person_values,
 	get_recipients,
+	get_values,
+	render,
+	uses_only_placeholders,
 )
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
@@ -26,6 +32,9 @@ from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_a
 from churchit.church_people import household, smart_lists
 from churchit.church_people.membership import ACTIVE, MEMBER, living_people_filter
 from churchit.church_scope import default_church, document_church, is_multi_church
+
+# Church Office edits a message; only these roles send or unschedule it.
+SENDER_ROLES = ("Church Manager", "System Manager")
 
 DRAFT = "Draft"
 SCHEDULED = "Scheduled"
@@ -50,12 +59,14 @@ HOUSEHOLD_ROLES = {
 # A delivery job lost to a worker restart is picked up again after this long.
 STALLED_AFTER_MINUTES = 15
 
+# The preview and the Send question name the people left out for one reason up to this many, else count them.
+LEFT_OUT_NAMES = 10
+
 
 class ChurchEmail(Document):
 	def validate(self):
 		if self.is_text_message:
-			# A text has no subject, so its first words name it in lists and links.
-			self.subject = (self.text_message or "")[:140]
+			self.subject = self.get_text_title()
 		self.clear_other_audiences()
 		self.refuse_another_churches_group()
 		self.refuse_another_churches_people()
@@ -65,6 +76,16 @@ class ChurchEmail(Document):
 			)
 		self.validate_placeholders()
 		self.keep_status()
+
+	def get_text_title(self) -> str:
+		"""A text has no subject, so its first words name it, each placeholder shown as [name]."""
+		text = self.text_message or ""
+		try:
+			text = render(text, get_values({field: f"[{field}]" for field in PLACEHOLDERS}))
+		except TemplateError:
+			pass
+
+		return text[:140]
 
 	def clear_other_audiences(self):
 		"""Keep only the group, smart list or people that Send To uses."""
@@ -109,6 +130,14 @@ class ChurchEmail(Document):
 			return
 		if before.status in (SENDING, SENT):
 			frappe.throw(_("This message has been sent, so it can no longer be changed."))
+		# A scheduled message goes out unchanged by anyone who may not send it.
+		if before.status == SCHEDULED and not set(SENDER_ROLES) & set(frappe.get_roles()):
+			frappe.throw(
+				_(
+					"This message is scheduled to send. Ask a Church Manager to unschedule it before you change it."
+				),
+				frappe.PermissionError,
+			)
 		self.status = before.status
 		if self.status == SCHEDULED and not self.send_after:
 			frappe.throw(_("Set Send At, or choose Actions, Unschedule to keep this message as a draft."))
@@ -131,22 +160,38 @@ class ChurchEmail(Document):
 	def sending_church(self) -> str:
 		return email_church(self.church)
 
+	def onload(self):
+		self.set_onload(
+			"sending_problems",
+			{channel: get_sending_problem(channel) for channel in (EMAIL_CHANNEL, TEXT_CHANNEL)},
+		)
+
 	@frappe.whitelist()
-	def get_recipient_count(self) -> int:
-		"""How many people the saved message goes to. Reads only."""
+	def get_recipient_count(self) -> dict:
+		"""How many people the saved message goes to, and who is left out and why, before it is sent. Reads only.
+
+		Refuses a message with nothing in it, or one the site or the user cannot send.
+		"""
 		self.load_saved("read")
-		return len(self.get_recipients())
+		self.require_content()
+		self.require_sending_set_up()
+		recipients, left_out = self.get_reach()
+		return {"count": len(recipients), "left_out": left_out}
 
 	@frappe.whitelist()
 	def get_preview(self, person: str | None = None) -> dict:
-		"""How *person*, or else the first person it goes to, gets this message, and how many people get it. Reads only."""
+		"""How *person*, or else the first person it goes to, gets this message, and how many people get it. Reads only.
+
+		`left_out` says who gets no copy of their own and why.
+		"""
 		self.load_saved("read")
-		recipients = self.get_recipients()
-		preview: dict = {"count": len(recipients)}
+		recipients, left_out = self.get_reach()
+		preview: dict = {"count": len(recipients), "left_out": left_out}
 		recipient = self.get_recipient(recipients, person)
 		if recipient:
 			frappe.has_permission("Person", "read", doc=recipient.person, throw=True)
-			copy = self.get_copy(get_person_values([recipient.person])[recipient.person])
+			values = get_person_values([recipient.person], self.sending_church)[recipient.person]
+			copy = self.get_copy(values)
 			preview.update(person=recipient.person, to=recipient.address, **copy)
 		return preview
 
@@ -157,6 +202,7 @@ class ChurchEmail(Document):
 		Returns where it went.
 		"""
 		self.load_saved("write")
+		self.require_content()
 		self.require_sending_set_up()
 		return Delivery(self).send_test()
 
@@ -164,9 +210,11 @@ class ChurchEmail(Document):
 	def send(self) -> str:
 		"""Send it now, or schedule it when Send At is still ahead. Sends messages.
 
-		Returns the new status.
+		Returns the new status. Only a Church Manager or System Manager may send.
 		"""
+		frappe.only_for(SENDER_ROLES)
 		self.load_saved("write")
+		self.require_content()
 		self.require_sending_set_up()
 		if frappe.db.get_value(self.doctype, self.name, "status", for_update=True) != DRAFT:
 			frappe.throw(_("This message has already been sent or scheduled."))
@@ -182,6 +230,7 @@ class ChurchEmail(Document):
 	@frappe.whitelist(methods=["POST"])
 	def unschedule(self):
 		"""Turn a scheduled message back into a draft, so it is not sent at Send At. Changes data."""
+		frappe.only_for(SENDER_ROLES)
 		self.load_saved("write")
 		if frappe.db.get_value(self.doctype, self.name, "status", for_update=True) == SCHEDULED:
 			self.db_set("status", DRAFT)
@@ -194,15 +243,22 @@ class ChurchEmail(Document):
 		self.load_from_db()
 		self.check_permission(ptype)
 
+	def require_content(self):
+		"""Refuse a message with nothing to send. A draft made from the Person list is saved before anything is written."""
+		if self.is_text_message:
+			if not cstr(self.text_message).strip():
+				frappe.throw(_("Write the Text before you send."))
+			return
+		message = cstr(self.message)
+		if not cstr(self.subject).strip() or not (strip_html(message).strip() or "<img" in message):
+			frappe.throw(_("Write the Subject and the Message before you send."))
+
 	def require_sending_set_up(self):
 		"""Refuse a message the site cannot deliver, or a text the user may not send."""
-		if not self.is_text_message:
-			if not can_send_email():
-				frappe.throw(_("Set up an outgoing Email Account first."))
-			return
-		if not can_send_texts():
-			frappe.throw(_("Set up SMS Settings first, so the church can send texts."))
-		check_sms_permission()
+		if problem := get_sending_problem(self.channel):
+			frappe.throw(problem)
+		if self.is_text_message:
+			check_sms_permission()
 
 	def get_recipient(self, recipients: list[Recipient], person: str | None) -> Recipient | None:
 		"""The recipient who is *person*, or the first one when no person is given."""
@@ -217,6 +273,13 @@ class ChurchEmail(Document):
 		"""Everyone this is for who allows its purpose, in order, each address once."""
 		return get_recipients(self.get_people(), self.consent_channel, self.purpose, self.church)
 
+	def get_reach(self) -> tuple[list[Recipient], dict[str, dict]]:
+		"""Everyone this goes to, and who is left out for each reason (see `describe_left_out`)."""
+		people = self.get_people()
+		recipients = get_recipients(people, self.consent_channel, self.purpose, self.church)
+		left_out = get_left_out(people, recipients, self.consent_channel, self.purpose, self.church)
+		return recipients, describe_left_out(left_out)
+
 	def get_people(self) -> list[str]:
 		"""The people this is for, worked out now so that nobody who died or left is included."""
 		people = self.get_audience()
@@ -225,15 +288,23 @@ class ChurchEmail(Document):
 		return people
 
 	def get_audience(self) -> list[str]:
-		"""The people Send To names, before their households are added."""
+		"""The living people Send To names, before their households are added."""
 		if self.send_to == GROUP:
 			return self.get_group_members()
 		if self.send_to == SMART_LIST:
 			return smart_lists.get_people(self.smart_list, self.own_church)
-		if self.send_to == CHOSEN_PEOPLE:
-			return [row.person for row in self.people]
 
 		Person = frappe.qb.DocType("Person")
+		if self.send_to == CHOSEN_PEOPLE:
+			chosen = [row.person for row in self.people]
+			# church-scope: the people this message names, which validate keeps to its own church
+			living = set(
+				frappe.get_all(
+					"Person", filters=[{"name": ("in", chosen)}, living_people_filter(Person)], pluck="name"
+				)
+			)
+			return [person for person in chosen if person in living]
+
 		filters: dict = {"membership_status": ACTIVE}
 		if self.send_to == ACTIVE_MEMBERS:
 			filters["membership"] = MEMBER
@@ -286,6 +357,46 @@ class ChurchEmail(Document):
 			"File", filters={"attached_to_doctype": self.doctype, "attached_to_name": self.name}, pluck="name"
 		)
 		return [{"fid": file} for file in files]
+
+
+def get_sending_problem(channel: str) -> str | None:
+	"""Why this site cannot send on *channel* yet, naming who sets it up and where, or None."""
+	if channel == TEXT_CHANNEL:
+		if not can_send_texts():
+			return _(
+				"This site cannot send texts yet. Ask a System Manager to fill in SMS Settings "
+				"(Settings > Module Settings > SMS Settings)."
+			)
+	elif not can_send_email():
+		return _(
+			"This site cannot send emails yet. Ask a System Manager to add an outgoing Email Account "
+			"(Settings > Email > Email Accounts)."
+		)
+	return None
+
+
+def describe_left_out(left_out: dict[str, list[str]]) -> dict[str, dict]:
+	"""{reason: {"count", "names"}} for the people `sending.get_left_out` gives.
+
+	The names come only for a few people, each of whom the reader may read; otherwise the count says it.
+	"""
+	few = [person for people in left_out.values() if len(people) <= LEFT_OUT_NAMES for person in people]
+	names = dict(
+		frappe.get_list(
+			"Person",
+			filters={"name": ("in", few)},
+			fields=["name", "full_name"],
+			limit=len(few),
+			as_list=True,
+		)
+		if few
+		else ()
+	)
+	described = {}
+	for reason, people in left_out.items():
+		readable = [names[person] or person for person in people if person in names]
+		described[reason] = {"count": len(people), "names": readable if len(readable) == len(people) else []}
+	return described
 
 
 def enqueue_delivery(name: str):
@@ -368,3 +479,28 @@ def claim(name: str) -> bool:
 	if status == SCHEDULED:
 		frappe.db.set_value("Church Email", name, "status", SENDING)
 	return status in (SCHEDULED, SENDING)
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.validate_and_sanitize_search_inputs
+def search_email_templates(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | None
+) -> list[list[str]]:
+	"""Link search for a Church Email's Template: those whose subject and message use only the person placeholders. Reads only.
+
+	The automatic emails' templates use other names, so a Church Email would refuse them on save.
+	"""
+	templates = frappe.get_list(
+		"Email Template",
+		filters={"name": ("like", f"%{txt}%")},
+		fields=["name", "subject", "use_html", "response", "response_html"],
+		order_by="name asc",
+		limit=0,
+	)
+	usable = [
+		[template.name]
+		for template in templates
+		if uses_only_placeholders(template.subject)
+		and uses_only_placeholders(template.response_html if template.use_html else template.response)
+	]
+	return usable[start : start + page_len]

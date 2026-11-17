@@ -13,12 +13,20 @@ from frappe.website.utils import clear_cache as clear_website_cache
 
 from churchit.church_scope import refuse_another_churches_record
 from churchit.scripture import format_reference
+from churchit.unique_names import refuse_a_second_with_this_name
 from churchit.utils import validate_https_url
 from churchit.www.sermon import get_published_sermon
 
 
 class Sermon(Document):
 	def validate(self):
+		refuse_a_second_with_this_name(
+			self,
+			"title",
+			_(
+				"Another sermon is called {0}. Add the year or the series to this title, or open that sermon and add this date to its Presentation History."
+			),
+		)
 		if not self.sermon_date:
 			self.sermon_date = min(
 				(getdate(row.date) for row in self.presentation_history if row.date), default=None

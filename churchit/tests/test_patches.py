@@ -55,6 +55,7 @@ from churchit.patches.v1_0 import (
 	set_display_names,
 	setup_bulletins,
 	split_membership_from_member_status,
+	turn_off_frappe_total_rows_on_giving_reports,
 	update_default_navbar,
 )
 from churchit.patches.v1_0 import add_giving_statements_to_portal as portal_patch
@@ -340,6 +341,18 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertFalse(frappe.db.has_column("Missionary Agency", "image_hhbv"))
 		rename_agency_logo_field.execute()
 		self.assertTrue(frappe.db.has_column("Missionary Agency", "logo"))
+
+	def test_the_giving_reports_lose_frappe_s_total_row_once(self):
+		reports = turn_off_frappe_total_rows_on_giving_reports.REPORTS
+		for report in reports:
+			frappe.db.set_value("Report", report, "add_total_row", 1)
+
+		turn_off_frappe_total_rows_on_giving_reports.execute()
+		turn_off_frappe_total_rows_on_giving_reports.execute()
+
+		self.assertEqual(
+			frappe.get_all("Report", {"name": ("in", reports)}, pluck="add_total_row"), [0] * len(reports)
+		)
 
 	def test_missionary_person_moves_into_the_people_table_once(self):
 		if not frappe.db.has_column("Missionary", "person"):

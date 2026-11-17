@@ -21,20 +21,26 @@
 	{% elif request.status != "Pending" %}
 		<p><b>{{ _("You accepted.") if request.status == "Accepted" else _("You declined.") }}</b></p>
 	{% endif %}
+	{% if (replaced_by or request.status != "Pending") and "ministry-team" not in get_switched_off_pages() %}
+		<p><a href="/ministry-team">{{ _("See all your serving requests") }}</a></p>
+	{% endif %}
 
 	{% if has_started %}
 		<p class="text-muted">{{ _("This function has already started, so the answer can no longer change.") }}</p>
 	{% else %}
-		<div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
-			{% if request.status != "Accepted" and not replaced_by %}
-				<button class="btn btn-primary team-answer" data-status="Accepted">{{ _("Accept") }}</button>
-			{% endif %}
-			{% if request.status != "Declined" %}
-				<input class="form-control" style="flex: 1 1 12rem;" type="text" id="team-reason" maxlength="140"
-					placeholder="{{ _('Reason (optional)') }}" aria-label="{{ _('Reason for declining') }}">
-				<button class="btn btn-default team-answer" data-status="Declined">{{ _("Decline") }}</button>
-			{% endif %}
-		</div>
+		{% if request.status != "Accepted" and not replaced_by %}
+			<button class="btn btn-primary team-answer" data-status="Accepted">{{ _("Accept") }}</button>
+		{% endif %}
+		{# The reason goes with Decline, apart from Accept: Decline sends what is typed here. #}
+		{% if request.status != "Declined" %}
+			<div class="mt-4">
+				<label for="team-reason">{{ _("Reason for declining (optional)") }}</label>
+				<div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+					<input class="form-control" style="flex: 1 1 12rem;" type="text" id="team-reason" maxlength="140">
+					<button class="btn btn-default team-answer" data-status="Declined">{{ _("Decline") }}</button>
+				</div>
+			</div>
+		{% endif %}
 
 		{% if pending_replacement %}
 			<p class="mt-4">{{ _("You asked {0} to take your place. It passes to them when they accept.").format(pending_replacement | e) }}</p>
@@ -42,9 +48,12 @@
 			<div class="mt-4">
 				<p>{{ _("Cannot come? Ask someone else on the team to take your place. You serve until they accept.") }}</p>
 				<button class="btn btn-default" id="team-replacement-find">{{ _("Ask Someone Else") }}</button>
-				<div class="d-flex flex-wrap align-items-center" style="gap: 8px;" id="team-replacement-form" hidden>
-					<select class="form-control" style="flex: 1 1 12rem;" id="team-replacement" aria-label="{{ _('Person to ask') }}"></select>
-					<button class="btn btn-primary" id="team-replacement-ask">{{ _("Ask") }}</button>
+				{# hidden sits on a wrapper: Bootstrap's d-flex is display: flex !important, which beats it #}
+				<div id="team-replacement-form" hidden>
+					<div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+						<select class="form-control" style="flex: 1 1 12rem;" id="team-replacement" aria-label="{{ _('Person to ask') }}"></select>
+						<button class="btn btn-primary" id="team-replacement-ask">{{ _("Ask") }}</button>
+					</div>
 				</div>
 				<p class="text-muted" id="team-replacement-none" hidden>{{ _("No one else on the team is free then.") }}</p>
 			</div>

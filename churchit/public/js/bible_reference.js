@@ -2,7 +2,7 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 // Suggests books, chapters and verses while a Bible reference is typed, says when a reference is
-// not in the Bible, and shows its text on hover. The fields come from the boot
+// not in the Bible, and shows its text on hover (on focus on a phone). The fields come from the boot
 // (scripture.REFERENCE_FIELDS), or a dialog field marked bible_reference; the book outline is
 // fetched once, the first time one of them is typed in.
 
@@ -107,11 +107,16 @@
 		return { church: church || null, translation: row.translation || null };
 	}
 
+	// A mouse previews while hovering; a touch screen has no hover, so it previews while focused.
+	function is_previewing(control) {
+		return control.$input.is(":hover") || (frappe.is_mobile() && control.$input.is(":focus"));
+	}
+
 	function show_preview(control) {
 		const text = (control.get_input_value() || "").trim();
 		if (!text || control.$wrapper.hasClass("has-error")) return;
 		get_preview(control, text).then((preview) => {
-			if (preview.problem || !control.$input.is(":hover")) return;
+			if (preview.problem || !is_previewing(control)) return;
 			const content = preview.text
 				? frappe.utils.escape_html(preview.text)
 				: `<span class="text-muted">${__("The verse text is not available.")}</span>`;
@@ -153,7 +158,8 @@
 		);
 		control.$input.on("blur", () => check(control));
 		control.$input.on("mouseenter", () => show_preview(control));
-		control.$input.on("mouseleave input", () => control.$input.popover("dispose"));
+		control.$input.on("mouseleave input blur", () => control.$input.popover("dispose"));
+		control.$input.on("focus", () => frappe.is_mobile() && show_preview(control));
 		if (control.in_grid()) hang_from_grid(control, awesomplete);
 	}
 

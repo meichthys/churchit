@@ -14,32 +14,29 @@
 		--fc-neutral-bg-color: var(--subtle-fg);
 		--fc-today-bg-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
 		--fc-list-event-hover-bg-color: var(--subtle-fg);
+		--fc-event-bg-color: #4338ca;
+		--fc-event-border-color: #4338ca;
 	}
 	#church-calendar .fc-event { cursor: pointer; }
 	/* the view buttons wrap on a phone instead of widening the page */
 	#church-calendar .fc-header-toolbar { flex-wrap: wrap; gap: 8px; }
 	/* day numbers and event titles are links; follow the page text, not bootstrap's link colour */
 	#church-calendar .fc a { color: inherit; }
-	.event-modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		z-index: 1050;
-		display: none;
-		align-items: flex-start;
-		justify-content: center;
-		padding-top: 5rem;
-	}
-	.event-modal-overlay.is-open { display: flex; }
-	.event-modal-dialog {
+	dialog.event-modal-dialog {
 		background: var(--card-bg);
 		color: var(--text-color);
+		border: 0;
 		border-radius: 0.5rem;
+		padding: 0;
+		margin: 5rem auto auto;
 		max-width: 500px;
 		width: calc(100% - 2rem);
+		/* a long event scrolls inside the popup; the page behind cannot scroll */
+		max-height: calc(100% - 6rem);
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-		overflow: hidden;
+		overflow: auto;
 	}
+	dialog.event-modal-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
 	.event-modal-header {
 		display: flex;
 		align-items: center;
@@ -68,8 +65,7 @@
 
 {% block page_content %}
 <p class="text-muted">
-	Showing events from {{ frappe.utils.formatdate(window_start, "MMMM d, YYYY") }}
-	through {{ frappe.utils.formatdate(window_end, "MMMM d, YYYY") }}.
+	{{ _("Showing events from {0} through {1}.").format(frappe.utils.formatdate(window_start, "EEEE, MMMM d, yyyy"), frappe.utils.formatdate(window_end, "EEEE, MMMM d, yyyy")) }}
 </p>
 <div class="calendar-actions">
 	{% if has_branches %}
@@ -80,15 +76,13 @@
 </div>
 <div id="church-calendar"></div>
 
-<div class="event-modal-overlay" id="event-modal" role="dialog" aria-modal="true">
-	<div class="event-modal-dialog">
-		<div class="event-modal-header">
-			<h2 id="event-modal-title"></h2>
-			<button type="button" class="event-modal-close" aria-label="Close">&times;</button>
-		</div>
-		<div class="event-modal-body" id="event-modal-body"></div>
+<dialog class="event-modal-dialog" id="event-modal" aria-labelledby="event-modal-title">
+	<div class="event-modal-header">
+		<h2 id="event-modal-title"></h2>
+		<button type="button" class="event-modal-close" aria-label="{{ _("Close") }}">&times;</button>
 	</div>
-</div>
+	<div class="event-modal-body" id="event-modal-body"></div>
+</dialog>
 {% endblock %}
 
 {% block script %}
@@ -98,6 +92,8 @@
 (function () {
 	var DATE_FORMAT = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 	var TIME_FORMAT = { hour: 'numeric', minute: '2-digit' };
+	var DATE_RANGE = {{ _("{0} to {1}") | tojson }};
+	var ALL_DAY = {{ _("{0} (All day)") | tojson }};
 
 	function escapeHtml(text) {
 		if (text == null) return '';
@@ -109,14 +105,33 @@
 			.replace(/'/g, '&#39;');
 	}
 
+	function formatDate(date) {
+		return date.toLocaleDateString(undefined, DATE_FORMAT);
+	}
+
+	function formatTime(date) {
+		return date.toLocaleTimeString(undefined, TIME_FORMAT);
+	}
+
+	function range(from, to) {
+		return DATE_RANGE.replace('{0}', from).replace('{1}', to);
+	}
+
+	// An event that runs over more than one day shows the dates of its first and last day.
 	function formatWhen(event) {
-		var when = event.start.toLocaleDateString(undefined, DATE_FORMAT);
-		if (event.allDay) return when + ' (All day)';
-		when += ' ' + event.start.toLocaleTimeString(undefined, TIME_FORMAT);
-		if (event.end) {
-			when += ' to ' + event.end.toLocaleTimeString(undefined, TIME_FORMAT);
+		var start = event.start;
+		var end = event.end;
+		var startText = formatDate(start);
+		if (event.allDay) {
+			// An all-day event ends on the day after its last day.
+			var last = end ? new Date(end) : null;
+			if (last) last.setDate(last.getDate() - 1);
+			return ALL_DAY.replace('{0}', last && last > start ? range(startText, formatDate(last)) : startText);
 		}
-		return when;
+		startText += ' ' + formatTime(start);
+		if (!end) return startText;
+		var isSameDay = end.toDateString() === start.toDateString();
+		return range(startText, (isSameDay ? '' : formatDate(end) + ' ') + formatTime(end));
 	}
 
 	function link(url, text, className) {
@@ -146,7 +161,9 @@
 		eventMap = null;
 	}
 
-	function openModal(event) {
+	var opener = null;
+
+	function openModal(event, element) {
 		var details = event.extendedProps || {};
 		var html = ['<p><span class="label">When:</span> ' + escapeHtml(formatWhen(event)) + '</p>'];
 		if (details.type) {
@@ -178,14 +195,24 @@
 		removeMap();
 		document.getElementById('event-modal-body').innerHTML = html.join('');
 		document.getElementById('event-modal-title').textContent = event.title;
-		document.getElementById('event-modal').classList.add('is-open');
+		opener = element || document.activeElement;
+		if (opener && opener.tabIndex < 0 && !opener.hasAttribute('tabindex')) opener.setAttribute('tabindex', '-1');
+		var modal = document.getElementById('event-modal');
+		if (!modal.open) modal.showModal();
 		// Leaflet measures its box, so the map is drawn once the modal shows.
 		if (details.coordinates) drawMap(details.coordinates);
 	}
 
 	function closeModal() {
+		var modal = document.getElementById('event-modal');
+		if (modal.open) modal.close();
+	}
+
+	// Escape closes the dialog on its own; both ways end here.
+	function onModalClosed() {
 		removeMap();
-		document.getElementById('event-modal').classList.remove('is-open');
+		if (opener && document.contains(opener)) opener.focus();
+		opener = null;
 	}
 
 	// A date alone is read as UTC midnight; with a time it is local, as FullCalendar reads it.
@@ -217,7 +244,8 @@
 	frappe.ready(function () {
 		var calendar = new frappe.FullCalendar(document.getElementById('church-calendar'), {
 			plugins: frappe.FullCalendar.Plugins,
-			initialView: 'dayGridMonth',
+			// Month cells are too narrow for event titles on a phone.
+			initialView: window.matchMedia('(max-width: 767px)').matches ? 'listMonth' : 'dayGridMonth',
 			headerToolbar: {
 				left: 'prev,next today',
 				center: 'title',
@@ -242,7 +270,7 @@
 			},
 			eventClick: function (info) {
 				info.jsEvent.preventDefault();
-				openModal(info.event);
+				openModal(info.event, info.el);
 			}
 		});
 		calendar.render();
@@ -259,9 +287,7 @@
 		document.getElementById('event-modal').addEventListener('click', function (e) {
 			if (e.target === this) closeModal();
 		});
-		document.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape') closeModal();
-		});
+		document.getElementById('event-modal').addEventListener('close', onModalClosed);
 	});
 })();
 </script>

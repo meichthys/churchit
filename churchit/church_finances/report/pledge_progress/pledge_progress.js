@@ -11,4 +11,10 @@ frappe.query_reports["Pledge Progress"] = {
 			options: "Pledge Campaign",
 		},
 	],
+
+	formatter: function (value, row, column, data, default_formatter) {
+		// A pledge has no goal of its own: a blank cell reads better than a zero goal.
+		if (data && data.person && column.fieldname === "goal_amount") return "";
+		return default_formatter(value, row, column, data);
+	},
 };

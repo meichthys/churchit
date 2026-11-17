@@ -37,6 +37,8 @@
 		var(--ch-brand-2) 50%,
 		var(--ch-brand-3) 100%
 	);
+	// darker stops behind white text on buttons and badges: white on each passes AA (6.3, 5.7, 4.6 : 1)
+	--ch-grad-btn: linear-gradient(120deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
 
 	--ch-glass: rgba(255, 255, 255, 0.55);
 	--ch-glass-2: rgba(255, 255, 255, 0.72);
@@ -48,7 +50,7 @@
 	--primary-color: #4338ca; // indigo-700
 	--heading-color: #0f172a; // slate-900
 	--text-color: #334155; // slate-700
-	--text-muted: #64748b; // slate-500
+	--text-muted: #475569; // slate-600
 	--border-color: rgba(15, 23, 42, 0.08);
 	--bg-color: #eef1fb;
 }
@@ -66,6 +68,12 @@
 	--text-muted: #94a3b8; // slate-400
 	--border-color: rgba(255, 255, 255, 0.1);
 	--bg-color: #0b1020;
+	// frappe's surfaces (web forms, cards, the calendar popup) in navy, not its gray
+	--fg-color: #121a33;
+	--card-bg: #121a33;
+	--control-bg: #1b2440;
+	--subtle-fg: #1b2440;
+	--subtle-accent: #243050;
 }
 
 body {
@@ -209,10 +217,20 @@ body {
 		padding: 1rem 0;
 	}
 
+	// ---- Links in running text ---------------------------------------------
+	// frappe gives links the body colour and no underline, so a link in a
+	// paragraph looked like the text around it.
+	.page_content p a:not(.btn),
+	.page_content li a:not(.btn),
+	.web-form-introduction a {
+		color: var(--primary-color);
+		text-decoration: underline;
+	}
+
 	// ---- Buttons: gradient pills like the docs site ------------------------
 	.page_content .btn-primary {
 		color: #fff;
-		background: var(--ch-grad);
+		background: var(--ch-grad-btn);
 		border: none;
 		border-radius: 999px;
 		font-weight: 650;
@@ -222,6 +240,11 @@ body {
 		&:hover {
 			transform: translateY(-2px);
 			box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.7);
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--primary-color);
+			outline-offset: 3px;
 		}
 	}
 	#home .home-btn-ghost {
@@ -235,11 +258,16 @@ body {
 		&:hover {
 			transform: translateY(-2px);
 		}
+
+		&:focus-visible {
+			outline: 2px solid var(--primary-color);
+			outline-offset: 3px;
+		}
 	}
 
 	// ---- Portal (/me and portal list views) --------------------------------
 	.portal-container .avatar-frame {
-		background: var(--ch-grad);
+		background: var(--ch-grad-btn);
 		color: #fff;
 	}
 	.portal-items {
@@ -288,7 +316,7 @@ body {
 	// ---- Sermon series and missions map ------------------------------------
 	.series-tag {
 		color: #fff;
-		background: var(--ch-grad);
+		background: var(--ch-grad-btn);
 	}
 	.missions-map-card {
 		border-radius: var(--ch-radius);
@@ -333,5 +361,11 @@ body {
 	.portal-row:hover,
 	.series-sermon-link:hover {
 		background: rgba(129, 140, 248, 0.12);
+	}
+	// css/website.css gives these frappe's gray
+	.btn-default,
+	.btn-secondary {
+		background-color: var(--subtle-accent);
+		border-color: var(--subtle-accent);
 	}
 }

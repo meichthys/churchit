@@ -8,12 +8,14 @@ import frappe
 from frappe import _
 from frappe.desk.calendar import get_events
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, getdate
+from frappe.utils import add_days, cint, date_diff, flt, format_datetime, get_datetime, get_time, getdate
 
 from churchit.church_ministries.attendance import get_attendance_total
 from churchit.church_ministries.sign_up_amounts import is_freely_given
+from churchit.church_people.derived import warn_if_after_death
+from churchit.church_people.repeated_rows import refuse_repeated_people
 from churchit.church_scope import refuse_another_churches_fund, refuse_another_churches_record
-from churchit.utils import link_title, validate_https_url
+from churchit.utils import get_dated_title, link_title, validate_https_url
 
 TIME_FORMAT = "h:mm a"
 
@@ -37,10 +39,109 @@ class Function(Document):
 		self.refuse_another_churches_sign_up_fund()
 		self.validate_meeting_url()
 		self.validate_schedule_songs()
+		self.refuse_backward_pairs()
+		# A repeat stored before stays, so it never stops a check-in.
+		refuse_repeated_people(self, "attendance", "person")
+		self.warn_about_attendance_after_death()
+
+	def warn_about_attendance_after_death(self):
+		"""Warn about each person added to the attendance after their recorded death."""
+		if self.is_new() and self.source_template:
+			return  # The recurrence job copies the living people of its template's roster.
+		before = self.get_doc_before_save()
+		people_before = {row.person for row in before.attendance} if before else set()
+		for row in self.attendance:
+			if row.person not in people_before:
+				warn_if_after_death(row.person, self.start_date, _("attendance"))
+
+	def refuse_backward_pairs(self):
+		"""Refuse an end before its start, and a minimum above its maximum.
+
+		Only a pair this save changes: a stored Function that breaks a rule still takes check-ins.
+		"""
+		if self.is_new() and self.source_template:
+			return  # The recurrence job copies its template, which was checked when it saved.
+
+		for fields, is_backward, message in self.get_pairs():
+			if is_backward and any(self.has_value_changed(field) for field in fields):
+				frappe.throw(message)
+
+	def get_pairs(self) -> list[tuple[tuple[str, ...], bool, str]]:
+		"""(fields, is_backward, message) for each pair whose second value cannot come before its first."""
+		start_date = getdate(self.start_date) if self.start_date else None
+		end_date = getdate(self.end_date) if self.end_date else start_date
+		is_timed = not self.all_day and self.start_time and self.end_time
+		grades = self.meta.get_field("min_grade").options.split("\n")
+		has_grades = self.min_grade in grades and self.max_grade in grades
+		return [
+			(
+				("start_date", "end_date"),
+				bool(start_date and end_date < start_date),
+				_("The End Date cannot be before the Start Date."),
+			),
+			(
+				("start_date", "end_date", "start_time", "end_time", "all_day"),
+				bool(
+					start_date
+					and is_timed
+					and end_date == start_date
+					and get_time(self.end_time) < get_time(self.start_time)
+				),
+				_("The End Time cannot be before the Start Time on the same day."),
+			),
+			(
+				("sign_ups_open_on", "sign_ups_close_on"),
+				bool(
+					self.sign_ups_open_on
+					and self.sign_ups_close_on
+					and get_datetime(self.sign_ups_close_on) < get_datetime(self.sign_ups_open_on)
+				),
+				_("Sign-Ups Close On cannot be before Sign-Ups Open On."),
+			),
+			(
+				("start_date", "repeat_until", "auto_repeat"),
+				bool(
+					start_date
+					and self.auto_repeat
+					and self.repeat_until
+					and getdate(self.repeat_until) < start_date
+				),
+				_("Repeat Until cannot be before the Start Date."),
+			),
+			(
+				("min_age", "max_age"),
+				0 < cint(self.max_age) < cint(self.min_age),
+				_("The Minimum Age cannot be above the Maximum Age."),
+			),
+			(
+				("min_grade", "max_grade"),
+				bool(
+					self.min_grade
+					and self.max_grade
+					and has_grades
+					and grades.index(self.min_grade) > grades.index(self.max_grade)
+				),
+				_("The Minimum Grade cannot be above the Maximum Grade."),
+			),
+		]
 
 	def on_update(self):
 		self.promote_waitlist_when_capacity_grows()
 		self.settle_payment_holds_when_prices_change()
+		self.create_first_occurrences()
+
+	def create_first_occurrences(self):
+		"""Make a new recurring template's occurrences now, not at the next daily run."""
+		if not (self.auto_repeat and self.has_value_changed("auto_repeat")):
+			return
+		frappe.enqueue(
+			"churchit.church_ministries.doctype.function.function.create_occurrences",
+			template=self.name,
+			enqueue_after_commit=True,
+			job_id=f"create_occurrences_{frappe.local.site}_{self.name}",
+			deduplicate=True,
+		)
+		frappe.msgprint(_("Occurrences are being created."), alert=True, indicator="green")
 
 	def validate_meeting_url(self):
 		"""Guests open the meeting link, so it must be one https link."""
@@ -166,13 +267,14 @@ class Function(Document):
 				frappe.throw(_("Choose the group in the Group field, not in Associations."))
 
 	def before_save(self):
-		name = self.function_name or ""
-		if self.start_date:
-			self.title = f"{name}: {self.start_date}"
-		else:
-			self.title = name
+		self.title = get_dated_title(self.function_name, self.start_date)
 
-		self.attendance_total = get_attendance_total(self.attendance or [], self.start_date, self.headcount)
+		# A template is a rule: its people are a roster for its occurrences, not attendance.
+		self.attendance_total = (
+			0
+			if self.auto_repeat
+			else get_attendance_total(self.attendance or [], self.start_date, self.headcount)
+		)
 
 	def on_trash(self):
 		"""Keep a deleted occurrence deleted: its template skips the date from now on."""
@@ -192,6 +294,15 @@ class Function(Document):
 			return
 		template.append("skip_dates", {"date": self.start_date, "reason": _("Occurrence deleted")})
 		template.save(ignore_permissions=True)
+
+
+def create_occurrences(template: str) -> None:
+	"""Background job: create *template*'s missing occurrences, as the daily job does."""
+	from churchit.church_ministries.recurrence import create_missing_occurrences
+
+	document = frappe.get_doc("Function", template, for_update=True)
+	if document.auto_repeat:
+		create_missing_occurrences(document, getdate())
 
 
 @frappe.whitelist(methods=["GET"])
@@ -221,6 +332,15 @@ def apply_template(source_name: str, start_date: str | None = None) -> dict:
 		"max_age",
 		"min_grade",
 		"max_grade",
+		"allow_sign_ups",
+		"allow_guest_sign_ups",
+		"sign_up_requires_approval",
+		"capacity",
+		"reminder_days",
+		"sign_up_fund",
+		"question_set",
+		"streamed",
+		"recorded",
 	]
 
 	# Copy normal fields
@@ -229,14 +349,29 @@ def apply_template(source_name: str, start_date: str | None = None) -> dict:
 			copied_doc[field] = template_dict[field]
 
 	# Copy child tables
-	include_child_tables = ["associations", "attendance", "schedule", "team_needs"]
+	include_child_tables = [
+		"associations",
+		"attendance",
+		"schedule",
+		"team_needs",
+		"selections",
+		"discounts",
+		"table_cxhh",
+	]
 	for child_table in include_child_tables:
 		if template_dict.get(child_table):
 			copied_doc[child_table] = [dict(child_row) for child_row in template_dict[child_table]]
 	copied_doc["attendance"] = readable_attendance(copied_doc.get("attendance"))
 
 	if start_date:
-		move_schedule(copied_doc.get("schedule", []), date_diff(start_date, template_dict.start_date))
+		days = date_diff(start_date, template_dict.start_date)
+		move_schedule(copied_doc.get("schedule", []), days)
+		for field in ("sign_ups_open_on", "sign_ups_close_on"):
+			if template_dict.get(field):
+				copied_doc[field] = add_days(get_datetime(template_dict[field]), days)
+		for row in copied_doc.get("discounts", []):
+			if row.get("valid_until"):
+				row["valid_until"] = add_days(getdate(row["valid_until"]), days)
 	return copied_doc
 
 
@@ -314,6 +449,9 @@ def get_schedule_rows(function) -> list[frappe._dict]:
 	rows = []
 	for item in function.schedule:
 		title = link_title(item.item_type, item.item) if item.item else None
+		if item.item_type == "Collection":
+			title = _("Offering")
+
 		rows.append(
 			frappe._dict(
 				time=format_datetime(item.start, TIME_FORMAT) if item.start else None,
@@ -406,19 +544,28 @@ def refuse_a_source_that_is_not_a_template(source_name):
 
 
 def readable_attendance(rows):
-	"""The attendance rows whose person the reader may see.
+	"""The first attendance row of each living person the reader may see.
 
 	A template carries the regulars of the function it came from, which is the
-	point of copying them onto the next one. A template shared by another church
-	carries that church's people, who are none of this reader's business.
+	point of copying them onto the next one. Someone who has died is left off.
+	A template shared by another church carries that church's people, who are
+	none of this reader's business. A template
+	saved before a repeated person was refused may hold two rows of one person; the
+	copy keeps the first, the row that `attendance.record` reads, so it can save.
 	"""
 	if not rows:
 		return []
 	people = [row.get("person") for row in rows if row.get("person")]
 	if not people:
 		return rows
-	readable = set(frappe.get_list("Person", filters={"name": ("in", people)}, pluck="name"))
-	return [row for row in rows if row.get("person") in readable]
+	readable = set(
+		frappe.get_list("Person", filters={"name": ("in", people), "is_deceased": 0}, pluck="name")
+	)
+	first_rows = {}
+	for row in rows:
+		if row.get("person") in readable:
+			first_rows.setdefault(row.get("person"), row)
+	return list(first_rows.values())
 
 
 def _as_time(value):

@@ -195,3 +195,9 @@ class TestWebsiteSingleChurch(FrappeTestCase):
 		context = frappe._dict({})
 		update_website_context(context)
 		self.assertIsNone(locations_menu(context))
+
+	def test_a_banner_image_shows_in_the_navbar_instead_of_the_church_name(self):
+		"""The navbar shows Banner Image only while brand_html is empty, so the church name must not fill it."""
+		context = frappe._dict({"banner_image": "/files/logo.png"})
+		update_website_context(context)
+		self.assertFalse(context.get("brand_html"))

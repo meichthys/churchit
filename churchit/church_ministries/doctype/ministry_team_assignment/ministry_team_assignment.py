@@ -18,6 +18,7 @@ from churchit.church_ministries import availability
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
 from churchit.church_scope import refuse_another_churches_parent, refuse_another_churches_record, scoped
 from churchit.contacts import get_primary_email, get_primary_emails
+from churchit.utils import LONG_DATE_FORMAT
 
 PENDING = "Pending"
 ACCEPTED = "Accepted"
@@ -155,7 +156,7 @@ class MinistryTeamAssignment(Document):
 			position=self.position_doc.position_name,
 			ministry=frappe.db.get_value("Ministry", self.position_doc.ministry, "ministry_name"),
 			function=self.function_doc.function_name,
-			date=format_date(start, "EEEE, MMMM d, yyyy"),
+			date=format_date(start, LONG_DATE_FORMAT),
 			time=format_time(start, TIME_FORMAT)
 			if self.function_doc.start_time and not self.function_doc.all_day
 			else "",
@@ -196,8 +197,9 @@ class MinistryTeamAssignment(Document):
 			send_team_email(REPLACEMENT_TEMPLATE, email, context, original)
 
 
-def can_send_email() -> bool:
-	return bool(EmailAccount.find_outgoing())
+def can_send_email(sender: str | None = None, doctype: str | None = None) -> bool:
+	"""True when frappe.sendmail finds an Email Account for this sender and reference doctype."""
+	return bool(EmailAccount.find_outgoing(match_by_email=sender, match_by_doctype=doctype))
 
 
 def send_team_email(template: str, recipient: str, context: dict, assignment: Document):

@@ -8,7 +8,7 @@
  "anonymous": 0,
  "apply_document_permissions": 0,
  "button_label": "Save",
- "client_script": "",
+ "client_script": "var doc = frappe.web_form && frappe.web_form.doc;\nif (doc && doc.name) {\n\tvar $actions = $(\".web-form-header .web-form-actions\").first();\n\tif ($actions.length && !$actions.find(\".btn-leave-group\").length) {\n\t\tvar $leave = $('<button type=\"button\" class=\"btn btn-default btn-sm ml-2 btn-leave-group\"></button>').text(__(\"Leave this group\"));\n\t\t$actions.append($leave);\n\t\t$leave.on(\"click\", function (e) {\n\t\t\te.preventDefault();\n\t\t\tfrappe.confirm(__(\"Leave {0}? A leader can add you again.\", [doc.group_name]), function () {\n\t\t\t\tfrappe.call({\n\t\t\t\t\tmethod: \"churchit.church_people.group_api.leave_group\",\n\t\t\t\t\ttype: \"POST\",\n\t\t\t\t\targs: { group: doc.name },\n\t\t\t\t\tfreeze: true,\n\t\t\t\t\tcallback: function (r) {\n\t\t\t\t\t\tif (r.message) {\n\t\t\t\t\t\t\twindow.location.href = \"/groups\";\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t});\n\t\t});\n\t}\n}\n",
  "condition_json": "[]",
  "creation": "2026-05-20 00:00:00.000000",
  "doc_type": "Group",
@@ -23,20 +23,20 @@
    "label": "Group"
   },
   {
-   "fieldname": "status",
-   "fieldtype": "Link",
-   "label": "Status"
+   "fieldname": "leaders",
+   "fieldtype": "Data",
+   "label": "Leaders"
   },
   {
-   "fieldname": "public",
-   "fieldtype": "Check",
-   "label": "Public"
+   "fieldname": "meets",
+   "fieldtype": "Small Text",
+   "label": "Meets"
   }
  ],
  "list_title": "Groups",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-05-20 00:00:04.000000",
+ "modified": "2026-11-17 00:22:56.919935",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "groups",
@@ -46,7 +46,7 @@
  "show_attachments": 0,
  "show_list": 1,
  "show_sidebar": 1,
- "title": "Group",
+ "title": "Groups",
  "web_form_fields": [
   {
    "fieldname": "group_name",
@@ -61,16 +61,9 @@
    "read_only": 1
   },
   {
-   "fieldname": "status",
-   "fieldtype": "Link",
-   "label": "Status",
-   "options": "Group Status",
-   "read_only": 1
-  },
-  {
-   "fieldname": "public",
-   "fieldtype": "Check",
-   "label": "Public",
+   "fieldname": "meets",
+   "fieldtype": "Small Text",
+   "label": "Meets",
    "read_only": 1
   }
  ],

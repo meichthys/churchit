@@ -7,7 +7,7 @@
 <div class="sermon-page">
 	<p class="text-muted">
 		{{- [
-			frappe.utils.formatdate(sermon.sermon_date) if sermon.sermon_date else "",
+			frappe.utils.formatdate(sermon.sermon_date, "EEEE, MMMM d, yyyy") if sermon.sermon_date else "",
 			sermon.scripture,
 			preacher,
 			_("Series: {0}").format(series.series_name) if series else "",
@@ -56,7 +56,9 @@
 <style>
 	.sermon-page { max-width: 48rem; margin: 0 auto; }
 	.sermon-series-image { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; }
-	.sermon-video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; margin-bottom: 1rem; }
+	/* A player's error page sets no background, so in dark mode the browser painted it white.
+	   With the light scheme of such a page the frame stays clear and shows the theme surface. */
+	.sermon-video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; margin-bottom: 1rem; color-scheme: light; background: var(--control-bg); }
 	.sermon-audio { width: 100%; margin-bottom: 1rem; }
 	.sermon-notes { margin-bottom: 2rem; }
 	.listener-notes { border-top: 1px solid var(--border-color, #ddd); padding-top: 1.5rem; margin-bottom: 2rem; }

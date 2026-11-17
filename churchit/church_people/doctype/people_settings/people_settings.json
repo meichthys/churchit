@@ -18,6 +18,13 @@
   "school_year_start_month",
   "map_section",
   "look_up_addresses",
+  "reminders_section",
+  "remind_overdue_follow_up_cards",
+  "follow_up_card_reminder_days",
+  "remind_overdue_care_requests",
+  "care_request_reminder_days",
+  "remind_planned_visits",
+  "visit_reminder_days",
   "retention_section",
   "remove_inactive_after_years"
  ],
@@ -105,6 +112,66 @@
    "show_description_on_click": 1
   },
   {
+   "description": "Turn each reminder on and set its days here, not in Notifications. Saving here sets them again.",
+   "fieldname": "reminders_section",
+   "fieldtype": "Section Break",
+   "label": "Reminders"
+  },
+  {
+   "default": "0",
+   "description": "Goes to the people the card is assigned to, while the card is open and not snoozed.",
+   "fieldname": "remind_overdue_follow_up_cards",
+   "fieldtype": "Check",
+   "label": "Email When a Follow-up Card Is Overdue",
+   "show_description_on_click": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "remind_overdue_follow_up_cards",
+   "description": "0 sends it on the day the card is due.",
+   "fieldname": "follow_up_card_reminder_days",
+   "fieldtype": "Int",
+   "label": "Days After the Card Is Due",
+   "non_negative": 1,
+   "show_description_on_click": 1
+  },
+  {
+   "default": "0",
+   "description": "Goes to the caregiver and the care team (Church Pastoral Care), until the request is Resolved or Closed.",
+   "fieldname": "remind_overdue_care_requests",
+   "fieldtype": "Check",
+   "label": "Email When a Care Request Is Overdue",
+   "show_description_on_click": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "remind_overdue_care_requests",
+   "description": "0 sends it on the day the request is due.",
+   "fieldname": "care_request_reminder_days",
+   "fieldtype": "Int",
+   "label": "Days After the Request Is Due",
+   "non_negative": 1,
+   "show_description_on_click": 1
+  },
+  {
+   "default": "0",
+   "description": "Goes to the visitor and the Church Managers, while the visit is Planned or Scheduled.",
+   "fieldname": "remind_planned_visits",
+   "fieldtype": "Check",
+   "label": "Email Before a Planned Visit",
+   "show_description_on_click": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "remind_planned_visits",
+   "description": "0 sends it on the day of the visit.",
+   "fieldname": "visit_reminder_days",
+   "fieldtype": "Int",
+   "label": "Days Before the Visit",
+   "non_negative": 1,
+   "show_description_on_click": 1
+  },
+  {
    "fieldname": "retention_section",
    "fieldtype": "Section Break",
    "label": "Personal Data"
@@ -122,7 +189,7 @@
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-31 13:12:47.000000",
+ "modified": "2026-11-17 01:17:52.837801",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People Settings",

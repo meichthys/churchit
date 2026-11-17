@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "field:type",
  "creation": "2025-09-01 00:33:34.102307",
- "description": "Type of `Function Attendance` (i.e. Confirmed, Assumed, Unknown, Absent, etc.)",
+ "description": "The kinds of attendance record: for example Confirmed, Assumed, Unknown or Absent.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
@@ -36,7 +36,7 @@
    "table_fieldname": "attendance"
   }
  ],
- "modified": "2026-10-31 13:19:00.000000",
+ "modified": "2026-11-15 05:42:25.571252",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Attendance Type",

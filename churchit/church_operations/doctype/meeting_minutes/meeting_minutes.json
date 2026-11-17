@@ -82,12 +82,14 @@
   },
   {
    "default": "Draft",
+   "description": "Church Staff can read minutes only when they are Published. Church Managers read them at every status.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Draft\nReviewed\nApproved\nPublished"
+   "options": "Draft\nReviewed\nApproved\nPublished",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "recorded_by",
@@ -97,6 +99,7 @@
   },
   {
    "depends_on": "eval:[\"Approved\", \"Published\"].includes(doc.status) || doc.approved_on",
+   "description": "Set to today when the minutes become Approved or Published. You can edit it.",
    "fieldname": "approved_on",
    "fieldtype": "Date",
    "label": "Approved On"
@@ -148,7 +151,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-11-03 01:33:46.000000",
+ "modified": "2026-11-17 01:17:52.754320",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Meeting Minutes",
@@ -179,6 +182,14 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Church Staff",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

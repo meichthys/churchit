@@ -176,22 +176,29 @@ class TestReading(FrappeTestCase):
 		)
 
 	def test_passage_text_is_one_numbered_line(self):
+		text = scripture.get_passage_text("John 3:16-4:1", self.free)
+
+		self.assertTrue(text.startswith("16 For God so loved the world."))
+		self.assertIn(" 1 ", f" {text}")
+
+	def test_a_single_verse_has_no_number(self):
 		self.assertEqual(
 			scripture.get_passage_text("Psalms 23:1", self.free),
-			"1 The LORD is my shepherd; I shall not want.",
+			"The LORD is my shepherd; I shall not want.",
 		)
 
 	def test_passage_text_stops_after_its_limit(self):
-		self.assertEqual(
-			scripture.get_passage_text("John 3:16-4:1", self.free, limit=20),
-			"16 For God so loved the world. ...",
-		)
+		with patch.object(scripture, "get_chapter", wraps=scripture.get_chapter) as get_chapter:
+			text = scripture.get_passage_text("John 3:16-4:1", self.free, limit=20)
+
+		self.assertEqual(text, "16 For God so loved the world. ...")
+		self.assertEqual(get_chapter.call_count, 1)
 
 	def test_a_preview_reads_the_translation_given(self):
 		preview = scripture.get_reference_preview("jn 3:16", translation=self.free)
 
 		self.assertEqual(preview.reference, f"John 3:16 ({self.free})")
-		self.assertEqual(preview.text, "16 For God so loved the world.")
+		self.assertEqual(preview.text, "For God so loved the world.")
 		self.assertIn("Mark 16 has 20 verses.", scripture.get_reference_preview("Mark 16:21")["problem"])
 
 	def test_a_preview_of_a_church_the_reader_cannot_open_uses_their_own(self):
@@ -285,6 +292,13 @@ class TestReading(FrappeTestCase):
 			names = [translation.name for translation in scripture.get_readable_translations()]
 		download.assert_not_called()
 		self.assertIn(doc.name, names)
+
+	def test_a_translation_that_is_downloading_or_failed_is_not_offered(self):
+		doc = self.seeded_translation("_TLF")
+		for status in ("Downloading", "Failed"):
+			frappe.db.set_value("Bible Translation", doc.name, "status", status)
+			names = [translation.name for translation in scripture.get_readable_translations()]
+			self.assertNotIn(doc.name, names, status)
 
 
 def free_use_bible(books):

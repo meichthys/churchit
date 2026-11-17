@@ -4,7 +4,7 @@
  "allow_edit": 1,
  "allow_incomplete": 0,
  "allow_multiple": 0,
- "allow_print": 1,
+ "allow_print": 0,
  "anonymous": 0,
  "apply_document_permissions": 1,
  "button_label": "Save",
@@ -42,10 +42,10 @@
    "label": "Allergies"
   }
  ],
- "list_title": "Your Personal Information",
+ "list_title": "Personal Details",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2026-11-09 23:16:01.000000",
+ "modified": "2026-11-15 05:51:15.738854",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "personal-details",
@@ -55,6 +55,9 @@
  "show_attachments": 0,
  "show_list": 1,
  "show_sidebar": 1,
+ "success_message": "Your details are saved.",
+ "success_title": "Saved",
+ "success_url": "/household",
  "title": "Personal Details",
  "web_form_fields": [
   {
@@ -207,7 +210,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
-   "description": "Mark which address should receive mail from the church.",
+   "description": "To change your address, tell the church office.",
    "fieldname": "addresses",
    "fieldtype": "Table",
    "hidden": 0,
@@ -216,7 +219,7 @@
    "max_value": 0,
    "options": "Postal Address",
    "precision": "",
-   "read_only": 0,
+   "read_only": 1,
    "reqd": 0,
    "show_in_filter": 0
   },

@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:13:53.000000",
+ "modified": "2026-11-15 18:21:20.405996",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",
@@ -16,6 +16,24 @@
  "reference_doctype": "Group",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The name that lists, pickers and Find a Group show.<br><br><b>Enter a Name to continue.</b>",
+   "fieldname": "group_name",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.group_name",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Name",
+   "ui_tour": 0
+  },
   {
    "description": "Status (Active or Inactive) controls whether the group appears in active lists.",
    "fieldname": "status",

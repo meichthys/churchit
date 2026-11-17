@@ -48,17 +48,47 @@ class TestMultiChurch(FrappeTestCase):
 		set_multi_church(True)
 		cls.addClassCleanup(frappe.clear_cache)
 
-	def test_branch_needs_a_group_parent(self):
+	def insert_branch(self, church_name, abbreviation, parent):
+		return frappe.get_doc(
+			{
+				"doctype": "Church",
+				"church_name": church_name,
+				"abbreviation": abbreviation,
+				"parent_church": parent,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_the_main_church_becomes_a_group_with_its_first_branch(self):
+		"""A first branch can have no other parent, so nobody has to leave the form to tick Is Group."""
 		frappe.db.set_value("Church", self.root, "is_group", 0)
-		with self.assertRaises(ValidationError):
-			frappe.get_doc(
-				{
-					"doctype": "Church",
-					"church_name": "_Test Orphan Branch",
-					"abbreviation": "OB",
-					"parent_church": self.root,
-				}
-			).insert(ignore_permissions=True)
+		frappe.local.message_log = []
+
+		self.insert_branch("_Test First Branch", "TFB", self.root)
+
+		self.assertTrue(frappe.db.get_value("Church", self.root, "is_group"))
+		(steps,) = frappe.local.message_log
+		self.assertEqual(steps.title, "Next Steps for _Test First Branch")
+
+	def test_a_new_branch_opens_at_once_to_its_creator_who_includes_branches(self):
+		"""Frappe caches each user's churches with their branches, so a new branch must clear the creator's."""
+		user = ensure_user("_test_branch_creator@example.com", "Creator", roles=("Church Manager",))
+		set_user_church(user, self.root)
+		permission = frappe.get_doc("User Permission", user_church_permissions(user)[0].name)
+		permission.hide_descendants = 0
+		permission.save(ignore_permissions=True)
+		self.addCleanup(frappe.cache.hdel, "user_permissions", user)
+		self.assertIn(self.root, allowed_churches(user))
+
+		frappe.set_user(user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		branch = self.insert_branch("_Test Creator Branch", "TCRB", self.root).name
+
+		self.assertIn(branch, allowed_churches(user))
+
+	def test_a_branch_under_another_branch_needs_it_to_be_a_group(self):
+		parent = make_branch("_Test Leaf Parent", "TLP")
+		with self.assertRaisesRegex(ValidationError, "Check Is Group on _Test Leaf Parent "):
+			self.insert_branch("_Test Orphan Branch", "OB", parent)
 
 	def test_deleting_a_branch_moves_its_users_up_to_the_parent(self):
 		"""A permission left on a deleted church hides every other church's records;
@@ -93,7 +123,8 @@ class TestMultiChurch(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Church", branch, "parent_church"), self.root)
 
 	def test_second_root_is_blocked(self):
-		with self.assertRaises(NestedSetMultipleRootsError):
+		root_name = frappe.db.get_value("Church", self.root, "church_name")
+		with self.assertRaisesRegex(NestedSetMultipleRootsError, f"{root_name} is already the main church"):
 			frappe.get_doc(
 				{"doctype": "Church", "church_name": "_Test Second Root", "abbreviation": "SR"}
 			).insert(ignore_permissions=True)

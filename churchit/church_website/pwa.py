@@ -23,6 +23,8 @@ PORTAL_URL = "/portal"
 DESK_URL = "/desk"
 ICON_DIR = "/assets/churchit/icons/pwa"
 DEFAULT_NAME = "Churchit"
+# Home screens cut a label much longer than this.
+SHORT_NAME_LENGTH = 12
 # Long-press (phone) or right-click (computer) menu of the app icon.
 SHORTCUT_PAGES = ("calendar", "prayer-request", "give", "sermons")
 
@@ -114,13 +116,14 @@ def extend_bootinfo(bootinfo):
 def app_names():
 	"""(name, short_name) for the installed app, from the Church record.
 
-	The abbreviation is the short name: home screens truncate anything much
-	longer than a dozen characters.
+	The short name is the church name when it fits on a home screen, else the abbreviation.
 	"""
 	church = get_church()
 	if not church:
 		return DEFAULT_NAME, DEFAULT_NAME
-	return church.church_name, church.abbreviation or church.church_name
+	name = church.church_name
+	short_name = name if len(name) <= SHORT_NAME_LENGTH else church.abbreviation or name
+	return name, short_name
 
 
 class AppStartPage(BaseRenderer):

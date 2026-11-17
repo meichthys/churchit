@@ -3,7 +3,6 @@ from frappe import _
 from frappe.query_builder.functions import Count
 
 from churchit.church_scope import scoped
-from churchit.query import Date
 from churchit.utils import set_report_link_titles
 
 
@@ -22,18 +21,19 @@ def get_columns():
 
 
 def get_data(filters):
+	"""Functions per type that start between the Start and End Dates, each given date applied, templates left out."""
 	filters = filters or {}
-	start = filters.get("start")
-	end = filters.get("end")
 
 	Function = frappe.qb.DocType("Function")
 
 	query = (
 		frappe.qb.from_(Function)
 		.select(Function.type.as_("type"), Count(Function.name).as_("counts"))
-		.where(
-			Function.start_date.isnull() | Function.end_date.isnull() | Date(Function.start_date)[start:end]
-		)
+		.where(Function.auto_repeat == 0)
 		.groupby(Function.type)
 	)
+	if filters.get("start"):
+		query = query.where(Function.start_date >= filters["start"])
+	if filters.get("end"):
+		query = query.where(Function.start_date <= filters["end"])
 	return scoped(query, Function, filters).run(as_dict=True)

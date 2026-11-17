@@ -9,7 +9,7 @@
 {%- set function = frappe.db.get_value("Function", doc.function, ["function_name", "start_date"], as_dict=True) if doc.function else None -%}
 {%- set first_name = ((person.nickname or person.first_name) if person else "") or "" -%}
 {%- set last_name = (person.last_name if person else "") or "" -%}
-{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date, "MMM d, yyyy") if function and function.start_date else ""]|select|join(" · ") -%}
+{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date) if function and function.start_date else ""]|select|join(" · ") -%}
 {%- set first_size = (height * 0.28) if first_name|length <= 9 else (height * 0.28 * 9 / first_name|length) -%}
 <style>
   .print-format { page-width: {{ width }}in; page-height: {{ height }}in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
@@ -22,7 +22,7 @@
   .name-tag.volunteer .footer { margin-top: auto; width: 100%; font-size: {{ height * 0.08 }}in; color: #333; text-align: left; }
 </style>
 <div class="name-tag volunteer">
-  <div class="role">Volunteer</div>
+  <div class="role">{{ _("Volunteer") }}</div>
   <div class="first-name" style="font-size: {{ first_size|round(2) }}in">{{ first_name|e }}</div>
   <div class="last-name">{{ last_name|e }}</div>
   {% if position %}<div class="position">{{ position|e }}</div>{% endif %}

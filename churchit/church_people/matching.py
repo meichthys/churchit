@@ -520,7 +520,10 @@ def find_or_add_person(candidate: dict, church: str | None, source: str) -> tupl
 
 
 def add_visitor(candidate: dict, church: str | None, source: str) -> str:
-	"""Add a Visitor from guest input. An email or phone another person holds is shared from them."""
+	"""Add a Visitor from guest input. An email or phone another person holds is shared from them.
+
+	A guest is not a user staff know, so a Visitor that a guest's form adds names Administrator as its maker.
+	"""
 	person = frappe.get_doc(
 		{
 			"doctype": "Person",
@@ -545,4 +548,8 @@ def add_visitor(candidate: dict, church: str | None, source: str) -> str:
 					"shared_from": get_other_holder(person, child_doctype, value_field, value),
 				},
 			)
-	return person.insert(ignore_permissions=True).name
+	person.insert(ignore_permissions=True)
+	if frappe.session.user == "Guest":
+		system = {"owner": "Administrator", "modified_by": "Administrator"}
+		frappe.db.set_value("Person", person.name, system, update_modified=False)
+	return person.name

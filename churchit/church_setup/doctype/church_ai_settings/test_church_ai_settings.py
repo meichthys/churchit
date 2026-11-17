@@ -153,6 +153,57 @@ class TestChurchAISettings(RollbackEachTest):
 		settings.blocked_knowledge_doctypes = settings.blocked_knowledge_doctypes[1:]
 		self.assertRaisesRegex(frappe.PermissionError, "remove a DocType", settings.save)
 
+	def test_a_branch_church_manager_can_add_a_private_doctype_but_not_remove_one(self):
+		settings = frappe.get_single(SETTINGS)
+		settings.private_model_doctypes = []
+		settings.append("private_model_doctypes", {"document_type": "Care Request"})
+		settings.save()
+
+		frappe.set_user(make_branch_manager())
+		settings = frappe.get_single(SETTINGS)
+		settings.append("private_model_doctypes", {"document_type": "Note"})
+		settings.save()
+		settings.private_model_doctypes = settings.private_model_doctypes[1:]
+		self.assertRaisesRegex(frappe.PermissionError, "Only for Local", settings.save)
+		self.assertEqual(
+			frappe.get_all(
+				"Church AI Blocked DocType",
+				filters={"parentfield": "private_model_doctypes"},
+				pluck="document_type",
+				order_by="idx",
+			),
+			["Care Request", "Note"],
+		)
+
+	def test_a_branch_church_manager_cannot_turn_suggestions_on_or_add_a_reviewer(self):
+		frappe.set_user(make_branch_manager())
+		settings = frappe.get_single(SETTINGS)
+		settings.suggest_request_triage = 1
+		self.assertRaisesRegex(frappe.PermissionError, "suggestions", settings.save)
+
+		_root, branch, _other = make_two_churches()
+		settings = frappe.get_single(SETTINGS)
+		settings.append("triage_reviewers", {"church": branch, "user": BRANCH_MANAGER})
+		self.assertRaisesRegex(frappe.PermissionError, "reviewers", settings.save)
+		self.assertFalse(frappe.db.get_single_value(SETTINGS, "suggest_request_triage"))
+		self.assertFalse(frappe.get_all("Church AI Reviewer", filters={"parent": SETTINGS}))
+
+	def test_a_branch_church_manager_can_turn_suggestions_off(self):
+		frappe.db.set_single_value(SETTINGS, "suggest_request_triage", 1)
+		frappe.set_user(make_branch_manager())
+		settings = frappe.get_single(SETTINGS)
+		settings.suggest_request_triage = 0
+		settings.save()
+		self.assertFalse(frappe.db.get_single_value(SETTINGS, "suggest_request_triage"))
+
+	def test_the_form_tells_a_branch_church_manager_what_they_cannot_change(self):
+		branch_manager = make_branch_manager()
+		for user, expected in ((branch_manager, False), ("Administrator", True)):
+			frappe.set_user(user)
+			settings = frappe.get_single(SETTINGS)
+			settings.run_method("onload")
+			self.assertIs(settings.get_onload().get("can_loosen"), expected, user)
+
 
 class TestWarningSections(FrappeTestCase):
 	"""Each warning is a closed Section Break titled "Warning: ..." that church_ai_settings.js fills."""

@@ -1,15 +1,18 @@
 import frappe
 from frappe import _
-from pypika import Order
+from frappe.utils import add_days, flt
+from pypika import Field, Order
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
+	if data:
+		data.append(get_total_row(data))
 	return columns, data
 
 
@@ -22,6 +25,7 @@ def get_columns():
 			"options": "Collection",
 			"width": 200,
 		},
+		{"fieldname": "date", "fieldtype": "Date", "label": _("Date"), "width": 100},
 		{
 			"fieldname": "function",
 			"fieldtype": "Link",
@@ -43,7 +47,13 @@ def get_columns():
 	]
 
 
+def get_total_row(rows):
+	return frappe._dict(name=_("Total"), amount=sum(flt(row.amount) for row in rows), is_total_row=1)
+
+
 def get_data(filters=None):
+	filters = filters or {}
+
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")
 
@@ -53,7 +63,9 @@ def get_data(filters=None):
 		.on(Collection.name == Donation.parent)
 		.select(
 			Collection.name,
+			Collection.date,
 			Collection.function,
+			Collection.church,
 			Donation.fund,
 			Donation.person,
 			Donation.payment_type,
@@ -61,6 +73,16 @@ def get_data(filters=None):
 			Donation.amount,
 		)
 		.where((Donation.parenttype == "Collection") & (Collection.docstatus == 1))
-		.orderby(Collection.modified, order=Order.desc)
+		.orderby(Collection.date, order=Order.desc)
+		.orderby(Collection.name, order=Order.desc)
 	)
+
+	if filters.get("from_date"):
+		query = query.where(Collection.date >= filters["from_date"])
+	if filters.get("to_date"):
+		query = query.where(Collection.date < add_days(filters["to_date"], 1))
+	for fieldname in ("fund", "payment_type", "person"):
+		if filters.get(fieldname):
+			query = query.where(Field(fieldname, table=Donation) == filters[fieldname])
+
 	return scoped(query, Collection, filters).run(as_dict=True)

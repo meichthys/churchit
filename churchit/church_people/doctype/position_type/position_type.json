@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:position",
  "creation": "2025-08-26 22:57:29.102805",
- "description": "Types of positions that `Person`s can fill in the church.",
+ "description": "The kinds of position that people can fill in the church.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
@@ -45,7 +45,7 @@
    "table_fieldname": "positions"
   }
  ],
- "modified": "2026-11-14 21:37:15.568790",
+ "modified": "2026-11-15 05:42:25.580191",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position Type",

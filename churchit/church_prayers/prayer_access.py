@@ -64,11 +64,20 @@ def get_community_filters() -> dict:
 	return church_filters(session_church() or default_church(), visibility=("in", visibilities))
 
 
+def get_active_request_filters() -> tuple[dict, list]:
+	"""`(filters, or_filters)` for the active requests: not closed and not past their End Date.
+
+	The desk counts these. They apply no church or visibility, so the caller adds those.
+	"""
+	filters = {"status": ("not in", CLOSED_STATUSES)}
+	or_filters = [["end_date", "is", "not set"], ["end_date", ">=", now_datetime()]]
+	return filters, or_filters
+
+
 def get_open_request_filters() -> tuple[dict, list]:
-	"""`(filters, or_filters)` for the requests a list shows: open, approved for the list and not ended.
+	"""`(filters, or_filters)` for the requests a list shows: active and approved for the list.
 
 	They apply no church or visibility, so the caller adds those.
 	"""
-	filters = {"status": ("not in", CLOSED_STATUSES), "approved_for_list": ("=", 1)}
-	or_filters = [["end_date", "is", "not set"], ["end_date", ">=", now_datetime()]]
-	return filters, or_filters
+	filters, or_filters = get_active_request_filters()
+	return {**filters, "approved_for_list": ("=", 1)}, or_filters

@@ -74,7 +74,7 @@
    "parent": "Church Tasks",
    "parentfield": "columns",
    "parenttype": "Kanban Board",
-   "status": "Active"
+   "status": "Archived"
   }
  ],
  "creation": "2026-10-31 13:42:00.000000",
@@ -106,7 +106,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "kanban_board_name": "Church Tasks",
- "modified": "2026-11-03 01:01:20.000000",
+ "modified": "2026-11-15 06:07:45.313892",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Tasks",

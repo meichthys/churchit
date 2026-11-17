@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:type",
  "creation": "2025-09-02 01:03:03.764617",
- "description": "The type of payment used for `Donation`s (i.e. Cash, Check, etc)",
+ "description": "How a gift was paid, such as Cash, Check or Online.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
@@ -48,7 +48,7 @@
    "table_fieldname": "donations"
   }
  ],
- "modified": "2026-10-31 13:13:13.000000",
+ "modified": "2026-11-15 05:48:14.961325",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Payment Type",

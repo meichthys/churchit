@@ -175,11 +175,20 @@ class TestRolodexBranches(FrappeTestCase):
 
 		self.assertEqual(card_for(directory, self.person_b).groups, [])
 		self.assertNotIn(self.group_b, [name for name, _title in directory["choices"]["group"]])
-		self.assertNotIn(self.branch_b, [name for name, _title in directory["choices"]["church"]])
+
+	def test_a_shared_directory_offers_every_churchs_filter_and_starts_on_the_readers_own(self):
+		set_private_people(False)
+		directory = self.directory_for_manager_a()
+
+		churches = [name for name, _title in directory["choices"]["church"]]
+		self.assertTrue({self.branch_a, self.branch_b} <= set(churches), churches)
+		self.assertEqual(directory["own_churches"], [self.branch_a])
 
 	def test_a_private_directory_leaves_out_another_churchs_people(self):
 		set_private_people(True)
 		self.addCleanup(set_private_people, False)
 
-		names = [person.name for person in self.directory_for_manager_a()["people"]]
-		self.assertNotIn(self.person_b, names)
+		directory = self.directory_for_manager_a()
+		self.assertNotIn(self.person_b, [person.name for person in directory["people"]])
+		self.assertEqual(directory["choices"]["church"], [[self.branch_a, "_Test Scope A"]])
+		self.assertEqual(directory["own_churches"], [])

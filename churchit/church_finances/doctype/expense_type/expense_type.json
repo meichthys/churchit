@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:type",
  "creation": "2025-10-09 02:26:38.910872",
- "description": "A type of `Expense` (a.k.a. Categories)",
+ "description": "A category of expense, such as Utilities or Office Supplies. Each type takes its money from one fund.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
@@ -101,7 +101,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-10-31 13:16:01.000000",
+ "modified": "2026-11-15 05:48:14.961325",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense Type",

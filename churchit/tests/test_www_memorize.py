@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.exceptions import PermissionError, ValidationError
+from frappe.utils import get_html_for_route
 
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_translation
 from churchit.www.memorize import index, session
@@ -54,6 +55,23 @@ class TestMemorizePages(RollbackEachTest):
 		self.assertEqual(items[self.item.name]["assigned_by_label"], "_Test Page Other")
 		self.assertIn(self.translation, [translation.name for translation in context["translations"]])
 
+	def test_the_add_passage_toggle_says_what_it_opens_and_the_status_is_announced(self):
+		html = get_html_for_route("memorize")
+
+		self.assertRegex(
+			html, r'id="add-passage-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="add-passage-panel"'
+		)
+		self.assertRegex(html, r'id="add-status"[^>]*role="status"')
+		self.assertIn("Practice: Type", html)
+		self.assertIn("Practice: Blur", html)
+
+	def test_the_session_scrolls_without_motion_when_the_user_asks_for_less(self):
+		frappe.local.form_dict = frappe._dict(mode="type", item=self.item.name)
+
+		html = get_html_for_route("memorize/session")
+
+		self.assertIn("prefers-reduced-motion: reduce", html)
+
 	def test_index_offers_the_groups_of_the_users_items(self):
 		group = frappe.get_doc({"doctype": "Group", "group_name": "_Test Page Memory Group"})
 		group = group.insert(ignore_permissions=True).name
@@ -84,7 +102,7 @@ class TestMemorizePages(RollbackEachTest):
 		self.assertEqual(context.mode, "blur")
 		self.assertEqual(context.progress, 40)
 		self.assertEqual(context.reference_label, "Genesis 1:1 (_TPG)")
-		self.assertEqual(context.reference_text, "1 In the beginning God created.")
+		self.assertEqual(context.reference_text, "In the beginning God created.")
 		self.assertEqual(frappe.parse_json(context.word_mistakes_json), {"2": 1})
 		self.assertTrue(context.no_header)
 

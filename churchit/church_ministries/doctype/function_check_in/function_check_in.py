@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from churchit.church_ministries.attendance import record, remove
+from churchit.church_ministries.attendance import record, record_many, refuse_a_template, remove
 from churchit.church_ministries.check_in_limits import refuse_a_full_room
 from churchit.church_people import household
 from churchit.church_scope import default_church, refuse_another_churches_parent
@@ -44,6 +44,12 @@ class FunctionCheckIn(Document):
 			"function",
 			_("{0} belongs to another church, so only that church can check people in to it."),
 		)
+		if self.function and self.has_value_changed("function"):
+			refuse_a_template(
+				frappe.db.get_value(
+					"Function", self.function, ["name", "function_name", "auto_repeat"], as_dict=True
+				)
+			)
 		# Prevent duplicate check-ins for the same function and person
 		if frappe.db.exists(
 			"Function Check-In", {"function": self.function, "person": self.person, "name": ("!=", self.name)}
@@ -72,7 +78,9 @@ class FunctionCheckIn(Document):
 		parts = [function_label or "", person_label or ""]
 		self.title = " - ".join(p for p in parts if p)
 
-		record(self.person, self.function, CHECKED_IN)
+		# add_check_ins records its whole group in one save of the Function.
+		if not self.flags.attendance_by_caller:
+			record(self.person, self.function, CHECKED_IN)
 
 	def on_trash(self):
 		# A checked-out check-in records who took the person. Only system code deletes it.
@@ -128,9 +136,6 @@ def add_check_ins(function: str, persons: list[str], kind: str = REGULAR) -> lis
 			for_update=True,
 		)
 	)
-	for person in names:
-		record(person, function, CHECKED_IN)
-
 	new = [person for person in unique if person not in names]
 	refuse_a_full_room(function, 0 if kind == VOLUNTEER else len(new))
 	code = get_security_code(new) if new and kind != VOLUNTEER and is_coded else None
@@ -143,8 +148,11 @@ def add_check_ins(function: str, persons: list[str], kind: str = REGULAR) -> lis
 				"check_in_kind": kind,
 				"security_code": code,
 			}
-		).insert(ignore_permissions=True)
-		names[person] = check_in.name
+		)
+		check_in.flags.attendance_by_caller = True
+		names[person] = check_in.insert(ignore_permissions=True).name
+
+	record_many(function, dict.fromkeys(unique, CHECKED_IN))
 	return [names[person] for person in persons]
 
 

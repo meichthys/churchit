@@ -6,10 +6,11 @@
 import frappe
 from frappe.utils import get_html_for_route
 
+from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
 from churchit.patches.v1_0 import add_household_and_directory_menu_items as menu_patch
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address, make_person
-from churchit.www.household import get_context
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address, make_person, make_two_churches
+from churchit.www.household import get_context, get_members
 
 
 def page_context():
@@ -103,6 +104,39 @@ class TestHouseholdPage(RollbackEachTest):
 		self.assertEqual([member.name for member in context.members if member.can_edit], [self.son])
 		self.assertFalse(context.can_change_photo)
 
+	def test_the_edit_answer_matches_frappes_permission_for_every_member(self):
+		mother_user = link_user(self.mother, "_test_page_household_mother@example.com")
+		staff = ensure_user("_test_page_household_staff@example.com", "Staff", roles=("Church Manager",))
+		grandmother_user = link_user(self.grandmother, "_test_page_household_gran@example.com")
+		for user in (self.father_user, mother_user, self.son_user, grandmother_user, staff):
+			frappe.set_user(user)
+			expected = {
+				name: frappe.has_permission("Person", "write", doc=name)
+				for name in (self.father, self.mother, self.son, self.grandmother)
+			}
+			people = [self.father, self.mother, self.son, self.grandmother]
+			found = {member.name: member.can_edit for member in get_members(people, {})}
+			self.assertEqual(found, expected, user)
+
+	def test_an_adult_may_not_edit_a_child_of_another_church(self):
+		self.addCleanup(frappe.clear_cache)
+		_root, church, other_church = make_two_churches()
+		for person in (self.father, self.mother, self.grandmother):
+			frappe.db.set_value("Person", person, "church", church)
+		frappe.db.set_value("Person", self.son, "church", other_church)
+		set_user_church(self.father_user, church)
+		frappe.set_user(self.father_user)
+
+		self.assertFalse(frappe.has_permission("Person", "write", doc=self.son))
+		self.assertEqual({member.name for member in page_context().members if member.can_edit}, {self.father})
+
+	def test_a_member_without_the_member_role_may_edit_no_one(self):
+		user = ensure_user("_test_page_household_no_role@example.com", "Jane", roles=())
+		frappe.db.set_value("Person", self.mother, "user", user)
+		frappe.set_user(user)
+
+		self.assertEqual([member.name for member in page_context().members if member.can_edit], [])
+
 	def test_another_household_never_shows(self):
 		frappe.set_user(self.father_user)
 
@@ -136,6 +170,11 @@ class TestHouseholdPage(RollbackEachTest):
 		self.assertIn(f'href="/personal-details/{self.son}/edit"', html)
 		self.assertNotIn(f'href="/personal-details/{self.mother}/edit"', html)
 		self.assertIn('id="change-household-photo"', html)
+
+	def test_cancelling_add_a_child_returns_focus_to_its_button(self):
+		frappe.set_user(self.father_user)
+
+		self.assertIn("else show.focus();", self.serve())
 
 	def test_only_an_adult_gets_the_add_a_child_form(self):
 		frappe.set_user(self.father_user)

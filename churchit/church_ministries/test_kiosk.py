@@ -12,7 +12,7 @@ from frappe.utils import get_datetime
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_ministries.check_in_limits import RoomFullError, is_check_in_open
 from churchit.church_ministries.doctype.function_check_in.function_check_in import add_check_ins
-from churchit.church_ministries.kiosk import KIOSK_ROLE, check_in, find_household
+from churchit.church_ministries.kiosk import KIOSK_ROLE, check_in, find_household, get_household_title
 from churchit.church_people.accounts import link_portal_user
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -138,15 +138,75 @@ class TestKiosk(RollbackEachTest):
 
 		self.assertEqual([{"name", "function_name", "start_time"}], [set(row) for row in found["functions"]])
 		(household,) = found["households"]
-		self.assertEqual(household["family_name"], "_Test Kiosk Family")
 		kit = next(member for member in household["members"] if member["name"] == self.child)
-		self.assertEqual(set(kit), {"name", "full_name", "photo", "grade", "functions"})
+		self.assertEqual(set(kit), {"name", "full_name", "photo", "grade", "functions", "checked_in"})
 		self.assertEqual(kit["photo"], "/files/kit.jpg")
 		self.assertEqual(kit["grade"], frappe.db.get_value("Person", self.child, "grade"))
 		self.assertEqual(
 			self.members(found),
 			{person: [self.function] for person in (self.parent, self.child, self.sibling)},
 		)
+
+	def test_a_household_is_headed_by_its_adults_or_its_last_name(self):
+		def set_roles(adult_role):
+			for person, role in ((self.parent, adult_role), (self.child, "Child"), (self.sibling, "Child")):
+				frappe.db.set_value(
+					"Family Members", {"parent": self.family.name, "member": person}, "household_role", role
+				)
+
+		set_roles("Adult")
+		self.assertEqual(self.find()["households"][0]["family_name"], "Kim _Test Kiosk")
+
+		set_roles("Child")
+		self.assertEqual(self.find()["households"][0]["family_name"], "_Test Kiosk household")
+
+	def test_a_household_is_not_headed_by_adults_the_kiosk_does_not_offer(self):
+		for person, role in ((self.parent, "Adult"), (self.child, "Child"), (self.sibling, "Child")):
+			frappe.db.set_value(
+				"Family Members", {"parent": self.family.name, "member": person}, "household_role", role
+			)
+		group = {
+			"family": self.family.name,
+			"family_name": self.family.name,
+			"members": [frappe.get_doc("Person", self.parent)],
+		}
+
+		self.assertEqual(get_household_title(group, [{"name": self.parent}]), "Kim _Test Kiosk")
+		self.assertEqual(get_household_title(group, [{"name": self.child}]), "_Test Kiosk household")
+
+	def test_someone_checked_in_already_comes_marked(self):
+		self.check_in({self.child: self.function})
+
+		(household,) = self.find()["households"]
+
+		self.assertEqual(
+			{member["name"]: member["checked_in"] for member in household["members"]},
+			{self.parent: False, self.child: True, self.sibling: False},
+		)
+
+	def test_someone_checked_in_to_one_function_is_still_offered_the_others(self):
+		later = self.make_class("_Test Kiosk Later Class")
+		self.check_in({self.child: self.function})
+
+		kit = next(
+			member for member in self.find()["households"][0]["members"] if member["name"] == self.child
+		)
+
+		self.assertEqual((kit["checked_in"], kit["functions"]), (False, [later]))
+
+	def test_a_whole_national_number_finds_the_number_stored_with_its_country_code(self):
+		frappe.db.set_value(
+			"Phone Number",
+			{"parent": self.parent},
+			{"phone_number": "+1 (555) 019-4321", "digits": "15550194321"},
+		)
+
+		self.assertEqual(set(self.members(self.find())), {self.parent, self.child, self.sibling})
+		self.assertEqual(
+			set(self.members(self.find("1 555 019 4321"))), {self.parent, self.child, self.sibling}
+		)
+		for partial in ("0194321", "550194321"):
+			self.assertEqual(self.find(partial)["households"], [], partial)
 
 	def test_a_private_photo_is_not_sent(self):
 		frappe.db.set_value("Person", self.child, "photo", "/private/files/kit.jpg")

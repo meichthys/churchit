@@ -592,6 +592,10 @@ NAME_CHECK_EXEMPT = {
 	"churchit.church_people.group_api.join_group": (
 		"a member joins only a public portal group of their church (church_filters on session_church)"
 	),
+	"churchit.church_people.group_api.leave_group": (
+		"a portal member holds no right on the Group; it removes only the session person's own rows and "
+		"refuses a group that they are not in"
+	),
 	"churchit.church_people.group_api.message_group": (
 		"a portal leader holds no right on the Group; require_leader refuses anyone who does not lead it"
 	),

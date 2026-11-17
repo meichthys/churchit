@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "FUND-.####",
  "creation": "2025-09-02 01:11:30.383380",
- "description": "Financial funds of the church (i.e. General, Trust, etc).",
+ "description": "Money that the church keeps for one purpose, such as General or Building. Gifts add to a fund and expenses take from it.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
@@ -197,7 +197,7 @@
    "link_fieldname": "fund"
   }
  ],
- "modified": "2026-10-31 13:16:01.000000",
+ "modified": "2026-11-15 05:48:14.961325",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",

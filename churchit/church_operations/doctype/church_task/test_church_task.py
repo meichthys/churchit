@@ -92,6 +92,24 @@ class TestTaskAssignment(TaskUsersTestCase):
 		self.assertEqual(frappe.db.get_value("Church Task", task.name, "status"), "Assigned")
 		self.assertEqual(todos(task), [{"allocated_to": self.staff, "date": getdate("2031-05-03")}])
 
+	def test_the_todo_takes_the_tasks_priority_and_title(self):
+		task = make_task("_Test Task Priority", priority="Urgent")
+
+		assign(task, self.staff)
+
+		todo = frappe.get_all(
+			"ToDo",
+			filters={"reference_type": "Church Task", "reference_name": task.name},
+			fields=["priority", "description"],
+		)[0]
+		self.assertEqual(todo.priority, "High")
+		self.assertEqual(todo.description, "_Test Task Priority")
+
+		task.reload()
+		task.priority = "Low"
+		task.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("ToDo", {"reference_name": task.name}, "priority"), "Low")
+
 	def test_assigning_a_task_in_progress_keeps_its_status(self):
 		task = make_task("_Test Task Underway", status="In Progress")
 

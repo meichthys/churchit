@@ -4,30 +4,39 @@
 		<div>
 			<div class="church-name">{{ header.name }}</div>
 			{%- if header.address %}<div class="church-address">{{ header.address }}</div>{% endif -%}
-			{%- if header.tax_id %}<div class="church-tax">Tax ID: {{ header.tax_id }}</div>{% endif -%}
+			{%- if header.tax_id %}<div class="church-tax">{{ _("Tax ID: {0}").format(header.tax_id) }}</div>{% endif -%}
 		</div>
 		<div class="statement-label">
-			<div class="doc-title">Contribution Statement</div>
-			<div class="period">{{ frappe.format(doc.from_date, {"fieldtype": "Date"}) }} to
-				{{ frappe.format(doc.to_date, {"fieldtype": "Date"}) }}</div>
+			<div class="doc-title">{{ _("Contribution Statement") }}</div>
+			<div class="period">{{ _("{0} to {1}").format(frappe.utils.formatdate(doc.from_date, "EEEE, MMMM d, yyyy"), frappe.utils.formatdate(doc.to_date, "EEEE, MMMM d, yyyy")) }}</div>
 		</div>
 	</div>
 
 	<div class="addressed-to">
-		<div class="muted">Contributions of</div>
-		<div class="donor">{{ frappe.db.get_value("Person", doc.person, "full_name") or doc.person }}</div>
-		{%- if doc.family %}<div class="muted">Household statement</div>{% endif -%}
+		<div class="muted">{{ _("Contributions of") }}</div>
+		<div class="donor">{{ (salutation(doc.family) if doc.family else "") or frappe.db.get_value("Person", doc.person, "full_name") or doc.person }}</div>
+		{%- set donor = frappe.get_doc("Person", doc.person) if doc.person else None -%}
+		{%- set family_rows = (frappe.get_doc("Family", doc.family).addresses | rejectattr("is_returned_mail") | list) if doc.family else [] -%}
+		{%- set person_rows = (donor.addresses | rejectattr("is_returned_mail") | list) if donor else [] -%}
+		{#- A household statement uses the household's address first, then the person's. -#}
+		{%- set candidates = (family_rows | selectattr("is_mailing_address") | list) + (family_rows | selectattr("is_primary") | list) + family_rows + (person_rows | selectattr("is_mailing_address") | list) + (person_rows | selectattr("is_primary") | list) + person_rows -%}
+		{%- set row = candidates | first -%}
+		{%- set address = frappe.db.get_value("Address", row.address, ["address_line1", "address_line2", "city", "state", "pincode"], as_dict=True) if row else None -%}
+		{%- if address %}
+		<div class="donor-address">{{ (address.address_line1 or "") | e }}{% if address.address_line2 %}<br>{{ address.address_line2 | e }}{% endif %}<br>{{ [address.city, [address.state, address.pincode] | select | join(" ")] | select | join(", ") | e }}</div>
+		{%- endif %}
+		{%- if doc.family %}<div class="muted">{{ _("Household statement") }}</div>{% endif -%}
 	</div>
 
 	{% if doc.lines %}
 	<table class="lines">
 		<thead>
 			<tr>
-				<th>Date</th>
-				{%- if doc.family %}<th>Given By</th>{% endif -%}
-				<th>Fund</th>
-				<th>Method</th>
-				<th class="num">Amount</th>
+				<th>{{ _("Date") }}</th>
+				{%- if doc.family %}<th>{{ _("Given By") }}</th>{% endif -%}
+				<th>{{ _("Fund") }}</th>
+				<th>{{ _("Method") }}</th>
+				<th class="num">{{ _("Amount") }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -38,7 +47,7 @@
 				<td>{{ frappe.db.get_value("Person", line.person, "full_name") or "" }}</td>
 				{%- endif -%}
 				<td>{{ frappe.db.get_value("Fund", line.fund, "fund") or line.fund or "" }}</td>
-				<td>{{ line.payment_type or "" }}{% if line.check_number %} #{{ line.check_number }}{% endif %}</td>
+				<td>{{ _(line.payment_type) if line.payment_type else "" }}{% if line.check_number %} #{{ line.check_number }}{% endif %}</td>
 				{%- if line.description and not line.amount %}
 				<td class="gift-description">{{ line.description | e }}</td>
 				{%- else %}
@@ -49,13 +58,13 @@
 		</tbody>
 		<tfoot>
 			<tr>
-				<td colspan="{{ 4 if doc.family else 3 }}">Total contributions</td>
+				<td colspan="{{ 4 if doc.family else 3 }}">{{ _("Total contributions") }}</td>
 				<td class="num total">{{ frappe.format(doc.total_amount, {"fieldtype": "Currency"}) }}</td>
 			</tr>
 		</tfoot>
 	</table>
 	{% else %}
-	<p class="muted">No contributions were recorded for this period.</p>
+	<p class="muted">{{ _("No contributions were recorded for this period.") }}</p>
 	{% endif %}
 
 	{%- if header.acknowledgment %}

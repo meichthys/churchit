@@ -11,6 +11,7 @@ from frappe.utils import flt, fmt_money, formatdate, nowdate
 
 from churchit.church_finances.doctype.collection.collection import add_single_donation
 from churchit.church_finances.payments import get_integration_request, is_charge_confirmed, notify_finance
+from churchit.church_foundations.doctype.church.church import church_name
 from churchit.church_people import summaries
 from churchit.church_scope import refuse_another_churches_record
 from churchit.contacts import get_primary_email
@@ -167,7 +168,8 @@ class OnlineDonation(Document):
 			"first_name": first_name or _("Friend"),
 			"amount": fmt_money(self.charged_amount, currency=self.currency),
 			"fund": frappe.db.get_value("Fund", self.fund, "fund") or self.fund,
-			"date": formatdate(nowdate()),
+			"date": formatdate(nowdate(), "EEEE, MMMM d, yyyy"),
+			"church_name": church_name(self) or "",
 			"doc": self,
 		}
 

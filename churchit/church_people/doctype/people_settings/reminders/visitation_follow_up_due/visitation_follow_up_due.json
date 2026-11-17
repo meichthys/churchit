@@ -1,0 +1,23 @@
+{
+ "channel": "Email",
+ "condition": "doc.status in (\"Planned\", \"Scheduled\")",
+ "condition_type": "Python",
+ "date_changed": "visit_date",
+ "days_in_advance": 1,
+ "document_type": "Visitation Log",
+ "enabled": 0,
+ "event": "Days Before",
+ "message_type": "HTML",
+ "name": "Visitation Follow-Up Due",
+ "recipients": [
+  {
+   "cc": "{{ frappe.db.get_value(\"Email Address\", {\"parenttype\": \"Person\", \"parent\": doc.visited_by, \"is_primary\": 1}, \"email_address\") or \"\" }}"
+  },
+  {
+   "receiver_by_role": "Church Manager"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "Upcoming visit: {{ doc.person_name or doc.person }}"
+}

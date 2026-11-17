@@ -3,6 +3,18 @@
 {% block title %}{{ _("Give") }}{% endblock %}
 {% block header %}<h1>{{ _("Give") }}</h1>{% endblock %}
 
+{% macro other_ways() %}
+	{% if other_ways_to_give %}
+	<div class="give-other-ways mt-5">
+		<h3>{{ _("Other Ways to Give") }}</h3>
+		{{ other_ways_to_give }}
+		{% if envelope_number %}
+		<p>{{ _("When you give this way, use your envelope number {0} as the payment reference.").format("<strong>" ~ envelope_number | e ~ "</strong>") }}</p>
+		{% endif %}
+	</div>
+	{% endif %}
+{% endmacro %}
+
 {% block page_content %}
 <div class="give-page" style="max-width: 560px;">
 	<p class="text-muted mb-4">
@@ -16,8 +28,10 @@
 	{% endif %}
 
 	{% if not enabled %}
-	<div class="alert alert-info" role="alert">
-		{{ _("Online giving is currently unavailable. Please check back later or contact the church office.") }}
+	{{ other_ways() }}
+	{% set contact_office = _("contact the church office") %}
+	<div class="alert alert-info{{ ' mt-4' if other_ways_to_give }}" role="alert">
+		{{ _("Online giving is not available. For questions about giving, {0}.").format(contact_office if "contact" in get_switched_off_pages() else '<a class="alert-link" href="/contact">' ~ contact_office ~ '</a>') }}
 	</div>
 	{% else %}
 	<form id="give-form">
@@ -77,16 +91,7 @@
 		<button type="submit" class="btn btn-primary btn-block" id="give-submit">{{ _("Give") }}</button>
 		<div id="give-error" class="text-danger mt-2" style="display: none;"></div>
 	</form>
-	{% endif %}
-
-	{% if other_ways_to_give %}
-	<div class="give-other-ways mt-5">
-		<h3>{{ _("Other Ways to Give") }}</h3>
-		{{ other_ways_to_give }}
-		{% if envelope_number %}
-		<p>{{ _("When you give this way, use your envelope number {0} as the payment reference.").format("<strong>" ~ envelope_number | e ~ "</strong>") }}</p>
-		{% endif %}
-	</div>
+	{{ other_ways() }}
 	{% endif %}
 </div>
 

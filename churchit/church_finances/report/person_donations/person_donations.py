@@ -1,20 +1,21 @@
 import frappe
 from frappe import _
+from frappe.utils import add_days
 from pypika import Order
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(filters), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
 
 
-def get_columns():
-	return [
+def get_columns(filters=None):
+	columns = [
 		{
 			"fieldname": "collection",
 			"fieldtype": "Link",
@@ -34,6 +35,17 @@ def get_columns():
 		{"fieldname": "check_number", "fieldtype": "Data", "label": _("Check #"), "width": 100},
 		{"fieldname": "amount", "fieldtype": "Currency", "label": _("Amount"), "width": 120},
 	]
+	if (filters or {}).get("person"):
+		return columns
+
+	person = {
+		"fieldname": "person",
+		"fieldtype": "Link",
+		"label": _("Person"),
+		"options": "Person",
+		"width": 180,
+	}
+	return [person, *columns]
 
 
 def get_data(filters=None):
@@ -48,7 +60,9 @@ def get_data(filters=None):
 		.on(Collection.name == Donation.parent)
 		.select(
 			Collection.name.as_("collection"),
+			Donation.person,
 			Collection.date,
+			Collection.church,
 			Donation.fund,
 			Donation.payment_type,
 			Donation.check_number,
@@ -60,5 +74,9 @@ def get_data(filters=None):
 
 	if filters.get("person"):
 		query = query.where(Donation.person == filters["person"])
+	if filters.get("from_date"):
+		query = query.where(Collection.date >= filters["from_date"])
+	if filters.get("to_date"):
+		query = query.where(Collection.date < add_days(filters["to_date"], 1))
 
 	return scoped(query, Collection, filters).run(as_dict=True)

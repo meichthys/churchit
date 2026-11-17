@@ -3,9 +3,12 @@
 
 """Recurring Functions: a template Function creates its occurrences ahead of time.
 
-A Function with Automatically Recreate is a template. Once a day, each template gets every
-occurrence its rule gives from the day after its latest occurrence (or today, if later) up to
-its horizon and Repeat Until, so the calendar shows them weeks ahead. An occurrence copies the
+A Function with Automatically Recreate is a template: a rule, not an event. Its first occurrence is
+on the first date its rule gives from its Start Date (or today, if later), made when the template is
+saved, even past the horizon. Once a day, each template gets every occurrence its rule gives from
+the day after its latest occurrence (or today, if later) up to its horizon and Repeat Until, so the
+calendar shows them weeks ahead. Calendars, check-in, reports and cards leave the template out, and
+no check-in is recorded on it. An occurrence copies the
 template through `apply_template`, and the template's Requested and Approved Room Bookings
 come along, moved to the new date. A deleted occurrence deletes its room bookings and adds its
 date to the template's Skip Dates (`Function.on_trash`), so it is not made again.
@@ -17,7 +20,7 @@ import frappe
 from dateutil.rrule import DAILY, FR, MO, MONTHLY, SA, SU, TH, TU, WE, WEEKLY, YEARLY, rrule
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, format_datetime, get_datetime, getdate
+from frappe.utils import add_days, add_years, cint, date_diff, format_datetime, get_datetime, getdate
 
 from churchit.church_ministries.doctype.function.function import apply_template
 
@@ -52,7 +55,7 @@ def create_scheduled_functions() -> None:
 
 
 def create_missing_occurrences(template: Document, today: date) -> None:
-	"""Create *template*'s occurrences after its latest one, up to its horizon and Repeat Until."""
+	"""Create *template*'s missing occurrences, the first on its own date, up to its horizon and Repeat Until."""
 	# church-scope: the occurrences of one template, which all take the template's church
 	latest = frappe.get_all(
 		"Function",
@@ -61,12 +64,16 @@ def create_missing_occurrences(template: Document, today: date) -> None:
 		limit=1,
 		pluck="start_date",
 	)
-	start = max(getdate(add_days(latest[0] if latest else template.start_date, 1)), today)
+	start = max(getdate(add_days(latest[0], 1)) if latest else getdate(template.start_date), today)
 	end = today + timedelta(weeks=cint(template.repeat_horizon_weeks))
-	if template.repeat_until:
-		end = min(end, getdate(template.repeat_until))
+	until = getdate(template.repeat_until) if template.repeat_until else date.max
+	dates = get_occurrence_dates(template, start, min(end, until))
+	if not latest and not dates:
+		# Saving the template makes its first occurrence, even when it starts past the horizon.
+		one_period = add_years(start, max(cint(template.repeat_interval), 1))
+		dates = get_occurrence_dates(template, start, min(getdate(one_period), until))[:1]
 
-	for start_date in get_occurrence_dates(template, start, end):
+	for start_date in dates:
 		create_occurrence(template, start_date)
 
 

@@ -16,14 +16,30 @@ import frappe
 from frappe.client import set_value
 from frappe.email.doctype.notification.notification import clear_notification_cache, get_context
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_url
 
 from churchit.church_finances.doctype.alms_request import alms_request
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations.doctype.church_task import church_task
+from churchit.church_operations.doctype.room_booking import room_booking
+from churchit.church_people.doctype.care_request import care_request
 from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.prayer_access import is_prayer_team_only
-from churchit.patches.v1_0 import add_prayer_and_alms_notifications, add_prayer_request_approved_notification
-from churchit.tests.helpers import ensure, ensure_user, make_person, make_two_churches
+from churchit.patches.v1_0 import (
+	add_care_request_and_alms_approved_notifications,
+	add_prayer_and_alms_notifications,
+	add_prayer_request_approved_notification,
+	format_dates_and_money_in_inserted_notifications,
+	remove_duplicate_standard_notifications,
+	sign_greeting_templates_and_greet_active_people,
+)
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_person,
+	make_two_churches,
+)
 
 
 def shipped_templates(module, name):
@@ -72,24 +88,151 @@ class TestNotificationTemplates(FrappeTestCase):
 			self.assertIn("_Test Notice Elder", rendered)
 			self.assertIn("_Test Notice Holder", rendered)
 
-	def test_visitation_follow_up_due_reaches_the_visitor(self):
-		"""Visited By holds a Person, which Frappe would drop as a recipient for not being an email."""
-		visitor = make_person("_Test Notice", "Visitor")
-		visitor.append("emails", {"email_address": "_test_notice_visitor@example.com", "is_primary": 1})
-		visitor.save(ignore_permissions=True)
-		visit = frappe.get_doc(
+
+class TestNotificationContent(FrappeTestCase):
+	"""What a church volunteer reads: names instead of record IDs, links, and no shared recipient list."""
+
+	def render(self, module, name, doc):
+		"""Subject and message of the shipped notification *name*, as sent for *doc*."""
+		notification, _markdown = shipped_templates(module, name)
+		context = get_context(doc)
+		return tuple(frappe.render_template(notification[field], context) for field in ("subject", "message"))
+
+	def test_each_markdown_file_is_the_json_message(self):
+		"""A standard notification sends its .md, and a church's duplicate sends the JSON message."""
+		for path in Path(frappe.get_app_path("churchit")).glob("*/notification/*/*.md"):
+			with self.subTest(path.stem):
+				self.assertEqual(
+					path.read_text(), json.loads(path.with_suffix(".json").read_text())["message"]
+				)
+
+	def test_expense_pending_approval_shows_the_currency(self):
+		get_default = frappe.db.get_default
+		expense = frappe.get_doc({"doctype": "Expense", "amount": 245.5})
+
+		with patch.object(
+			frappe.db,
+			"get_default",
+			lambda key, *args: "EUR" if key == "currency" else get_default(key, *args),
+		):
+			subject, message = self.render("church_finances", "Expense Pending Approval", expense)
+
+		for text in (subject, message):
+			self.assertIn("€", text)
+
+	def test_new_member_welcome_goes_to_the_member_only(self):
+		notification, _markdown = shipped_templates("church_communications", "New Member Welcome")
+
+		self.assertEqual(
+			[row.get("receiver_by_document_field") for row in notification["recipients"]],
+			["notification_address,emails"],
+		)
+
+	def test_function_reminder_prints_a_readable_time_and_address(self):
+		address = frappe.get_doc(
 			{
-				"doctype": "Visitation Log",
-				"person": make_person("_Test Notice", "Visited").name,
-				"visited_by": visitor.name,
-				"status": "Scheduled",
+				"doctype": "Address",
+				"address_title": "_Test Notice Hall",
+				"address_line1": "12 Chapel Lane",
+				"city": "Testville",
+				"country": "United States",
+			}
+		).insert(ignore_permissions=True)
+		function = frappe.get_doc(
+			{
+				"doctype": "Function",
+				"function_name": "_Test Notice Supper",
+				"start_date": "2031-01-02",
+				"start_time": "10:00:00",
+				"address": address.name,
 			}
 		)
-		notification, _markdown = shipped_templates("church_communications", "Visitation Follow-Up Due")
 
-		_recipients, cc, _bcc = frappe.get_doc(notification).get_list_of_recipients(visit, get_context(visit))
+		_subject, message = self.render("church_communications", "Function Reminder 24h", function)
 
-		self.assertIn("_test_notice_visitor@example.com", cc)
+		self.assertIn("10:00 AM", message)
+		self.assertIn("12 Chapel Lane", message)
+		self.assertNotIn(address.name, message)
+
+	def test_member_notifications_link_to_the_portal_and_the_calendar(self):
+		person = frappe.get_doc({"doctype": "Person", "first_name": "_Test Notice", "last_name": "Welcome"})
+		function = frappe.get_doc(
+			{"doctype": "Function", "function_name": "_Test Notice Supper", "start_date": "2031-01-02"}
+		)
+
+		for name, doc, path in (
+			("New Member Welcome", person, "/portal"),
+			("Function Reminder 24h", function, "/calendar"),
+		):
+			with self.subTest(name):
+				_subject, message = self.render("church_communications", name, doc)
+				self.assertIn(f'href="{get_url(path)}"', message)
+
+	def test_staff_notifications_link_to_their_record(self):
+		for module, name in (
+			("church_finances", "Expense Pending Approval"),
+			("church_communications", "Background Check Expiring"),
+			("church_communications", "Visitor Follow-Up"),
+			("church_communications", "Meeting Minutes Published"),
+		):
+			with self.subTest(name):
+				notification, _markdown = shipped_templates(module, name)
+				self.assertIn("get_url_to_form(doc.doctype, doc.name)", notification["message"])
+
+	def test_shipped_duplicates_are_gone(self):
+		for module, name in (
+			("church_communications", "Prayer Request New"),
+			("church_finances", "Alms Request Review"),
+		):
+			path = Path(frappe.get_app_path("churchit", module, "notification", frappe.scrub(name)))
+			self.assertFalse((path / f"{path.name}.json").exists())
+
+
+class TestRemoveDuplicateNotificationsPatch(FrappeTestCase):
+	def test_the_shipped_duplicates_go(self):
+		for name in remove_duplicate_standard_notifications.DUPLICATES:
+			frappe.delete_doc_if_exists("Notification", name, force=True)
+			frappe.get_doc(
+				{
+					"doctype": "Notification",
+					"name": name,
+					"subject": "_Test shipped",
+					"document_type": "Alms Request",
+					"event": "New",
+					"channel": "Email",
+					"recipients": [{"receiver_by_role": "Church Manager"}],
+					"message": "_Test shipped",
+				}
+			).insert(ignore_permissions=True)
+			frappe.db.set_value("Notification", name, "is_standard", 1)
+
+		with patch.dict(frappe.flags, {"in_patch": True}):
+			remove_duplicate_standard_notifications.execute()
+			remove_duplicate_standard_notifications.execute()
+
+		for name in remove_duplicate_standard_notifications.DUPLICATES:
+			self.assertFalse(frappe.db.exists("Notification", name))
+
+	def test_a_church_s_own_notification_of_the_same_name_stays(self):
+		frappe.delete_doc_if_exists("Notification", "Alms Request Review", force=True)
+		frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": "Alms Request Review",
+				"subject": "_Test own",
+				"document_type": "Alms Request",
+				"event": "New",
+				"channel": "Email",
+				"is_standard": 0,
+				"recipients": [{"receiver_by_role": "Church Manager"}],
+				"message": "_Test own",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "Notification", "Alms Request Review", force=True)
+
+		remove_duplicate_standard_notifications.execute()
+
+		self.assertTrue(frappe.db.exists("Notification", "Alms Request Review"))
 
 
 class TestShippedEmailTemplates(FrappeTestCase):
@@ -127,7 +270,32 @@ class TestChurchTaskDueNotification(FrappeTestCase):
 		self.assertIn("_Test Notice Gutters", subject)
 		for value in ("_Test Notice Gutters", "Assigned", "Urgent", f"/desk/church-task/{task.name}"):
 			self.assertIn(value, message)
-		self.assertIn(frappe.utils.format_datetime("2031-05-03 10:00:00"), message)
+		self.assertIn("Saturday, May 3, 2031 10:00 AM", message)
+
+
+class TestFormatDatesAndMoneyPatch(FrappeTestCase):
+	def test_the_inserted_messages_get_the_new_formats_and_keep_a_church_s_own_text(self):
+		messages = {
+			room_booking.DECIDED_NOTIFICATION: room_booking.DECIDED_MESSAGE,
+			church_task.DUE_NOTIFICATION: church_task.DUE_MESSAGE,
+			alms_request.ALMS_NOTIFICATION: alms_request.ALMS_MESSAGE,
+		}
+		room_booking.create_decided_notification()
+		church_task.create_due_notification()
+		alms_request.create_new_alms_request_notification()
+		own_line = "<p>_Test our own line</p>"
+		for name, message in messages.items():
+			shipped = message
+			for old, new in format_dates_and_money_in_inserted_notifications.FIXES[name]:
+				shipped = shipped.replace(new, old)
+			self.assertNotEqual(shipped, message)
+			frappe.db.set_value("Notification", name, "message", shipped + own_line)
+
+		for _run in range(2):
+			format_dates_and_money_in_inserted_notifications.execute()
+
+		for name, message in messages.items():
+			self.assertEqual(frappe.db.get_value("Notification", name, "message"), message + own_line)
 
 
 def church_user(email, roles, church):
@@ -142,14 +310,29 @@ def fields_read(*templates):
 
 
 class TestPrayerAndAlmsNotifications(FrappeTestCase):
-	"""The Notifications seeded for new prayer and alms requests, and who they reach."""
+	"""The Notifications seeded for prayer, alms and care requests, and who they reach."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		prayer_request.create_new_prayer_request_notifications()
 		alms_request.create_new_alms_request_notification()
+		alms_request.create_alms_request_approved_notification()
+		care_request.create_new_care_request_notification()
 		cls.addClassCleanup(clear_notification_cache)
+		# A Notification sends email only while an Email Account can send it.
+		ensure(
+			"Email Account",
+			{"enable_outgoing": 1, "default_outgoing": 1},
+			{
+				"email_account_name": "_Test Notice Outgoing",
+				"email_id": "_test_notice_outgoing@example.com",
+				"service": "GMail",
+				"enable_outgoing": 1,
+				"default_outgoing": 1,
+				"no_smtp_authentication": 1,
+			},
+		)
 		_root, cls.church_a, cls.church_b = make_two_churches()
 		frappe.db.set_value("Church", cls.church_a, "publish", 1)
 		team, care = ("Church User", "Church Prayer Team"), ("Church Staff", "Church Pastoral Care")
@@ -157,6 +340,9 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		cls.team_b = church_user("_test_notice_team_b@example.com", team, cls.church_b)
 		cls.care_a = church_user("_test_notice_care_a@example.com", care, cls.church_a)
 		cls.care_b = church_user("_test_notice_care_b@example.com", care, cls.church_b)
+		finance = ("Church Staff", "Church Finance")
+		cls.finance_a = church_user("_test_notice_finance_a@example.com", finance, cls.church_a)
+		cls.finance_b = church_user("_test_notice_finance_b@example.com", finance, cls.church_b)
 		cls.request_type = ensure("Prayer Request Type", {"type": "Health"})
 		cls.asker = make_person("_Test Notice", "Asker", church=cls.church_a)
 
@@ -259,6 +445,143 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 
 		self.assertIn(self.care_a, emailed)
 		self.assertFalse({self.team_a, self.care_b} & emailed)
+
+	def alms_request(self):
+		return frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": self.asker.name,
+				"requestor": self.asker.name,
+				"description": "_Test Notice rent",
+				"amount": 80,
+			}
+		)
+
+	def status_emails(self, name, status):
+		"""Every recipient, once per email, when the care team sets the alms request *name* to *status*."""
+		frappe.set_user(self.care_a)
+		alms = frappe.get_doc("Alms Request", name)
+		with patch("frappe.sendmail") as sendmail:
+			alms.status = status
+			alms.save(ignore_permissions=True)
+		frappe.set_user("Administrator")
+		return [recipient for call in sendmail.call_args_list for recipient in call.kwargs["recipients"]]
+
+	def test_an_approved_alms_request_reaches_finance_of_its_church_only(self):
+		alms = self.alms_request()
+		self.assertFalse({self.finance_a, self.finance_b} & self.emailed(alms))
+
+		emailed = self.status_emails(alms.name, "Approved")
+
+		self.assertEqual(emailed.count(self.finance_a), 1)
+		self.assertFalse({self.finance_b, self.care_a, self.care_b} & set(emailed))
+
+	def test_a_declined_alms_request_reaches_no_one_in_finance(self):
+		alms = self.alms_request()
+		self.emailed(alms)
+
+		self.assertFalse({self.finance_a, self.finance_b} & set(self.status_emails(alms.name, "Declined")))
+
+	def test_a_care_request_reaches_the_care_team_of_its_church_only(self):
+		request = frappe.get_doc(
+			{
+				"doctype": "Care Request",
+				"person": self.asker.name,
+				"category": ensure("Care Request Type", {"type": "_Test Notice Need"}),
+				"description": "_Test Notice visit",
+			}
+		)
+
+		emailed = self.emailed(request)
+
+		self.assertIn(self.care_a, emailed)
+		self.assertFalse({self.care_b, self.team_a, self.finance_a} & emailed)
+
+	def test_the_care_request_message_names_every_field(self):
+		caregiver = make_person("_Test Notice", "Caregiver", church=self.church_a)
+		request = frappe.get_doc(
+			{
+				"doctype": "Care Request",
+				"name": "CR-NOTICE",
+				"church": self.church_a,
+				"person": self.asker.name,
+				"person_name": self.asker.full_name,
+				"category": ensure("Care Request Type", {"type": "_Test Notice Need"}),
+				"urgency": "High",
+				"due_on": "2031-01-02",
+				"preferred_contact": "Phone",
+				"caregiver": caregiver.name,
+				"description": "_Test Notice <b>hospital</b>",
+			}
+		)
+		context = get_context(request)
+
+		subject = frappe.render_template(care_request.CARE_SUBJECT, context)
+		message = frappe.render_template(care_request.CARE_MESSAGE, context)
+
+		self.assertEqual(subject, "New care request: _Test Notice Need for _Test Notice Asker")
+		for value in (
+			frappe.db.get_value("Church", self.church_a, "church_name"),
+			"_Test Notice Asker",
+			"_Test Notice Need",
+			"High",
+			"Thursday, January 2, 2031",
+			"Phone",
+			"_Test Notice Caregiver",
+			"_Test Notice &lt;b&gt;hospital&lt;/b&gt;",
+			"/desk/care-request/CR-NOTICE",
+		):
+			self.assertIn(value, message)
+		self.assert_reads_only_fields("Care Request", care_request.CARE_SUBJECT, care_request.CARE_MESSAGE)
+
+	def test_the_approved_alms_message_names_every_field(self):
+		alms = self.alms_request()
+		alms.update(
+			{
+				"name": "ALMS-NOTICE",
+				"title": "_Test Notice Asker",
+				"church": self.church_a,
+				"expense_type": "_Test Type",
+			}
+		)
+		context = get_context(alms)
+
+		subject = frappe.render_template(alms_request.APPROVED_SUBJECT, context)
+		message = frappe.render_template(alms_request.APPROVED_MESSAGE, context)
+
+		self.assertEqual(subject, "Alms request approved: _Test Notice Asker")
+		for value in (
+			"_Test Notice Asker",
+			frappe.utils.fmt_money(80, currency=frappe.db.get_default("currency")),
+			"_Test Type",
+			"Create Expense",
+			"/desk/alms-request/ALMS-NOTICE",
+		):
+			self.assertIn(value, message)
+		self.assert_reads_only_fields(
+			"Alms Request", alms_request.APPROVED_SUBJECT, alms_request.APPROVED_MESSAGE
+		)
+
+	def test_the_care_and_approved_patch_adds_each_once_and_keeps_a_churchs_edit(self):
+		frappe.delete_doc("Notification", alms_request.APPROVED_NOTIFICATION, ignore_permissions=True)
+		frappe.db.set_value("Notification", care_request.CARE_NOTIFICATION, "subject", "_Test edited")
+
+		add_care_request_and_alms_approved_notifications.execute()
+		add_care_request_and_alms_approved_notifications.execute()
+
+		self.assertEqual(
+			frappe.get_all(
+				"Notification",
+				{"name": alms_request.APPROVED_NOTIFICATION},
+				["event", "value_changed"],
+				as_list=True,
+			),
+			(("Value Change", "status"),),
+		)
+		self.assertEqual(
+			frappe.db.get_value("Notification", care_request.CARE_NOTIFICATION, "subject"), "_Test edited"
+		)
 
 	def test_the_patch_adds_each_notification_once_and_keeps_a_churchs_edit(self):
 		names = (
@@ -386,7 +709,7 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		for value in (
 			"_Test Notice Household",
 			"_Test Notice Asker",
-			frappe.utils.fmt_money(120),
+			frappe.utils.fmt_money(120, currency=frappe.db.get_default("currency")),
 			"Pending",
 			"_Test Notice &lt;i&gt;rent&lt;/i&gt;",
 			"/desk/alms-request/ALMS-NOTICE",
@@ -399,3 +722,72 @@ class TestPrayerAndAlmsNotifications(FrappeTestCase):
 		self.assertLessEqual(
 			fields_read(*templates), {"doctype", *frappe.get_meta(doctype).get_valid_columns()}
 		)
+
+
+class TestGreetings(RollbackEachTest):
+	def shipped_condition(self, name):
+		return shipped_templates("church_communications", name)[0]["condition"]
+
+	def test_the_greetings_go_only_to_active_people(self):
+		for name in ("Birthday Greeting", "Anniversary Greeting"):
+			with self.subTest(name):
+				self.assertIn('doc.membership_status == "Active"', self.shipped_condition(name))
+
+	def test_the_three_templates_sign_with_the_church_name(self):
+		for name in ("Birthday Greeting", "New Member Welcome", "Visitor Follow-Up"):
+			with self.subTest(name):
+				self.assertIn(
+					"{{ church_name }}", frappe.db.get_value("Email Template", name, "response_html")
+				)
+
+	def test_the_patch_signs_a_shipped_template_and_keeps_a_church_s_own_words(self):
+		old = "<p>Dear {{ first_name }},</p>\n\n<p>Our own words.</p>\n\n<p>With love,<br>The Church</p>"
+		frappe.db.set_value("Email Template", "Birthday Greeting", "response_html", old)
+		frappe.db.set_value(
+			"Email Template", "Visitor Follow-Up", "response_html", "<p>Our own words, with no sign-off.</p>"
+		)
+
+		sign_greeting_templates_and_greet_active_people.execute()
+		sign_greeting_templates_and_greet_active_people.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Email Template", "Birthday Greeting", "response_html"),
+			old.removesuffix("The Church</p>") + "{{ church_name }}</p>",
+		)
+		self.assertEqual(
+			frappe.db.get_value("Email Template", "Visitor Follow-Up", "response_html"),
+			"<p>Our own words, with no sign-off.</p>",
+		)
+
+	def test_the_patch_adds_the_active_rule_to_a_shipped_condition_once_and_keeps_enabled(self):
+		birthday = frappe.get_doc(
+			{
+				**shipped_templates("church_communications", "Birthday Greeting")[0],
+				"name": "_Test Birthday Copy",
+				"is_standard": 0,
+				"enabled": 1,
+				"condition": "doc.primary_email",
+			}
+		).insert(ignore_permissions=True)
+		own = frappe.copy_doc(birthday)
+		own.update({"name": "_Test Birthday Own", "condition": "doc.primary_email and doc.is_deceased == 0"})
+		own.insert(ignore_permissions=True)
+		disabled = frappe.copy_doc(birthday)
+		disabled.update({"name": "_Test Birthday Off", "enabled": 0})
+		disabled.insert(ignore_permissions=True)
+
+		sign_greeting_templates_and_greet_active_people.execute()
+		sign_greeting_templates_and_greet_active_people.execute()
+
+		values = {
+			row.name: row
+			for row in frappe.get_all(
+				"Notification",
+				filters={"name": ("in", [birthday.name, own.name, disabled.name])},
+				fields=["name", "condition", "enabled"],
+			)
+		}
+		active = 'doc.primary_email and doc.membership_status == "Active"'
+		self.assertEqual((values[birthday.name].condition, values[birthday.name].enabled), (active, 1))
+		self.assertEqual((values[disabled.name].condition, values[disabled.name].enabled), (active, 0))
+		self.assertEqual(values[own.name].condition, "doc.primary_email and doc.is_deceased == 0")

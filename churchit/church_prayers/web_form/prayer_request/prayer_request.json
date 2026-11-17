@@ -4,38 +4,33 @@
   "allow_edit": 1,
   "allow_incomplete": 0,
   "allow_multiple": 1,
-  "allow_print": 1,
+  "allow_print": 0,
   "anonymous": 0,
   "apply_document_permissions": 1,
-  "button_label": "Save",
+  "button_label": "Send",
   "condition_json": "[]",
   "creation": "2025-09-13 22:28:01.939717",
   "doc_type": "Prayer Request",
   "docstatus": 0,
   "doctype": "Web Form",
   "idx": 0,
-  "introduction_text": "<div class=\"ql-editor read-mode\"><blockquote>Be anxious for nothing, but in everything, by prayer and petition, with thanksgiving, present your requests to God.</blockquote><blockquote>~ Philipians 4:6 (BSB)</blockquote></div>",
+  "introduction_text": "<div class=\"ql-editor read-mode\"><blockquote>Be anxious for nothing, but in everything, by prayer and petition, with thanksgiving, present your requests to God.</blockquote><blockquote>~ Philippians 4:6 (BSB)</blockquote></div>",
   "is_standard": 1,
   "list_columns": [
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "label": "Title"
+    },
     {
       "fieldname": "status",
       "fieldtype": "Link",
       "label": "Status"
     },
     {
-      "fieldname": "type",
-      "fieldtype": "Link",
-      "label": "Type"
-    },
-    {
       "fieldname": "recipient_name",
       "fieldtype": "Data",
-      "label": "Recipient Name"
-    },
-    {
-      "fieldname": "request",
-      "fieldtype": "Small Text",
-      "label": "Request"
+      "label": "For"
     },
     {
       "fieldname": "visibility",
@@ -46,7 +41,7 @@
   "list_title": "Your Prayer Requests",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-10-22 17:38:27.000000",
+  "modified": "2026-11-17 00:21:20.223373",
   "modified_by": "Administrator",
   "module": "Church Prayers",
   "name": "prayer-request",
@@ -56,6 +51,9 @@
   "show_attachments": 0,
   "show_list": 1,
   "show_sidebar": 1,
+  "success_message": "Thank you. Your request goes to the people you chose under Who Can See It. You can see its status in Your Prayer Requests.",
+  "success_title": "Request Sent",
+  "success_url": "/prayer-request/list",
   "title": "Prayer Request ",
   "web_form_fields": [
     {
@@ -88,7 +86,7 @@
     },
     {
       "allow_read_on_all_link_options": 0,
-      "default": "Whole Church",
+      "default": "Private",
       "description": "Private: only you and the pastoral care team. Prayer Team: also the prayer team. Whole Church: every member, on the Community Prayer Requests page.",
       "fieldname": "visibility",
       "fieldtype": "Select",
@@ -96,11 +94,11 @@
       "label": "Who Can See It",
       "max_length": 0,
       "max_value": 0,
+      "options": "Private\nPrayer Team\nWhole Church",
       "precision": "",
       "read_only": 0,
       "reqd": 1,
-      "show_in_filter": 0,
-      "options": "Private\nPrayer Team\nWhole Church"
+      "show_in_filter": 0
     },
     {
       "allow_read_on_all_link_options": 0,
@@ -132,11 +130,11 @@
     },
     {
       "allow_read_on_all_link_options": 0,
-      "description": "The type of entity you are requesting prayer for.",
+      "description": "Choose a person, a family, a group, a ministry or a missionary.",
       "fieldname": "recipient_type",
       "fieldtype": "Select",
       "hidden": 0,
-      "label": "Recipient Type",
+      "label": "Prayer for",
       "max_length": 0,
       "max_value": 0,
       "options": "",
@@ -150,7 +148,7 @@
       "fieldname": "recipient_name",
       "fieldtype": "Data",
       "hidden": 0,
-      "label": "Recipient",
+      "label": "Who is it for?",
       "max_length": 0,
       "max_value": 0,
       "precision": "",

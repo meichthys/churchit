@@ -1,0 +1,23 @@
+{
+ "channel": "Email",
+ "condition": "doc.status not in (\"Resolved\", \"Closed\")",
+ "condition_type": "Python",
+ "date_changed": "due_on",
+ "days_in_advance": 1,
+ "document_type": "Care Request",
+ "enabled": 0,
+ "event": "Days After",
+ "message_type": "HTML",
+ "name": "Care Request Overdue",
+ "recipients": [
+  {
+   "cc": "{{ frappe.db.get_value(\"Email Address\", {\"parenttype\": \"Person\", \"parent\": doc.caregiver, \"is_primary\": 1}, \"email_address\") or \"\" }}"
+  },
+  {
+   "receiver_by_role": "Church Pastoral Care"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 1,
+ "subject": "Care request overdue: {{ doc.category }} for {{ doc.person_name or doc.person }}"
+}

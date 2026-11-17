@@ -84,7 +84,8 @@
    "fieldname": "group_name",
    "fieldtype": "Data",
    "in_global_search": 1,
-   "label": "Name"
+   "label": "Name",
+   "reqd": 1
   },
   {
    "description": "Choosing a type fills in the settings on the Joining tab. You can change them.",
@@ -244,7 +245,7 @@
    "link_fieldname": "group"
   }
  ],
- "modified": "2026-10-31 13:13:06.000000",
+ "modified": "2026-11-15 15:07:54.396139",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Group",

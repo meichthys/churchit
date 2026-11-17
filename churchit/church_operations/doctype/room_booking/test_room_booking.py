@@ -8,13 +8,19 @@ import frappe
 from frappe.client import insert as insert_doc
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_days, format_datetime, get_datetime, get_url, get_url_to_form
 
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_operations.doctype.room_booking.room_booking import (
+	DECIDED_MESSAGE,
 	DECIDED_NOTIFICATION,
 	create_decided_notification,
 )
-from churchit.patches.v1_0 import add_room_booking_decided_notification, remove_room_booking_pending_approval
+from churchit.patches.v1_0 import (
+	add_room_booking_decided_notification,
+	link_room_booking_decided_notification,
+	remove_room_booking_pending_approval,
+)
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
@@ -393,7 +399,7 @@ class TestRoomBookingApprovers(RoomBookingDecisionCase):
 		with self.assertRaises(frappe.PermissionError):
 			self.as_user(self.staff_a, booking, "approve")
 		self.assertEqual(self.as_user(self.approver_2, booking, "approve"), "Approved")
-		with self.assertRaises(ValidationError):
+		with self.assertRaisesRegex(ValidationError, "Only a Requested or Conflict booking can be denied"):
 			self.as_user(self.approver_1, booking, "deny")
 
 		self.assertEqual(self.as_user(self.approver_1, self.book(self.listed_room, 11), "deny"), "Denied")
@@ -510,7 +516,11 @@ class TestRoomBookingApprovers(RoomBookingDecisionCase):
 	def test_the_owner_hears_of_the_decision(self):
 		create_decided_notification()
 		booking = self.book(self.listed_room, user=self.staff_a, as_user=True)
-		with patch("frappe.sendmail") as sendmail:
+		# A Notification sends no email while the site has no outgoing account.
+		with (
+			patch("churchit.church_communications.outgoing_email.can_send_email", return_value=True),
+			patch("frappe.sendmail") as sendmail,
+		):
 			self.as_user(self.approver_1, booking, "approve")
 		decided = [call.kwargs for call in sendmail.call_args_list if "approved" in call.kwargs["subject"]]
 		self.assertEqual([email["recipients"] for email in decided], [[self.staff_a]])
@@ -539,6 +549,32 @@ class TestRoomBookingApprovers(RoomBookingDecisionCase):
 		notification = frappe.get_doc("Notification", DECIDED_NOTIFICATION)
 		self.assertEqual((notification.is_standard, notification.enabled), (0, 1))
 		self.assertEqual((notification.event, notification.value_changed), ("Value Change", "status"))
+
+	def test_the_decision_email_links_a_member_to_their_request_and_staff_to_the_form(self):
+		booking = self.book(self.open_room, user=self.staff_a, as_user=True)
+		member = ensure_user("_test_booking_member@example.com", "Member")
+
+		message = frappe.render_template(DECIDED_MESSAGE, {"doc": booking})
+		self.assertIn(get_url_to_form("Room Booking", booking.name), message)
+
+		booking.owner = member
+		message = frappe.render_template(DECIDED_MESSAGE, {"doc": booking})
+		self.assertIn(get_url(f"/room-request/{booking.name}"), message)
+
+	def test_the_patch_adds_the_link_only_to_the_message_this_app_inserted(self):
+		create_decided_notification()
+		shipped = link_room_booking_decided_notification.SHIPPED_MESSAGE
+		frappe.db.set_value("Notification", DECIDED_NOTIFICATION, "message", shipped)
+
+		for _run in range(2):
+			link_room_booking_decided_notification.execute()
+		self.assertEqual(
+			frappe.db.get_value("Notification", DECIDED_NOTIFICATION, "message"), DECIDED_MESSAGE
+		)
+
+		frappe.db.set_value("Notification", DECIDED_NOTIFICATION, "message", shipped + "<p>Our own words</p>")
+		link_room_booking_decided_notification.execute()
+		self.assertIn("Our own words", frappe.db.get_value("Notification", DECIDED_NOTIFICATION, "message"))
 
 
 class TestBlockedRoomTime(RoomBookingDecisionCase):
@@ -672,6 +708,57 @@ class TestRoomBookingConflicts(RoomBookingDecisionCase):
 		conflict = self.book(self.listed_room, request_anyway=1)
 		with self.assertRaisesRegex(ValidationError, "already booked"):
 			self.as_user(self.approver_2, conflict, "resolve_conflict", "keep")
+
+	def test_an_approver_denies_a_conflict(self):
+		self.book(self.listed_room)
+		conflict = self.book(self.listed_room, request_anyway=1)
+
+		self.assertEqual(self.as_user(self.approver_1, conflict, "deny"), "Denied")
+		self.assertEqual(self.open_todos(conflict), [])
+
+	def test_keep_is_offered_only_while_no_approved_booking_holds_the_time(self):
+		approved = self.book(self.listed_room, user=self.approver_1, as_user=True)
+		conflict = self.book(self.listed_room, request_anyway=1)
+		self.assertTrue(conflict.has_unmovable_clash())
+
+		approved.status = "Cancelled"
+		approved.save(ignore_permissions=True)
+		self.assertFalse(conflict.has_unmovable_clash())
+
+	def test_the_clash_message_names_the_booking_and_the_approvers_todo_says_what_to_decide(self):
+		held = self.book(self.listed_room, user=self.approver_1, as_user=True)
+		with self.assertRaises(ValidationError) as clash:
+			self.book(self.listed_room)
+		self.assertIn("_Test decision", str(clash.exception))
+		self.assertIn(held.name, str(clash.exception))
+
+		waiting = self.book(self.listed_room, 12)
+		description = frappe.db.get_value(
+			"ToDo",
+			{"reference_type": "Room Booking", "reference_name": waiting.name},
+			"description",
+		)
+		self.assertIn("_Test A1 Listed Room", description)
+		self.assertIn("_Test decision", description)
+
+	def test_a_booking_over_several_days_shows_the_day_it_ends(self):
+		ends = get_datetime("2032-05-07 10:00:00")
+		held = self.book(self.listed_room, user=self.approver_1, as_user=True, end_datetime=ends)
+		with self.assertRaises(ValidationError) as clash:
+			self.book(self.listed_room, 15)
+		self.assertIn(format_datetime(ends, "EEE MMM d, h:mm a"), str(clash.exception))
+
+		next_year = add_days(ends, 365)
+		frappe.db.set_value("Room Booking", held.name, "end_datetime", next_year)
+		with self.assertRaises(ValidationError) as clash:
+			self.book(self.listed_room, 15)
+		self.assertIn(format_datetime(next_year, "EEE MMM d, yyyy, h:mm a"), str(clash.exception))
+
+		waiting = self.book(self.managed_room, end_datetime=ends)
+		description = frappe.db.get_value(
+			"ToDo", {"reference_type": "Room Booking", "reference_name": waiting.name}, "description"
+		)
+		self.assertIn(format_datetime(ends, "EEE MMM d, h:mm a"), description)
 
 	def test_share_lets_both_bookings_hold_the_room(self):
 		approved = self.book(self.listed_room, user=self.approver_1, as_user=True)

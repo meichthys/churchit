@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-03-15 18:41:09.698988",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Belief",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Beliefs",
- "modified": "2026-10-31 13:31:50.000000",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Beliefs",

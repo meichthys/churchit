@@ -42,8 +42,8 @@ DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
 FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
 FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
 
-# Base address of the churchit desk that /app/ links point at. The public demo
-# site, so the documentation's desk links resolve for website visitors.
+# Base address of the churchit desk that /desk/ (and old /app/) links point at. The
+# public demo site, so the documentation's desk links resolve for website visitors.
 DESK_URL = "https://demo.churchit.app"
 
 # Display order + presentation metadata (slug is the on-page anchor id).
@@ -76,14 +76,14 @@ def clean_inline(html):
 	html = re.sub(r"</?span[^>]*>", "", html)  # unwrap styling spans
 	html = re.sub(r'\sstyle="[^"]*"', "", html)  # drop inline styles
 	html = re.sub(r'\sclass="[^"]*"', "", html)  # drop editor classes
-	# Normalise Frappe desk links to a single self-hosted address. The editor
-	# bakes in absolute dev URLs (http://development.localhost/app/...), bare
-	# relative paths (/app/...), and occasionally mangles "app/x" into
-	# "http://app/x". Collapse every variant to the /app/ path, then point it at
-	# the local churchit desk. These links only resolve when self-hosting.
-	html = re.sub(r'href="https?://app/', 'href="/app/', html)  # mangled host
-	html = re.sub(r'href="https?://[^"/]+/app/', 'href="/app/', html)  # absolute dev URL
-	html = re.sub(r'href="/app/', f'href="{DESK_URL}/app/', html)  # -> self-hosted desk
+	# Normalise Frappe desk links to a single self-hosted address. The manuals use
+	# /desk/ paths; older text has /app/. The editor bakes in absolute dev URLs
+	# (http://development.localhost/desk/...), bare relative paths (/desk/...), and
+	# occasionally mangles "desk/x" into "http://desk/x". Collapse every variant to
+	# its /desk/ or /app/ path, then point it at the churchit desk.
+	html = re.sub(r'href="https?://(app|desk)/', r'href="/\1/', html)  # mangled host
+	html = re.sub(r'href="https?://[^"/]+/(app|desk)/', r'href="/\1/', html)  # absolute dev URL
+	html = re.sub(r'href="/(app|desk)/', rf'href="{DESK_URL}/\1/', html)  # -> self-hosted desk
 	return html.strip()
 
 

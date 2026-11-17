@@ -30,8 +30,15 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	PUSH,
 	SMS,
 )
-from churchit.church_communications.newsletter import UNSUBSCRIBE_METHOD, email_church, unsubscribed_emails
+from churchit.church_communications.newsletter import (
+	UNSUBSCRIBE_METHOD,
+	email_church,
+	get_church_name,
+	get_unsubscribe_label,
+	unsubscribed_emails,
+)
 from churchit.church_communications.push import SUBSCRIPTION, is_push_on, send_push
+from churchit.church_foundations.doctype.church.church import church_name
 from churchit.church_scope import default_church, document_church, session_person
 from churchit.contacts import (
 	EMAIL_DOCTYPE,
@@ -42,7 +49,10 @@ from churchit.contacts import (
 	get_primary_values,
 )
 
-PLACEHOLDERS = ("first_name", "last_name", "display_name", "full_name")
+PERSON_PLACEHOLDERS = ("first_name", "last_name", "display_name", "full_name")
+# The name of the church the message goes out in, the same for every person.
+CHURCH_NAME = "church_name"
+PLACEHOLDERS = (*PERSON_PLACEHOLDERS, CHURCH_NAME)
 # The same names again, as Frappe's Email Templates write them: {{ doc.first_name }}.
 DOCUMENT = "doc"
 
@@ -60,6 +70,14 @@ REFUSED_STATUSES = (400, 422)
 
 # Communication has no medium for a push notification.
 MEDIUMS = {EMAIL: "Email", SMS: "SMS", PUSH: "Other"}
+
+# Why a person gets no copy of their own (get_left_out).
+NOT_ALLOWED = "not_allowed"
+UNSUBSCRIBED = "unsubscribed"
+BOUNCED = "bounced"
+NO_ADDRESS = "no_address"
+# Someone before them has the same address or number, so they get that copy.
+SHARED = "shared"
 
 TEXT = SandboxedEnvironment(undefined=StrictUndefined)
 HTML = SandboxedEnvironment(undefined=StrictUndefined, autoescape=True)
@@ -171,7 +189,7 @@ class Sender:
 			communication=communication,
 			unsubscribe_method=UNSUBSCRIBE_METHOD,
 			unsubscribe_params=unsubscribe_params,
-			unsubscribe_message=_("Unsubscribe"),
+			unsubscribe_message=get_unsubscribe_label(self.church, self.purpose),
 			send_priority=0,
 			now=now,
 		)
@@ -206,7 +224,7 @@ class Delivery(Sender):
 				self.email.name, [recipient.person for recipient in recipients], include_failed=True
 			)
 			waiting = [recipient for recipient in recipients if recipient.person not in handled]
-			values = get_person_values([recipient.person for recipient in waiting])
+			values = get_person_values([recipient.person for recipient in waiting], self.church)
 			sent = sum(self.send_copy(recipient, values[recipient.person]) for recipient in waiting)
 			# Saving the count also moves `modified`, which tells the stalled retry this delivery is alive.
 			self.email.db_set("recipients", (self.email.recipients or 0) + sent)
@@ -219,7 +237,11 @@ class Delivery(Sender):
 	def send_test(self) -> str:
 		"""Send the reader a copy at once, filled in with their own name, and return where it went."""
 		person = session_person()
-		values = get_person_values([person])[person] if person else get_user_values(frappe.session.user)
+		values = (
+			get_person_values([person], self.church)[person]
+			if person
+			else get_user_values(frappe.session.user, self.church)
+		)
 		copy = self.email.get_copy(values)
 		if self.email.is_text_message:
 			number = get_own_number(person)
@@ -280,7 +302,7 @@ def send(
 	recipients = get_recipients(people, channel, purpose, church)
 	handled = get_people_sent(source.name, people, True, doctype=source.doctype, key=key)
 	waiting = [recipient for recipient in recipients if recipient.person not in handled]
-	values = get_person_values([recipient.person for recipient in waiting])
+	values = get_person_values([recipient.person for recipient in waiting], email_church(church))
 	sender = Sender(source, channel, email_church(church), purpose, key=key, email_template=template, url=url)
 	return {
 		recipient.person
@@ -335,6 +357,22 @@ def check_placeholders(source: str | None, label: str, extra: tuple[str, ...] = 
 		)
 
 
+def uses_only_placeholders(source: str | None) -> bool:
+	"""True when *source* reads only the person placeholders and fills them in, as `check_placeholders` asks.
+
+	It is filled in once, because Jinja finds an unknown filter or test inside an `if` only then. A template
+	that fails as it is filled in, such as one that adds a number to a name, is left out too, so that one
+	template cannot stop the picker.
+	"""
+	try:
+		if get_unknown_names(TEXT.parse(source or "")):
+			return False
+		render(source, get_values({field: field for field in PLACEHOLDERS}))
+	except (TemplateError, ArithmeticError, TypeError, ValueError):
+		return False
+	return True
+
+
 def get_unknown_names(template: nodes.Template, extra: tuple[str, ...] = ()) -> set[str]:
 	"""The names *template* reads that are not placeholders or *extra* names, `doc.<name>` included."""
 	names = meta.find_undeclared_variables(template) - {*PLACEHOLDERS, *extra, DOCUMENT}
@@ -352,19 +390,33 @@ def get_values(names: dict) -> dict:
 	return {**values, DOCUMENT: values}
 
 
-def get_person_values(people: list[str]) -> dict[str, dict]:
-	"""The placeholders of each of *people*."""
+def get_person_values(people: list[str], church: str | None = None) -> dict[str, dict]:
+	"""The placeholders of each of *people*, with the name of *church*, the church the message goes out in."""
 	if not people:
 		return {}
 	# church-scope: the names of people already chosen as recipients, read by name
-	rows = frappe.get_all("Person", filters={"name": ("in", people)}, fields=["name", *PLACEHOLDERS])
-	return {row.name: get_values(row) for row in rows}
+	rows = frappe.get_all("Person", filters={"name": ("in", people)}, fields=["name", *PERSON_PLACEHOLDERS])
+	return {row.name: get_values({**row, CHURCH_NAME: get_church_name(church)}) for row in rows}
 
 
-def get_user_values(user: str) -> dict:
+def get_user_values(user: str, church: str | None = None) -> dict:
 	"""The placeholders of a login with no Person, for a test sent to them."""
 	names = frappe.db.get_value("User", user, ["first_name", "last_name", "full_name"], as_dict=True)
-	return get_values({**names, "display_name": names.full_name})
+	return get_values({**names, "display_name": names.full_name, CHURCH_NAME: get_church_name(church)})
+
+
+class ChurchNameInEmailTemplates:
+	"""extend_doctype_class on Email Template: {{ church_name }} in Frappe's email dialog names the document's church.
+
+	Frappe fills an Email Template with the document's own fields, so {{ church_name }}, a Church Email
+	placeholder, would print the Jinja method of that name.
+	"""
+
+	def get_formatted_email(self, doc, sender=None):
+		values = frappe._dict(frappe.parse_json(doc))
+		if values.get(CHURCH_NAME) is None:
+			values[CHURCH_NAME] = church_name(values) or ""
+		return super().get_formatted_email(values, sender)
 
 
 def get_own_number(person: str | None) -> str:
@@ -387,21 +439,64 @@ def get_recipients(people: list[str], channel: str, purpose: str | None, church:
 		return get_text_recipients(allowed)
 	if channel == PUSH:
 		return get_push_recipients(allowed)
-	return get_email_recipients(allowed, email_church(church))
+	return get_email_recipients(allowed, email_church(church), purpose)
 
 
-def get_email_recipients(people: list[str], church: str) -> list[Recipient]:
+def get_email_recipients(people: list[str], church: str, purpose: str | None = None) -> list[Recipient]:
 	"""Each of *people* at their primary email, each address once.
 
 	Leaves out an address that is not valid, that bounced, or that stopped *church*'s emails or every email.
+	A church-wide stop does not hold back mail for a required *purpose*, such as Child Safety.
 	"""
+	usable, _refused = get_usable_emails(people, church, purpose)
+	return get_unique_recipients(people, usable, EMAIL_DOCTYPE)
+
+
+def get_usable_emails(
+	people: list[str], church: str, purpose: str | None = None
+) -> tuple[dict[str, str], dict[str, str]]:
+	"""The primary email of each of *people* that may get a copy, and why each other person has none."""
 	emails = {
 		person: validate_email_address(email)
 		for person, email in get_primary_emails("Person", people).items()
 	}
-	refused = unsubscribed_emails(church) | bounced_addresses([email for email in emails.values() if email])
-	usable = {person: email for person, email in emails.items() if email and email not in refused}
-	return get_unique_recipients(people, usable, EMAIL_DOCTYPE)
+	unsubscribed = unsubscribed_emails(church, purpose)
+	bounced = bounced_addresses([email for email in emails.values() if email])
+	usable, refused = {}, {}
+	for person in people:
+		email = emails.get(person)
+		if not email:
+			refused[person] = NO_ADDRESS
+		elif email in unsubscribed:
+			refused[person] = UNSUBSCRIBED
+		elif email in bounced:
+			refused[person] = BOUNCED
+		else:
+			usable[person] = email
+	return usable, refused
+
+
+def get_left_out(
+	people: list[str], recipients: list[Recipient], channel: str, purpose: str | None, church: str
+) -> dict[str, list[str]]:
+	"""Why each of *people* that is not in *recipients* gets no copy of their own, as {reason: people}.
+
+	*recipients* is what `get_recipients` returned for the same arguments. Email and texts only.
+	"""
+	reached = {recipient.person for recipient in recipients}
+	allowed = allowed_people(people, channel, purpose)
+	if channel == SMS:
+		numbers = get_primary_values(PHONE_DOCTYPE, "phone_number", "Person", list(allowed))
+		refused = {person: NO_ADDRESS for person in allowed if not numbers.get(person)}
+	else:
+		_usable, refused = get_usable_emails(list(allowed), email_church(church), purpose)
+
+	left_out: dict[str, list[str]] = {}
+	for person in people:
+		if person not in reached:
+			reason = refused.get(person, SHARED) if person in allowed else NOT_ALLOWED
+			left_out.setdefault(reason, []).append(person)
+	return left_out
 
 
 def get_text_recipients(people: list[str]) -> list[Recipient]:

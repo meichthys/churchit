@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-06-27 14:00:00.000000",
+ "modified": "2026-11-15 05:40:15.430335",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Sermon Series",
@@ -16,6 +16,24 @@
  "reference_doctype": "Sermon Series",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The name of the series, such as 'The Gospel of John'. It is required.",
+   "fieldname": "series_name",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Series Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.series_name",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Series Name",
+   "ui_tour": 0
+  },
   {
    "description": "Default speaker for the series; individual sermons can still override it.",
    "fieldname": "speaker",

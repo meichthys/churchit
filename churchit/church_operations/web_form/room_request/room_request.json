@@ -23,25 +23,20 @@
       "label": "Purpose"
     },
     {
-      "fieldname": "start_datetime",
-      "fieldtype": "Datetime",
-      "label": "Start"
-    },
-    {
-      "fieldname": "end_datetime",
-      "fieldtype": "Datetime",
-      "label": "End"
-    },
-    {
       "fieldname": "status",
       "fieldtype": "Select",
       "label": "Status"
+    },
+    {
+      "fieldname": "start_datetime",
+      "fieldtype": "Datetime",
+      "label": "Start"
     }
   ],
-  "list_title": "Your Room Requests",
+  "list_title": "Your Room Bookings",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-10-26 15:52:34",
+  "modified": "2026-11-15 15:06:09.949155",
   "modified_by": "Administrator",
   "module": "Church Operations",
   "name": "room-request",
@@ -51,9 +46,10 @@
   "show_attachments": 0,
   "show_list": 1,
   "show_sidebar": 1,
-  "success_message": "Thank you. We have your request.",
+  "success_message": "Thank you. If the room needs approval, your request waits for an approver. You get an email when it is decided, and the list shows its status.",
   "success_title": "Request Sent",
-  "title": "Room Request",
+  "success_url": "/room-request/list",
+  "title": "Room Booking",
   "website_sidebar": "",
   "web_form_fields": [
     {

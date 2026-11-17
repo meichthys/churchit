@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-09-30 00:00:00.000000",
+ "modified": "2026-11-15 05:40:15.432051",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Belief",
@@ -16,6 +16,24 @@
  "reference_doctype": "Belief",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "A short heading for this belief, such as 'The Bible'. It is required.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Title",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.title",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Title",
+   "ui_tour": 0
+  },
   {
    "description": "The full doctrinal statement. This is the body shown on the public Beliefs webpage when published.<br><br><b>Write the Belief Statement to continue.</b>",
    "fieldname": "belief_statement",

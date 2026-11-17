@@ -5,7 +5,7 @@
    "label": "Emails Sent by Month"
   }
  ],
- "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i>\", \"col\": 12}}, {\"id\": \"zs5OwikLZe\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Communications\", \"col\": 12}}, {\"id\": \"schedEmails\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Scheduled Emails\", \"col\": 6}}, {\"id\": \"lettersToShare\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Letters to Share\", \"col\": 6}}, {\"id\": \"emailsSentByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Emails Sent by Month\", \"col\": 12}}]",
+ "content": "[{\"id\": \"nnvMTG5Sl5\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Let no unwholesome talk come out of your mouths, but only what is helpful for building up the one in need and bringing grace to those who listen.\\\"</i> (Ephesians 4:29)\", \"col\": 12}}, {\"id\": \"zs5OwikLZe\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Communications\", \"col\": 12}}, {\"id\": \"schedEmails\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Scheduled Emails\", \"col\": 6}}, {\"id\": \"lettersToShare\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Letters To Be Shared\", \"col\": 6}}, {\"id\": \"emailsSentByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Emails Sent by Month\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.553969",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Communications",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-17 00:21:11.294789",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",
@@ -49,7 +49,7 @@
   },
   {
    "color": "Orange",
-   "label": "Letters to Share",
+   "label": "Letters To Be Shared",
    "link_to": "Letters To Be Shared",
    "report_ref_doctype": "Person",
    "type": "Report"

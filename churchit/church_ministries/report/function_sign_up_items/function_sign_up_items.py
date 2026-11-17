@@ -2,11 +2,11 @@ import frappe
 from frappe import _
 from frappe.utils import escape_html
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	return columns, data
 
@@ -62,6 +62,7 @@ def get_data(filters=None):
 			SignUp.name,
 			SignUp.title,
 			SignUp.function,
+			Function.church,
 			Function.function_name,
 			SignUpItem.item,
 			SignUp.person,
@@ -86,13 +87,13 @@ def get_data(filters=None):
 	# Format as clickable links with titles. A guest typed the registrant name, so every label is escaped.
 	for row in rows:
 		row["sign_up_display"] = (
-			f'<a href="/app/function-sign-up/{row["name"]}">{escape_html(row["title"])}</a>'
+			f'<a href="/desk/function-sign-up/{row["name"]}">{escape_html(row["title"])}</a>'
 		)
 		row["function_display"] = (
-			f'<a href="/app/function/{row["function"]}">{escape_html(row["function_name"])}</a>'
+			f'<a href="/desk/function/{row["function"]}">{escape_html(row["function_name"])}</a>'
 		)
 		row["person_display"] = (
-			f'<a href="/app/person/{row["person"]}">{escape_html(row["full_name"])}</a>'
+			f'<a href="/desk/person/{row["person"]}">{escape_html(row["full_name"])}</a>'
 			if row["person"]
 			else escape_html(row["registrant_name"])
 		)

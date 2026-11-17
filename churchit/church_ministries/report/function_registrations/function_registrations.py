@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.questions import get_questions
 from churchit.utils import set_report_link_titles
 
@@ -20,7 +20,7 @@ def execute(filters=None):
 		question_set = frappe.db.get_value("Function", filters.function, "question_set")
 		questions = get_questions(question_set) if question_set else []
 
-	columns = get_columns(questions)
+	columns = [*get_columns(questions), *get_church_columns(filters)]
 	data = get_data(filters)
 	if questions:
 		add_answers(data)
@@ -79,6 +79,7 @@ def get_data(filters) -> list[dict]:
 		.select(
 			SignUp.name.as_("sign_up"),
 			SignUp.function,
+			Function.church,
 			Attendee.name.as_("attendee"),
 			Attendee.attendee_name,
 			Attendee.person,

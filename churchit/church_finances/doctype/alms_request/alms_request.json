@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "ALMS-.####",
  "creation": "2025-11-10 22:56:15.677299",
  "description": "A request for financial support for a person or family",
@@ -32,7 +31,7 @@
    "read_only": 1
   },
   {
-   "description": "The entity that would be receiving the alms.",
+   "description": "The person or family that would receive the alms.",
    "fieldname": "recipient",
    "fieldtype": "Dynamic Link",
    "label": "Recipient",
@@ -55,12 +54,13 @@
    "reqd": 1
   },
   {
-   "description": "The dollar amount being requested.",
+   "description": "The amount being requested.",
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Amount",
+   "non_negative": 1,
    "precision": "0"
   },
   {
@@ -93,7 +93,7 @@
   },
   {
    "default": "Person",
-   "description": "The type of entity for which alms are being requested.",
+   "description": "Whether the alms are for a person or a family.",
    "fieldname": "recipient_type",
    "fieldtype": "Link",
    "label": "Recipient Type",
@@ -108,7 +108,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Requestor",
+   "label": "Requester",
    "options": "Person",
    "reqd": 1
   },
@@ -138,7 +138,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 13:16:01.000000",
+ "modified": "2026-11-15 15:06:09.949155",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Alms Request",

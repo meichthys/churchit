@@ -4,7 +4,7 @@
 import frappe
 
 from churchit.church_finances.doctype.pledge.test_pledge import make_campaign, make_fund, make_pledge
-from churchit.church_finances.report.pledge_progress.pledge_progress import execute
+from churchit.church_finances.report.pledge_progress.pledge_progress import execute, get_received_for_pledge
 from churchit.church_foundations.church_access import set_user_church
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
 
@@ -119,3 +119,68 @@ class TestPledgeProgress(RollbackEachTest):
 		self.assertNotIn(self.campaign, {row["campaign"] for row in execute({})[1]})
 		with self.assertRaises(frappe.PermissionError):
 			execute({"campaign": self.campaign})
+
+
+class TestPledgeProgressSharedGifts(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.branch, _other = make_two_churches()
+		cls.fund = make_fund("_Test Shared Progress Fund", cls.branch).name
+		cls.campaign = make_campaign(
+			"_Test Shared Progress", cls.fund, cls.branch, "2032-03-01", "2032-03-31", goal_amount=2000
+		).name
+		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Shared Household"}).insert(
+			ignore_permissions=True
+		)
+		cls.family = family.name
+		cls.own = make_person("_Test Shared", "Own", church=cls.branch, family=cls.family).name
+		cls.other = make_person("_Test Shared", "Other", church=cls.branch, family=cls.family).name
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def test_a_gift_counts_on_the_members_own_pledge_and_not_again_on_the_household_pledge(self):
+		make_pledge(self.campaign, self.own, amount=1000)
+		make_pledge(self.campaign, self.other, amount=600, family=self.family)
+		give(self.fund, [(self.own, 500), (self.other, 100)], "2032-03-10 10:00:00", self.branch)
+
+		data = execute({"campaign": self.campaign})[1]
+		campaign = next(row for row in data if not row.get("person"))
+		by_person = {row["person"]: row for row in data if row.get("person")}
+
+		self.assertEqual(by_person[self.own]["received"], 500)
+		self.assertEqual(by_person[self.other]["received"], 100)
+		self.assertEqual(campaign["received"], 600)
+		self.assertEqual(sum(row["received"] for row in by_person.values()), campaign["received"])
+
+	def test_a_household_pledge_made_first_still_yields_to_a_members_own_pledge(self):
+		make_pledge(self.campaign, self.other, amount=600, family=self.family)
+		make_pledge(self.campaign, self.own, amount=1000)
+		give(self.fund, [(self.own, 500)], "2032-03-10 10:00:00", self.branch)
+
+		by_person = {
+			row["person"]: row for row in execute({"campaign": self.campaign})[1] if row.get("person")
+		}
+
+		self.assertEqual(by_person[self.own]["received"], 500)
+		self.assertEqual(by_person[self.other]["received"], 0)
+
+	def test_two_own_pledges_fill_in_order_and_the_last_takes_the_rest(self):
+		make_pledge(self.campaign, self.own, amount=300)
+		make_pledge(self.campaign, self.own, amount=200)
+		give(self.fund, [(self.own, 450)], "2032-03-10 10:00:00", self.branch)
+
+		_campaign, first, second = execute({"campaign": self.campaign})[1]
+		self.assertEqual((first["received"], second["received"]), (300, 150))
+
+		give(self.fund, [(self.own, 400)], "2032-03-11 10:00:00", self.branch)
+
+		_campaign, first, second = execute({"campaign": self.campaign})[1]
+		self.assertEqual((first["received"], second["received"]), (300, 550))
+
+	def test_the_portal_total_matches_the_report_for_each_of_two_pledges(self):
+		first = make_pledge(self.campaign, self.own, amount=300)
+		second = make_pledge(self.campaign, self.own, amount=200)
+		give(self.fund, [(self.own, 450)], "2032-03-10 10:00:00", self.branch)
+
+		self.assertEqual(get_received_for_pledge(first), 300)
+		self.assertEqual(get_received_for_pledge(second), 150)

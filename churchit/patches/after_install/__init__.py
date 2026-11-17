@@ -21,7 +21,10 @@ from churchit.ai.switch import close_mcp_and_tell_system_managers
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
 	create_communication_purposes,
 )
-from churchit.church_finances.doctype.alms_request.alms_request import create_new_alms_request_notification
+from churchit.church_finances.doctype.alms_request.alms_request import (
+	create_alms_request_approved_notification,
+	create_new_alms_request_notification,
+)
 from churchit.church_finances.doctype.payment_type.payment_type import create_non_cash_payment_type
 from churchit.church_ministries.doctype.check_in_settings.check_in_settings import add_volunteer_tag_format
 from churchit.church_missions.doctype.missionary_status.missionary_status import (
@@ -32,6 +35,7 @@ from churchit.church_operations.doctype.room_booking.room_booking import create_
 from churchit.church_people.doctype.background_check_type.background_check_type import (
 	create_background_check_types,
 )
+from churchit.church_people.doctype.care_request.care_request import create_new_care_request_notification
 from churchit.church_people.doctype.connection_card_interest.connection_card_interest import (
 	create_connection_card_interests,
 )
@@ -41,6 +45,7 @@ from churchit.church_people.doctype.marital_status.marital_status import (
 )
 from churchit.church_people.doctype.note_category.note_category import create_note_categories
 from churchit.church_people.doctype.people_settings.people_settings import (
+	create_reminders,
 	store_defaults,
 	sync_directory_menu_item,
 )
@@ -63,6 +68,12 @@ CHURCH_LETTER_HEAD = "Church Letter Head"
 ERPNEXT_LETTER_HEADS = ("Company Letterhead", "Company Letterhead - Grey")
 # The desk roles that read people.
 ADDRESS_READERS = ("Church Manager", "Church Staff", "Church People Editor")
+# Links to the guest pages that no menu shows. The footer drops the link to a switched-off page.
+FOOTER_ITEMS = (
+	{"label": "I'm New", "url": "/connection-card/new"},
+	{"label": "Prayer Request", "url": "/prayer-request-anonymous/new"},
+	{"label": "Member Portal", "url": "/portal"},
+)
 
 
 def execute():
@@ -75,6 +86,9 @@ def execute():
 	create_due_notification()
 	create_new_prayer_request_notifications()
 	create_new_alms_request_notification()
+	create_alms_request_approved_notification()
+	create_new_care_request_notification()
+	create_reminders()
 
 	# Simple lookup types (no inter-dependencies)
 	_create_contact_types()
@@ -268,8 +282,9 @@ def let_church_roles_read_addresses():
 def _create_default_church():
 	"""Create a default Church so the app has a church record at install time.
 
-	The user is expected to rename this church via the onboarding wizard.
-	If a church already exists (e.g. on a dev site being re-run), do nothing.
+	The church renames it and writes its own About and Legal Name: install leaves both empty, so the
+	website never shows text that the church did not write. If a church already exists (e.g. on a dev
+	site being re-run), do nothing.
 	"""
 	if frappe.db.exists("Church", {"parent_church": ("is", "not set")}):
 		return
@@ -279,9 +294,7 @@ def _create_default_church():
 			"doctype": "Church",
 			"church_name": DEFAULT_CHURCH_NAME,
 			"abbreviation": "MC",
-			"legal_name": "My Church",
 			"publish": 1,
-			"about": "<p>Welcome to My Church. We are a community of believers committed to worship, fellowship, and service. We are a congregation rooted in Scripture and passionate about sharing the grace of God with all people.</p><p>Founded in 1990, we have grown from a small gathering into a vibrant church family. Whether you are a lifelong believer or simply curious about faith, you are welcome here.</p>",
 		}
 	).insert(ignore_permissions=True)
 
@@ -784,7 +797,7 @@ def create_website_theme():
 def _setup_website_settings():
 	"""Configure default website settings for a church site.
 
-	Sets the app name, login visibility, home page, theme, and navigation bar.
+	Sets the app name, login visibility, home page, theme, navigation bar and footer links.
 	Only the fields listed here are written; any other Website Settings fields
 	that the user has configured are left untouched.
 	"""
@@ -792,6 +805,7 @@ def _setup_website_settings():
 	doc.app_name = "Church"
 	doc.disable_signup = 1
 	doc.hide_footer_signup = 1
+	doc.show_footer_on_login = 1
 	doc.hide_login = 0
 	doc.navbar_search = 0
 	doc.home_page = "home"
@@ -812,6 +826,8 @@ def _setup_website_settings():
 		doc.append("top_bar_items", item)
 	doc.footer_powered = " "
 	doc.footer_items = []
+	for item in FOOTER_ITEMS:
+		doc.append("footer_items", item)
 	doc.save(ignore_permissions=True)
 
 

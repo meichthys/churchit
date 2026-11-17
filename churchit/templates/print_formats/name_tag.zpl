@@ -13,7 +13,7 @@
 {%- set first_name = (((person.nickname or person.first_name) if person else "") or "")|replace("^", "")|replace("~", "") -%}
 {%- set last_name = ((person.last_name if person else "") or "")|replace("^", "")|replace("~", "") -%}
 {%- set allergies = ((person.alergies if person and settings.print_allergies else "") or "")|replace("^", "")|replace("~", "") -%}
-{%- set footer = ([function.function_name if function else "", frappe.utils.formatdate(function.start_date, "MMM d, yyyy") if function and function.start_date else ""]|select|join(" - "))|replace("^", "")|replace("~", "") -%}
+{%- set footer = ([function.function_name if function else "", frappe.utils.formatdate(function.start_date) if function and function.start_date else ""]|select|join(" - "))|replace("^", "")|replace("~", "") -%}
 {%- set position = (position or "")|replace("^", "")|replace("~", "") -%}
 {%- set code = doc.security_code or "" -%}
 {%- set qr_scale = [(height * 0.3 / 25)|int, 1]|max -%}
@@ -25,7 +25,7 @@
 ^LL{{ height }}
 ^LH0,0
 {%- if pickup_names %}
-^FO{{ pad }},{{ (height * 0.08)|int }}^A0N,{{ (height * 0.1)|int }},{{ (height * 0.1)|int }}^FB{{ inner }},1,0,C^FDPICKUP^FS
+^FO{{ pad }},{{ (height * 0.08)|int }}^A0N,{{ (height * 0.1)|int }},{{ (height * 0.1)|int }}^FB{{ inner }},1,0,C^FD{{ _("Pickup")|upper }}^FS
 {%- if code %}
 ^FO{{ width - pad - 25 * qr_scale }},{{ (height * 0.08)|int }}^BQN,2,{{ qr_scale }}^FDQA,{{ code }}^FS
 {%- endif %}
@@ -38,7 +38,7 @@
 {%- if position %}
 ^FO{{ pad }},{{ (height * 0.67)|int }}^A0N,{{ (height * 0.08)|int }},{{ (height * 0.08)|int }}^FB{{ inner }},1,0,C^FD{{ position }}^FS
 {%- elif allergies %}
-^FO{{ pad }},{{ (height * 0.67)|int }}^A0N,{{ (height * 0.08)|int }},{{ (height * 0.08)|int }}^FB{{ inner }},1,0,C^FDAllergies: {{ allergies }}^FS
+^FO{{ pad }},{{ (height * 0.67)|int }}^A0N,{{ (height * 0.08)|int }},{{ (height * 0.08)|int }}^FB{{ inner }},1,0,C^FD{{ _("Allergies: {0}").format(allergies) }}^FS
 {%- endif %}
 ^FO{{ pad }},{{ (height * 0.86)|int }}^A0N,{{ (height * 0.07)|int }},{{ (height * 0.07)|int }}^FB{{ inner - code_width }},1,0,L^FD{{ footer }}^FS
 {%- if code %}

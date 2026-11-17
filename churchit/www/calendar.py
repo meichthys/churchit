@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 import frappe
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_months, flt, get_time, get_url, getdate, now_datetime, sbool
+from frappe.utils import add_days, add_months, flt, get_time, get_url, getdate, now_datetime, sbool
 
 from churchit.church_foundations.doctype.church.church import inherited_value, selected_church_name
 from churchit.church_scope import church_filters, is_multi_church
@@ -71,7 +71,7 @@ def get_events(start: str | date, end: str | date, include_branches: bool | str 
 		end_date = window_end
 
 	church = selected_church_name()
-	filters = church_filters(church, publish=1, is_link_only=0, start_date=["<=", end_date])
+	filters = church_filters(church, publish=1, is_link_only=0, auto_repeat=0, start_date=["<=", end_date])
 	branches = get_published_branches(church) if sbool(include_branches) else []
 	if branches:
 		# church_filters names the church and the shared records; the branches join them.
@@ -123,12 +123,14 @@ def as_events(rows: list[dict]) -> list[dict]:
 	events = []
 	for r in rows:
 		address = _format_address(r.address, addresses)
+		end_date = r.end_date or r.start_date
 		events.append(
 			{
 				"id": r.name,
 				"title": r.function_name or r.title or r.name,
 				"start": _combine(r.start_date, r.start_time, r.all_day),
-				"end": _combine(r.end_date or r.start_date, r.end_time, r.all_day),
+				# FullCalendar, like iCalendar, ends an all-day event on the day after its last day.
+				"end": _combine(add_days(end_date, 1) if r.all_day else end_date, r.end_time, r.all_day),
 				"allDay": bool(r.all_day),
 				"type": r.type,
 				"address": address,

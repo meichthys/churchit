@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import formatdate
 
 from churchit.church_ministries.doctype.check_in_settings.check_in_settings import (
 	VOLUNTEER_NAME_TAG,
@@ -54,7 +55,8 @@ class TestCheckInSettings(FrappeTestCase):
 		self.assertEqual(html.count('class="name-tag"'), 2)
 		self.assertEqual(html.count('class="name-tag pickup"'), 1)
 		self.assertIn("Bartholomew-Alexander, _Test Tag", html)
-		self.assertIn("_Test Tag Function · May 1, 2031", html)
+		# A tag is tight on space, so it takes the short date of System Settings.
+		self.assertIn(f"_Test Tag Function · {formatdate('2031-05-01')}", html)
 		self.assertIn("page-width: 4in; page-height: 2in", html)
 
 	def test_long_first_names_shrink_to_fit(self):

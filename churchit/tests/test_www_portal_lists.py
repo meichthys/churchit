@@ -13,7 +13,7 @@ from frappe.website.utils import WEBSITE_PAGE_CACHE_PREFIX
 
 from churchit.tests.helpers import ensure_user
 
-LANDING = "Member Portal"
+LANDING = '<div class="portal-home">'
 PORTAL_CACHE = WEBSITE_PAGE_CACHE_PREFIX + "portal"
 # Frappe's Address rows use ERPNext's row template, so the lists are drawn for a member with no addresses.
 MEMBER = "_test_portal_lists@example.com"
@@ -47,7 +47,7 @@ class TestPortalLists(FrappeTestCase):
 
 	def test_a_portal_list_route_draws_the_list(self):
 		html = serve_list("Address", MEMBER)
-		self.assertIn('<h3 class="my-account-header">Addresses</h3>', html)
+		self.assertIn('<h1 class="my-account-header">Addresses</h1>', html)
 		self.assertNotIn(LANDING, html)
 
 	def test_portal_itself_stays_the_member_landing(self):

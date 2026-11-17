@@ -361,7 +361,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		shy = make_person("_Test Shy", "Choir", hide_from_directory=1)
 		drummer = make_person("_Test Drummer", "Band")
 		make_group(
-			"_Test Directory Choir",
+			"_Test Directory Members Choir",
 			show_in_directory=1,
 			members=[{"person": lead.name, "group_role": "Leader"}, {"person": shy.name}],
 		)
@@ -457,6 +457,23 @@ class TestChurchDirectoryReport(FrappeTestCase):
 
 		self.assertIn("<td>_Test Undated Role</td>", html)
 		self.assertNotIn("_Test Future Role", html)
+
+	def test_ended_positions_are_left_out(self):
+		held = ensure("Position Type", {"position": "_Test Held Role"})
+		ended = ensure("Position Type", {"position": "_Test Ended Role"})
+		make_person(
+			"_Test Ended",
+			"Directory",
+			positions=[
+				{"position": held, "start_date": "2020-01-01"},
+				{"position": ended, "start_date": "2020-01-01", "end_date": "2021-12-31"},
+			],
+		)
+
+		html = self.render(show_roles="1", group_by_family="0")
+
+		self.assertIn("<td>_Test Held Role</td>", html)
+		self.assertNotIn("_Test Ended Role", html)
 
 	def test_record_values_are_escaped(self):
 		self.set_church_value("church_name", 'Saint "Mary" </style><script>x()</script>')

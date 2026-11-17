@@ -30,7 +30,16 @@ class TestManifest(FrappeTestCase):
 	def test_names_come_from_the_church(self):
 		manifest = pwa.get_manifest()
 		self.assertEqual(manifest["name"], DEFAULT_CHURCH_NAME)
-		self.assertEqual(manifest["short_name"], "MC")
+		self.assertEqual(manifest["short_name"], DEFAULT_CHURCH_NAME, "it fits on a home screen")
+
+	def test_a_long_church_name_gets_the_abbreviation_as_its_short_name(self):
+		church = frappe._dict(church_name="Grace Community Church", abbreviation="GCC")
+		with patch.object(pwa, "get_church", return_value=church):
+			self.assertEqual(pwa.app_names(), ("Grace Community Church", "GCC"))
+
+		church.abbreviation = None
+		with patch.object(pwa, "get_church", return_value=church):
+			self.assertEqual(pwa.app_names(), ("Grace Community Church", "Grace Community Church"))
 
 	def test_opens_through_the_start_route_in_its_own_window(self):
 		manifest = pwa.get_manifest()
@@ -75,7 +84,9 @@ class TestHeadTags(FrappeTestCase):
 		)
 
 	def test_ios_gets_the_short_name(self):
-		self.assertIn('<meta name="apple-mobile-web-app-title" content="MC">', pwa.head_tags())
+		self.assertIn(
+			f'<meta name="apple-mobile-web-app-title" content="{DEFAULT_CHURCH_NAME}">', pwa.head_tags()
+		)
 
 
 class TestServiceWorker(FrappeTestCase):

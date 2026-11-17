@@ -77,7 +77,12 @@ frappe.listview_settings["Bible Memory Item"] = {
 							frappe.msgprint({
 								title: __("Not assigned: no portal login"),
 								indicator: "orange",
-								message: message.missing_users.join("<br>"),
+								message:
+									message.missing_users.join("<br>") +
+									"<br><br>" +
+									__(
+										"Invite them to the portal from their Person form, then assign again."
+									),
 							});
 						});
 				},

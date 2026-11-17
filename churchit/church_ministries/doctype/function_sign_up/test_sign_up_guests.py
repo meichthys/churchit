@@ -117,6 +117,9 @@ class TestGuestSignUps(SignUpTestCase):
 		self.assertEqual((person.first_name, person.last_name), ("_Test Newcomer", "Person"))
 		self.assertEqual((person.membership, person.source), (VISITOR, SIGN_UP_SOURCE))
 		self.assertEqual([row.email_address for row in person.emails], ["_test_gina@example.com"])
+		# Staff never see the guest as the person who added the Visitor or last edited the Function.
+		self.assertEqual((person.owner, person.modified_by), ("Administrator", "Administrator"))
+		self.assertNotEqual(frappe.db.get_value("Function", self.function, "modified_by"), "Guest")
 
 	def test_the_job_leaves_a_person_already_signed_up_and_names_that_sign_up(self):
 		person = make_person("_Test Gina", "Guest")
@@ -236,6 +239,7 @@ class TestSignUpItemsReport(SignUpTestCase):
 
 		self.assertEqual([row["person_display"] for row in rows], ["&lt;b&gt;_Test Gina&lt;/b&gt;"])
 		self.assertNotIn("<b>", rows[0]["sign_up_display"])
+		self.assertIn(f'href="/desk/function-sign-up/{sign_up.name}"', rows[0]["sign_up_display"])
 
 
 class TestProtectedFields(SignUpTestCase):
@@ -286,6 +290,27 @@ class TestCancelRegistration(SignUpTestCase):
 
 		self.assertEqual(frappe.db.get_value(SIGN_UP, sign_up.name, "status"), CANCELLED)
 		self.assertEqual(self.sign_up(user=self.member_user).status, CONFIRMED)
+
+	def test_a_member_cannot_change_a_cancelled_sign_up_and_its_page_offers_no_edit(self):
+		sign_up = self.sign_up(user=self.member_user)
+		frappe.set_user(self.member_user)
+		self.assertNotEqual(self.page_of(sign_up.name).get("allow_edit"), 0)
+
+		sign_up.cancel_registration()
+
+		self.assertEqual(self.page_of(sign_up.name).allow_edit, 0)
+		cancelled = frappe.get_doc(SIGN_UP, sign_up.name)
+		cancelled.notes = "_Test changed my mind"
+		with self.assertRaisesRegex(frappe.ValidationError, "cancelled"):
+			cancelled.save()
+
+	def page_of(self, name: str) -> frappe._dict:
+		"""The context the Function Sign-Up web form adds for the saved sign-up *name*."""
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(name=name)
+		context = frappe._dict(reference_doc=frappe.get_doc(SIGN_UP, name).as_dict())
+		get_context(context)
+		return context
 
 	def test_a_member_cannot_cancel_someone_elses_sign_up(self):
 		sign_up = self.sign_up(person=make_person("_Test Signup", "Other").name)

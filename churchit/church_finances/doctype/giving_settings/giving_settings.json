@@ -19,6 +19,7 @@
   "currency",
   "messages_tab",
   "section_break_message",
+  "email_receipts",
   "thank_you_message",
   "other_ways_to_give",
   "church_wording",
@@ -29,6 +30,13 @@
   "statement_acknowledgment"
  ],
  "fields": [
+  {
+   "default": "0",
+   "description": "Off by default. Emails each giver a receipt. Needs an outgoing Email Account.",
+   "fieldname": "email_receipts",
+   "fieldtype": "Check",
+   "label": "Email Receipts"
+  },
   {
    "default": "0",
    "description": "Shows the giving form on the /give page. Needs the Payments app and a payment gateway. When unchecked, the page shows an \"unavailable\" notice and rejects new gifts.",
@@ -58,7 +66,7 @@
    "options": "Giving Gateway"
   },
   {
-   "default": "USD",
+   "description": "Leave empty to use the site currency.",
    "fieldname": "currency",
    "fieldtype": "Link",
    "label": "Currency",
@@ -122,8 +130,8 @@
    "show_description_on_click": 1
   },
   {
-   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
-   "description": "Add a row for a church that needs its own wording. Without one it uses the text above.",
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.multi_church",
+   "description": "The messages above apply to every church. Add a row for a church that needs its own wording.",
    "fieldname": "church_wording",
    "fieldtype": "Table",
    "label": "Wording Per Church",
@@ -152,7 +160,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-31 13:13:13.000000",
+ "modified": "2026-11-17 09:12:03.705359",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Settings",

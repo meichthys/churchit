@@ -2,10 +2,10 @@
  "charts": [
   {
    "chart_name": "Attendance Trailing 12 Weeks",
-   "label": "Attendance (12 weeks)"
+   "label": "Attendance (Last 3 Months)"
   }
  ],
- "content": "[{\"id\": \"Kwawi9Etd-\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i>\", \"col\": 12}}, {\"id\": \"9sXlkpyEvA\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Ministries\", \"col\": 12}}, {\"id\": \"PenTeaRes\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Team Responses\", \"col\": 6}}, {\"id\": \"WaiSigUps\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Waitlisted Sign-Ups\", \"col\": 6}}, {\"id\": \"ChuCal\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Church Calendar\", \"col\": 6}}, {\"id\": \"CheInSta\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Check-In Station\", \"col\": 6}}, {\"id\": \"Min\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ministries\", \"col\": 4}}, {\"id\": \"Son\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Songs\", \"col\": 4}}, {\"id\": \"Att(12Wee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Attendance (12 weeks)\", \"col\": 12}}]",
+ "content": "[{\"id\": \"Kwawi9Etd-\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"So whether you eat or drink or whatever you do, do it all to the glory of God.\\\"</i> (1 Corinthians 10:31)\", \"col\": 12}}, {\"id\": \"9sXlkpyEvA\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Ministries\", \"col\": 12}}, {\"id\": \"PenTeaRes\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Team Responses\", \"col\": 4}}, {\"id\": \"WaiSigUps\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Waitlisted Sign-Ups\", \"col\": 4}}, {\"id\": \"CouUpThi\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Coming Up This Week\", \"col\": 4}}, {\"id\": \"ChuCal\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Church Calendar\", \"col\": 4}}, {\"id\": \"CheInSta\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Check-In Station\", \"col\": 4}}, {\"id\": \"MinSpacer1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"Min\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ministries\", \"col\": 4}}, {\"id\": \"Son\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Songs\", \"col\": 4}}, {\"id\": \"Att(12Wee\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Attendance (Last 3 Months)\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.917550",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Ministries",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-15 19:20:00.324820",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
@@ -71,6 +71,13 @@
    "label": "Church Calendar",
    "type": "URL",
    "url": "/desk/function/view/calendar"
+  },
+  {
+   "color": "Blue",
+   "label": "Coming Up This Week",
+   "link_to": "Coming Up This Week",
+   "report_ref_doctype": "Function",
+   "type": "Report"
   },
   {
    "color": "Green",

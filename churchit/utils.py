@@ -1,6 +1,20 @@
 import frappe
 from frappe import _
-from frappe.utils import validate_url
+from frappe.utils import formatdate, validate_url
+
+# The long date form for pages, emails, notifications, prints and stored titles.
+LONG_DATE_FORMAT = "EEEE, MMMM d, yyyy"
+
+
+def get_dated_title(name: str | None, date, length: int = 140) -> str:
+	"""*name* and *date* as "<name>, Sunday, November 15, 2026", or only the part that is set.
+
+	The date does not follow the System Settings date format, so a stored title reads the same
+	after that setting changes. A long name is cut so the title fits *length*, a Data field's size."""
+	date_text = formatdate(date, LONG_DATE_FORMAT) if date else ""
+	if name and date_text:
+		name = name[: length - len(date_text) - 2].rstrip()
+	return ", ".join(part for part in (name, date_text) if part)
 
 
 def validate_https_url(url: str, label: str) -> str:

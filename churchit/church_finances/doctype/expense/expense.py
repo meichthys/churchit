@@ -5,69 +5,82 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Coalesce, Sum
-from frappe.utils import get_link_to_form
+from frappe.utils import flt
 
-from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
+from churchit.church_finances.doctype.collection.collection import warn_of_unlikely_date
+from churchit.church_finances.doctype.fund.fund import (
+	add_transaction,
+	remove_transactions,
+	show_fund_change,
+	warn_of_negative_balance,
+)
 from churchit.church_scope import refuse_another_churches_record
 
 
 class Expense(Document):
 	def validate(self):
+		# A negative expense would add money to the fund.
+		if flt(self.amount) <= 0:
+			frappe.throw(_("Enter the amount paid. To undo an expense, cancel it."))
 		if self.type:
 			self.associated_fund = frappe.db.get_value("Expense Type", self.type, "fund")
 		# An Expense Type is shared by every church, so the fund it names may not be.
 		refuse_another_churches_record(self, "Fund", self.associated_fund)
 		self._warn_if_fund_would_go_negative()
+		warn_of_unlikely_date(self)
 
 	def _warn_if_fund_would_go_negative(self):
-		if self.docstatus != 0 or not self.type or not self.amount:
+		if self.docstatus != 0 or not self.associated_fund or not self.amount:
 			return
-		fund_name = frappe.db.get_value("Expense Type", self.type, "fund")
-		if not fund_name:
-			return
-		fund = frappe.db.get_value("Fund", fund_name, ["fund", "balance"], as_dict=True)
-		if not fund:
-			return
-		projected_balance = (fund.balance or 0) - self.amount
-		if projected_balance < 0:
-			frappe.msgprint(
-				_("⚠️ Submitting this expense will reduce the {0} fund balance to {1}.").format(
-					get_link_to_form("Fund", fund_name, label=fund.fund), f"${projected_balance:,.2f}"
-				),
-				indicator="orange",
-				title=_("Negative Fund Balance"),
-			)
+		warn_of_negative_balance(
+			self.associated_fund,
+			_("Submitting this expense will reduce the {0} fund balance to {1}."),
+			-self.amount,
+		)
 
 	def on_trash(self):
 		# A submitted Expense is still reducing its Fund balance, so it has to be
 		# cancelled first. A draft never touched the balance.
 		if self.docstatus == 1:
-			frappe.throw(_("❌ You must cancel this Expense before deleting it."))
+			frappe.throw(_("Cancel this expense before you delete it."))
 
 	def on_cancel(self):
 		for fund_name in remove_transactions("Expense", self.name):
-			label = frappe.db.get_value("Fund", fund_name, "fund")
-			frappe.msgprint(
-				f"💰 Associated {get_link_to_form('Fund', fund_name, label)} fund has been increased by ${self.amount}"
-			)
+			show_fund_change(fund_name, _("{0} fund increased by {1}"), self.amount)
 
 		if self.ministry:
 			_update_ministry_total(self.ministry)
+
+		self.move_alms_requests(self.name, "Distributed", "Approved")
+
+	def move_alms_requests(self, expense: str, from_status: str, to_status: str):
+		"""Link the Alms Requests that *expense* paid to this expense, and set a *from_status* one to *to_status*.
+
+		A cancel keeps the link, so the amended copy takes the requests over and Create Expense does not
+		pay them a second time.
+		"""
+		# church-scope: the requests that this expense, or the expense it amends, paid
+		for request in frappe.get_all("Alms Request", {"associated_expense": expense}, ["name", "status"]):
+			values = {"associated_expense": self.name}
+			if request.status == from_status:
+				values["status"] = to_status
+			frappe.db.set_value("Alms Request", request.name, values)
 
 	def on_submit(self):
 		fund_name = self.associated_fund
 
 		if not fund_name:
-			frappe.throw(_("⚠️ No fund linked to the selected Expense Type."))
+			frappe.throw(_("The Expense Type {0} has no fund. Set its Fund first.").format(self.type))
 
 		add_transaction(fund_name, -self.amount, "Expense", self.name, self.date, notes=self.notes)
-		label = frappe.db.get_value("Fund", fund_name, "fund")
-		frappe.msgprint(
-			f"💸 Associated {get_link_to_form('Fund', fund_name, label)} fund has been reduced by ${self.amount}"
-		)
+		show_fund_change(fund_name, _("{0} fund decreased by {1}"), self.amount)
+		warn_of_negative_balance(fund_name, _("The {0} fund balance is now {1}."))
 
 		if self.ministry:
 			_update_ministry_total(self.ministry)
+
+		if self.amended_from:
+			self.move_alms_requests(self.amended_from, "Approved", "Distributed")
 
 
 def _update_ministry_total(ministry_name):

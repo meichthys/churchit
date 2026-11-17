@@ -7,6 +7,10 @@ frappe.ui.form.on("Family", {
 			filters: { name: ["in", (frm.doc.members || []).map((row) => row.member)] },
 		}));
 	},
+	onload(frm) {
+		// A Family changes its ID by a merge only (Actions > Merge Into), which the server still allows.
+		frm.meta.allow_rename = 0;
+	},
 	refresh(frm) {
 		if (!frm.is_new()) {
 			add_merge_menu_item(frm);

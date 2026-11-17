@@ -17,6 +17,7 @@ from frappe.utils import getdate, today
 from churchit.church_ministries.check_in_limits import get_bound_problem, is_check_in_open
 from churchit.church_ministries.doctype.function_check_in.function_check_in import add_check_ins
 from churchit.church_ministries.page.check_in.check_in import group_by_family
+from churchit.church_people import household
 from churchit.church_scope import (
 	allowed_churches,
 	church_filters,
@@ -30,6 +31,8 @@ from churchit.www.directory import is_public
 KIOSK_ROLE = "Church Check-In Kiosk"
 # A whole phone number, so a kiosk cannot walk the directory a few digits at a time.
 MIN_PHONE_DIGITS = 7
+# A whole national number, which also finds the same number stored with its country code.
+NATIONAL_PHONE_DIGITS = 10
 # Every kiosk behind one church IP shares this, so it allows a busy Sunday morning.
 REQUESTS_PER_HOUR = 600
 
@@ -203,22 +206,55 @@ def get_households(phone: str, church: str) -> dict:
 	scope = church_filters(church) if private and not any(row.is_shared for row in functions) else {}
 	groups = group_by_family(find_by_phone(digits, scope), scope)
 	own = get_own_people(groups, church) if private else None
+	checked_in = get_checked_in(groups, functions)
 
 	for group in groups:
-		members = [
-			{
-				"name": member.name,
-				"full_name": member.full_name,
-				"photo": member.photo if is_public(member.photo) else None,
-				"grade": member.grade,
-				"functions": get_offered_functions(member.name, functions, own),
-			}
-			for member in group["members"]
-		]
+		members = []
+		for member in group["members"]:
+			offered = get_offered_functions(member.name, functions, own)
+			# Someone checked in to every Function they may join shows marked; otherwise only the rest is offered.
+			still_open = [function for function in offered if (member.name, function) not in checked_in]
+			members.append(
+				{
+					"name": member.name,
+					"full_name": member.full_name,
+					"photo": member.photo if is_public(member.photo) else None,
+					"grade": member.grade,
+					"functions": still_open or offered,
+					"checked_in": bool(offered) and not still_open,
+				}
+			)
 		members = [member for member in members if member["functions"]]
 		if members:
-			result["households"].append({"family_name": group["family_name"], "members": members})
+			result["households"].append(
+				{"family_name": get_household_title(group, members), "members": members}
+			)
 	return result
+
+
+def get_household_title(group: dict, offered: list[dict]) -> str | None:
+	"""How the kiosk heads *group*: its salutation when an Adult is among the *offered* members, else "Smith household"."""
+	if not group["family"]:
+		return None
+	adults = household.members(group["family"], [household.ADULT])
+	if any(member["name"] in adults for member in offered):
+		return household.salutation(group["family"])
+	last_name = group["members"][0].last_name
+	return _("{0} household").format(last_name) if last_name else group["family_name"]
+
+
+def get_checked_in(groups: list[dict], functions: list[dict]) -> set[tuple[str, str]]:
+	"""Each (person, function) of the people of *groups* already checked in to one of *functions*."""
+	names = [member.name for group in groups for member in group["members"]]
+	if not names:
+		return set()
+	# church-scope: the check-ins of the people found, at the kiosk's own open Functions
+	check_ins = frappe.get_all(
+		"Function Check-In",
+		filters={"function": ("in", [row.name for row in functions]), "person": ("in", names)},
+		fields=["person", "function"],
+	)
+	return {(row.person, row.function) for row in check_ins}
 
 
 def get_own_people(groups: list[dict], church: str) -> set[str]:
@@ -256,11 +292,16 @@ def get_open_functions(church: str) -> list[dict]:
 
 
 def find_by_phone(digits: str, scope: dict) -> list[str]:
-	"""The people whose own or whose family's phone is exactly *digits*."""
+	"""The people whose own or whose family's phone is exactly *digits*.
+
+	A whole national number also finds the number stored with a country code before it, as "+1 202-555-0301"
+	for 2025550301.
+	"""
+	match = ("like", f"%{digits}") if len(digits) >= NATIONAL_PHONE_DIGITS else digits
 	# church-scope: one whole phone number; group_by_family applies *scope* to everyone found
 	phones = frappe.get_all(
 		"Phone Number",
-		filters={"digits": digits, "parenttype": ("in", ["Person", "Family"])},
+		filters={"digits": match, "parenttype": ("in", ["Person", "Family"])},
 		fields=["parent", "parenttype"],
 	)
 	persons = [row.parent for row in phones if row.parenttype == "Person"]

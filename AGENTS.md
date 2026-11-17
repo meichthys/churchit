@@ -29,7 +29,8 @@ permission; `hide_descendants` is the "include branch churches" switch. A user w
 permission sees every church. `permission_query_conditions` is never used for church scoping.
 Person (a member lists their own record and the household Children they may edit, see "Member
 portal"), Family (a member's own household), Person Note (Note Category roles), Follow-up Card (the
-Church Follow-up role) and Prayer Request (Visibility) use it for other rules.
+Church Follow-up role), Prayer Request (Visibility), and Pledge and Function Sign-Up (a member's own
+records, `member_access.own_records_query_conditions`) use it for other rules.
 
 The directory is the one place where User Permissions do not limit a record by its church. The
 `church` Link on `Person` and `Family` ships with `ignore_user_permissions: 1`, so User Permissions
@@ -149,8 +150,9 @@ Watch for three things that switch the checks off:
   so a `person` field is never measured against whose member it is. Check the linked record's church
   yourself, as `MemberTransfer.validate_both_churches_are_mine` does.
 - **`ignore_user_permissions: 1`** on a Link exempts that field from the only check Frappe would make.
-  It is right on `shared_by_church`, on tree parents and on the directory's `church` fields, and
-  suspicious anywhere else.
+  It is right on `shared_by_church`, on tree parents, on the directory's `church` fields and on the
+  `church` of a per-church settings row (see "Settings a church can differ on"), and suspicious
+  anywhere else.
 - **`ignore_permissions=True`** on a write reached from a whitelisted call. It skips the check that
   refuses the same edit made on the form.
 
@@ -278,6 +280,9 @@ A Room is named `ROOM-.####`, so code that shows a room to a person reads `room_
 `Room.refuse_a_second_room_with_this_name` keeps `room_name` unique among the rooms one church
 lists: its own and the shared ones. A shared room's name is compared with every room. A clash read
 of a room or of equipment crosses churches on purpose (see "Room bookings").
+`churchit/unique_names.refuse_a_second_with_this_name` gives Fund, Group, Sermon and Missionary the
+same rule with a message that names the field. It checks a new or changed name, church or sharing, so
+a stored duplicate still saves.
 
 Two shapes that are neither, and how they are handled today:
 
@@ -313,11 +318,32 @@ report permission.
 - Client: spread the shared filter into the report's own: `filters: [...church.report_filters(), ...]`.
   This is the picker, not the guard. A report without it is still scoped, because the server falls
   back to the reader's own churches; the reader simply cannot narrow to one branch.
+- Church column: a scoped script report whose rows each belong to one church selects `church` and
+  ends its columns with `get_church_columns(filters)` (`[*get_columns(), *get_church_columns(filters)]`).
+  The column shows only on a multi-church site, with no church picked, to a reader who sees more
+  than one church. A report whose rows add up across churches leaves it out.
+- A number card over Prayer Request or Care Request is hidden from a user whose every read of that
+  doctype is if_owner (`church_summary/card_access.py`, has_permission and query hooks on Number Card).
 
 `tests/test_reports_hygiene.py` checks both, by text in each report module, with separate messages so
 you can tell a leak from a missing picker. It does not see a `frappe.get_doc` or a read in a helper
 module. A report that takes a record name in its filters checks that record itself
 (`frappe.has_permission(<doctype>, doc=name, throw=True)`), as Budget vs Actual does.
+
+A script report that appends its own total row (`is_total_row`) sets Add Total Row to 0. Migrate
+keeps a site's Add Total Row, Disabled and Prepared Report on a standard report (Frappe's
+`import_file.ignore_values`), so a change to one of them reaches existing sites only through a patch,
+as `turn_off_frappe_total_rows_on_giving_reports` does.
+
+Use the site's date: pass `frappe.utils.getdate()` (or `add_days` of it) as a value. CURDATE() reads
+the database clock, which can be a day off the site's time zone, so `churchit/query.py` has no CurDate
+(`test_reports_use_the_sites_date`). A week is `query.this_week()`, from the site's first day of the
+week, as Weekly Metrics and the weekly charts count it.
+
+Give a field that reports, cards or summaries filter a large table by `search_index` (Donation.person,
+Collection.date, Expense.date, Function.start_date, Function Attendance.person, Function Check-In.person,
+Group Member.person). Migrate adds the index. Read a value per row from one grouped query merged in
+Python, not from a dependent subquery per row (YTD Giving by Person, Inactive Members, Visitor Log).
 
 Charts and number cards of type **Document Type** go through `get_list` and apply the reader's
 churches, except over `Person` and `Family`, which total every church while the directory is shared
@@ -345,11 +371,16 @@ Function whose start date is today or earlier. Take both from there, and a total
 (`Function.before_save`, the daily `refresh_started_totals`, `set_headcount`): the larger of the
 Function's `headcount` and the counted rows, and 0 until the Function starts.
 
-Write a person's attendance row only through `attendance.record(person, function, status)` and
-`attendance.remove(person, function, status)`. They load the Function with `for_update` and save it
-whole, so two check-ins at once lose no row and a stale desk save fails. `record` never lowers a type
-(`STATUS_RANK`). A `Function.validate` check acts only when `has_value_changed` on its own field, or an
-attendance save trips it.
+Write a person's attendance row only through `attendance.record(person, function, status)`,
+`attendance.record_many(function, {person: status})` and `attendance.remove(person, function, status)`.
+They load the Function with `for_update` and save it whole, so two check-ins at once lose no row and a
+stale desk save fails. `record` and `record_many` never lower a type (`STATUS_RANK`). `record_many`
+writes a household or a group in one save. The save skips Frappe's link check of the rows
+(`save_attendance`), so `record_many` checks the Person and the type that it writes. A Function save
+refreshes the attendance summaries of only the people whose rows changed, and the serving summaries of
+its team only when its date, church or sharing changes; a change of those fields refreshes everyone on
+it. A `Function.validate` check acts only when `has_value_changed` on its own field, or an attendance
+save trips it.
 
 Weekly Metrics rows are written only by `church_summary/metrics.py`, by the daily
 `record_recent_weeks` and the Church Manager backfill. Attendance, first-time visitors and giving are
@@ -360,12 +391,18 @@ roles Church Finance and Church Manager.
 
 Recurring Functions are made in `church_ministries/recurrence.py`. Deleting an occurrence adds its
 date to the template's Skip Dates (`Function.on_trash`), so the daily job does not make it again.
+A template (`auto_repeat` 1) is only a rule: saving it makes its first occurrence on its own date,
+and its attendance rows are a roster that `apply_template` copies to each occurrence. Every reader
+of attendance or dates (reports, number cards, metrics, calendar, feed, kiosk, Check-In Station,
+portal) filters `auto_repeat = 0`. `attendance.refuse_a_template` and `FunctionCheckIn.validate`
+refuse counted attendance on a template, and `Function.before_save` keeps its `attendance_total`
+at 0. A new reader filters `auto_repeat = 0` too.
 
 A group meeting is a Function with `group` set, and the group's schedule is the `auto_repeat`
 Function with that group. `group` is the only link from a Function to a Group: `Function.validate`
 refuses a new Group association row, a group of another church and a shared Function with a group. A
 schedule takes no attendance rows, because `apply_template` copies them to each occurrence. A
-leader's attendance goes through `attendance.record` (`group_meetings.record_group_attendance`),
+leader's attendance goes through `attendance.record_many` (`group_meetings.record_group_attendance`),
 which also sets `did_not_meet` and `attendance_recorded_on`. `Group.meets` is display only:
 `group_meetings.get_meets` writes it from the schedule on load and on save, so do not add schedule
 fields to Group. Group attendance figures leave out `did_not_meet` meetings and schedules, and count
@@ -383,6 +420,13 @@ An anniversary's month and day always count, its year only when `anniversary_yea
 Year) is off. `marriage_years` stores 0 for an unknown year, so test the check, not the years. The
 check goes with the anniversary: `Person.link_spouse` gives it to the spouse.
 
+`next_birthday` and `next_anniversary` hold the next date on or after today
+(`derived.get_next_occurrence`), and are empty for someone who died. Frappe's Days Before and Days
+After match the whole date, year included, so a Notification on `birth_date`, a Life Event date or
+`anniversary` never sends. Put a yearly Notification on these two fields, with Days Before, as
+Birthday Greeting and Anniversary Greeting do. Code that writes a spouse's anniversary with
+`frappe.db` also writes `next_anniversary`.
+
 ## Roles
 
 Church User is the **portal member** role, with no desk access. Staff hold desk roles, bundled
@@ -395,7 +439,7 @@ into Role Profiles in `fixtures/role_profile.json`:
 | Church Pastoral Care | Care, counseling, visitation, background checks, prayer, alms. Adds and edits Person Notes and Follow-up Cards, records Communication Consent, and reads the care figures on Person (permlevel 3). |
 | Church Finance | Collections, online donations, the payments and refunds of sign-ups and form responses, expenses, funds and transfers, budgets, statements, vendors, and their types. Edits Alms Requests and reads the giving figures on Person (permlevel 2). |
 | Church Check-In | The Check-In Station. Reads people, families and functions. |
-| Church Follow-up | The Follow-up Cards assigned to it (`followup.has_card_permission`). Reads connection cards and follow-up workflows. |
+| Church Follow-up | The Follow-up Cards assigned to it (`followup.has_card_permission`), and reads the cards it was assigned before. Reads connection cards and follow-up workflows. |
 | Church Manager | Everything, including settings |
 
 Church Prayer Team has no desk access and is in no profile. Give it on its own to a member or staff
@@ -417,14 +461,23 @@ to. `accounts.link_portal_user` adds no Person for a kiosk login.
 A new doctype gives its rights to Church Manager and to the role that owns its area, and read to
 Church Staff if staff look it up. Church Check-In and Church Follow-up do not hold Church Staff, so
 give them read on what their forms link to. `tests/test_role_hygiene.py` fails when a profile can
-fill in a form but cannot pick what one of its Link fields points at. Reports and workspaces carry
-the same roles.
+fill in a form but cannot pick what one of its Link fields points at. It also fails when a profile
+reads a list whose default `filters` in `<doctype>_list.js` name a Link field whose target the
+profile cannot pick: the list checks the filter value and shows "Insufficient Permission" each time
+it opens. Reports and workspaces carry the same roles.
 
 A portal member reaches their own records through `if_owner` DocPerms, and their own Person
 through `church_people/member_access.py`. That module also limits their Person edits to the
-Personal Details form's fields, and a prayer or alms recipient to their own church. A member form
+Personal Details form's fields that are not read-only (Frappe's accept sets read-only fields from
+the post too), and a prayer or alms recipient to their own church. A member form
 must not link to Person (see the web form bullet in "Frappe behaviours worth knowing");
 `tests/test_portal_members.py` checks this.
+
+Staff also record Pledges and Function Sign-Ups for a member, so Church User also reads both
+without `if_owner`. `member_access.has_own_record_permission` and
+`own_records_query_conditions` keep a user who reads them only through Church User to the records
+that name their Person or that they made. A change still needs `if_owner`, and the web forms hide
+Edit on the other records (`hide_edit_unless_writable`).
 
 Rights on a Frappe doctype, such as Church Manager on Data Import or Role Profile, live in that
 doctype's `church_customizations/custom/<doctype>.json` under `custom_perms`. A Custom DocPerm
@@ -448,6 +501,14 @@ Families Private to Each Church is ticked (`church_customizations/test_address_c
 resolved from a **role** are dropped when their church permission excludes the document's church,
 covering email, the desk bell and SMS, for records your users create too.
 
+Frappe gap: with no Email Account that can send, `frappe.sendmail` throws. A Notification has then
+already added a "sent" email to the record's timeline, and it skips its bell entry. A Notification Log
+that is made in the request leaves the message "Please setup default outgoing Email Account" for the
+person who saved the record. `church_communications/outgoing_email.py` closes both:
+`EmailOnlyWithAnAccount` (extend_doctype_class on Notification) sends no email while no account can
+send it, and `forget_no_account_message` (after_insert on Notification Log) removes only that one
+message. Its tests fail when Frappe fixes the gap; then remove the module and its two hooks.
+
 Recipients resolved from a document field are inherently fine. If you add a notification on a
 doctype with no church field there is nothing to filter by, so every role recipient receives it.
 Consent filters recipients too, on churchit's and Frappe's doctypes
@@ -458,7 +519,9 @@ A shipped Notification with a `condition` sets `"condition_type": "Python"` in i
 syncs it without field defaults, and Frappe ignores a condition whose type is empty
 (`tests/test_notification_templates.py` checks this).
 
-Production cannot enable a shipped Notification. A Notification that must work there, or that a
+Production cannot enable a shipped Notification. Its form says how to duplicate it
+(`public/js/notification.js`), and the list shows each Notification by its name
+(`public/js/notification_list.js`). A Notification that must work there, or that a
 church may change, is inserted once as a record that is not standard, from `after_install` and a
 v1_0 patch, as `room_booking.create_decided_notification` does for Room Booking Decided. To tell
 staff that a record waits for them, assign it with `frappe.desk.form.assign_to`: the assignment
@@ -466,7 +529,12 @@ sends its own email, so add no second Notification.
 
 New Prayer Request for the Prayer Team, Approved Prayer Request for the Prayer Team, New Private
 Prayer Request (`prayer_request.create_new_prayer_request_notifications`), New Alms Request
-(`alms_request.create_new_alms_request_notification`) and Church Task Due
+(`alms_request.create_new_alms_request_notification`), Alms Request Approved
+(`alms_request.create_alms_request_approved_notification`, Value Change on `status` to Church
+Finance, while the request has no expense), New Care Request
+(`care_request.create_new_care_request_notification`, to the care team only for a request that no
+caregiver with a desk login gets, condition `not doc.caregiver_user`, because the assignment emails
+that caregiver) and Church Task Due
 (`church_task.create_due_notification`) are inserted the same way. A patch that adds a new one to
 existing sites inserts only that one (`create_new_prayer_request_notifications(names=...)`), so a
 Notification a church deleted stays deleted. The Church Prayer Team recipient
@@ -476,6 +544,14 @@ Frappe does not run Value Change on insert, so a request approved at creation se
 Private request goes to Church Pastoral Care and Church Manager only, and its email leaves out the
 request, the title and the requester. Escape free text with `| e` in a Notification body: Frappe's
 Jinja does not escape, and guests write prayer requests.
+
+The reminders Follow-up Card Overdue, Care Request Overdue and Visitation Follow-Up Due are Frappe
+notification templates in `church_people/doctype/people_settings/reminders/`, inserted turned off
+by `people_settings.create_reminders` (Frappe's `create_notifications`). People Settings owns their
+`enabled` and `days_in_advance` (`PeopleSettings.set_reminders`, with ignore_permissions), because a
+Church Manager has no Notification rights: conditions and Jinja run code there. Donation receipts
+are not a Notification: `Collection.on_submit` sends one email per donor with the Email Template
+Donation Acknowledgment while Giving Settings `email_receipts` is on.
 
 ## Public website and portal
 
@@ -507,7 +583,10 @@ cookie would be invisible to that cache; do not swap the parameter for one.
 Frappe caches rendered pages by path alone, shared between guests and users, so
 `church_website.context.before_request` disables the cache for signed-in visitors in multi-church
 mode and while a members-only Web Page exists, because the menu then differs per visitor. It skips
-`/api/` requests, which read no page cache. Do not remove that without replacing it.
+`/api/` requests, which read no page cache. It also skips the file routes in `pages.FILE_ROUTES`
+(sw.js, manifest.json and the like), which are the same for every visitor or set `no_cache`
+themselves; `update_website_context` and `MembersOnlyPage` skip them too. Do not remove that without
+replacing it.
 
 Some portal surfaces read past document permissions by design and apply the member's church by
 hand: the community prayer request list (`get_community_filters`), the Join a public group picker
@@ -521,8 +600,9 @@ portal leader holds no DocPerm on Group or Function. `/group-leader`,
 the Group. `group_meetings.get_roster` is the one answer to who a leader sees and messages: the
 group's living members. `/find-a-group` lists the selected church's open groups and shows only the
 city and a pin rounded to 2 decimals from each group's schedule Function. It never reads `meets` or
-the street. A member's own requests come from `joinable_public_groups`, so the public page reads no
-Group Join Request.
+the street. A member's own requests come from `joinable_public_groups` and their own groups from
+`group_api.get_member_groups`, both called from the browser, so the public page reads no Group Join
+Request and no Group Member row.
 
 `/register` is the guest sign-up page (`no_cache = 1`). It lists the selected church's published
 Functions from today on with Allow Guest Sign-Ups that are inside their sign-up window
@@ -576,6 +656,10 @@ title of whatever record it links to, so `schedule_item_entries` badges the titl
 doctype that a schedule row names, as members-only. It also counts an import path such as
 `churchit.church_people.membership` as a read of the field `membership`, so a badge can name a
 field the page does not show.
+
+The scan is cached in `frappe.cache` (`published_field_map(use_cache=True)`, which the badges read).
+A Web Page or Web Form save or delete and every migrate clear it (`clear_published_field_cache`);
+Function schedule entries are read on each call.
 
 Each source is public, members-only or for link holders (`PUBLIC`, `MEMBERS`, `LINK_HOLDERS`). A
 web form with `login_required`, or a page that sends every guest to the login screen, is
@@ -655,17 +739,25 @@ database, because Frappe finds a Web Page by route case and accent insensitively
 Web Page route in Python. `MembersOnlyWebPage` keeps such a page out of global search, and
 `pages.get_list_data` (an override of `frappe.www.list.get_list_data`) keeps it out of the portal
 list API for a non-member. `pages.get_hidden_pages` is the one list of pages whose links a visitor
-must not see: switched-off pages, and members-only pages the visitor cannot open. The menu, footer,
-sidebar and `/sitemap.xml` filter on it at render time. A link matches by lower case route, as a
-site path or a full URL to this site, and a dynamic route matches from its fixed start
-(`members/<name>` hides `/members` and every link under it). An accent variant is not matched; the
-gate is still the renderer. Ticking or clearing Members Only clears the whole website cache
+must not see: switched-off pages, members-only pages the visitor cannot open, /locations while
+multi-church is off (the page does not exist then), /group-leader for anyone who leads no group
+(`group_leaders.get_led_groups`), and /give while it takes no gift online (`pages.is_online_giving_on`). The menu, footer, sidebar and `/sitemap.xml` filter on it at
+render time. A link matches by lower case route, as a site path or a full URL to this site, and a
+dynamic route matches from its fixed start (`members/<name>` hides `/members` and every link under
+it). An accent variant is not matched; the gate is still the renderer. Ticking or clearing Members
+Only clears the whole website cache
 (`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal?doctype=Web
 Page` lists nothing, because `www/portal.html` shadows Frappe's portal page and has no `portal.py`;
 do not add one. The template still draws Frappe's list for another app's list route (ERPNext's
 `/orders`), which runs Frappe's own `portal.py`. Its `no_cache` front matter keeps the landing out of
 the page cache, which those routes read under the `portal` key; do not remove it. A new way to read
 Web Pages without permission checks must apply the same rule.
+
+The Contact page posts to `church_website.contact.send_message`, not Frappe's
+`frappe.www.contact.send_message`: a rate-limited guest POST with a honeypot that takes the church
+through `selected_church_name()`, stores a received Communication on the Church and mails the
+branch's email, else Contact Us Settings `forward_to_email`, else the main church's email. On a
+multi-church site the Locations dropdown sits beside the Home link (`context._add_locations_menu`), which also sets the body class `has-locations-menu`. The navbar shows its links from 1200px (`templates/includes/navbar/navbar.html` renders Frappe's navbar as `navbar-expand-xl`), and below that the menu button's list leaves out Home. website.css also takes Home off the bar below 1280px for a signed-in visitor with that body class. A navbar rule for the collapsed menu uses `max-width: 1199.98px`, not Bootstrap's lg breakpoint. Also, the member pages in `context.MEMBER_PAGES` add the member's church to their title.
 
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
@@ -705,6 +797,23 @@ Two rules the shapes differ on, and both are forced rather than chosen:
   instance, so a church's row is applied to a copy. With no row for the church, it returns
   the Single itself, so treat the result as read-only.
 
+Only someone who works across every church (`church_access.has_every_church`) changes the rest of
+these Singles, and all of Church Features and People Settings. Each controller's `validate`
+calls `church_access.refuse_changing_shared_settings(self, church_tables)` first. It lets a user add,
+change or delete only the rows of a per-church table that name one of their churches. The `church`
+Link of each per-church row has `ignore_user_permissions: 1`, because Frappe checks User Permissions
+on every child-row link, so a row of another church would make the whole Single unreadable. The
+guard and the form's `set_query` take the place of that check. A new per-church table needs all
+three.
+
+Lookups that every church shares (Member Status, Membership Type, Expense Type, Function Type and
+the rest of `church_access.GLOBAL_LOOKUPS`) have no church field. On a multi-church site only a
+`has_every_church` user adds, changes, renames or deletes one
+(`church_access.refuse_changing_global_lookup`, a `"*"` doc_event on validate, on_trash and
+before_rename that skips ignore_permissions saves, installs and patches). A new shared lookup
+doctype goes in `GLOBAL_LOOKUPS`; `test_church_permissions` compares it with the scope hygiene list.
+Note Category keeps its own narrower guard.
+
 The gateway override matters most: without it, a gift given on a branch's page goes through the
 merchant account the main church set up.
 
@@ -731,6 +840,16 @@ as modified. Never append to `Fund.transactions` and save the Fund from code. A 
 touches two funds calls `add_transaction` in fund name order, so two writers cannot deadlock. Do
 not take a locking read on Financial Transaction rows: its gap locks block writers on other Funds.
 `Fund.before_save` keeps the same sum, so a desk save corrects a drifted balance.
+
+A message about a fund goes through `fund.show_fund_change` (a short green alert) or
+`fund.warn_of_negative_balance` (an orange message, only when the balance is or would be below
+zero), and an amount in a message goes through `fund.format_amount`, which uses the site currency as
+the desk's Currency fields do. Never write '$' or a raw float. The currency of a gift, a price or a
+statement comes from `giving_settings.get_currency()` (Giving Settings, then the site default, then
+USD). A shipped number card or chart leaves `currency` empty, so it shows the site currency, and its
+label names no currency sign. A gift that a guest gives goes
+through `add_single_donation`, which sets `flags.hide_fund_messages` on its Collection, so the giver
+never sees a fund name or a church's balance.
 
 A payable record gets its checkout URL from `church_finances/payments.get_payment_url`, which takes
 only a gateway that `get_gateway` offers to the record's church. Its `on_payment_authorized(status)`
@@ -788,10 +907,12 @@ refuses a document whose debits and credits differ, lists every missing mapping 
 and names a source document by its doctype and name only. Do not add a title or a person to the
 memo: an Expense title can hold a person's name.
 
-A Collection's title is its day and its Function's name, such as 2026-10-20 Sunday Worship
-(`collection.get_title`, set in `before_save`). The day comes first so that a narrow list column
-does not cut it. A stored title that holds a day writes it as ISO, here and in the Prayer and
-Weekly Metrics titles, so it reads the same after a church changes its date format. An Online
+A Collection's title is its Function's name and its day, such as 'Sunday Worship, Tuesday, October
+20, 2026' (`collection.get_title`, set in `before_save`). A stored title that holds a day writes it
+with `churchit.utils.get_dated_title` (`LONG_DATE_FORMAT`), here and in the Function, Bulletin and
+Prayer titles, so it reads the same after a church changes its date format. A title takes the new
+form when its record is saved next; no patch rewrites stored titles. Weekly Metrics keeps an ISO
+day. An Online
 Donation's title is `donor_name`: Remove Personal Data rewrites it and removes the Version rows of
 the gift. A Fund Transfer is titled with the names of its funds,
 'General to Building' (`fund_transfer.get_title`), and an Alms Request with its recipient's name
@@ -859,7 +980,10 @@ too, by `church_access.scope_new_user` on User `after_insert`. It takes the chur
 about: the branch whose page took a sign-up, or the church of whoever adds the user in the desk.
 Linking a Person repoints a portal login's permission afterwards, so this is only the starting
 point. A staff login that a user links by hand keeps its churches (`Person.sync_church_permission`);
-a later change of the person's church and the app's own links (`ignore_permissions`) still move them.
+the Person form names the login's church under Portal User (`Person.login_church_note`) and warns on
+the save that links it. `church_access.limit_login_to_church` moves the login, for someone across
+every church or a System Manager. A later change of the person's church and the app's own links
+(`ignore_permissions`) still move them.
 
 ## AI
 
@@ -936,6 +1060,13 @@ matching if a Frappe upgrade moves that method; if list filters stop expanding a
 look there first. The same file wraps `frappe.form.formatters.Link` for report link titles, makes a
 child table's filter row match a Link cell by its title as well as its ID, and replaces
 `MapView.setup_view` (see the next section).
+
+`churchit/public/js/desk_search.js` wraps `frappe.search.utils.get_search_in_list`, so Find <text> in
+<DocType> filters on the title field of a doctype with Show Title in Link Fields instead of the hidden
+ID. It also registers each churchit sidebar link whose label differs from its target with
+`make_function_searchable`, so the search bar finds a page by its sidebar name. A label that two
+sidebars give to different pages is registered once per sidebar as "<label> (<sidebar>)". It does
+nothing when a Frappe upgrade removes `frappe.search.utils`.
 
 `churchit/public/js/people_actions.js` holds the actions on a set of people: the Person list runs
 them on the people ticked, the Rolodex on its saved cards. `churchit.people_actions.get(keys)`
@@ -1088,6 +1219,11 @@ On Frappe 17 (the Flow bench) also:
 - A File that an Attach field still names cannot be deleted. Pass `force=True` only when you replace
   the field in the same step.
 - `frappe.client.get` leaves out empty fields. Read a result with `.get()`.
+- `church_scope.get_transaction_cached(doctype, key, compute)` keeps a value in
+  `frappe.db.value_cache[doctype]`. Frappe empties that cache on each save, delete or set_value of the
+  doctype and at each commit or rollback. `root_church`, `session_person` and
+  `pages.get_members_only_pages` use it. Use it, not `request_cache`, for a read that a save in the
+  same request must refresh. A raw SQL write does not empty it.
 - Every GET whitelisted method also allows QUERY. Compare allowed methods without QUERY.
 - A fake request needs `after_response` (`frappe._dict(method=..., headers={},
   after_response=CallbackManager())`): the log database queues its closing there.
@@ -1150,7 +1286,8 @@ push or open a pull request. It takes more than 15 minutes, and CI does not run 
 - Frappe saves no Version row while tests run: `Document.save` sets `ignore_version` from
   `frappe.in_test`. A test that needs the change history saves with `ignore_version=False`.
 - Sample birthdays and anniversaries use `_this_week_in`, which keeps the date inside the current
-  Monday-to-Sunday week. Pass a leap year, so a Feb 29 in this week exists in it. Do not use a plain
+  week (`query.this_week`, from the site's first day of the week). Pass a leap year, so a Feb 29 in
+  this week exists in it. Do not use a plain
   day offset for a 'this week' record.
 
 ## Desk navigation
@@ -1160,8 +1297,12 @@ Summary after login: `church_summary/home.land_on_summary` sets their Default Wo
 first become a desk user, and leaves a choice they make later alone. Only a user with one of
 Summary's roles gets it, so an ERPNext accountant on a shared site does not land on a page they
 cannot open. A desk user with no Default
-Workspace opens Summary too, because each desk role's home page is `/desk/summary`
-(`fixtures/role.json`). The `ModuleShortcuts` block at the top of Summary draws a tile for each
+Workspace opens Summary too, because each staff role's home page is `/desk/summary`
+(`fixtures/role.json`). Church Check-In and Church Follow-up cannot open Summary, so their home pages are
+`/desk/check-in` and `/desk/follow-up-card`. The Churchit tile on the Apps screen is only for desk users
+(`has_permission` is `frappe.permissions.is_system_user`): Frappe sends a Website User who signs in to the
+route of their only app tile before their role's home page, so a member would land on Summary and get
+"Not Permitted". The `ModuleShortcuts` block at the top of Summary draws a tile for each
 entry of the user's dock, so it hides what the dock hides. A Frappe page that no churchit sidebar
 lists opens in Framework, so `add_return_to_framework_dock` (after install and every migrate) puts
 a Churchit entry first on the site's arrangement of Framework's rail. A saved arrangement is the
@@ -1190,9 +1331,8 @@ reorders the site's arrangement when its rows are still in the previous shipped 
 ## Onboarding steps and form tours
 
 A module's `Module Onboarding` is the checklist a new church works through, and each step carries a
-`Form Tour` explaining the fields the form does not explain by itself. Five things here fail
-silently, so `churchit/tests/test_onboarding_hygiene.py` checks them rather than leaving them to
-review:
+`Form Tour` explaining the fields the form does not explain by itself. These things fail silently,
+so `churchit/tests/test_onboarding_hygiene.py` checks them rather than leaving them to review:
 
 - **An onboarding is rendered only from an `onboarding` block in a workspace.** Frappe 16.50
   removed the sidebar panel, so an onboarding that no workspace's `content` names never shows. Put
@@ -1207,7 +1347,8 @@ review:
   `Show Form Tour` for a Single, which routes to the settings page and then starts the tour.
   `Go to Page` and `Update Settings` both route to the form and ignore `form_tour` entirely, so a
   tour on either is dead configuration. Use `Go to Page` only for a step that has no form, the way
-  `Sample Data` does.
+  `Sample Data` does, or to open a list. Do not put a record name in a step path: the root church can
+  be renamed and a branch manager cannot open it, so `Church` opens the Church list (`church`).
 - **A `Create Entry` step needs `Show Full Form`.** Without it the widget opens quick entry, which
   runs no tour.
 - **A tour step names a fieldname, not a label.** Rename or hide the field and the tour stalls with
@@ -1218,6 +1359,13 @@ review:
 - **Tour steps follow the order of the form.** A step that sits above the previous one makes the
   user look back up the form. Reorder the steps when you move fields
   (`test_tour_steps_follow_the_order_of_the_form`).
+- **A tour that saves asks for every field the user must type.** A tour with Save on Complete has a
+  step on each mandatory field that has no default and is not hidden, read only or fetched, or the
+  save fails with Missing Fields (`test_a_tour_that_saves_asks_for_every_required_field`). Give the
+  step a next condition such as `eval: doc.<field>`.
+- **Descriptions are plain words.** Onboarding step, tour step and doctype descriptions have no
+  backticks: the desk shows one as a typed character in a tour and as code in a step
+  (`test_descriptions_use_plain_words_without_code_marks`).
 - **One script adds 'Take the Tour'.** `public/js/help_icon_on_form.js` puts it in the '...' menu of
   every form that has a standard Form Tour, found by the tour's `reference_doctype`, because a tour
   name can differ from its doctype (Budget, Email Account Setup). Frappe 16.54 lists no tours at
@@ -1318,7 +1466,9 @@ loses its color. `test_every_status_has_a_color` and
   (unfinished), Group Join Request (Requested), Follow-up Card (Open), Church Task (not Completed)
   and Room Booking (not Denied or Cancelled) do this today. Room Booking does not filter on
   Requested, because its calendar view starts with the same `filters` and the calendar would lose
-  the approved bookings; the Booking Requests report is its queue. The field of that filter is not
+  the approved bookings; the Booking Requests report is its queue, and the Operations tile of that
+  name opens the plain Report view (`doc_view` "Report Builder") with the same filter, so no filter
+  lands on the List or Calendar view. The field of that filter is not
   also a standard filter: Frappe keeps the default filter and adds the standard filter on top, so
   Care Request with Status = Resolved would be empty. The status pill (a click replaces the default
   filter) and the Filters popover cover it (`test_default_list_filters_are_not_standard_filters`).
@@ -1352,6 +1502,9 @@ loses its color. `test_every_status_has_a_color` and
   required field. There is no preview on Counseling Case, Care Request, Person Note or Background
   Check (`test_previews_need_the_popup_and_skip_private_records`). No Geolocation, Check, rich text
   or Dynamic Link field in a preview (`test_previews_show_only_short_facts`).
+- A Function Link lists the functions from today on, soonest first, and then the past ones, latest
+  first (`church_ministries/search.search_functions`, the Function entry of `standard_queries`). It
+  reads with `frappe.get_list`, so the user's church and the field's filters apply.
 - Ctrl+K indexes only the title field (`title_field`, permlevel 0) of the doctypes in
   `global_search_doctypes` (`hooks.py`): never `show_name_in_global_search`, never a second name
   field such as a nickname, and never a record about one person's care, prayer or history
@@ -1397,6 +1550,16 @@ loses its color. `test_every_status_has_a_color` and
   reports about the record in 'View' (the group argument of `add_custom_button`). Tours and rare or
   destructive items go in the '...' menu. Hide a button that cannot work yet.
 - Group the Connections links. A group label never repeats a section label of the same form.
+- Refuse a person on two rows of one table with `church_people/repeated_rows.refuse_repeated_people`
+  ("Row {0}: {1} is already in row {2}."). Refuse an end before its start, and other impossible
+  pairs, only when a field of the pair changes in this save (`has_value_changed`), so a stored bad
+  value does not block other edits or the app's own saves (Function, Fund, Missionary, Care Request,
+  Meeting Minutes, and the Person dates in `church_people/date_rules.py`). A money record warns, and
+  still saves, when its date is more than 30 days ahead or more than a year back
+  (`collection.warn_of_unlikely_date`).
+- Set `allow_rename` to 0 on a record whose ID is printed or sent (Collection, Expense, Fund Transfer,
+  Giving Statement, Pledge, Alms Request, Function, Function Sign-Up). Person and Family keep
+  `allow_rename` 1 for Merge Into, and their form scripts set `frm.meta.allow_rename = 0` to hide Rename.
 - Set `track_changes` on documents that staff edit, and `ignore_version` on automatic saves, but not
   on Counseling Case or Person Note: a Version row keeps the old text of a changed or deleted note,
   and a counselor who deletes a note expects it gone. Never set `timeline_field`, which shows nothing in Frappe 16.54 (`test_doctypes_set_no_timeline_field`).
@@ -1440,7 +1603,7 @@ These add to the rules in "Desk navigation".
   Missions, Foundations and Web Site) lists its pages and reports at the top and has at most a Setup
   folder. Help lists each module's manual as an item, with the icon that the module has in the dock.
 - A label is 24 characters at most, so the sidebar does not cut it off
-  (`test_labels_fit_the_sidebar`). Every icon exists in a sprite that the desk loads
+  (`test_labels_fit_the_sidebar`). A report entry may use the full report name when `LONG_LABELS` lists it with the reason. Every icon exists in a sprite that the desk loads
   (`test_every_icon_is_in_a_sprite_the_desk_loads`): sidebar items, sidebar header icons and dock
   icons. The desk loads Lucide from `lucide/icons.svg`, not from the older
   `public/icons/lucide.svg`, so an icon that is only in the old file, such as `book-marked`, draws
@@ -1542,7 +1705,7 @@ Write the manuals for a church volunteer or secretary, not for a developer. Say 
 what happens, name the doctype the way its form does (a Function, not an "event record"), and keep
 one name for one thing across every manual. Explain a term the first time a manual uses it. Leave
 class names, hook names, field types and file paths out: they belong in this file or in a docstring.
-A link in a manual is a site path such as `/app/person`, never `http://app/person`;
+A link in a manual is a site path such as `/desk/person`, never `http://desk/person`;
 `test_workspace_hygiene` checks that each desk link in a manual opens.
 
 AI is off until a church turns it on. A manual, a field description or the README may name an AI
@@ -1567,6 +1730,12 @@ the punctuation the sentence actually wants:
 
 A hyphen is fine where a hyphen belongs, in a compound like `church-scoped` or `multi-church`.
 
+A full date in a page, email, notification, print or stored title uses the long form, such as
+Sunday, November 15, 2026 (`LONG_DATE_FORMAT` "EEEE, MMMM d, yyyy" in `churchit.utils`; the literal
+pattern in Jinja and Notification JSON). Only a tight space (a portal list, a table column, a Kanban
+card, a name tag) uses `formatdate` with no pattern, the System Settings format. A month and day with
+no year stays without a year.
+
 ## People events and history
 
 `church_people/events.py` emits the people events from `Person.on_update`; its docstring lists them
@@ -1577,6 +1746,10 @@ Membership history is Milestone rows written by `membership.record_changes` for
 `membership.TRACKED_FIELDS`, read by `membership.changed_between` and the Membership Changes report.
 Do not add a Frappe Milestone Tracker on Person: Frappe allows one tracker per doctype, and clearing
 the tracked field fails the save.
+
+Attendance, a group membership, a sign-up or a pledge dated after a person's recorded death saves
+with an orange warning (`derived.warn_if_after_death`), never a refusal, because history is often
+entered late.
 
 `church_people/history.py` adds a person's visits, care requests, life events with a full date,
 member transfers and connection cards to the Person timeline as short cards, the 20 newest of each
@@ -1648,6 +1821,11 @@ a child table. Never set them yourself. Code that changes Email Address or Phone
 merge does. Data Import matches a Person column headed Email or Phone to these fields, so during an
 import `Person.take_imported_email_and_phone` makes such a value the primary row of its table before
 the save copies it back. Both are in `privacy.PERSONAL_FIELDS`.
+
+Person also stores `next_birthday` and `next_anniversary`, the dates that Birthday Greeting and
+Anniversary Greeting send on (see "Adding a report, chart or number card"). `derived.sync_derived`
+sets them on every save and the daily `derived.refresh_daily` moves a passed date on. Never set them
+yourself.
 
 `Family.member_count` is stored by `Family.validate` from the Members table, so the Family list and
 preview can show it. Change a household's members only by saving the Family
@@ -1799,7 +1977,7 @@ directly, because a row makes a Donation, not a Person. It finds the giver by `l
 (Gift ID in `legacy_id`) to the draft Collection of the row's `import_batch` and date. It refuses a
 Gift ID already on a Collection that is not cancelled, and a row that matches an Online Donation the
 gateway charged. Finance submits the drafts, so nothing reaches the funds before a person checks it.
-The Donation Acknowledgment notification skips a Collection with an `import_batch`. An import
+Donation receipts (`Collection.on_submit`) skip a Collection with an `import_batch`. An import
 DocType keeps no records, so its list script sends the user to the records it made. It does that in
 `listview_settings.refresh` with `frappe.route_flags.replace_route`, never in `onload`: in `onload`
 the import list takes the route options before the target list can use them.
@@ -1918,6 +2096,28 @@ unless Guest can read the linked doctype: Frappe refuses to save or render it ot
 Person and one use; Frappe alone lets a key add records and reopen its record until it expires.
 Never put a request key in a Communication or Comment: anyone who reads the Person could use it.
 
+A member reads the Pledges and Function Sign-Ups that name their Person or that they made
+(`member_access.has_own_record_permission`, `own_records_query_conditions`; see
+"Roles"). `/pledge` lists by person, and `/function-sign-up` lists what these hooks open for a member
+(`member_access.is_member_only`). Both web forms call `hide_edit_unless_writable`, so a record that
+staff made opens without Edit. A Cancelled Function Sign-Up also opens without Edit for a member, and
+`FunctionSignUp.refuse_changing_cancelled` refuses a member's save of it. `/attendance` lists the
+functions up to today under Past, and under Upcoming the functions after today where the member is an
+attendee on a Confirmed, Pending or Waitlisted Function Sign-Up, with its status
+(`member_attendance.get_upcoming_sign_ups`). The function name links to the sign-up only when
+`member_access.has_own_record_permission` lets the member open it.
+
+A portal page title is `<h1 class="my-account-header">` and its sections are h2 (h3 below them). To
+keep the smaller look, give a section the class `my-account-section` (h4 size) or Bootstrap's `h5` or
+`h6`. The rules in `website.css` keep the old size, so a screen reader can move by headings and the
+page looks the same.
+
+A member changes or deletes their Alms Request only until it is reviewed (`alms_request.is_reviewed`:
+not Pending, or it has an expense). `AlmsRequest.validate` sets a member's status to Pending and
+refuses a change after the review, `on_trash` refuses the delete, and the web form hides Edit and
+Delete. The care request web form shows Status, so `CareRequest.validate` keeps the stored status
+for a portal member.
+
 `Person.team_calendar_key` is at permlevel 4 (System Manager only). Code reads and writes it with
 `frappe.db`; do not read it through a document a user sees.
 
@@ -1989,7 +2189,10 @@ Waitlisted as a whole. Only `promote_waitlist` moves a party on, oldest first am
 after a cancel, a decline, a delete, a smaller party, a released hold (`release_expired_holds`, every
 5 minutes) or a changed capacity (a job after the commit). It sends nothing itself. Each attendee
 Person has a Signed-Up attendance row while the sign-up is Confirmed. A paid sign-up cannot grow into
-a balance or move to another Function.
+a balance or move to another Function. A payment hold starts only when Giving Settings
+has a gateway for the payment church (`FunctionSignUp.has_online_payment`). Without one, a sign-up
+with an amount due is Confirmed with payment_status Unpaid until Finance records the payment, so no
+hold expires.
 
 `approve` and `decline` need a role in `SIGN_UP_APPROVERS` as well as write, and
 `record_offline_payment` and `record_refund` need `payments.PAYMENT_RECORDERS`, because a registrant
@@ -1999,7 +2202,15 @@ A guest sign-up has no `person`. `function_sign_up.link_registrant` runs after t
 guest, locks the Function and then the sign-up, and links the one strong match or adds a Visitor
 (source Sign-Up) through `matching.find_or_add_person`, the one matcher-and-adder that Connection
 Cards and Form Responses use too. When that Person is already on another live sign-up of the
-Function, it leaves `person` empty and comments with that sign-up.
+Function, it leaves `person` empty and comments with that sign-up. `matching.add_visitor` sets the
+owner and modified_by of a Visitor that a guest's input adds (a sign-up, a Connection Card or a Form
+Response) to Administrator, so that staff never see Guest as its maker.
+
+/register lists, for a signed-in portal member, the allow_sign_ups functions of their church in the
+sign-up window (`register.get_open_functions`, the rule `is_open_for_sign_up` applies on save). For
+anyone else, it lists the selected church's published functions with guest sign-ups. Every register
+endpoint checks the function against that list. The Function Sign-Up web form links to /register
+for the functions it leaves out.
 
 Emails that answer the registrant's own request (the Sign-Up Confirmation with its `.ics` and the
 Sign-Up Payment Due) go through `FunctionSignUp.send_registrant_email`: to the Person's primary
@@ -2217,7 +2428,9 @@ has the share right. So `CareRequest.assign` shares it first, with `ignore_share
 `before_save` has already refused a caregiver outside the request's church
 (`refuse_a_caregiver_outside_the_church`). Care Request, Care Assignment, Visitation Log and Member
 Transfer set `track_changes`. Remove Personal Data deletes their Version rows (`forget`), and
-`church_people/test_care_history.py` proves it.
+`church_people/test_care_history.py` proves it. A Care Request's title is `person_name`, fetched from
+the person; `before_insert` fills it for a portal request, whose person it sets after Frappe fetched
+the links.
 
 `background_check.get_check_problem(person, on_date, check_types, label)` is the one message for a
 missing check, and Ministry Team Assignment and Group both call it. A Group with
@@ -2361,7 +2574,8 @@ workflow of the same church (and for Step Reached, optionally one of its steps);
 calls `start_cards` with the card's workflow as value and its step. A desk alert is still a
 Notification on Follow-up Card. Deleting a card deletes its runs, and anonymizing blanks the `error`
 of the runs of the person's cards (`privacy.forget_records_about`), because a failed text's error
-can hold the number.
+can hold the number. It also blanks the reason of a card that a record it deletes started, such as
+a Connection Card, because the reason can quote the guest's message.
 
 The workflow owns its Kanban Board: `FollowupWorkflow.sync_board` rewrites its columns and filters
 on every save, so never edit the board by hand. The form hides the workflow's Board link; Open Board
@@ -2372,7 +2586,10 @@ from the board, not from Select options. Frappe checks a Dynamic Link before `va
 trigger's `value_type` is set in the workflow's `_validate_links` override from
 `followup.VALUE_TYPES`. Moving a card closes its ToDos and assigns through
 `assign_to._add(ignore_permissions=True)`, as Assignment Rule does. `has_card_permission` reads
-`_assign` from the database: a form sends none, and a caller could send a forged one.
+`_assign` from the database: a form sends none, and a caller could send a forged one. A past
+assignee (a ToDo that is Open or Closed, not Cancelled) may read the card but not change it, and
+`FollowupCard.onload` sets `__onload.read_only` so the form opens read only. Removing the assignment
+cancels the ToDo, so that volunteer loses the card.
 
 ## Connection Cards
 
@@ -2431,6 +2648,13 @@ the message's own church's people are added. Consent applies to each added perso
 
 A Church Email fills placeholders with `sending.render` (see the `sending.py` docstring). Never
 render it with `frappe.render_template`, and keep `sending.check_placeholders` in `validate`.
+Preview and Send say who a Church Email leaves out and why (`sending.get_left_out`, which uses the
+same address rules as `get_recipients` through `get_usable_emails`), naming people only through
+`frappe.get_list`. The Template picker offers only Email Templates that pass
+`sending.uses_only_placeholders`. `{{ church_name }}` is also the name of a Jinja method, so Frappe's
+email dialog, which fills an Email Template with only the document's fields, gets it from
+`sending.ChurchNameInEmailTemplates` (extend_doctype_class on Email Template). An unsubscribe link's words come from
+`newsletter.get_unsubscribe_label`, which decides with `withdraws_one_purpose` as `unsubscribe` does.
 
 Each copy is a Communication with reference Person and a timeline link to the Church Email.
 `sending.get_people_sent` reads those links to decide who already got it, and a delivery commits

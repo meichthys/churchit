@@ -46,9 +46,13 @@ def input_for(match, number):
 
 @frappe.whitelist(methods=["POST"])
 def make_handout(sermon: str) -> str:
-	"""Create a handout from the sermon's notes, link it from the sermon, and return its name. Changes data."""
-	sermon = frappe.get_doc("Sermon", sermon)
+	"""Create a handout from the sermon's notes, link it from the sermon, and return its name. Changes data.
+
+	A sermon that has a handout returns that one."""
+	sermon = frappe.get_doc("Sermon", sermon, for_update=True)
 	sermon.check_permission("write")
+	if sermon.handout:
+		return sermon.handout
 	handout = frappe.get_doc(
 		{"doctype": "Sermon Handout", "title": sermon.title, "content": sermon.notes}
 	).insert()

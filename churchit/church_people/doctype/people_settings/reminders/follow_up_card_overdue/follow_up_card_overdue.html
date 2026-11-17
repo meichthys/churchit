@@ -1,0 +1,10 @@
+<p>A follow-up card assigned to you is overdue:</p>
+
+<ul>
+  <li><strong>Person:</strong> {{ (doc.person_name or doc.person) | e }}</li>
+  <li><strong>Workflow:</strong> {{ doc.workflow | e }}</li>
+  <li><strong>Step:</strong> {{ doc.step | e }}</li>
+  <li><strong>Due:</strong> {{ frappe.utils.format_date(doc.due_on, "EEEE, MMMM d, yyyy") }}</li>
+</ul>
+
+<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the card</a> to note what happened, move it to its next step, or snooze it.</p>

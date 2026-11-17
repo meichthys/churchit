@@ -14,7 +14,7 @@ from frappe.utils import add_months, cint, today
 from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people.membership import MEMBER, changed_between, living_people_filter
 from churchit.church_people.summaries import same_church
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.query import DateDiff
 from churchit.utils import set_report_link_titles
 
@@ -29,7 +29,7 @@ STEPS = (
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	counts = [sum(1 for row in data if row[step]) for step, _label in STEPS]
@@ -80,6 +80,7 @@ def get_first_visitors(from_date, to_date, filters) -> list[dict]:
 			Person.membership,
 			Person.group_count,
 			Person.last_served_on,
+			Person.church,
 		)
 		.where(Person.first_attended_on[from_date:to_date] & living_people_filter(Person))
 		.orderby(Person.first_attended_on)
@@ -106,6 +107,7 @@ def get_people_who_came_back(people: list[str], weeks: int) -> set[str]:
 		.distinct()
 		.where(Attendance.person.isin(people) & Attendance.attendance_type.isin(COUNTED_TYPES))
 		.where((days_after > 0) & (days_after <= weeks * 7) & (Function.start_date <= today()))
+		.where(Function.auto_repeat == 0)
 		.where(same_church(Function, Person))
 		.run(pluck=True)
 	)

@@ -6,7 +6,7 @@
  "idx": 0,
  "include_name_field": 0,
  "is_standard": 1,
- "modified": "2026-11-02 23:38:21.000000",
+ "modified": "2026-11-15 05:53:16.970601",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Domain Setup",
@@ -40,7 +40,7 @@
    "title": "Incoming Server"
   },
   {
-   "description": "Leave this <strong>checked</strong> for IMAP (recommended) so that read/unread state and folders stay in sync between Frappe and your other mail clients. Uncheck only if your provider supports just POP3.",
+   "description": "Leave this <strong>checked</strong> for IMAP (recommended) so that read/unread state and folders stay in sync between this site and your other mail apps. Uncheck only if your provider supports just POP3.",
    "field": "",
    "fieldname": "use_imap",
    "fieldtype": "Check",
@@ -76,7 +76,7 @@
    "title": "Incoming Port"
   },
   {
-   "description": "Hostname of your <strong>outgoing</strong> mail server, meaning where Frappe sends messages from. Examples: <code>smtp.gmail.com</code>, <code>smtp.office365.com</code>, <code>mail.gracechurch.org</code>. Search your provider's docs for “SMTP settings”.",
+   "description": "Hostname of your <strong>outgoing</strong> mail server, meaning where this site sends messages from. Examples: <code>smtp.gmail.com</code>, <code>smtp.office365.com</code>, <code>mail.gracechurch.org</code>. Search your provider's docs for “SMTP settings”.",
    "field": "",
    "fieldname": "smtp_server",
    "fieldtype": "Data",

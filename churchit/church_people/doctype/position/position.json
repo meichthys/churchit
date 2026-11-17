@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2025-08-26 22:42:20.029649",
- "description": "`Person` roles in the church.",
+ "description": "The roles that people have in the church.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "editable_grid": 1,
@@ -51,7 +51,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-11 22:30:34.000000",
+ "modified": "2026-11-15 05:42:25.579431",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Position",

@@ -14,6 +14,7 @@ from churchit.church_ministries.page.check_in.check_in import (
 	get_check_ins,
 	get_pickup_families,
 	get_station_context,
+	get_visitor_bound_problem,
 	search_people,
 	undo_check_in,
 )
@@ -185,6 +186,22 @@ class TestCheckInStation(FrappeTestCase):
 		self.assertEqual(person.source, "Check-In")
 		self.assertEqual(self.members_of(search_people("0101111")), [["Zed", "Zelda", "Zoe"]])
 		person.delete()
+
+	def test_a_visitors_birth_date_becomes_their_birth_event(self):
+		ensure("Life Event Type", {"type": "Birth"})
+		person = frappe.get_doc("Person", add_visitor("Leo", "Newcomer", birth_date="2020-03-04")["name"])
+		self.assertEqual(str(person.birth_date), "2020-03-04")
+		self.assertEqual([row.event_type for row in person.life_events], ["Birth"])
+		person.delete()
+
+	def test_a_new_visitor_is_checked_against_the_age_limit_before_they_are_added(self):
+		kids = make_function("_Test Station Kids", start_date="2031-05-04", max_age=12).name
+
+		self.assertEqual(
+			get_visitor_bound_problem(kids), "No birth date, and this function has an age limit."
+		)
+		self.assertIsNone(get_visitor_bound_problem(kids, "2025-05-04"))
+		self.assertIn("over the oldest age of 12", get_visitor_bound_problem(kids, "2010-05-04"))
 
 	def test_a_walk_in_is_a_visitor_who_shares_nothing(self):
 		"""They never saw the directory's share choices, so the member directory must not list them."""

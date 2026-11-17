@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 
-{% block title %}{{ _("Member Directory") }}{% endblock %}
+{% block title %}{{ title | e }}{% endblock %}
 
 {% block head_include %}
 <style>
@@ -11,12 +11,19 @@
 	.directory-list .avatar { flex: 0 0 auto; }
 	.directory-list .entry-details { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 	.directory-list .entry-name { font-weight: 600; }
+	.directory-list .entry-contacts a { white-space: nowrap; color: var(--primary-color); }
+	{#- A phone puts each email and phone number on its own line. An email too long for it breaks after the @ (the wbr), not in the middle of a name. #}
+	@media (max-width: 575.98px) {
+		.directory-list .entry-contacts a { display: block; }
+		.directory-list .entry-contacts a[href^="mailto:"] { white-space: normal; }
+		.directory-list .entry-contacts .separator { display: none; }
+	}
 </style>
 {% endblock %}
 
 {% block page_content %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-4">{{ _("Member Directory") }}</h3>
+	<h1 class="my-account-header mb-4">{{ title | e }}</h1>
 
 	{% if not person %}
 		<p class="text-muted">
@@ -31,6 +38,7 @@
 	{% else %}
 		<input type="search" class="form-control mb-3" id="directory-search"
 			placeholder="{{ _('Search names...') }}" aria-label="{{ _('Search names') }}">
+		<p class="text-muted small mb-2" id="directory-count" role="status"></p>
 		<ul class="directory-list">
 			{% for entry in entries %}
 			<li class="directory-entry" data-search="{{ entry.search | e }}">
@@ -38,12 +46,12 @@
 				<div class="entry-details">
 					<div class="entry-name">{{ entry.title | e }}</div>
 					{% if entry.emails or entry.phones %}
-						<div>
+						<div class="entry-contacts">
 							{%- for email in entry.emails -%}
-								{{ " · " if not loop.first }}<a href="mailto:{{ email | e }}">{{ email | e }}</a>
+								{% if not loop.first %}<span class="separator"> · </span>{% endif %}<a href="mailto:{{ email | e }}">{{ email | e | replace("@", "@<wbr>") }}</a>
 							{%- endfor -%}
 							{%- for phone in entry.phones -%}
-								{{ " · " if entry.emails or not loop.first }}<a href="tel:{{ phone.replace(' ', '') | e }}">{{ phone | e }}</a>
+								{% if entry.emails or not loop.first %}<span class="separator"> · </span>{% endif %}<a href="tel:{{ phone.replace(' ', '') | e }}">{{ phone | e }}</a>
 							{%- endfor -%}
 						</div>
 					{% endif %}
@@ -61,7 +69,6 @@
 			</li>
 			{% endfor %}
 		</ul>
-		<p class="text-muted d-none" id="directory-no-match">{{ _("No one matches your search.") }}</p>
 	{% endif %}
 </div>
 {% endblock %}
@@ -72,7 +79,10 @@ frappe.ready(function () {
 	var search = document.getElementById("directory-search");
 	if (!search) return;
 	var entries = document.querySelectorAll(".directory-entry");
-	var no_match = document.getElementById("directory-no-match");
+	var count = document.getElementById("directory-count");
+	var words_none = {{ _("No one matches your search.") | tojson }};
+	var words_one = {{ _("1 person shown") | tojson }};
+	var words_many = {{ _("{0} people shown") | tojson }};
 	search.addEventListener("input", function () {
 		var words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
 		var shown = 0;
@@ -83,7 +93,7 @@ frappe.ready(function () {
 			entry.classList.toggle("d-none", !matches);
 			if (matches) shown++;
 		});
-		no_match.classList.toggle("d-none", shown > 0);
+		count.textContent = !words.length ? "" : shown === 0 ? words_none : shown === 1 ? words_one : words_many.replace("{0}", shown);
 	});
 });
 </script>

@@ -2,17 +2,20 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.utils import add_days, today
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.www.list import get_list_data
 
+from churchit.church_finances.doctype.pledge.pledge import get_given_so_far, get_pledges_by_campaign
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_scope import SHARED
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
+	ensure,
 	ensure_user,
 	force_single_church,
 	make_person,
@@ -73,6 +76,15 @@ class TestPledge(RollbackEachTest):
 		self.assertEqual(pledge.church, self.branch_a)
 		self.assertEqual(pledge.title, "_Test Pledger B - _Test Campaign A")
 
+	def test_a_pledge_for_someone_who_died_saves_with_a_warning(self):
+		frappe.db.set_value("Person", self.giver_a, {"is_deceased": 1, "deceased_date": "2020-01-01"})
+		frappe.local.message_log = []
+
+		pledge = make_pledge(self.campaign_a, self.giver_a)
+
+		self.assertTrue(frappe.db.exists("Pledge", pledge.name))
+		self.assertIn("died on", frappe.local.message_log[-1]["message"])
+
 	def test_a_campaign_takes_the_church_of_whoever_adds_it(self):
 		frappe.set_user(self.finance_a)
 		campaign = make_campaign("_Test Own Campaign", self.fund_a, SHARED)
@@ -88,6 +100,11 @@ class TestPledge(RollbackEachTest):
 	def test_a_campaign_cannot_use_another_churchs_fund(self):
 		with self.assertRaises(frappe.PermissionError):
 			make_campaign("_Test Reaching Campaign", self.fund_b, self.branch_a)
+
+	def test_a_pledge_needs_an_amount_above_zero(self):
+		for amount in (0, -5):
+			with self.assertRaises(frappe.ValidationError):
+				make_pledge(self.campaign_a, self.giver_a, amount=amount)
 
 	def test_a_campaign_cannot_end_before_it_starts(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -169,6 +186,57 @@ class TestPledgeWebForm(RollbackEachTest):
 		options, script = self.new_form()
 		self.assertEqual(options, {self.open_a})
 		self.assertIn('const has_open_campaigns = "1";', script)
+
+	def test_the_form_reminds_the_member_of_a_pledge_to_the_same_campaign(self):
+		pledge = make_pledge(self.open_a, self.person, amount=500)
+		frappe.set_user(self.member)
+
+		_options, script = self.new_form()
+
+		self.assertIn(pledge.name, script)
+		self.assertIn("You pledged", script)
+
+	def test_given_so_far_counts_the_members_gifts_and_is_for_the_pledge_reader_only(self):
+		pledge = make_pledge(self.open_a, self.person, amount=500)
+		payment_type = ensure("Payment Type", {"type": "Cash"})
+		frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": today(),
+				"church": self.branch_a,
+				"expected_total": 120,
+				"donations": [
+					{"payment_type": payment_type, "fund": self.fund_a, "person": self.person, "amount": 120}
+				],
+			}
+		).insert(ignore_permissions=True).submit()
+
+		frappe.set_user(self.member)
+		sentence = get_given_so_far(pledge.name)
+		self.assertIn("120.00", sentence)
+		self.assertIn("500.00", sentence)
+
+		frappe.set_user(ensure_user("_test_pledge_other_member@example.com", "OtherMember"))
+		with self.assertRaises(frappe.PermissionError):
+			get_given_so_far(pledge.name)
+
+	def test_the_pledge_messages_use_the_site_currency_of_the_gifts(self):
+		"""Giving Settings names the currency that online gifts are charged in, which can differ."""
+		pledge = make_pledge(self.open_a, self.person, amount=500)
+		frappe.db.set_single_value("Giving Settings", "currency", "USD")
+		get_default = frappe.db.get_default
+
+		frappe.set_user(self.member)
+		with patch.object(
+			frappe.db,
+			"get_default",
+			lambda key, *args, **kwargs: "EUR" if key == "currency" else get_default(key, *args, **kwargs),
+		):
+			messages = [get_given_so_far(pledge.name), get_pledges_by_campaign()[self.open_a]["message"]]
+
+		for message in messages:
+			self.assertIn("€", message)
+			self.assertNotIn("$", message)
 
 	def test_a_login_with_no_person_is_offered_no_campaign(self):
 		frappe.set_user(ensure_user("_test_pledge_no_person@example.com", "NoPerson"))

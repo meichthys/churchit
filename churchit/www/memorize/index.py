@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 
 from churchit.scripture import get_readable_translations
 
@@ -15,7 +16,7 @@ def get_context(context):
 
 	context.no_cache = 1
 	context.show_sidebar = 1
-	context.title = "Bible Memory"
+	context.title = _("Bible Memory")
 
 	items = frappe.get_all(
 		"Bible Memory Item",

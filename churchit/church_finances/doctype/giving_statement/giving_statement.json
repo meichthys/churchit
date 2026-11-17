@@ -1,9 +1,10 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_rename": 0,
  "autoname": "GS-.#####",
  "creation": "2026-09-11 00:00:00.000000",
  "default_print_format": "Contribution Statement",
+ "description": "A giving statement for one person or household over a period. Use Generate Statements to make them for everyone who gave, then Email Statements.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "editable_grid": 1,
@@ -21,6 +22,7 @@
   "column_break_contact",
   "email",
   "emailed_on",
+  "made_by_run",
   "section_break_lines",
   "lines"
  ],
@@ -113,6 +115,16 @@
    "show_description_on_click": 1
   },
   {
+   "default": "0",
+   "description": "Set when Generate Statements made it. A later run removes only such a statement.",
+   "fieldname": "made_by_run",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Made By Run",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_lines",
    "fieldtype": "Section Break",
    "label": "Contributions"
@@ -126,7 +138,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-31 13:13:13.000000",
+ "modified": "2026-11-17 01:17:52.667539",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Statement",

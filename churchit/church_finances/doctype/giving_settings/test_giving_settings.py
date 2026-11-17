@@ -8,6 +8,7 @@ import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_finances.doctype.giving_settings.giving_settings import get_currency
 from churchit.church_finances.payments import get_payment_url, is_payments_on
 
 # The payments app is optional, so its Payment Gateway may not exist.
@@ -86,6 +87,27 @@ class TestGivingSettings(FrappeTestCase):
 			settings.get_offered_gateways(),
 			[{"name": "Stripe", "label": "Stripe"}, {"name": "PayPal", "label": "Pay with PayPal"}],
 		)
+
+
+class TestCurrency(FrappeTestCase):
+	def test_giving_settings_wins_then_the_site_currency_then_usd(self):
+		frappe.db.set_single_value("Giving Settings", "currency", "GBP")
+		self.assertEqual(get_currency(), "GBP")
+
+		frappe.db.set_single_value("Giving Settings", "currency", "")
+		get_default = frappe.db.get_default
+		for site_currency, expected in (("EUR", "EUR"), (None, "USD")):
+			with patch.object(
+				frappe.db,
+				"get_default",
+				lambda key, *args, value=site_currency: value
+				if key == "currency"
+				else get_default(key, *args),
+			):
+				self.assertEqual(get_currency(), expected)
+
+	def test_a_new_site_has_no_stored_currency(self):
+		self.assertIsNone(frappe.get_meta("Giving Settings").get_field("currency").default)
 
 
 class TestGivingSettingsPerChurch(FrappeTestCase):

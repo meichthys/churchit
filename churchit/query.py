@@ -7,16 +7,18 @@ The Query Builder ships the standard aggregates (``Sum``, ``Count``,
 ``Coalesce`` ...) in :mod:`frappe.query_builder.functions`. The functions here
 are the MariaDB-specific ones the reports in this app need, which the builder
 has no wrapper for.
+
+There is no ``CURDATE``: it reads the database clock, which can be a day off the
+site's time zone. Pass ``frappe.utils.getdate()`` as a value instead.
 """
 
 import calendar
 from datetime import timedelta
 
 from frappe.query_builder import Criterion
-from frappe.utils import getdate
+from frappe.utils import get_first_day_of_week, getdate
 from pypika import CustomFunction
 
-CurDate = CustomFunction("CURDATE", [])
 Date = CustomFunction("DATE", ["expression"])
 DateDiff = CustomFunction("DATEDIFF", ["end", "start"])
 Day = CustomFunction("DAY", ["date"])
@@ -33,14 +35,17 @@ TimestampDiff = CustomFunction("TIMESTAMPDIFF", ["unit", "start", "end"])
 
 
 def this_week():
-	"""The first and last day of the current Monday-to-Sunday week."""
-	monday = getdate() - timedelta(days=getdate().weekday())
-	return monday, monday + timedelta(days=6)
+	"""The first and last day of the current week.
+
+	The week starts on the site's first day of the week (System Settings, or the user's Language), as the
+	Weekly Metrics rows and the weekly charts do.
+	"""
+	start = get_first_day_of_week(getdate())
+	return start, start + timedelta(days=6)
 
 
 def falls_this_week(column):
-	"""Criterion: the month and day of *column* land in the current Monday-to-Sunday
-	week, in any year.
+	"""Criterion: the month and day of *column* land in the current week (`this_week`), in any year.
 
 	Anniversaries cannot be matched with ``WEEK(column) = WEEK(CURDATE())`` because
 	the week number of a given month and day drifts from one year to the next.
@@ -54,8 +59,8 @@ def month_day_this_week(month, day):
 	It compares (month, day) pairs, since a week across the new year is no single range.
 	In a common year, February 29 counts on the 28th.
 	"""
-	monday, _sunday = this_week()
-	dates = [monday + timedelta(days=offset) for offset in range(7)]
+	start, _end = this_week()
+	dates = [start + timedelta(days=offset) for offset in range(7)]
 	pairs = {(date.month, date.day) for date in dates}
 	pairs |= {
 		(2, 29) for date in dates if (date.month, date.day) == (2, 28) and not calendar.isleap(date.year)

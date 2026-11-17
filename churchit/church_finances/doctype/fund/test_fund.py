@@ -8,13 +8,20 @@ from frappe.database import get_db
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now
 
-from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
-from churchit.tests.helpers import RollbackEachTest
+from churchit.church_finances.doctype.fund.fund import (
+	add_transaction,
+	format_amount,
+	remove_transactions,
+	warn_of_negative_balance,
+)
+from churchit.tests.helpers import RollbackEachTest, make_two_churches
 
 
 class TestFund(FrappeTestCase):
 	def _make_fund(self, **values):
-		fund = frappe.get_doc({"doctype": "Fund", "fund": "Test Goal Fund", **values})
+		fund = frappe.get_doc(
+			{"doctype": "Fund", "fund": f"Test Goal Fund {frappe.generate_hash(length=6)}", **values}
+		)
 		fund.append(
 			"transactions",
 			{"amount": 250, "source_type": "Donation", "source": "TEST-DONATION"},
@@ -37,6 +44,41 @@ class TestFund(FrappeTestCase):
 		fund = self._make_fund(goal_amount=100)
 		# balance 250 / goal 100 -> 250%
 		self.assertEqual(fund.goal_progress, 250)
+
+
+class TestFundMessages(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		frappe.local.message_log = []
+		self.fund = frappe.get_doc({"doctype": "Fund", "fund": "_Test Message Fund"}).insert(
+			ignore_permissions=True
+		)
+
+	def test_an_amount_shows_in_the_site_currency(self):
+		get_default = frappe.db.get_default
+
+		def site_default(key, *args, **kwargs):
+			return "GBP" if key == "currency" else get_default(key, *args, **kwargs)
+
+		with patch.object(frappe.db, "get_default", side_effect=site_default):
+			amount = format_amount(-1402.5)
+
+		self.assertIn("£", amount)
+		self.assertIn("1,402.50", amount)
+		self.assertNotIn("$", amount)
+
+	def test_a_change_that_takes_a_fund_below_zero_warns_in_orange(self):
+		warn_of_negative_balance(self.fund.name, "{0} would be {1}.", -40)
+
+		[warning] = frappe.get_message_log()
+		self.assertEqual(warning["indicator"], "orange")
+		self.assertEqual(warning["title"], "Negative Fund Balance")
+		self.assertIn("_Test Message Fund", warning["message"])
+		self.assertIn(format_amount(-40), warning["message"])
+
+	def test_a_balance_that_stays_at_zero_or_above_says_nothing(self):
+		warn_of_negative_balance(self.fund.name, "{0} would be {1}.")
+		self.assertEqual(frappe.get_message_log(), [])
 
 
 def ledger_sum(fund):
@@ -166,3 +208,56 @@ class TestLedgerWriteAfterAWait(FrappeTestCase):
 			"select name, balance from `tabFund` where name in %s order by name", [self.funds]
 		)
 		self.assertEqual([tuple(row) for row in balances], [(self.funds[0], 5), (self.funds[1], 0)])
+
+
+class TestFundRules(RollbackEachTest):
+	def fund(self, **values):
+		return frappe.get_doc({"doctype": "Fund", "fund": "_Test Rules Fund", **values})
+
+	def test_a_second_fund_with_the_name_is_refused(self):
+		self.fund().insert(ignore_permissions=True)
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			self.fund().insert(ignore_permissions=True)
+
+		self.assertIn("There is already a fund called", str(caught.exception))
+
+	def test_a_goal_that_ends_before_it_starts_is_refused(self):
+		fund = self.fund(start_date="2026-06-01", end_date="2026-05-01")
+		self.assertRaises(frappe.ValidationError, fund.insert, ignore_permissions=True)
+
+	def test_a_stored_reversed_goal_can_still_be_saved(self):
+		fund = self.fund().insert(ignore_permissions=True)
+		frappe.db.set_value("Fund", fund.name, {"start_date": "2026-06-01", "end_date": "2026-05-01"})
+
+		fund = frappe.get_doc("Fund", fund.name)
+		fund.goal_amount = 500
+		fund.save(ignore_permissions=True)
+
+
+class TestFundNamesAcrossChurches(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_root, cls.branch_a, cls.branch_b = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def fund(self, church, **values):
+		return frappe.get_doc({"doctype": "Fund", "fund": "_Test Scoped Fund", "church": church, **values})
+
+	def test_two_churches_may_each_have_a_fund_with_one_name(self):
+		self.fund(self.branch_a).insert(ignore_permissions=True)
+		self.fund(self.branch_b).insert(ignore_permissions=True)
+
+	def test_a_shared_fund_takes_its_name_for_every_church(self):
+		self.fund(self.branch_a, is_shared=1).insert(ignore_permissions=True)
+
+		self.assertRaises(frappe.ValidationError, self.fund(self.branch_b).insert, ignore_permissions=True)
+
+	def test_sharing_a_fund_whose_name_another_church_uses_is_refused(self):
+		self.fund(self.branch_a).insert(ignore_permissions=True)
+		theirs = self.fund(self.branch_b).insert(ignore_permissions=True)
+
+		theirs.is_shared = 1
+
+		self.assertRaises(frappe.ValidationError, theirs.save, ignore_permissions=True)

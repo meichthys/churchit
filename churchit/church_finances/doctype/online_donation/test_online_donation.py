@@ -4,7 +4,6 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_year_ending, get_year_start, nowdate
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
@@ -48,8 +47,9 @@ def log_charge(gift, amount=None, status="Completed", currency="USD"):
 	).insert(ignore_permissions=True)
 
 
-class TestOnlineDonation(FrappeTestCase):
+class TestOnlineDonation(RollbackEachTest):
 	def setUp(self):
+		super().setUp()
 		ensure_online_payment_type()
 
 	def _make_fund(self):

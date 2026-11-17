@@ -23,6 +23,12 @@ frappe.ready(function () {
 		}
 	}
 
+	// Frappe titles every edit "Updated" over the form's own Success Title and Message.
+	frappe.web_form.after_save = () => {
+		$(".success-title").text(__("Saved"));
+		$(".success-message").text(__("Your details are saved."));
+	};
+
 	frappe.web_form.validate = () => {
 		for (const fieldname of Object.keys(value_fields)) {
 			for (const row of frappe.web_form.get_value(fieldname) || []) {

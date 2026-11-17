@@ -1,12 +1,10 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-from frappe import _
-
 
 def get_data() -> dict:
-	"""The Person form dashboard: the attendance heatmap from `person.get_timeline_data`.
+	"""The Person form dashboard. The Connections come from the doctype's `links`, which Frappe adds to this.
 
-	The Connections come from the doctype's `links`, which Frappe adds to this.
+	No heatmap: Frappe's bundled chart drops the latest weeks. The Connections tab shows the attendance fields.
 	"""
-	return {"heatmap": True, "heatmap_message": _("Functions attended in the last year.")}
+	return {}

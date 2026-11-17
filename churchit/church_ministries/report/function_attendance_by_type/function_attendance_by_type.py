@@ -4,7 +4,7 @@ from frappe.query_builder.functions import Count
 from frappe.utils import today
 
 from churchit.church_ministries.attendance import COUNTED_TYPES
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -12,7 +12,7 @@ def execute(filters=None):
 	filters = filters or {}
 	if filters.get("group"):
 		frappe.has_permission("Group", doc=filters["group"], throw=True)
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -44,10 +44,12 @@ def get_data(filters=None):
 		.select(
 			Attendance.parent.as_("function"),
 			Function.group,
+			Function.church,
 			Count(Attendance.person).as_("attendance_count"),
 		)
 		.where(Attendance.attendance_type.isin(COUNTED_TYPES) & (Function.start_date <= today()))
-		.groupby(Attendance.parent, Function.group)
+		.where(Function.auto_repeat == 0)
+		.groupby(Attendance.parent, Function.group, Function.church)
 	)
 	if filters.get("group"):
 		query = query.where(Function.group == filters["group"])

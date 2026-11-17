@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:type",
  "creation": "2025-08-31 23:41:14.325452",
- "description": "Types of church functions (i.e. Sunday services, community functions, private functions, etc.)",
+ "description": "The kinds of church gathering: for example Sunday service, community event or private event.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-ministries",
  "engine": "InnoDB",
@@ -62,7 +62,7 @@
    "link_fieldname": "type"
   }
  ],
- "modified": "2026-10-31 13:18:57.000000",
+ "modified": "2026-11-15 05:42:25.572430",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Function Type",

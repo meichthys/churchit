@@ -28,6 +28,7 @@
   "capacity_mode",
   "column_break_limits",
   "check_in_opens_minutes",
+  "adults_pre_check_in_adults",
   "church_printers_section",
   "printers"
  ],
@@ -180,7 +181,16 @@
    "show_description_on_click": 1
   },
   {
-   "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
+   "default": "0",
+   "description": "When checked, an Adult of a household may also choose the other adults of the same household on the My Household page, to check them in before they arrive. When not checked, each adult checks in only themselves and the children of their household.",
+   "fieldname": "adults_pre_check_in_adults",
+   "fieldtype": "Check",
+   "label": "Adults may pre check in other adults in their household",
+   "show_description_on_click": 1
+  },
+  {
+   "depends_on": "eval:frappe.boot.churchit && frappe.boot.churchit.multi_church",
+   "description": "The settings above apply to every church. A row here changes the printer for one church's station.",
    "fieldname": "church_printers_section",
    "fieldtype": "Section Break",
    "label": "Printers Per Church"
@@ -200,7 +210,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-31 13:19:19.000000",
+ "modified": "2026-11-17 00:27:33.405243",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Check-In Settings",

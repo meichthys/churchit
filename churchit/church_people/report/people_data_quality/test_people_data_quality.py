@@ -41,11 +41,17 @@ class TestPeopleDataQuality(RollbackEachTest):
 
 		self.assertEqual(problems(), set())
 
+	def test_a_person_with_no_family_is_listed_only_when_the_problem_is_picked(self):
+		lone = make_person("Solo", LAST_NAME, emails=[{"email_address": "solo.quality@example.com"}]).name
+
+		self.assertEqual(problems(), set())
+		self.assertEqual(problems({"problem": "No Family"}), {(lone, "No Family", None)})
+
 	def test_someone_with_no_contact_details_anywhere_cannot_be_reached(self):
 		reached_through_family = self.make("Kid")
 		lone = make_person("Lone", LAST_NAME).name
 
-		self.assertEqual(problems(), {(lone, "No Way to Reach", None), (lone, "No Family", None)})
+		self.assertEqual(problems(), {(lone, "No Way to Reach", None)})
 		self.assertNotIn(reached_through_family, {person for person, _problem, _detail in problems()})
 
 	def test_invalid_emails_and_phones_are_listed_with_their_value(self):

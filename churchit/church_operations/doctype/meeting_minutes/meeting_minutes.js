@@ -7,6 +7,14 @@ frappe.ui.form.on("Meeting Minutes", {
 			restrictions: { allowed_file_types: ["audio/*"] },
 		});
 	},
+	onload(frm) {
+		if (!frm.is_new() || frm.doc.recorded_by) return;
+
+		frappe.db.get_value("Person", { user: frappe.session.user }, "name").then((r) => {
+			if (r?.message?.name && !frm.doc.recorded_by)
+				frm.set_value("recorded_by", r.message.name);
+		});
+	},
 	refresh(frm) {
 		render_audio_player(frm);
 	},

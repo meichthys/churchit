@@ -13,6 +13,7 @@ import io
 import json
 import re
 import unicodedata
+from itertools import chain, islice
 
 import frappe
 import pythonbible
@@ -314,18 +315,23 @@ def iter_passage(reference: str, translation: str | None = None):
 
 
 def get_passage_text(reference: str, translation: str | None = None, limit: int | None = None) -> str:
-	"""A reference's verses as one line of numbered text, for print formats, web pages and memorizing.
+	"""A reference's verses as one line of text, for print formats, web pages and memorizing.
+
+	Verses are numbered, except a passage of one verse, whose number would read as part of the text.
 
 	With a limit, the text stops after the verse that passes that many characters, so a preview of
 	a whole book reads one chapter rather than all of them.
 	"""
+	entries = (verse for section in iter_passage(reference, translation) for verse in section["verses"])
+	first = list(islice(entries, 2))
+	numbered = len(first) > 1
 	verses, length = [], 0
-	for section in iter_passage(reference, translation):
-		for verse in section["verses"]:
-			verses.append(f"{verse['number']} {' '.join(verse['text'].split())}")
-			length += len(verses[-1]) + 1
-			if limit and length > limit:
-				return " ".join(verses) + " ..."
+	for verse in chain(first, entries):
+		text = " ".join(verse["text"].split())
+		verses.append(f"{verse['number']} {text}" if numbered else text)
+		length += len(verses[-1]) + 1
+		if limit and length > limit:
+			return " ".join(verses) + " ..."
 	return " ".join(verses)
 
 
@@ -370,9 +376,10 @@ def get_default_translation(church: str | None = None) -> str | None:
 def get_readable_translations() -> list[dict]:
 	"""Translations a reader may open: the church's default first, then by title. Reads only.
 
-	A Free Use Bible API translation is always offered, downloading its text the first time
-	someone opens it if that has not happened yet (see is_readable). A User Import is offered
-	once its text is ready, and only to a reader with permission on it.
+	A Free Use Bible API translation is offered while its text is ready or not downloaded yet, and
+	downloads the first time someone opens it (see is_readable). One that is downloading or failed
+	is left out. A User Import is offered once its text is ready, and only to a reader with
+	permission on it.
 	"""
 	default = get_default_translation()
 	translations = frappe.get_all(
@@ -383,7 +390,7 @@ def get_readable_translations() -> list[dict]:
 	selectable = [
 		translation
 		for translation in translations
-		if translation.source == FREE_USE_BIBLE_API
+		if (translation.source == FREE_USE_BIBLE_API and translation.status in ("Ready", "No Text"))
 		or (translation.status == "Ready" and frappe.has_permission(TRANSLATION, "read", translation.name))
 	]
 	return sorted(selectable, key=lambda translation: translation.name != default)

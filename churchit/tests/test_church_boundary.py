@@ -26,7 +26,7 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 from churchit.church_ministries.page.check_in.check_in import get_check_ins, search_people
 from churchit.church_people.group_api import join_group
 from churchit.church_prayers.number_card.prayer_request_comments import prayer_request_comments
-from churchit.church_scope import SHARED
+from churchit.church_scope import SHARED, refuse_another_churches_fund
 from churchit.tests.helpers import (
 	ensure,
 	ensure_root_church,
@@ -210,6 +210,21 @@ class TestChurchBoundary(FrappeTestCase):
 		email.group = group.name
 		with self.assertRaisesRegex(frappe.ValidationError, "belongs to another church"):
 			email.insert()
+
+	def test_a_refused_fund_is_named_by_its_title_only_to_a_reader_of_it(self):
+		"""FUND-0005 told nobody which fund it was, but a guessed name must not reveal another church's fund."""
+		title = "_Test Boundary Fund B"
+		fund = ensure("Fund", {"fund": title}, {"fund": title, "church": self.branch_b})
+		paying = frappe._dict(church=self.branch_a)
+
+		with self.assertRaisesRegex(frappe.PermissionError, f"Fund <strong>{title}</strong> belongs"):
+			refuse_another_churches_fund(paying, fund)
+
+		frappe.set_user(self.manager_a)
+		with self.assertRaises(frappe.PermissionError) as refused:
+			refuse_another_churches_fund(paying, fund)
+		self.assertIn(fund, str(refused.exception))
+		self.assertNotIn(title, str(refused.exception))
 
 	def test_the_comment_card_counts_only_the_readers_prayer_requests(self):
 		"""Comment carries no church, so the count is anchored to the request."""

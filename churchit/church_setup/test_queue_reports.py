@@ -20,6 +20,8 @@ from churchit.tests.test_workspace_hygiene import shipped_workspaces
 # Reports whose saved filters the Report view puts in another order, so they open as 'Not Saved'.
 REPORTS_OUT_OF_ORDER = {}
 
+TITLE_FIELDS = {"title", "purpose", "full_name", "person_name", "donor_name", "subject"}
+
 
 def listed(report_name: str) -> list[str]:
 	"""The names a saved report shows, in its own order."""
@@ -116,6 +118,25 @@ class TestQueueReports(RollbackEachTest):
 			if (order := get_report_view_order(report.ref_doctype, saved)) != saved:
 				found[name] = [condition[1] for condition in order]
 		assert_list_ratchet(self, found, REPORTS_OUT_OF_ORDER, "A report saves its filters out of order")
+
+	def test_a_list_of_records_that_are_not_submitted_does_not_save_the_docstatus_column(self):
+		"""The Report view drops that column for such a doctype, so the saved fields would differ."""
+		found = []
+		for name in get_report_builder_reports():
+			doctype = frappe.db.get_value("Report", name, "ref_doctype")
+			fields = json.loads(frappe.db.get_value("Report", name, "json"))["fields"]
+			if doctype in ("Person", "Function") and ["docstatus", doctype] in fields:
+				found.append(name)
+		self.assertEqual(found, [])
+
+	def test_the_title_column_of_each_list_is_wide_enough_to_read(self):
+		narrow = []
+		for name in get_report_builder_reports():
+			widths = json.loads(frappe.db.get_value("Report", name, "json"))["column_widths"]
+			for fieldname in TITLE_FIELDS & set(widths):
+				if widths[fieldname] < 200:
+					narrow.append((name, fieldname))
+		self.assertEqual(narrow, [])
 
 	def test_a_docstatus_filter_is_saved_as_text(self):
 		"""The filter box drops `docstatus = 0` as a number, so the report would list every record."""

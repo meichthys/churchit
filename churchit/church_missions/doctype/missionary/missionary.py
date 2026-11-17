@@ -9,9 +9,11 @@ from frappe.model.document import Document
 from frappe.utils import add_days, add_months, add_years, getdate, today
 
 from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_missions.doctype.missionary_status.missionary_status import INACTIVE
 from churchit.church_people.geocoding import get_coordinates, is_address_lookup_on
 from churchit.church_scope import church_filters
 from churchit.contacts import validate_contact_tables
+from churchit.unique_names import refuse_a_second_with_this_name
 
 # Maps each Missionary Support Frequency to the function that advances a date by
 # one period. Keyed off the frequency record names seeded in
@@ -25,6 +27,14 @@ FREQUENCY_STEP = {
 	"Yearly": lambda d: add_years(d, 1),
 }
 
+SUPPORT_FIELDS = (
+	"auto_create_expenses",
+	"support_amount",
+	"support_frequency",
+	"support_start_date",
+	"expense_type",
+)
+
 # Safety cap so a misconfigured start date can never spin forever.
 MAX_EXPENSES_PER_RUN = 1000
 
@@ -32,6 +42,10 @@ MAX_EXPENSES_PER_RUN = 1000
 class Missionary(Document):
 	def validate(self):
 		validate_contact_tables(self)
+		refuse_a_second_with_this_name(
+			self, "title", _("There is already a missionary called {0}. Give this missionary another name.")
+		)
+		self.validate_support_dates()
 
 		if self.auto_create_expenses:
 			if not self.support_amount or self.support_amount <= 0:
@@ -41,6 +55,37 @@ class Missionary(Document):
 					f"Support Frequency '{self.support_frequency}' is not supported for "
 					"auto-creating expenses."
 				)
+
+	def validate_support_dates(self):
+		"""Refuse a support end before its start, when this save sets either."""
+		changed = (
+			self.is_new()
+			or self.has_value_changed("support_start_date")
+			or self.has_value_changed("support_end_date")
+		)
+		if (
+			changed
+			and self.support_start_date
+			and self.support_end_date
+			and getdate(self.support_end_date) < getdate(self.support_start_date)
+		):
+			frappe.throw(_("The Support End Date cannot be before the Support Start Date."))
+
+	def on_update(self):
+		if not self.auto_create_expenses:
+			return
+
+		if not any(self.has_value_changed(field) for field in SUPPORT_FIELDS):
+			return
+
+		frappe.enqueue(
+			_create_due_expenses,
+			missionary_name=self.name,
+			job_id=f"missionary-expenses-{frappe.local.site}-{self.name}",
+			deduplicate=True,
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(_("Draft expenses are being made."), alert=True, indicator="green")
 
 	@frappe.whitelist(methods=["POST"])
 	def add_family(self, family: str) -> list[str]:
@@ -71,7 +116,7 @@ def get_map_markers() -> list[dict]:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_public_map_markers() -> dict:
-	"""Published, non-sensitive missionaries with a Location set, for the public Missions map. Reads only.
+	"""Published, non-sensitive, not Inactive missionaries with a Location set, for the public Missions map. Reads only.
 
 	Also reports how many otherwise-mappable missionaries were hidden for being sensitive,
 	so the page can note that some locations are intentionally not shown.
@@ -79,12 +124,15 @@ def get_public_map_markers() -> dict:
 	church = selected_church_name()
 	missionaries = frappe.get_list(
 		"Missionary",
-		filters=church_filters(church, geolocation=["is", "set"], publish=1, sensitive=0),
+		filters=church_filters(
+			church, geolocation=["is", "set"], publish=1, sensitive=0, status=["!=", INACTIVE]
+		),
 		fields=["title", "photo", "country", "geolocation"],
 		ignore_permissions=True,
 	)
 	hidden_count = frappe.db.count(
-		"Missionary", church_filters(church, geolocation=["is", "set"], publish=1, sensitive=1)
+		"Missionary",
+		church_filters(church, geolocation=["is", "set"], publish=1, sensitive=1, status=["!=", INACTIVE]),
 	)
 	return {"markers": _build_markers(missionaries), "hidden_count": hidden_count}
 

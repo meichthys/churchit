@@ -5,7 +5,7 @@
    "label": "Sermons by Month"
   }
  ],
- "content": "[{\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i>\", \"col\": 12}}, {\"id\": \"g8CNKH3aRO\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Study\", \"col\": 12}}, {\"id\": \"bibleShortcut\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bible\", \"col\": 4}}, {\"id\": \"ZQz8Pr7Ozj\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Sermons\", \"col\": 4}}, {\"id\": \"sermonsByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Sermons by Month\", \"col\": 12}}]",
+ "content": "[{\"id\": \"OGTcXJ9p_P\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"All Scripture is God-breathed and is useful for instruction, for conviction, for correction, and for training in righteousness,\\nso that the man of God may be complete, fully equipped for every good work.\\\"</i> (2 Timothy 3:16-17)\", \"col\": 12}}, {\"id\": \"g8CNKH3aRO\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Study\", \"col\": 12}}, {\"id\": \"bibleShortcut\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Bible\", \"col\": 4}}, {\"id\": \"ZQz8Pr7Ozj\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Sermons\", \"col\": 4}}, {\"id\": \"sermonsByMonth\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Sermons by Month\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.783659",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Study",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-15 02:04:32.962252",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Study",

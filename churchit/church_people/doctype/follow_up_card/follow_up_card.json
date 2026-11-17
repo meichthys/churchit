@@ -162,11 +162,12 @@
  "links": [
   {
    "group": "Action Runs",
+   "hidden": 1,
    "link_doctype": "Follow-up Action Run",
    "link_fieldname": "card"
   }
  ],
- "modified": "2026-10-31 13:25:20.000000",
+ "modified": "2026-11-15 15:08:10.023147",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Follow-up Card",

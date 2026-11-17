@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import set_request
+from frappe.website.serve import get_response
 
 from churchit.church_foundations.doctype.church.church import get_church
 from churchit.tests.helpers import make_address
@@ -35,7 +37,7 @@ class TestContactPage(FrappeTestCase):
 
 	def test_shows_the_church_address_by_default(self):
 		context = get_context(frappe._dict())
-		self.assertEqual(context["address_title"], "_Test Church Contact")
+		self.assertEqual(context["address_title"], get_church().church_name)
 		self.assertEqual(context["address_line1"], "12 Chapel Rd")
 		self.assertEqual(context["city"], "Springfield")
 		self.assertEqual(context["phone"], "555-0100")
@@ -53,3 +55,34 @@ class TestContactPage(FrappeTestCase):
 		context = get_context(frappe._dict())
 		self.assertIsNone(context["address_line1"])
 		self.assertIsNone(context["city"])
+
+	def test_every_field_has_a_label(self):
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		set_request(method="GET", path="contact")
+
+		html = get_response("contact").get_data(as_text=True)
+
+		for field in ("subject", "email", "message"):
+			self.assertIn(f'<label for="contact-{field}">', html)
+			self.assertIn(f'id="contact-{field}"', html)
+
+	def column_heading(self):
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		set_request(method="GET", path="contact")
+		html = get_response("contact").get_data(as_text=True)
+		column = html.partition('itemtype="https://schema.org/PostalAddress">')[2]
+		return column.partition("</h4>")[0].rpartition(">")[2]
+
+	def test_the_column_names_the_church_unless_the_settings_give_another_address(self):
+		self.assertEqual(self.column_heading(), get_church().church_name)
+
+		contact_settings(contact_address_differs=1, address_title=None)
+		self.assertEqual(self.column_heading(), "Address")
+
+		contact_settings(contact_address_differs=0)
+		church = fresh_church()
+		church.address = None
+		church.save(ignore_permissions=True)
+		self.assertEqual(self.column_heading(), get_church().church_name)

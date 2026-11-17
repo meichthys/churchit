@@ -1,7 +1,9 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Living people whose records need someone's attention, one row for each problem found."""
+"""Living people whose records need someone's attention, one row for each problem found.
+
+No Family shows only when the Problem filter picks it, because a person with no family is a household of one."""
 
 import frappe
 from frappe import _
@@ -10,7 +12,7 @@ from frappe.utils import validate_email_address
 from churchit.church_people.derived import CHILD
 from churchit.church_people.matching import OPEN, POSSIBLE_DUPLICATE
 from churchit.church_people.membership import living_people_filter
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.contacts import ADDRESS_DOCTYPE, EMAIL_DOCTYPE, PHONE_DOCTYPE, phone_digits
 from churchit.utils import set_report_link_titles
 
@@ -28,7 +30,7 @@ PHONE_DIGITS_RANGE = range(7, 16)
 
 def execute(filters=None):
 	filters = filters or {}
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -60,9 +62,17 @@ def get_data(filters):
 	}
 	if filters.get("problem"):
 		checks = {filters["problem"]: checks[filters["problem"]]}
+	else:
+		del checks[NO_FAMILY]
 
 	rows = [
-		{"person": person, "problem": _(problem), "detail": detail, "family": people[person].family}
+		{
+			"person": person,
+			"problem": _(problem),
+			"detail": detail,
+			"family": people[person].family,
+			"church": people[person].church,
+		}
 		for problem, check in checks.items()
 		for person, detail in check(people)
 	]
@@ -74,7 +84,9 @@ def get_people(filters) -> dict[str, frappe._dict]:
 	Person = frappe.qb.DocType("Person")
 	query = (
 		frappe.qb.from_(Person)
-		.select(Person.name, Person.full_name, Person.family, Person.life_stage, Person.birth_date)
+		.select(
+			Person.name, Person.church, Person.full_name, Person.family, Person.life_stage, Person.birth_date
+		)
 		.where(living_people_filter(Person))
 	)
 	return {person.name: person for person in scoped(query, Person, filters).run(as_dict=True)}

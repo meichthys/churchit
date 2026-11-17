@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:42:09.000000",
+ "modified": "2026-11-15 05:42:12.264035",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Contact Us Settings",
@@ -17,7 +17,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "The address that receives messages sent from <code>/contact</code>. Set it to a mailbox somebody actually reads, an office account rather than one person's.",
+   "description": "The address that gets the messages sent from the Contact page. Use a mailbox that someone reads, such as an office address, and not the address of one person.",
    "fieldname": "forward_to_email",
    "fieldtype": "Data",
    "has_next_condition": 0,
@@ -35,7 +35,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The few lines above the form. Churchit writes a neutral welcome at install; replace it with your own and say how quickly someone will reply.",
+   "description": "The few lines above the form. A new site has a neutral welcome. Replace it with your own text, and say how soon someone will reply.",
    "fieldname": "introduction",
    "fieldtype": "Text Editor",
    "has_next_condition": 0,
@@ -53,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "One subject per line; the visitor picks one, and it is how you tell a prayer request from a booking enquiry. Churchit seeds a church-shaped list at install.",
+   "description": "One subject on each line. The visitor picks one, so you can tell a prayer request from a booking question. A new site has a list of church subjects.",
    "fieldname": "query_options",
    "fieldtype": "Small Text",
    "has_next_condition": 0,

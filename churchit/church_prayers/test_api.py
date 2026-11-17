@@ -21,6 +21,7 @@ class TestPrayerApi(FrappeTestCase):
 				"doctype": "Prayer Request",
 				"title": "_Test Public Request",
 				"type": ensure("Prayer Request Type", {"type": "Health"}),
+				"visibility": "Whole Church",
 			}
 		).insert(ignore_permissions=True)
 

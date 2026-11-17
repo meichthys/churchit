@@ -25,6 +25,7 @@ from churchit.church_people.merge import (
 	take_import_id,
 	typed_fields,
 )
+from churchit.church_people.repeated_rows import refuse_repeated_people
 from churchit.church_scope import has_church_access, is_multi_church
 from churchit.contacts import validate_contact_tables
 
@@ -34,12 +35,15 @@ class Family(Document):
 		# First, so the controller's own changes below are not taken for a member's.
 		refuse_member_edits_beyond_photo(self)
 		validate_contact_tables(self)
+		refuse_repeated_people(self, "members", "member")
 		self.member_count = len(self.member_names)
 		if self.primary_contact and self.primary_contact not in self.member_names:
 			frappe.throw(_("The Primary Contact must be one of the Family Members."))
 		self.follow_primary_contacts_church()
 		self.refuse_another_churches_primary_contact()
 		self.refuse_another_churches_members()
+		# After the church check, so the refusal never names another church's household.
+		self.refuse_members_of_another_household()
 		previous = self.replaced_primary_contact
 		if previous:
 			self.relabel_members(previous)
@@ -209,6 +213,34 @@ class Family(Document):
 					"Row {0}: {1} belongs to another church, so only that church can add them to a family."
 				).format(member.idx, frappe.bold(escape_html(member.member))),
 				frappe.PermissionError,
+			)
+
+	def refuse_members_of_another_household(self):
+		"""Refuse a person this save adds who is on the roster of another household.
+
+		Writes with ignore_permissions are the app's own, such as a Person moving between families, which
+		leaves the old household first.
+		"""
+		if self.flags.ignore_permissions:
+			return
+		before = self.get_doc_before_save()
+		known = set(before.member_names) if before else set()
+		added = [name for name in dict.fromkeys(self.member_names) if name not in known]
+		if not added:
+			return
+		# church-scope: the households of people this user is adding, by name
+		rows = frappe.get_all(
+			"Family Members",
+			filters={"member": ["in", added], "parenttype": "Family", "parent": ["!=", self.name or ""]},
+			fields=["member", "parent"],
+		)
+		for row in rows:
+			person_name = frappe.db.get_value("Person", row.member, "full_name") or row.member
+			family_name = frappe.db.get_value("Family", row.parent, "family_name") or row.parent
+			frappe.throw(
+				_(
+					"{0} is in the household {1}. Remove them there first, or open their Person record and change Family."
+				).format(frappe.bold(escape_html(person_name)), frappe.bold(escape_html(family_name)))
 			)
 
 	def before_rename(self, old, new, merge=False):

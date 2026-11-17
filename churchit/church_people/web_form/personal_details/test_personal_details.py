@@ -13,8 +13,9 @@ from churchit.ai.switch import SETTINGS
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.member_access import PERSONAL_DETAILS, personal_details_fields
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
+from churchit.church_people.web_form.personal_details import personal_details as personal_details_form
 from churchit.church_website.published_fields import MEMBERS, published_field_map
-from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user
+from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_address
 
 SHARE_FIELDS = ("share_email", "share_phone", "share_address", "share_birthday")
 EDITOR = "_test_details_editor@example.com"
@@ -97,6 +98,26 @@ class TestPersonalDetails(RollbackEachTest):
 		fields = personal_details_fields()
 
 		self.assertTrue({"birthday", "hide_from_directory", *SHARE_FIELDS} <= fields)
+
+	def test_the_list_page_opens_the_members_own_record(self):
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.set_user(self.father_user)
+		frappe.local.form_dict = frappe._dict(is_list=1)
+
+		with self.assertRaises(frappe.Redirect):
+			personal_details_form.get_context(frappe._dict())
+
+		self.assertEqual(frappe.local.flags.redirect_location, f"/{PERSONAL_DETAILS}/{self.father}/edit")
+
+	def test_the_list_page_stays_for_a_user_without_a_person(self):
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.set_user("Administrator")
+		frappe.local.form_dict = frappe._dict(is_list=1)
+
+		personal_details_form.get_context(frappe._dict())
+
+	def test_the_form_cannot_print_the_office_view(self):
+		self.assertEqual(frappe.db.get_value("Web Form", PERSONAL_DETAILS, "allow_print"), 0)
 
 	def test_a_member_gives_their_birthday_and_directory_choices_on_the_form(self):
 		frappe.set_user(self.father_user)
@@ -205,6 +226,67 @@ class TestPersonalDetails(RollbackEachTest):
 			[section] = [f for f in context.web_form_doc.web_form_fields if f.fieldname == "ai_section"]
 			self.assertTrue(section.description.startswith(MEMBER_AI_STATES[state]), section.description)
 			self.assertIn("briefings", section.description, "The section's own help stays")
+
+	def open_own_form(self):
+		"""The Personal Details form's context as the father opens his own record."""
+		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
+		frappe.set_user(self.father_user)
+		frappe.local.form_dict = frappe._dict(name=self.father, is_edit=1)
+		frappe.local.path = f"{PERSONAL_DETAILS}/{self.father}/edit"
+		context = frappe._dict()
+		frappe.get_doc("Web Form", PERSONAL_DETAILS).get_context(context)
+		return {field.fieldname: field for field in context.web_form_doc.web_form_fields}
+
+	def test_the_type_columns_offer_every_type(self):
+		ensure("Email Type", {"type": "_Test Details Work"})
+		ensure("Phone Type", {"type": "_Test Details Office"})
+
+		fields = self.open_own_form()
+
+		for table, column, value in (
+			("emails", "email_type", "_Test Details Work"),
+			("phones", "phone_type", "_Test Details Office"),
+		):
+			[df] = [df for df in fields[table].fields if df["fieldname"] == column]
+			self.assertIn(value, df["options"], table)
+
+	def test_a_member_sees_their_addresses_but_the_office_changes_them(self):
+		fields = self.open_own_form()
+
+		self.assertEqual(fields["addresses"].read_only, 1)
+		self.assertIn("tell the church office", fields["addresses"].description)
+
+	def test_a_member_cannot_change_their_addresses_by_posting_them(self):
+		"""Frappe's accept sets a read-only field from the post too, so the server refuses the change."""
+		home, other = (make_address(f"_Test Details {title}").name for title in ("Home", "Other"))
+		father = frappe.get_doc("Person", self.father)
+		father.append("addresses", {"address": home})
+		father.save(ignore_permissions=True)
+		frappe.set_user(self.father_user)
+
+		accept(PERSONAL_DETAILS, form_values(self.father, alergies="_Test Pollen"))
+		for addresses in ([], [{"address": other}]):
+			with self.assertRaises(frappe.PermissionError):
+				accept(PERSONAL_DETAILS, form_values(self.father, addresses=addresses))
+
+		frappe.set_user("Administrator")
+		father.reload()
+		self.assertEqual(
+			(father.alergies, [row.address for row in father.addresses]), ("_Test Pollen", [home])
+		)
+
+	def test_the_directory_section_says_when_the_church_has_no_member_directory(self):
+		for enabled, wording in ((1, "What the other members"), (0, "has no Member Directory page")):
+			frappe.db.set_single_value("People Settings", "member_directory", enabled)
+			self.assertIn(wording, self.open_own_form()["directory_section"].description, enabled)
+
+	def test_a_save_says_the_details_are_saved_and_goes_back_to_the_household(self):
+		form = frappe.get_doc("Web Form", PERSONAL_DETAILS)
+
+		self.assertEqual(
+			(form.success_title, form.success_message, form.success_url),
+			("Saved", "Your details are saved.", "/household"),
+		)
 
 	def test_the_badge_marks_the_ai_choice_as_shown_to_members(self):
 		sources = published_field_map()["Person"]["exclude_from_ai"]

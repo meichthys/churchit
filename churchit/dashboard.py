@@ -2,11 +2,12 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.number_card.number_card import get_result
 from frappe.desk.query_report import get_report_doc
-from frappe.query_builder.functions import Count
+from frappe.query_builder.functions import Count, Sum
 from frappe.utils import (
 	add_days,
 	add_months,
 	add_to_date,
+	cint,
 	formatdate,
 	get_first_day,
 	get_first_day_of_week,
@@ -18,36 +19,33 @@ from frappe.utils import (
 	getdate,
 )
 
-from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people import smart_lists
 from churchit.church_scope import church_query_filters, scoped
 
 
 @frappe.whitelist(methods=["GET", "POST"])
 def count_weekly_attendance() -> dict:
-	"""Number card: attendance counted at Functions of the last seven days, in the reader's churches. Reads only."""
+	"""Number card: the attendance totals of this week's Functions so far, in the reader's churches. Reads only.
+
+	The week starts on the site's first day of the week, as the Weekly Metrics rows and the Attendance by Week
+	chart do, and `attendance_total` is the one counted rule.
+	"""
 	frappe.has_permission("Function", "report", throw=True)
-	today = frappe.utils.nowdate()
-	last_week = frappe.utils.add_days(today, -7)
+	today = getdate()
+	week_start = get_first_day_of_week(today)
 
-	Attendance = frappe.qb.DocType("Function Attendance")
 	Function = frappe.qb.DocType("Function")
-
 	query = (
-		frappe.qb.from_(Attendance)
-		.join(Function)
-		.on(Attendance.parent == Function.name)
-		.select(Count(Attendance.name))
-		.where((Function.start_date >= last_week) & (Function.start_date <= today))
-		.where(Attendance.attendance_type.isin(COUNTED_TYPES))
+		frappe.qb.from_(Function)
+		.select(Sum(Function.attendance_total))
+		.where(Function.start_date[week_start:today] & (Function.auto_repeat == 0))
 	)
-	count = scoped(query, Function, {}).run()[0][0]
 
 	return {
-		"value": count or 0,
+		"value": cint(scoped(query, Function, {}).run()[0][0]),
 		"fieldtype": "Int",
 		"route": ["List", "Function"],
-		"route_options": {"start_date": [">=", last_week]},
+		"route_options": {"start_date": ["between", [str(week_start), str(today)]], "auto_repeat": 0},
 	}
 
 
@@ -118,7 +116,9 @@ def count_in_readers_churches(doctype, filters):
 	# A child table filter joins one row per match, so count each record once.
 	distinct_records = Count(frappe.qb.DocType(doctype).name).distinct()
 	return {
-		"value": frappe.qb.get_query(doctype, filters=rows, fields=[distinct_records]).run()[0][0],
+		"value": frappe.qb.get_query(
+			doctype, filters=rows, fields=[distinct_records], db_query_compat=True
+		).run()[0][0],
 		"fieldtype": "Int",
 		"route": ["List", doctype],
 		"route_options": {row[1]: [row[2], row[3]] for row in rows},

@@ -243,7 +243,7 @@ class TestPayLink(SignUpPaymentTestCase):
 		settings = frappe.get_doc("Giving Settings")
 		settings.gateways = []
 		settings.save(ignore_permissions=True)
-		self.assertEqual(get_payment_link(held), {})
+		self.assertEqual(get_payment_link(held), {"amount_due": fmt_money(20, currency="USD")})
 
 
 class TestPaymentRequest(SignUpPaymentTestCase):

@@ -1,15 +1,16 @@
 import frappe
 from frappe import _
+from frappe.utils import getdate
 
 from churchit.church_people.doctype.family.family import primary_contacts
 from churchit.church_people.membership import living_people_filter
-from churchit.church_scope import scoped
-from churchit.query import CurDate, DayOfMonth, Month
+from churchit.church_scope import get_church_columns, scoped
+from churchit.query import DayOfMonth, Month
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -34,6 +35,7 @@ def get_data(filters=None):
 		.on(Spouse.name == Person.spouse)
 		.select(
 			Person.name,
+			Person.church,
 			Person.anniversary,
 			Person.anniversary_year_unknown,
 			Person.marriage_years,
@@ -41,7 +43,7 @@ def get_data(filters=None):
 		)
 		.where(
 			Person.anniversary.isnotnull()
-			& (Month(Person.anniversary) == Month(CurDate()))
+			& (Month(Person.anniversary) == getdate().month)
 			& Person.name.isin(primary_contacts())
 		)
 		.where(living_people_filter(Person) & (Spouse.name.isnull() | living_people_filter(Spouse)))

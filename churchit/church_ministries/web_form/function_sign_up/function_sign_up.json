@@ -1,6 +1,6 @@
 {
   "allow_comments": 0,
-  "allow_delete": 1,
+  "allow_delete": 0,
   "allow_edit": 1,
   "allow_incomplete": 0,
   "allow_multiple": 1,
@@ -24,25 +24,20 @@
       "label": "Function"
     },
     {
-      "fieldname": "person",
-      "fieldtype": "Link",
-      "label": "Person"
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status"
     },
     {
-      "fieldname": "attending",
-      "fieldtype": "Check",
-      "label": "Attending"
-    },
-    {
-      "fieldname": "title",
+      "fieldname": "attendee_names",
       "fieldtype": "Data",
-      "label": "Sign-Up Title"
+      "label": "Attendees"
     }
   ],
   "list_title": "Your Function Sign-Ups",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-11-06 03:59:45.000000",
+  "modified": "2026-11-15 13:28:47.984107",
   "modified_by": "Administrator",
   "module": "Church Ministries",
   "name": "function-sign-up",
@@ -52,6 +47,9 @@
   "show_attachments": 0,
   "show_list": 1,
   "show_sidebar": 1,
+  "success_message": "You are signed up. Your sign-ups list shows the status.",
+  "success_title": "Signed Up",
+  "success_url": "/function-sign-up/list",
   "title": "Function Sign-Up",
   "web_form_fields": [
     {
@@ -66,6 +64,20 @@
       "precision": "",
       "read_only": 0,
       "reqd": 1,
+      "show_in_filter": 0
+    },
+    {
+      "allow_read_on_all_link_options": 0,
+      "fieldname": "summary_display",
+      "fieldtype": "HTML",
+      "hidden": 0,
+      "label": "Your Sign-Up",
+      "max_length": 0,
+      "max_value": 0,
+      "options": "<div></div>",
+      "precision": "",
+      "read_only": 0,
+      "reqd": 0,
       "show_in_filter": 0
     },
     {

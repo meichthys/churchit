@@ -162,6 +162,16 @@ class TestDirectoryPage(RollbackEachTest):
 		for kept in (MARY_EMAIL, ROBERT_PHONE, "_Test Hidden", "_Test Late", "_Test Stranger"):
 			self.assertNotIn(kept, html)
 
+	def test_the_search_result_count_is_announced(self):
+		html = self.serve()
+
+		self.assertRegex(html, r'<p[^>]*id="directory-count"[^>]*role="status"')
+		self.assertIn("people shown", html)
+		self.assertEqual(html.count("No one matches your search."), 1)
+
+	def test_a_long_email_can_break_only_after_its_at_sign(self):
+		self.assertIn(f'href="mailto:{ROBERT_EMAIL}">{ROBERT_EMAIL.replace("@", "@<wbr>")}</a>', self.serve())
+
 	def view_as(self, key, **values):
 		"""Sign in as a new user whose Person in the member's church has *values*."""
 		frappe.set_user("Administrator")

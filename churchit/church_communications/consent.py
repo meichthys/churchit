@@ -82,23 +82,38 @@ def latest_statuses(people: list[str], channel: str, purpose: str | None = None)
 	At the same Recorded On the later entry wins. A yes for every purpose is skipped while
 	a no for *purpose* stands: only a later yes for *purpose* undoes that.
 	"""
+	return fold_statuses(get_consent_rows(people, channel, purpose), purpose)
+
+
+def get_consent_rows(
+	people: list[str], channel: str, purpose: str | None = None, *, every_purpose: bool = False
+) -> list[frappe._dict]:
+	"""The consent rows of *people* on *channel*, oldest first: blank or *purpose* ones, or all with *every_purpose*."""
 	Consent = frappe.qb.DocType("Communication Consent")
-	purposes = Consent.purpose.isnull() | (Consent.purpose == "")
-	if purpose:
-		purposes |= Consent.purpose == purpose
+	condition = Consent.person.isin(people) & (Consent.channel == channel)
+	if not every_purpose:
+		purposes = Consent.purpose.isnull() | (Consent.purpose == "")
+		if purpose:
+			purposes |= Consent.purpose == purpose
+		condition &= purposes
 	# church-scope: a person's consent counts wherever it was recorded
-	rows = (
+	return (
 		frappe.qb.from_(Consent)
 		.select(Consent.person, Consent.purpose, Consent.status)
-		.where(Consent.person.isin(people) & (Consent.channel == channel) & purposes)
+		.where(condition)
 		.orderby(Consent.recorded_on)
 		.orderby(Consent.creation)
 		.run(as_dict=True)
 	)
 
+
+def fold_statuses(rows: list[frappe._dict], purpose: str | None) -> dict[str, str]:
+	"""Each person's newest status among *rows* (oldest first) that are blank or name *purpose*."""
 	statuses: dict[str, str] = {}
 	withdrawn_for_purpose: set[str] = set()
 	for row in rows:
+		if row.purpose and row.purpose != purpose:
+			continue
 		if row.purpose and row.status == WITHDRAWN:
 			withdrawn_for_purpose.add(row.person)
 		elif row.purpose:
@@ -107,6 +122,19 @@ def latest_statuses(people: list[str], channel: str, purpose: str | None = None)
 			continue
 		statuses[row.person] = row.status
 	return statuses
+
+
+def allowed_for_purposes(person: str, channel: str, purposes: list[str]) -> dict[str, bool]:
+	"""{purpose: whether the church may contact *person* on *channel*}, from one read of their consent rows."""
+	# church-scope: deciding for a person the caller already chose; nothing here is shown
+	living = frappe.get_all(
+		"Person", filters=[{"name": person}, living_people_filter()], fields=["name", "church"]
+	)
+	if not living:
+		return {purpose: False for purpose in purposes}
+	rows = get_consent_rows([person], channel, every_purpose=True)
+	defaults = default_statuses(living, channel)
+	return {purpose: (defaults | fold_statuses(rows, purpose))[person] == GIVEN for purpose in purposes}
 
 
 def refused_values(values: list[str], channel: str) -> set[str]:

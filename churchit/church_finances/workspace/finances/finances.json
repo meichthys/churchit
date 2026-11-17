@@ -6,7 +6,7 @@
   },
   {
    "chart_name": "Giving by Fund",
-   "label": "Giving by Fund"
+   "label": "Giving by Fund (This Year)"
   },
   {
    "chart_name": "Expenses Over Time",
@@ -17,7 +17,7 @@
    "label": "Budget Summary"
   }
  ],
- "content": "[{\"id\": \"mncYXd3Fp_\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Which of you, wishing to build a tower, does not first sit down and count the cost to see if he has the resources to complete it?\\\"</i>\", \"col\": 12}}, {\"id\": \"GF0ykBf4ar\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Finances\", \"col\": 12}}, {\"id\": \"GifWitNoPer\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Gifts with No Person\", \"col\": 6}}, {\"id\": \"DonNeeRev\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Donations Needing Review\", \"col\": 6}}, {\"id\": \"PenExp\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Expenses\", \"col\": 6}}, {\"id\": \"PenAlmReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Alms Requests\", \"col\": 6}}, {\"id\": \"WeeGiv\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Weekly Giving\", \"col\": 12}}, {\"id\": \"GivByFun\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Giving by Fund\", \"col\": 6}}, {\"id\": \"Exp\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Expenses\", \"col\": 6}}, {\"id\": \"BudSum\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Budget Summary\", \"col\": 12}}]",
+ "content": "[{\"id\": \"mncYXd3Fp_\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Which of you, wishing to build a tower, does not first sit down and count the cost to see if he has the resources to complete it?\\\"</i> (Luke 14:28)\", \"col\": 12}}, {\"id\": \"GF0ykBf4ar\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Finances\", \"col\": 12}}, {\"id\": \"GifWitNoPer\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Gifts with No Person\", \"col\": 6}}, {\"id\": \"DonNeeRev\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Donations Needing Review\", \"col\": 6}}, {\"id\": \"PenExp\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Expenses\", \"col\": 6}}, {\"id\": \"PenAlmReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Pending Alms Requests\", \"col\": 6}}, {\"id\": \"WeeGiv\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Weekly Giving\", \"col\": 12}}, {\"id\": \"GivByFun\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Giving by Fund (This Year)\", \"col\": 6}}, {\"id\": \"Exp\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Expenses\", \"col\": 6}}, {\"id\": \"BudSum\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Budget Summary\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.652775",
  "custom_blocks": [],
  "docstatus": 0,
@@ -30,7 +30,7 @@
  "is_hidden": 0,
  "label": "Finances",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-15 18:22:20.351862",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",

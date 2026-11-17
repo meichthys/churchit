@@ -15,13 +15,13 @@ from pypika import Order
 from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_people.membership import living_people_filter
 from churchit.church_people.summaries import same_church
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	if not filters.from_date:
 		return columns, []
 	data = get_data(filters)
@@ -54,11 +54,12 @@ def get_data(filters: frappe._dict) -> list[dict]:
 			Person.name.as_("person"),
 			times_attended.as_("times_attended"),
 			Max(Function.start_date).as_("last_attended"),
+			Person.church,
 		)
 		.where(Attendance.attendance_type.isin(COUNTED_TYPES))
-		.where(Function.start_date.between(getdate(filters.from_date), to_date))
+		.where(Function.start_date.between(getdate(filters.from_date), to_date) & (Function.auto_repeat == 0))
 		.where(same_church(Function, Person) & living_people_filter(Person))
-		.groupby(Person.name)
+		.groupby(Person.name, Person.church)
 		.having(times_attended >= max(cint(filters.min_times), 1))
 		.orderby(times_attended, order=Order.desc)
 		.orderby(Person.name)

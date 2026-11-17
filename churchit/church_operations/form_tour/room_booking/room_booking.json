@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-26 16:41:42.000000",
+ "modified": "2026-11-15 05:40:15.427908",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",
@@ -16,6 +16,24 @@
  "reference_doctype": "Room Booking",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "Say what the room is for, such as 'Youth group'. It is required.",
+   "fieldname": "purpose",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Purpose",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.purpose",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Purpose",
+   "ui_tour": 0
+  },
   {
    "description": "A clash with another booking of the same room refuses to save, so the diary cannot double-book itself. When the room asks questions, they open in a dialog, and the answers are kept in <b>Answers</b>.<br><br><b>Pick a Room to continue.</b>",
    "fieldname": "room",
@@ -68,6 +86,24 @@
    "popover_element": 0,
    "position": "Bottom",
    "title": "When",
+   "ui_tour": 0
+  },
+  {
+   "description": "When the booking ends. It is required.",
+   "fieldname": "end_datetime",
+   "fieldtype": "Datetime",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "End",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.end_datetime",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "End",
    "ui_tour": 0
   },
   {

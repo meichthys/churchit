@@ -7,8 +7,10 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 	CHILD_SAFETY,
 	CHURCH_NEWS,
 	PASTORAL_CARE,
+	STARTER_PURPOSES,
 	create_communication_purposes,
 )
+from churchit.patches.v1_0.reword_church_news_purpose import SHIPPED, execute
 from churchit.tests.helpers import RollbackEachTest
 
 
@@ -29,3 +31,19 @@ class TestCommunicationPurpose(RollbackEachTest):
 		frappe.get_doc({"doctype": "Communication Purpose", "purpose": "_Test Youth News"}).insert()
 		frappe.delete_doc("Communication Purpose", "_Test Youth News")
 		self.assertFalse(frappe.db.exists("Communication Purpose", "_Test Youth News"))
+
+	def test_the_old_church_news_wording_is_replaced_and_an_edit_stays(self):
+		create_communication_purposes()
+		frappe.db.set_value("Communication Purpose", CHURCH_NEWS, "description", SHIPPED)
+		execute()
+		execute()
+		self.assertEqual(
+			frappe.db.get_value("Communication Purpose", CHURCH_NEWS, "description"),
+			STARTER_PURPOSES[CHURCH_NEWS],
+		)
+
+		frappe.db.set_value("Communication Purpose", CHURCH_NEWS, "description", "Our own words")
+		execute()
+		self.assertEqual(
+			frappe.db.get_value("Communication Purpose", CHURCH_NEWS, "description"), "Our own words"
+		)

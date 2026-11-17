@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "amount",
  "creation": "2026-03-16 00:00:00.000000",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Expense",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Total Expenses",
- "modified": "2026-03-17 00:00:00.000000",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Total Expenses",

@@ -14,6 +14,11 @@ from frappe.website.utils import clear_website_cache
 from churchit.church_foundations import church_access
 from churchit.church_scope import root_church
 from churchit.church_setup import multi_church
+from churchit.church_setup.doctype.church_features.user_dock import (
+	get_sidebars_of_modules,
+	set_dock_flags,
+	sync_user_dock,
+)
 from churchit.church_website.pages import sync_page_switches
 
 # Check fieldname on Church Features -> the churchit modules it switches. Setup
@@ -39,7 +44,11 @@ ALWAYS_ON_MODULES = {
 
 
 class ChurchFeatures(Document):
+	def onload(self):
+		self.set_onload("has_every_church", church_access.has_every_church(frappe.session.user))
+
 	def validate(self):
+		church_access.refuse_changing_shared_settings(self)
 		if cint(self.enable_multi_church) and not root_church():
 			frappe.throw(_("Create the Church record before enabling Multi-Church."))
 		if self.multi_church_changed_to(False) and frappe.db.count("Church") > 1:
@@ -129,21 +138,18 @@ class ChurchFeatures(Document):
 		"""Hide the dock entries of the disabled modules, for the site and in each user's own dock.
 
 		A user's own arrangement is laid over the site's and wins, so every
-		Churchit layer gets the flag. Returns the entries this page hid.
+		Churchit layer gets the flag. Each user's layer also keeps the entries that user cannot
+		use hidden (`user_dock`). Returns the entries this page hid.
 		"""
-		should_hide = set()
-		if disabled_modules:
-			should_hide = set(
-				frappe.get_all("Sidebar", filters={"module": ("in", sorted(disabled_modules))}, pluck="name")
-			)
+		should_hide = get_sidebars_of_modules(disabled_modules)
 		previously_hidden = set(previously_hidden)
 		reveal = previously_hidden - should_hide
 
 		managed = (previously_hidden & should_hide) | self.sync_site_dock(should_hide, reveal)
-		for name in frappe.get_all(
-			"Dock", filters={"app": "churchit", "standard": 0, "user": ("!=", "")}, pluck="name"
+		for user in frappe.get_all(
+			"Dock", filters={"app": "churchit", "standard": 0, "user": ("!=", "")}, pluck="user"
 		):
-			set_dock_flags(frappe.get_doc("Dock", name), should_hide, reveal)
+			sync_user_dock(user, should_hide, reveal)
 
 		return sorted(managed)
 
@@ -187,23 +193,6 @@ class ChurchFeatures(Document):
 				frappe.db.set_value(doctype, name, fieldname, 0)
 
 		return sorted(managed)
-
-
-def set_dock_flags(dock, hide, reveal, save=False):
-	"""Hide the `hide` sidebars on one dock layer and show the `reveal` ones. Returns the entries it hid."""
-	hidden = set()
-	for row in dock.items:
-		wanted = 1 if row.link_to in hide else 0 if row.link_to in reveal else cint(row.hidden)
-		if row.link_type != "Sidebar" or wanted == cint(row.hidden):
-			continue
-		row.hidden = wanted
-		save = True
-		if wanted:
-			hidden.add(row.link_to)
-
-	if save:
-		dock.save(ignore_permissions=True)
-	return hidden
 
 
 def apply_on_migrate():

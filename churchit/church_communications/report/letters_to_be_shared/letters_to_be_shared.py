@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce
 
 from churchit.church_scope import church_filter
@@ -23,8 +24,8 @@ def get_columns():
 			"options": "parenttype",
 			"width": 150,
 		},
-		{"fieldname": "date", "fieldtype": "Date", "label": _("Received"), "width": 100},
-		{"fieldname": "is_private", "fieldtype": "Check", "label": _("Private?"), "width": 80},
+		{"fieldname": "date", "fieldtype": "Date", "label": _("Date"), "width": 110},
+		{"fieldname": "is_private", "fieldtype": "Check", "label": _("Private"), "width": 100},
 		{"fieldname": "file", "fieldtype": "Data", "label": _("File"), "width": 200},
 		{"fieldname": "content", "fieldtype": "Data", "label": _("Content"), "width": 300},
 	]
@@ -44,8 +45,13 @@ def get_data(filters=None):
 			Letter.content,
 			Letter.name,
 		)
-		.where((Letter.share_with_church == 1) & Letter.shared_date.isnull())
+		.where((Letter.share_with_church == 1) & (Letter.is_private == 0) & Letter.shared_date.isnull())
+		.orderby(Letter.date, order=Order.desc)
 	)
+	if filters and filters.get("from_date"):
+		query = query.where(Letter.date >= filters["from_date"])
+	if filters and filters.get("to_date"):
+		query = query.where(Letter.date <= filters["to_date"])
 	churches = church_filter(filters)
 	if churches is not None:
 		query = query.where(

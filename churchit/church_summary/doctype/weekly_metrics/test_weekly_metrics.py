@@ -14,6 +14,7 @@ from churchit.tests.helpers import (
 )
 
 WEEK = get_first_day_of_week("2025-03-12")
+WEEK_TEXT = "Sunday, March 9, 2025"
 
 
 def get_title(church):
@@ -31,7 +32,12 @@ class TestWeeklyMetricsTitleOneChurch(RollbackEachTest):
 	def test_a_row_is_titled_with_its_week(self):
 		metrics.record_week(WEEK)
 
-		self.assertEqual(get_title(self.root), str(WEEK))
+		self.assertEqual(get_title(self.root), WEEK_TEXT)
+
+	def test_the_name_keeps_the_church_and_the_iso_date(self):
+		metrics.record_week(WEEK)
+
+		self.assertTrue(frappe.db.exists("Weekly Metrics", f"{self.root}-{WEEK}"))
 
 	def test_the_patch_titles_a_row_written_before_titles(self):
 		metrics.record_week(WEEK)
@@ -39,7 +45,7 @@ class TestWeeklyMetricsTitleOneChurch(RollbackEachTest):
 
 		set_weekly_metrics_titles.execute()
 
-		self.assertEqual(get_title(self.root), str(WEEK))
+		self.assertEqual(get_title(self.root), WEEK_TEXT)
 
 
 class TestWeeklyMetricsTitleTwoChurches(RollbackEachTest):
@@ -54,5 +60,5 @@ class TestWeeklyMetricsTitleTwoChurches(RollbackEachTest):
 
 		self.assertEqual(
 			[get_title(self.branch_a), get_title(self.branch_b)],
-			[f"{WEEK}, TSA", f"{WEEK}, TSB"],
+			[f"{WEEK_TEXT}, TSA", f"{WEEK_TEXT}, TSB"],
 		)

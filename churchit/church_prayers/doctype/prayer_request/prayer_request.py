@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import today
 
 from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
 from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
@@ -14,6 +15,7 @@ from churchit.church_prayers.prayer_access import (
 )
 from churchit.utils import resolve_link_titles
 
+ANSWERED = "Answered"
 PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
 PRAYER_TEAM_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} prayer request: {{ doc.title }}"
 PRAYER_TEAM_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
@@ -67,9 +69,18 @@ class PrayerRequest(Document):
 		else:
 			self.recipient_name = None
 
+		self.set_answered_on()
+
 		if not self.is_new():
 			# Only prayer.recount_prayers writes the count, so a form opened before a prayer cannot undo it.
 			self.prayer_count = frappe.db.get_value(self.doctype, self.name, "prayer_count", for_update=True)
+
+	def set_answered_on(self):
+		"""Keep the day the request turned Answered, so a later edit does not count it again."""
+		if self.status != ANSWERED:
+			self.answered_on = None
+		elif not self.answered_on or self.has_value_changed("status"):
+			self.answered_on = today()
 
 	def validate_public_church(self):
 		"""Keep a website request to a church the site actually offers.

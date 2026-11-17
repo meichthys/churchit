@@ -93,6 +93,17 @@ class TestFooterChurch(FrappeTestCase):
 		self.assertNotIn("footer-top", html)
 		self.assertNotIn("footer-links", html)
 
+	def test_the_links_have_a_name_that_tells_them_from_the_menu(self):
+		html = frappe.render_template(
+			"templates/includes/footer/footer.html",
+			{
+				"footer_church": None,
+				"footer_items": [{"label": "Portal", "url": "/portal"}],
+				"copyright": None,
+			},
+		)
+		self.assertIn('<nav class="footer-links" aria-label="Footer">', html)
+
 
 class TestRemoveMyAccountFooterLink(FrappeTestCase):
 	def test_only_the_shipped_row_is_removed(self):

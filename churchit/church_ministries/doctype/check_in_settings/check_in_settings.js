@@ -11,8 +11,27 @@ frappe.ui.form.on("Check-In Settings", {
 		}));
 		frm.add_custom_button(__("Print Test Tag"), () => print_test_tag(frm));
 		frm.add_custom_button(__("Open Check-In Station"), () => frappe.set_route("check-in"));
+		lock_shared_settings(frm);
 	},
 });
+
+// The server refuses what a church may not change (church_access.refuse_changing_shared_settings):
+// a user who does not work across every church changes only their own church's printer row.
+function lock_shared_settings(frm) {
+	if (frm.doc.__onload?.has_every_church !== false) return;
+	for (const df of frm.meta.fields) {
+		if (df.fieldname !== "printers") frm.set_df_property(df.fieldname, "read_only", 1);
+	}
+	frm.set_query("church", "printers", () => ({
+		filters: { name: ["in", frappe.boot.churchit.churches] },
+	}));
+	frm.set_intro(
+		__(
+			"These settings apply to every church. Only someone who works across every church can change them. Add or change the row of your own church under Printers Per Church."
+		),
+		"blue"
+	);
+}
 
 function print_test_tag(frm) {
 	if (frm.is_dirty()) {

@@ -14,6 +14,9 @@ frappe.listview_settings["Person"] = {
 		return [__(status), colors[status] || "blue", `membership_status,=,${status}`];
 	},
 	onload(listview) {
+		// Every church's people show here, so desk.css keeps the Church filter even for one church.
+		if (frappe.boot.churchit.shared_people)
+			listview.page.wrapper.addClass("churchit-shared-people");
 		listview.page.add_inner_button(__("Rolodex"), () => {
 			frappe.route_options = { view: "people" };
 			frappe.set_route("rolodex");

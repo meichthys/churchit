@@ -5,7 +5,7 @@
    "label": "Prayer Requests by Type"
   }
  ],
- "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i>\", \"col\": 12}}, {\"id\": \"K7vLW8jz7z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Prayers\", \"col\": 12}}, {\"id\": \"UrgPraReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Urgent Prayer Requests\", \"col\": 4}}, {\"id\": \"AwaApp\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Awaiting Approval\", \"col\": 4}}, {\"id\": \"EndThiWee\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ending This Week\", \"col\": 4}}, {\"id\": \"PraReqByTyp\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Prayer Requests by Type\", \"col\": 12}}]",
+ "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Rejoice always. Pray without ceasing.\\\"</i> (1 Thessalonians 5:16-17)\", \"col\": 12}}, {\"id\": \"K7vLW8jz7z\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Prayers\", \"col\": 12}}, {\"id\": \"UrgPraReq\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Urgent Prayer Requests\", \"col\": 4}}, {\"id\": \"AwaApp\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Awaiting Approval\", \"col\": 4}}, {\"id\": \"EndThiWee\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Ending This Week\", \"col\": 4}}, {\"id\": \"PraReqByTyp\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Prayer Requests by Type\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.695947",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Prayers",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-15 02:04:32.962252",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayers",

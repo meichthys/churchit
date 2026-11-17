@@ -5,6 +5,9 @@ import frappe
 from frappe.utils import add_days, get_timestamp, today
 
 from churchit.church_people.doctype.person.person import get_timeline_data
+from churchit.church_people.number_card.new_members_30_days.new_members_30_days import (
+	get_count as get_new_members_count,
+)
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -51,13 +54,20 @@ class TestPersonDashboard(RollbackEachTest):
 		frappe.set_user(reader)
 		self.assertEqual(get_timeline_data("Person", self.person), {})
 
-	def test_the_form_dashboard_keeps_the_connections_and_adds_the_heatmap(self):
+	def test_the_form_dashboard_keeps_the_connections_and_has_no_heatmap(self):
 		frappe.clear_cache(doctype="Person")
 		data = frappe.get_meta("Person").get_dashboard_data()
 
-		self.assertTrue(data.heatmap)
+		self.assertFalse(data.heatmap)
 		items = {item for group in data.transactions for item in group["items"]}
 		self.assertTrue({"Function", "Prayer Request", "Collection", "Follow-up Card"} <= items)
+
+	def test_the_new_members_card_opens_the_report_for_the_same_days(self):
+		card = get_new_members_count()
+
+		self.assertEqual(card["route"], ["query-report", "New Members Last 90 Days"])
+		self.assertEqual(card["route_options"], {"days": 30})
+		self.assertIsInstance(card["value"], int)
 
 
 class TestPersonHeatmapScope(RollbackEachTest):

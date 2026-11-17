@@ -76,6 +76,17 @@ class TestFollowupWorkflow(RollbackEachTest):
 		with self.assertRaisesRegex(frappe.ValidationError, "Move the open cards off Call"):
 			workflow.save()
 
+	def test_saving_warns_about_a_step_that_tells_nobody(self):
+		user = ensure_user("_test_workflow_caller@example.com", "Caller", roles=("Church Follow-up",))
+		frappe.local.message_log = []
+
+		make_workflow("_Test Board Nobody", [("Call", user, 1), ("Pray", None, 0)])
+
+		messages = [str(message.get("message")) for message in frappe.local.message_log]
+		warnings = [text for text in messages if "no Assign To" in text]
+		self.assertEqual(len(warnings), 1)
+		self.assertIn("Pray", warnings[0])
+
 	def test_a_step_name_used_twice_is_refused(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "Used more than once: Call"):
 			make_workflow("_Test Board Twice", [("Call", None, 1), ("Call", None, 3)])

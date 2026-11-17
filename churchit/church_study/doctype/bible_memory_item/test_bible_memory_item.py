@@ -14,8 +14,10 @@ from churchit.church_study.doctype.bible_memory_item.bible_memory_item import (
 	BibleMemoryItem,
 	assign_memory,
 	complete_session,
+	get_translation_choices,
 	record_mistake,
 )
+from churchit.patches.v1_0 import fill_full_names_in_form_response_and_memory_lists as fill_full_names
 from churchit.tests.helpers import ensure_user, make_person, make_translation, make_two_churches
 
 REFERENCE = "John 1:1"
@@ -54,6 +56,20 @@ class TestBibleMemoryItem(FrappeTestCase):
 
 	def test_user_defaults_to_the_session_user(self):
 		self.assertEqual(self._item().user, self.user)
+
+	def test_the_list_shows_the_users_full_name(self):
+		self.assertEqual(self._item().user_full_name, frappe.db.get_value("User", self.user, "full_name"))
+
+	def test_the_patch_fills_a_missing_user_name(self):
+		item = self._item()
+		frappe.db.set_value("Bible Memory Item", item.name, "user_full_name", None)
+
+		fill_full_names.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Bible Memory Item", item.name, "user_full_name"),
+			frappe.db.get_value("User", self.user, "full_name"),
+		)
 
 	def test_the_reference_is_stored_tidied(self):
 		self.assertEqual(self._item(bible_reference="jn 1:1").bible_reference, REFERENCE)
@@ -308,9 +324,25 @@ class TestAssignMemory(FrappeTestCase):
 	def test_assign_refuses_an_unreadable_translation(self):
 		frappe.db.set_value("Bible Translation", self.translation, "status", "Downloading")
 		self.addCleanup(frappe.db.set_value, "Bible Translation", self.translation, "status", "Ready")
-		with self.assertRaises(PermissionError):
+		with self.assertRaises(PermissionError) as raised:
 			assign_memory("Psalms 23:1", self.translation, users=[self.learner])
+		self.assertIn("Pick another translation", str(raised.exception))
 		self.assertEqual(self._items(), [])
+
+	def test_the_form_offers_only_readable_translations(self):
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Downloading")
+		self.addCleanup(frappe.db.set_value, "Bible Translation", self.translation, "status", "Ready")
+		self.assertNotIn(self.translation, get_translation_choices()["names"])
+
+		frappe.db.set_value("Bible Translation", self.translation, "status", "Ready")
+		choices = get_translation_choices()
+		self.assertIn(self.translation, choices["names"])
+		self.assertIn(choices["default"], (None, *choices["names"]))
+
+	def test_the_missing_logins_link_to_the_desk_person_form(self):
+		group = self._group("_Test Desk Link Group", self.linked, self.unlinked)
+		result = assign_memory("Psalms 23:1", self.translation, group=group)
+		self.assertIn(f"/desk/person/{self.unlinked}", result["missing_users"][0])
 
 	def test_a_desk_save_gets_the_same_checks(self):
 		_root, branch_a, branch_b = make_two_churches()

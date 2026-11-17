@@ -6,7 +6,7 @@
  "idx": 0,
  "include_name_field": 0,
  "is_standard": 1,
- "modified": "2026-11-02 23:23:53.000000",
+ "modified": "2026-11-15 05:53:16.970601",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Account Setup",
@@ -16,7 +16,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created, since Frappe will pull server settings from that domain.",
+   "description": "The full email address for this account, e.g. <code>office@gracechurch.org</code>. Make sure the domain (the part after <strong>@</strong>) matches an Email Domain you have already created, since the site takes the server settings from that domain.",
    "field": "",
    "fieldname": "email_id",
    "fieldtype": "Data",
@@ -40,7 +40,7 @@
    "title": "Account Name"
   },
   {
-   "description": "Check this to pull messages from this mailbox into Frappe. Incoming emails appear in the <a href=\"/app/communication\">Communication</a> inbox and can be linked to records like Prayer Requests, People, and Letters. When you check it, <strong>Default Incoming</strong> appears. Tick that on the one account that gets mail addressed to no specific inbox.",
+   "description": "Check this to pull messages from this mailbox into this site. Incoming emails appear in the <a href=\"/app/communication\">Communication</a> inbox and can be linked to records like Prayer Requests, People, and Letters. When you check it, <strong>Default Incoming</strong> appears. Tick that on the one account that gets mail addressed to no specific inbox.",
    "field": "",
    "fieldname": "enable_incoming",
    "fieldtype": "Check",

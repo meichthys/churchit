@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.utils import set_request
+from frappe.utils import add_to_date, now_datetime, set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response
 from frappe.www.list import get_list_data
@@ -101,6 +101,46 @@ class TestRoomRequest(RollbackEachTest):
 			}
 		).insert()
 		self.assertEqual(booking.requester, self.person)
+
+	def test_a_members_request_in_the_past_or_over_a_day_is_refused(self):
+		frappe.set_user(self.member)
+		past = add_to_date(now_datetime(), hours=-3)
+		with self.assertRaisesRegex(frappe.ValidationError, "Pick a time that has not passed yet."):
+			self.request(self.gated_a, start_datetime=past, end_datetime=add_to_date(past, hours=1))
+		with self.assertRaisesRegex(frappe.ValidationError, "can last up to one day"):
+			self.request(self.gated_a, end_datetime="2037-04-04 21:00:00")
+
+		self.assertEqual(self.request(self.gated_a, end_datetime="2036-04-05 09:00:00").status, "Requested")
+
+	def test_a_member_still_changes_the_purpose_of_a_request_that_has_started(self):
+		frappe.set_user(self.member)
+		booking = self.request(self.gated_a)
+		frappe.db.set_value(
+			"Room Booking",
+			booking.name,
+			{
+				"start_datetime": add_to_date(now_datetime(), hours=-1),
+				"end_datetime": add_to_date(now_datetime(), days=2),
+			},
+		)
+
+		booking = frappe.get_doc("Room Booking", booking.name)
+		booking.purpose = "_Test A4 new purpose"
+		booking.save()
+
+	def test_staff_book_a_long_or_past_time_on_the_desk(self):
+		past = add_to_date(now_datetime(), days=-2)
+		booking = frappe.get_doc(
+			{
+				"doctype": "Room Booking",
+				"room": self.gated_a,
+				"requester": self.person,
+				"purpose": "_Test A4 staff",
+				"start_datetime": past,
+				"end_datetime": add_to_date(past, days=30),
+			}
+		).insert(ignore_permissions=True)
+		self.assertTrue(booking.name)
 
 	def test_a_room_that_is_not_bookable_is_refused(self):
 		frappe.set_user(self.member)

@@ -10,7 +10,11 @@ from frappe.utils import add_to_date, now_datetime
 from rq.timeouts import JobTimeoutException
 
 from churchit.church_communications.consent import allowed
-from churchit.church_communications.doctype.church_email.church_email import deliver, send_scheduled
+from churchit.church_communications.doctype.church_email.church_email import (
+	deliver,
+	search_email_templates,
+	send_scheduled,
+)
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
 	EMAIL,
 	GIVEN,
@@ -23,9 +27,11 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 	PASTORAL_CARE,
 	create_communication_purposes,
 )
-from churchit.church_communications.newsletter import UNSUBSCRIBE_METHOD, set_subscribed, unsubscribe
+from churchit.church_communications.newsletter import UNSUBSCRIBE_METHOD, set_subscribed
 from churchit.church_communications.sending import Delivery, Recipient
 from churchit.church_communications.test_sending import log_sms
+from churchit.church_communications.test_unsubscribe_link import click_unsubscribe_link
+from churchit.church_people.list_actions import new_church_email
 from churchit.church_people.test_household import born, label
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -37,6 +43,7 @@ from churchit.tests.helpers import (
 	make_primary_contact,
 	make_smart_list,
 	make_two_churches,
+	set_private_people,
 )
 
 MODULE = "churchit.church_communications.doctype.church_email.church_email"
@@ -162,7 +169,12 @@ class TestChurchEmail(ChurchEmailTestCase):
 	def test_a_church_that_asks_first_emails_only_people_who_agreed(self):
 		frappe.db.set_value("Church", self.church, "contact_only_with_consent", 1)
 		record([self.visitor.name], EMAIL, GIVEN, CHURCH_NEWS)
-		self.assertEqual(addresses(self.make_email()), [email_of(self.visitor)])
+
+		recipients = addresses(self.make_email())
+
+		# Sample data on the site may hold people who agreed too, so only these two are compared.
+		self.assertIn(email_of(self.visitor), recipients)
+		self.assertNotIn(email_of(self.member), recipients)
 
 	def test_an_address_whose_mail_came_back_is_left_out(self):
 		frappe.db.set_value("Email Address", self.visitor.emails[0].name, "is_bounced", 1)
@@ -221,6 +233,12 @@ class TestChurchEmail(ChurchEmailTestCase):
 			send_to="Chosen People", people=[{"person": self.visitor.name}, {"person": self.departed.name}]
 		)
 		self.assertEqual(addresses(email), [email_of(self.visitor)])
+
+	def test_a_chosen_person_who_has_died_is_not_named_as_left_out(self):
+		email = self.make_email(
+			send_to="Chosen People", people=[{"person": self.visitor.name}, {"person": self.departed.name}]
+		)
+		self.assertEqual(email.get_recipient_count(), {"count": 1, "left_out": {}})
 
 	def test_an_audience_that_send_to_does_not_use_is_cleared(self):
 		email = self.make_email(group=self.group.name, people=[{"person": self.visitor.name}])
@@ -470,6 +488,135 @@ class TestChurchEmail(ChurchEmailTestCase):
 		self.assertTrue(sent["now"])
 		self.assertIsNone(sent["communication"])
 
+	def test_the_unsubscribe_link_says_what_it_stops(self):
+		for purpose, words in (
+			(CHURCH_NEWS, "Unsubscribe from Church News emails"),
+			(PASTORAL_CARE, "Unsubscribe from Pastoral Care emails"),
+		):
+			with self.subTest(purpose):
+				email = self.make_email(
+					send_to="Chosen People", people=[{"person": self.member.name}], purpose=purpose
+				)
+				frappe.db.set_value("Church Email", email.name, "status", "Sending")
+				deliver_now(email.name)
+				self.assertEqual(self.sendmail.call_args.kwargs["unsubscribe_message"], words)
+
+
+class TestChurchEmailBeforeSending(ChurchEmailTestCase):
+	"""What Send and Preview check and say before anything leaves."""
+
+	def test_a_draft_from_the_person_list_is_not_sent_until_it_is_written(self):
+		email = frappe.get_doc("Church Email", new_church_email([self.member.name]))
+
+		for action in (email.get_recipient_count, email.send, email.send_test):
+			with self.subTest(action.__name__):
+				with self.assertRaisesRegex(frappe.ValidationError, "Write the Subject and the Message"):
+					action()
+		self.assertEqual(frappe.db.get_value("Church Email", email.name, "status"), "Draft")
+		self.sendmail.assert_not_called()
+
+	def test_an_empty_message_or_text_is_refused(self):
+		blank = self.make_email(message="<p><br></p>")
+		with self.assertRaisesRegex(frappe.ValidationError, "Write the Subject and the Message"):
+			blank.send()
+
+		text = frappe.get_doc({"doctype": "Church Email", "channel": "Text Message", "text_message": " "})
+		text.flags.ignore_mandatory = True
+		text.insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "Write the Text"):
+			text.send()
+
+		picture = self.make_email(message='<p><img src="/files/a.png"></p>')
+		picture.send()
+		self.assertEqual(frappe.db.get_value("Church Email", picture.name, "status"), "Sending")
+
+	def test_the_count_says_who_is_left_out_and_why(self):
+		withdrew = make_reader("Withdrew")
+		record([withdrew.name], EMAIL, WITHDRAWN, PASTORAL_CARE)
+		stopped = make_reader("Stopped")
+		set_subscribed(email_of(stopped), self.church, False)
+		bounced = make_reader("Bounced")
+		frappe.db.set_value("Email Address", bounced.emails[0].name, "is_bounced", 1)
+		no_address = make_person("NoAddress", "_Test Church Email")
+		sharer = make_person(
+			"Sharer",
+			"_Test Church Email",
+			emails=[
+				{
+					"email_address": email_of(self.member),
+					"shared_from": self.member.name,
+					"shared_from_type": "Person",
+				}
+			],
+		)
+		email = self.make_email(
+			send_to="Chosen People",
+			purpose=PASTORAL_CARE,
+			people=[
+				{"person": p.name} for p in (self.member, withdrew, stopped, bounced, no_address, sharer)
+			],
+		)
+
+		result = email.get_recipient_count()
+
+		self.assertEqual(result["count"], 1)
+		names = {reason: group["names"] for reason, group in result["left_out"].items()}
+		self.assertEqual(
+			names,
+			{
+				"not_allowed": ["Withdrew _Test Church Email"],
+				"unsubscribed": ["Stopped _Test Church Email"],
+				"bounced": ["Bounced _Test Church Email"],
+				"no_address": ["NoAddress _Test Church Email"],
+				"shared": ["Sharer _Test Church Email"],
+			},
+		)
+		self.assertEqual(email.get_preview()["left_out"], result["left_out"])
+
+	def test_many_left_out_for_one_reason_are_counted_not_named(self):
+		quiet = [make_reader(f"Quiet{n}") for n in (1, 2)]
+		record([person.name for person in quiet], EMAIL, WITHDRAWN, CHURCH_NEWS)
+		email = self.make_email(send_to="Chosen People", people=[{"person": p.name} for p in quiet])
+
+		with mock.patch(f"{MODULE}.LEFT_OUT_NAMES", 1):
+			self.assertEqual(
+				email.get_recipient_count(),
+				{"count": 0, "left_out": {"not_allowed": {"count": 2, "names": []}}},
+			)
+
+	def test_the_form_and_the_count_say_when_the_site_cannot_send(self):
+		email = self.make_email()
+		with (
+			mock.patch(f"{MODULE}.can_send_email", return_value=False),
+			mock.patch(f"{MODULE}.can_send_texts", return_value=False),
+		):
+			email.run_method("onload")
+			with self.assertRaisesRegex(frappe.ValidationError, "System Manager"):
+				email.get_recipient_count()
+
+		problems = email.get_onload()["sending_problems"]
+		self.assertIn("Email Accounts", problems["Email"])
+		self.assertIn("SMS Settings", problems["Text Message"])
+
+		email.run_method("onload")
+		self.assertIsNone(email.get_onload()["sending_problems"]["Email"])
+
+	def test_the_template_picker_offers_only_templates_a_church_email_can_fill_in(self):
+		for name, subject, values in (
+			(
+				"_Test Church Email Greeting",
+				"Hi {{ first_name }}",
+				{"response": "<p>{{ doc.last_name }}</p>"},
+			),
+			("_Test Church Email Reminder", "Reminder: {{ function_name }}", {"response": "<p>Hi</p>"}),
+			("_Test Church Email Receipt", "Thanks", {"use_html": 1, "response_html": "{{ amount }}"}),
+		):
+			frappe.get_doc({"doctype": "Email Template", "name": name, "subject": subject, **values}).insert()
+
+		found = search_email_templates("Email Template", "_Test Church Email", "name", 0, 20, None)
+
+		self.assertEqual(found, [["_Test Church Email Greeting"]])
+
 
 class TestChurchEmailPlaceholders(ChurchEmailTestCase):
 	def test_a_placeholder_outside_the_persons_names_is_refused(self):
@@ -487,7 +634,7 @@ class TestChurchEmailPlaceholders(ChurchEmailTestCase):
 		text = self.make_email(
 			channel="Text Message", subject="{{ ignored", text_message="Hi {{ first_name }}"
 		)
-		self.assertEqual(text.subject, "Hi {{ first_name }}")
+		self.assertEqual(text.subject, "Hi [first_name]")
 
 	def test_the_preview_shows_the_first_person_it_goes_to_unless_another_is_picked(self):
 		email = self.make_email(
@@ -522,6 +669,74 @@ class TestChurchEmailPlaceholders(ChurchEmailTestCase):
 		preview = email.get_preview()
 		self.assertEqual(preview["subject"], "Hi <b>Bold</b>")
 		self.assertEqual(preview["message"], "<p>&lt;b&gt;Bold&lt;/b&gt;</p>")
+
+
+class TestChurchEmailChurchOffice(ChurchEmailTestCase):
+	"""Church Office (Church People Editor and Church Staff) writes a message; a Church Manager sends it."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.office = ensure_user(
+			"_test_church_email_office@example.com",
+			"Office",
+			roles=("Church People Editor", "Church Staff"),
+		)
+		cls.manager = ensure_user(
+			"_test_church_email_church_manager@example.com", "Manager", roles=("Church Manager",)
+		)
+
+	def test_the_office_creates_and_edits_a_draft_and_sends_a_test_to_itself(self):
+		frappe.set_user(self.office)
+		email = self.make_email(send_to="Chosen People", people=[{"person": self.member.name}])
+		email.subject = "_Test Church Email Edited"
+		email.save()
+
+		self.assertEqual(frappe.db.get_value("Church Email", email.name, "subject"), email.subject)
+		email.send_test()
+		self.sendmail.assert_called_once()
+
+	def test_the_office_cannot_send_or_unschedule_but_a_church_manager_can(self):
+		email = self.make_email(send_to="Chosen People", people=[{"person": self.member.name}])
+		frappe.set_user(self.office)
+		with self.assertRaises(frappe.PermissionError):
+			email.send()
+		with self.assertRaises(frappe.PermissionError):
+			email.unschedule()
+		self.assertEqual(frappe.db.get_value("Church Email", email.name, "status"), "Draft")
+
+		frappe.set_user(self.manager)
+		with mock.patch(f"{MODULE}.enqueue_delivery"):
+			self.assertEqual(email.send(), "Sending")
+
+	def test_the_office_cannot_change_a_message_a_church_manager_scheduled(self):
+		"""The scheduled job sends what is saved, so an edit then would send words no manager sent."""
+		email = self.make_email(send_to="Chosen People", people=[{"person": self.member.name}])
+		email.db_set({"status": "Scheduled", "send_after": add_to_date(now_datetime(), days=1)})
+		email.reload()
+
+		frappe.set_user(self.office)
+		email.subject = "_Test Church Email Changed After Scheduling"
+		with self.assertRaises(frappe.PermissionError):
+			email.save()
+
+		frappe.set_user(self.manager)
+		email.reload()
+		email.subject = "_Test Church Email Changed By The Manager"
+		email.save()
+
+	def test_church_name_fills_in_the_name_of_the_church_the_message_goes_out_in(self):
+		email = self.make_email(
+			send_to="Chosen People",
+			people=[{"person": self.member.name}],
+			subject="From {{ church_name }}",
+			message="<p>{{ doc.church_name }}</p>",
+		)
+		name = frappe.db.get_value("Church", self.church, "church_name")
+
+		preview = email.get_preview()
+		self.assertEqual((preview["subject"], preview["message"]), (f"From {name}", f"<p>{name}</p>"))
+		self.assertEqual(email.send_test() and self.sendmail.call_args.kwargs["subject"], f"From {name}")
 
 
 class TestChurchTextMessage(ChurchEmailTestCase):
@@ -563,9 +778,18 @@ class TestChurchTextMessage(ChurchEmailTestCase):
 		self.assertEqual(frappe.db.get_value("Church Email", text.name, "recipients"), 1)
 
 	def test_texts_are_refused_until_sms_is_set_up(self):
+		text = self.make_text()
 		with mock.patch(f"{MODULE}.can_send_texts", return_value=False):
-			with self.assertRaisesRegex(frappe.ValidationError, "SMS Settings"):
-				self.make_text().send()
+			for action in (text.get_recipient_count, text.send):
+				with (
+					self.subTest(action.__name__),
+					self.assertRaisesRegex(frappe.ValidationError, "SMS Settings"),
+				):
+					action()
+
+	def test_the_count_names_who_did_not_agree_to_texts(self):
+		left_out = self.make_text().get_recipient_count()["left_out"]
+		self.assertEqual(left_out, {"not_allowed": {"count": 1, "names": ["Silent _Test Church Email"]}})
 
 	def test_a_user_who_may_not_send_texts_is_refused_on_send(self):
 		text = self.make_text()
@@ -625,10 +849,7 @@ class TestChurchEmailPerChurch(FrappeTestCase):
 			deliver_now(email.name)
 		params = sendmail.call_args.kwargs["unsubscribe_params"]
 
-		frappe.set_user("Guest")
-		with mock.patch.object(frappe.db, "commit"):
-			unsubscribe(email=email_of(theirs), doctype="Church Email", name=email.name, **params)
-		frappe.set_user("Administrator")
+		click_unsubscribe_link(email=email_of(theirs), **params)
 
 		self.assertFalse(allowed(theirs.name, EMAIL, PASTORAL_CARE))
 		self.assertTrue(allowed(theirs.name, EMAIL, CHURCH_NEWS))
@@ -643,11 +864,34 @@ class TestChurchEmailPerChurch(FrappeTestCase):
 		forged = {**email.as_dict(), "send_to": "Group", "group": group_b.name, "people": []}
 
 		frappe.set_user(staff)
-		count = call_from_browser("get_recipient_count", forged)
+		with mock.patch(f"{MODULE}.can_send_email", return_value=True):
+			count = call_from_browser("get_recipient_count", forged)
 		preview = call_from_browser("get_preview", forged)
 
-		self.assertEqual(count, 1)
+		self.assertEqual(count["count"], 1)
 		self.assertEqual((preview["count"], preview["person"]), (1, mine.name))
+
+	def test_the_left_out_are_named_only_when_the_reader_may_read_them(self):
+		set_private_people(True)
+		self.addCleanup(set_private_people, False)
+		mine = make_person("_Test Church Email", "NoAddressMine", church=self.branch_a)
+		theirs = make_person("_Test Church Email", "NoAddressTheirs", church=self.branch_b)
+		group = self.make_group("_Test Church Email Left Out Group", self.branch_a, [mine])
+		other = self.make_group("_Test Church Email Left Out Mixed", self.branch_a, [mine, theirs])
+		staff = ensure_user("_test_church_email_staff_left@example.com", "StaffLeft", roles=("Church Staff",))
+		make_person("_Test Church Email Staff", "Left", church=self.branch_a, user=staff)
+		own = self.make_church_email(self.branch_a, send_to="Group", group=group.name)
+		mixed = self.make_church_email(self.branch_a, send_to="Group", group=other.name)
+
+		frappe.set_user(staff)
+		with mock.patch(f"{MODULE}.can_send_email", return_value=True):
+			own_left_out = own.get_recipient_count()["left_out"]
+			mixed_left_out = mixed.get_recipient_count()["left_out"]
+
+		self.assertEqual(
+			own_left_out, {"no_address": {"count": 1, "names": ["_Test Church Email NoAddressMine"]}}
+		)
+		self.assertEqual(mixed_left_out, {"no_address": {"count": 2, "names": []}})
 
 	def test_another_churchs_message_cannot_be_sent_by_naming_my_church(self):
 		email = self.make_church_email(self.branch_b, send_after=add_to_date(now_datetime(), hours=1))
@@ -799,7 +1043,8 @@ class TestChurchEmailHouseholds(RollbackEachTest):
 		email = self.make_email(include_household=1, household_roles="Adults")
 
 		self.assertReaches(email, [self.father, self.mother, self.single])
-		self.assertEqual(email.get_recipient_count(), 3)
+		with mock.patch(f"{MODULE}.can_send_email", return_value=True):
+			self.assertEqual(email.get_recipient_count()["count"], 3)
 
 	def test_everyone_adds_the_living_household_of_the_messages_church(self):
 		self.assertReaches(

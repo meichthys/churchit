@@ -15,9 +15,19 @@ from frappe.website.utils import clear_cache
 from frappe.www import list as portal_list
 from werkzeug.routing import Rule
 
-from churchit.church_scope import session_person
+from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
+from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_people.group_leaders import get_led_groups
+from churchit.church_scope import get_transaction_cached, is_multi_church, session_person
 from churchit.church_website.menu import get_route
 from churchit.www.directory import is_directory_member
+
+# Routes that serve a file, not a page: no menu, no members-only content and nothing per visitor
+# beyond what the file's own page module decides. A dot alone does not mark a file: a sermon or a
+# dynamic members-only route may hold one.
+FILE_ROUTES = frozenset(
+	{"manifest.json", "podcast.xml", "robots.txt", "sitemap.xml", "sw.js", "website_script.js"}
+)
 
 # route: (label, the Church Features field whose module owns the page, or None)
 SHIPPED_PAGES: dict[str, tuple[str, str | None]] = {
@@ -57,7 +67,7 @@ SHIPPED_PAGES: dict[str, tuple[str, str | None]] = {
 	"bulletins": ("Bulletins", "enable_communications"),
 	"announcements": ("Announcements", "enable_communications"),
 	"missions": ("Missions", "enable_missions"),
-	"room-request": ("Room Request", "enable_operations"),
+	"room-request": ("Book a Room", "enable_operations"),
 	"give": ("Give", "enable_finances"),
 	"statements": ("Giving Statements", "enable_finances"),
 	"pledge": ("Pledge", "enable_finances"),
@@ -161,6 +171,8 @@ class MembersOnlyPage(BaseRenderer):
 	"""
 
 	def can_render(self):
+		if is_file_route(self.path):
+			return False
 		return is_members_only(self.path) and not can_open_members_only_pages()
 
 	def render(self):
@@ -170,21 +182,42 @@ class MembersOnlyPage(BaseRenderer):
 		raise frappe.PermissionError(_("This page is for members only."))
 
 
+def is_file_route(path: str | None) -> bool:
+	"""Whether *path* is one of FILE_ROUTES."""
+	return (path or "").strip("/") in FILE_ROUTES
+
+
 def is_members_only(route: str) -> bool:
 	"""True when *route* is a published members-only Web Page, or a path its dynamic route matches."""
-	# Before migrate adds the field, no page is members-only.
-	if not frappe.get_meta("Web Page").has_field("members_only"):
+	pages = get_members_only_pages()
+	if not pages:
 		return False
 
 	# Frappe finds a Web Page by route with a case and accent insensitive lookup, so match the same way.
 	if frappe.db.exists("Web Page", {"route": route, "published": 1, "members_only": 1}):
 		return True
 
-	pages = frappe.get_all(
-		"Web Page", filters={"published": 1, "members_only": 1, "dynamic_route": 1}, fields=["name", "route"]
-	)
-	rules = [Rule(f"/{page.route}", endpoint=page.name) for page in pages]
+	rules = [Rule(f"/{page.route}", endpoint=page.name) for page in pages if page.dynamic_route]
 	return bool(rules and evaluate_dynamic_routes(rules, route))
+
+
+def get_members_only_pages() -> list[frappe._dict]:
+	"""The published members-only Web Pages, with their name, route and dynamic_route.
+
+	Every website request asks for them up to three times, so they are read once per transaction.
+	"""
+	# Before migrate adds the field, no page is members-only.
+	if not frappe.get_meta("Web Page").has_field("members_only"):
+		return []
+	return get_transaction_cached(
+		"Web Page",
+		("members_only_pages",),
+		lambda: frappe.get_all(
+			"Web Page",
+			filters={"published": 1, "members_only": 1},
+			fields=["name", "route", "dynamic_route"],
+		),
+	)
 
 
 def get_members_only_routes() -> set[str]:
@@ -192,28 +225,44 @@ def get_members_only_routes() -> set[str]:
 
 	A dynamic route counts from its fixed start, so "members/<name>" hides /members and every link under it.
 	"""
-	# Before migrate adds the field, no page is members-only.
-	if not frappe.get_meta("Web Page").has_field("members_only"):
-		return set()
-	routes = frappe.get_all("Web Page", filters={"published": 1, "members_only": 1}, pluck="route")
+	routes = [page.route for page in get_members_only_pages()]
 	return {route.split("<")[0].strip("/").lower() for route in routes if route} - {""}
 
 
 def get_hidden_pages() -> set[str]:
-	"""The pages whose links this visitor must not see: switched-off pages, and members-only pages they cannot open."""
+	"""The pages whose links this visitor must not see.
+
+	Those are the switched-off pages, the members-only pages they cannot open, /locations while the
+	site has one church (the page then does not exist), /give while it takes no gift online, and
+	/group-leader for anyone who leads no group.
+	"""
 	hidden = get_switched_off_pages()
 	members_only = get_members_only_routes()
 	if members_only and not can_open_members_only_pages():
 		hidden |= members_only
+	if not is_multi_church():
+		hidden.add("locations")
+	if "give" not in hidden and not is_online_giving_on():
+		hidden.add("give")
+	if "group-leader" not in hidden:
+		person = session_person()
+		if not (person and get_led_groups(person)):
+			hidden.add("group-leader")
 	return hidden
+
+
+def is_online_giving_on() -> bool:
+	"""Whether /give takes gifts online for the selected church, as the page itself decides."""
+	settings: GivingSettings = frappe.get_cached_doc("Giving Settings")
+	return bool(settings.enabled and settings.get_offered_gateways(selected_church_name()))
 
 
 def can_open_members_only_pages() -> bool:
 	"""True for an active, living member who is not a visitor or contact, and for a Web Page editor."""
-	if frappe.has_permission("Web Page", "write"):
-		return True
 	person = session_person()
-	return bool(person) and is_directory_member(person)
+	if person and is_directory_member(person):
+		return True
+	return frappe.has_permission("Web Page", "write")
 
 
 @frappe.whitelist(methods=["GET", "POST"])

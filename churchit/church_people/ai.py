@@ -342,7 +342,7 @@ def people_not_seen(weeks: int = 8) -> dict:
 
 @frappe.whitelist(methods=["GET"])
 def birthdays_and_anniversaries(start: str | None = None, end: str | None = None) -> dict:
-	"""Birthdays and wedding anniversaries from *start* to *end*, this week (Monday to Sunday) by default. Reads only.
+	"""Birthdays and wedding anniversaries from *start* to *end*, this week by default (from the site's first day of the week). Reads only.
 
 	Living people in the reader's churches, as the desk's birthday and anniversary reports list them;
 	a couple once, while both are living. At most 92 days. Returns total and rows (the first 50 by

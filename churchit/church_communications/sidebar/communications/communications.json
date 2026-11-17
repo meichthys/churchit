@@ -79,7 +79,7 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
-   "label": "Letters to Share",
+   "label": "Letters To Be Shared",
    "link_to": "Letters To Be Shared",
    "link_type": "Report",
    "open_in_new_tab": 1,
@@ -255,7 +255,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-31 13:31:20.000000",
+ "modified": "2026-11-17 00:21:11.294789",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Communications",

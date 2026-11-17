@@ -194,6 +194,10 @@ class Rolodex {
 		frappe.xcall(`${API}.get_directory`, {}, "GET").then((directory) => {
 			this.set_directory(directory);
 			this.apply_settings(directory.settings);
+			// A shared directory holds every church's people, so the reader starts on their own church's.
+			if (directory.own_churches.length < directory.choices.church.length) {
+				directory.own_churches.forEach((name) => this.filters.church.add(name));
+			}
 			this.render_all();
 			this.apply_route_options();
 		});
@@ -221,7 +225,12 @@ class Rolodex {
 		if (!this.people) return;
 		const { view, people } = frappe.route_options || {};
 		frappe.route_options = null;
-		if (people) this.only = new Set(typeof people === "string" ? JSON.parse(people) : people);
+		if (people) {
+			this.only = new Set(typeof people === "string" ? JSON.parse(people) : people);
+			// The people picked may belong to any church.
+			this.filters.church.clear();
+			this.render_facets();
+		}
 		if (["people", "households"].includes(view) && view !== this.view) this.set_view(view);
 		else if (people) this.render();
 	}
@@ -350,7 +359,8 @@ class Rolodex {
 			.filter(Boolean)
 			.map((line) => `<div>${e(line)}</div>`);
 		return `<article class="${this.card_classes(person.name, this.saved_set.has(person.name))}"
-			data-person="${e(person.name)}" tabindex="0" aria-label="${e(person.full_name)}">
+			data-person="${e(person.name)}" tabindex="0" aria-label="${e(person.full_name)}"
+			aria-describedby="rolodex-card-hint">
 			<div class="rolodex-card-inner">
 				<div class="rolodex-face rolodex-front">
 					${save_button("data-save", person.name, this.saved_set.has(person.name))}
@@ -404,7 +414,8 @@ class Rolodex {
 			return `<li><strong>${e(person.full_name)}</strong>${spans.join(" · ")}</li>`;
 		});
 		return `<article class="${this.card_classes(family.name, all_saved)} rolodex-household"
-			data-family="${e(family.name)}" tabindex="0" aria-label="${e(family.family_name)}">
+			data-family="${e(family.name)}" tabindex="0" aria-label="${e(family.family_name)}"
+			aria-describedby="rolodex-card-hint">
 			<div class="rolodex-card-inner">
 				<div class="rolodex-face rolodex-front">
 					${save_button("data-save-family", family.name, all_saved)}
@@ -668,6 +679,13 @@ class Rolodex {
 		const flipped = !this.flipped.has(name);
 		this.flipped[flipped ? "add" : "delete"](name);
 		card.classList.toggle("is-flipped", flipped);
+		this.$root
+			.find(".rolodex-flip-status")
+			.text(
+				flipped
+					? __("{0}: details shown.", [card.getAttribute("aria-label")])
+					: __("{0}: front shown.", [card.getAttribute("aria-label")])
+			);
 	}
 
 	set_saved(names) {
@@ -870,6 +888,8 @@ function rolodex_html() {
 			<div class="rolodex-chips"></div>
 			<div class="rolodex-summary">
 				<span class="rolodex-count" aria-live="polite"></span>
+				<span class="sr-only" id="rolodex-card-hint">${__("Press Enter to turn the card.")}</span>
+				<span class="sr-only rolodex-flip-status" aria-live="polite"></span>
 				<div class="rolodex-shown-actions">
 					${action_button("save-shown", "bookmark", __("Save all"))}
 					${action_button("email-shown", "email", __("Email all"))}

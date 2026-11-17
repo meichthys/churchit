@@ -2,8 +2,8 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import json
-from unittest.mock import patch
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import PropertyMock, patch
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import frappe
 from frappe.handler import execute_cmd
@@ -14,7 +14,9 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	CONFIRMED,
 	PENDING,
 	WAITLISTED,
+	FunctionSignUp,
 )
+from churchit.church_website.pages import sync_page_switches
 from churchit.ics import calendar_times
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -30,6 +32,7 @@ from churchit.www.register import (
 	get_attendee_rows,
 	get_calendar_link,
 	get_event_calendar,
+	get_payment_link,
 	sign_up,
 )
 
@@ -68,10 +71,10 @@ class RegisterTestCase(RollbackEachTest):
 		frappe.local.form_dict = frappe._dict()
 		super().tearDown()
 
-	def serve(self, **query):
-		frappe.set_user("Guest")
+	def serve(self, user="Guest", **query):
+		frappe.set_user(user)
 		query = {"church": self.church, **query}
-		set_request(method="GET", path=ROUTE, query_string="&".join(f"{k}={v}" for k, v in query.items()))
+		set_request(method="GET", path=ROUTE, query_string=urlencode(query))
 		self.addCleanup(setattr, frappe.local, "request", None)
 		frappe.local.form_dict = frappe._dict(query)
 		return get_response(ROUTE).get_data(as_text=True)
@@ -90,6 +93,16 @@ class RegisterTestCase(RollbackEachTest):
 		frappe.db.set_value(
 			"Function", self.function, {"sign_ups_open_on": opens, "sign_ups_close_on": closes}
 		)
+
+	def add_row(self, doctype, parentfield, **values):
+		"""A Selection or Discount row of the test function, added without saving the function."""
+		row = {
+			"doctype": doctype,
+			"parent": self.function,
+			"parenttype": "Function",
+			"parentfield": parentfield,
+		}
+		frappe.get_doc({**row, **values}).insert(ignore_permissions=True)
 
 
 class TestRegisterPage(RegisterTestCase):
@@ -115,12 +128,38 @@ class TestRegisterPage(RegisterTestCase):
 		self.assertIn('name="registrant_name"', html)
 		self.assertIn("_Test Register Retreat", html)
 
+	def test_the_form_asks_for_a_discount_code_only_while_the_function_has_one(self):
+		discount = "Function Sign-Up Discount"
+		self.add_row(discount, "discounts", kind="Freely Given", percent=100)
+		yesterday = add_days(now_datetime(), -1).date()
+		self.add_row(discount, "discounts", kind="Code", code="_TESTOLD", amount=5, valid_until=yesterday)
+		self.assertNotIn('name="discount_code"', self.serve(function=self.function))
+
+		self.add_row(discount, "discounts", kind="Code", code="_TESTNEW", amount=5)
+		self.assertIn('name="discount_code"', self.serve(function=self.function))
+
 	def test_a_function_outside_its_window_is_not_offered(self):
 		self.set_window(opens=add_days(now_datetime(), 1))
 		self.assertNotIn("_Test Register Retreat", self.serve())
 		self.set_window(closes=add_days(now_datetime(), -1))
 		html = self.serve(function=self.function)
 		self.assertNotIn('name="registrant_name"', html)
+
+	def test_a_guest_on_a_function_for_members_is_asked_to_sign_in_and_brought_back(self):
+		html = self.serve(function=self.members_only)
+
+		self.assertIn("This function is not open for registration.", html)
+		self.assertIn("Some functions are open only to members who sign in.", html)
+		back = urlencode({"redirect-to": "/register?" + urlencode({"function": self.members_only})})
+		self.assertIn(f'href="/login?{back}"', html)
+		self.assertNotIn("open only to members", self.serve())
+
+	def test_the_inputs_take_no_more_than_their_fields_hold(self):
+		html = self.serve(function=self.function)
+
+		for name in ("registrant_name", "email", "phone"):
+			self.assertRegex(html, rf'name="{name}"[^>]*maxlength="140"')
+		self.assertIn("name.maxLength = 140", html)
 
 
 class TestRegisterSignUp(RegisterTestCase):
@@ -157,6 +196,19 @@ class TestRegisterSignUp(RegisterTestCase):
 			self.register()
 		self.set_window(opens=add_days(now_datetime(), -2), closes=add_days(now_datetime(), 1))
 		self.assertEqual(self.register()["status"], CONFIRMED)
+
+	def test_without_online_payment_a_priced_registration_is_confirmed_with_its_amount_due(self):
+		self.add_row("Function Sign-Up Selection", "selections", selection="_Test Adult", price=20)
+		offline = patch.object(
+			FunctionSignUp, "has_online_payment", new_callable=PropertyMock, return_value=False
+		)
+		with offline:
+			response = self.register(selection="_Test Adult")
+
+		self.assertEqual(response["status"], CONFIRMED)
+		self.assertIn("20", response["amount_due"])
+		self.assertNotIn("pay_url", response)
+		self.assertEqual(get_payment_link(frappe._dict(status=WAITLISTED, amount_to_pay=20)), {})
 
 	def test_an_invalid_email_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -278,6 +330,49 @@ class TestRegisterAttendees(RegisterTestCase):
 		)
 		self.assertEqual(self.choices()["household"], [])
 
+	def test_a_member_registers_for_a_function_of_their_church_that_takes_no_guests(self):
+		self.assertIn("_Test Register Members Only", self.serve(self.user))
+		self.assertNotIn("_Test Register Theirs", self.serve(self.user))
+		self.assertTrue(self.choices(self.user, self.members_only)["household"])
+		with self.assertRaises(frappe.PermissionError):
+			self.choices(function=self.members_only)
+
+		frappe.set_user(self.user)
+		frappe.local.form_dict = frappe._dict(church=self.church)
+		form = {"registrant_name": "_Test Mara Household", "email": "_test_mara@example.com"}
+		self.assertEqual(sign_up(self.members_only, **form)["status"], CONFIRMED)
+		with self.assertRaises(frappe.PermissionError):
+			sign_up(self.theirs, **form)
+
+		self.assertEqual(frappe.db.get_value(SIGN_UP, {"function": self.members_only}, "person"), self.own)
+
+	def test_a_member_finds_their_name_and_email_filled_in_and_locked(self):
+		html = self.serve(self.user, function=self.function)
+		self.assertIn('value="_Test Mara Household" readonly', html)
+		self.assertIn('value="_test_register_member@example.com" readonly', html)
+
+		html = self.serve(function=self.function)
+		self.assertNotIn("_Test Mara Household", html)
+		self.assertNotIn("_test_register_member@example.com", html)
+
+	def test_after_registering_a_member_is_offered_their_sign_ups_and_a_guest_is_not(self):
+		self.assertIn('href="/function-sign-up/list"', self.serve(self.user, function=self.function))
+		self.assertNotIn('href="/function-sign-up/list"', self.serve(function=self.function))
+
+	def test_no_sign_ups_link_while_the_function_sign_up_page_is_off(self):
+		sync_page_switches()
+		features = frappe.get_single("Church Features")
+		features.get("website_pages", {"route": "function-sign-up"})[0].enabled = 0
+		features.save()
+
+		self.assertNotIn('href="/function-sign-up/list"', self.serve(self.user, function=self.function))
+
+	def test_a_member_is_not_asked_to_sign_in_again(self):
+		html = self.serve(self.user, function=self.theirs)
+
+		self.assertIn("This function is not open for registration.", html)
+		self.assertNotIn("open only to members", html)
+
 	def test_a_member_adds_the_household_members_they_ticked(self):
 		self.register_as_member(attendees=json.dumps([{"person": self.child.name}]))
 
@@ -363,6 +458,20 @@ class TestRegisterAttendees(RegisterTestCase):
 
 		with self.assertRaises(frappe.PermissionError):
 			self.choices(function=self.members_only)
+
+	def test_the_choices_price_in_the_site_currency_when_giving_settings_has_none(self):
+		self.add_row("Function Sign-Up Selection", "selections", selection="_Test Adult", price=20)
+		frappe.db.set_single_value("Giving Settings", "currency", "")
+		get_default = frappe.db.get_default
+
+		with patch.object(
+			frappe.db,
+			"get_default",
+			lambda key, *args: "EUR" if key == "currency" else get_default(key, *args),
+		):
+			[selection] = self.choices()["selections"]
+
+		self.assertIn("€", selection["price"])
 
 	def test_the_choices_say_when_the_function_is_freely_given(self):
 		self.assertFalse(self.choices()["freely_given"])

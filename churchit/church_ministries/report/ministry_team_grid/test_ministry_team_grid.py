@@ -121,5 +121,5 @@ class TestMinistryTeamGridChurches(RollbackEachTest):
 		columns, _data, _message = ministry_team_grid.execute(RANGE)
 
 		labels = [column["label"] for column in columns[2:]]
-		self.assertTrue(any(functions["B"].title in label for label in labels), labels)
-		self.assertFalse(any(functions["A"].title in label for label in labels), labels)
+		self.assertTrue(any(functions["B"].function_name in label for label in labels), labels)
+		self.assertFalse(any(functions["A"].function_name in label for label in labels), labels)

@@ -6,7 +6,7 @@ from frappe import _
 from frappe.query_builder.functions import GroupConcat
 from frappe.utils import add_days, flt, time_diff_in_hours
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -15,7 +15,7 @@ def execute(filters=None):
 	if filters.room:
 		frappe.has_permission("Room", doc=filters.room, throw=True)
 
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -61,6 +61,7 @@ def get_data(filters) -> list[dict]:
 		.select(
 			Booking.name.as_("booking"),
 			Booking.room,
+			Booking.church,
 			GroupConcat(Asset.title).separator(", ").as_("assets"),
 			Booking.start_datetime,
 			Booking.end_datetime,

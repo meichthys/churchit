@@ -6,6 +6,8 @@ import json
 import frappe
 from frappe.exceptions import PermissionError, ValidationError
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import set_request
+from frappe.website.serve import get_response
 
 from churchit.church_website.published_fields import published_field_map
 from churchit.tests.helpers import ensure_user, make_person, make_translation
@@ -140,6 +142,28 @@ class TestSermonPresentationPage(FrappeTestCase):
 		self.assertEqual(first["notes"], "Sing softly")
 		self.assertEqual(deleted["content"], "<p>This slide is not public</p>")
 		self.assertNotIn("SONG-DOES-NOT-EXIST", str(deleted))
+
+	def test_the_page_is_a_whole_document_with_named_buttons(self):
+		sermon = self._sermon("_Test Document Sermon", publish=1)
+		frappe.local.form_dict = frappe._dict(name=sermon.name)
+		set_request(method="GET", path="sermon_presentation")
+
+		html = get_response("sermon_presentation").get_data(as_text=True)
+
+		self.assertTrue(html.lstrip().lower().startswith("<!doctype html>"))
+		self.assertIn("<html lang=", html)
+		self.assertIn("<title>_Test Document Sermon: Presentation</title>", html)
+		self.assertIn('name="viewport"', html)
+		self.assertIn('aria-label="Previous slide"', html)
+		self.assertIn('aria-live="polite"', html)
+		self.assertIn("prefers-reduced-motion: reduce", html)
+
+	def test_the_cover_shows_the_sermon_date_or_else_today(self):
+		dated = self._sermon("_Test Dated Cover Sermon", publish=1, sermon_date="2030-10-10")
+		undated = self._sermon("_Test Undated Cover Sermon", publish=1)
+
+		self.assertEqual(str(self._context(dated).cover_date), "2030-10-10")
+		self.assertEqual(str(self._context(undated).cover_date), frappe.utils.today())
 
 	def test_guest_sees_no_person_slide(self):
 		person = make_person("_Test Slide", "Member")

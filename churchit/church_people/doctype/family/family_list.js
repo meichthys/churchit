@@ -5,6 +5,9 @@ frappe.listview_settings["Family"] = {
 	hide_name_column: true,
 	hide_name_filter: true,
 	onload(listview) {
+		// Every church's people show here, so desk.css keeps the Church filter even for one church.
+		if (frappe.boot.churchit.shared_people)
+			listview.page.wrapper.addClass("churchit-shared-people");
 		listview.page.add_inner_button(__("Rolodex"), () => {
 			frappe.route_options = { view: "households" };
 			frappe.set_route("rolodex");

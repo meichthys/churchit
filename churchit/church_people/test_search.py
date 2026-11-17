@@ -9,6 +9,7 @@ from frappe.client import validate_link_and_fetch
 from frappe.desk.search import search_link
 
 from churchit.church_people.privacy import ANONYMIZED, anonymize_person
+from churchit.church_people.search import search_people
 from churchit.church_people.test_matching import make_matchable
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -116,3 +117,55 @@ class TestPersonSearchAcrossChurches(RollbackEachTest):
 		frappe.set_user("Administrator")
 		with searching_people_by_contact():
 			self.assertEqual(found("carol.search@example.com"), [self.person_b])
+
+	def test_a_person_of_another_church_is_offered_with_that_churchs_title(self):
+		frappe.set_user("Administrator")
+		with searching_people_by_contact():
+			rows = search_link("Person", "_Testsearch")
+
+		self.assertIn(frappe.db.get_value("Church", self.branch_b, "church_name"), rows[0]["description"])
+
+	def test_a_person_of_the_readers_church_is_offered_without_a_church(self):
+		person_a = make_matchable("Dora", "_Testsearch", church=self.branch_a)
+		frappe.set_user(self.manager_a)
+		with searching_people_by_contact():
+			rows = [row for row in search_link("Person", "_Testsearch") if row["value"] == person_a]
+
+		self.assertNotIn(frappe.db.get_value("Church", self.branch_a, "church_name"), rows[0]["description"])
+
+	def test_a_search_as_dicts_still_sorts_and_names_the_church(self):
+		frappe.set_user("Administrator")
+		rows = search_people("Person", "_Testsearch", "name", 0, 20, None, as_dict=True)
+
+		self.assertEqual(rows[0].name, self.person_b)
+		self.assertEqual(rows[0].church, frappe.db.get_value("Church", self.branch_b, "church_name"))
+
+
+class TestDeceasedMarker(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		if not frappe.db.exists("Life Event Type", "Death"):
+			frappe.get_doc({"doctype": "Life Event Type", "type": "Death"}).insert(ignore_permissions=True)
+
+	def test_a_person_who_died_is_offered_with_a_deceased_description(self):
+		living = make_person("_Testsearchmark", "Living")
+		departed = make_person(
+			"_Testsearchmark",
+			"Departed",
+			life_events=[{"event_type": "Death", "date": "2020-01-01"}],
+		)
+		with searching_people_by_contact():
+			rows = {row["value"]: row for row in search_link("Person", "_Testsearchmark")}
+
+		self.assertIn("Deceased", rows[departed.name]["description"])
+		self.assertNotIn("Deceased", rows[living.name].get("description", ""))
+
+	def test_a_search_as_dicts_marks_the_deceased_too(self):
+		departed = make_person(
+			"_Testsearchmark",
+			"Departed",
+			life_events=[{"event_type": "Death", "date": "2020-01-01"}],
+		)
+		rows = search_people("Person", "_Testsearchmark", "name", 0, 20, None, as_dict=True)
+
+		self.assertEqual([(row.name, row.is_deceased) for row in rows], [(departed.name, "Deceased")])

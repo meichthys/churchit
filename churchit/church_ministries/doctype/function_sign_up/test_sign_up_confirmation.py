@@ -2,20 +2,43 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import email
-from unittest.mock import patch
+import json
+from pathlib import Path
+from unittest.mock import PropertyMock, patch
 
 import frappe
+from frappe.utils import fmt_money, get_url
 
+from churchit.church_communications.doctype.communication_consent.communication_consent import EMAIL
+from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
+	create_communication_purposes,
+)
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
 	CONFIRMATION_TEMPLATE,
 	CONFIRMED,
 	PENDING,
+	REMINDER_TEMPLATE,
+	UNPAID,
 	WAITLISTED,
+	FunctionSignUp,
+	send_reminder,
 )
 from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import make_sign_up
 from churchit.ics import calendar_times
-from churchit.patches.v1_0 import add_sign_up_confirmation_template
-from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person, pop_logs
+from churchit.patches.v1_0 import (
+	add_sign_up_confirmation_template,
+	add_sign_up_reminder_template,
+	link_sign_up_and_welcome_emails,
+	word_sign_up_link_as_see_your_sign_up,
+)
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_function,
+	make_person,
+	pop_logs,
+)
 
 SIGN_UP = "Function Sign-Up"
 CAN_SEND_EMAIL = "churchit.church_ministries.doctype.function_sign_up.function_sign_up.can_send_email"
@@ -31,6 +54,23 @@ def queued(sign_up) -> list:
 		queue = frappe.get_doc("Email Queue", name)
 		emails.append(([row.recipient for row in queue.recipients], email.message_from_string(queue.message)))
 	return emails
+
+
+def html_of(message) -> str:
+	"""The decoded text of the one text/html part of *message*."""
+	parts = [part for part in message.walk() if part.get_content_type() == "text/html"]
+	assert len(parts) == 1, parts
+	return parts[0].get_payload(decode=True).decode()
+
+
+def shipped(folder: str) -> dict:
+	"""The Email Template the app ships in the JSON of *folder*."""
+	root = Path(frappe.get_app_path("churchit", "church_communications", "email_template", folder))
+	return json.loads((root / f"{folder}.json").read_text())
+
+
+def shipped_html(folder: str) -> str:
+	return shipped(folder)["response_html"]
 
 
 def calendar_of(message) -> str:
@@ -63,6 +103,13 @@ class TestSignUpConfirmation(RollbackEachTest):
 			emails=[{"email_address": "_test_confirmed@example.com", "is_primary": 1}],
 		).name
 		cls.other = make_person("_Test Waiting", "Member").name
+		cls.member_user = ensure_user("_test_confirmed_member@example.com", "_Test Member")
+		cls.member = make_person(
+			"_Test Portal",
+			"Member",
+			user=cls.member_user,
+			emails=[{"email_address": "_test_confirmed_member@example.com", "is_primary": 1}],
+		).name
 
 	def setUp(self):
 		super().setUp()
@@ -70,6 +117,9 @@ class TestSignUpConfirmation(RollbackEachTest):
 		enqueue = patch("frappe.enqueue")
 		enqueue.start()
 		self.addCleanup(enqueue.stop)
+		# A site may hold an older copy of the template, which the patch would update.
+		html = shipped_html("sign_up_confirmation_template")
+		frappe.db.set_value("Email Template", CONFIRMATION_TEMPLATE, "response_html", html)
 
 	def make_function(self, **values):
 		times = {"start_date": "2031-05-01", "start_time": "18:30:00", "end_time": "20:00:00"}
@@ -179,6 +229,101 @@ class TestSignUpConfirmation(RollbackEachTest):
 		self.assertEqual(sign_up.status, CONFIRMED)
 		self.assertEqual(queued(sign_up), [])
 
+	def sign_up_as_member(self, function: str):
+		"""A sign-up the member makes for themselves, as on /register."""
+		frappe.set_user(self.member_user)
+		try:
+			return frappe.get_doc({"doctype": SIGN_UP, "function": function, "attending": 1}).insert(
+				ignore_permissions=True
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_an_amount_to_pay_at_the_church_is_named(self):
+		fund = ensure("Fund", {"fund": "_Test Confirmation Fund"})
+		adult = [{"selection": "Adult", "price": 20}]
+		function = self.make_function(sign_up_fund=fund, selections=adult)
+		offline = patch.object(
+			FunctionSignUp, "has_online_payment", new_callable=PropertyMock, return_value=False
+		)
+		with offline:
+			sign_up = make_sign_up(
+				function.name, self.person, attendees=[{"person": self.person, "selection": "Adult"}]
+			)
+
+		self.assertEqual((sign_up.status, sign_up.payment_status), (CONFIRMED, UNPAID))
+		[(_recipients, message)] = queued(sign_up)
+		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		amount = fmt_money(20, currency=currency)
+		self.assertIn(f"The amount due is {amount}. Please pay it at the church.", html_of(message))
+
+	def test_a_members_sign_up_links_to_its_page_whoever_made_it(self):
+		own = self.sign_up_as_member(self.make_function().name)
+
+		[(_recipients, message)] = queued(own)
+		html = html_of(message)
+		self.assertIn(f'<a href="{get_url(f"/function-sign-up/{own.name}")}"', html)
+		self.assertIn("See your sign-up</a>", html)
+		self.assertNotIn("amount due", html)
+
+		by_staff = make_sign_up(self.make_function(start_date="2031-06-01").name, self.member, attending=1)
+		[(_recipients, message)] = queued(by_staff)
+		self.assertIn(get_url(f"/function-sign-up/{by_staff.name}"), html_of(message))
+
+	def test_a_sign_up_whose_person_has_no_login_gets_no_link(self):
+		sign_up = make_sign_up(self.make_function().name, self.person, attending=1)
+
+		[(_recipients, message)] = queued(sign_up)
+		self.assertNotIn("/function-sign-up/", html_of(message))
+
+	def test_the_reminder_links_a_members_own_sign_up(self):
+		create_communication_purposes()
+		add_sign_up_reminder_template.execute()
+		html = shipped_html("sign_up_reminder_template")
+		frappe.db.set_value("Email Template", REMINDER_TEMPLATE, "response_html", html)
+		own = self.sign_up_as_member(self.make_function().name)
+		context = {"function_name": "_Test Confirmation Retreat", "date": "Thursday, May 1, 2031", "time": ""}
+
+		with patch("frappe.sendmail") as sendmail, patch.object(frappe.db, "commit"):
+			send_reminder(own, [EMAIL], context)
+
+		[call] = sendmail.call_args_list
+		link = get_url(f"/function-sign-up/{own.name}")
+		self.assertIn(f'<a href="{link}">See your sign-up</a>', call.kwargs["message"])
+
+
+class TestLinkSignUpAndWelcomeEmailsPatch(RollbackEachTest):
+	def restore_shipped_text(self):
+		for folder, html in link_sign_up_and_welcome_emails.SHIPPED.items():
+			values = shipped(folder)
+			if frappe.db.exists("Email Template", values["name"]):
+				frappe.db.set_value("Email Template", values["name"], "response_html", html)
+			else:
+				frappe.get_doc({**values, "response_html": html}).insert(ignore_permissions=True)
+
+	def test_the_patch_replaces_the_shipped_text_and_runs_twice(self):
+		self.restore_shipped_text()
+
+		link_sign_up_and_welcome_emails.execute()
+		link_sign_up_and_welcome_emails.execute()
+
+		for folder in link_sign_up_and_welcome_emails.SHIPPED:
+			values = shipped(folder)
+			self.assertEqual(
+				frappe.db.get_value("Email Template", values["name"], "response_html"),
+				values["response_html"],
+			)
+
+	def test_the_patch_keeps_a_churchs_own_words(self):
+		self.restore_shipped_text()
+		frappe.db.set_value("Email Template", CONFIRMATION_TEMPLATE, "response_html", "<p>Ours</p>")
+
+		link_sign_up_and_welcome_emails.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Email Template", CONFIRMATION_TEMPLATE, "response_html"), "<p>Ours</p>"
+		)
+
 
 class TestSignUpConfirmationTemplatePatch(RollbackEachTest):
 	def test_the_patch_adds_the_template_once_and_keeps_a_churchs_own_copy(self):
@@ -192,3 +337,35 @@ class TestSignUpConfirmationTemplatePatch(RollbackEachTest):
 		self.assertEqual(
 			frappe.db.get_value("Email Template", CONFIRMATION_TEMPLATE, "subject"), "_Test our own subject"
 		)
+
+
+class TestWordSignUpLinkPatch(RollbackEachTest):
+	def restore_old_link(self):
+		for folder in word_sign_up_link_as_see_your_sign_up.TEMPLATES:
+			values = shipped(folder)
+			old = values["response_html"].replace("See your sign-up", "See or cancel your sign-up")
+			if frappe.db.exists("Email Template", values["name"]):
+				frappe.db.set_value("Email Template", values["name"], "response_html", old)
+			else:
+				frappe.get_doc({**values, "response_html": old}).insert(ignore_permissions=True)
+
+	def test_the_patch_rewords_the_shipped_text_and_runs_twice(self):
+		self.restore_old_link()
+
+		word_sign_up_link_as_see_your_sign_up.execute()
+		word_sign_up_link_as_see_your_sign_up.execute()
+
+		for folder in word_sign_up_link_as_see_your_sign_up.TEMPLATES:
+			values = shipped(folder)
+			html = frappe.db.get_value("Email Template", values["name"], "response_html")
+			self.assertEqual(html, values["response_html"])
+			self.assertNotIn("or cancel", html)
+
+	def test_the_patch_keeps_a_churchs_own_words(self):
+		self.restore_old_link()
+		ours = "<p>See or cancel your sign-up here, friend.</p>"
+		frappe.db.set_value("Email Template", CONFIRMATION_TEMPLATE, "response_html", ours)
+
+		word_sign_up_link_as_see_your_sign_up.execute()
+
+		self.assertEqual(frappe.db.get_value("Email Template", CONFIRMATION_TEMPLATE, "response_html"), ours)

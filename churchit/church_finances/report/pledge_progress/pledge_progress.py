@@ -8,7 +8,7 @@ from frappe.utils import add_days, flt
 from pypika import Order
 
 from churchit.church_people.household import members
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -16,7 +16,7 @@ def execute(filters=None):
 	filters = filters or {}
 	if filters.get("campaign"):
 		frappe.has_permission("Pledge Campaign", doc=filters["campaign"], throw=True)
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -29,10 +29,10 @@ def get_columns():
 			"fieldtype": "Link",
 			"label": _("Campaign"),
 			"options": "Pledge Campaign",
-			"width": 200,
+			"width": 160,
 		},
 		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 180},
-		{"fieldname": "family", "fieldtype": "Link", "label": _("Family"), "options": "Family", "width": 160},
+		{"fieldname": "family", "fieldtype": "Link", "label": _("Family"), "options": "Family", "width": 130},
 		{"fieldname": "frequency", "fieldtype": "Data", "label": _("Frequency"), "width": 100},
 		{"fieldname": "goal_amount", "fieldtype": "Currency", "label": _("Goal"), "width": 120},
 		{"fieldname": "pledged", "fieldtype": "Currency", "label": _("Pledged"), "width": 120},
@@ -44,7 +44,7 @@ def get_columns():
 def get_data(filters):
 	"""A row per campaign (goal, pledged and received), then a row per pledge against its givers' gifts.
 
-	A household pledge counts the gifts of the person and of every living member of the family.
+	A gift counts on one pledge only, see `get_received_by_pledge`.
 	"""
 	campaigns = get_campaigns(filters)
 	pledges = get_pledges([campaign.name for campaign in campaigns], filters)
@@ -62,12 +62,13 @@ def get_data(filters):
 				"pledged": pledged,
 				"received": received,
 				"progress": get_progress(received, campaign.goal_amount),
+				"church": campaign.church,
 				"bold": 1,
 			}
 		)
+		received_by_pledge = get_received_by_pledge(own_pledges, gifts)
 		for pledge in own_pledges:
-			givers = {pledge.person, *(members(pledge.family) if pledge.family else ())}
-			received = sum(gifts.get(giver, 0) for giver in givers)
+			received = received_by_pledge[id(pledge)]
 			data.append(
 				{
 					**pledge,
@@ -77,6 +78,52 @@ def get_data(filters):
 				}
 			)
 	return data
+
+
+def get_received_by_pledge(pledges: list, gifts: dict) -> dict[int, float]:
+	"""{id(pledge): received} where each person's gifts count on one pledge of the campaign.
+
+	A person's own pledges take their gifts in the order given: each one fills to its amount, and the last
+	takes the rest. A household pledge then takes the gifts of the person and of each living family member
+	that no earlier pledge took, so the pledge rows never add up to more than the campaign received.
+	"""
+	received = {}
+	taken = set()
+	remaining = dict(gifts)
+	own_pledges = [pledge for pledge in pledges if not pledge.family]
+	last_own = {pledge.person: pledge for pledge in own_pledges}
+	for pledge in own_pledges:
+		left = remaining.get(pledge.person, 0)
+		is_last = last_own[pledge.person] is pledge
+		received[id(pledge)] = left if is_last else min(flt(pledge.amount), left)
+		remaining[pledge.person] = left - received[id(pledge)]
+		taken.add(pledge.person)
+
+	for pledge in pledges:
+		if not pledge.family:
+			continue
+		givers = ({pledge.person} | set(members(pledge.family))) - taken
+		taken |= givers
+		received[id(pledge)] = sum(gifts.get(giver, 0) for giver in givers)
+	return received
+
+
+def get_received_for_pledge(pledge) -> float:
+	"""What was given toward *pledge*, counted as the report counts it.
+
+	Reads the campaign's other pledges unscoped, because the share of a household depends on them, and
+	returns only this pledge's number.
+	"""
+	campaign = frappe.get_doc("Pledge Campaign", pledge.campaign)
+	# church-scope: the campaign's own pledges; only the caller's own total leaves this function
+	pledges = frappe.get_all(
+		"Pledge",
+		filters={"campaign": campaign.name},
+		fields=["name", "campaign", "person", "family", "amount"],
+		order_by="creation",
+	)
+	received = get_received_by_pledge(pledges, get_gifts_by_person(campaign))
+	return next(received[id(row)] for row in pledges if row.name == pledge.name)
 
 
 def get_progress(received: float, target: float) -> float | None:
@@ -108,7 +155,7 @@ def get_pledges(campaigns, filters):
 	Pledge = frappe.qb.DocType("Pledge")
 	query = (
 		frappe.qb.from_(Pledge)
-		.select(Pledge.campaign, Pledge.person, Pledge.family, Pledge.frequency, Pledge.amount)
+		.select(Pledge.campaign, Pledge.person, Pledge.family, Pledge.frequency, Pledge.amount, Pledge.church)
 		.where(Pledge.campaign.isin(campaigns))
 		.orderby(Pledge.creation)
 	)

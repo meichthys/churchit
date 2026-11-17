@@ -110,6 +110,14 @@ def get_editable_children(user: str) -> list[str]:
 	return [child for child in children if child not in ages or ages[child] < adult_age]
 
 
+def get_other_adults(user: str) -> list[str]:
+	"""The other living Adults and Other Adults of the family *user*'s Person is an Adult of; none when they are not."""
+	own = user and frappe.db.get_value("Person", {"user": user}, ["name", "family"], as_dict=True)
+	if not own or not own.family or role_of(own.name) != ADULT:
+		return []
+	return [adult for adult in members(own.family, [ADULT, OTHER_ADULT]) if adult != own.name]
+
+
 def salutation(family: str) -> str:
 	"""How to address *family* on a letter or label, e.g. "John & Jane Smith", from its living Adults.
 

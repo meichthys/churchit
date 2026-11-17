@@ -2,11 +2,15 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
+from churchit.church_people.derived import warn_if_after_death
 from churchit.church_people.group_meetings import get_meets
 from churchit.church_people.group_requirements import check_member_requirements
+from churchit.church_people.repeated_rows import refuse_repeated_people
+from churchit.unique_names import refuse_a_second_with_this_name
 
 
 class Group(Document):
@@ -15,7 +19,20 @@ class Group(Document):
 
 	def validate(self):
 		self.meets = get_meets(self.name)
+		refuse_a_second_with_this_name(
+			self, "group_name", _("There is already a group called {0}. Give this group another name.")
+		)
+		refuse_repeated_people(self, "members", "person")
 		check_member_requirements(self)
+		self.warn_about_members_after_death()
+
+	def warn_about_members_after_death(self):
+		"""Warn about each person added to the members after their recorded death. A member row has no date."""
+		before = self.get_doc_before_save()
+		people_before = {row.person for row in before.members} if before else set()
+		for row in self.members:
+			if row.person not in people_before:
+				warn_if_after_death(row.person, getdate(), _("group membership"))
 
 	@property
 	def member_count(self) -> int:

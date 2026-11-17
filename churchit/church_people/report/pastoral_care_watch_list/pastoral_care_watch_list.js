@@ -8,4 +8,8 @@ frappe.query_reports["Pastoral Care Watch List"] = {
 			default: 30,
 		},
 	],
+	onload: function (report) {
+		const filter = report.get_filter("window_days");
+		filter.$input.attr("title", filter.df.label);
+	},
 };

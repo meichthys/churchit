@@ -86,7 +86,11 @@ class TestFunctionRegistrations(RollbackEachTest):
 		columns, data = self.rows(function=self.function)
 
 		self.assertEqual(
-			[(column["fieldname"], column["label"]) for column in columns[-2:]],
+			[
+				(column["fieldname"], column["label"])
+				for column in columns
+				if column["fieldname"].startswith("answer_")
+			],
 			[("answer_diet", "Diet"), ("answer_shirt_size", "Shirt size")],
 		)
 		self.assertEqual(

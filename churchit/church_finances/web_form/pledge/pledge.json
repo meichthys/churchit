@@ -36,7 +36,7 @@
   "list_title": "Your Pledges",
   "login_required": 1,
   "max_attachment_size": 0,
-  "modified": "2026-10-23 01:13:41",
+  "modified": "2026-11-15 15:06:09.949155",
   "modified_by": "Administrator",
   "module": "Church Finances",
   "name": "pledge",
@@ -46,6 +46,9 @@
   "show_attachments": 0,
   "show_list": 1,
   "show_sidebar": 1,
+  "success_message": "Thank you. Your pledge is saved. Give to the campaign as usual and your gifts count toward it. Open your pledge to see how much you have given so far.",
+  "success_title": "Pledge Saved",
+  "success_url": "/pledge/list",
   "title": "Pledge",
   "web_form_fields": [
     {

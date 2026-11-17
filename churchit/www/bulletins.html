@@ -1,6 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ doc.function_name | e if doc else _("Bulletins") }}{% endblock %}
+{% block title %}{{ doc.function_name | e if doc else title | e }}{% endblock %}
 
 {% block head_include %}
 <style>
@@ -10,15 +10,15 @@
 	.bulletin-list .date { color: #6b7280; white-space: nowrap; }
 	.bulletin-list .links { display: flex; flex-wrap: wrap; column-gap: 12px; align-items: baseline; }
 	.bulletin-list .pdf { font-size: 0.875em; }
-	.digital-bulletin-links { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+	.digital-bulletin-links { display: flex; flex-wrap: wrap; gap: 8px; max-width: 48rem; margin: 1.5rem auto 16px; }
 	.digital-bulletin .bulletin-sheet { margin: 0 auto 24px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); }
 	.digital-bulletin .bulletin-cut, .digital-bulletin .bulletin-panel.right.handout { display: none; }
 	{#- The sheet stays white in dark mode, so it keeps the print colors over the dark theme's light links and headings. #}
 	[data-theme="dark"] .digital-bulletin .cover-title,
 	[data-theme="dark"] .digital-bulletin .bulletin-sheet a { color: #2a4a85; }
-	{#- The printed sheet is 11in wide, so narrower screens read the panels one after another, front cover first. #}
-	@media (max-width: 1199.98px) {
-		.digital-bulletin .bulletin-sheet { width: auto; height: auto; display: flex; flex-direction: column; }
+	{#- The printed sheet folds in half, so a screen reads the panels one after another, front cover first. #}
+	@media screen {
+		.digital-bulletin .bulletin-sheet { width: auto; max-width: 48rem; height: auto; display: flex; flex-direction: column; }
 		.digital-bulletin .bulletin-panel,
 		.digital-bulletin .cover-verse,
 		.digital-bulletin .back-footer { position: static; width: auto; height: auto; }
@@ -33,15 +33,15 @@
 {% block page_content %}
 {% if doc %}
 <div class="digital-bulletin-links">
-	<a href="/bulletins">{{ _("All bulletins") }}</a>
-	<a href="/api/method/churchit.church_communications.doctype.bulletin.bulletin.download_pdf?name={{ doc.name | urlencode }}">{{ _("Download PDF") }}</a>
+	<a class="btn btn-default btn-sm" href="/bulletins">{{ _("All bulletins") }}</a>
+	<a class="btn btn-default btn-sm" href="/api/method/churchit.church_communications.doctype.bulletin.bulletin.download_pdf?name={{ doc.name | urlencode }}">{{ _("Download PDF") }}</a>
 </div>
 <div class="digital-bulletin">
 	{% include "churchit/templates/print_formats/bulletin.html" %}
 </div>
 {% else %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-4">{{ _("Bulletins") }}</h3>
+	<h1 class="my-account-header mb-4">{{ title | e }}</h1>
 
 	{% if not bulletins %}
 		<p class="text-muted">{{ _("No bulletins have been shared yet.") }}</p>

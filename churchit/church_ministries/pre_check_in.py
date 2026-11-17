@@ -13,7 +13,7 @@ from urllib.parse import parse_qsl
 
 import frappe
 from frappe import _
-from frappe.utils import cint, escape_html, format_datetime, format_time, now_datetime
+from frappe.utils import cint, escape_html, format_time, formatdate, now_datetime
 from frappe.utils.print_format_generator import get_qr_code
 from frappe.utils.verified_command import get_signed_params
 
@@ -22,9 +22,10 @@ from churchit.church_ministries.check_in_limits import (
 	get_capacity_warning,
 	is_check_in_open,
 )
-from churchit.church_ministries.doctype.function.function import get_time_window
+from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
 from churchit.church_ministries.doctype.function_check_in.function_check_in import print_name_tags
 from churchit.church_ministries.kiosk import add_household_check_ins, get_open_functions
+from churchit.church_people import household
 from churchit.church_scope import is_multi_church, session_church
 
 SIGNATURE = "&_signature="
@@ -41,18 +42,27 @@ def get_functions() -> list[dict]:
 	return get_open_functions(church)
 
 
+def get_household_adults() -> set[str]:
+	"""The other adults of the signed-in Adult's household, when Check-In Settings lets adults pre check them in."""
+	if not frappe.db.get_single_value("Check-In Settings", "adults_pre_check_in_adults"):
+		return set()
+	return set(household.get_other_adults(frappe.session.user))
+
+
 @frappe.whitelist(methods=["GET"])
 def get_pre_check_in_code(function: str, persons: str | list[str]) -> dict:
 	"""A QR code that checks *persons* in to *function* when scanned, until the Function ends. Reads only.
 
-	For people the caller may edit, at a Function of their church open for self check-in. The code is
-	signed, so nothing is stored.
+	For people the caller may edit, and the other adults of their household when Check-In Settings allows
+	it, at a Function of their church open for self check-in. The code is signed, so nothing is stored.
 	"""
 	persons = frappe.parse_json(persons)
 	if not persons or not isinstance(persons, list) or not all(isinstance(person, str) for person in persons):
 		frappe.throw(_("Choose who to check in."))
+	adults = get_household_adults()
 	for person in persons:
-		frappe.has_permission("Person", "write", doc=person, throw=True)
+		if person not in adults:
+			frappe.has_permission("Person", "write", doc=person, throw=True)
 	if function not in {row.name for row in get_functions()}:
 		frappe.throw(_("Check-in to this function is not open now."), frappe.PermissionError)
 
@@ -68,7 +78,9 @@ def get_pre_check_in_code(function: str, persons: str | list[str]) -> dict:
 	ends = get_time_window(frappe.db.get_value("Function", function, fields, as_dict=True))[1]
 	values = (function, ",".join(dict.fromkeys(persons)), ends.strftime(EXPIRY_FORMAT))
 	payload = get_signed_params(dict(zip(PAYLOAD_KEYS, values, strict=True)))
-	valid_until = format_time(ends) if ends.date() == now_datetime().date() else format_datetime(ends)
+	valid_until = format_time(ends, TIME_FORMAT)
+	if ends.date() != now_datetime().date():
+		valid_until = _("{0} at {1}").format(formatdate(ends), valid_until)
 	return {"qr_code": get_qr_code(payload), "valid_until": valid_until}
 
 

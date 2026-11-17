@@ -23,6 +23,7 @@ from churchit.church_communications.test_preferences import send_sms_hooks
 from churchit.church_communications.test_sending import log_sms
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
 	CANCELLED,
+	DATE_FORMAT,
 	PENDING,
 	REMINDER_TEMPLATE,
 	WAITLISTED,
@@ -114,7 +115,8 @@ class TestSignUpReminders(RollbackEachTest):
 			and call.kwargs.get("unsubscribe_params")
 		]
 		self.assertEqual(
-			email["subject"], f"Reminder: _Test Reminder Camp on {format_date(add_days(today(), 2))}"
+			email["subject"],
+			f"Reminder: _Test Reminder Camp on {format_date(add_days(today(), 2), DATE_FORMAT)}",
 		)
 		self.assertIn("Dear Ada", email["message"])
 		self.assertIn("6:30 PM", email["message"])

@@ -83,8 +83,8 @@ frappe.ui.form.on("Function Sign-Up", {
 		});
 
 		if (grid) {
-			const unfilter_label = __("Unfilter Items");
-			const filter_label = __("Filter Items by Function");
+			const unfilter_label = __("Show All Items");
+			const filter_label = __("Only This Function's Items");
 			const remove_grid_button = (label) => {
 				if (grid.custom_buttons && grid.custom_buttons[label]) {
 					grid.custom_buttons[label].remove();

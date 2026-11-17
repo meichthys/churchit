@@ -3,16 +3,17 @@
 {%- set upcoming = frappe.get_all(
 	"Function",
 	fields=["name", "function_name", "title", "start_date", "start_time", "all_day", "description"],
-	filters=selected_church_filters(publish=1, is_link_only=0, start_date=[">=", frappe.utils.nowdate()]),
+	filters=selected_church_filters(publish=1, is_link_only=0, auto_repeat=0, start_date=[">=", frappe.utils.nowdate()]),
 	order_by="start_date asc, start_time asc",
 	limit=4,
 ) -%}
-{%- set sermons_on = "sermons" not in get_switched_off_pages() -%}
+{%- set off_pages = get_switched_off_pages() -%}
+{%- set sermons_on = "sermons" not in off_pages -%}
 {%- set sermons = frappe.get_all(
 	"Sermon",
-	fields=["name", "title", "notes", "audio_recording", "prepared_by"],
+	fields=["name", "title", "notes", "handout", "audio_recording", "prepared_by"],
 	filters=selected_church_filters(publish=1),
-	order_by="modified desc",
+	order_by="sermon_date desc, modified desc",
 	limit=1,
 ) if sermons_on else [] -%}
 {%- set address_line = "" -%}
@@ -35,30 +36,30 @@
 		<p class="home-lead">{{ church.mission_statement }}</p>
 		{% endif %}
 		<div class="home-cta-row">
-			<a class="btn btn-primary btn-lg" href="/calendar">{{ _("See the calendar") }} &rarr;</a>
-			<a class="btn btn-lg home-btn-ghost" href="/contact">{{ _("Get in touch") }} &rarr;</a>
+			{% if "calendar" not in off_pages %}<a class="btn btn-primary btn-lg" href="/calendar">{{ _("See the calendar") }} &rarr;</a>{% endif %}
+			{% if "contact" not in off_pages %}<a class="btn btn-lg home-btn-ghost" href="/contact">{{ _("Get in touch") }} &rarr;</a>{% endif %}
 		</div>
 	</div>
 
 	{% if upcoming %}
 	{%- set next_up = upcoming[0] -%}
-	<aside class="card home-aside">
+	<section class="card home-aside" aria-labelledby="home-next-gathering">
 		<div class="card-body">
 			<div class="home-aside-label">{{ _("Next gathering") }}</div>
-			<div class="home-aside-title">{{ next_up.function_name or next_up.title }}</div>
+			<h2 class="home-aside-title" id="home-next-gathering">{{ next_up.function_name or next_up.title }}</h2>
 			<div class="home-aside-when">
-				{{ frappe.utils.format_date(next_up.start_date, "EEEE, d MMMM") }}
+				{{ frappe.utils.format_date(next_up.start_date, "EEEE, MMMM d, yyyy") }}
 				{%- if not next_up.all_day and next_up.start_time %} · {{ frappe.utils.format_time(next_up.start_time, "h:mm a") }}{% endif -%}
 			</div>
 			{% if next_up.description %}
 			<p class="home-aside-text">{{ next_up.description }}</p>
 			{% endif %}
 			{% if address_line %}
-			<div class="home-aside-where">📍 {{ address_line }}</div>
+			<div class="home-aside-where"><span aria-hidden="true">📍</span> {{ address_line }}</div>
 			{% endif %}
-			<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>
+			{% if "calendar" not in off_pages %}<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>{% endif %}
 		</div>
-	</aside>
+	</section>
 	{% endif %}
 </section>
 
@@ -80,20 +81,20 @@
 </section>
 {% endif %}
 
-{% if sermons or upcoming %}
+{% if sermons or upcoming[1:] %}
 <section class="home-section home-split">
 	{% if sermons %}
 	{%- set latest = sermons[0] -%}
 	<div class="card home-panel">
 		<div class="card-body">
-			<span class="home-eyebrow">🎧 {{ _("Latest message") }}</span>
-			<h3 class="home-panel-title">{{ latest.title }}</h3>
+			<span class="home-eyebrow"><span aria-hidden="true">🎧</span> {{ _("Latest message") }}</span>
+			<h2 class="home-panel-title">{{ latest.title }}</h2>
 			{% if latest.prepared_by %}
 			<div class="home-panel-meta">{{ frappe.db.get_value("Person", latest.prepared_by, "full_name") }}</div>
 			{% endif %}
-			{% if latest.notes %}
+			{% if latest.notes and not latest.handout %}
 			{#- the opening paragraph is the summary; the rest is the outline, which glues together badly -#}
-			<p class="home-panel-text">{{ latest.notes.split("</p>")[0] | striptags | truncate(180, False, "…") }}</p>
+			<p class="home-panel-text">{{ (latest.notes.split("<p>", 1)[1].split("</p>")[0] if "<p>" in latest.notes else latest.notes) | striptags | replace("[", "") | replace("]", "") | truncate(180, False, "…") | e }}</p>
 			{% endif %}
 			{% if latest.audio_recording %}
 			<audio controls preload="none"><source src="{{ latest.audio_recording }}"></audio>
@@ -103,14 +104,14 @@
 	</div>
 	{% endif %}
 
-	{% if upcoming %}
+	{% if upcoming[1:] %}
 	<div class="card home-panel">
 		<div class="card-body">
-			<span class="home-eyebrow">📅 {{ _("Upcoming") }}</span>
+			<span class="home-eyebrow"><span aria-hidden="true">📅</span> {{ _("Upcoming") }}</span>
 			<ul class="home-schedule">
-				{% for event in upcoming %}
+				{% for event in upcoming[1:] %}
 				<li>
-					<span class="home-schedule-date">{{ frappe.utils.format_date(event.start_date, "EEE, d MMM") }}</span>
+					<span class="home-schedule-date">{{ frappe.utils.format_date(event.start_date) }}</span>
 					<span class="home-schedule-name">{{ event.function_name or event.title }}</span>
 					{% if not event.all_day and event.start_time %}
 					<span class="home-schedule-time">{{ frappe.utils.format_time(event.start_time, "h:mm a") }}</span>
@@ -118,7 +119,7 @@
 				</li>
 				{% endfor %}
 			</ul>
-			<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>
+			{% if "calendar" not in off_pages %}<a class="home-aside-link" href="/calendar">{{ _("See the full calendar") }} &rarr;</a>{% endif %}
 		</div>
 	</div>
 	{% endif %}
@@ -127,19 +128,9 @@
 {% else %}
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
-        <h2 style="color: #4a4a4a; margin-bottom: 16px;">Welcome to Your Website</h2>
-        <p style="font-size: 1.2em; color: #6c757d; margin-bottom: 32px;">
-            Your new church website is almost ready!<br>
-            To get started, please log in and configure your church information.<br>
-            <br>
-            The default login credentials are:<br>
-            Username: Administrator<br>
-            Password: admin<br>
-            Be sure to change the password immediately!
-        </p>
-        <a href="/login" class="btn btn-primary btn-lg" style="padding: 12px 40px; font-size: 1.1em;">
-            Log In to Get Started
-        </a>
+        <h2>{{ _("This website is being set up") }}</h2>
+        <p class="text-muted">{{ _("Please check back soon.") }}</p>
+        <a href="/login" class="btn btn-default">{{ _("Log In") }}</a>
     </div>
 </div>
 {% endif %}

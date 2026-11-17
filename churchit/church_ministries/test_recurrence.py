@@ -6,17 +6,38 @@ from datetime import date, time, timedelta
 from unittest.mock import patch
 
 import frappe
-from frappe.utils import add_days, get_datetime, getdate
+from frappe.utils import add_days, get_datetime, get_first_day_of_week, getdate
 
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_ministries.attendance import record, set_headcount
 from churchit.church_ministries.doctype.function.function import _as_time
+from churchit.church_ministries.doctype.function_check_in.function_check_in import (
+	add_check_ins,
+	check_in_persons,
+)
+from churchit.church_ministries.kiosk import get_open_functions
+from churchit.church_ministries.page.check_in.check_in import get_station_context
 from churchit.church_ministries.recurrence import (
 	create_missing_occurrences,
+	create_occurrence,
 	create_scheduled_functions,
 	get_occurrence_dates,
 )
+from churchit.church_ministries.report.church_attendance import church_attendance
+from churchit.church_ministries.report.function_attendance_by_person import function_attendance_by_person
+from churchit.church_ministries.report.function_attendance_by_type import function_attendance_by_type
+from churchit.church_ministries.report.functions import functions as functions_report
 from churchit.church_ministries.report.recurring_functions import recurring_functions
+from churchit.church_people.report.attendance_count import attendance_count
+from churchit.church_people.report.visitor_log import visitor_log
+from churchit.church_people.summaries import attendance as attendance_summary
+from churchit.church_summary import metrics
+from churchit.dashboard import count_weekly_attendance
 from churchit.ics import get_public_calendar
+from churchit.patches.v1_0 import (
+	create_first_occurrences_of_templates,
+	skip_recurring_templates_in_function_reminders,
+)
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -145,7 +166,7 @@ class TestRecurrence(RollbackEachTest):
 		self.assertEqual(len(first), 8)
 		self.assertEqual(occurrence_dates(template), first)
 
-	def test_the_templates_own_date_is_not_copied(self):
+	def test_the_first_occurrence_is_on_the_templates_own_date(self):
 		start = getdate()
 		template = self.make_template(
 			"_Test Starts Today",
@@ -155,7 +176,48 @@ class TestRecurrence(RollbackEachTest):
 		)
 		create_missing_occurrences(template, start)
 
-		self.assertEqual(occurrence_dates(template)[0], add_days(start, 7))
+		self.assertEqual(occurrence_dates(template)[:2], [start, add_days(start, 7)])
+
+	def test_the_first_occurrence_is_the_rules_first_date_from_the_start_date(self):
+		start = add_days(getdate(), 1)
+		template = self.make_template(
+			"_Test Starts Off Rule",
+			start_date=start,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(add_days(start, 2)),
+		)
+		create_missing_occurrences(template, getdate())
+
+		self.assertEqual(occurrence_dates(template)[0], add_days(start, 2))
+
+	def test_a_template_past_the_horizon_still_gets_its_first_occurrence(self):
+		start = add_days(getdate(), 70)
+		template = self.make_template(
+			"_Test Far Ahead",
+			start_date=start,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(start),
+			repeat_horizon_weeks=2,
+		)
+		create_missing_occurrences(template, getdate())
+		create_missing_occurrences(template, getdate())
+
+		self.assertEqual(occurrence_dates(template), [start])
+
+	def test_the_next_runs_continue_after_the_latest_occurrence(self):
+		start = add_days(getdate(), -14)
+		template = self.make_template(
+			"_Test Started Before",
+			start_date=start,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(start),
+			repeat_horizon_weeks=2,
+		)
+		create_missing_occurrences(template, getdate())
+
+		self.assertEqual(
+			occurrence_dates(template), [getdate(), add_days(getdate(), 7), add_days(getdate(), 14)]
+		)
 
 	def test_a_deleted_occurrence_is_not_created_again(self):
 		template = self.make_template(
@@ -540,3 +602,150 @@ class TestRecurringSharedRoomBookings(RollbackEachTest):
 		occurrence = frappe.get_doc("Function", {"source_template": template.name})
 		booking = frappe.get_doc("Room Booking", {"function": occurrence.name})
 		self.assertEqual([row.asset for row in booking.assets], [asset])
+
+
+class TestTemplateIsARule(RollbackEachTest):
+	"""A recurring template is a rule: its first date is an occurrence, and nothing counts or checks in the template."""
+
+	def setUp(self):
+		super().setUp()
+		self.today = getdate()
+		self.person = make_person("_Test Roster", "Regular").name
+		self.week = (metrics.get_attendance(None, *self.week_bounds()), count_weekly_attendance()["value"])
+		self_type = ensure("Function Type", {"type": "_Test Rule Type"})
+		frappe.db.set_value("Function Type", self_type, "allow_self_check_in", 1)
+		self.template = make_function(
+			"_Test Weekly Rule",
+			type=self_type,
+			start_date=self.today,
+			all_day=1,
+			publish=1,
+			auto_repeat=1,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(self.today),
+			repeat_horizon_weeks=1,
+			attendance=[{"person": self.person, "attendance_type": "Confirmed"}],
+		)
+		create_missing_occurrences(self.template, self.today)
+		self.occurrence = frappe.get_doc(
+			"Function", {"source_template": self.template.name, "start_date": self.today}
+		)
+
+	def week_bounds(self):
+		week_start = get_first_day_of_week(self.today)
+		return week_start, add_days(week_start, 6)
+
+	def test_the_roster_reaches_the_first_occurrence_and_counts_only_there(self):
+		self.assertEqual([row.person for row in self.occurrence.attendance], [self.person])
+		self.assertEqual((self.template.attendance_total, self.occurrence.attendance_total), (0, 1))
+		self.assertEqual(
+			(metrics.get_attendance(None, *self.week_bounds()), count_weekly_attendance()["value"]),
+			(self.week[0] + 1, self.week[1] + 1),
+		)
+		self.assertEqual(attendance_summary.compute([self.person])[self.person]["times_attended_90d"], 1)
+
+	def test_the_kiosk_and_the_station_offer_the_occurrence_not_the_template(self):
+		kiosk = [row.name for row in get_open_functions(self.template.church)]
+		station = [row.name for row in get_station_context()["functions"]]
+		for offered in (kiosk, station):
+			self.assertIn(self.occurrence.name, offered)
+			self.assertNotIn(self.template.name, offered)
+
+	def test_no_check_in_or_headcount_is_recorded_on_the_template(self):
+		check_in = frappe.get_doc(
+			{"doctype": "Function Check-In", "function": self.template.name, "person": self.person}
+		)
+		message = "schedule of a recurring function"
+		self.assertRaisesRegex(frappe.ValidationError, message, check_in.insert, ignore_permissions=True)
+		self.assertRaisesRegex(
+			frappe.ValidationError, message, check_in_persons, self.template.name, [self.person]
+		)
+		self.assertRaisesRegex(
+			frappe.ValidationError, message, record, self.person, self.template.name, "Checked-In"
+		)
+		self.assertRaisesRegex(frappe.ValidationError, message, set_headcount, self.template.name, 10)
+		self.assertTrue(add_check_ins(self.occurrence.name, [self.person]))
+
+	def test_the_attendance_reports_leave_the_template_out(self):
+		name = self.template.name
+		reports = {
+			"Church Attendance": church_attendance.execute({"from_date": self.today})[1],
+			"Function Attendance by Person": function_attendance_by_person.execute({"person": self.person})[
+				1
+			],
+			"Function Attendance by Type": function_attendance_by_type.execute({})[1],
+		}
+		for report, rows in reports.items():
+			functions = {row.get("name") or row.get("function") for row in rows}
+			self.assertIn(self.occurrence.name, functions, report)
+			self.assertNotIn(name, functions, report)
+		listed = [
+			row.name for row in functions_report.execute({"from_date": self.today, "to_date": self.today})[1]
+		]
+		self.assertNotIn(name, listed)
+
+		counted = attendance_count.execute({"from_date": self.today})[1]
+		self.assertEqual(next(row.times_attended for row in counted if row.person == self.person), 1)
+		self.assertEqual(visitor_log.get_visits([self.person])[self.person]["visit_count"], 1)
+
+	def test_the_calendar_and_its_feed_leave_the_template_out(self):
+		events = {event["id"] for event in get_events(self.today, add_days(self.today, 14))}
+		self.assertIn(self.occurrence.name, events)
+		self.assertNotIn(self.template.name, events)
+		frappe.set_user("Guest")
+		try:
+			feed = unfold(request_feed(self, get_public_calendar, church=self.template.church))
+		finally:
+			frappe.set_user("Administrator")
+		self.assertIn(f"UID:{self.occurrence.name}@", feed)
+		self.assertNotIn(f"UID:{self.template.name}@", feed)
+
+
+class TestFirstOccurrencePatch(RollbackEachTest):
+	def test_a_template_from_today_gets_its_own_date_once_and_its_total_goes_to_0(self):
+		start = add_days(getdate(), 7)
+		template = make_function(
+			"_Test Patched Rule",
+			start_date=start,
+			auto_repeat=1,
+			repeat_frequency="Weekly",
+			repeat_day_of_week=weekday_name(start),
+			repeat_horizon_weeks=4,
+		)
+		# Made the old way: the occurrences began the day after the template.
+		create_occurrence(template, add_days(start, 7))
+		frappe.db.set_value("Function", template.name, "attendance_total", 5)
+		past = make_function("_Test Past Rule", start_date=add_days(getdate(), -7), auto_repeat=1)
+
+		create_first_occurrences_of_templates.execute()
+		create_first_occurrences_of_templates.execute()
+
+		self.assertEqual(occurrence_dates(template), [start, add_days(start, 7)])
+		self.assertEqual(frappe.db.get_value("Function", template.name, "attendance_total"), 0)
+		self.assertEqual(occurrences(past), [])
+
+
+class TestTemplateReminders(RollbackEachTest):
+	def test_a_church_s_reminder_copy_skips_templates_unless_the_church_changed_it(self):
+		shipped, edited = "_Test Reminder Copy", "_Test Reminder Edited"
+		for name, condition in ((shipped, "doc.publish"), (edited, "doc.publish and doc.type")):
+			frappe.get_doc(
+				{
+					"doctype": "Notification",
+					"name": name,
+					"subject": name,
+					"document_type": "Function",
+					"event": "Days Before",
+					"date_changed": "start_date",
+					"condition": condition,
+					"is_standard": 0,
+				}
+			).db_insert()
+
+		skip_recurring_templates_in_function_reminders.execute()
+		skip_recurring_templates_in_function_reminders.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Notification", shipped, "condition"), "doc.publish and not doc.auto_repeat"
+		)
+		self.assertEqual(frappe.db.get_value("Notification", edited, "condition"), "doc.publish and doc.type")

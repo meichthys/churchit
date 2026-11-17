@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:35:33.000000",
+ "modified": "2026-11-15 05:40:15.443350",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",
@@ -16,6 +16,24 @@
  "reference_doctype": "Expense",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "A short name for this expense, such as 'Roof repair'. It is required.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Title",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.title",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Title",
+   "ui_tour": 0
+  },
   {
    "description": "On submit this comes out of the fund of the Expense Type, lowering its balance.<br><br><b>Enter the Amount to continue.</b>",
    "fieldname": "amount",

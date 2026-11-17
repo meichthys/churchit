@@ -1,7 +1,11 @@
 /* Desk-side styles for churchit; the public site has its own website.css. */
 
-/* One church in scope: its list filter would only ever hold that church. */
-body.churchit-one-church .standard-filter-section [data-fieldname="church"] {
+/* One church in scope: its list filter would only ever hold that church. A shared people directory lists
+   every church's people and families, so the Person and Family lists mark their page to keep it. */
+body.churchit-one-church
+	.page-container:not(.churchit-shared-people)
+	.standard-filter-section
+	[data-fieldname="church"] {
 	display: none;
 }
 
@@ -22,6 +26,19 @@ body.churchit-one-church .standard-filter-section [data-fieldname="church"] {
 	gap: 16px;
 	white-space: nowrap;
 }
+@media (max-width: 575px) {
+	.churchit-branches-banner .container {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.churchit-banner-actions {
+		flex-wrap: wrap;
+		white-space: normal;
+	}
+	.churchit-branches-banner a {
+		margin-left: 0;
+	}
+}
 .churchit-expand-filters {
 	margin: 0;
 	font-weight: normal;
@@ -30,4 +47,48 @@ body.churchit-one-church .standard-filter-section [data-fieldname="church"] {
 .churchit-expand-filters input {
 	margin-right: 6px;
 	vertical-align: middle;
+}
+
+/* Frappe's dark theme fixes code only in help boxes and pre; elsewhere it is dark purple on near black. */
+[data-theme="dark"] :not(pre) > code {
+	background-color: var(--gray-800);
+	color: var(--gray-200);
+	border-radius: var(--radius);
+	padding: 1px 4px;
+}
+
+/* Frappe gives a list row 80% plus a wide right side, and sizes the list table to its longest title,
+   so a phone pushes the status pill off screen. */
+@media (max-width: 767px) {
+	.layout-main-section-wrapper:not(.disable-scrolling) .frappe-list .result-container .result {
+		table-layout: fixed;
+		width: 100%;
+	}
+	.frappe-list .list-row .level-left {
+		min-width: 0;
+	}
+	.frappe-list .result .list-row .level-right {
+		min-width: 0 !important;
+	}
+}
+
+/* A widget the user may not see leaves a bare wrapper in its column; close the gap outside edit mode.
+   A Spacer is a div with a class, so it stays. */
+.layout-main-section:not(.edit-mode)
+	.ce-block:has(> .ce-block__content > div:not([class]):empty:only-child) {
+	display: none;
+}
+
+/* A 32 px tap target for the published-field badge, without moving the label text. */
+.published-field-touch {
+	display: inline-block;
+	padding: 8px;
+	margin: -8px -8px -8px -2px !important;
+}
+
+/* Frappe fixes a list's title column at its header width and does not let the title shrink, so a
+   long title (a long date) is cut with no ellipsis. Let it shrink so its ellipsis shows. */
+.list-row-col.list-subject > .level-item.ellipsis {
+	flex-shrink: 1;
+	min-width: 0;
 }

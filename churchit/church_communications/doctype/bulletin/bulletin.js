@@ -22,8 +22,21 @@ frappe.ui.form.on("Bulletin", {
 		if (frm.doc.publish) {
 			frm.set_intro(__("Members can download this bulletin from the portal."), "blue");
 		}
+		if (frappe.model.can_write("Bulletin")) {
+			frm.add_custom_button(__("Copy from last week"), () => copy_from_last_week(frm));
+		}
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Print Bulletin"), () => frm.print_doc());
+			frm.add_custom_button(__("Print Bulletin"), () => {
+				// The print opens in a new tab from the saved bulletin, so unsaved changes would be left out.
+				if (frm.is_dirty()) {
+					frappe.show_alert({
+						message: __("Save the bulletin before you print it."),
+						indicator: "orange",
+					});
+					return;
+				}
+				frappe.utils.print(frm.doctype, frm.doc.name, "Bulletin");
+			});
 		}
 	},
 
@@ -56,5 +69,41 @@ function fill_defaults(frm, { sections }) {
 				frm.add_child("prayer_requests", row);
 			});
 			frm.refresh_field("prayer_requests");
+		});
+}
+
+function copy_from_last_week(frm) {
+	frappe
+		.call({
+			method: "churchit.church_communications.doctype.bulletin.bulletin.get_last_week_text",
+			type: "GET",
+			args: { function: frm.doc.function, name: frm.is_new() ? null : frm.doc.name },
+		})
+		.then((r) => {
+			const { welcome, announcements } = r.message;
+			if (!welcome && !announcements) {
+				frappe.show_alert({
+					message: __("There is no earlier bulletin."),
+					indicator: "orange",
+				});
+				return;
+			}
+			const copy = () => {
+				frm.set_value({ welcome, announcements });
+				frappe.show_alert({
+					message: __("Copied the welcome and announcements from the last bulletin."),
+					indicator: "green",
+				});
+			};
+			if (frm.doc.welcome || frm.doc.announcements) {
+				frappe.confirm(
+					__(
+						"Replace this bulletin's welcome and announcements with the last bulletin's?"
+					),
+					copy
+				);
+			} else {
+				copy();
+			}
 		});
 }

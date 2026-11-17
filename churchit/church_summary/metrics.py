@@ -84,7 +84,7 @@ def get_first_time_visitors(church: str | None, week_start, week_end) -> int:
 
 
 def get_giving(church: str | None, week_start, week_end) -> dict:
-	"""The total of the week's submitted Collections, and the people who gave in them."""
+	"""The total of the week's submitted Collections, and the people who gave money in them."""
 	# church-scope: a job over every church; each row counts only its own church, and money is never shared
 	Collection = frappe.qb.DocType("Collection")
 	Donation = frappe.qb.DocType("Donation")
@@ -98,7 +98,7 @@ def get_giving(church: str | None, week_start, week_end) -> dict:
 		.join(Collection)
 		.on((Donation.parent == Collection.name) & (Donation.parenttype == "Collection"))
 		.select(Count(Donation.person).distinct())
-		.where(week & (Donation.person != ""))
+		.where(week & (Donation.person != "") & (Donation.is_non_cash == 0))
 		.run()[0][0]
 	)
 	return {"giving_total": flt(giving_total), "givers": cint(givers)}

@@ -4,7 +4,7 @@ from frappe.utils import today
 from pypika import Order
 
 from churchit.church_ministries.attendance import COUNTED_TYPES
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -12,7 +12,7 @@ def execute(filters=None):
 	filters = filters or {}
 	if filters.get("group"):
 		frappe.has_permission("Group", doc=filters["group"], throw=True)
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -64,8 +64,10 @@ def get_data(filters=None):
 			Function.group,
 			Function.start_date,
 			Attendance.attendance_type,
+			Function.church,
 		)
 		.where(Attendance.attendance_type.isin(COUNTED_TYPES) & (Function.start_date <= today()))
+		.where(Function.auto_repeat == 0)
 		.orderby(Function.start_date, order=Order.desc)
 		.orderby(Attendance.person)
 	)

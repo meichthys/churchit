@@ -2,6 +2,13 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Room Booking", {
+	onload(frm) {
+		if (!frm.is_new() || frm.doc.requester) return;
+
+		frappe.db.get_value("Person", { user: frappe.session.user }, "name").then((r) => {
+			if (r?.message?.name && !frm.doc.requester) frm.set_value("requester", r.message.name);
+		});
+	},
 	refresh(frm) {
 		show_decision_buttons(frm);
 		show_loan_buttons(frm);
@@ -31,12 +38,17 @@ function show_decision_buttons(frm) {
 		action(__("Deny"), () => decide("deny"));
 	}
 	if (frm.doc.status === "Conflict") {
-		action(__("Keep This Booking"), () =>
-			frappe.confirm(__("Approve this booking and deny the requests it clashes with?"), () =>
-				decide("resolve_conflict", { action: "keep" })
-			)
-		);
+		// An Approved or Blocked booking has to be moved or cancelled first.
+		if (!frm.doc.__onload?.has_unmovable_clash) {
+			action(__("Keep This Booking"), () =>
+				frappe.confirm(
+					__("Approve this booking and deny the requests it clashes with?"),
+					() => decide("resolve_conflict", { action: "keep" })
+				)
+			);
+		}
 		action(__("Share the Room"), () => decide("resolve_conflict", { action: "share" }));
+		action(__("Deny"), () => decide("deny"));
 	}
 }
 

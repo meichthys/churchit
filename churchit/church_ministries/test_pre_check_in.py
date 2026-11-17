@@ -61,7 +61,12 @@ class TestPreCheckIn(RollbackEachTest):
 		frappe.get_single("Check-In Settings").save(ignore_permissions=True)
 		frappe.db.set_single_value(
 			"Check-In Settings",
-			{"check_in_opens_minutes": 60, "capacity_mode": "Warn", "security_codes": 0},
+			{
+				"check_in_opens_minutes": 60,
+				"capacity_mode": "Warn",
+				"security_codes": 0,
+				"adults_pre_check_in_adults": 0,
+			},
 		)
 
 	@classmethod
@@ -129,6 +134,27 @@ class TestPreCheckIn(RollbackEachTest):
 			self.assertRaises(frappe.PermissionError, self.get_code, persons)
 		self.assertRaises(frappe.PermissionError, self.get_code, [self.father], user=self.son_user)
 		self.assertRaises(frappe.ValidationError, self.get_code, [])
+
+	def allow_adults(self):
+		frappe.db.set_single_value("Check-In Settings", "adults_pre_check_in_adults", 1)
+
+	def test_with_the_setting_an_adult_pre_checks_in_the_other_adults_of_their_household(self):
+		self.allow_adults()
+		persons = [self.father, self.mother, self.grandmother, self.son]
+
+		payload = self.get_code(persons)
+
+		self.assertEqual(pre_check_in.read_payload(payload), (self.function, persons))
+
+	def test_with_the_setting_only_an_adult_and_only_their_own_household_count(self):
+		self.allow_adults()
+		_family, other_father, other_mother, *_others = make_household(
+			"_Test Pre Check-In Next Door", "Jones"
+		)
+
+		for persons in ([other_father], [other_mother]):
+			self.assertRaises(frappe.PermissionError, self.get_code, persons)
+		self.assertRaises(frappe.PermissionError, self.get_code, [self.father], user=self.son_user)
 
 	def test_a_function_whose_type_does_not_allow_self_check_in_is_refused(self):
 		staffed = make_function(
@@ -219,12 +245,18 @@ class TestPreCheckIn(RollbackEachTest):
 		self.at("23:59:30")
 		self.assertEqual(len(self.scan(payload)["new"]), 1)
 
+	def test_a_code_shows_the_time_it_works_until(self):
+		result = self.as_user(
+			self.father_user, pre_check_in.get_pre_check_in_code, self.function, frappe.as_json([self.son])
+		)
+		self.assertEqual(result["valid_until"], "11:00 AM")
+
 	def test_a_code_for_a_function_that_ends_on_a_later_day_shows_the_date(self):
 		frappe.db.set_value("Function", self.function, "end_date", "2031-05-03")
 		result = self.as_user(
 			self.father_user, pre_check_in.get_pre_check_in_code, self.function, frappe.as_json([self.son])
 		)
-		self.assertIn(formatdate("2031-05-03"), result["valid_until"])
+		self.assertEqual(result["valid_until"], f"{formatdate('2031-05-03')} at 11:00 AM")
 
 	def test_only_a_station_that_reads_the_function_may_scan(self):
 		payload = self.get_code([self.son])
@@ -244,12 +276,32 @@ class TestPreCheckIn(RollbackEachTest):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		html = get_html_for_route("household")
 		self.assertIn('id="pre-check-in"', html)
+		self.assertIn("_Test Pre Check-In Class, 10:00 AM", html)
 		self.assertIn(f'value="{self.son}"', html)
 		self.assertNotIn(f'value="{self.mother}"', html)
 
 		self.at("08:59")
 		household.get_context(context)
 		self.assertEqual(context.check_in_functions, [])
+		self.assertIn("Check-in opens 60 minutes before a service starts.", get_html_for_route("household"))
+
+	def test_with_the_setting_the_household_page_offers_the_other_adults(self):
+		self.allow_adults()
+		frappe.set_user(self.father_user)
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+
+		html = get_html_for_route("household")
+
+		for person in (self.father, self.mother, self.grandmother, self.son):
+			self.assertIn(f'name="person" value="{person}"', html)
+
+	def test_the_household_page_says_nothing_of_pre_check_in_when_no_type_allows_self_check_in(self):
+		frappe.db.set_value("Function Type", {"allow_self_check_in": 1}, "allow_self_check_in", 0)
+		frappe.set_user(self.father_user)
+		context = frappe._dict()
+		household.get_context(context)
+
+		self.assertEqual((context.check_in_functions, context.check_in_opens_minutes), ([], None))
 
 	def test_single_church_mode_still_offers_and_scans(self):
 		force_single_church()

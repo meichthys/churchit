@@ -9,6 +9,7 @@ from frappe.utils import add_days, today
 
 from churchit.church_ministries.attendance import (
 	record,
+	record_many,
 	refresh_started_totals,
 	remove,
 	set_headcount,
@@ -176,10 +177,72 @@ class TestAttendanceWriters(FrappeTestCase):
 
 		self.assertEqual(frappe.db.count("Version", versions), before)
 
+	def test_a_check_in_or_sign_up_keeps_who_last_edited_the_function(self):
+		frappe.db.set_value("Function", self.function, "modified_by", "Administrator", update_modified=False)
+		before = frappe.db.get_value("Function", self.function, "modified")
+		user = ensure_user("_test_writer_kiosk@example.com", "_Test Kiosk")
+
+		frappe.set_user(user)
+		try:
+			record(self.first, self.function, "Checked-In")
+			remove(self.first, self.function, "Checked-In")
+		finally:
+			frappe.set_user("Administrator")
+
+		modified_by, modified = frappe.db.get_value("Function", self.function, ["modified_by", "modified"])
+		self.assertEqual(modified_by, "Administrator")
+		self.assertGreater(modified, before)
+
 	def test_a_change_refreshes_the_persons_summaries(self):
 		queued = queued_people(lambda: record(self.first, self.function, "Confirmed"))
 
 		self.assertEqual(queued, [[self.first]])
+
+	def test_a_change_refreshes_only_the_people_whose_row_changed(self):
+		record(self.second, self.function, "Confirmed")
+
+		queued = queued_people(lambda: record(self.first, self.function, "Checked-In"))
+
+		self.assertEqual(queued, [[self.first]])
+
+	def test_record_many_gives_several_people_their_rows_in_one_save(self):
+		record(self.first, self.function, "Checked-In")
+		third = make_person("_Test Writer", "Third").name
+
+		with patch.object(Function, "save", autospec=True, side_effect=Function.save) as save:
+			changed = record_many(
+				self.function, {self.first: "Confirmed", self.second: "Confirmed", third: "Absent"}
+			)
+
+		self.assertEqual(save.call_count, 1)
+		self.assertEqual(changed, [self.second, third])
+		self.assertEqual(self._types(), {self.first: "Checked-In", self.second: "Confirmed", third: "Absent"})
+		self.assertEqual(record_many(self.function, {self.second: "Confirmed"}), [])
+		with patch.object(Function, "save", autospec=True) as save:
+			self.assertEqual(record_many(self.function, {}), [])
+		save.assert_not_called()
+
+	def test_a_missing_person_or_type_is_refused(self):
+		with self.assertRaises(frappe.LinkValidationError):
+			record("_Test No Such Person", self.function, "Confirmed")
+		with self.assertRaises(frappe.LinkValidationError):
+			record(self.first, self.function, "_Test No Such Type")
+
+		self.assertEqual(self._types(), {})
+
+	def test_a_row_that_names_a_deleted_person_does_not_stop_a_check_in(self):
+		gone = make_person("_Test Writer", "Gone").name
+		record(gone, self.function, "Confirmed")
+		frappe.db.delete("Person", gone)
+
+		self.assertTrue(record(self.first, self.function, "Checked-In"))
+
+	def test_checking_in_a_household_saves_the_function_once(self):
+		with patch.object(Function, "save", autospec=True, side_effect=Function.save) as save:
+			check_in_persons(self.function, [self.first, self.second])
+
+		self.assertEqual(save.call_count, 1)
+		self.assertEqual(self._types(), {self.first: "Checked-In", self.second: "Checked-In"})
 
 	def test_record_saves_a_function_that_holds_a_value_a_later_check_refuses(self):
 		"""A later Function.validate check acts only when its own field changes, as the R1 contract says."""

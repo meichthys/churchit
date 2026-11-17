@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:16:12.000000",
+ "modified": "2026-11-15 05:40:15.442586",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund",
@@ -16,6 +16,24 @@
  "reference_doctype": "Fund",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The name of the fund, such as 'General' or 'Building'. It is required.",
+   "fieldname": "fund",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.fund",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Name",
+   "ui_tour": 0
+  },
   {
    "description": "Tick this to let the public /give webpage collect gifts toward this fund. Funds left unchecked stay internal-only.",
    "fieldname": "allow_giving",
