@@ -119,7 +119,7 @@ class TestWhatTheAIGets(ExplainTestCase):
 		self.assertNotIn(self.person_b, started["prompt"])
 		self.assertEqual(answer["token"], "t" * 32)
 		self.assertEqual(started["check"], reports.CHECK)
-		self.assertEqual(started["sends"], {"Person", "Membership Type", "Member Status"})
+		self.assertEqual(started["sends"], {"Person", "Family", "Membership Type", "Member Status"})
 
 	def test_the_rows_are_data_after_the_instructions(self):
 		_answer, started = self.explain(STAFF_A, "People", {"person_name": "_Test Explain"})

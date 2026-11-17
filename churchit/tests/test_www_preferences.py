@@ -3,11 +3,15 @@
 
 """The member's /preferences page: a switch per purpose and channel, and a note where one cannot show."""
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import get_html_for_route
 
+from churchit.church_communications.consent import allowed, get_consent_rows
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
 	EMAIL,
+	GIVEN,
 	SMS,
 	WITHDRAWN,
 	record,
@@ -16,6 +20,8 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 	CHURCH_NEWS,
 	PASTORAL_CARE,
 )
+from churchit.church_communications.newsletter import set_subscribed
+from churchit.church_communications.preferences import set_preference
 from churchit.church_communications.test_preferences import (
 	MEMBER_EMAIL,
 	MEMBER_PHONE,
@@ -57,6 +63,24 @@ class TestPreferencesPage(PreferencesTestCase):
 		self.assertEqual(choices[CHURCH_NEWS], {EMAIL: True})
 		self.assertEqual(choices[PASTORAL_CARE], {EMAIL: False})
 		self.assertFalse(context.is_globally_unsubscribed)
+
+	def test_every_choice_matches_the_consent_rule(self):
+		frappe.set_user("Administrator")
+		record([self.person], EMAIL, WITHDRAWN, PASTORAL_CARE)
+		record([self.person], EMAIL, GIVEN, None)
+		record([self.person], EMAIL, WITHDRAWN, CHURCH_NEWS)
+		frappe.set_user(self.user)
+
+		for row in page_context().purposes:
+			self.assertEqual(row.allowed[EMAIL], allowed(self.person, EMAIL, row.purpose), row.purpose)
+
+	def test_the_consent_rows_are_read_once_for_all_purposes(self):
+		frappe.set_user(self.user)
+		with patch("churchit.church_communications.consent.get_consent_rows", wraps=get_consent_rows) as read:
+			context = page_context()
+
+		self.assertGreater(len(context.purposes), 1)
+		self.assertEqual(read.call_count, len(context.channels))
 
 	def test_the_page_renders_a_switch_for_each_choice(self):
 		html = self.serve()
@@ -102,6 +126,31 @@ class TestPreferencesPage(PreferencesTestCase):
 
 		self.assertTrue(page_context().is_globally_unsubscribed)
 		self.assertIn("You stopped every email to", self.serve())
+
+	def test_a_stop_on_the_churchs_emails_is_explained_until_church_news_is_back_on(self):
+		self.assertFalse(page_context().has_stopped_church_emails)
+		self.assertIn('id="preferences-church-stopped" hidden', self.serve())
+
+		frappe.set_user("Administrator")
+		set_subscribed(MEMBER_EMAIL, self.church, False)
+		frappe.set_user(self.user)
+
+		self.assertTrue(page_context().has_stopped_church_emails)
+		html = self.serve()
+		self.assertIn('id="preferences-church-stopped" >', html)
+		self.assertIn("Turn on Church News by email to start them again.", html)
+
+		only_news_starts_them = set_preference(EMAIL, PASTORAL_CARE, 1)["has_stopped_church_emails"]
+		self.assertTrue(only_news_starts_them)
+		self.assertFalse(set_preference(EMAIL, CHURCH_NEWS, 1)["has_stopped_church_emails"])
+		self.assertFalse(page_context().has_stopped_church_emails)
+
+	def test_church_news_off_stops_only_news_and_the_page_says_so(self):
+		self.assertFalse(set_preference(EMAIL, CHURCH_NEWS, 0)["has_stopped_church_emails"])
+		self.assertIn("turning off Church News stops only news", self.serve())
+
+	def test_a_phone_number_is_never_broken_across_lines(self):
+		self.assertIn(f'<span class="text-nowrap">{MEMBER_PHONE}</span>', self.serve())
 
 
 class TestPreferencesMenuItem(RollbackEachTest):

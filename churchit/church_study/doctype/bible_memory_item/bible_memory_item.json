@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "user",
+  "user_full_name",
   "bible_reference",
   "translation",
   "assigned_by",
@@ -26,7 +27,6 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "in_filter": 1,
-   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "User",
@@ -121,6 +121,14 @@
    "fieldtype": "JSON",
    "label": "Word Mistakes",
    "read_only": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fieldname": "user_full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "read_only": 1
   }
  ],
  "links": [
@@ -130,7 +138,7 @@
    "link_fieldname": "bible_memory_item"
   }
  ],
- "modified": "2026-11-02 23:02:51.000000",
+ "modified": "2026-11-15 05:38:54.078403",
  "modified_by": "Administrator",
  "module": "Church Study",
  "name": "Bible Memory Item",

@@ -141,6 +141,7 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Title",
+   "length": 255,
    "read_only": 1
   },
   {
@@ -162,7 +163,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 13:14:57.000000",
+ "modified": "2026-11-17 01:05:46.025354",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministry Team Assignment",

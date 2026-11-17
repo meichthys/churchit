@@ -16,8 +16,8 @@
   <h1>{{ _("Setup Sheet") }}</h1>
   <div class="meta"><strong>{{ (room_name or _("Equipment only"))|e }}</strong> · {{ doc.name }}</div>
   <table>
-    <tr><th>{{ _("Start") }}</th><td>{{ doc.get_formatted("start_datetime") }}</td></tr>
-    <tr><th>{{ _("End") }}</th><td>{{ doc.get_formatted("end_datetime") }}</td></tr>
+    <tr><th>{{ _("Start") }}</th><td>{{ frappe.utils.format_datetime(doc.start_datetime, "EEEE, MMMM d, yyyy h:mm a") }}</td></tr>
+    <tr><th>{{ _("End") }}</th><td>{{ frappe.utils.format_datetime(doc.end_datetime, "EEEE, MMMM d, yyyy h:mm a") }}</td></tr>
     {%- if doc.purpose %}
     <tr><th>{{ _("Purpose") }}</th><td>{{ doc.purpose|e }}</td></tr>
     {%- endif %}

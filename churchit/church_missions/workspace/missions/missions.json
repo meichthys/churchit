@@ -5,7 +5,7 @@
    "label": "Missionaries by Status"
   }
  ],
- "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i>\", \"col\": 12}}, {\"id\": \"RPmabcwgTz\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Missions\", \"col\": 12}}, {\"id\": \"HdXD35AVEm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionaries\", \"col\": 6}}, {\"id\": \"SBUFaJw-aP\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Agencies\", \"col\": 6}}, {\"id\": \"missionariesByStatus\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Missionaries by Status\", \"col\": 12}}, {\"id\": \"8w-eZYsZPl\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chMissionaryMap\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"MissionaryMap\", \"col\": 12}}]",
+ "content": "[{\"id\": \"T2NecsUQOb\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"Go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,\\nand teaching them to obey all that I have commanded you.\\\"</i> (Matthew 28:19-20)\", \"col\": 12}}, {\"id\": \"RPmabcwgTz\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Missions\", \"col\": 12}}, {\"id\": \"HdXD35AVEm\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Current Missionaries\", \"col\": 6}}, {\"id\": \"SBUFaJw-aP\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Missionary Agencies\", \"col\": 6}}, {\"id\": \"missionariesByStatus\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Missionaries by Status\", \"col\": 12}}, {\"id\": \"8w-eZYsZPl\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chMissionaryMap\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"MissionaryMap\", \"col\": 12}}]",
  "creation": "2026-07-07 19:43:06.859477",
  "custom_blocks": [
   {
@@ -24,13 +24,13 @@
  "is_hidden": 0,
  "label": "Missions",
  "links": [],
- "modified": "2026-10-31 13:37:59.000000",
+ "modified": "2026-11-15 18:22:20.583817",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",
  "number_cards": [
   {
-   "label": "Missionaries",
+   "label": "Current Missionaries",
    "number_card_name": "Missionaries"
   },
   {

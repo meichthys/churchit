@@ -15,6 +15,8 @@
 	.household-list .member-role { flex: 0 0 6.5rem; }
 	.household-list .member-note { flex: 0 0 4rem; color: var(--text-muted, #6b7280); white-space: nowrap; }
 	.household-list .member-edit { flex: 0 0 3.5rem; text-align: right; }
+	/* Frappe's light gray circle glares on the navy dark surface */
+	:root[data-theme="dark"] .household-family .avatar-frame { background: var(--subtle-accent, #243050); color: var(--heading-color, #f8fafc); }
 	.add-child { max-width: 420px; margin: 16px 0; }
 	.pre-check-in-person { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 0; font-weight: normal; }
 	.pre-check-in select { max-width: 420px; margin: 8px 0; }
@@ -25,7 +27,7 @@
 
 {% block page_content %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-4">{{ _("My Household") }}</h3>
+	<h1 class="my-account-header mb-4">{{ _("My Household") }}</h1>
 
 	{% if not person %}
 		<p class="text-muted">
@@ -36,7 +38,7 @@
 			<div class="household-family">
 				{{ avatar(full_name=family_title, image=family.photo, size="avatar-xl") }}
 				<div class="family-name">
-					<h4 class="mb-1">{{ family_title | e }}</h4>
+					<h2 class="my-account-section mb-1">{{ family_title | e }}</h2>
 					{% if address %}<div class="text-muted">{{ address | e }}</div>{% endif %}
 				</div>
 				{% if can_change_photo %}
@@ -72,7 +74,7 @@
 		<button type="button" class="btn btn-default btn-sm" id="show-add-child"
 			aria-controls="add-child" aria-expanded="false">{{ _("Add a Child") }}</button>
 		<form class="add-child" id="add-child" hidden>
-			<h4 class="mb-1">{{ _("Add a Child") }}</h4>
+			<h2 class="my-account-section mb-1">{{ _("Add a Child") }}</h2>
 			<p class="text-muted">{{ _("Add a child under {0} who lives in your household.").format(add_child.adult_age) }}</p>
 			<div class="form-group">
 				<label for="add-child-first-name">{{ _("First Name") }}</label>
@@ -104,10 +106,9 @@
 		<p class="text-muted">{{ _("To add or remove someone, contact the church office.") }}</p>
 		{% endif %}
 
-		{% set check_in_people = members | selectattr("can_edit") | list %}
 		{% if check_in_functions and check_in_people %}
 		<section class="pre-check-in" id="pre-check-in">
-			<h4 class="mt-5 mb-1">{{ _("Check In Before You Arrive") }}</h4>
+			<h2 class="my-account-section mt-5 mb-1">{{ _("Check In Before You Arrive") }}</h2>
 			<p class="text-muted">{{ _("Choose who is coming and where. Then show the code at the Check-In Station or the kiosk.") }}</p>
 			{% for member in check_in_people %}
 			<label class="pre-check-in-person">
@@ -117,7 +118,7 @@
 			<select class="form-control" name="function" aria-label="{{ _('Function') }}">
 				{% for function in check_in_functions %}
 				<option value="{{ function.name | e }}">
-					{{ function.function_name | e }}{% if function.start_time %}, {{ frappe.format(function.start_time, {"fieldtype": "Time"}) }}{% endif %}
+					{{ function.function_name | e }}{% if function.time %}, {{ function.time }}{% endif %}
 				</option>
 				{% endfor %}
 			</select>
@@ -127,6 +128,17 @@
 				<img alt="{{ _('Check-in code') }}">
 				<p class="text-muted"></p>
 			</div>
+		</section>
+		{% elif check_in_opens_minutes is not none and check_in_people %}
+		<section class="pre-check-in">
+			<h2 class="my-account-section mt-5 mb-1">{{ _("Check In Before You Arrive") }}</h2>
+			<p class="text-muted">
+				{%- if check_in_opens_minutes -%}
+					{{ _("Check-in opens {0} minutes before a service starts.").format(check_in_opens_minutes) }}
+				{%- else -%}
+					{{ _("Check-in opens when a service starts.") }}
+				{%- endif -%}
+			</p>
 		</section>
 		{% endif %}
 	{% endif %}
@@ -178,6 +190,7 @@ frappe.ready(function () {
 		show.hidden = open;
 		show.setAttribute("aria-expanded", open);
 		if (open) form.elements.first_name.focus();
+		else show.focus();
 	}
 	show.addEventListener("click", function () {
 		toggle(true);

@@ -41,9 +41,11 @@ def get_functions(rows: list[frappe._dict]) -> list[frappe._dict]:
 	"""The functions the needs and assignments are at, soonest first."""
 	starts = {row.function: (row.start_date, row.start_time or timedelta()) for row in rows}
 	names = sorted(starts, key=lambda name: (*starts[name], name))
-	# church-scope: titles of the functions the scoped needs and assignments already chose
+	# church-scope: names of the functions the scoped needs and assignments already chose
 	titles = (
-		dict(frappe.db.get_values("Function", {"name": ("in", names)}, ["name", "title"])) if names else {}
+		dict(frappe.db.get_values("Function", {"name": ("in", names)}, ["name", "function_name"]))
+		if names
+		else {}
 	)
 	return [frappe._dict(name=name, title=titles[name], start_date=starts[name][0]) for name in names]
 

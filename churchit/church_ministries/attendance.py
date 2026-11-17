@@ -5,15 +5,20 @@
 
 A row counts when its type says the person was there and its Function has started. A roster made
 ahead of a Function, or a Signed-Up or Absent row, counts in no total, report, card or summary. Every
-reader of attendance takes `COUNTED_TYPES` from here and filters `Function.start_date` up to today.
+reader of attendance takes `COUNTED_TYPES` from here and filters `Function.start_date` up to today and
+`Function.auto_repeat` to 0: a recurring template is a rule, and its people are a roster that each
+occurrence copies. `refuse_a_template` keeps a check-in or a counted row off a template.
 
-`record` and `remove` are the only writers of a person's row. Each loads the Function under its row
-lock and saves it whole, so two check-ins at once lose no row, and a desk form opened before the change
-fails as stale instead of dropping it. The save refreshes the person's summaries through `doc_events`.
+`record`, `record_many` and `remove` are the only writers of a person's row. Each loads the Function
+under its row lock and saves it whole, so two check-ins at once lose no row, and a desk form opened
+before the change fails as stale instead of dropping it. `record_many` gives several people their rows
+in one save. The save refreshes the summaries of the people whose rows changed through `doc_events`.
+It is not an edit of the Function, so it keeps the Function's Last Edited By (`save_attendance`).
 """
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.utils import add_days, cint, getdate, today
 
 # Function Attendance Type is named by its type, so these are also the record names.
@@ -40,19 +45,56 @@ def get_attendance_total(rows, start_date, headcount) -> int:
 
 def record(person: str, function: str, status: str) -> bool:
 	"""Give *person* the type *status* on *function*, unless their row says more. False when nothing changes."""
-	function_doc = frappe.get_doc("Function", function, for_update=True)
-	row = next((row for row in function_doc.attendance if row.person == person), None)
-	rank = STATUS_RANK.get(status, OTHER_RANK)
-	if not row:
-		function_doc.append("attendance", {"person": person, "attendance_type": status})
-	elif row.attendance_type == status or rank < STATUS_RANK.get(row.attendance_type, OTHER_RANK):
-		return False
-	else:
-		row.attendance_type = status
+	return bool(record_many(function, {person: status}))
 
-	# A check-in or a sign-up is not an edit of the Function, so it leaves no history entry.
-	function_doc.save(ignore_permissions=True, ignore_version=True)
-	return True
+
+def record_many(function: str, statuses: dict[str, str]) -> list[str]:
+	"""Give each person in *statuses* their type on *function* in one save, unless their row says more.
+
+	Return the people whose row changed.
+	"""
+	if not statuses:
+		return []
+	function_doc = frappe.get_doc("Function", function, for_update=True)
+	if set(statuses.values()) & set(COUNTED_TYPES):
+		refuse_a_template(function_doc)
+	rows = {}
+	for row in function_doc.attendance:
+		rows.setdefault(row.person, row)
+
+	changed = []
+	for person, status in statuses.items():
+		row = rows.get(person)
+		rank = STATUS_RANK.get(status, OTHER_RANK)
+		if row and (row.attendance_type == status or rank < STATUS_RANK.get(row.attendance_type, OTHER_RANK)):
+			continue
+		# The save skips Frappe's link check of every row, so the links this change writes are checked here.
+		refuse_a_missing_record("Person", person)
+		refuse_a_missing_record("Function Attendance Type", status)
+		if row:
+			row.attendance_type = status
+		else:
+			rows[person] = function_doc.append("attendance", {"person": person, "attendance_type": status})
+		changed.append(person)
+
+	if changed:
+		save_attendance(function_doc)
+	return changed
+
+
+def refuse_a_template(function) -> None:
+	"""Refuse a check-in or counted attendance on a recurring template, which is a rule and not an event."""
+	if function.auto_repeat:
+		frappe.throw(
+			_("{0} is the schedule of a recurring function. Record attendance on one of its dates.").format(
+				frappe.bold(function.function_name or function.name)
+			)
+		)
+
+
+def refuse_a_missing_record(doctype: str, name: str) -> None:
+	if not name or not frappe.db.exists(doctype, name):
+		frappe.throw(_("Could not find {0}: {1}").format(_(doctype), name), frappe.LinkValidationError)
 
 
 def remove(person: str, function: str, status: str) -> bool:
@@ -66,8 +108,23 @@ def remove(person: str, function: str, status: str) -> bool:
 		return False
 
 	function_doc.remove(row)
-	function_doc.save(ignore_permissions=True, ignore_version=True)
+	save_attendance(function_doc)
 	return True
+
+
+def save_attendance(function_doc: Document) -> None:
+	"""Save a change to *function_doc*'s attendance, which is not an edit of the Function.
+
+	It leaves no history entry and puts back who last edited the Function, so a guest's sign-up or a kiosk
+	check-in never shows as the last edit. The new `modified` stays, so a form opened before it is stale.
+	It skips Frappe's link check, one query per row: the rows it keeps passed it when they were saved, and
+	`record_many` checks the links it adds.
+	"""
+	editor = function_doc.modified_by
+	function_doc.flags.ignore_links = True
+	function_doc.save(ignore_permissions=True, ignore_version=True)
+	frappe.db.set_value("Function", function_doc.name, "modified_by", editor, update_modified=False)
+	function_doc.modified_by = editor
 
 
 def refresh_started_totals():
@@ -75,7 +132,7 @@ def refresh_started_totals():
 	# church-scope: a job over every church; each total counts only its own Function's rows
 	functions = frappe.get_all(
 		"Function",
-		filters={"start_date": ("between", [add_days(today(), -REFRESH_DAYS), today()])},
+		filters={"start_date": ("between", [add_days(today(), -REFRESH_DAYS), today()]), "auto_repeat": 0},
 		pluck="name",
 	)
 	for name in functions:
@@ -101,6 +158,7 @@ def set_headcount(function: str, headcount: int) -> int:
 
 	# The lock record() takes. Church Check-In cannot write Function, so the fields are set directly.
 	function_doc = frappe.get_doc("Function", function, for_update=True)
+	refuse_a_template(function_doc)
 	if getdate(function_doc.start_date) > getdate():
 		frappe.throw(_("A headcount can be set only once the function has started."))
 

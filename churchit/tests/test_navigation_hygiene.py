@@ -34,7 +34,16 @@ OPEN_SECTIONS = {
 }
 
 # Today's breaks of each rule, with the phase of the UX roadmap that fixes them.
-LONG_LABELS = {}
+LONG_LABELS = {
+	("People", "People with Open Care Requests"): (
+		"D2 and Q1: a sidebar item takes the name of the report it opens, and the maintainer chose "
+		"the full report name over the 24-character rule"
+	),
+	("Summary", "People with Open Care Requests"): (
+		"D2 and Q1: a sidebar item takes the name of the report it opens, and the maintainer chose "
+		"the full report name over the 24-character rule"
+	),
+}
 
 # Sidebars whose sections are not yet closed folders.
 SIDEBARS_WITHOUT_FOLDERS = {}

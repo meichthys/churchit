@@ -237,18 +237,20 @@ def forget_ai_chats(person: str) -> None:
 def forget_records_about(person: str) -> None:
 	"""Delete the notes and connection cards about *person*, and forget the history of the others a church keeps.
 
-	Nothing is left in Deleted Documents. The person's open follow-up cards close without their Card Closed
+	Nothing is left in Deleted Documents. A follow-up card that one of them started loses its reason, which can
+	quote the guest's message. The person's open follow-up cards close without their Card Closed
 	actions or triggers, so no tag, group or new card is made for them. The follow-up actions run for the person
 	keep no error, because a failed text's error can hold the phone number and the message.
 	"""
 	# church-scope: every record about the one person being anonymized, whichever church holds it
 	for doctype, fieldname in PERSONAL_DOCTYPES:
 		for name in frappe.get_all(doctype, filters={fieldname: person}, pluck="name"):
-			# A follow-up card it started is forgotten below; unlink it so the delete is not refused.
+			# A follow-up card it started is forgotten below; unlink it so the delete is not refused, and blank
+			# its reason, which can quote the record, such as a connection card's message.
 			frappe.db.set_value(
 				"Follow-up Card",
 				{"source_type": doctype, "source_name": name},
-				{"source_type": None, "source_name": None},
+				{"source_type": None, "source_name": None, "reason": None},
 				update_modified=False,
 			)
 			frappe.delete_doc(doctype, name, ignore_permissions=True, delete_permanently=True)

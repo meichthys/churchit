@@ -8,7 +8,7 @@ from frappe import _
 from frappe.utils import add_days, add_years, today
 
 from churchit.church_people.privacy import get_due_query, get_retention_years
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
@@ -17,7 +17,7 @@ def execute(filters=None):
 	years = get_retention_years()
 	if not years:
 		return get_columns(), [], _("Personal data is never removed. Set the years in People Settings.")
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters, years)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -43,7 +43,7 @@ def get_data(filters, years: int) -> list[dict]:
 	Person = frappe.qb.DocType("Person")
 	due_by = filters.due_by or add_days(today(), 30)
 	query = get_due_query(Person, add_years(due_by, -years)).select(
-		Person.name.as_("person"), Person.inactive_since, Person.inactive_reason
+		Person.name.as_("person"), Person.church, Person.inactive_since, Person.inactive_reason
 	)
 	rows = scoped(query, Person, filters).run(as_dict=True)
 	for row in rows:

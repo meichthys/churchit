@@ -1,21 +1,18 @@
 import frappe
-from frappe.query_builder.functions import Count
-from frappe.utils import add_days, nowdate
 
+from churchit.church_people.report.new_members_last_90_days.new_members_last_90_days import new_members_query
 from churchit.church_scope import scoped
 
 
 @frappe.whitelist(methods=["GET", "POST"])
-def get_count() -> int:
-	"""Number card: the Membership life events of the last 30 days, in the caller's churches. Reads only."""
+def get_count() -> dict:
+	"""Number card: the new members that the New Members report lists for 30 days, in the caller's churches. Reads only."""
 	frappe.has_permission("Person", "report", throw=True)
 	Person = frappe.qb.DocType("Person")
-	LifeEvent = frappe.qb.DocType("Life Event")
-	query = (
-		frappe.qb.from_(LifeEvent)
-		.join(Person)
-		.on((LifeEvent.parent == Person.name) & (LifeEvent.parenttype == "Person"))
-		.select(Count("*"))
-		.where((LifeEvent.event_type == "Membership") & (LifeEvent.date >= add_days(nowdate(), -30)))
-	)
-	return scoped(query, Person, {}).run()[0][0]
+	new_members = scoped(new_members_query(Person, 30), Person, {}).run()
+	return {
+		"value": len(new_members),
+		"fieldtype": "Int",
+		"route": ["query-report", "New Members Last 90 Days"],
+		"route_options": {"days": 30},
+	}

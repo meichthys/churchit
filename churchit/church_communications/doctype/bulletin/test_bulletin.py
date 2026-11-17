@@ -12,6 +12,7 @@ from churchit.church_communications.doctype.bulletin.bulletin import (
 	SECTION_FIELDS,
 	download_pdf,
 	get_defaults,
+	get_last_week_text,
 	missionary_of_the_week,
 	supported_missionaries,
 )
@@ -54,6 +55,8 @@ class TestBulletin(FrappeTestCase):
 				"doctype": "Prayer Request",
 				"title": title,
 				"type": ensure("Prayer Request Type", {"type": "_Test Prayer Type"}),
+				# A new request is Private by default; the bulletin prints only Whole Church requests.
+				"visibility": "Whole Church",
 				**values,
 			}
 		).insert(ignore_permissions=True)
@@ -62,8 +65,7 @@ class TestBulletin(FrappeTestCase):
 		bulletin = self.make_bulletin()
 		self.assertEqual(bulletin.function_name, "_Test Bulletin Service")
 		self.assertEqual(str(bulletin.function_date), FUNCTION_DATE)
-		self.assertIn("_Test Bulletin Service", bulletin.title)
-		self.assertIn("2031", bulletin.title)
+		self.assertEqual(bulletin.title, "_Test Bulletin Service, Sunday, May 4, 2031")
 
 	def test_defaults_come_from_settings_and_the_function(self):
 		self.settings.show_ministries = 0
@@ -306,7 +308,7 @@ class TestBulletin(FrappeTestCase):
 		self.assertEqual(bulletin.verse, "John 3:16")
 		self.assertEqual(
 			bulletin.verse_of_the_week,
-			{"reference": f"John 3:16 ({translation})", "text": "16 For God so loved the world."},
+			{"reference": f"John 3:16 ({translation})", "text": "For God so loved the world."},
 		)
 		frappe.db.set_value("Bible Translation", translation, "status", "No Text")
 		self.assertEqual(bulletin.verse_of_the_week, {"reference": "John 3:16", "text": None})
@@ -410,3 +412,46 @@ class TestBulletinChurches(RollbackEachTest):
 		frappe.set_user(self.member_a)
 		with self.assertRaises(frappe.PermissionError):
 			download_pdf(theirs.name)
+
+	def test_copy_from_last_week_gives_the_newest_bulletins_text_of_the_same_church(self):
+		older, newer = (
+			frappe.new_doc(
+				"Bulletin", function=self.function_a, welcome=f"<p>{label}</p>", announcements=label
+			).insert()
+			for label in ("older", "newer")
+		)
+		frappe.db.set_value("Bulletin", older.name, "function_date", add_days(FUNCTION_DATE, -14))
+		frappe.db.set_value("Bulletin", newer.name, "function_date", add_days(FUNCTION_DATE, -7))
+		frappe.new_doc("Bulletin", function=self.function_b, welcome="<p>other church</p>").insert()
+
+		text = get_last_week_text(self.function_a)
+		self.assertEqual((text.welcome, text.announcements), ("<p>newer</p>", "newer"))
+
+		frappe.set_user(self.manager_a)
+		again = get_last_week_text(self.function_a, name=newer.name)
+		self.assertEqual(again.announcements, "older", "the bulletin being edited is not its own last week")
+
+	def test_copy_from_last_week_is_empty_when_the_church_has_no_other_bulletin(self):
+		text = get_last_week_text(self.function_a)
+		self.assertEqual(text, {"welcome": None, "announcements": None})
+
+
+class TestBulletinChurchOffice(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.function = make_function("_Test Office Service", start_date=FUNCTION_DATE)
+		cls.office = ensure_user(
+			"_test_bulletin_office@example.com", "Office", roles=("Church People Editor", "Church Staff")
+		)
+
+	def test_the_office_creates_and_edits_a_bulletin(self):
+		frappe.set_user(self.office)
+		self.assertTrue(frappe.has_permission("Bulletin", "create"))
+
+		bulletin = frappe.get_doc({"doctype": "Bulletin", "function": self.function.name}).insert()
+		bulletin.welcome = "<p>Welcome</p>"
+		bulletin.save()
+
+		self.assertEqual(frappe.db.get_value("Bulletin", bulletin.name, "welcome"), "<p>Welcome</p>")
+		self.assertTrue(get_defaults(self.function.name)["show_contact_information"] is not None)

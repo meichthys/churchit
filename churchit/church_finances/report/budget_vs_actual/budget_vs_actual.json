@@ -1,10 +1,10 @@
 {
- "add_total_row": 1,
+ "add_total_row": 0,
  "creation": "2026-06-01 00:00:00.000000",
  "docstatus": 0,
  "doctype": "Report",
  "is_standard": "Yes",
- "modified": "2026-10-29 23:30:30",
+ "modified": "2026-11-15 03:51:17.752629",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Budget vs Actual",

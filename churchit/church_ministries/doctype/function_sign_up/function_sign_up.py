@@ -27,16 +27,19 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 )
 from churchit.church_communications.sending import can_send_texts, send
 from churchit.church_finances.doctype.collection.collection import add_single_donation
+from churchit.church_finances.doctype.giving_settings.giving_settings import get_currency
 from churchit.church_finances.doctype.online_donation.online_donation import PAID_STATUSES
 from churchit.church_finances.payments import PAYMENT_RECORDERS, is_charge_confirmed, notify_finance
-from churchit.church_ministries.attendance import record, remove
+from churchit.church_foundations.doctype.church.church import church_name
+from churchit.church_ministries.attendance import record_many, remove
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
 )
 from churchit.church_ministries.sign_up_amounts import get_amount_due, get_discount
+from churchit.church_people.derived import warn_if_after_death
 from churchit.church_people.matching import find_or_add_person
-from churchit.church_people.member_access import is_portal_member
+from churchit.church_people.member_access import is_member_only, is_portal_member
 from churchit.church_scope import (
 	church_filters,
 	refuse_another_churches_parent,
@@ -58,6 +61,7 @@ WINDOW_FIELDS = ("sign_ups_open_on", "sign_ups_close_on")
 SIGN_UP_SOURCE = "Sign-Up"
 HOLD_HOURS = 24
 SIGN_UP_APPROVERS = {"Church Manager", "System Manager", "Church People Editor"}
+DATE_FORMAT = "EEEE, MMMM d, yyyy"
 REMINDER_TEMPLATE = "Sign-Up Reminder"
 REMINDER_TEXT = "Reminder: {{ function_name }} on {{ date }}{% if time %} at {{ time }}{% endif %}."
 # One send key per channel, so a text still goes to a person the email reached.
@@ -86,6 +90,7 @@ EVENT_FIELDS = (
 
 class FunctionSignUp(Document):
 	def validate(self):
+		self.refuse_changing_cancelled()
 		self.refuse_closed_function()
 		self.set_person()
 		self.restore_protected_fields()
@@ -95,6 +100,26 @@ class FunctionSignUp(Document):
 		self.set_attendee_answers()
 		self.set_amounts()
 		self.reserve_seats()
+		self.warn_about_the_deceased()
+
+	def warn_about_the_deceased(self):
+		"""Warn about each person added after their recorded death. A guest has no person yet."""
+		before = self.get_doc_before_save()
+		people_before = {row.person for row in before.attendees} if before else set()
+		start_date = frappe.db.get_value("Function", self.function, "start_date")
+		people = {row.person for row in self.attendees if row.person not in people_before}
+		if not before:
+			people.add(self.person)
+		for person in people:
+			warn_if_after_death(person, start_date, _("sign-up"))
+
+	def refuse_changing_cancelled(self):
+		"""A member makes a new sign-up instead of changing a cancelled one."""
+		if self.flags.set_by_code or not is_portal_member():
+			return
+		before = self.get_doc_before_save()
+		if before and before.status == CANCELLED:
+			frappe.throw(_("This sign-up is cancelled, so it cannot change. Make a new sign-up instead."))
 
 	def refuse_closed_function(self):
 		# A change made by code, such as a member cancelling after sign-ups close, is not refused.
@@ -383,12 +408,16 @@ class FunctionSignUp(Document):
 			self.approved_by = None
 
 	def hold_seats(self, requires_approval: bool):
-		"""Confirm the seats, or hold them while the sign-up waits for approval or for payment."""
+		"""Confirm the seats, or hold them while the sign-up waits for approval or for an online payment.
+
+		When the payment church takes no payment online, the seats are confirmed and the amount stays Unpaid
+		until staff record the payment: a hold could only expire and cancel the sign-up.
+		"""
 		# A held sign-up that grows keeps its hold, so an edit cannot extend it.
 		hold, self.hold_expires_on = self.hold_expires_on, None
 		if requires_approval and not self.approved_by:
 			self.status = PENDING
-		elif flt(self.amount_due) > flt(self.amount_paid):
+		elif flt(self.amount_due) > flt(self.amount_paid) and self.has_online_payment:
 			self.status = PENDING
 			self.hold_expires_on = hold or add_to_date(now_datetime(), hours=HOLD_HOURS)
 		else:
@@ -411,8 +440,7 @@ class FunctionSignUp(Document):
 	def sync_attendance(self):
 		"""Each attendee Person has a Signed-Up attendance row while the sign-up is Confirmed."""
 		attending = self.get_attendee_people() if self.status == CONFIRMED else set()
-		for person in attending:
-			record(person, self.function, SIGNED_UP)
+		record_many(self.function, dict.fromkeys(attending, SIGNED_UP))
 
 		# Only a Confirmed sign-up has rows: a Cancelled one's people may be on a later sign-up.
 		before = self.get_doc_before_save()
@@ -462,20 +490,37 @@ class FunctionSignUp(Document):
 			)
 
 	def get_email_context(self) -> dict:
-		"""What a registrant email names: the registrant's first name, the function, its date and time, and who attends."""
+		"""What a registrant email names: the registrant's first name, the function, its date and time, who attends,
+		the amount still to pay, and the link to the sign-up.
+		"""
 		function = frappe.db.get_value(
 			"Function", self.function, ["function_name", "start_date", "start_time", "all_day"], as_dict=True
 		)
 		first_name = self.person and frappe.db.get_value("Person", self.person, "first_name")
 		has_time = function.start_time and not function.all_day
+		currency = get_currency()
 		return {
 			"doc": self,
 			"first_name": first_name or (self.registrant_name or "").split(" ")[0] or _("Friend"),
 			"function_name": function.function_name,
-			"date": format_date(function.start_date),
+			"date": format_date(function.start_date, DATE_FORMAT),
 			"time": format_time(function.start_time, TIME_FORMAT) if has_time else "",
+			"church_name": church_name(self) or "",
 			"attendees": [row.attendee_name for row in self.attendees],
+			"amount_due": fmt_money(self.amount_to_pay, currency=currency) if self.amount_to_pay else "",
+			"sign_up_link": self.sign_up_link,
 		}
+
+	@property
+	def sign_up_link(self) -> str:
+		"""The portal page where the registrant sees this sign-up, when their Person's login may read it.
+
+		The page offers Cancel only to a login that may change the sign-up (`get_sign_up_summary`).
+		"""
+		user = self.person and frappe.db.get_value("Person", self.person, "user")
+		if not (user and frappe.has_permission(self.doctype, "read", doc=self, user=user)):
+			return ""
+		return get_url(f"/function-sign-up/{self.name}")
 
 	def send_confirmation(self):
 		"""Email the registrant once, with a calendar file, when the sign-up becomes Confirmed."""
@@ -495,10 +540,12 @@ class FunctionSignUp(Document):
 		"""Email the registrant the payment link when a new hold starts."""
 		if not (self.hold_expires_on and self.has_value_changed("hold_expires_on")):
 			return
-		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		currency = get_currency()
 		context = {
 			"amount": fmt_money(self.amount_to_pay, currency=currency),
-			"pay_by": format_datetime(self.hold_expires_on),
+			"pay_by": _("{0} at {1}").format(
+				format_date(self.hold_expires_on, DATE_FORMAT), format_time(self.hold_expires_on, TIME_FORMAT)
+			),
 			"pay_url": self.pay_url,
 		}
 		self.send_registrant_email(PAYMENT_DUE_TEMPLATE, context=context)
@@ -522,11 +569,16 @@ class FunctionSignUp(Document):
 		return self.status == PENDING and (not hold or get_datetime(hold) >= now_datetime())
 
 	@property
+	def has_online_payment(self) -> bool:
+		"""True when the payment church takes payments online, through a gateway in Giving Settings."""
+		return bool(frappe.get_cached_doc("Giving Settings").gateways_for(self.payment_church))
+
+	@property
 	def is_payable(self) -> bool:
 		"""True while a payment hold waits for money that the payment church can take online."""
 		if not (self.hold_expires_on and self.is_holding_seats and self.amount_to_pay):
 			return False
-		return bool(frappe.get_cached_doc("Giving Settings").gateways_for(self.payment_church))
+		return self.has_online_payment
 
 	@property
 	def pay_url(self) -> str:
@@ -676,7 +728,7 @@ class FunctionSignUp(Document):
 		frappe.db.get_value(self.doctype, self.name, "name", for_update=True)
 		self.reload()
 		amount, church = self.amount_to_pay, self.payment_church
-		currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
+		currency = get_currency()
 		# A gateway calls back once for each charge, so a callback on a paid sign-up is a second charge.
 		if self.payment_status in PAYMENT_DONE:
 			reason = _("Sign-up {0} was charged again after it was paid. Refund the extra charge.").format(
@@ -942,7 +994,9 @@ def get_item_totals(function, exclude_sign_up=None, for_update=False):
 
 
 def get_list_context(context):
-	context.filters = {"owner": frappe.session.user}
+	# A member lists what their permission hooks open: their own sign-ups and those staff made for them.
+	if not is_member_only("Function Sign-Up", frappe.session.user):
+		context.filters = {"owner": frappe.session.user}
 	context.order_by = "modified desc"
 
 	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
@@ -950,10 +1004,27 @@ def get_list_context(context):
 
 		rows = default_get_list(doctype, txt, filters, limit_start, limit_page_length, **kwargs)
 		resolve_link_titles(rows, doctype)
+		set_attendee_names(rows)
 		return rows
 
 	context.get_list = get_list
 	return context
+
+
+def set_attendee_names(rows: list[frappe._dict]) -> None:
+	"""Give each sign-up row of the portal list `attendee_names`: who comes, for its Attendees column."""
+	# church-scope: the attendees of the sign-ups the list read above with the reader's permissions
+	attendees = frappe.get_all(
+		"Function Sign-Up Attendee",
+		filters={"parenttype": "Function Sign-Up", "parent": ("in", [row.name for row in rows] or [""])},
+		fields=["parent", "attendee_name"],
+		order_by="idx asc",
+	)
+	names = defaultdict(list)
+	for attendee in attendees:
+		names[attendee.parent].append(attendee.attendee_name)
+	for row in rows:
+		row.attendee_names = ", ".join(names[row.name])
 
 
 def get_attendee_key(row) -> tuple:
@@ -1124,7 +1195,7 @@ def get_functions_due_a_reminder() -> dict[str, dict]:
 	return {
 		function.name: {
 			"function_name": function.function_name,
-			"date": format_date(function.start_date),
+			"date": format_date(function.start_date, DATE_FORMAT),
 			"time": format_time(function.start_time, TIME_FORMAT)
 			if function.start_time and not function.all_day
 			else "",
@@ -1147,7 +1218,11 @@ def send_reminder(sign_up: Document, channels: list[str], context: dict) -> None
 			church=church,
 			template=REMINDER_TEMPLATE if channel == EMAIL else None,
 			text=REMINDER_TEXT if channel == SMS else "",
-			context=context,
+			context={
+				**context,
+				"church_name": church_name(sign_up) or "",
+				"sign_up_link": sign_up.sign_up_link,
+			},
 		)
 		# A text leaves at once, so each copy is committed as soon as it is sent, and the lock on the
 		# sign-up goes with it.

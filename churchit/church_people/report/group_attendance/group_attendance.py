@@ -7,7 +7,7 @@ from frappe.query_builder.functions import Count
 from frappe.utils import add_days, flt, getdate, today
 
 from churchit.church_ministries.attendance import COUNTED_TYPES
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 DEFAULT_WEEKS = 12
@@ -17,7 +17,7 @@ def execute(filters=None):
 	filters = frappe._dict(filters or {})
 	if filters.group:
 		frappe.has_permission("Group", doc=filters.group, throw=True)
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -83,6 +83,7 @@ def get_query(filters):
 		.select(
 			Group.name.as_("group"),
 			Group.group_type,
+			Group.church,
 			Count(Function.name).distinct().as_("meetings_held"),
 			Count(Attendance.person).as_("attended"),
 			members.as_("members"),
@@ -92,7 +93,7 @@ def get_query(filters):
 			& (Function.did_not_meet == 0)
 			& (Function.auto_repeat == 0)
 		)
-		.groupby(Group.name, Group.group_name, Group.group_type)
+		.groupby(Group.name, Group.group_name, Group.group_type, Group.church)
 		.orderby(Group.group_name)
 	)
 	if filters.group:

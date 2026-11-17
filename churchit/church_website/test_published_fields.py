@@ -2,14 +2,17 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 from pathlib import Path
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_website.published_fields import (
+	CACHE_KEY,
 	MEMBERS,
 	PUBLIC,
 	SITE_WIDE_SOURCE,
+	clear_published_field_cache,
 	code_sources,
 	fields_used_in,
 	published_field_map,
@@ -113,6 +116,27 @@ class TestPublishedFields(FrappeTestCase):
 		published = published_field_map()
 		self.assertIn("personal-details", routes(published, "Person", "photo"))
 		self.assertIn("prayer-request", routes(published, "Prayer Request", "request"))
+
+	def test_the_cached_map_is_the_scanned_map_until_it_is_cleared(self):
+		clear_published_field_cache()
+		self.addCleanup(clear_published_field_cache)
+		scanned = published_field_map()
+
+		self.assertEqual(published_field_map(use_cache=True), scanned)
+		self.assertIsNotNone(frappe.cache.get_value(CACHE_KEY))
+		with patch("churchit.church_website.published_fields.code_sources") as scan:
+			self.assertEqual(published_field_map(use_cache=True), scanned)
+		scan.assert_not_called()
+
+		clear_published_field_cache()
+		self.assertIsNone(frappe.cache.get_value(CACHE_KEY))
+
+	def test_web_forms_are_read_with_two_queries_whatever_their_number(self):
+		with patch.object(frappe, "get_all", wraps=frappe.get_all) as read:
+			list(web_form_entries())
+		tables = [call.args[0] for call in read.call_args_list]
+		self.assertEqual(tables.count("Web Form Field"), 1)
+		self.assertEqual(tables.count("Web Form List Column"), 1)
 
 	def test_the_title_of_a_record_on_a_function_schedule_is_members_only(self):
 		"""A schedule row shows the title of the record it links to, read through a doctype in a variable."""

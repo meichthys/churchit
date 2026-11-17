@@ -20,6 +20,8 @@ frappe.ui.form.on("Group", {
 						send_to: "Group",
 						group: frm.doc.name,
 						church: frm.doc.church,
+						// communication_purpose.GROUP_MESSAGES, which cannot be deleted
+						purpose: "Group Messages",
 					}),
 				__("Actions")
 			);

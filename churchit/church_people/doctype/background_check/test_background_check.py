@@ -16,6 +16,7 @@ from churchit.church_people.doctype.background_check_type.background_check_type 
 )
 from churchit.tests.helpers import RollbackEachTest, ensure, make_person
 from churchit.tests.test_notification_templates import shipped_templates
+from churchit.utils import LONG_DATE_FORMAT
 
 
 class TestBackgroundCheck(FrappeTestCase):
@@ -130,7 +131,7 @@ class TestBackgroundCheckExpiring(RollbackEachTest):
 			self.assertIn("_Test Expiring Cleared", rendered)
 			self.assertIn("_Test Expiring Type", rendered)
 		self.assertIn(
-			frappe.utils.formatdate(check.expires_on),
+			frappe.utils.formatdate(check.expires_on, LONG_DATE_FORMAT),
 			frappe.render_template(notification["message"], get_context(check)),
 		)
 

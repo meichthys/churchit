@@ -13,15 +13,18 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	WITHDRAWN,
 )
 from churchit.church_communications.doctype.communication_purpose.communication_purpose import (
+	CHILD_SAFETY,
 	CHURCH_NEWS,
+	GROUP_MESSAGES,
 	PASTORAL_CARE,
 	create_communication_purposes,
 )
-from churchit.church_communications.newsletter import is_subscribed
+from churchit.church_communications.newsletter import is_subscribed, set_subscribed
 from churchit.church_communications.preferences import (
 	get_member_preferences,
 	set_preference,
 )
+from churchit.church_communications.sending import get_recipients
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_root_church,
@@ -125,16 +128,33 @@ class TestSetPreference(PreferencesTestCase):
 		)
 		self.assertTrue(allowed(self.person, EMAIL, PASTORAL_CARE))
 
-	def test_church_news_by_email_keeps_the_churchs_unsubscribe_in_step(self):
-		set_preference(EMAIL, CHURCH_NEWS, 0)
-		self.assertFalse(is_subscribed(MEMBER_EMAIL, self.church))
+	def test_church_news_off_stops_only_news_and_on_lifts_an_older_church_wide_stop(self):
+		result = set_preference(EMAIL, CHURCH_NEWS, 0)
+		self.assertFalse(result["has_stopped_church_emails"])
+		self.assertTrue(is_subscribed(MEMBER_EMAIL, self.church))
 		self.assertEqual(
 			latest_consent(self.person, EMAIL, CHURCH_NEWS), {"status": WITHDRAWN, "method": "Member Portal"}
 		)
+		for purpose in (GROUP_MESSAGES, CHILD_SAFETY):
+			self.assertTrue(allowed(self.person, EMAIL, purpose))
+			recipients = get_recipients([self.person], EMAIL, purpose, self.church)
+			self.assertEqual([recipient.person for recipient in recipients], [self.person])
 
+		frappe.set_user("Administrator")
+		set_subscribed(MEMBER_EMAIL, self.church, False)
+		frappe.set_user(self.user)
 		set_preference(EMAIL, CHURCH_NEWS, 1)
 		self.assertTrue(is_subscribed(MEMBER_EMAIL, self.church))
 		self.assertTrue(allowed(self.person, EMAIL, CHURCH_NEWS))
+
+	def test_a_church_wide_stop_leaves_out_every_purpose_but_child_safety(self):
+		frappe.set_user("Administrator")
+		set_subscribed(MEMBER_EMAIL, self.church, False)
+
+		for purpose, reaches in ((GROUP_MESSAGES, False), (PASTORAL_CARE, False), (CHILD_SAFETY, True)):
+			with self.subTest(purpose):
+				recipients = get_recipients([self.person], EMAIL, purpose, self.church)
+				self.assertEqual(bool(recipients), reaches)
 
 	def test_another_purpose_leaves_the_churchs_unsubscribe_alone(self):
 		set_preference(EMAIL, PASTORAL_CARE, 0)

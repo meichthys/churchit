@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-03-15 18:17:31.660462",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Email Account",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Email Accounts",
- "modified": "2026-03-15 18:17:31.660462",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Email Accounts",

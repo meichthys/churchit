@@ -4,17 +4,24 @@
 """Person fields worked out from other fields, never typed in.
 
 `sync_derived` sets them on every save. `refresh_daily` brings every person up to date between saves, except
-the primary email and phone, which change only with a save.
+the primary email and phone, which change only with a save. On the day itself, `next_birthday` and
+`next_anniversary` hold today's date until the day ends, so a Notification on them sends whichever daily job runs
+first. `warn_if_after_death` reads the death fields to warn about attendance, a membership, a sign-up or a pledge
+dated after a death.
 """
 
 import calendar
+from datetime import date
 
 import frappe
 from dateutil.relativedelta import relativedelta
-from frappe.utils import getdate, nowdate
+from frappe import _
+from frappe.utils import add_years, escape_html, formatdate, getdate, nowdate
 
 from churchit.church_people import household
+from churchit.church_people.celebrations import occurrence_between
 from churchit.contacts import primary_email, primary_phone
+from churchit.utils import LONG_DATE_FORMAT
 
 ADULT = "Adult"
 CHILD = "Child"
@@ -24,6 +31,7 @@ DERIVED_FIELDS = (
 	"birth_date",
 	"birth_month",
 	"birth_day",
+	"next_birthday",
 	"is_deceased",
 	"deceased_date",
 	"age",
@@ -51,6 +59,23 @@ def get_marriage_years(anniversary, is_year_unknown) -> int:
 	return 0 if is_year_unknown else years_since(anniversary)
 
 
+def get_next_occurrence(month: int, day: int, on_date=None) -> date:
+	"""The first day on or after *on_date* (today by default) that falls on *month* and *day*.
+
+	February 29 falls on February 28 in a common year, as on the birthday lists.
+	"""
+	start = getdate(on_date)
+	return occurrence_between(month, day, start, add_years(start, 1))
+
+
+def get_next_anniversary(anniversary, is_deceased) -> date | None:
+	"""The next day that *anniversary* falls on, today included; None when it is empty or the person has died."""
+	if not anniversary or is_deceased:
+		return None
+	anniversary = getdate(anniversary)
+	return get_next_occurrence(anniversary.month, anniversary.day)
+
+
 def sync_derived(person) -> None:
 	"""Set *person*'s fields that come from their life events, household role, anniversary, graduation year and
 	contact tables.
@@ -60,6 +85,7 @@ def sync_derived(person) -> None:
 	# A new or changed family has no roster row for this person until on_update adds it.
 	role = None if person.has_value_changed("family") else household.role_of(person.name)
 	person.update(get_derived_values(person.life_events or [], role))
+	person.next_anniversary = get_next_anniversary(person.anniversary, person.is_deceased)
 	person.marriage_years = get_marriage_years(person.anniversary, person.anniversary_year_unknown)
 	person.grade = get_grade(person.graduation_year)
 	person.primary_email = primary_email(person)
@@ -71,21 +97,48 @@ def get_derived_values(life_events, role) -> dict:
 
 	The first dated Birth row is the birth. Its month and day always count, its year only when it is known.
 	An unknown age is 0, like a baby's, so `birth_date` and the death fields tell whether the age is known.
+	Someone who died has no next birthday.
 	"""
 	birth = next((row for row in life_events if row.event_type == BIRTH and row.date), None)
 	deaths = [row for row in life_events if row.event_type == DEATH]
 	deceased_date = next((row.date for row in deaths if row.date), None)
 	birth_date = birth.date if birth and not birth.year_unknown else None
+	birthday = getdate(birth.date) if birth else None
+	next_birthday = get_next_occurrence(birthday.month, birthday.day) if birthday and not deaths else None
 	age = get_age(birth_date, bool(deaths), deceased_date)
 	return {
 		"birth_date": birth_date,
-		"birth_month": getdate(birth.date).month if birth else 0,
-		"birth_day": getdate(birth.date).day if birth else 0,
+		"birth_month": birthday.month if birthday else 0,
+		"birth_day": birthday.day if birthday else 0,
+		"next_birthday": next_birthday,
 		"is_deceased": int(bool(deaths)),
 		"deceased_date": deceased_date,
 		"age": age or 0,
 		"life_stage": life_stage_for(role, age),
 	}
+
+
+def warn_if_after_death(person: str, day, what: str) -> None:
+	"""Warn, never refuse, when *what* on *day* comes after *person*'s recorded death.
+
+	History is often entered late, so the record saves. *what* names the record, such as _("attendance").
+	"""
+	if not person or not day:
+		return
+	died = frappe.db.get_value("Person", person, ["full_name", "is_deceased", "deceased_date"], as_dict=True)
+	if not died or not died.is_deceased:
+		return
+	if died.deceased_date and getdate(day) <= getdate(died.deceased_date):
+		return
+
+	name = frappe.bold(escape_html(died.full_name or person))
+	if died.deceased_date:
+		message = _("{0} died on {1}, before the date of this {2}. Make sure that this is correct.").format(
+			name, formatdate(died.deceased_date, LONG_DATE_FORMAT), what
+		)
+	else:
+		message = _("{0} has died. Make sure that this {1} is correct.").format(name, what)
+	frappe.msgprint(message, title=_("Recorded After a Death"), indicator="orange")
 
 
 def has_known_age(Person):
@@ -159,6 +212,7 @@ def refresh_daily():
 			"family",
 			"anniversary",
 			"anniversary_year_unknown",
+			"next_anniversary",
 			"marriage_years",
 			"graduation_year",
 			"grade",
@@ -168,6 +222,7 @@ def refresh_daily():
 	for person in people:
 		role = household.role_of(person.name) if person.family else None
 		current = get_derived_values(life_events.get(person.name, []), role)
+		current["next_anniversary"] = get_next_anniversary(person.anniversary, current["is_deceased"])
 		current["marriage_years"] = get_marriage_years(person.anniversary, person.anniversary_year_unknown)
 		current["grade"] = get_grade(person.graduation_year)
 		changed = {

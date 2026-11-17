@@ -96,7 +96,7 @@ class TestBibleTranslation(FrappeTestCase):
 			"File", filters={"attached_to_name": doc.name, "attached_to_field": "text_file"}
 		)
 		self.assertEqual(len(files), 1)
-		self.assertEqual(scripture.get_passage_text("Genesis 1:1", doc.name), "1 Second.")
+		self.assertEqual(scripture.get_passage_text("Genesis 1:1", doc.name), "Second.")
 
 	def test_a_failed_download_is_marked_and_logged(self):
 		doc, _enqueue = self.free_translation()

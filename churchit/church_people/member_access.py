@@ -5,7 +5,8 @@
 
 Staff are System Users and never pass through here. A member's own requests,
 sign-ups and bookings are theirs through `if_owner` DocPerms; this module covers
-the records other people own.
+the records other people own. Staff also record pledges and sign-ups for a member,
+so a member reads those that name them as well (`has_own_record_permission`).
 """
 
 from datetime import date
@@ -24,6 +25,7 @@ from churchit.church_people.membership import VISITOR
 from churchit.church_scope import church_filters, is_scoped, session_church, session_person
 
 PERSONAL_DETAILS = "personal-details"
+MEMBER_ROLE = "Church User"
 # What a member may name as the recipient of a prayer or alms request.
 RECIPIENT_DOCTYPES = ("Person", "Family", "Group", "Ministry", "Missionary")
 
@@ -57,7 +59,7 @@ def refuse_other_people_to_members(doc, ptype=None, user=None):
 
 
 def refuse_member_edits_beyond_personal_details(person):
-	"""A member edits a Person through the Personal Details form, so only its fields may change.
+	"""A member edits a Person through the Personal Details form, so only its editable fields may change.
 
 	The form sets nothing else, so anything more came straight through the API:
 	a membership status, a family or a spouse set by the member. Nor may a member add
@@ -69,7 +71,9 @@ def refuse_member_edits_beyond_personal_details(person):
 		return
 	if person.is_new():
 		frappe.throw(_("Ask the church office to add a person."), frappe.PermissionError)
-	refuse_changes_beyond(person, personal_details_fields())
+	# Frappe's accept also sets a read-only field, such as the addresses, from what the browser posts.
+	form = frappe.get_cached_doc("Web Form", PERSONAL_DETAILS)
+	refuse_changes_beyond(person, {field.fieldname for field in form.web_form_fields if not field.read_only})
 
 
 def refuse_member_edits_beyond_photo(family):
@@ -170,7 +174,7 @@ def personal_details_fields():
 
 
 def open_own_personal_details():
-	"""Send a visitor who asks for a new Personal Details form to their own record, or to the list without one."""
+	"""Send a visitor to their own Personal Details record, or to the list when they have none."""
 	person = session_person()
 	frappe.local.flags.redirect_location = (
 		f"/{PERSONAL_DETAILS}/{person}/edit" if person else f"/{PERSONAL_DETAILS}/list"
@@ -253,6 +257,68 @@ def family_query_conditions(user=None, doctype=None) -> str:
 		return ""
 	family = frappe.db.get_value("Person", {"user": user}, "family")
 	return f"`tabFamily`.`name` = {frappe.db.escape(family)}" if family else "1 = 0"
+
+
+def get_household_if_adult(person: str | None) -> str | None:
+	"""The family *person* is an Adult of, whose household pledges they read too."""
+	family = person and frappe.db.get_value("Person", person, "family")
+	return family if family and role_of(person) == ADULT else None
+
+
+def has_own_record_permission(doc, ptype=None, user=None) -> bool:
+	"""has_permission hook for Pledge and Function Sign-Up: a member reaches only their own.
+
+	Their own is a record that names their Person or that they made. A pledge that names a household
+	is also the household's Adults'. Church User reads every record and writes only those it made
+	(`if_owner`), so this hook is what keeps a member to their own. Frappe reads any falsy return as a
+	refusal, so staff get True.
+	"""
+	user = user or frappe.session.user
+	if not is_member_only(doc.doctype, user) or doc.get("owner") == user:
+		return True
+	person = frappe.db.get_value("Person", {"user": user}, "name")
+	if not person:
+		return False
+	family = doc.get("family")
+	return doc.get("person") == person or bool(family and family == get_household_if_adult(person))
+
+
+def own_records_query_conditions(user=None, doctype=None) -> str:
+	"""permission_query_conditions for Pledge and Function Sign-Up: a member lists only their own."""
+	user = user or frappe.session.user
+	if not is_member_only(doctype, user):
+		return ""
+	table = f"`tab{doctype}`"
+	own = f"{table}.`owner` = {frappe.db.escape(user)}"
+	person = frappe.db.get_value("Person", {"user": user}, "name")
+	if not person:
+		return own
+
+	conditions = [own, f"{table}.`person` = {frappe.db.escape(person)}"]
+	family = get_household_if_adult(person) if frappe.get_meta(doctype).has_field("family") else None
+	if family:
+		conditions.append(f"{table}.`family` = {frappe.db.escape(family)}")
+	return f"({' or '.join(conditions)})"
+
+
+def is_member_only(doctype: str, user: str) -> bool:
+	"""True when *user* reads *doctype* only through Church User, as a portal member does."""
+	readers = {
+		perm.role
+		for perm in frappe.get_meta(doctype).permissions
+		if perm.read and not perm.if_owner and not perm.permlevel and perm.role != MEMBER_ROLE
+	}
+	return not readers & set(frappe.get_roles(user))
+
+
+def hide_edit_unless_writable(context, doctype: str) -> None:
+	"""Hide a web form's Edit button on a *doctype* record the user reads but may not change.
+
+	Staff record pledges and sign-ups for a member, who reads them but changes only their own.
+	"""
+	name = frappe.form_dict.name
+	if name and not frappe.has_permission(doctype, "write", doc=name):
+		context.allow_edit = 0
 
 
 def has_group_file_permission(doc, ptype=None, user=None) -> bool:

@@ -35,7 +35,7 @@
    "link_fieldname": "membership_status"
   }
  ],
- "modified": "2026-10-31 13:11:23.000000",
+ "modified": "2026-11-15 15:12:39.765068",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Member Status",
@@ -73,6 +73,10 @@
    "read": 1,
    "report": 1,
    "role": "Church Staff",
+   "select": 1
+  },
+  {
+   "role": "Church Check-In",
    "select": 1
   }
  ],

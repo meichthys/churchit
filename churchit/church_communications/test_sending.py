@@ -32,6 +32,7 @@ from churchit.church_communications.sending import (
 	get_values,
 	render,
 	send_text,
+	uses_only_placeholders,
 )
 from churchit.church_communications.test_preferences import send_sms_hooks
 from churchit.tests.helpers import (
@@ -111,6 +112,26 @@ class TestPlaceholders(FrappeTestCase):
 		check_placeholders(
 			"{% if display_name %}{{ display_name }}{% endif %} {{ doc.first_name | e }}", "Message"
 		)
+
+	def test_the_template_picker_offers_only_what_the_check_takes(self):
+		for source in (
+			"Dear {{ first_name | no_such_filter }}",
+			"{% if first_name is no_such_test %}Hi{% endif %}",
+			"{{ amount }}",
+			"Dear {{ first_name",
+		):
+			with self.subTest(source):
+				self.assertFalse(uses_only_placeholders(source))
+				with self.assertRaises(frappe.ValidationError):
+					check_placeholders(source, "Message")
+
+		for source in ("Dear {{ first_name + 1 }}", "{{ 1 / 0 }}"):
+			with self.subTest(source):
+				self.assertFalse(uses_only_placeholders(source))
+
+		for source in ("Dear {{ first_name | upper }}", "<p>{{ doc.last_name | e }}</p>", None):
+			with self.subTest(source):
+				self.assertTrue(uses_only_placeholders(source))
 
 	def test_the_refusal_names_the_placeholders_that_work(self):
 		with self.assertRaisesRegex(frappe.ValidationError, r"\{\{ frappe \}\}.*\{\{ first_name \}\}"):

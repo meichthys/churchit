@@ -6,6 +6,7 @@ from frappe.www import contact
 from churchit.church_foundations.doctype.church.church import (
 	ADDRESS_FIELDS,
 	church_contact_details,
+	get_church,
 	get_church_address,
 )
 
@@ -13,11 +14,16 @@ sitemap = 1
 
 
 def get_context(context):
-	"""Frappe's contact page, showing the Church record's address unless the settings say it differs."""
+	"""Frappe's contact page, showing the Church record's name and address unless the settings say it differs.
+
+	The form posts to ``church_website.contact.send_message``, which sends the message to this church.
+	"""
 	out = contact.get_context(context)
-	if not out.get("contact_address_differs"):
+	church = get_church()
+	if church and not out.get("contact_address_differs"):
 		out.update({field: None for field in ADDRESS_FIELDS})
-		out.update(get_church_address() or {})
-	details = church_contact_details()
+		out.update(get_church_address(church) or {})
+		out["address_title"] = church.church_name
+	details = church_contact_details(church)
 	out.update({"phone": details.phone, "email_id": details.email})
 	return out

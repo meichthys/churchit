@@ -83,7 +83,7 @@
    "icon": "app-window",
    "link_to": "Web Site",
    "link_type": "Sidebar",
-   "title": "Website"
+   "title": "Web Site"
   },
   {
    "added": 0,
@@ -110,7 +110,7 @@
    "title": "Help"
   }
  ],
- "modified": "2026-11-03 22:27:12.000000",
+ "modified": "2026-11-15 15:28:22.775269",
  "modified_by": "Administrator",
  "name": "churchit",
  "owner": "Administrator",

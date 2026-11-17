@@ -1,53 +1,57 @@
+{% set missionary_docs = frappe.get_list("Missionary", fields=["name", "title", "agency", "photo", "country", "website", "sensitive"], filters=selected_church_filters(publish=1, status=("!=", "Inactive")), ignore_permissions=True) %}
+{% if missionary_docs %}
+{%- set agency_ids = missionary_docs | map(attribute="agency") | select | unique | list -%}
+{%- set agency_names = dict(frappe.get_all("Missionary Agency", filters={"name": ("in", agency_ids)}, fields=["name", "agency_name"], as_list=True)) if agency_ids else {} -%}
+{%- set country_ids = missionary_docs | map(attribute="country") | select | unique | list -%}
+{%- set country_codes = dict(frappe.get_all("Country", filters={"name": ("in", country_ids)}, fields=["name", "code"], as_list=True)) if country_ids else {} %}
 <div class="missions-map-card">
     <div id="missions-map" class="missions-map"></div>
 </div>
 
 <div class="row justify-content-center">
-{% set missionary_docs = frappe.get_list("Missionary", fields=["name"], filters=selected_church_filters(publish=1), ignore_permissions=True) %}
-{% if missionary_docs %}
-{% for doc in missionary_docs if not frappe.get_doc("Missionary", doc.name).sensitive %}
-    {% set missionary = frappe.get_doc("Missionary", doc.name) %}
+{% for missionary in missionary_docs if not missionary.sensitive %}
     <div class="col-md-4 mb-4">
-        <div class="card h-100">
+        <div class="card">
             <div class="card-header">
                 <strong>
-                    {{ missionary.title }}
+                    {{ missionary.title | e }}
                     <br>
                     {% if missionary.agency %}
-                        ({{ frappe.db.get_value("Missionary Agency", missionary.agency, "agency_name") or missionary.agency }})
+                        ({{ agency_names.get(missionary.agency) or missionary.agency }})
                     {% endif %}
                 </strong>
             </div>
+            {% if missionary.photo %}
             <div class="card-body">
-                {% if missionary.photo %}
-                    <p class="card-text">
-                        <img src="{{ missionary.photo }}">
-                    </p>
-                {% endif %}
+                <p class="card-text">
+                    <img src="{{ missionary.photo }}" alt="{{ missionary.title | e }}">
+                </p>
             </div>
-            <div class="card-footer">
+            {% endif %}
+            <div class="card-footer mt-auto">
                 <div class="small text-muted">
-                    {% if missionary.email %}
-                        <a href="mailto:{{ missionary.email }}">{{ missionary.email }} </a>
-                    {% endif %}
-                    {% set country_code = frappe.db.get_value("Country", missionary.country, "code") %}
-                    {% if country_code %}
-                        <img src="https://flagcdn.com/w40/{{ country_code | lower }}.png"
-                             alt="{{ missionary.country }} flag"
-                             title="{{ missionary.country }} flag"
-                             style="width: 2em">
+                    {% if missionary.country %}
+                    <span class="text-nowrap">
+                        {% set country_code = country_codes.get(missionary.country) %}
+                        {% if country_code %}
+                        <img src="https://flagcdn.com/w40/{{ country_code | lower }}.png" alt="" style="width: 2em">
+                        {% endif %}
+                        {{ missionary.country | e }}
+                    </span>
                     {% endif %}
                     {% if missionary.website %}
-                        <a href="{{ missionary.website }}" target="_blank"> {{ missionary.website }}</a>
+                        <a href="{{ missionary.website | e }}" target="_blank" rel="noopener"> {{ missionary.website | e }}</a>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 {% endfor %}
-{% else %}
-    <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
-        <p class="text-muted" style="font-size: 1.1em;">Our missions information is being updated. Please check back soon.</p>
-    </div>
-{% endif %}
 </div>
+{% else %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+        <p class="text-muted" style="font-size: 1.1em;">{{ _("Our missions information is being updated. Please check back soon.") }}</p>
+    </div>
+</div>
+{% endif %}

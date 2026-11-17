@@ -8,4 +8,8 @@ frappe.query_reports["Visitor Log"] = {
 			default: 60,
 		},
 	],
+	onload: function (report) {
+		const filter = report.get_filter("days");
+		filter.$input.attr("title", filter.df.label);
+	},
 };

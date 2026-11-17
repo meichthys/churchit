@@ -46,6 +46,9 @@ class FollowupCard(Document):
 				pluck="step",
 			),
 		)
+		# The desk sees only the role's rights; has_card_permission lets a past assignee read, not write.
+		if not frappe.has_permission(CARD, "write", doc=self):
+			self.set_onload("read_only", True)
 
 	def validate(self):
 		refuse_another_churches_parent(

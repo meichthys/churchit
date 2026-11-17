@@ -2,12 +2,12 @@ import frappe
 from frappe import _
 from frappe.query_builder.functions import Count
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -15,7 +15,7 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "group_name", "fieldtype": "Data", "label": _("Group"), "width": 250},
+		{"fieldname": "name", "fieldtype": "Link", "label": _("Group"), "options": "Group", "width": 250},
 		{"fieldname": "status", "fieldtype": "Data", "label": _("Status"), "width": 100},
 		{"fieldname": "members", "fieldtype": "Int", "label": _("Members"), "width": 100},
 		{"fieldname": "description", "fieldtype": "Data", "label": _("Description"), "width": 300},
@@ -34,7 +34,7 @@ def get_data(filters=None):
 		.on(GroupMember.parent == Group.name)
 		.select(
 			Group.name,
-			Group.group_name,
+			Group.church,
 			Group.status,
 			Count(GroupMember.name).as_("members"),
 			Group.description,

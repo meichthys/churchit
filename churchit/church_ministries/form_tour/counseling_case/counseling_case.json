@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-09-25 22:00:00.000000",
+ "modified": "2026-11-15 05:40:15.440669",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Counseling Case",
@@ -16,6 +16,24 @@
  "reference_doctype": "Counseling Case",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "Choose the person who is being counseled. It is required.",
+   "fieldname": "person",
+   "fieldtype": "Link",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Person",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.person",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Person",
+   "ui_tour": 0
+  },
   {
    "description": "Only a Church Manager can open a counseling case; a Church User cannot read one at all. Name the counselor so the case is not anonymous inside that group.",
    "fieldname": "counselor",

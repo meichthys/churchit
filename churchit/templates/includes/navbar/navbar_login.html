@@ -3,9 +3,13 @@
     rest of the block is frappe's own, included through the app prefix. -#}
 {% if not only_static %}
 <li class="nav-item">
-	<button type="button" class="nav-link theme-switch" title="{{ _("Switch light or dark mode") }}" aria-label="{{ _("Switch light or dark mode") }}">
-		<svg class="icon icon-sm theme-switch-moon"><use href="#icon-moon"></use></svg>
-		<svg class="icon icon-sm theme-switch-sun"><use href="#icon-sun"></use></svg>
+	{#- no aria-label: on a phone the visible label names the button, on a desktop the title does -#}
+	<button type="button" class="nav-link theme-switch" title="{{ _("Switch light or dark mode") }}">
+		<svg class="icon icon-sm theme-switch-moon" aria-hidden="true"><use href="#icon-moon"></use></svg>
+		<svg class="icon icon-sm theme-switch-sun" aria-hidden="true"><use href="#icon-sun"></use></svg>
+		{#- the phone menu lists links by name, so the switch gets one there -#}
+		<span class="theme-switch-moon d-xl-none">{{ _("Dark mode") }}</span>
+		<span class="theme-switch-sun d-xl-none">{{ _("Light mode") }}</span>
 	</button>
 </li>
 {% endif %}

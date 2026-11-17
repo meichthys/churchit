@@ -7,14 +7,14 @@
  "allow_print": 0,
  "anonymous": 1,
  "apply_document_permissions": 1,
- "button_label": "Save",
+ "button_label": "Send",
  "condition_json": "[[\"Prayer Request\",\"status\",\"!=\",\"Answered\"]]",
  "creation": "2025-09-13 23:09:32.093784",
  "doc_type": "Prayer Request",
  "docstatus": 0,
  "doctype": "Web Form",
  "idx": 0,
- "introduction_text": "<div class=\"ql-editor read-mode\"><blockquote>Be anxious for nothing, but in everything, by prayer and petition, with thanksgiving, present your requests to God.</blockquote><blockquote>~ Philipians 4:6 (BSB)</blockquote><p><br></p><p>Requests submitted via this form will not be linked to you. They will be 'anonymously' submitted.</p></div>",
+ "introduction_text": "<div class=\"ql-editor read-mode\"><blockquote>Be anxious for nothing, but in everything, by prayer and petition, with thanksgiving, present your requests to God.</blockquote><blockquote>~ Philippians 4:6 (BSB)</blockquote><p><br></p><p>Your request is not linked to your name.</p></div>",
  "is_standard": 1,
  "list_columns": [
   {
@@ -35,7 +35,7 @@
  ],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-10-22 15:43:00.000000",
+ "modified": "2026-11-17 00:21:20.223373",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "prayer-request-anonymous",
@@ -45,6 +45,9 @@
  "show_attachments": 0,
  "show_list": 0,
  "show_sidebar": 0,
+ "success_message": "Thank you. Our staff read each request before it goes on the prayer list.",
+ "success_title": "Request Sent",
+ "success_url": "/",
  "title": "Prayer Request (Anonymous)",
  "web_form_fields": [
   {
@@ -103,7 +106,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
-   "default": "Whole Church",
+   "default": "Private",
    "description": "Private: only the pastoral care team. Prayer Team: also the prayer team. Whole Church: every member, on the Community Prayer Requests page.",
    "fieldname": "visibility",
    "fieldtype": "Select",

@@ -80,12 +80,13 @@ class TestBoundProblem(RollbackEachTest):
 		self.assertIn("11", get_bound_problem(function.name, eleven.name))
 
 	def test_a_child_under_the_youngest_age_has_a_problem(self):
-		function = make_function("_Test Bound 4 up", min_age=4)
-		three = make_person("Three", "_Test Bounds", life_events=born_years_before_start(3))
-		four = make_person("Four", "_Test Bounds", life_events=born_years_before_start(4))
+		# Ages that put the birth before today: a Person refuses a birth date in the future.
+		function = make_function("_Test Bound 8 up", min_age=8)
+		seven = make_person("Seven", "_Test Bounds", life_events=born_years_before_start(7))
+		eight = make_person("Eight", "_Test Bounds", life_events=born_years_before_start(8))
 
-		self.assertIn("3", get_bound_problem(function.name, three.name))
-		self.assertIsNone(get_bound_problem(function.name, four.name))
+		self.assertIn("7", get_bound_problem(function.name, seven.name))
+		self.assertIsNone(get_bound_problem(function.name, eight.name))
 
 	def test_a_function_with_no_bounds_takes_anyone(self):
 		function = make_function("_Test Bound None")

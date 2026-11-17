@@ -15,8 +15,9 @@ import frappe
 from frappe.desk.doctype.dashboard_chart import dashboard_chart
 from frappe.desk.doctype.number_card.number_card import calculate_previous_result
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
+from frappe.permissions import add_user_permission
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import background_jobs, get_first_day_of_week, today
+from frappe.utils import add_days, background_jobs, get_first_day_of_week, getdate, today
 
 from churchit.church_finances.doctype.giving_statement.giving_statement import generate_statements
 from churchit.church_people import household
@@ -29,7 +30,7 @@ from churchit.church_people.report.person_positions_ending_this_month import (
 )
 from churchit.dashboard import count_people
 from churchit.setup import sample_data
-from churchit.tests.helpers import ensure_root_church, make_person
+from churchit.tests.helpers import ensure_root_church, ensure_user, make_person
 
 # One or two doctypes per module, enough to prove each section of the loader ran.
 SEEDED_DOCTYPES = (
@@ -159,6 +160,24 @@ class TestSampleDataLoader(FrappeTestCase):
 	def test_seeds_every_module(self):
 		empty = [doctype for doctype in SEEDED_DOCTYPES if not frappe.db.count(doctype)]
 		self.assertEqual(empty, [], "loader produced no records for these doctypes")
+
+	def test_a_renamed_church_still_loads(self):
+		"""The church renames the starter church first thing; create and delete find the root church, not a name."""
+		root = ensure_root_church()
+		old_name = frappe.db.get_value("Church", root, "church_name")
+		frappe.db.set_value("Church", root, "church_name", "_Test Renamed Church")
+		self.addCleanup(frappe.db.set_value, "Church", root, "church_name", old_name)
+
+		self.assertEqual(sample_data.get_root_church(), root)
+		sample_data.create_sample_data()
+
+	def test_create_says_one_message_only(self):
+		frappe.clear_messages()
+		frappe.msgprint("internal chatter")
+		with patch.object(sample_data, "create_sample_data"):
+			sample_data.create()
+		messages = [message["message"] for message in frappe.get_message_log()]
+		self.assertEqual(messages, ["Sample data has been created."])
 
 	def test_running_twice_adds_nothing(self):
 		"""The module docstring promises a second run is safe."""
@@ -501,6 +520,58 @@ class TestDeleteClearsOldHistory(FrappeTestCase):
 		self.assertIsNone(frappe.db.get_value("Communication", self.kept, "reference_name"))
 		links = frappe.get_all("Communication Link", {"parent": self.kept}, pluck="link_doctype")
 		self.assertEqual(links, ["Church"])
+
+
+class TestDeleteSampleUsers(FrappeTestCase):
+	def test_no_permission_log_row_of_a_sample_users_permission_is_left(self):
+		email = ensure_user("_test_sample_user@example.com", "_Test Sample", roles=())
+		# On a multi-church site the new login already holds the root church, and this adds nothing.
+		add_user_permission("Church", ensure_root_church(), email, ignore_permissions=True)
+		permissions = frappe.get_all("User Permission", {"user": email}, pluck="name")
+		for permission in permissions:
+			self.assertTrue(frappe.db.exists("Permission Log", {"for_document": permission}))
+
+		with patch.object(sample_data, "_SAMPLE_USERS", ((email, "Nobody", "Church User"),)):
+			sample_data._delete_sample_users()
+
+		self.assertFalse(frappe.db.exists("User Permission", {"user": email}))
+		self.assertFalse(frappe.db.exists("Permission Log", {"for_document": ["in", permissions]}))
+
+
+class TestSampleDataStatus(FrappeTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_it_says_whether_the_demo_manager_exists_and_who_may_change_the_data(self):
+		self.assertEqual(
+			sample_data.get_status()["is_loaded"],
+			bool(frappe.db.exists("User", sample_data._CHURCH_MANAGER_EMAIL)),
+		)
+		self.assertTrue(sample_data.get_status()["can_change"])
+
+		frappe.set_user(
+			ensure_user("_test_sample_status@example.com", "_Test Status", roles=("Church Manager",))
+		)
+		self.assertFalse(sample_data.get_status()["can_change"])
+		with self.assertRaises(frappe.PermissionError):
+			sample_data.create()
+
+		frappe.set_user(ensure_user("_test_sample_member@example.com", "_Test Member"))
+		with self.assertRaises(frappe.PermissionError):
+			sample_data.get_status()
+
+
+class TestThisWeekIn(FrappeTestCase):
+	def test_today_stays_today_whatever_day_the_week_starts_on(self):
+		now = getdate()
+		for days_since_start in range(7):
+			start = add_days(now, -days_since_start)
+			week = {(add_days(start, n).month, add_days(start, n).day) for n in range(7)}
+			with patch.object(sample_data, "this_week", return_value=(start, add_days(start, 6))):
+				self.assertEqual(sample_data._this_week_in(0, 1996)[5:], str(now)[5:])
+				for offset in range(7):
+					day = getdate(sample_data._this_week_in(offset, 1996))
+					self.assertIn((day.month, day.day), week)
 
 
 class TestSetupWizardHook(FrappeTestCase):

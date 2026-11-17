@@ -186,6 +186,7 @@ def get_context(context):
 		song.apply_fieldlevel_read_permissions()
 		context.sermon_title = escape_html(song.title)
 		context.prepared_by = escape_html(song.authors or "")
+		context.cover_date = frappe.utils.today()
 		context.slides = song_slides(song, default_church())
 		return
 
@@ -217,4 +218,5 @@ def get_context(context):
 
 	context.sermon_title = sermon.title or sermon.name
 	context.prepared_by = prepared_by_name
+	context.cover_date = sermon.sermon_date or frappe.utils.today()
 	context.slides = slides

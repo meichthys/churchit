@@ -5,7 +5,7 @@ import json
 from unittest.mock import patch
 
 import frappe
-from frappe.utils import add_years, getdate, today
+from frappe.utils import add_days, add_years, getdate, today
 from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_communications.consent import allowed
@@ -32,6 +32,7 @@ from churchit.church_people.matching import is_paired
 from churchit.church_people.membership import VISITOR
 from churchit.church_people.privacy import anonymize
 from churchit.church_people.test_accounts import share_in_the_directory_by_default
+from churchit.connections import get_open_count
 from churchit.patches.v1_0 import add_connection_card_interests
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -262,6 +263,30 @@ class TestConnectionCardFollowUp(ConnectionCardTestCase):
 		card = self.processed(self.make_card(last_name="Nothing Ticked"))
 		self.assertEqual(self.started(card), [self.any_card])
 
+	def test_the_card_keeps_every_interest_and_the_message_as_its_reason(self):
+		card = self.processed(
+			self.make_card(
+				last_name="Both",
+				message="_Test Please pray",
+				interests=[{"interest": self.baptism}, {"interest": self.serving}],
+			)
+		)
+
+		reason = frappe.db.get_value(
+			"Follow-up Card", {"workflow": self.baptism_workflow, "source_name": card.name}, "reason"
+		)
+		for text in (self.baptism, self.serving, "_Test Please pray"):
+			self.assertIn(text, reason)
+
+	def test_anonymizing_the_person_blanks_the_message_on_their_follow_up_cards(self):
+		card = self.processed(self.make_card(last_name="Forgotten", message="_Test Call me on 555 0199"))
+
+		anonymize(card.person)
+
+		reasons = frappe.get_all("Follow-up Card", filters={"person": card.person}, pluck="reason")
+		self.assertTrue(reasons)
+		self.assertEqual(reasons, [None] * len(reasons))
+
 	def test_a_guests_card_is_processed_as_the_guest(self):
 		"""The job runs as whoever queued it, which is Guest for the web form."""
 		card = self.send(last_name="Sent", interests=[{"interest": self.serving}])
@@ -276,6 +301,20 @@ class TestConnectionCardFollowUp(ConnectionCardTestCase):
 	def test_spam_starts_nothing(self):
 		card = self.processed(self.make_card(last_name="Spam", website="https://spam.example.com"))
 		self.assertFalse(frappe.db.exists("Follow-up Card", {"source_name": card.name}))
+
+	def test_the_card_lists_its_follow_up_cards_under_connections(self):
+		card = self.processed(self.make_card(last_name="Connected", interests=[{"interest": self.baptism}]))
+
+		counts = get_open_count("Connection Card", card.name)["count"]["external_links_found"]
+		# Frappe's get_open_count limits the session's statements to 1 second, meant to end with the request.
+		frappe.db.set_execution_timeout(0)
+
+		# The site's own workflows start cards too, so count every card made from this one.
+		started = frappe.db.count(
+			"Follow-up Card", {"source_type": "Connection Card", "source_name": card.name}
+		)
+		self.assertGreaterEqual(started, 2)
+		self.assertEqual([(link["doctype"], link["count"]) for link in counts], [("Follow-up Card", started)])
 
 
 class TestConnectionCardConsent(ConnectionCardTestCase):
@@ -510,6 +549,30 @@ class TestConnectionCardHousehold(ConnectionCardTestCase):
 
 		family = frappe.db.get_value("Person", card.person, "family")
 		self.assertEqual(len(frappe.get_doc("Family", family).members), 4)
+
+	def test_a_birth_date_in_the_future_is_refused_when_the_card_is_sent(self):
+		"""The Person the job adds refuses it, so the card would stay New with nobody told."""
+		expected = [{"first_name": "Baby", "relationship": "Son", "birth_date": add_days(today(), 90)}]
+
+		with self.assertRaises(frappe.ValidationError):
+			self.send(last_name="Expecting", household_members=expected)
+		with self.assertRaises(frappe.ValidationError):
+			self.make_card(last_name="Expecting", household_members=expected)
+		self.assertFalse(frappe.db.exists("Connection Card", {"last_name": "Expecting"}))
+
+		card = self.processed(
+			self.make_card(last_name="Born Today", household_members=[{**expected[0], "birth_date": today()}])
+		)
+		self.assertEqual(card.status, PROCESSED)
+
+
+class TestConnectionCardHouseholdFields(RollbackEachTest):
+	def test_the_web_form_sends_each_household_field_a_guest_fills(self):
+		"""A web form sends a child table's in_list_view fields only."""
+		meta = frappe.get_meta("Connection Card Household Member")
+		fields = {field.fieldname for field in meta.fields if field.in_list_view}
+
+		self.assertTrue({"first_name", "last_name", "relationship", "birth_date"} <= fields)
 
 
 class TestConnectionCardInterests(RollbackEachTest):

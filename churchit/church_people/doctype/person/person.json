@@ -4,7 +4,7 @@
  "allow_rename": 1,
  "autoname": "PRSN-.####",
  "creation": "2025-08-21 01:19:39.714186",
- "description": "A person that has interacted with the church in some way (i.e. attendee, member, visitor, etc).",
+ "description": "Someone the church knows, such as a member, an attender or a visitor.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
@@ -29,10 +29,12 @@
   "spouse",
   "anniversary",
   "anniversary_year_unknown",
+  "next_anniversary",
   "primary_email",
   "birthday",
   "birth_month",
   "birth_day",
+  "next_birthday",
   "team_calendar_key",
   "other_names_section",
   "prefix",
@@ -408,13 +410,12 @@
    "print_hide": 1
   },
   {
-   "description": "Click Actions > Invite to Portal to make a login from the primary email.",
+   "description": "Portal or staff login. Actions > Invite to Portal makes a portal login.",
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "Portal User",
    "options": "User",
-   "search_index": 1,
-   "show_description_on_click": 1
+   "search_index": 1
   },
   {
    "description": "A married or widowed person keeps a spouse and an anniversary.",
@@ -490,14 +491,14 @@
    "read_only": 1
   },
   {
-   "description": "When the Membership last changed, from its Milestones.",
+   "description": "When the Membership last changed, from the record's history.",
    "fieldname": "membership_changed_on",
    "fieldtype": "Date",
    "label": "Membership Changed On",
    "read_only": 1
   },
   {
-   "description": "When the Status last changed, from its Milestones.",
+   "description": "When the Status last changed, from the record's history.",
    "fieldname": "status_changed_on",
    "fieldtype": "Date",
    "label": "Status Changed On",
@@ -581,6 +582,7 @@
    "print_hide": 1
   },
   {
+   "description": "Set from the Birth row in Life Events when its year is known.",
    "fieldname": "birth_date",
    "fieldtype": "Date",
    "label": "Birth Date",
@@ -611,6 +613,23 @@
    "read_only": 1
   },
   {
+   "description": "The next birthday, today included. Birthday Greeting sends on it.",
+   "fieldname": "next_birthday",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Next Birthday",
+   "read_only": 1
+  },
+  {
+   "description": "The next wedding anniversary, today included. Anniversary Greeting sends on it.",
+   "fieldname": "next_anniversary",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Next Anniversary",
+   "read_only": 1
+  },
+  {
+   "description": "From the household role in the Family, or else from the age.",
    "fieldname": "life_stage",
    "fieldtype": "Select",
    "in_standard_filter": 1,
@@ -900,6 +919,16 @@
   },
   {
    "group": "Involvement",
+   "link_doctype": "Function Check-In",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Involvement",
+   "link_doctype": "Group Join Request",
+   "link_fieldname": "person"
+  },
+  {
+   "group": "Involvement",
    "link_doctype": "Group",
    "link_fieldname": "person"
   },
@@ -947,6 +976,11 @@
    "group": "Care",
    "link_doctype": "Counseling Case",
    "link_fieldname": "person"
+  },
+  {
+   "group": "Care",
+   "link_doctype": "Pickup Restriction",
+   "link_fieldname": "child"
   },
   {
    "group": "Care",
@@ -999,12 +1033,17 @@
    "link_fieldname": "person"
   },
   {
+   "group": "Follow-up",
+   "link_doctype": "Form Response",
+   "link_fieldname": "person"
+  },
+  {
    "group": "Relationships",
    "link_doctype": "Person",
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-14 23:53:15.422392",
+ "modified": "2026-11-15 15:07:56.456045",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

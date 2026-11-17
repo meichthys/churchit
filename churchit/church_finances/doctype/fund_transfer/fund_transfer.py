@@ -3,7 +3,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_link_to_form, nowdate
 
-from churchit.church_finances.doctype.fund.fund import add_transaction, remove_transactions
+from churchit.church_finances.doctype.collection.collection import warn_of_unlikely_date
+from churchit.church_finances.doctype.fund.fund import (
+	add_transaction,
+	format_amount,
+	remove_transactions,
+	warn_of_negative_balance,
+)
 from churchit.church_scope import (
 	default_church,
 	is_multi_church,
@@ -29,6 +35,13 @@ class FundTransfer(Document):
 		# this church or are shared with every church.
 		refuse_another_churches_record(self, "Fund", self.from_fund)
 		refuse_another_churches_record(self, "Fund", self.to_fund)
+		if self.docstatus == 0 and self.from_fund:
+			warn_of_negative_balance(
+				self.from_fund,
+				_("Submitting this transfer will reduce the {0} fund balance to {1}."),
+				-self.amount,
+			)
+		warn_of_unlikely_date(self)
 
 	def set_church_when_the_source_is_shared(self):
 		"""Keep a transfer out of a shared fund in the church that moves the money.
@@ -48,36 +61,44 @@ class FundTransfer(Document):
 		self.remove_fund_transfer_transactions()
 
 	def transfer_funds(self):
+		from_label, to_label = get_fund_labels(self.from_fund, self.to_fund)
 		note = f": {self.notes}" if self.notes else ""
 		rows = {
-			self.from_fund: (-self.amount, f"Transfer to {self.to_fund}{note}"),
-			self.to_fund: (self.amount, f"Transfer from {self.from_fund}{note}"),
+			self.from_fund: (-self.amount, _("Transfer to {0}").format(to_label) + note),
+			self.to_fund: (self.amount, _("Transfer from {0}").format(from_label) + note),
 		}
 		for fund in sorted(rows):
 			amount, fund_note = rows[fund]
 			add_transaction(fund, amount, "Fund Transfer", self.name, self.date or nowdate(), notes=fund_note)
 
-		from_label = frappe.db.get_value("Fund", self.from_fund, "fund")
-		to_label = frappe.db.get_value("Fund", self.to_fund, "fund")
-		frappe.msgprint(
-			f"✅ Transferred ${self.amount} from "
-			f"{get_link_to_form('Fund', self.from_fund, from_label)} to "
-			f"{get_link_to_form('Fund', self.to_fund, to_label)}."
-		)
+		self.show_transfer(_("Moved {0} from {1} to {2}."))
+		warn_of_negative_balance(self.from_fund, _("The {0} fund balance is now {1}."))
 
 	def remove_fund_transfer_transactions(self):
-		from_label = frappe.db.get_value("Fund", self.from_fund, "fund") or self.from_fund
-		to_label = frappe.db.get_value("Fund", self.to_fund, "fund") or self.to_fund
-
 		remove_transactions("Fund Transfer", self.name)
+		self.show_transfer(_("Moved {0} back from {2} to {1}."))
+
+	def show_transfer(self, message: str):
+		"""Alert *message*, which gets the amount for {0} and the two funds as links for {1} and {2}."""
+		from_label, to_label = get_fund_labels(self.from_fund, self.to_fund)
 		frappe.msgprint(
-			f"⏪ Reverted transfer of ${self.amount} from "
-			f"{get_link_to_form('Fund', self.from_fund, from_label)} to "
-			f"{get_link_to_form('Fund', self.to_fund, to_label)}."
+			message.format(
+				format_amount(self.amount),
+				get_link_to_form("Fund", self.from_fund, from_label),
+				get_link_to_form("Fund", self.to_fund, to_label),
+			),
+			alert=True,
+			indicator="green",
 		)
+
+
+def get_fund_labels(from_fund: str, to_fund: str) -> tuple[str, str]:
+	"""The names of the two funds, such as ('General', 'Building')."""
+	names = dict(frappe.db.get_values("Fund", {"name": ("in", [from_fund, to_fund])}, ["name", "fund"]))
+	return names.get(from_fund) or from_fund, names.get(to_fund) or to_fund
 
 
 def get_title(from_fund: str, to_fund: str) -> str:
 	"""'General to Building', from the names of the two funds."""
-	names = dict(frappe.db.get_values("Fund", {"name": ("in", [from_fund, to_fund])}, ["name", "fund"]))
-	return f"{names.get(from_fund) or from_fund} to {names.get(to_fund) or to_fund}"
+	from_label, to_label = get_fund_labels(from_fund, to_fund)
+	return f"{from_label} to {to_label}"

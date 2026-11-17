@@ -123,8 +123,11 @@ def start_cards(
 	source=None,
 	*,
 	step: str | None = None,
+	reason: str | None = None,
 ) -> list[str]:
 	"""Open a card for *person* on each active workflow of *church* that starts on *trigger*.
+
+	*reason* replaces the one worked out from the trigger.
 
 	A trigger row with no value starts on every *value*; one with a value starts only on that one.
 	A row with a step starts only on that *step*.
@@ -144,7 +147,7 @@ def start_cards(
 			if (not row.value or row.value == value) and (not row.step or row.step == step)
 		}
 	)
-	reason = describe_trigger(trigger, value)
+	reason = reason or describe_trigger(trigger, value)
 	return [add_card(person, workflow, reason=reason, source=source) for workflow in starting]
 
 
@@ -165,6 +168,8 @@ def first_step(workflow: str) -> str | None:
 def has_card_permission(doc, ptype=None, user=None) -> bool:
 	"""has_permission hook for Follow-up Card: the follow-up role reaches only the cards assigned to it.
 
+	A card the user had a to-do on stays readable, so a moved or closed card still opens. A to-do that
+	someone took away (Cancelled) does not count.
 	Frappe reads any falsy return as a refusal, so every other user gets True.
 	"""
 	user = user or frappe.session.user
@@ -173,7 +178,19 @@ def has_card_permission(doc, ptype=None, user=None) -> bool:
 	if doc.is_new():
 		return False
 	# The stored assignees: a form sends none, and a caller could send any.
-	return user in json.loads(frappe.db.get_value(CARD, doc.name, "_assign") or "[]")
+	if user in json.loads(frappe.db.get_value(CARD, doc.name, "_assign") or "[]"):
+		return True
+	return ptype == "read" and bool(
+		frappe.db.exists(
+			"ToDo",
+			{
+				"reference_type": CARD,
+				"reference_name": doc.name,
+				"allocated_to": user,
+				"status": ("!=", "Cancelled"),
+			},
+		)
+	)
 
 
 def card_query_conditions(user=None, doctype=None) -> str:

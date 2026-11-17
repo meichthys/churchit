@@ -1,7 +1,7 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-03-26 20:32:10.581625",
- "currency": "USD",
+ "currency": "",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Group",
@@ -11,8 +11,9 @@
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
- "label": "Groups",
- "modified": "2026-10-31 01:33:47.000000",
+ "label": "Active Groups",
+ "method": "churchit.church_people.number_card.groups.groups.get_value",
+ "modified": "2026-11-15 17:45:18.370029",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Groups",
@@ -21,5 +22,5 @@
  "report_function": "Sum",
  "show_percentage_stats": 0,
  "stats_time_interval": "Monthly",
- "type": "Document Type"
+ "type": "Custom"
 }

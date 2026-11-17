@@ -28,6 +28,122 @@
   stroke: var(--icon-stroke);
 }
 
+/* ---- Navbar links on one line -----------------------------------------------
+   The links show on the bar from 1200px (templates/includes/navbar/navbar.html)
+   and go into the menu button below that. Keep each label on one line. Below
+   1440px frappe's container is narrower, so the links sit closer there: the
+   shipped menu with Home, Locations, Give and Members' Corner then fits on one
+   row. A longer menu moves whole links to a second row instead. */
+@media (min-width: 1200px) {
+  .navbar-expand-xl .navbar-nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .navbar-expand-xl .navbar-nav .nav-link {
+    white-space: nowrap;
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+}
+@media (min-width: 1440px) {
+  .navbar-expand-xl .navbar-nav .nav-link {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+/* bootstrap takes the side padding off a collapsed navbar's container and
+   frappe pads the navbar only up to 992px, so above that the brand touched
+   the edge of the screen. Keep frappe's page gutter there. */
+@media (min-width: 992.02px) and (max-width: 1199.98px) {
+  .navbar-expand-xl > .container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ---- Phone menu -------------------------------------------------------------
+   frappe repeats the whole portal sidebar inside the collapsed navbar, after
+   the site links. A portal page already shows that menu as a sideways row
+   under the navbar, so the collapsed navbar keeps only the site links. */
+.navbar-collapse .navbar-nav > .d-block.d-lg-none {
+  display: none !important;
+}
+
+/* The brand links home, so the menu button's list leaves out the Home link.
+   A signed-in visitor's navbar on a multi-church site also holds Locations and
+   Members' Corner (body.has-locations-menu, set by church_website/context.py),
+   so Home leaves the bar below 1280px too, to keep the links on one row. */
+@media (max-width: 1199.98px) {
+  .navbar-collapse
+    .nav-item:has(> .nav-link:is([href="/home"], [href^="/home?"], [href="/"], [href^="/?"])) {
+    display: none;
+  }
+}
+@media (max-width: 1279.98px) {
+  body.has-locations-menu[frappe-session-status="logged-in"]
+    .navbar-collapse
+    .nav-item:has(> .nav-link:is([href="/home"], [href^="/home?"], [href="/"], [href^="/?"])) {
+    display: none;
+  }
+}
+
+/* ---- Navbar dropdowns in the menu button's list -----------------------------
+   In the collapsed navbar a dropdown (Locations) opens as an indented list
+   under its item. frappe makes each nav item a flex row of a fixed height, so
+   the item grows and the menu wraps onto its own line instead of floating
+   beside the item. */
+@media (max-width: 1199.98px) {
+  .navbar-collapse .navbar-nav .nav-item.dropdown {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--navbar-height);
+  }
+  .navbar-collapse .dropdown-menu {
+    position: static;
+    float: none;
+    flex-basis: 100%;
+    background-color: transparent;
+    box-shadow: none;
+    border: 0;
+    padding-left: 1rem;
+  }
+}
+/* frappe centers the list above 576px, so the open dropdown is centered too. */
+@media (min-width: 576.02px) and (max-width: 1199.98px) {
+  .navbar-collapse .navbar-nav .nav-item.dropdown {
+    justify-content: center;
+  }
+  .navbar-collapse .dropdown-menu {
+    padding-left: 0;
+    text-align: center;
+  }
+}
+
+/* ---- Skip link --------------------------------------------------------------
+   nav_active_state.js adds it as the first element of the page. It hides
+   above the page, not to the left, which a right-to-left page could scroll to. */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 1rem;
+}
+.skip-link:focus {
+  top: 1rem;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  background: var(--card-bg);
+}
+
+/* ---- Muted text -------------------------------------------------------------
+   bootstrap's .text-muted and frappe's help text keep their own grays, which
+   fail AA contrast on the page and card grounds; both follow the theme token. */
+body .text-muted,
+body .text-extra-muted,
+body .help-box,
+body .grid-empty {
+  color: var(--text-muted) !important;
+}
+
 /* ---- Space before the footer ------------------------------------------------
    frappe's <main> has no bottom spacing, so the gap above the footer was
    whatever margin the page's last element happened to have: none on the
@@ -96,6 +212,15 @@
   color: var(--primary-color);
   text-decoration: none;
 }
+/* frappe's .container has no side padding from 576px to 991px, so the footer
+   touched the edge of the screen at 768px. Up to 992px, use the gutter that
+   frappe gives the page content (.page-content-wrapper .container). */
+@media (min-width: 576px) and (max-width: 992px) {
+  .web-footer > .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
 @media (max-width: 575.98px) {
   .web-footer .footer-top {
     grid-template-columns: 1fr;
@@ -120,6 +245,7 @@
 .theme-switch {
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   background: none;
   border: 0;
   cursor: pointer;
@@ -162,13 +288,12 @@
 [data-theme="dark"] h4,
 [data-theme="dark"] h5,
 [data-theme="dark"] h6,
+[data-theme="dark"] .series-sermon-link,
+[data-theme="dark"] .series-back,
 /* map controls keep Leaflet's own colors on their white boxes */
 [data-theme="dark"] a:not(.leaflet-container a),
 [data-theme="dark"] a:not(.leaflet-container a):hover {
   color: var(--heading-color);
-}
-[data-theme="dark"] .text-muted {
-  color: var(--text-muted) !important;
 }
 [data-theme="dark"] hr {
   border-top-color: var(--border-color);
@@ -254,6 +379,105 @@
 [data-theme="dark"] .sidebar-item a.active {
   color: var(--heading-color);
   background-color: var(--subtle-accent);
+}
+
+/* ---- Switches ---------------------------------------------------------------
+   bootstrap fills an "on" switch with frappe's compiled near-black, which
+   disappears on a dark page. Fill it with the theme's primary colour; in dark
+   mode that is light, so the knob takes the page colour. */
+.custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.custom-switch .custom-control-input:focus-visible ~ .custom-control-label::before {
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.45);
+}
+[data-theme="dark"] .custom-switch .custom-control-input:focus-visible ~ .custom-control-label::before {
+  box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.6);
+}
+[data-theme="dark"] .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+  background-color: var(--bg-color);
+}
+
+/* ---- Select arrows ----------------------------------------------------------
+   frappe takes the browser's arrow off every select.form-control and draws its
+   own only inside web form controls (.frappe-control), so the filters and
+   pickers on the www pages looked like plain text boxes. */
+.page_content select.form-control:not(.frappe-control select) {
+  padding-right: 1.75rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M3 4.5l3 3 3-3'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 0.75rem;
+}
+
+/* ---- Web forms --------------------------------------------------------------
+   Nothing is saved yet on a new form, and a prefilled field shows frappe's
+   "Not Saved" badge at once, so it reads only as a warning. */
+body[data-path$="/new"] #not-saved-badge {
+  display: none;
+}
+/* frappe styles a section description only in the desk, so on a web form it
+   showed at body size, larger than the field labels, and indented past them. */
+.web-form-wrapper .form-section-description {
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font-size: var(--text-sm, 13px);
+  color: var(--text-muted);
+}
+
+/* ---- Headings on a phone ----------------------------------------------------
+   frappe makes h1 to h4 smaller below 576px but leaves h5 at 1.25rem, so the
+   section headings of a portal page came out larger than its title. */
+@media (max-width: 575.98px) {
+  main h5,
+  main .h5 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+/* ---- Portal headings --------------------------------------------------------
+   A portal page title is an h1 and its sections h2 or h3, so a screen reader
+   can move through the page by headings. Each keeps the look of the heading it
+   was: .my-account-header that of an h3, .my-account-section that of an h4,
+   and bootstrap's .h5 and .h6 their own, without the top margin and letter
+   spacing that frappe and the theme give the larger headings. */
+h1.my-account-header,
+h2.my-account-section {
+  font-size: 1.2rem;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+h2.my-account-section {
+  font-size: 1.1rem;
+}
+@media (min-width: 576px) {
+  h1.my-account-header {
+    font-size: 1.4rem;
+    margin-top: 2.5rem;
+  }
+  h2.my-account-section {
+    font-size: 1.3rem;
+    margin-top: 2.5rem;
+  }
+}
+@media (min-width: 1200px) {
+  h1.my-account-header {
+    font-size: 1.9rem;
+    margin-top: 3.5rem;
+  }
+  h2.my-account-section {
+    font-size: 1.5rem;
+    margin-top: 3rem;
+  }
+}
+h2.h5,
+h3.h5,
+h2.h6 {
+  margin-top: 0;
+  letter-spacing: inherit;
 }
 
 /* ---- Account menu ---------------------------------------------------------
@@ -354,6 +578,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 #home .home-aside-title {
   font-size: 1.35rem;
   font-weight: 700;
+  line-height: inherit;
   color: var(--heading-color);
   letter-spacing: -0.02em;
   margin: 0.35rem 0 0.2rem;
@@ -471,6 +696,23 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   white-space: nowrap;
 }
 
+/* four stats wrap below this width, so two to a row, with a divider between
+   the rows instead of a stray one left of a stat that wrapped */
+@media (max-width: 767.98px) {
+  #home .home-stat {
+    flex-basis: 50%;
+  }
+  #home .home-stat + .home-stat {
+    border-left: 0;
+  }
+  #home .home-stat:nth-child(even) {
+    border-left: 1px solid var(--border-color);
+  }
+  #home .home-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--border-color);
+  }
+}
+
 @media (max-width: 900px) {
   #home .home-hero:has(.home-aside) {
     grid-template-columns: 1fr;
@@ -494,38 +736,70 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 .portal-home-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  align-items: start;
   gap: 1rem;
   margin-top: 1.5rem;
 }
-.portal-home-grid .card {
+.portal-home-section {
+  padding-bottom: 0.5rem;
+}
+.portal-home-section-title {
+  margin: 1rem 1.25rem 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.portal-home-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--border-radius-md, 8px);
   color: var(--heading-color);
   text-decoration: none;
 }
-.portal-home-grid .card:hover {
+.portal-home-link:hover,
+.portal-home-link:focus-visible {
+  background: var(--subtle-fg, rgba(0, 0, 0, 0.04));
+  color: var(--heading-color);
   text-decoration: none;
 }
-.portal-home-grid .card-body {
+.portal-link-icon {
+  flex-shrink: 0;
+  stroke: var(--primary-color);
+}
+.portal-link-text {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.portal-card-title {
   font-weight: 600;
+}
+.portal-link-description {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 .portal-card-arrow {
   color: var(--primary-color);
   transition: transform 0.15s ease;
 }
-.portal-home-grid .card:hover .portal-card-arrow {
+.portal-home-link:hover .portal-card-arrow {
   transform: translateX(3px);
 }
 
 /* ---- Portal sidebar ---------------------------------------------------------
    frappe's web sidebar, listing the Portal Settings menu on pages that set
    show_sidebar. frappe gives it a col-sm-2 column and hides it below the
-   desktop breakpoint, which left a phone with no way between portal pages.
-   Below that breakpoint it is a row of links that scrolls sideways; above
-   it, a fixed-width column. */
+   desktop breakpoint. Below that breakpoint it is a row of links that scrolls
+   sideways, the one portal menu on a phone (see "Phone menu"); above it, a
+   fixed-width column. */
 .web-sidebar .sidebar-item a:hover {
   /* frappe's hover is a compiled near-black, unreadable in dark mode */
   color: var(--heading-color);
@@ -545,10 +819,50 @@ body[frappe-session-status="logged-in"] .btn-login-area {
     max-width: none;
     min-width: 0;
   }
-  /* the page's own container sits inside the outer one; one gutter is enough */
-  .row > .main-column main.container {
-    padding-left: 0;
-    padding-right: 0;
+}
+/* The page's own container sits inside the outer one; one gutter is enough.
+   A web form also centres its page in 800px with gutters of its own: start it
+   at the left, as the www portal pages do, so the content does not jump
+   sideways between neighbouring menu items. */
+.row > .main-column main.container,
+.row[data-doctype="Web Form"] > .main-column .page_content {
+  padding-left: 0;
+  padding-right: 0;
+}
+.row[data-doctype="Web Form"] > .main-column .page_content {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+/* A web form list drops its card frame, like the www portal pages. Specific
+   enough to beat frappe's own rule. */
+.row[data-doctype="Web Form"] > .main-column .page_content .web-list-container {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.web-list-header .web-list-title,
+.web-list-header .web-list-title h1 {
+  white-space: normal;
+  overflow: visible;
+}
+/* web_form_lists.js adds the form's introduction and marks a list that cannot
+   delete, which has nothing to select */
+.web-list-introduction {
+  flex: 0 0 100%;
+  color: var(--text-muted);
+}
+.web-list-introduction p:last-child,
+.web-list-introduction blockquote:last-child {
+  margin-bottom: 0;
+}
+.web-list-without-delete .web-list-table tr > :first-child {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  /* the row number takes room a phone does not have */
+  .web-list-table tr > :nth-child(2) {
+    display: none;
   }
 }
 @media (max-width: 991.98px) {
@@ -589,6 +903,15 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   .sidebar-column .sidebar-item a {
     margin-top: 0;
     white-space: nowrap;
+  }
+}
+@media (max-width: 575.98px) {
+  /* frappe's container has a gutter only on a phone, where the stacked
+     columns' own gutters would only push the page further in */
+  .row > .sidebar-column,
+  .row > .main-column {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -632,9 +955,15 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 .series-sermon-list li { border-bottom: 1px solid var(--border-color); }
 .series-sermon-list li:last-child { border-bottom: none; }
+/* buttons that open and close a sermon in a series card, drawn as links */
 .series-sermon-link {
   display: block;
+  width: 100%;
   padding: 8px 6px;
+  border: 0;
+  background: none;
+  text-align: inherit;
+  letter-spacing: inherit;
   color: var(--primary-color);
   font-weight: 600;
   text-decoration: none;
@@ -649,6 +978,10 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 .series-back {
   display: inline-block;
   margin-bottom: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  letter-spacing: inherit;
   color: var(--primary-color);
   text-decoration: none;
 }
@@ -703,4 +1036,20 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   color: var(--text-muted);
   font-size: 0.8em;
   font-weight: 600;
+}
+
+/* ---- Reduced motion ---------------------------------------------------------
+   The Churchit theme lifts its buttons on hover and the portal card arrow
+   slides. The theme's rules are more specific, so these use !important. */
+@media (prefers-reduced-motion: reduce) {
+  .page_content .btn-primary,
+  #home .home-btn-ghost,
+  .portal-card-arrow {
+    transition: none !important;
+  }
+  .page_content .btn-primary:hover,
+  #home .home-btn-ghost:hover,
+  .portal-home-link:hover .portal-card-arrow {
+    transform: none !important;
+  }
 }

@@ -23,6 +23,10 @@ def assignment_people(doc) -> set[str]:
 
 def function_assignees(doc) -> set[str]:
 	"""Everyone assigned to the function, whose serving dates move with its date and church."""
+	if doc.get_doc_before_save() and not any(
+		doc.has_value_changed(field) for field in ("start_date", "church", "is_shared")
+	):
+		return set()
 	# church-scope: names the people to refresh and shows nobody anything
 	return set(frappe.get_all("Ministry Team Assignment", filters={"function": doc.name}, pluck="person"))
 

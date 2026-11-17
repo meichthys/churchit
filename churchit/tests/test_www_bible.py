@@ -73,6 +73,56 @@ class TestBiblePage(FrappeTestCase):
 		self.assertEqual(context.translation.name, self.free)
 		self.assertNotIn(self.imported, [translation.name for translation in context.translations])
 
+	def test_a_translation_that_failed_to_download_is_not_offered(self):
+		original = frappe.db.get_value("Bible Translation", self.free, "status")
+		frappe.db.set_value("Bible Translation", self.free, "status", "Failed")
+		self.addCleanup(frappe.db.set_value, "Bible Translation", self.free, "status", original)
+		other = make_translation(self, "_TBG", TEXT, free=True)
+		self.addCleanup(frappe.db.set_value, "Bible Translation", other, "status", "Ready")
+
+		context = self.context(translation=self.free)
+
+		self.assertNotIn(self.free, [translation.name for translation in context.translations])
+		self.assertEqual(context.translation.name, other)
+		self.assertIn(self.free, context.notice)
+
+	def test_a_translation_whose_text_cannot_open_gives_way_to_the_next(self):
+		original = scripture.get_books
+
+		def books(translation):
+			if translation == self.free:
+				frappe.throw("No text", frappe.PermissionError)
+			return original(translation)
+
+		make_translation(self, "_TBH", TEXT, free=True)
+		with patch.object(bible, "get_books", side_effect=books):
+			context = self.context(translation=self.free)
+
+		self.assertNotEqual(context.translation.name, self.free)
+		self.assertIn(self.free, context.notice)
+
+	def test_the_fallback_never_starts_a_download(self):
+		waiting = make_translation(self, "_TBN", TEXT, free=True)
+		frappe.db.set_value("Bible Translation", waiting, "status", "No Text")
+
+		with patch.object(bible, "get_books", side_effect=frappe.PermissionError) as get_books:
+			context = self.context(translation=self.free)
+
+		tried = [call.args[0] for call in get_books.call_args_list]
+		self.assertEqual(tried[0], self.free)
+		self.assertNotIn(waiting, tried)
+		self.assertEqual(context.translations, [])
+
+	def test_an_unknown_translation_opens_the_default_without_a_notice(self):
+		context = self.context(translation="Read this: call 555-0100")
+		self.assertEqual(context.translation.name, self.free)
+		self.assertIsNone(context.notice)
+
+	def test_the_read_button_always_shows(self):
+		html = self.serve(translation=self.free)
+		self.assertNotIn("<noscript>", html)
+		self.assertIn(">Read</button>", html)
+
 	def test_the_page_shows_the_chapter_and_its_pickers(self):
 		html = self.serve(translation=self.free, book="GEN", chapter="2")
 		self.assertIn("Thus the heavens were completed.", html)

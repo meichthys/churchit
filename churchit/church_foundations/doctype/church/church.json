@@ -268,10 +268,11 @@
    "label": "Church Verse"
   },
   {
-   "description": "A logo or photo for the bulletin, the directory and the website.",
+   "description": "Shown on the bulletin, the directory cover, the podcast feed and the Locations page. For the logo in the website menu bar, set Brand Image in Website Settings.",
    "fieldname": "image",
    "fieldtype": "Attach Image",
-   "label": "Image"
+   "label": "Image",
+   "show_description_on_click": 1
   }
  ],
  "grid_page_length": 50,
@@ -279,7 +280,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-11-14 20:32:39.570403",
+ "modified": "2026-11-15 12:32:29.671947",
  "modified_by": "Administrator",
  "module": "Church Foundations",
  "name": "Church",

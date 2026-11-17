@@ -1,72 +1,11 @@
-<!-- AI was used to generate this file -->
-{% block title %}{{ sermon_title }} - Presentation{% endblock %}
-
-{% block page_content %}
-<div id="sermon-presentation">
-	<!-- Cover Slide -->
-	<div class="sermon-slide sermon-slide--cover" data-slide="1" style="display: none;">
-		<div class="slide-body cover-body">
-			<h1 class="cover-title">{{ sermon_title }}</h1>
-			{% if prepared_by %}
-			<p class="cover-prepared-by">{{ prepared_by }}</p>
-			{% endif %}
-			<p class="cover-date">{{ frappe.utils.formatdate(frappe.utils.today(), "MMMM d, YYYY") }}</p>
-		</div>
-	</div>
-
-	{% if slides %}
-	{% for slide in slides %}
-	<div class="sermon-slide" data-slide="{{ loop.index + 1 }}" style="display: none;">
-		{% if slide.background_image %}
-		<img class="slide-background" src="{{ slide.background_image | e }}" alt="">
-		{% endif %}
-		{% if slide.title %}
-		<div class="slide-header">
-			<h1 class="slide-title">{{ slide.title }}</h1>
-		</div>
-		{% endif %}
-		{% if slide.content or slide["notes"] %}
-		<div class="slide-body">
-			{% if slide.content %}
-			<div class="slide-content">{{ slide.content }}</div>
-			{% endif %}
-			{% if slide["notes"] %}
-			<div class="slide-notes">{{ slide["notes"] }}</div>
-			{% endif %}
-		</div>
-		{% endif %}
-	</div>
-	{% endfor %}
-	{% else %}
-	<div class="sermon-slide sermon-slide--empty" data-slide="1" style="display: flex;">
-		<div class="slide-body">
-			<p>No slides in this sermon. Add slides to the Sermon document to begin.</p>
-		</div>
-	</div>
-	{% endif %}
-
-	<div class="slide-controls">
-		<button class="slide-nav-btn" id="prev-btn" title="Previous (Left Arrow)">&#8592;</button>
-		<span class="slide-counter">
-			<span id="current-slide">1</span> / <span id="total-slides">{{ (slides | length) + 1 }}</span>
-		</span>
-		<button class="slide-nav-btn" id="next-btn" title="Next (Right Arrow)">&#8594;</button>
-	</div>
-
-	<button class="slide-exit-btn" id="exit-btn" title="Exit (Escape)">&#10005;</button>
-</div>
-{% endblock %}
-
-{% block style %}
+<!doctype html>
+<html lang="{{ frappe.lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ _("{0}: Presentation").format(sermon_title) }}</title>
 <style>
-	/* Hide Frappe chrome */
-	.page-header, .web-footer, .navbar, .page-header-wrapper,
-	footer, .website-footer, .web-sidebar, .breadcrumb-container,
-	.page-content-wrapper > .container > .page-header { display: none !important; }
 	body { margin: 0; padding: 0; overflow: hidden; background: #1a1a2e; }
-	.page-content-wrapper, .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-	.main-section { padding: 0 !important; }
-	[data-page-container] { padding: 0 !important; }
 
 	#sermon-presentation {
 		width: 100vw;
@@ -253,10 +192,66 @@
 		color: #888;
 		font-size: 1.2rem;
 	}
-</style>
-{% endblock %}
 
-{% block script %}
+	@media (prefers-reduced-motion: reduce) {
+		.sermon-slide { animation: none; }
+	}
+</style>
+</head>
+<body>
+<div id="sermon-presentation">
+	<!-- Cover Slide -->
+	<div class="sermon-slide sermon-slide--cover" data-slide="1" style="display: none;">
+		<div class="slide-body cover-body">
+			<h1 class="cover-title">{{ sermon_title }}</h1>
+			{% if prepared_by %}
+			<p class="cover-prepared-by">{{ prepared_by }}</p>
+			{% endif %}
+			<p class="cover-date">{{ frappe.utils.formatdate(cover_date, "EEEE, MMMM d, yyyy") }}</p>
+		</div>
+	</div>
+
+	{% if slides %}
+	{% for slide in slides %}
+	<div class="sermon-slide" data-slide="{{ loop.index + 1 }}" style="display: none;">
+		{% if slide.background_image %}
+		<img class="slide-background" src="{{ slide.background_image | e }}" alt="">
+		{% endif %}
+		{% if slide.title %}
+		<div class="slide-header">
+			<h1 class="slide-title">{{ slide.title }}</h1>
+		</div>
+		{% endif %}
+		{% if slide.content or slide["notes"] %}
+		<div class="slide-body">
+			{% if slide.content %}
+			<div class="slide-content">{{ slide.content }}</div>
+			{% endif %}
+			{% if slide["notes"] %}
+			<div class="slide-notes">{{ slide["notes"] }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+	{% endfor %}
+	{% else %}
+	<div class="sermon-slide sermon-slide--empty" data-slide="1" style="display: flex;">
+		<div class="slide-body">
+			<p>{{ _("No slides in this sermon. Add slides to the Sermon document to begin.") }}</p>
+		</div>
+	</div>
+	{% endif %}
+
+	<div class="slide-controls">
+		<button class="slide-nav-btn" id="prev-btn" title="{{ _('Previous slide (Left Arrow)') }}" aria-label="{{ _('Previous slide') }}"><span aria-hidden="true">&#8592;</span></button>
+		<span class="slide-counter" aria-live="polite">
+			<span id="current-slide">1</span> / <span id="total-slides">{{ (slides | length) + 1 }}</span>
+		</span>
+		<button class="slide-nav-btn" id="next-btn" title="{{ _('Next slide (Right Arrow)') }}" aria-label="{{ _('Next slide') }}"><span aria-hidden="true">&#8594;</span></button>
+	</div>
+
+	<button class="slide-exit-btn" id="exit-btn" title="{{ _('Exit (Escape)') }}" aria-label="{{ _('Exit presentation') }}"><span aria-hidden="true">&#10005;</span></button>
+</div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 	const slides = document.querySelectorAll(".sermon-slide");
@@ -265,6 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	const prevBtn = document.getElementById("prev-btn");
 	const nextBtn = document.getElementById("next-btn");
 	const exitBtn = document.getElementById("exit-btn");
+	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 	let currentSlide = 1;
 
 	function showSlide(n) {
@@ -273,9 +269,11 @@ document.addEventListener("DOMContentLoaded", function () {
 		const target = document.querySelector('[data-slide="' + n + '"]');
 		if (target) {
 			target.style.display = "flex";
-			target.style.animation = "none";
-			target.offsetHeight; // trigger reflow
-			target.style.animation = "fadeIn 0.3s ease-in-out";
+			if (!reducedMotion.matches) {
+				target.style.animation = "none";
+				target.offsetHeight; // trigger reflow
+				target.style.animation = "fadeIn 0.3s ease-in-out";
+			}
 		}
 		currentSlide = n;
 		currentSlideEl.textContent = n;
@@ -303,4 +301,5 @@ document.addEventListener("DOMContentLoaded", function () {
 	showSlide(1);
 });
 </script>
-{% endblock %}
+</body>
+</html>

@@ -1,14 +1,14 @@
 import frappe
 from frappe import _
+from frappe.utils import getdate
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.contacts import primary_email_query, primary_phone_query
-from churchit.query import CurDate
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -45,6 +45,7 @@ def get_data(filters=None):
 		.select(
 			Position.position,
 			Position.parent.as_("person"),
+			Person.church,
 			Position.start_date,
 			Position.end_date,
 			primary_phone_query(Person).as_("primary_phone"),
@@ -57,9 +58,10 @@ def get_data(filters=None):
 	)
 
 	if only_active:
+		today = getdate()
 		query = query.where(
-			(Position.start_date.isnull() | (Position.start_date <= CurDate()))
-			& (Position.end_date.isnull() | (Position.end_date >= CurDate()))
+			(Position.start_date.isnull() | (Position.start_date <= today))
+			& (Position.end_date.isnull() | (Position.end_date >= today))
 		)
 
 	return scoped(query, Person, filters).run(as_dict=True)

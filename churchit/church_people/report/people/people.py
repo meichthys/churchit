@@ -5,12 +5,12 @@ from frappe.query_builder.functions import GroupConcat
 from frappe.utils import nowdate
 
 from churchit.church_people.membership import is_active_member
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -18,9 +18,10 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "full_name", "fieldtype": "Data", "label": _("Name"), "width": 200},
-		{"fieldname": "family_name", "fieldtype": "Data", "label": _("Family"), "width": 150},
-		{"fieldname": "roles", "fieldtype": "Data", "label": _("Roles"), "width": 250},
+		{"fieldname": "name", "fieldtype": "Link", "label": _("Name"), "options": "Person", "width": 200},
+		{"fieldname": "family", "fieldtype": "Link", "label": _("Family"), "options": "Family", "width": 150},
+		# The datatable right-aligns a column whose first value is empty.
+		{"fieldname": "roles", "fieldtype": "Data", "label": _("Roles"), "width": 250, "align": "left"},
 		{
 			"fieldname": "membership",
 			"fieldtype": "Link",
@@ -45,12 +46,11 @@ def get_data(filters=None):
 	today = nowdate()
 
 	Person = frappe.qb.DocType("Person")
-	Family = frappe.qb.DocType("Family")
 	Position = frappe.qb.DocType("Position")
 	PositionType = frappe.qb.DocType("Position Type")
 	LifeEvent = frappe.qb.DocType("Life Event")
 
-	roles = GroupConcat(PositionType.position).distinct().as_("roles")
+	roles = GroupConcat(PositionType.position).distinct().separator(", ").as_("roles")
 
 	is_baptized_subq = (
 		frappe.qb.from_(LifeEvent)
@@ -60,8 +60,6 @@ def get_data(filters=None):
 
 	query = (
 		frappe.qb.from_(Person)
-		.left_join(Family)
-		.on(Family.name == Person.family)
 		.left_join(Position)
 		.on(
 			(Position.parent == Person.name)
@@ -72,11 +70,10 @@ def get_data(filters=None):
 		.on(PositionType.name == Position.position)
 		.select(
 			Person.name,
-			Person.full_name,
+			Person.church,
 			Person.membership,
 			Person.membership_status,
 			Person.family,
-			Family.family_name,
 			Person.birth_date.as_("birthday"),
 			roles,
 			Person.name.isin(is_baptized_subq).as_("is_baptized"),

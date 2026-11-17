@@ -4,10 +4,16 @@
 import frappe
 
 from churchit.church_foundations.church_access import set_user_church
-from churchit.church_scope import refuse_another_churches_parent
+from churchit.church_scope import (
+	get_church_columns,
+	refuse_another_churches_parent,
+	root_church,
+	session_person,
+)
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
+	ensure_root_church,
 	ensure_user,
 	force_single_church,
 	make_person,
@@ -77,3 +83,74 @@ class TestRefuseAnotherChurchesParent(RollbackEachTest):
 	def test_a_single_church_site_passes(self):
 		force_single_church()
 		self.refuse(self.note(self.person_a.name))
+
+
+class TestCachedReads(RollbackEachTest):
+	"""Every website request asks for the root church and the session's Person several times."""
+
+	def test_the_session_person_is_read_once_until_a_person_changes(self):
+		user = ensure_user("_test_scope_cached_person@example.com", "Cached")
+		frappe.set_user(user)
+		self.assertIsNone(session_person())
+		with self.assertQueryCount(0):
+			self.assertIsNone(session_person())
+
+		frappe.set_user("Administrator")
+		person = make_person("_Test Scope", "Cached", user=user)
+		frappe.set_user(user)
+		self.assertEqual(session_person(), person.name)
+
+		frappe.db.set_value("Person", person.name, "user", None)
+		self.assertIsNone(session_person())
+
+	def test_the_root_church_is_read_once_until_a_church_changes(self):
+		root = ensure_root_church()
+		self.assertEqual(root_church(), root)
+		with self.assertQueryCount(0):
+			self.assertEqual(root_church(), root)
+
+		frappe.db.set_value("Church", root, "parent_church", "_Test Not A Church")
+		self.assertNotEqual(root_church(), root)
+
+
+class TestChurchColumn(RollbackEachTest):
+	"""A scoped report shows its Church column only when its rows can come from more than one church."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root, cls.church_a, cls.church_b = make_two_churches()
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def fieldnames(self, filters=None):
+		return [column["fieldname"] for column in get_church_columns(filters)]
+
+	def test_a_blank_church_filter_across_churches_adds_the_column(self):
+		self.assertEqual(self.fieldnames({}), ["church"])
+		self.assertEqual(self.fieldnames(None), ["church"])
+
+	def test_one_picked_church_leaves_the_column_out(self):
+		self.assertEqual(self.fieldnames({"church": self.church_a}), [])
+
+	def test_a_user_who_includes_the_branches_gets_the_column(self):
+		user = ensure_user("_test_church_column_all@example.com", "ColumnAll", ["Church Manager"])
+		set_user_church(user, self.root)
+		permission = frappe.get_doc("User Permission", {"user": user, "allow": "Church"})
+		permission.hide_descendants = 0
+		permission.save(ignore_permissions=True)
+		frappe.clear_cache(user=user)
+
+		frappe.set_user(user)
+		self.assertEqual(self.fieldnames({}), ["church"])
+
+	def test_a_user_of_one_church_gets_no_column(self):
+		user = ensure_user("_test_church_column_one@example.com", "ColumnOne", ["Church Manager"])
+		set_user_church(user, self.church_a)
+		frappe.clear_cache(user=user)
+
+		frappe.set_user(user)
+		self.assertEqual(self.fieldnames({}), [])
+
+	def test_a_single_church_site_gets_no_column(self):
+		force_single_church()
+		self.assertEqual(self.fieldnames({}), [])

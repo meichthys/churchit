@@ -172,10 +172,22 @@ function render_fields_selector(frm, cdt, cdn) {
 	});
 }
 
+// Records that read well on a projector; the picker leaves out care and finance records.
+const SLIDE_TYPES = [
+	"Belief",
+	"Function",
+	"Ministry",
+	"Missionary",
+	"Person",
+	"Sermon Series",
+	"Song",
+];
+
 frappe.ui.form.on("Sermon", {
 	onload(frm) {
-		// Filter slide_type to DocTypes in the church app
-		church.set_church_doctype_query(frm, "slide_type", "slides");
+		frm.set_query("slide_type", "slides", () => ({
+			filters: [["DocType", "name", "in", SLIDE_TYPES]],
+		}));
 	},
 
 	refresh(frm) {
@@ -192,6 +204,7 @@ frappe.ui.form.on("Sermon", {
 							.call({
 								method: "churchit.church_study.doctype.sermon_handout.sermon_handout.make_handout",
 								args: { sermon: frm.doc.name },
+								freeze: true,
 							})
 							.then((r) => frappe.set_route("Form", "Sermon Handout", r.message));
 					}

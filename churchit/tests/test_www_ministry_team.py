@@ -7,7 +7,7 @@ from datetime import UTC, datetime, time
 from zoneinfo import ZoneInfo
 
 import frappe
-from frappe.utils import add_days, get_system_timezone, getdate
+from frappe.utils import add_days, get_html_for_route, get_system_timezone, getdate
 
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_ministries.member_ministry_team import (
@@ -18,6 +18,7 @@ from churchit.church_ministries.member_ministry_team import (
 	make_own_calendar_key,
 	remove_own_block,
 )
+from churchit.church_website.pages import sync_page_switches
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -26,6 +27,7 @@ from churchit.tests.helpers import (
 	make_team_assignment,
 	make_team_position,
 	make_two_churches,
+	set_private_people,
 )
 from churchit.tests.test_ics import request_feed, unfold
 from churchit.www import ministry_team, ministry_team_response
@@ -123,6 +125,45 @@ class TestMinistryTeamPages(RollbackEachTest):
 		frappe.set_user("Administrator")
 		self.assertEqual(self.status(self.theirs), "Accepted")
 
+	def serve_response(self, assignment):
+		frappe.local.form_dict = frappe._dict(key=assignment.response_key)
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		return get_html_for_route("ministry-team-response")
+
+	def test_the_request_page_keeps_decline_apart_and_hides_the_ask_form_until_asked(self):
+		frappe.set_user("Guest")
+		html = self.serve_response(self.theirs)
+
+		# d-flex is display: flex !important, so the hidden attribute must sit on a plain wrapper.
+		self.assertIn('<div id="team-replacement-form" hidden>', html)
+		self.assertIn('<label for="team-reason">Reason for declining (optional)</label>', html)
+		accept, reason, decline = (
+			html.index(marker)
+			for marker in ('data-status="Accepted"', 'id="team-reason"', 'data-status="Declined"')
+		)
+		self.assertLess(accept, reason)
+		self.assertLess(reason, decline)
+		self.assertNotIn('href="/ministry-team"', html)
+
+	def test_the_request_page_links_to_all_requests_once_answered(self):
+		frappe.set_user("Guest")
+		answer_by_key(self.theirs.response_key, "Declined")
+
+		html = self.serve_response(self.theirs)
+
+		self.assertIn("You declined.", html)
+		self.assertIn('<a href="/ministry-team">See all your serving requests</a>', html)
+
+	def test_the_request_page_does_not_link_to_a_switched_off_ministry_team_page(self):
+		sync_page_switches()
+		features = frappe.get_single("Church Features")
+		features.get("website_pages", {"route": "ministry-team"})[0].enabled = 0
+		features.save()
+		frappe.set_user("Guest")
+		answer_by_key(self.theirs.response_key, "Declined")
+
+		self.assertNotIn('href="/ministry-team"', self.serve_response(self.theirs))
+
 	def test_a_wrong_key_answers_nothing(self):
 		frappe.set_user("Guest")
 		for key in ("", "not-a-key"):
@@ -216,6 +257,11 @@ class TestCalendarKeyPermission(RollbackEachTest):
 		super().setUpClass()
 		_root, branch_a, branch_b = make_two_churches()
 		cls.addClassCleanup(frappe.clear_cache)
+		# Branch B's manager must see the person, so the test shows that only the field is hidden.
+		cls.addClassCleanup(
+			set_private_people, frappe.db.get_single_value("Church Features", "private_people")
+		)
+		set_private_people(False)
 		cls.person = make_person("_Test Calendar Key", "Holder", church=branch_a).name
 		frappe.db.set_value("Person", cls.person, "team_calendar_key", "_test_calendar_key")
 		cls.managers = []

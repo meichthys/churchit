@@ -16,7 +16,7 @@ from churchit.church_people.doctype.family.family import primary_contacts
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED
 from churchit.church_people.membership import ACTIVE, is_active_member, living_people_filter
 from churchit.church_people.report.church_directory_report.booklet import impose_booklet
-from churchit.church_scope import church_filter, root_church, scoped
+from churchit.church_scope import church_filter, get_church_columns, root_church, scoped
 from churchit.contacts import primary_address_query, primary_email_query, primary_phone_query
 from churchit.query import Day, Month
 from churchit.scripture import get_printable_passage
@@ -29,10 +29,10 @@ ADDRESS_FIELDS = ("address_line1", "address_line2", "city", "state", "pincode")
 def execute(filters=None):
 	group_by_family = frappe.utils.cint((filters or {}).get("group_by_family", 1))
 	if group_by_family:
-		columns = get_columns()
+		columns = [*get_columns(), *get_church_columns(filters)]
 		data = get_data(filters)
 	else:
-		columns = get_individual_columns()
+		columns = [*get_individual_columns(), *get_church_columns(filters)]
 		data = get_individual_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -73,6 +73,7 @@ def get_individual_data(filters):
 		.select(
 			Person.name.as_("person"),
 			Person.family,
+			Person.church,
 			primary_phone_query(Person).as_("primary_phone"),
 			primary_email_query(Person).as_("email"),
 		)
@@ -98,6 +99,7 @@ def get_data(filters):
 			Family.name.as_("family_id"),
 			Family.family_name,
 			Family.primary_contact,
+			Family.church,
 			Coalesce(Address.city, "").as_("city"),
 			Coalesce(Address.state, "").as_("state"),
 		)
@@ -128,6 +130,7 @@ def get_data(filters):
 				"city": family.city,
 				"state": family.state,
 				"member_count": len(members),
+				"church": family.church,
 			}
 		)
 

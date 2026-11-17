@@ -16,7 +16,13 @@ from churchit.church_people.dashboard_chart_source.life_events import life_event
 from churchit.church_people.dashboard_chart_source.people_added import people_added
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
-from churchit.dashboard import bucket_label, count_weekly_attendance, time_buckets, total_of_saved_list
+from churchit.dashboard import (
+	bucket_label,
+	count_in_readers_churches,
+	count_weekly_attendance,
+	time_buckets,
+	total_of_saved_list,
+)
 from churchit.tests.helpers import ensure, ensure_user, make_function, make_person, make_primary_contact
 
 
@@ -40,6 +46,21 @@ class TestWeeklyAttendanceCard(FrappeTestCase):
 		result = count_weekly_attendance()
 		self.assertEqual(result["value"], before + 2)
 		self.assertEqual(result["route"], ["List", "Function"])
+
+
+class TestCountLeavesNobodyOutOfANotEqualFilter(FrappeTestCase):
+	"""A card counts a person with an empty field in "!=" and "not in" like the list does."""
+
+	def test_people_with_no_membership_are_not_equal_to_a_membership(self):
+		ensure("Membership Type", {"type": "Member"})
+		make_person("_Test Count Empty")
+		make_person("_Test Count Member", membership="Member")
+		for operator, value in (("!=", "Member"), ("not in", ["Member"])):
+			with self.subTest(operator=operator):
+				filters = [["Person", "membership", operator, value]]
+				listed = len(frappe.get_list("Person", filters=filters, pluck="name"))
+				self.assertEqual(count_in_readers_churches("Person", filters)["value"], listed)
+		self.assertGreaterEqual(listed, 1)
 
 
 class TestPeopleNumberCards(FrappeTestCase):

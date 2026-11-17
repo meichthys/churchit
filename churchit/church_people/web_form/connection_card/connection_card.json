@@ -19,7 +19,7 @@
  "list_columns": [],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-10-21 09:00:00.000000",
+ "modified": "2026-11-15 15:06:09.949155",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "connection-card",
@@ -31,6 +31,7 @@
  "show_sidebar": 0,
  "success_message": "Thank you for letting us know you were here. Someone from the church will be in touch soon.",
  "success_title": "Thank You",
+ "success_url": "/",
  "title": "Connection Card",
  "web_form_fields": [
   {

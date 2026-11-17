@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-10-31 13:20:35.000000",
+  "modified": "2026-11-15 05:40:15.425029",
   "modified_by": "Administrator",
   "module": "Church Operations",
   "name": "Church Task",
@@ -16,6 +16,24 @@
   "reference_doctype": "Church Task",
   "save_on_complete": 1,
   "steps": [
+    {
+      "description": "A short name for the task. It is required.",
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "has_next_condition": 1,
+      "hide_buttons": 0,
+      "is_table_field": 0,
+      "label": "Title",
+      "modal_trigger": 0,
+      "next_on_click": 0,
+      "next_step_condition": "eval: doc.title",
+      "offset_x": 0,
+      "offset_y": 0,
+      "popover_element": 0,
+      "position": "Bottom",
+      "title": "Title",
+      "ui_tour": 0
+    },
     {
       "description": "Tasks move from Open to Assigned, In Progress and Completed. The task list hides Completed tasks.<br><br><b>Set a Status to continue.</b>",
       "fieldname": "status",

@@ -10,6 +10,16 @@ from churchit.church_finances.doctype.church_budget.church_budget import (
 )
 from churchit.utils import set_report_link_titles
 
+AMOUNT_KEYS = (
+	"budgeted",
+	"expected_to_date",
+	"actual",
+	"pending",
+	"variance",
+	"comparison_budget",
+	"comparison_actual",
+)
+
 
 def execute(filters=None):
 	filters = filters or {}
@@ -20,7 +30,8 @@ def execute(filters=None):
 	else:
 		budget_name = get_current_budget(filters)
 	if not budget_name:
-		return get_columns(None), [], _("No budget found. Create a budget to track spending against it.")
+		message = _("No budget found. Create a budget to track spending against it.")
+		return get_columns(None), [], message, None
 
 	comparison = filters.get("comparison")
 	if comparison not in COMPARISON_WINDOWS:
@@ -30,7 +41,47 @@ def execute(filters=None):
 	columns = get_columns(comparison)
 	data = progress["rows"]
 	set_report_link_titles(columns, data)
-	return columns, data, get_message(budget_name, progress)
+	chart = get_chart(data)
+	if data:
+		data.append(get_total_row(data))
+	return columns, data, get_message(budget_name, progress), chart
+
+
+def get_total_row(rows):
+	"""Sum the amounts and work out each percentage from the sums."""
+	total = {"is_total_row": 1}
+	for key in AMOUNT_KEYS:
+		total[key] = sum(row[key] or 0 for row in rows)
+
+	total["pct"] = get_percent(total["actual"], total["budgeted"])
+	total["comparison_pct"] = get_percent(total["comparison_actual"], total["comparison_budget"])
+	return total
+
+
+def get_chart(rows):
+	"""Budgeted, expected and actual for each expense type. The total row stays out, so it does not dwarf the
+	lines."""
+	if not rows:
+		return None
+	return {
+		"data": {
+			"labels": [row["expense_type"] for row in rows],
+			"datasets": [
+				{"name": label, "values": [row[key] or 0 for row in rows]}
+				for key, label in (
+					("budgeted", _("Budgeted")),
+					("expected_to_date", _("Expected to Date")),
+					("actual", _("Actual")),
+				)
+			],
+		},
+		"type": "bar",
+		"fieldtype": "Currency",
+	}
+
+
+def get_percent(actual, budgeted):
+	return round(actual / budgeted * 100, 1) if budgeted else 0
 
 
 def get_columns(comparison):
@@ -40,19 +91,19 @@ def get_columns(comparison):
 			"fieldtype": "Link",
 			"options": "Expense Type",
 			"label": _("Expense Type"),
-			"width": 220,
+			"width": 180,
 		},
 		{"fieldname": "budgeted", "fieldtype": "Currency", "label": _("Budgeted"), "width": 120},
 		{
 			"fieldname": "expected_to_date",
 			"fieldtype": "Currency",
 			"label": _("Expected to Date"),
-			"width": 150,
+			"width": 130,
 		},
 		{"fieldname": "actual", "fieldtype": "Currency", "label": _("Actual"), "width": 120},
 		{"fieldname": "pending", "fieldtype": "Currency", "label": _("Pending"), "width": 110},
-		{"fieldname": "variance", "fieldtype": "Currency", "label": _("Budget Remaining"), "width": 150},
-		{"fieldname": "pct", "fieldtype": "Percent", "label": _("% Used"), "width": 90},
+		{"fieldname": "variance", "fieldtype": "Currency", "label": _("Budget Remaining"), "width": 130},
+		{"fieldname": "pct", "fieldtype": "Percent", "label": _("% Used"), "precision": 1, "width": 90},
 		{"fieldname": "status", "fieldtype": "Data", "label": _("Status"), "width": 130},
 	]
 	if not comparison:
@@ -77,6 +128,7 @@ def get_columns(comparison):
 			"fieldname": "comparison_pct",
 			"fieldtype": "Percent",
 			"label": _("% Used ({0})").format(label),
+			"precision": 1,
 			"width": 150,
 		},
 	]

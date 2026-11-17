@@ -10,7 +10,7 @@ from frappe.utils import getdate, sbool
 
 from churchit.church_foundations.doctype.church.church import ADDRESS_FIELDS, address_line
 from churchit.church_people.membership import living_people_filter
-from churchit.church_scope import is_multi_church
+from churchit.church_scope import allowed_churches, is_multi_church, is_people_directory_private
 from churchit.church_website.footer import map_url
 from churchit.contacts import ADDRESS_DOCTYPE, EMAIL_DOCTYPE, PHONE_DOCTYPE, get_primary_values
 
@@ -60,6 +60,7 @@ def get_directory() -> dict:
 	add_contacts(people, "Person")
 	add_contacts(families, "Family")
 	add_card_backs(people, groups)
+	churches = get_churches(people)
 	return {
 		"people": people,
 		"families": families,
@@ -68,8 +69,9 @@ def get_directory() -> dict:
 			"status": frappe.get_all("Member Status", pluck="name", order_by="name asc"),
 			"group": [[group.name, group.group_name or group.name] for group in groups],
 			"position": frappe.get_all("Position Type", pluck="name", order_by="name asc"),
-			"church": get_churches(),
+			"church": churches,
 		},
+		"own_churches": get_own_churches(churches),
 		"settings": get_settings(),
 	}
 
@@ -100,14 +102,28 @@ def get_families(names):
 	)
 
 
-def get_churches():
-	"""The churches a card can belong to, for the church filter; none on a single-church site."""
-	if not is_multi_church():
+def get_churches(people):
+	"""The churches of *people*'s cards, for the church filter; none on a single-church site.
+
+	A shared people directory shows other churches' people too, so their churches are offered with the reader's.
+	"""
+	names = {person.church for person in people if person.church}
+	if not is_multi_church() or not names:
 		return []
-	return [
-		[church.name, church.church_name]
-		for church in frappe.get_list("Church", fields=["name", "church_name"], order_by="lft asc")
-	]
+	# church-scope: only the churches of people the reader already sees
+	churches = frappe.get_all(
+		"Church", filters={"name": ("in", list(names))}, fields=["name", "church_name"], order_by="lft asc"
+	)
+	return [[church.name, church.church_name] for church in churches]
+
+
+def get_own_churches(churches):
+	"""The reader's own churches among *churches*, which the church filter starts on when the people
+	directory is shared; none for a reader of every church or with a private directory."""
+	allowed = allowed_churches()
+	if allowed is None or is_people_directory_private():
+		return []
+	return [name for name, _title in churches if name in allowed]
 
 
 def add_contacts(records, parenttype):

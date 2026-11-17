@@ -2,8 +2,9 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now_datetime
+from frappe.utils import getdate, now_datetime
 
 from churchit.church_communications.consent import latest_statuses
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
@@ -44,8 +45,10 @@ class ConnectionCard(Document):
 	def validate(self):
 		self.full_name = get_display_name(self.first_name, self.last_name)
 		self.keep_only_a_published_church()
-		if self.is_new() and self.card_photo:
-			frappe.get_doc(PHOTO, self.card_photo, for_update=True).check_can_import()
+		if self.is_new():
+			self.refuse_future_birth_dates()
+			if self.card_photo:
+				frappe.get_doc(PHOTO, self.card_photo, for_update=True).check_can_import()
 
 	def after_insert(self):
 		if self.card_photo:
@@ -67,6 +70,15 @@ class ConnectionCard(Document):
 		if not is_multi_church() or not frappe.db.get_value("Church", self.church, "publish"):
 			self.church = None
 
+	def refuse_future_birth_dates(self):
+		"""Refuse a household birth date in the future when the card is sent.
+
+		The Person that the job adds would refuse it later, where nobody sees the error.
+		"""
+		for row in self.household_members:
+			if row.birth_date and getdate(row.birth_date) > getdate():
+				frappe.throw(_("Row {0}: a birth date cannot be in the future.").format(row.idx))
+
 	def process(self):
 		"""Background job: link or add the card's person and start their follow-up, once.
 
@@ -82,8 +94,19 @@ class ConnectionCard(Document):
 		self.db_set({"person": person, "status": PROCESSED, "processed_on": now_datetime()})
 		self.record_consent(person)
 		# A trigger row with no value matches any card, so a card with no interests still starts those.
-		for interest in [row.interest for row in self.interests] or [None]:
-			start_cards(CONNECTION_CARD, person, self.church, value=interest, source=self)
+		interests = [row.interest for row in self.interests]
+		reason = self.describe_request(interests)
+		for interest in interests or [None]:
+			start_cards(CONNECTION_CARD, person, self.church, value=interest, source=self, reason=reason)
+
+	def describe_request(self, interests: list[str]) -> str | None:
+		"""The card's reason: every interest ticked and the guest's message, or None for neither."""
+		parts = []
+		if interests:
+			parts.append(_("Interests: {0}").format(", ".join(interests)))
+		if self.message:
+			parts.append(_("Message: {0}").format(self.message))
+		return "\n".join(parts) or None
 
 	def find_or_add_person(self) -> str:
 		"""The one person who strongly matches the card, else a new Visitor and their household.

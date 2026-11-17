@@ -46,6 +46,16 @@ class TestSermonHandout(FrappeTestCase):
 		self.assertEqual(handout.content, "<p>Point one: [love]</p>")
 		self.assertEqual(frappe.db.get_value("Sermon", sermon.name, "handout"), name)
 
+	def test_a_second_click_returns_the_handout_the_sermon_has(self):
+		sermon = frappe.get_doc(
+			{"doctype": "Sermon", "title": "_Test Twice Sermon", "notes": "<p>[grace]</p>"}
+		).insert(ignore_permissions=True)
+
+		first = make_handout(sermon.name)
+
+		self.assertEqual(make_handout(sermon.name), first)
+		self.assertEqual(frappe.db.count("Sermon Handout", {"title": "_Test Twice Sermon"}), 1)
+
 	def test_making_a_handout_takes_a_post(self):
 		"""Frappe checks the CSRF token only on a POST, and a GET from another site carries the session."""
 		sermon = frappe.get_doc(

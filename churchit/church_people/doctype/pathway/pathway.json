@@ -9,8 +9,8 @@
  "field_order": [
   "pathway_name",
   "church",
-  "column_break_pathway",
   "description",
+  "column_break_pathway",
   "section_break_steps",
   "steps"
  ],
@@ -56,7 +56,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-11-02 23:13:25.000000",
+ "modified": "2026-11-15 02:36:18.637797",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Pathway",
@@ -112,5 +112,6 @@
  "sort_field": "pathway_name",
  "sort_order": "ASC",
  "states": [],
+ "title_field": "pathway_name",
  "track_changes": 1
 }

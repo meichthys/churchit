@@ -20,18 +20,21 @@ from frappe.utils import (
 from frappe.utils.verified_command import verify_request
 from werkzeug.wrappers import Response
 
+from churchit.church_finances.doctype.giving_settings.giving_settings import get_currency
 from churchit.church_finances.payments import get_payment_url
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT
 from churchit.church_ministries.doctype.function_sign_up.function_sign_up import (
 	CONFIRMED,
+	WAITLISTED,
 	get_function_calendar,
 	is_in_sign_up_window,
 )
-from churchit.church_ministries.sign_up_amounts import get_function_rows, is_freely_given
+from churchit.church_ministries.sign_up_amounts import CODE, get_function_rows, is_freely_given
 from churchit.church_people.household import members
 from churchit.church_people.member_access import is_portal_member
-from churchit.church_scope import church_filters, session_person
+from churchit.church_scope import church_filters, session_church, session_person
+from churchit.contacts import get_primary_email
 from churchit.ics import calendar_response
 from churchit.questions import get_fields
 
@@ -42,7 +45,7 @@ CALENDAR_METHOD = "/api/method/churchit.www.register.get_event_calendar"
 
 
 def get_context(context):
-	"""The public Register page: the selected church's upcoming functions that take guest sign-ups."""
+	"""The Register page: the upcoming functions that take sign-ups from the visitor (`get_open_functions`)."""
 	context.no_cache = 1
 	context.title = _("Register")
 	context.functions = get_open_functions()
@@ -53,22 +56,32 @@ def get_context(context):
 	chosen = frappe.form_dict.get("function")
 	context.function = next((function for function in context.functions if function.name == chosen), None)
 	context.is_unknown_function = bool(chosen and not context.function)
+	if context.is_unknown_function and frappe.session.user == "Guest":
+		# A function for members only opens once the guest signs in, so the sign-in comes back here.
+		context.login_url = "/login?" + urlencode(
+			{"redirect-to": "/register?" + urlencode({"function": chosen})}
+		)
 	# A link-only function opens from its link but is not listed.
 	context.functions = [function for function in context.functions if not function.is_link_only]
+	if context.function:
+		context.registrant = get_registrant()
+		context.has_discount_code = has_discount_code(context.function.name)
 
 
 def get_open_functions(**filters) -> list[frappe._dict]:
-	"""The selected church's published functions from today on that take guest sign-ups now."""
+	"""The functions from today on that the visitor may sign up for now.
+
+	A signed-in member gets their own church's functions that take sign-ups, as the Function Sign-Up form
+	offers them (`is_open_for_sign_up`). Anyone else gets the selected church's published functions that take
+	guest sign-ups.
+	"""
+	if is_portal_member() and session_person():
+		church = session_church()
+	else:
+		church, filters = selected_church_name(), {**filters, "publish": 1, "allow_guest_sign_ups": 1}
 	functions = frappe.get_all(
 		"Function",
-		filters=church_filters(
-			selected_church_name(),
-			publish=1,
-			allow_sign_ups=1,
-			allow_guest_sign_ups=1,
-			start_date=(">=", today()),
-			**filters,
-		),
+		filters=church_filters(church, allow_sign_ups=1, start_date=(">=", today()), **filters),
 		fields=[
 			"name",
 			"function_name",
@@ -83,6 +96,26 @@ def get_open_functions(**filters) -> list[frappe._dict]:
 		order_by="start_date, start_time",
 	)
 	return [function for function in functions if is_in_sign_up_window(function)]
+
+
+def get_registrant() -> frappe._dict | None:
+	"""The signed-in member's name and email, which the form fills in and locks; None for anyone else."""
+	person = session_person() if is_portal_member() else None
+	if not person:
+		return None
+	email = get_primary_email("Person", person) or frappe.get_cached_value(
+		"User", frappe.session.user, "email"
+	)
+	return frappe._dict(full_name=frappe.db.get_value("Person", person, "full_name"), email=email)
+
+
+def has_discount_code(function: str) -> bool:
+	"""True when *function* has a Code discount that is still valid, so the form asks for a code."""
+	rows = get_function_rows("Function Sign-Up Discount", function, ["kind", "code", "valid_until"])
+	on_date = getdate(today())
+	return any(
+		row.kind == CODE and row.code and getdate(row.valid_until or on_date) >= on_date for row in rows
+	)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -210,7 +243,7 @@ def get_attendee_choices(function: str) -> dict:
 		fields=["selection", "price", "description"],
 		order_by="idx",
 	)
-	currency = frappe.get_cached_doc("Giving Settings").currency or "USD"  # the currency `pay` charges
+	currency = get_currency()  # the currency `pay` charges
 	for row in selections:
 		row.price = fmt_money(row.price, currency=currency) if flt(row.price) else ""
 	household = [{"person": person, "full_name": name} for person, name in get_household().items()]
@@ -277,13 +310,16 @@ def get_event_calendar(function: str) -> Response:
 
 
 def get_payment_link(sign_up: Document) -> dict:
-	"""Keys for the success view's "Pay now" link (`pay_url`), with the amount due and any discount."""
-	pay_url = sign_up.pay_url
-	if not pay_url:
+	"""Keys for the success view: the amount due and any discount, and the "Pay now" link (`pay_url`) while the
+	church takes the payment online. Nothing for a waitlisted sign-up or one with nothing to pay.
+	"""
+	if sign_up.status == WAITLISTED or not sign_up.amount_to_pay:
 		return {}
 
-	currency = frappe.get_cached_doc("Giving Settings").currency or "USD"
-	link = {"pay_url": pay_url, "amount_due": fmt_money(sign_up.amount_to_pay, currency=currency)}
+	currency = get_currency()
+	link = {"amount_due": fmt_money(sign_up.amount_to_pay, currency=currency)}
+	if pay_url := sign_up.pay_url:
+		link["pay_url"] = pay_url
 	if flt(sign_up.discount) > 0:
 		link["discount"] = fmt_money(sign_up.discount, currency=currency)
 	return link
@@ -310,7 +346,7 @@ def pay(sign_up: str, **signed_params) -> None:
 	frappe.local.response["location"] = get_payment_url(
 		doc,
 		doc.amount_to_pay,
-		frappe.get_cached_doc("Giving Settings").currency or "USD",
+		get_currency(),
 		doc.payment_church,
 		function_name,
 		_("Registration for {0}").format(function_name),

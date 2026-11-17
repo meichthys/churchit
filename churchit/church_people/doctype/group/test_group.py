@@ -93,6 +93,25 @@ class TestGroup(RollbackEachTest):
 		self.assertNotIn("_test_group_member@example.com", history)
 
 
+class TestGroupMemberAfterDeath(RollbackEachTest):
+	def test_a_person_who_died_joins_with_a_warning_and_a_living_person_without_one(self):
+		died = make_person("_Test Group", "Late", life_events=[{"event_type": "Death", "date": "2026-10-01"}])
+		living = make_person("_Test Group", "Living")
+		group = frappe.get_doc({"doctype": "Group", "group_name": "_Test Group After Death"})
+		group.append("members", {"person": living.name})
+		frappe.local.message_log = []
+		group.insert(ignore_permissions=True)
+		self.assertEqual(frappe.local.message_log, [])
+
+		group.append("members", {"person": died.name})
+		group.save(ignore_permissions=True)
+
+		warnings = " ".join(str(message.get("message")) for message in frappe.local.message_log)
+		self.assertIn("_Test Group Late", warnings)
+		self.assertIn("died on Thursday, October 1, 2026, before the date of this group membership", warnings)
+		self.assertEqual(len(group.reload().members), 2)
+
+
 class TestGroupLeaders(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):
@@ -139,7 +158,7 @@ class TestGroupEnrollment(RollbackEachTest):
 		group = frappe.get_doc(
 			{
 				"doctype": "Group",
-				"group_name": "_Test Enrollment",
+				"group_name": f"_Test Enrollment {frappe.generate_hash(length=6)}",
 				"status": "Active",
 				"public": 1,
 				"show_in_portal": 1,
@@ -168,3 +187,49 @@ class TestGroupEnrollment(RollbackEachTest):
 	def test_a_private_hidden_or_inactive_group_is_closed(self):
 		for values in ({"public": 0}, {"show_in_portal": 0}, {"status": "Inactive"}):
 			self.assertFalse(self.make_group(**values).is_enrollment_open, values)
+
+
+class TestGroupRules(RollbackEachTest):
+	def group(self, name="_Test Rules Group", **values):
+		return frappe.get_doc({"doctype": "Group", "group_name": name, **values})
+
+	def test_a_group_needs_a_name(self):
+		self.assertRaises(frappe.MandatoryError, self.group(name=None).insert)
+
+	def test_a_second_group_with_the_name_is_refused(self):
+		self.group().insert()
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			self.group().insert()
+
+		self.assertIn("There is already a group called", str(caught.exception))
+
+	def test_a_name_stored_twice_earlier_can_still_be_saved(self):
+		first = self.group().insert()
+		second = self.group("_Test Rules Other").insert()
+		frappe.db.set_value("Group", second.name, "group_name", first.group_name)
+
+		second = frappe.get_doc("Group", second.name)
+		second.description = "Changed"
+		second.save()
+
+		self.assertEqual(frappe.db.get_value("Group", second.name, "description"), "Changed")
+
+	def test_a_person_on_two_rows_is_refused(self):
+		person = make_person("_Test Rules", "Twice").name
+		group = self.group(members=[{"person": person}, {"person": person}])
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			group.insert()
+
+		self.assertIn("Row 2", str(caught.exception))
+
+	def test_the_name_patch_fills_a_group_saved_without_one(self):
+		from churchit.patches.v1_0.name_unnamed_groups import execute
+
+		group = self.group().insert()
+		frappe.db.set_value("Group", group.name, "group_name", None)
+
+		execute()
+
+		self.assertEqual(frappe.db.get_value("Group", group.name, "group_name"), group.name)

@@ -61,3 +61,21 @@ class TestAttendanceSummary(RollbackEachTest):
 		queued = queued_people(lambda: function.save(ignore_permissions=True))
 
 		self.assertEqual(queued, [sorted([self.person, other])])
+
+	def test_a_save_that_leaves_the_attendance_alone_queues_no_one(self):
+		function = make_function("_Test Unchanged Roster", start_date=today())
+		attend(function, self.person)
+		function.description = "Notes"
+
+		self.assertEqual(queued_people(lambda: function.save(ignore_permissions=True)), [])
+
+	def test_a_new_date_queues_everyone_on_the_function(self):
+		function = make_function("_Test Moved Roster", start_date=today())
+		attend(function, self.person)
+		other = make_person("_Test Stayer", "Summary").name
+		attend(function, other, "Confirmed")
+		function.start_date = add_days(today(), -1)
+
+		queued = queued_people(lambda: function.save(ignore_permissions=True))
+
+		self.assertEqual(queued, [sorted([self.person, other])])

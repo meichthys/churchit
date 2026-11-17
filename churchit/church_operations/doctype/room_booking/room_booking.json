@@ -37,7 +37,7 @@
  ],
  "fields": [
   {
-   "description": "Leave empty for a booking of equipment only.",
+   "description": "Required unless you only book equipment below.",
    "fieldname": "room",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -217,7 +217,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-11-03 01:33:46.000000",
+ "modified": "2026-11-15 02:36:44.707885",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Room Booking",

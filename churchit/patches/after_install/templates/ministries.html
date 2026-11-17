@@ -1,15 +1,14 @@
 <div class="row justify-content-center">
-{% set ministry_docs = frappe.get_list("Ministry", fields=["name"], filters=selected_church_filters(publish=1, status="Active"), ignore_permissions=True, order_by="ministry_name asc") %}
+{% set ministry_docs = frappe.get_list("Ministry", fields=["name", "ministry_name", "start_date", "description", "mission_statement"], filters=selected_church_filters(publish=1, status="Active"), ignore_permissions=True, order_by="ministry_name asc") %}
 {% if ministry_docs %}
-{% for doc in ministry_docs %}
-    {% set ministry = frappe.get_doc("Ministry", doc.name) %}
+{% for ministry in ministry_docs %}
     <div class="col-md-4 mb-4">
         <div class="card h-100">
             <div class="card-header">
                 <strong>{{ ministry.ministry_name }}</strong>
                 {% if ministry.start_date %}
                     <br>
-                    <small class="text-muted">Est. {{ frappe.utils.formatdate(ministry.start_date, "M/d/yyyy") }}</small>
+                    <small class="text-muted">Est. {{ frappe.utils.formatdate(ministry.start_date, "EEEE, MMMM d, yyyy") }}</small>
                 {% endif %}
             </div>
             <div class="card-body">

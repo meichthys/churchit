@@ -40,12 +40,14 @@
 <div id="find-a-group-map"></div>
 {% endif %}
 
+<p class="text-muted small" id="find-group-count" role="status"></p>
+
 <div class="row" data-is-guest="{{ 1 if is_guest else 0 }}" id="find-group-list">
 	{% for group in groups %}
 	<div class="col-md-6 mb-4 find-group" data-group="{{ group.name | e }}" data-type="{{ (group.group_type or '') | e }}" data-days="{{ group.days | join(' ') }}">
 		<div class="card h-100 find-group-card" id="group-{{ group.name | e }}">
 			<div class="card-body">
-				<h5 class="card-title mb-1">{{ group.group_name | e }}</h5>
+				<h2 class="card-title h5 mb-1">{{ group.group_name | e }}</h2>
 				{% if group.group_type %}<div class="small text-muted mb-2">{{ _(group.group_type) | e }}</div>{% endif %}
 				{% if group.description %}<p class="card-text">{{ group.description | e }}</p>{% endif %}
 				{% if group.when or group.city %}
@@ -58,7 +60,7 @@
 				{% elif group.join_state == "closed" %}
 				<span class="badge badge-secondary">{{ _("Closed") }}</span>
 				{% elif is_guest %}
-				<a class="btn btn-primary btn-sm" href="{{ group.login_link | e }}">{{ _("Join") }}</a>
+				<a class="btn btn-primary btn-sm" href="{{ group.login_link | e }}">{{ _("Sign in to join") }}</a>
 				{% else %}
 				<button type="button" class="btn btn-primary btn-sm find-group-join">{{ _("Ask to Join") if group.requires_approval else _("Join") }}</button>
 				{% endif %}
@@ -67,6 +69,9 @@
 	</div>
 	{% endfor %}
 </div>
+{% endif %}
+{% if is_guest and "connection-card" not in get_switched_off_pages() %}
+<p>{{ _("New here? {0}").format('<a href="/connection-card/new">' ~ _("Fill in a Connection Card") ~ '</a>') }}</p>
 {% endif %}
 {% endblock %}
 
@@ -87,7 +92,7 @@ frappe.ready(function () {
 		var tile = frappe.utils.map_defaults.tiles.default_tile;
 		L.tileLayer(tile.url, tile.options).addTo(map);
 		pins.forEach(function (pin) {
-			markers[pin.name] = L.marker(pin.pin)
+			markers[pin.name] = L.marker(pin.pin, { title: pin.group_name, alt: pin.group_name })
 				.bindPopup(
 					'<a href="#group-' + encodeURIComponent(pin.name) + '">' +
 						frappe.utils.escape_html(pin.group_name) + "</a>"
@@ -99,27 +104,47 @@ frappe.ready(function () {
 		else map.setView(points[0], 12);
 	}
 
+	var count = document.getElementById("find-group-count");
+	var words_none = {{ _("No groups match.") | tojson }};
+	var words_one = {{ _("1 group shown") | tojson }};
+	var words_many = {{ _("{0} groups shown") | tojson }};
+
 	function applyFilters() {
+		var visible = 0;
 		var type = (document.getElementById("find-group-type") || {}).value || "";
 		var day = (document.getElementById("find-group-day") || {}).value || "";
 		cards.forEach(function (card) {
 			var shown = (!type || card.dataset.type === type) &&
 				(!day || card.dataset.days.split(" ").indexOf(day) !== -1);
 			card.hidden = !shown;
+			if (shown) visible++;
 			var marker = markers[card.dataset.group];
 			if (marker && map) {
 				if (shown) marker.addTo(map);
 				else marker.remove();
 			}
 		});
+		count.textContent = !type && !day ? "" : visible === 0 ? words_none : visible === 1 ? words_one : words_many.replace("{0}", visible);
 	}
 	document.querySelectorAll(".find-group-filters select").forEach(function (select) {
 		select.addEventListener("change", applyFilters);
 	});
 
-	function markRequested(card) {
-		card.querySelector(".find-group-action").innerHTML =
-			'<span class="badge badge-info">{{ _("Requested") }}</span>';
+	function showBadge(card, style, text, keepFocus) {
+		var action = card.querySelector(".find-group-action");
+		var hadFocus = action.contains(document.activeElement);
+		action.innerHTML = '<span class="badge badge-' + style + '" tabindex="-1"></span>';
+		var badge = action.firstChild;
+		badge.textContent = text;
+		if (hadFocus || keepFocus) badge.focus();
+	}
+
+	function markRequested(card, keepFocus) {
+		showBadge(card, "info", {{ _("Requested") | tojson }}, keepFocus);
+	}
+
+	function markMember(card, keepFocus) {
+		showBadge(card, "success", {{ _("Member") | tojson }}, keepFocus);
 	}
 
 	// A guest signs in first and comes back with ?group= for the group they chose.
@@ -131,6 +156,17 @@ frappe.ready(function () {
 	});
 
 	if (list.dataset.isGuest === "1") return;
+	// The member's own groups and requests come from these calls, so the public page reads neither.
+	frappe.call({
+		method: "churchit.church_people.group_api.get_member_groups",
+		type: "GET",
+		callback: function (r) {
+			var mine = r.message || [];
+			cards.forEach(function (card) {
+				if (mine.indexOf(card.dataset.group) !== -1) markMember(card);
+			});
+		},
+	});
 	frappe.call({
 		method: "churchit.church_people.group_api.joinable_public_groups",
 		type: "GET",
@@ -152,12 +188,15 @@ frappe.ready(function () {
 			args: { group: card.dataset.group },
 			callback: function (r) {
 				if (r.message.requested) {
-					markRequested(card);
+					markRequested(card, true);
 					frappe.show_alert({ message: "{{ _('Request sent') }}", indicator: "blue" });
 					return;
 				}
-				card.querySelector(".find-group-action").innerHTML =
-					'<span class="badge badge-success">{{ _("Joined") }}</span>';
+				if (r.message.already_member) {
+					markMember(card, true);
+					return;
+				}
+				showBadge(card, "success", {{ _("Joined") | tojson }}, true);
 			},
 			error: function () {
 				button.disabled = false;

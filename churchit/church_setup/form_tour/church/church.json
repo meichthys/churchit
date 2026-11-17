@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:18:47.000000",
+ "modified": "2026-11-15 05:41:40.673496",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church",
@@ -16,6 +16,24 @@
  "reference_doctype": "Church",
  "save_on_complete": 0,
  "steps": [
+  {
+   "description": "The name of your church, as people know it. A new site is named 'My Church'. Change it to your own name. It shows on the website, in letters and in reports.",
+   "fieldname": "church_name",
+   "fieldtype": "Data",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Name",
+   "ui_tour": 0
+  },
   {
    "description": "A short abbreviation for the church name (e.g. \"GCC\" for Grace Community Church). Used as a compact identifier in reports and other places where space is limited.",
    "fieldname": "abbreviation",
@@ -34,7 +52,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The `Legal Name` is the official registered name of the church, if different from the common name. It is displayed in the header of each church card on the public `/locations` webpage and on the `/home` page.",
+   "description": "The legal name is the official registered name of the church, if different from the common name. It shows in the header of each church card on the public Locations page and on the home page.",
    "fieldname": "legal_name",
    "fieldtype": "Data",
    "has_next_condition": 0,
@@ -68,6 +86,24 @@
    "ui_tour": 0
   },
   {
+   "description": "A logo or photo of your church. It shows in the bulletin, the directory and on the website.",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "has_next_condition": 0,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Image",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Image",
+   "ui_tour": 0
+  },
+  {
    "description": "Link a physical address to this church.\nThe address may be used on the public website.",
    "fieldname": "address",
    "fieldtype": "Link",
@@ -85,7 +121,7 @@
    "ui_tour": 0
   },
   {
-   "description": "A short statement of the church's purpose or calling.\nIt appears under the welcome on the public `/home` page.",
+   "description": "A short statement of the church's purpose or calling.\nIt appears under the welcome on the public home page.",
    "fieldname": "mission_statement",
    "fieldtype": "Small Text",
    "has_next_condition": 0,
@@ -102,7 +138,7 @@
    "ui_tour": 0
   },
   {
-   "description": "A description of the church, shown in the About section of the public `/home` page.",
+   "description": "A description of the church, shown in the About section of the public home page and on the About Us page. Write your own text here.",
    "fieldname": "about",
    "fieldtype": "Text Editor",
    "has_next_condition": 0,

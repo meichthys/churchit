@@ -14,7 +14,10 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	FunctionSignUp,
 	release_expired_holds,
 )
-from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import make_sign_up
+from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import (
+	make_sign_up,
+	take_payments_online,
+)
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_function, make_person
 
 SIGN_UP = "Function Sign-Up"
@@ -80,6 +83,7 @@ class TestSignUpWaitlist(RollbackEachTest):
 		self.assertEqual(status_of(pair), CONFIRMED)
 
 	def test_a_promoted_party_with_an_amount_due_gets_a_hold(self):
+		take_payments_online(self)
 		function = self.make_function(capacity=1, selections=[{"selection": "Adult", "price": 15}])
 		first = make_sign_up(
 			function.name, self.people[0], attendees=[{"person": self.people[0], "selection": "Adult"}]
@@ -112,6 +116,7 @@ class TestSignUpWaitlist(RollbackEachTest):
 		self.assertEqual(status_of(waiting), CONFIRMED)
 
 	def test_an_expired_hold_is_released_by_the_cron(self):
+		take_payments_online(self)
 		function = self.make_function(capacity=1, selections=[{"selection": "Adult", "price": 15}])
 		held = make_sign_up(
 			function.name, self.people[0], attendees=[{"person": self.people[0], "selection": "Adult"}]

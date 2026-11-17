@@ -6,13 +6,13 @@ from datetime import timedelta
 import frappe
 from frappe import _
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -67,6 +67,7 @@ def get_data(filters):
 
 def new_row(source):
 	return frappe._dict(
+		church=source.church,
 		start_date=source.start_date,
 		start_time=source.start_time or timedelta(),
 		function=source.function,
@@ -103,7 +104,7 @@ def run_for_functions(query, table, function_field, filters):
 		.on(function_field == Function.name)
 		.join(Position)
 		.on(table.position == Position.name)
-		.select(Function.start_date, Function.start_time)
+		.select(Function.start_date, Function.start_time, Function.church)
 	)
 	if filters.function:
 		query = query.where(Function.name == filters.function)

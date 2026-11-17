@@ -11,8 +11,8 @@
  "enabled": 0,
  "event": "Value Change",
  "is_standard": 1,
- "message": "<p>Dear {{ doc.first_name }},</p>\n\n<p>Welcome to our church family! We are thrilled to have you as a member of our congregation and look forward to walking with you in faith.</p>\n\n<p>Our pastor or one of our deacons will reach out to you shortly. In the meantime, please don't hesitate to contact us with any questions or needs.</p>\n\n<p><em>\"So then you are no longer strangers and aliens, but you are fellow citizens with the saints and members of the household of God.\"</em> (Ephesians 2:19)</p>\n\n<p>In Christ,<br>{{ church_name(doc) or \"The Pastoral Team\" }}</p>",
- "modified": "2026-10-18 12:00:00.000000",
+ "message": "<p>Dear {{ doc.first_name }},</p>\n\n<p>Welcome to our church family! We are thrilled to have you as a member of our congregation and look forward to walking with you in faith.</p>\n\n<p>Our pastor or one of our deacons will reach out to you shortly. In the meantime, please don't hesitate to contact us with any questions or needs.</p>\n\n<p>Sign in to our <a href=\"{{ frappe.utils.get_url(\"/portal\") }}\">Member Portal</a> to sign up for events, share prayer requests, and stay connected with your church family. If you have no login yet, ask the church office to invite you.</p>\n\n<p><em>\"So then you are no longer strangers and aliens, but you are fellow citizens with the saints and members of the household of God.\"</em> (Ephesians 2:19)</p>\n\n<p>In Christ,<br>{{ church_name(doc) or \"The Pastoral Team\" }}</p>",
+ "modified": "2026-11-15 15:12:19.941066",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "New Member Welcome",
@@ -20,9 +20,6 @@
  "recipients": [
   {
    "receiver_by_document_field": "notification_address,emails"
-  },
-  {
-   "receiver_by_role": "Church Manager"
   }
  ],
  "send_system_notification": 1,

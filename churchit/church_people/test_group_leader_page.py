@@ -175,6 +175,52 @@ class TestGroupLeaderPage(GroupLeaderTestCase):
 		self.assertRegex(html, rf'value="present" data-person="{self.sharer.name}"\s+checked>')
 		self.assertIn("message-form", html)
 
+	def leader_page(self, can_send_email=False, can_send_texts=False):
+		frappe.set_user(self.leader_user)
+		set_request(method="GET", path="group-leader")
+		self.addCleanup(setattr, frappe.local, "request", None)
+		with (
+			mock.patch("churchit.www.group_leader.can_send_email", return_value=can_send_email),
+			mock.patch("churchit.www.group_leader.can_send_texts", return_value=can_send_texts),
+		):
+			return get_response("group-leader").get_data(as_text=True)
+
+	def test_a_group_with_no_meetings_says_who_adds_them(self):
+		self.assertIn("Ask the church office to add the group's meeting time.", self.leader_page())
+
+	def test_a_group_with_only_a_meeting_ahead_gets_its_date_not_the_office(self):
+		upcoming = self.meeting(10)
+
+		html = self.leader_page()
+
+		next_date = frappe.format(upcoming.start_date, {"fieldtype": "Date"})
+		self.assertIn(
+			f"The group had no meetings in the last 8 weeks. The next meeting is on {next_date}.", html
+		)
+		self.assertNotIn("add the group's meeting time", html)
+
+	def test_a_group_whose_schedule_has_made_no_meeting_yet_is_not_sent_to_the_office(self):
+		self.meeting(100, auto_repeat=1, repeat_frequency="Weekly", repeat_day_of_week="Tuesday")
+
+		html = self.leader_page()
+
+		self.assertIn("The group had no meetings in the last 8 weeks.", html)
+		self.assertNotIn("The next meeting is on", html)
+		self.assertNotIn("add the group's meeting time", html)
+
+	def test_the_message_form_offers_only_the_ways_the_site_can_send(self):
+		html = self.leader_page()
+		self.assertNotIn('<form class="message-form"', html)
+		self.assertIn("This site cannot send email yet. Ask the church office.", html)
+
+		html = self.leader_page(can_send_texts=True)
+		self.assertIn('<form class="message-form"', html)
+		self.assertNotIn('<option value="Email">', html)
+
+		html = self.leader_page(can_send_email=True)
+		self.assertIn('<form class="message-form"', html)
+		self.assertNotIn('name="channel"', html)
+
 	def test_get_group_meetings_refuses_a_leader_of_another_group(self):
 		frappe.set_user(self.other_leader_user)
 		with self.assertRaises(frappe.PermissionError):

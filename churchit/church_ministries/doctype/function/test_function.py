@@ -3,15 +3,18 @@
 
 import json
 from datetime import date, time, timedelta
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, get_datetime, getdate
 
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_ministries.attendance import record
 from churchit.church_ministries.doctype.function.function import (
 	_as_time,
 	apply_template,
+	create_occurrences,
 	get_calendar_events,
 	move_on_calendar,
 )
@@ -33,7 +36,7 @@ class TestFunction(FrappeTestCase):
 
 	def test_title_includes_start_date(self):
 		function = make_function("_Test Titled", start_date="2031-05-01")
-		self.assertEqual(function.title, "_Test Titled: 2031-05-01")
+		self.assertEqual(function.title, "_Test Titled, Thursday, May 1, 2031")
 
 	def test_attendance_total_counts_only_present_types(self):
 		function = make_function("_Test Counted", start_date=getdate())
@@ -44,6 +47,13 @@ class TestFunction(FrappeTestCase):
 			)
 		function.save(ignore_permissions=True)
 		self.assertEqual(function.attendance_total, 3)
+
+	def test_a_templates_people_are_a_roster_that_does_not_count(self):
+		template = make_function("_Test Roster Template", start_date=getdate(), auto_repeat=1)
+		template.append("attendance", {"person": self.person, "attendance_type": "Confirmed"})
+		template.save(ignore_permissions=True)
+
+		self.assertEqual(template.attendance_total, 0)
 
 	def test_apply_template_copies_whitelisted_fields_and_tables(self):
 		ministry = ensure("Ministry", {"ministry_name": "_Test Template Ministry"})
@@ -66,6 +76,53 @@ class TestFunction(FrappeTestCase):
 		# Only the whitelisted fields travel: dates, publish state and name do not.
 		for field in ("function_name", "start_date", "publish", "name"):
 			self.assertNotIn(field, copied)
+
+	def test_apply_template_copies_sign_up_settings_and_moves_the_window(self):
+		template = make_function(
+			"_Test Sign-Up Template",
+			start_date="2031-05-04",
+			allow_sign_ups=1,
+			capacity=20,
+			reminder_days=2,
+			streamed=1,
+			sign_ups_open_on="2031-04-27 08:00:00",
+			sign_ups_close_on="2031-05-03 18:00:00",
+		)
+		cookies = ensure("Sign-Up Item", {"item": "_Test Cookies"})
+		template.append("table_cxhh", {"item": cookies, "quantity_needed": 3})
+		template.append("discounts", {"kind": "Early Bird", "percent": 10, "valid_until": "2031-04-27"})
+		template.append("discounts", {"kind": "Group", "percent": 5, "min_attendees": 4})
+		template.save(ignore_permissions=True)
+
+		copied = apply_template(template.name, "2031-05-11")
+
+		for field, value in (("allow_sign_ups", 1), ("capacity", 20), ("reminder_days", 2), ("streamed", 1)):
+			self.assertEqual(copied[field], value)
+		self.assertEqual(get_datetime(copied["sign_ups_open_on"]), get_datetime("2031-05-04 08:00:00"))
+		self.assertEqual(get_datetime(copied["sign_ups_close_on"]), get_datetime("2031-05-10 18:00:00"))
+		self.assertEqual([row["item"] for row in copied["table_cxhh"]], [cookies])
+		# An early bird keeps its week before the start date; a discount with no end keeps none.
+		self.assertEqual([row["valid_until"] for row in copied["discounts"]], [getdate("2031-05-04"), None])
+
+	def test_turning_on_repeat_queues_the_first_occurrences_and_the_job_makes_them(self):
+		start = getdate()
+		with patch("frappe.enqueue") as enqueue:
+			template = make_function(
+				"_Test First Occurrences",
+				start_date=start,
+				auto_repeat=1,
+				repeat_frequency="Weekly",
+				repeat_day_of_week=start.strftime("%A"),
+				repeat_horizon_weeks=3,
+			)
+		self.assertEqual(enqueue.call_args.kwargs["template"], template.name)
+
+		create_occurrences(template.name)
+		create_occurrences(template.name)
+
+		made = frappe.get_all("Function", filters={"source_template": template.name}, pluck="start_date")
+		# The template's own date, then the three weeks ahead.
+		self.assertEqual(sorted(made), [start + timedelta(weeks=week) for week in range(4)])
 
 	def test_apply_template_moves_the_schedule_to_the_new_start_date(self):
 		template = make_function("_Test Retreat Plan", start_date="2031-05-02", end_date="2031-05-04")
@@ -198,6 +255,163 @@ class TestFunctionMeetingLink(RollbackEachTest):
 		function.reload()
 		function.description = "Now with notes"
 		function.save(ignore_permissions=True)
+
+
+class TestFunctionPairs(RollbackEachTest):
+	"""An end before its start, or a minimum above its maximum, is refused when the save changes it."""
+
+	def test_each_backward_pair_is_refused_with_its_own_message(self):
+		cases = {
+			"The End Date cannot be before the Start Date.": {"end_date": "2031-04-29"},
+			"The End Time cannot be before the Start Time on the same day.": {
+				"start_time": "19:00:00",
+				"end_time": "08:00:00",
+			},
+			"Sign-Ups Close On cannot be before Sign-Ups Open On.": {
+				"allow_sign_ups": 1,
+				"sign_ups_open_on": "2031-04-20 09:00:00",
+				"sign_ups_close_on": "2031-04-16 09:00:00",
+			},
+			"Repeat Until cannot be before the Start Date.": {"auto_repeat": 1, "repeat_until": "2031-04-01"},
+			"The Minimum Age cannot be above the Maximum Age.": {"min_age": 18, "max_age": 5},
+			"The Minimum Grade cannot be above the Maximum Grade.": {
+				"min_grade": "Grade 5",
+				"max_grade": "Kindergarten",
+			},
+		}
+		for message, values in cases.items():
+			with self.subTest(message), self.assertRaisesRegex(frappe.ValidationError, message):
+				make_function("_Test Backward", start_date="2031-05-01", **values)
+
+	def test_pairs_in_order_and_open_limits_save(self):
+		function = make_function(
+			"_Test Forward",
+			start_date="2031-05-01",
+			end_date="2031-05-02",
+			start_time="19:00:00",
+			end_time="08:00:00",
+			min_age=18,
+			max_age=0,
+			min_grade="Grade 5",
+			max_grade="",
+		)
+		self.assertEqual(function.end_time, "08:00:00")
+
+	def test_a_stored_backward_pair_does_not_stop_attendance_or_an_unrelated_save(self):
+		function = make_function("_Test Stored Backward", start_date="2031-05-01")
+		frappe.db.set_value(
+			"Function", function.name, {"end_date": "2031-04-29", "min_age": 18, "max_age": 5}
+		)
+		person = make_person("_Test Backward Attendee").name
+
+		self.assertTrue(record(person, function.name, "Checked-In"))
+		function.reload()
+		function.description = "Notes"
+		function.save(ignore_permissions=True)
+
+		function.max_age = 4
+		with self.assertRaisesRegex(frappe.ValidationError, "Minimum Age"):
+			function.save(ignore_permissions=True)
+
+
+class TestFunctionRepeatedAttendee(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		self.person = make_person("_Test Twice", "Attendee").name
+		self.function = make_function("_Test Repeated Attendee")
+		self.function.append("attendance", {"person": self.person, "attendance_type": "Confirmed"})
+		self.function.save(ignore_permissions=True)
+
+	def test_a_second_row_for_one_person_is_refused(self):
+		self.function.append("attendance", {"person": self.person, "attendance_type": "Checked-In"})
+		with self.assertRaisesRegex(
+			frappe.ValidationError, "Row 2: <strong>_Test Twice Attendee</strong> is already in row 1."
+		):
+			self.function.save(ignore_permissions=True)
+
+	def store_repeat(self, attendance_type):
+		"""A second row of the person, as a save before the rule could store it."""
+		repeat = frappe.get_doc(
+			{
+				"doctype": "Function Attendance",
+				"parent": self.function.name,
+				"parenttype": "Function",
+				"parentfield": "attendance",
+				"idx": 2,
+				"person": self.person,
+				"attendance_type": attendance_type,
+			}
+		)
+		repeat.set_new_name()
+		repeat.db_insert()
+
+	def test_a_stored_repeat_does_not_stop_a_check_in(self):
+		self.store_repeat("Confirmed")
+		newcomer = make_person("_Test Newcomer", "Attendee").name
+
+		self.assertTrue(record(newcomer, self.function.name, "Checked-In"))
+		self.assertTrue(record(self.person, self.function.name, "Checked-In"))
+
+	def test_an_occurrence_of_a_template_with_a_stored_repeat_keeps_the_first_row(self):
+		self.store_repeat("Assumed")
+		self.function.reload()
+
+		occurrence = create_occurrence(self.function, getdate("2031-05-08"))
+
+		self.assertEqual(
+			[(row.person, row.attendance_type) for row in occurrence.attendance], [(self.person, "Confirmed")]
+		)
+
+
+class TestFunctionAttendanceAfterDeath(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		self.person = make_person(
+			"_Test Late", "Attendee", life_events=[{"event_type": "Death", "date": "2026-10-01"}]
+		).name
+		frappe.local.message_log = []
+
+	def warnings(self) -> str:
+		return " ".join(str(message.get("message")) for message in frappe.local.message_log)
+
+	def test_attendance_after_a_death_saves_with_a_warning(self):
+		function = make_function("_Test After Death", start_date="2026-11-15")
+		function.append("attendance", {"person": self.person, "attendance_type": "Confirmed"})
+		function.save(ignore_permissions=True)
+
+		self.assertEqual([row.person for row in function.reload().attendance], [self.person])
+		self.assertIn(
+			"died on Thursday, October 1, 2026, before the date of this attendance", self.warnings()
+		)
+
+	def test_attendance_on_or_before_the_death_gives_no_warning(self):
+		for start_date in ("2026-09-27", "2026-10-01"):
+			function = make_function("_Test Before Death", start_date=start_date)
+			function.append("attendance", {"person": self.person, "attendance_type": "Confirmed"})
+			function.save(ignore_permissions=True)
+
+		self.assertEqual(self.warnings(), "")
+
+	def test_a_stored_row_is_not_warned_about_again(self):
+		function = make_function("_Test Stored After Death", start_date="2026-11-15")
+		function.append("attendance", {"person": self.person, "attendance_type": "Confirmed"})
+		function.save(ignore_permissions=True)
+		frappe.local.message_log = []
+
+		function.reload().save(ignore_permissions=True)
+
+		self.assertEqual(self.warnings(), "")
+
+	def test_a_templates_copy_leaves_off_a_person_who_died(self):
+		living = make_person("_Test Living", "Regular").name
+		template = make_function("_Test Roster With A Death", auto_repeat=1)
+		for person in (living, self.person):
+			template.append("attendance", {"person": person, "attendance_type": "Assumed"})
+		template.save(ignore_permissions=True)
+
+		occurrence = create_occurrence(template, getdate("2031-05-08"))
+
+		self.assertEqual([row.person for row in occurrence.attendance], [living])
 
 
 class TestFunctionCalendar(RollbackEachTest):

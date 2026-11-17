@@ -254,7 +254,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-10-31 13:24:54.000000",
+ "modified": "2026-11-17 00:23:04.101173",
  "modified_by": "Administrator",
  "module": "Church Communications",
  "name": "Bulletin",
@@ -293,6 +293,15 @@
    "report": 1,
    "role": "Church Staff",
    "select": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Church People Editor",
+   "select": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

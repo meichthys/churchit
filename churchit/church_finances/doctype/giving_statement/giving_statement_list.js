@@ -43,11 +43,49 @@ frappe.listview_settings["Giving Statement"] = {
 						freeze: true,
 						freeze_message: __("Building statements..."),
 						callback: (r) => {
-							const { created = 0, updated = 0 } = r.message || {};
+							const {
+								created = 0,
+								updated = 0,
+								removed = 0,
+								emailed_uncovered = 0,
+							} = r.message || {};
+							const lines = [];
+							if (!created && !updated) {
+								lines.push(
+									__(
+										"No gifts with a named giver to a tax-deductible fund between {0} and {1}. Check the dates, or the Tax Deductible box on the funds.",
+										[
+											frappe.datetime.str_to_user(values.from_date),
+											frappe.datetime.str_to_user(values.to_date),
+										]
+									)
+								);
+							} else {
+								lines.push(__("{0} created, {1} rebuilt.", [created, updated]));
+							}
+							if (removed) {
+								lines.push(
+									__(
+										"{0} statements that no giver needs any more were deleted.",
+										[removed]
+									)
+								);
+							}
+							if (emailed_uncovered) {
+								lines.push(
+									__(
+										"{0} statements that no giver needs any more stay, because they were emailed.",
+										[emailed_uncovered]
+									)
+								);
+							}
 							frappe.msgprint({
-								title: __("Statements Ready"),
-								indicator: "green",
-								message: __("{0} created, {1} rebuilt.", [created, updated]),
+								title:
+									created || updated
+										? __("Statements Ready")
+										: __("No Statements Made"),
+								indicator: created || updated ? "green" : "orange",
+								message: lines.join("<br>"),
 							});
 							listview.refresh();
 						},
@@ -74,12 +112,17 @@ frappe.listview_settings["Giving Statement"] = {
 						args: values,
 						freeze: true,
 						callback: (r) => {
+							const {
+								queued = 0,
+								no_email = 0,
+								already_emailed = 0,
+							} = r.message || {};
 							frappe.msgprint({
-								title: __("Emails Queued"),
-								indicator: "green",
+								title: queued ? __("Emails Queued") : __("Nothing to Email"),
+								indicator: queued ? "green" : "orange",
 								message: __(
-									"{0} statements are queued. A statement with no email address is skipped, and so is one already emailed unless you chose to send again.",
-									[r.message || 0]
+									"{0} will be emailed, {1} have no email address, {2} were already emailed.",
+									[queued, no_email, already_emailed]
 								),
 							});
 						},

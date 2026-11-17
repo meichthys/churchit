@@ -2,7 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import threading
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -13,9 +13,12 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	CONFIRMED,
 	HOLD_HOURS,
 	PENDING,
+	UNPAID,
 	WAITLISTED,
+	FunctionSignUp,
 	get_function_item_totals,
 	get_item_status,
+	release_expired_holds,
 )
 from churchit.patches.v1_0 import add_sign_up_attendees
 from churchit.tests.helpers import RollbackEachTest, ensure, make_function, make_person
@@ -31,6 +34,13 @@ def make_sign_up(function, person=None, attendees=(), items=(), **values):
 	for item, quantity in items:
 		sign_up.append("table_iprj", {"item": item, "my_quantity": quantity})
 	return sign_up.insert(ignore_permissions=True)
+
+
+def take_payments_online(test):
+	"""Give every payment church a gateway for the rest of *test*, so an amount due waits in a payment hold."""
+	online = patch.object(FunctionSignUp, "has_online_payment", new_callable=PropertyMock, return_value=True)
+	online.start()
+	test.addCleanup(online.stop)
 
 
 def function_attendance(function):
@@ -161,6 +171,7 @@ class TestSignUpSeats(RollbackEachTest):
 		self.assertEqual(get_function_item_totals(function.name)[self.dish]["quantity_signed_up"], 1)
 
 	def test_an_amount_due_holds_the_seats_until_the_hold_expires(self):
+		take_payments_online(self)
 		function = self.make_function(capacity=1, selections=[{"selection": "Adult", "price": 20}])
 		adult = {"selection": "Adult"}
 		held = make_sign_up(function.name, self.people[0], attendees=[{**adult, "person": self.people[0]}])
@@ -274,7 +285,27 @@ class TestSignUpSeats(RollbackEachTest):
 		sign_up.cancel_registration()
 		self.assertEqual(sign_up.status, CANCELLED)
 
+	def test_without_online_payment_an_amount_due_confirms_the_seats_and_no_hold_cancels_them(self):
+		function = self.make_function(selections=[{"selection": "Adult", "price": 20}])
+		adult = {"selection": "Adult"}
+		offline = patch.object(
+			FunctionSignUp, "has_online_payment", new_callable=PropertyMock, return_value=False
+		)
+		with offline:
+			sign_up = make_sign_up(
+				function.name, self.people[0], attendees=[{**adult, "person": self.people[0]}]
+			)
+
+		self.assertEqual(
+			(sign_up.status, sign_up.hold_expires_on, sign_up.payment_status, sign_up.amount_to_pay),
+			(CONFIRMED, None, UNPAID, 20),
+		)
+		release_expired_holds()
+		self.assertEqual(frappe.db.get_value(SIGN_UP, sign_up.name, "status"), CONFIRMED)
+		self.assertEqual(function_attendance(function.name), {self.people[0]: "Signed-Up"})
+
 	def test_a_held_sign_up_that_grows_keeps_its_hold(self):
+		take_payments_online(self)
 		function = self.make_function(selections=[{"selection": "Adult", "price": 20}])
 		adult = {"selection": "Adult"}
 		held = make_sign_up(function.name, self.people[0], attendees=[{**adult, "person": self.people[0]}])

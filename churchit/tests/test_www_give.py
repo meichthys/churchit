@@ -40,11 +40,15 @@ class TestGivePage(FrappeTestCase):
 		self.gateway = make_gateway("_Test Gateway")
 		self.other_gateway = make_gateway("_Test Other Gateway")
 		self.fund = frappe.get_doc(
-			{"doctype": "Fund", "fund": "_Test Giving Fund", "allow_giving": 1}
+			{
+				"doctype": "Fund",
+				"fund": f"_Test Giving Fund {frappe.generate_hash(length=6)}",
+				"allow_giving": 1,
+			}
 		).insert(ignore_permissions=True)
-		self.closed_fund = frappe.get_doc({"doctype": "Fund", "fund": "_Test Closed Fund"}).insert(
-			ignore_permissions=True
-		)
+		self.closed_fund = frappe.get_doc(
+			{"doctype": "Fund", "fund": f"_Test Closed Fund {frappe.generate_hash(length=6)}"}
+		).insert(ignore_permissions=True)
 		self._configure(enabled=1, allow_anonymous=1, gateways=[self.gateway, self.other_gateway])
 		frappe.local.form_dict = frappe._dict()
 
@@ -73,6 +77,20 @@ class TestGivePage(FrappeTestCase):
 		self.assertNotIn(self.closed_fund.name, [f.name for f in context.funds])
 		self.assertEqual([g["name"] for g in context.gateways], [self.gateway, self.other_gateway])
 		self.assertEqual(context.default_gateway, self.gateway)
+
+	def test_the_page_uses_the_site_currency_when_giving_settings_has_none(self):
+		self._configure(gateways=[self.gateway], currency="")
+		get_default = frappe.db.get_default
+
+		with patch.object(
+			frappe.db,
+			"get_default",
+			lambda key, *args: "EUR" if key == "currency" else get_default(key, *args),
+		):
+			self.assertEqual(self._context().currency, "EUR")
+
+		self._configure(gateways=[self.gateway], currency="GBP")
+		self.assertEqual(self._context().currency, "GBP")
 
 	def test_context_prefills_donor_details_from_the_linked_person(self):
 		user = ensure_user("_test_giver@example.com", "_Test Giver")
@@ -410,6 +428,17 @@ class TestGiveLinksAndOtherWays(RollbackEachTest):
 		self.assertIn("_Test Branch B bank details", branch_b)
 		self.assertNotIn("_Test the site's bank details", branch_b)
 		self.assertIn("_Test the site's bank details", self.serve_for(self.branch_a))
+
+	def test_with_giving_off_the_other_ways_come_first_and_the_note_links_the_office(self):
+		frappe.db.set_single_value("Giving Settings", "enabled", 0)
+
+		page = self.serve_for(self.branch_b)
+
+		self.assertLess(
+			page.index("_Test Branch B bank details"), page.index("Online giving is not available.")
+		)
+		self.assertIn('class="alert-link" href="/contact"', page)
+		self.assertNotIn("check back later", page)
 
 	def test_a_signed_in_member_sees_their_envelope_number_and_a_guest_sees_none(self):
 		user = ensure_user("_test_envelope_giver@example.com", "_Test Envelope")

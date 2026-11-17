@@ -113,7 +113,12 @@ class TestVisibilityPatch(FrappeTestCase):
 		request_type = ensure("Prayer Request Type", {"type": "Health"})
 		ticked, plain = (
 			frappe.get_doc(
-				{"doctype": "Prayer Request", "title": f"_Test Patch {title}", "type": request_type}
+				{
+					"doctype": "Prayer Request",
+					"title": f"_Test Patch {title}",
+					"type": request_type,
+					"visibility": "Whole Church",
+				}
 			).insert(ignore_permissions=True)
 			for title in ("Ticked", "Plain")
 		)
@@ -127,7 +132,9 @@ class TestVisibilityPatch(FrappeTestCase):
 		)
 
 	def test_before_model_sync_the_patch_adds_visibility_itself(self):
-		ticked, _plain = self.ticked_and_plain()
+		ticked, plain = self.ticked_and_plain()
+		# A column added now takes the doctype default, Private, but an unticked request was on show.
+		frappe.db.set_value("Prayer Request", plain.name, "visibility", "Private")
 		has_column = frappe.db.has_column
 
 		with (
@@ -142,6 +149,7 @@ class TestVisibilityPatch(FrappeTestCase):
 
 		reload_doc.assert_called_once_with("church_prayers", "doctype", "prayer_request", force=True)
 		self.assertEqual(frappe.db.get_value("Prayer Request", ticked.name, "visibility"), "Private")
+		self.assertEqual(frappe.db.get_value("Prayer Request", plain.name, "visibility"), "Whole Church")
 
 	def test_a_ticked_request_becomes_private_once(self):
 		ticked, plain = self.ticked_and_plain()

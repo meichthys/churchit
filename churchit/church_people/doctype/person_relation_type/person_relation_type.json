@@ -3,7 +3,7 @@
  "allow_import": 1,
  "autoname": "field:type",
  "creation": "2025-08-25 21:30:15.393857",
- "description": "The type of relationship between two `Person`s",
+ "description": "The kind of relationship between two people.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
@@ -37,7 +37,7 @@
    "table_fieldname": "relationships"
   }
  ],
- "modified": "2026-10-31 13:11:23.000000",
+ "modified": "2026-11-15 05:42:25.578489",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person Relation Type",

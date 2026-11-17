@@ -4,6 +4,11 @@
 import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_days, getdate, now, today
+
+from churchit.church_finances.doctype.alms_request.alms_request import create_expense
+from churchit.church_finances.doctype.fund.fund import add_transaction, format_amount
+from churchit.tests.helpers import RollbackEachTest, make_person
 
 
 def _ensure(doctype, filters, values):
@@ -49,6 +54,22 @@ class TestExpense(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
+	def test_an_amount_of_zero_or_less_is_refused(self):
+		for amount in (0, -500):
+			with self.assertRaisesRegex(ValidationError, "Enter the amount paid", msg=amount):
+				self._make_expense(amount=amount)
+		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), 0)
+
+	def test_a_typed_date_far_ahead_warns_but_saves(self):
+		expense = self._make_expense()
+		expense.flags.ignore_permissions = False
+		expense.date = f"{add_days(today(), 400)} 10:00:00"
+		frappe.local.message_log = []
+		expense.save()
+
+		messages = [message["message"] for message in frappe.get_message_log()]
+		self.assertTrue(any("more than 30 days after today" in message for message in messages), messages)
+
 	def test_validate_sets_associated_fund_from_type(self):
 		expense = self._make_expense()
 		self.assertEqual(expense.associated_fund, self.fund)
@@ -56,6 +77,20 @@ class TestExpense(FrappeTestCase):
 	def test_submit_reduces_fund_balance(self):
 		self._make_expense(amount=100).submit()
 		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), -100)
+
+	def test_paid_on_and_the_payment_reference_can_be_filled_in_after_submit(self):
+		expense = self._make_expense(amount=100).submit()
+
+		expense.db_set({"paid_on": "2032-01-15", "payment_reference": "Check 1042"})
+		expense.reload()
+		expense.paid_on = "2032-01-16"
+		expense.save(ignore_permissions=True)
+
+		self.assertEqual(
+			frappe.db.get_value("Expense", expense.name, ["paid_on", "payment_reference"]),
+			(getdate("2032-01-16"), "Check 1042"),
+		)
+		self.assertEqual(frappe.db.get_value("Expense", expense.name, "docstatus"), 1)
 
 	def test_cancel_restores_fund_balance(self):
 		expense = self._make_expense(amount=100)
@@ -94,6 +129,34 @@ class TestExpense(FrappeTestCase):
 			frappe.db.set_value("Expense Type", self.expense_type, "fund", self.fund)
 			frappe.delete_doc("Fund", later_fund.name, ignore_permissions=True, force=True)
 
+	def test_saving_a_draft_warns_of_the_balance_it_would_leave(self):
+		frappe.local.message_log = []
+		self._make_expense(amount=100)
+
+		[warning] = frappe.get_message_log()
+		self.assertEqual(warning["indicator"], "orange")
+		self.assertIn("Submitting this expense", warning["message"])
+		self.assertIn(format_amount(-100), warning["message"])
+
+	def test_the_approver_sees_the_negative_balance_on_submit(self):
+		expense = self._make_expense(amount=100)
+		frappe.local.message_log = []
+		expense.submit()
+
+		alert, warning = frappe.get_message_log()
+		self.assertTrue(alert["alert"])
+		self.assertIn(format_amount(100), alert["message"])
+		self.assertNotIn("$", alert["message"].replace(format_amount(100), ""))
+		self.assertEqual(warning["indicator"], "orange")
+		self.assertIn(format_amount(-100), warning["message"])
+
+	def test_an_expense_the_fund_can_pay_gives_no_warning(self):
+		add_transaction(self.fund, 500, "Collection", "_TEST-GIFT", now())
+		frappe.local.message_log = []
+		self._make_expense(amount=100).submit()
+
+		self.assertEqual([message.get("indicator") for message in frappe.get_message_log()], ["green"])
+
 	def test_submitted_expense_cannot_be_deleted(self):
 		expense = self._make_expense()
 		expense.submit()
@@ -113,3 +176,60 @@ class TestExpense(FrappeTestCase):
 		expense.cancel()
 		expense.delete()  # should not raise
 		self.assertFalse(frappe.db.exists("Expense", expense.name))
+
+
+class TestAlmsExpenseCancel(RollbackEachTest):
+	"""Cancelling the expense that paid an alms request lets the request get a corrected expense."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# Expense Type inserts commit, so the type is made before any test's savepoint.
+		fund = _ensure("Fund", {"fund": "_Test Expense Fund"}, {"fund": "_Test Expense Fund"})
+		cls.expense_type = _ensure(
+			"Expense Type", {"type": "_Test Expense Type"}, {"type": "_Test Expense Type", "fund": fund}
+		)
+
+	def setUp(self):
+		super().setUp()
+		person = make_person("_Test Alms", "Payee").name
+		self.alms = frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": person,
+				"requestor": person,
+				"description": "Rent",
+				"status": "Approved",
+				"amount": 100,
+				"expense_type": self.expense_type,
+			}
+		).insert(ignore_permissions=True)
+
+	def request(self):
+		return frappe.db.get_value("Alms Request", self.alms.name, ["associated_expense", "status"])
+
+	def test_cancelling_the_expense_approves_the_request_again(self):
+		expense = frappe.get_doc("Expense", create_expense(self.alms.name))
+		self.assertEqual(self.request(), (expense.name, "Distributed"))
+
+		expense.cancel()
+		self.assertEqual(self.request(), (expense.name, "Approved"))
+
+		corrected = create_expense(self.alms.name)
+		self.assertEqual(self.request(), (corrected, "Distributed"))
+
+	def test_the_amended_expense_takes_over_the_request_so_it_is_paid_once(self):
+		"""Frappe offers Amend after a cancel: the amended copy pays the request, not a second Create Expense."""
+		expense = frappe.get_doc("Expense", create_expense(self.alms.name))
+		expense.cancel()
+
+		amended = frappe.copy_doc(expense)
+		amended.update({"docstatus": 0, "amended_from": expense.name, "amount": 90})
+		amended.insert()
+		self.assertEqual(self.request(), (expense.name, "Approved"))
+		amended.submit()
+
+		self.assertEqual(self.request(), (amended.name, "Distributed"))
+		with self.assertRaises(ValidationError):
+			create_expense(self.alms.name)

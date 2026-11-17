@@ -54,7 +54,7 @@ frappe.query_reports["Church Directory Report"] = {
 				if (!r.message) return;
 				if (!report._$preview) {
 					report._$preview = $(
-						'<iframe style="width:100%;height:80vh;border:none;display:block;"></iframe>'
+						'<iframe style="display:block;height:80vh;margin:var(--margin-md) var(--padding-md);width:calc(100% - 2 * var(--padding-md));border:1px solid var(--border-color);border-radius:var(--border-radius-md);"></iframe>'
 					).insertAfter($(".report-wrapper"));
 					report._$booklet_note = $(
 						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>'
@@ -67,6 +67,15 @@ frappe.query_reports["Church Directory Report"] = {
 						.insertBefore(report._$preview);
 				}
 				report._$booklet_note.toggle(Boolean(args.booklet_printing));
+				report._$preview.one("load", function () {
+					// The cover is 100vh of the frame: pin it to 80vh of the window before the frame grows.
+					const cover = this.contentDocument.querySelector(".cover");
+					if (cover) cover.style.minHeight = 0.8 * window.innerHeight + "px";
+					// The root's own height, as scrollHeight never goes below the frame; plus the frame's border.
+					const border = this.offsetHeight - this.clientHeight;
+					this.style.height =
+						this.contentDocument.documentElement.offsetHeight + border + "px";
+				});
 				report._$preview[0].srcdoc = r.message;
 			},
 		});
@@ -227,6 +236,9 @@ frappe.query_reports["Church Directory Report"] = {
 	],
 
 	onload: function (report) {
+		// The breadcrumbs read page_title again when they are rebuilt.
+		report.page_title = __("Church Directory");
+		report.page.set_title(report.page_title);
 		frappe.query_reports["Church Directory Report"]._report = report;
 		frappe.query_reports["Church Directory Report"]._group_options(report);
 

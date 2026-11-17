@@ -258,7 +258,7 @@ class TestChecks(WritingTestCase):
 		free = make_translation(self, "_TWF", verse, free=True)
 		imported = make_translation(self, "_TWI", verse)
 		frappe.set_user(MANAGER)
-		for translation, expected in ((free, "16 For God so loved _Test Writing."), (imported, None)):
+		for translation, expected in ((free, "For God so loved _Test Writing."), (imported, None)):
 			frappe.db.set_value("Church", self.church, "default_bible_translation", translation)
 			passage = writing.check_text({"text": "See John 3:16."})["references"][0]
 			self.assertEqual(passage["text"], expected)

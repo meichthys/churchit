@@ -11,14 +11,15 @@ import frappe
 from frappe import _
 from frappe.website.utils import get_portal_sidebar_items
 
-from churchit.church_foundations.doctype.church.church import get_church
-from churchit.church_scope import is_multi_church
+from churchit.church_foundations.doctype.church.church import get_church, selected_church_name
+from churchit.church_scope import is_multi_church, session_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
 from churchit.church_website.pages import (
 	get_hidden_pages,
 	get_members_only_routes,
 	get_switched_off_pages,
+	is_file_route,
 	is_link_off,
 )
 from churchit.www.podcast import get_feed_url
@@ -26,16 +27,26 @@ from churchit.www.podcast import get_feed_url
 PORTAL_URL = "/portal"
 # The pages that draw a Leaflet map.
 MAP_PAGES = ("missions", "find-a-group", "calendar")
+# Member pages that list the member's own church, whichever church the navbar brand shows.
+MEMBER_PAGES = ("directory", "bulletins", "community-prayer-requests")
 THEME_MODE_SCRIPT = (
 	"<script>" + (Path(__file__).parents[1] / "public/js/theme_mode.js").read_text() + "</script>"
 )
 
 
 def update_website_context(context):
+	path = context.get("path")
+	if is_file_route(path):
+		# A file such as /sw.js has no menu, head or footer; the sitemap still drops hidden links.
+		if path == "sitemap.xml":
+			_hide_closed_links(context)
+		return
+
 	_add_portal_menu_item(context)
 	_set_portal_sidebar(context)
 	_set_brand_html(context)
 	_add_locations_menu(context)
+	_add_member_church_to_title(context)
 	context["footer_church"] = get_footer_church()
 	_add_pwa_head_tags(context)
 	_add_theme_mode_script(context)
@@ -50,9 +61,11 @@ def before_request():
 	Frappe caches a rendered page by path alone. A member's pages show their
 	own church, and their menu links the members-only pages, so serving them the
 	cached guest copy (or caching theirs for guests) would show the wrong church
-	or links. An API call reads no page cache, so it skips the check.
+	or links. An API call reads no page cache, and a file such as /sw.js is the same for every
+	visitor or keeps itself out of the cache, so both skip the check.
 	"""
-	if frappe.session.user == "Guest" or frappe.request.path.startswith("/api/"):
+	path = frappe.request.path
+	if frappe.session.user == "Guest" or path.startswith("/api/") or is_file_route(path):
 		return
 	if is_multi_church() or get_members_only_routes():
 		frappe.local.no_cache = 1
@@ -72,22 +85,31 @@ def _add_portal_menu_item(context):
 	if not isinstance(menu, list) or any(item.get("url") == PORTAL_URL for item in menu):
 		return
 
-	menu.insert(0, {"label": _("Portal"), "url": PORTAL_URL})
+	menu.insert(0, {"label": _("Member Portal"), "url": PORTAL_URL})
 
 
 def _set_portal_sidebar(context):
-	"""Fill a shown sidebar with the member portal menu and make its links absolute.
+	"""Fill a shown sidebar with the member portal menu, led by the portal home, and make its links absolute.
 
 	Frappe already falls back to the Portal Settings menu for www pages, but a
 	web form fills its sidebar from a Website Sidebar record alone, so the
 	portal's forms showed My Account and nothing else. Frappe also renders a
 	route as typed, and "bible" seen from /prayer-request/new is
-	/prayer-request/bible.
+	/prayer-request/bible. A page with its own Website Sidebar keeps that menu as it is.
 	"""
 	if not context.get("show_sidebar"):
 		return
-	items = context.get("sidebar_items") or get_portal_sidebar_items()
-	context["sidebar_items"] = [_with_absolute_route(item) for item in items]
+	items = [
+		_with_absolute_route(item) for item in context.get("sidebar_items") or get_portal_sidebar_items()
+	]
+	own_sidebar = context.get("website_sidebar") or (context.get("web_form_doc") or {}).get("website_sidebar")
+	if (
+		not own_sidebar
+		and frappe.session.user != "Guest"
+		and all(item.get("route") != PORTAL_URL for item in items)
+	):
+		items.insert(0, frappe._dict(title=_("Member Portal"), route=PORTAL_URL))
+	context["sidebar_items"] = items
 
 
 def _with_absolute_route(item):
@@ -103,9 +125,10 @@ def _set_brand_html(context):
 	Website Settings.brand_html is the field the navbar actually checks first;
 	leaving it blank lets this fill in the current church name on every request
 	instead of freezing a copy that would drift once the church is renamed. A
-	church that has set its own brand_html (a logo, say) keeps it untouched.
+	church that has set its own brand_html, or a logo in Banner Image, keeps it:
+	the navbar shows Banner Image only while brand_html is empty.
 	"""
-	if context.get("brand_html"):
+	if context.get("brand_html") or context.get("banner_image"):
 		return
 
 	church = get_church()
@@ -114,7 +137,12 @@ def _set_brand_html(context):
 
 
 def _add_locations_menu(context):
-	"""A Locations dropdown of the published churches, once there is more than one."""
+	"""A Locations dropdown of the published churches, once there is more than one, beside Home.
+
+	The dropdown marks the church the page shows. The body class lets website.css take Home off a
+	narrower bar, where both do not fit on one row. The menu rows are Website Settings' cached rows,
+	so this builds a new list.
+	"""
 	if not is_multi_church():
 		return
 	churches = frappe.get_all(
@@ -123,13 +151,38 @@ def _add_locations_menu(context):
 	if len(churches) < 2:
 		return
 	path = frappe.local.request.path if getattr(frappe.local, "request", None) else "/"
+	selected = selected_church_name()
 	items = [
-		frappe._dict(label=church.church_name, url=f"{path}?church={church.name}") for church in churches
+		frappe._dict(
+			label=_("{0} (selected)").format(church.church_name)
+			if church.name == selected
+			else church.church_name,
+			url=f"{path}?church={church.name}",
+		)
+		for church in churches
 	]
 	items.append(frappe._dict(label=_("All locations"), url="/locations"))
-	context.setdefault("top_bar_items", []).append(
-		frappe._dict(label=_("Locations"), right=1, child_items=items)
-	)
+	context["top_bar_items"] = [
+		*(context.get("top_bar_items") or []),
+		frappe._dict(label=_("Locations"), right=1, child_items=items),
+	]
+	context["body_class"] = f"{context.get('body_class') or ''} has-locations-menu".strip()
+
+
+def _add_member_church_to_title(context):
+	"""Name the member's own church in a member page's title on a multi-church site.
+
+	The brand follows the ?church= selection, but these pages list the member's own church, so the
+	title says whose list it is.
+	"""
+	# A web form's context has no path yet when this runs, and its list is at <route>/list.
+	route = (getattr(frappe.local, "path", None) or "").split("/")[0]
+	if not (is_multi_church() and context.get("title") and route in MEMBER_PAGES):
+		return
+	church = session_church()
+	if church:
+		church_name = frappe.db.get_value("Church", church, "church_name")
+		context["title"] = _("{0}: {1}").format(context["title"], church_name)
 
 
 def _add_pwa_head_tags(context):

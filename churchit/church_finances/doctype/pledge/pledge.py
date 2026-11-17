@@ -6,6 +6,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import today
 
+from churchit.church_finances.doctype.fund.fund import format_amount
+from churchit.church_finances.report.pledge_progress.pledge_progress import get_received_for_pledge
+from churchit.church_people.derived import warn_if_after_death
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_scope import (
 	church_filters,
@@ -17,6 +20,9 @@ from churchit.church_scope import (
 
 class Pledge(Document):
 	def validate(self):
+		if not self.amount or self.amount < 0:
+			frappe.throw(_("Enter the amount you pledge."))
+
 		if is_portal_member() or frappe.flags.in_web_form:
 			self.take_members_own_pledge()
 		else:
@@ -29,6 +35,9 @@ class Pledge(Document):
 				"campaign",
 				_("{0} belongs to another church, so only that church can take pledges to it."),
 			)
+
+		if self.has_value_changed("person"):
+			warn_if_after_death(self.person, today(), _("pledge"))
 
 	def before_save(self):
 		person_name = frappe.db.get_value("Person", self.person, "full_name")
@@ -63,3 +72,43 @@ def get_open_campaigns() -> dict[str, str]:
 			as_list=True,
 		)
 	)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_given_so_far(pledge: str) -> str:
+	"""A sentence that says how much was given toward *pledge* so far. Reads only."""
+	doc = frappe.get_doc("Pledge", pledge)
+	doc.check_permission("read")
+
+	return _("Given so far: {0} of {1}.").format(
+		format_amount(get_received_for_pledge(doc)), format_amount(doc.amount)
+	)
+
+
+def get_pledges_by_campaign() -> dict[str, dict]:
+	"""{campaign: {"name", "message"}} of the signed-in member's own pledges, for the form's reminder."""
+	person = session_person()
+	if not person:
+		return {}
+
+	# church-scope: the member's own pledges
+	rows = frappe.get_all(
+		"Pledge", filters={"person": person}, fields=["name", "campaign", "amount"], order_by="creation"
+	)
+	titles = dict(
+		frappe.get_all(
+			"Pledge Campaign",
+			filters={"name": ("in", [row.campaign for row in rows])},
+			fields=["name", "title"],
+			as_list=True,
+		)
+	)
+	return {
+		row.campaign: {
+			"name": row.name,
+			"message": _("You pledged {0} to {1}.").format(
+				format_amount(row.amount), titles.get(row.campaign) or row.campaign
+			),
+		}
+		for row in rows
+	}

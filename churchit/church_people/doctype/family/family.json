@@ -115,6 +115,7 @@
    "description": "The family member the family is named after. Every other member's relationship is to this person.",
    "fieldname": "primary_contact",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Primary Contact",
@@ -168,7 +169,7 @@
    "link_fieldname": "family"
   }
  ],
- "modified": "2026-10-31 01:26:12.000000",
+ "modified": "2026-11-15 02:36:18.637797",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Family",

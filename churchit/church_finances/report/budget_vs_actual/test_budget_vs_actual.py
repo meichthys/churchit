@@ -5,7 +5,11 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, nowdate
 
-from churchit.church_finances.report.budget_vs_actual.budget_vs_actual import execute
+from churchit.church_finances.report.budget_vs_actual.budget_vs_actual import (
+	AMOUNT_KEYS,
+	execute,
+	get_total_row,
+)
 
 
 def _ensure(doctype, filters, values):
@@ -48,16 +52,16 @@ class TestBudgetVsActual(FrappeTestCase):
 		frappe.db.rollback(save_point="test_budget_vs_actual")
 
 	def test_uses_the_current_budget_when_no_filter_is_given(self):
-		columns, data, message = execute({})
-		self.assertEqual(len(data), 1)
+		_columns, data, message, _chart = execute({})
+		self.assertEqual(len(data), 2)
 		self.assertEqual(data[0]["budgeted"], 500)
 		self.assertIn(self.budget.name, message)
 
 	def test_comparison_columns_appear_only_when_requested(self):
-		columns, _data, _message = execute({"budget": self.budget.name})
+		columns, _data, _message, _chart = execute({"budget": self.budget.name})
 		self.assertNotIn("comparison_actual", [column["fieldname"] for column in columns])
 
-		columns, _data, _message = execute(
+		columns, _data, _message, _chart = execute(
 			{"budget": self.budget.name, "comparison": "Same Period Last Year"}
 		)
 		fieldnames = [column["fieldname"] for column in columns]
@@ -66,11 +70,11 @@ class TestBudgetVsActual(FrappeTestCase):
 		self.assertIn("comparison_pct", fieldnames)
 
 	def test_unknown_comparison_is_ignored(self):
-		columns, _data, _message = execute({"budget": self.budget.name, "comparison": "Last Decade"})
+		columns, _data, _message, _chart = execute({"budget": self.budget.name, "comparison": "Last Decade"})
 		self.assertNotIn("comparison_actual", [column["fieldname"] for column in columns])
 
 	def test_rolling_window_prorates_the_budgeted_amount(self):
-		_columns, data, message = execute({"budget": self.budget.name, "comparison": "Last Month"})
+		_columns, data, message, _chart = execute({"budget": self.budget.name, "comparison": "Last Month"})
 		# A one-month window covers roughly half of a 61 day budget period.
 		self.assertLess(data[0]["comparison_budget"], 500)
 		self.assertGreater(data[0]["comparison_budget"], 0)
@@ -78,7 +82,28 @@ class TestBudgetVsActual(FrappeTestCase):
 
 	def test_empty_state_without_any_budget(self):
 		frappe.db.delete("Church Budget")
-		columns, data, message = execute({})
+		columns, data, message, chart = execute({})
 		self.assertEqual(data, [])
 		self.assertTrue(columns)
 		self.assertIn("No budget found", message)
+		self.assertIsNone(chart)
+
+	def test_chart_plots_each_expense_type_and_leaves_out_the_total_row(self):
+		"""The Budget Summary chart draws the report's chart, so a Total bar would dwarf the real lines."""
+		_columns, data, _message, chart = execute({"budget": self.budget.name})
+
+		self.assertTrue(data[-1]["is_total_row"])
+		self.assertEqual(chart["data"]["labels"], [self.expense_type])
+		budgeted, _expected, actual = chart["data"]["datasets"]
+		self.assertEqual(budgeted["values"], [500])
+		self.assertEqual(actual["values"], [data[0]["actual"]])
+
+	def test_total_row_works_out_the_percentage_from_the_sums(self):
+		rows = [
+			{**dict.fromkeys(AMOUNT_KEYS, 0), "budgeted": 500, "actual": 100},
+			{**dict.fromkeys(AMOUNT_KEYS, 0), "budgeted": 1500, "actual": 900},
+		]
+		total = get_total_row(rows)
+		self.assertEqual(total["budgeted"], 2000)
+		self.assertEqual(total["actual"], 1000)
+		self.assertEqual(total["pct"], 50.0)

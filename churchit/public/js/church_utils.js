@@ -129,7 +129,7 @@ frappe.ui.form.on("Family", { refresh: church.lock_another_churchs_people });
 // style as Frappe's own announcement widget at the top of the desk.
 church.show_branches_banner = function () {
 	if (!church.is_multi_church() || frappe.boot.churchit.include_branches !== true) return;
-	if ($("header .churchit-branches-banner").length) return;
+	if ($(".churchit-branches-banner").length) return;
 	const expand = frappe.boot.churchit.expand_church_filters ? "checked" : "";
 	const banner = $(`
 		<div class="churchit-branches-banner announcement-widget form-message blue">
@@ -159,7 +159,8 @@ church.show_branches_banner = function () {
 		event.preventDefault();
 		church.toggle_branch_churches();
 	});
-	$("header").prepend(banner);
+	// On a phone, or with an announcement, Frappe swaps <header> for a sticky div before toolbar_setup.
+	$("header, .main-section > .sticky-top").first().prepend(banner);
 };
 
 // With "Expand filters to branches" on, a church picked in a list view's Church

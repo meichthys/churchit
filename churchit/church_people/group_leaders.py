@@ -14,7 +14,7 @@ def get_leaders(group: str) -> list[str]:
 	# church-scope: the member rows of one group
 	return frappe.get_all(
 		"Group Member",
-		filters={"parenttype": "Group", "parent": group, "group_role": ("in", get_leader_roles())},
+		filters={"parenttype": "Group", "parent": group, "group_role.is_leader": 1},
 		pluck="person",
 		distinct=True,
 	)
@@ -29,7 +29,7 @@ def get_led_groups(person: str) -> list[str]:
 	# church-scope: one person's member rows
 	return frappe.get_all(
 		"Group Member",
-		filters={"parenttype": "Group", "person": person, "group_role": ("in", get_leader_roles())},
+		filters={"parenttype": "Group", "person": person, "group_role.is_leader": 1},
 		pluck="parent",
 		distinct=True,
 	)

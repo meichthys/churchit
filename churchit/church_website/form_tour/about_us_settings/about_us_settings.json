@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:42:09.000000",
+ "modified": "2026-11-15 05:42:12.261277",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "About Us Settings",
@@ -17,7 +17,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Frappe ships <code>/about</code> disabled and churchit enables it at install, because the navbar links to it. Ticking this again takes the page down and leaves a dead menu entry, so remove the navbar item too.",
+   "description": "The About Us page is on after you install the app, and the website menu links to it. If you tick this box, the page goes off, so also remove its item from the website menu.",
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "has_next_condition": 0,
@@ -35,7 +35,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The heading at the top of <code>/about</code>. Churchit sets it to <i>About Our Church</i> at install and the text below is yours to write.",
+   "description": "The heading at the top of the About Us page. It starts as 'About Our Church'. The text below it is yours to write.",
    "fieldname": "page_title",
    "fieldtype": "Data",
    "has_next_condition": 0,
@@ -53,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The opening paragraphs a first-time visitor reads. Write it for someone who has never been, not for a member.",
+   "description": "The opening paragraphs a first-time visitor reads. Write it for someone who has never been to your church. The About Us page shows this text only when the Church record has no About text. To write your main introduction, open Foundations, then Churches, and fill in About.",
    "fieldname": "company_introduction",
    "fieldtype": "Text Editor",
    "has_next_condition": 0,

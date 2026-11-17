@@ -217,7 +217,7 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
-   "label": "Totals by Person",
+   "label": "Donations by Person",
    "link_to": "Donations by Person",
    "link_type": "Report",
    "open_in_new_tab": 1,
@@ -630,7 +630,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-03 22:27:12.000000",
+ "modified": "2026-11-15 05:41:00.802733",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Finances",

@@ -242,6 +242,19 @@ class TestMultiChurchSwitch(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Person", self.person.name, "church"), self.root)
 		self.assertEqual(frappe.db.get_value("Collection", self.collection.name, "church"), self.root)
 
+	def test_enabling_adds_a_church_column_to_lists(self):
+		set_multi_church(True)
+
+		self.assertEqual(self.church_setter("Function", "in_list_view"), "1")
+		self.assertTrue(frappe.get_meta("Function").get_field("church").in_list_view)
+		self.assertIsNone(self.field_setter("Song", "is_shared", "in_list_view"))
+
+	def test_disabling_removes_the_church_column(self):
+		set_multi_church(True)
+		set_multi_church(False)
+
+		self.assertIsNone(self.church_setter("Function", "in_list_view"))
+
 	def test_enabling_scopes_every_user_to_the_root(self):
 		set_multi_church(True)
 

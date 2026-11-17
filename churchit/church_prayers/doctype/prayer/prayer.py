@@ -11,6 +11,7 @@ from frappe.utils import getdate
 
 from churchit.church_prayers.prayer_access import PRAYER_REQUEST
 from churchit.church_scope import refuse_another_churches_parent
+from churchit.utils import get_dated_title
 
 
 class Prayer(Document):
@@ -48,12 +49,12 @@ class Prayer(Document):
 
 
 def get_prayer_title(full_name: str | None, date: datetime | str | None) -> str:
-	"""Who prayed and on which day, such as 'James Wilson, 2026-10-20'. Lists and links show it.
+	"""Who prayed and on which day, such as 'James Wilson, Tuesday, October 20, 2026'. Lists and links show it.
 
-	The day is ISO, as in a Collection's title, so a stored title keeps its meaning when the date format changes.
+	The day is the long form of churchit.utils, not the System Settings date format, so a stored title
+	keeps its meaning when that setting changes. An older title changes when its Prayer is saved next.
 	"""
-	day = str(getdate(date)) if date else None
-	return ", ".join(part for part in (full_name, day) if part)
+	return get_dated_title(full_name, getdate(date) if date else None)
 
 
 def get_prayed_requests(prayer: Prayer | None) -> set[str]:

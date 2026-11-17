@@ -26,6 +26,20 @@
    "fieldtype": "Datetime",
    "label": "Date",
    "width": 0
+  },
+  {
+   "fieldname": "source_type",
+   "fieldtype": "Link",
+   "label": "Source Type",
+   "options": "DocType",
+   "width": 0
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Dynamic Link",
+   "label": "Source",
+   "options": "source_type",
+   "width": 0
   }
  ],
  "creation": "2025-10-02 00:47:04.809206",
@@ -36,7 +50,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2026-10-22 15:51:00",
+ "modified": "2026-11-15 05:40:30.878551",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Fund Transactions By Date",

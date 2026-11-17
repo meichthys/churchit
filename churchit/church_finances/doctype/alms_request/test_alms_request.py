@@ -1,6 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+import json
 from unittest.mock import patch
 
 import frappe
@@ -8,13 +9,15 @@ import frappe.share
 from frappe.exceptions import ValidationError
 from frappe.handler import execute_cmd
 from frappe.tests.utils import FrappeTestCase
+from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_finances.doctype.alms_request.alms_request import create_expense
+from churchit.church_finances.web_form.alms_request import alms_request as alms_form
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.note_category.note_category import BENEVOLENCE
 from churchit.church_people.privacy import ANONYMIZED, anonymize
 from churchit.church_people.test_merge import make_family
-from churchit.patches.v1_0 import retitle_alms_requests
+from churchit.patches.v1_0 import distribute_paid_approved_alms_requests, retitle_alms_requests
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -54,6 +57,31 @@ class TestAlmsRequest(FrappeTestCase):
 
 	def test_create_expense_requires_an_amount(self):
 		alms = self._make_request(expense_type=self.expense_type)
+		with self.assertRaises(ValidationError):
+			create_expense(alms.name)
+
+	def test_a_negative_amount_is_refused_and_no_expense_is_made_for_zero(self):
+		with self.assertRaises(ValidationError):
+			self._make_request(amount=-250, expense_type=self.expense_type)
+
+		alms = self._make_request(amount=0, expense_type=self.expense_type)
+		with self.assertRaises(ValidationError):
+			create_expense(alms.name)
+
+	def test_a_cancelled_expense_does_not_block_a_new_one(self):
+		alms = self._make_request(amount=100, expense_type=self.expense_type)
+		first = create_expense(alms.name)
+		frappe.get_doc("Expense", first).cancel()
+
+		second = create_expense(alms.name)
+
+		self.assertNotEqual(first, second)
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "associated_expense"), second)
+
+	def test_a_submitted_expense_blocks_a_second_one(self):
+		alms = self._make_request(amount=100, expense_type=self.expense_type)
+		create_expense(alms.name)
+
 		with self.assertRaises(ValidationError):
 			create_expense(alms.name)
 
@@ -279,6 +307,165 @@ class TestAlmsRequestAcrossChurches(RollbackEachTest):
 		self.assertFalse(frappe.db.get_value("Alms Request", alms.name, "associated_expense"))
 
 
+class TestReviewedAlmsRequests(RollbackEachTest):
+	"""A member changes or deletes their request only until the care team reviews it, and never sets its status."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.member = ensure_user("_test_alms_reviewed_member@example.com", "Reviewed Member")
+		cls.person = make_person("_Test Alms", "Reviewed Member", user=cls.member).name
+		cls.care = ensure_user(
+			"_test_alms_reviewed_care@example.com", "Reviewed Care", roles=("Church Pastoral Care",)
+		)
+		fund = _ensure("Fund", {"fund": "_Test Alms Fund"}, {"fund": "_Test Alms Fund"})
+		cls.expense_type = _ensure(
+			"Expense Type",
+			{"type": "_Test Alms Expense Type"},
+			{"type": "_Test Alms Expense Type", "fund": fund},
+		)
+
+	def send(self, **values):
+		"""A request the member sends with their own right, as the portal form and REST save it."""
+		frappe.set_user(self.member)
+		alms = frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": self.person,
+				"description": "_Test reviewed request",
+				"amount": 150,
+				**values,
+			}
+		).insert()
+		frappe.set_user("Administrator")
+		return alms
+
+	def review(self, alms, status="Approved"):
+		frappe.set_user(self.care)
+		alms = frappe.get_doc("Alms Request", alms.name)
+		alms.update({"status": status, "expense_type": self.expense_type})
+		alms.save()
+		frappe.set_user("Administrator")
+		return alms
+
+	def test_a_member_cannot_set_the_status(self):
+		alms = self.send(status="Approved")
+		self.assertEqual(alms.status, "Pending")
+
+		frappe.set_user(self.member)
+		alms.status = "Distributed"
+		alms.save()
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "status"), "Pending")
+
+	def test_a_member_changes_a_pending_request(self):
+		alms = self.send()
+
+		frappe.set_user(self.member)
+		alms.amount = 200
+		alms.save()
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "amount"), 200)
+
+	def test_a_member_cannot_change_or_delete_a_reviewed_request(self):
+		for status in ("Approved", "Declined"):
+			with self.subTest(status=status):
+				alms = self.review(self.send(), status)
+
+				frappe.set_user(self.member)
+				alms.amount = 1500
+				with self.assertRaises(frappe.PermissionError):
+					alms.save()
+				# The web form deletes the member's own record with ignore_permissions.
+				with self.assertRaises(frappe.PermissionError):
+					frappe.delete_doc("Alms Request", alms.name, ignore_permissions=True)
+
+				frappe.set_user("Administrator")
+				self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "amount"), 150)
+
+	def test_the_care_team_changes_a_reviewed_request(self):
+		alms = self.review(self.send())
+
+		frappe.set_user(self.care)
+		alms.amount = 120
+		alms.save()
+		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "amount"), 120)
+
+	def test_paying_an_approved_request_distributes_it(self):
+		alms = self.review(self.send())
+
+		expense = create_expense(alms.name)
+
+		self.assertEqual(
+			frappe.db.get_value("Alms Request", alms.name, ["associated_expense", "status"]),
+			(expense, "Distributed"),
+		)
+
+	def test_a_paid_request_stays_until_its_expense_is_cancelled(self):
+		alms = self.review(self.send())
+		expense = create_expense(alms.name)
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.delete_doc("Alms Request", alms.name)
+
+		frappe.get_doc("Expense", expense).cancel()
+		frappe.delete_doc("Alms Request", alms.name)
+		self.assertFalse(frappe.db.exists("Alms Request", alms.name))
+
+	def test_the_portal_offers_edit_and_delete_only_before_the_review(self):
+		pending, approved = self.send(), self.review(self.send())
+
+		frappe.set_user(self.member)
+		for alms, is_open in ((pending, True), (approved, False)):
+			with self.subTest(status=alms.status):
+				request = frappe.get_doc("Alms Request", alms.name).as_dict()
+				context = frappe._dict(allow_edit=1, has_delete_permission=True, reference_doc=request)
+				alms_form.get_context(context)
+				self.assertEqual(
+					(bool(context.allow_edit), context.has_delete_permission), (is_open, is_open)
+				)
+
+	def test_the_waiting_list_holds_the_requests_that_wait_for_someone(self):
+		pending, approved = self.send(), self.review(self.send())
+		declined = self.review(self.send(), "Declined")
+		paid = self.review(self.send())
+		create_expense(paid.name)
+		unpaid = self.review(self.send())
+		frappe.get_doc("Expense", create_expense(unpaid.name)).cancel()
+		names = [pending.name, approved.name, declined.name, paid.name, unpaid.name]
+
+		report = json.loads(frappe.db.get_value("Report", "Pending Alms Requests", "json"))["filters"]
+		card = json.loads(frappe.db.get_value("Number Card", "Pending Alms Requests", "filters_json"))
+		for filters in (report, [row[:4] for row in card]):
+			waiting = frappe.get_all(
+				"Alms Request", filters=[*filters, ["Alms Request", "name", "in", names]], pluck="name"
+			)
+			self.assertCountEqual(waiting, [pending.name, approved.name, unpaid.name])
+
+	def test_the_form_offers_create_expense_again_once_the_expense_is_cancelled(self):
+		alms = self.review(self.send())
+		expense = frappe.get_doc("Expense", create_expense(alms.name))
+
+		for action, is_paid in ((None, True), (expense.cancel, False)):
+			if action:
+				action()
+			request = frappe.get_doc("Alms Request", alms.name)
+			request.run_method("onload")
+			self.assertEqual(request.get_onload().is_paid, is_paid)
+
+	def test_the_patch_distributes_an_old_approved_request_that_an_expense_pays(self):
+		paid = self.review(self.send())
+		create_expense(paid.name)
+		frappe.db.set_value("Alms Request", paid.name, "status", "Approved")
+		unpaid = self.review(self.send())
+		frappe.get_doc("Expense", create_expense(unpaid.name)).cancel()
+
+		distribute_paid_approved_alms_requests.execute()
+		distribute_paid_approved_alms_requests.execute()
+
+		self.assertEqual(frappe.db.get_value("Alms Request", paid.name, "status"), "Distributed")
+		self.assertEqual(frappe.db.get_value("Alms Request", unpaid.name, "status"), "Approved")
+
+
 class TestCaseNoteButtons(RollbackEachTest):
 	"""The form shows the Case Notes buttons to whoever may read or add a Benevolence note."""
 
@@ -324,3 +511,66 @@ class TestCaseNoteButtons(RollbackEachTest):
 			"_test_alms_finance_staff@example.com", "Finance Staff", roles=("Church Finance", "Church Staff")
 		)
 		self.assertEqual(self.case_note_rights(finance), (True, False))
+
+
+class TestRequestorFromTheLogin(RollbackEachTest):
+	"""The web form does not show Requester, so the server fills it from the signed-in person."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.member = ensure_user("_test_alms_web_member@example.com", "Web Member")
+		cls.member_person = make_person("_Test Alms", "Web Member", user=cls.member).name
+		cls.staff = ensure_user("_test_alms_web_staff@example.com", "Web Staff", roles=("Church Manager",))
+		cls.staff_person = make_person("_Test Alms", "Web Staff", user=cls.staff).name
+		cls.unlinked = ensure_user("_test_alms_web_unlinked@example.com", "Web Unlinked")
+		cls.unlinked_staff = ensure_user(
+			"_test_alms_web_unlinked_staff@example.com", "Web Unlinked Staff", roles=("Church Manager",)
+		)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.flags.in_web_form = False
+
+	def send_through_the_web_form(self, user):
+		frappe.set_user(user)
+		data = {
+			"recipient_type": "Person",
+			"recipient": self.member_person,
+			"description": "_Test web form request",
+			"amount": 40,
+			"status": "Pending",
+		}
+		return accept("alms-request", json.dumps(data))
+
+	def test_a_member_is_named_as_the_requester(self):
+		request = self.send_through_the_web_form(self.member)
+		self.assertEqual(request.requestor, self.member_person)
+
+	def test_staff_with_a_person_are_named_as_the_requester(self):
+		request = self.send_through_the_web_form(self.staff)
+		self.assertEqual(request.requestor, self.staff_person)
+
+	def test_a_login_with_no_person_is_told_so(self):
+		for user in (self.unlinked, self.unlinked_staff):
+			with self.subTest(user=user), self.assertRaisesRegex(ValidationError, "not linked to a person"):
+				self.send_through_the_web_form(user)
+
+	def test_staff_in_the_desk_still_choose_the_requester(self):
+		frappe.set_user(self.unlinked_staff)
+		request = frappe.get_doc(
+			{
+				"doctype": "Alms Request",
+				"recipient_type": "Person",
+				"recipient": self.member_person,
+				"requestor": self.staff_person,
+				"description": "_Test desk request",
+			}
+		).insert()
+		self.assertEqual(request.requestor, self.staff_person)
+
+	def test_the_web_form_offers_only_the_types_the_request_allows(self):
+		field = frappe.get_doc("Web Form", "alms-request").get(
+			"web_form_fields", {"fieldname": "recipient_type"}
+		)[0]
+		self.assertEqual(field.options.split("\n"), ["Person", "Family"])

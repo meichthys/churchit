@@ -218,3 +218,42 @@ class TestOnboardingHygiene(FrappeTestCase):
 			if steps != sorted(steps, key=fieldnames.index):
 				found[tour.name] = sorted(steps, key=fieldnames.index)
 		assert_list_ratchet(self, found, TOURS_OUT_OF_ORDER, "Tour steps run against the form order")
+
+	def test_a_tour_that_saves_asks_for_every_required_field(self):
+		"""Save on complete fails with Missing Fields when the tour skipped a field the user must type."""
+		found = {}
+		for tour in frappe.get_all(
+			"Form Tour",
+			filters={"module": ["in", self.modules], "save_on_complete": 1},
+			fields=["name", "reference_doctype"],
+		):
+			if not frappe.db.exists("DocType", tour.reference_doctype):
+				continue
+			covered = set(frappe.get_all("Form Tour Step", filters={"parent": tour.name}, pluck="fieldname"))
+			missing = [
+				field.fieldname
+				for field in frappe.get_meta(tour.reference_doctype).fields
+				if field.reqd
+				and not (field.default or field.hidden or field.read_only or field.fetch_from)
+				and field.fieldtype not in frappe.model.no_value_fields
+				and field.fieldname not in covered
+			]
+			if missing:
+				found[tour.name] = missing
+		self.assertEqual(found, {}, "Add a first step on each field the user must type")
+
+	def test_descriptions_use_plain_words_without_code_marks(self):
+		"""The desk shows a backtick as a typed character in a tour and as pink code in a step."""
+		found = []
+		for doctype, filters, field in (
+			("Onboarding Step", {"name": ["in", self.listed_steps()]}, "description"),
+			("Form Tour Step", {"parent": ["in", self.tour_names()]}, "description"),
+			("DocType", {"module": ["in", self.modules]}, "description"),
+		):
+			for row in frappe.get_all(doctype, filters=filters, fields=["name", field]):
+				if "`" in (row[field] or ""):
+					found.append((doctype, row.name))
+		self.assertEqual(found, [], "Write these descriptions without backticks")
+
+	def tour_names(self):
+		return frappe.get_all("Form Tour", filters={"module": ["in", self.modules]}, pluck="name")

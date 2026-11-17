@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "person",
+  "person_name",
   "church",
   "visit_date",
   "visit_type",
@@ -27,6 +28,15 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1
+  },
+  {
+   "fetch_from": "person.full_name",
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Person Name",
+   "read_only": 1,
+   "width": "220px"
   },
   {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
@@ -71,6 +81,7 @@
   },
   {
    "default": "Planned",
+   "description": "Planned and Scheduled visits both get the reminder the day before.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -108,7 +119,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-11-02 23:52:34.000000",
+ "modified": "2026-11-15 15:15:53.652332",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Visitation Log",
@@ -153,6 +164,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "visit_date",
  "sort_order": "DESC",
  "states": [
@@ -169,6 +181,6 @@
    "title": "Completed"
   }
  ],
- "title_field": "person",
+ "title_field": "person_name",
  "track_changes": 1
 }

@@ -19,11 +19,24 @@ from frappe.website.utils import WEBSITE_PAGE_CACHE_PREFIX, clear_website_cache
 from churchit.church_people.membership import MEMBER, VISITOR
 from churchit.church_setup.doctype.church_features.church_features import MODULE_FIELDS
 from churchit.church_website.context import before_request, update_website_context
-from churchit.church_website.pages import SwitchedOffPage, is_link_off, is_page_off, sync_page_switches
+from churchit.church_website.pages import (
+	SwitchedOffPage,
+	get_hidden_pages,
+	is_link_off,
+	is_page_off,
+	sync_page_switches,
+)
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
-from churchit.patches.v1_0 import hide_sermons_on_the_home_page
-from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, force_single_church, make_person
+from churchit.patches.v1_0 import hide_sermons_on_the_home_page, tidy_shipped_website_pages
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	force_single_church,
+	make_person,
+	set_multi_church,
+)
 
 MEMBERS_ROUTE = "_test-members-only"
 MEMBERS_LINK = f'href="/{MEMBERS_ROUTE}"'
@@ -243,6 +256,7 @@ class TestMembersOnlyPage(FrappeTestCase):
 				(self.stranger, "/_test-open-page", True),
 				("Guest", "/_test-open-page", False),
 				(self.member, "/api/method/ping", False),
+				(self.member, "/sw.js", False),
 			):
 				frappe.set_user(user)
 				set_request(method="GET", path=path)
@@ -389,10 +403,19 @@ class TestSwitchedOffPage(RollbackEachTest):
 		series = frappe.get_doc(
 			{"doctype": "Sermon Series", "series_name": "_Test Off Series", "publish": 1}
 		).insert()
+		# Dated after every other sermon, so both are on the first page of 12.
 		sermons = [
-			frappe.get_doc({"doctype": "Sermon", "title": "_Test Off Card", "publish": 1}).insert(),
 			frappe.get_doc(
-				{"doctype": "Sermon", "title": "_Test Off Series Sermon", "publish": 1, "series": series.name}
+				{"doctype": "Sermon", "title": "_Test Off Card", "publish": 1, "sermon_date": "2099-12-31"}
+			).insert(),
+			frappe.get_doc(
+				{
+					"doctype": "Sermon",
+					"title": "_Test Off Series Sermon",
+					"publish": 1,
+					"series": series.name,
+					"sermon_date": "2099-12-31",
+				}
 			).insert(),
 		]
 		links = [
@@ -499,7 +522,9 @@ class TestSwitchedOffPage(RollbackEachTest):
 	def test_the_home_page_shows_sermons_only_while_the_sermons_page_is_on(self):
 		force_single_church()
 		self.set_home_page(read_template("home.html"))
-		frappe.get_doc({"doctype": "Sermon", "title": "_Test Home Sermon", "publish": 1}).insert()
+		frappe.get_doc(
+			{"doctype": "Sermon", "title": "_Test Home Sermon", "publish": 1, "sermon_date": "2099-01-01"}
+		).insert()
 		parts = ("_Test Home Sermon", 'href="/sermons"', "Sermons online")
 		html = serve("home", "Guest").get_data(as_text=True)
 		for part in parts:
@@ -525,9 +550,12 @@ class TestSwitchedOffPage(RollbackEachTest):
 
 	def test_the_patch_fixes_the_shipped_sermon_query_and_count_only(self):
 		patch_module = hide_sermons_on_the_home_page
+		# The page as this patch found it, before tidy_shipped_website_pages.
+		before = read_template("home.html")
+		for old, new in reversed(tidy_shipped_website_pages.FIXES["home"]):
+			before = before.replace(new, old)
 		shipped = (
-			read_template("home.html")
-			.replace(patch_module.SERMONS_ON, "")
+			before.replace(patch_module.SERMONS_ON, "")
 			.replace(patch_module.QUERY_END_ON, patch_module.QUERY_END)
 			.replace(patch_module.COUNT_ON, patch_module.COUNT)
 		)
@@ -535,20 +563,56 @@ class TestSwitchedOffPage(RollbackEachTest):
 
 		self.set_home_page(shipped)
 		patch_module.execute()
-		self.assertEqual(self.home_page(), read_template("home.html"))
+		self.assertEqual(self.home_page(), before)
 		modified = frappe.db.get_value("Web Page", "home", "modified")
 		patch_module.execute()
 		self.assertEqual(frappe.db.get_value("Web Page", "home", "modified"), modified)
 
 		self.set_home_page(shipped.replace("Get in touch", "Say hello"))
 		patch_module.execute()
-		self.assertEqual(self.home_page(), read_template("home.html").replace("Get in touch", "Say hello"))
+		self.assertEqual(self.home_page(), before.replace("Get in touch", "Say hello"))
 
 		# An edited events query that now ends like the sermon query keeps its events.
 		self.set_home_page(shipped.replace("limit=4,", "limit=1,"))
 		patch_module.execute()
-		self.assertEqual(self.home_page(), read_template("home.html").replace("limit=4,", "limit=1,"))
+		self.assertEqual(self.home_page(), before.replace("limit=4,", "limit=1,"))
 
 		self.set_home_page("<p>Our own page</p>")
 		patch_module.execute()
 		self.assertEqual(self.home_page(), "<p>Our own page</p>")
+
+
+class TestLinksThatDoNotApply(RollbackEachTest):
+	"""No link leads to a page that does not exist on this site, or that does nothing for this visitor."""
+
+	def test_the_sitemap_lists_locations_only_while_the_site_has_branches(self):
+		locations = f"<loc>{get_url('/locations')}</loc>"
+		force_single_church()
+		self.assertNotIn(locations, serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		set_multi_church(True)
+		self.assertIn(locations, serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+	def test_lead_a_group_shows_only_to_a_group_leader(self):
+		role = ensure(
+			"Group Role", {"role": "_Test Links Leader"}, {"role": "_Test Links Leader", "is_leader": 1}
+		)
+		member = ensure_user("_test_links_member@example.com", "_Test Links Member")
+		leader = ensure_user("_test_links_leader@example.com", "_Test Links Leader")
+		make_person("_Test Links", "Member", user=member)
+		leader_person = make_person("_Test Links", "Leader", user=leader)
+		frappe.get_doc(
+			{
+				"doctype": "Group",
+				"group_name": "_Test Links Group",
+				"members": [{"person": leader_person.name, "group_role": role}],
+			}
+		).insert(ignore_permissions=True)
+
+		for user, is_shown in ((leader, True), (member, False), ("Guest", False)):
+			frappe.set_user(user)
+			self.assertEqual("group-leader" not in get_hidden_pages(), is_shown, user)
+
+		self.assertIn('href="/group-leader"', serve("portal", leader).get_data(as_text=True))
+		self.assertNotIn('href="/group-leader"', serve("portal", member).get_data(as_text=True))

@@ -1,0 +1,11 @@
+<p>A visit is planned for {{ frappe.utils.format_date(doc.visit_date, "EEEE, MMMM d, yyyy") }}:</p>
+
+<ul>
+  <li><strong>Person:</strong> {{ (doc.person_name or doc.person) | e }}</li>
+  <li><strong>Visit Type:</strong> {{ doc.visit_type | e }}</li>
+</ul>
+
+<p><strong>Notes:</strong></p>
+{{ doc.notes or "<p>None</p>" }}
+
+<p><a href="{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}">Open the visitation</a></p>

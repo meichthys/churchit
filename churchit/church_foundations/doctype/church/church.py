@@ -56,9 +56,30 @@ class Church(NestedSet):
 		)
 		if not self.parent_church and other_root:
 			frappe.throw(
-				_("{0} is already the main church; give this one a parent church.").format(other_root),
+				_(
+					"{0} is already the main church. Choose it, or another church, as the Parent Church."
+				).format(frappe.db.get_value("Church", other_root, "church_name")),
 				NestedSetMultipleRootsError,
 			)
+
+	def after_insert(self):
+		super().after_insert()
+		if self.parent_church:
+			self.show_next_steps_for_a_branch()
+
+	def show_next_steps_for_a_branch(self):
+		"""Say what a new branch needs before its staff can work in it."""
+		steps = [
+			_("Add a Fund for it, or tick Shared with all churches on a Fund it may use."),
+			_("Set its Address, and tick Publish to show it on the website."),
+			_(
+				"On the Person of each staff member of {0}, set Portal User to their login. If the form "
+				"then says that the login works in another church, click Actions > Limit Login to {0}."
+			).format(self.church_name),
+		]
+		frappe.msgprint(
+			steps, title=_("Next Steps for {0}").format(self.church_name), as_list=True, indicator="green"
+		)
 
 	def on_trash(self):
 		"""Move everyone scoped to this church up to its parent as the tree forgets it.
@@ -77,10 +98,17 @@ class Church(NestedSet):
 		return website.split("://", 1)[-1].rstrip("/") if website else None
 
 	def validate_parent_is_group(self):
-		if self.parent_church and not frappe.db.get_value("Church", self.parent_church, "is_group"):
-			frappe.throw(
-				_("Check Is Group on {0} before adding branches under it.").format(self.parent_church)
+		"""The main church becomes a group with its first branch, since a first branch can have no other parent."""
+		if not self.parent_church or frappe.db.get_value("Church", self.parent_church, "is_group"):
+			return
+		if self.parent_church == root_church():
+			frappe.db.set_value("Church", self.parent_church, "is_group", 1)
+			return
+		frappe.throw(
+			_("Check Is Group on {0} before adding branches under it.").format(
+				frappe.db.get_value("Church", self.parent_church, "church_name")
 			)
+		)
 
 
 def get_church():
@@ -158,11 +186,14 @@ def church_contact_details(church=None):
 	fills in its own is the one the website and its letterhead should show.
 	"""
 	church = church or get_church()
-	return frappe._dict(
-		phone=(church and church.get("phone")) or frappe.db.get_single_value("Contact Us Settings", "phone"),
-		email=(church and church.get("email"))
-		or frappe.db.get_single_value("Contact Us Settings", "email_id"),
-	)
+	phone = church and church.get("phone")
+	email = church and church.get("email")
+	if not (phone and email):
+		# Every website page asks; the cached document saves a query for each field.
+		settings = frappe.get_cached_doc("Contact Us Settings")
+		phone = phone or settings.phone
+		email = email or settings.email_id
+	return frappe._dict(phone=phone, email=email)
 
 
 def inherited_value(church, fieldname):

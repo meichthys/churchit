@@ -5,7 +5,7 @@
    "label": "Web Pages by Type"
   }
  ],
- "content": "[{\"id\": \"ciUonBt9cC\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i>\", \"col\": 12}}, {\"id\": \"mIsHlQIrkg\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Web Site\", \"col\": 12}}, {\"id\": \"iX6U8evofK\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Web Pages\", \"col\": 6}}, {\"id\": \"webPagesByType\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Web Pages by Type\", \"col\": 12}}, {\"id\": \"webSiteSpacer\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chWebsitePreview\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"WebsitePreview\", \"col\": 12}}]",
+ "content": "[{\"id\": \"ciUonBt9cC\", \"type\": \"paragraph\", \"data\": {\"text\": \"<i>\\\"You are the light of the world. A city set on a hill cannot be hidden. Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.\\\"</i> (Matthew 5:14, 16)\", \"col\": 12}}, {\"id\": \"mIsHlQIrkg\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Web Site\", \"col\": 12}}, {\"id\": \"iX6U8evofK\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Web Pages\", \"col\": 6}}, {\"id\": \"webPagesByType\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Web Pages by Type\", \"col\": 12}}, {\"id\": \"webSiteSpacer\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"chWebsitePreview\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"WebsitePreview\", \"col\": 12}}]",
  "creation": "2026-07-08 09:43:37.127745",
  "custom_blocks": [
   {
@@ -24,7 +24,7 @@
  "is_hidden": 0,
  "label": "Web Site",
  "links": [],
- "modified": "2026-11-03 01:02:55.000000",
+ "modified": "2026-11-15 02:04:32.962252",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Web Site",

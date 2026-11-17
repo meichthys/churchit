@@ -87,8 +87,8 @@
 	min-width: 18px;
 	padding: 0 5px;
 	border-radius: 9px;
-	background: var(--primary);
-	color: var(--white, #fff);
+	background: var(--btn-primary);
+	color: var(--neutral);
 	font-size: 11px;
 	line-height: 18px;
 	text-align: center;
@@ -211,7 +211,9 @@
 		display: flex;
 		position: sticky;
 		top: calc(var(--rolodex-cards-top) + 8px);
-		max-height: calc(100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px);
+		max-height: calc(
+			100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px
+		);
 	}
 }
 
@@ -349,7 +351,7 @@
 	box-shadow: var(--shadow-md);
 }
 .rolodex-card:focus-visible .rolodex-face {
-	box-shadow: 0 0 0 2px var(--primary);
+	box-shadow: 0 0 0 2px var(--border-primary);
 }
 /* The slot a rolodex card hangs on. */
 .rolodex-face::after {
@@ -369,8 +371,18 @@
 	transform: rotateY(180deg);
 	visibility: hidden;
 	padding-left: 40px;
-	background-image: linear-gradient(to right, transparent 30px, var(--rolodex-margin-rule) 30px 31px, transparent 31px),
-		linear-gradient(to bottom, transparent 39px, var(--rolodex-margin-rule) 39px 40px, transparent 40px),
+	background-image: linear-gradient(
+			to right,
+			transparent 30px,
+			var(--rolodex-margin-rule) 30px 31px,
+			transparent 31px
+		),
+		linear-gradient(
+			to bottom,
+			transparent 39px,
+			var(--rolodex-margin-rule) 39px 40px,
+			transparent 40px
+		),
 		repeating-linear-gradient(to bottom, transparent 0 23px, var(--rolodex-rule) 23px 24px);
 	background-position: 0 0, 0 0, 0 40px;
 }
@@ -446,8 +458,8 @@
 }
 .rolodex-contact-btn:hover,
 .rolodex-contact-btn:focus-visible {
-	background: var(--primary);
-	color: var(--white, #fff);
+	background: var(--btn-primary);
+	color: var(--neutral);
 	text-decoration: none;
 }
 
@@ -551,6 +563,11 @@
 	gap: 4px;
 	font-size: var(--text-sm);
 }
+/* The desk's a:focus takes the outline away. */
+.rolodex-open:focus-visible {
+	outline: 2px solid var(--border-primary);
+	outline-offset: 2px;
+}
 .rolodex-back-body {
 	flex: 1;
 	min-height: 0;
@@ -599,7 +616,10 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	height: min(620px, calc(100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px));
+	height: min(
+		620px,
+		calc(100vh - var(--rolodex-cards-top) - var(--rolodex-tray-height, 0px) - 24px)
+	);
 	touch-action: none;
 	user-select: none;
 }
@@ -760,8 +780,9 @@
 		width: 42px;
 		height: 42px;
 	}
-	.rolodex-rail button {
-		font-size: 10px;
+	.rolodex-btn {
+		min-height: 36px;
+		min-width: 36px;
 	}
 }
 

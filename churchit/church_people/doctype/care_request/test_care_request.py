@@ -1,14 +1,23 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.form import assign_to
-from frappe.email.doctype.notification.notification import get_context
+from frappe.email.doctype.notification.notification import clear_notification_cache, get_context
 from frappe.utils import add_days, getdate, nowdate
 
+from churchit.church_people.doctype.care_request.care_request import (
+	CARE_CONDITION,
+	CARE_NOTIFICATION,
+	create_new_care_request_notification,
+)
+from churchit.church_people.doctype.people_settings.people_settings import create_reminders
+from churchit.church_people.doctype.people_settings.test_people_settings import reminder_templates
+from churchit.patches.v1_0 import fill_care_request_person_names, tell_care_team_of_requests_without_caregiver
 from churchit.patches.v1_0.rename_care_request_assigned_to import execute as rename_assigned_to
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
-from churchit.tests.test_notification_templates import shipped_templates
 
 
 class CareRequestCase(RollbackEachTest):
@@ -86,6 +95,68 @@ class TestCareRequest(CareRequestCase):
 			{"doctype": "Care Request", "category": self.category, "description": "Portal ask"}
 		).insert(ignore_permissions=True)
 		self.assertEqual(request.person, self.person)
+
+
+class TestPortalCareRequest(CareRequestCase):
+	"""What the portal form saves: Frappe's web form sends every field it shows, empty or not."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.member = ensure_user("_test_care_portal_member@example.com", "Portal Member")
+		cls.member_person = make_person("_Test Care", "Portal Member", user=cls.member).name
+
+	def send(self, **values):
+		frappe.set_user(self.member)
+		request = frappe.get_doc(
+			{"doctype": "Care Request", "category": self.category, "description": "Portal ask", **values}
+		).insert(ignore_permissions=True)
+		frappe.set_user("Administrator")
+		return request
+
+	def test_an_empty_urgency_is_medium_and_the_request_gets_a_due_date(self):
+		request = self.send(urgency="")
+
+		self.assertEqual(request.urgency, "Medium")
+		self.assertEqual(getdate(request.due_on), getdate(add_days(nowdate(), 7)))
+
+	def test_the_request_is_titled_with_the_members_name(self):
+		request = self.send()
+
+		self.assertEqual(request.person, self.member_person)
+		self.assertEqual(request.person_name, "_Test Care Portal Member")
+		self.assertEqual(frappe.get_meta("Care Request").title_field, "person_name")
+
+	def test_a_member_cannot_set_the_status(self):
+		request = self.send(status="Resolved")
+		self.assertEqual(request.status, "Requested")
+
+		frappe.set_user(self.member)
+		request.status = "Closed"
+		request.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("Care Request", request.name, "status"), "Requested")
+
+	def test_staff_sending_the_portal_form_get_a_requested_status(self):
+		# Status shows only on a saved request, so a new one sends it empty.
+		request = self.request(status="")
+		self.assertEqual(request.status, "Requested")
+
+	def test_staff_still_set_the_status(self):
+		request = self.request()
+		request.status = "Triaged"
+		request.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("Care Request", request.name, "status"), "Triaged")
+
+	def test_the_patch_fills_the_name_of_older_requests_and_can_run_again(self):
+		request = self.request()
+		frappe.db.set_value("Care Request", request.name, "person_name", None)
+
+		fill_care_request_person_names.execute()
+		fill_care_request_person_names.execute()
+
+		self.assertEqual(
+			frappe.db.get_value("Care Request", request.name, "person_name"), "_Test Care Requester"
+		)
 
 
 class TestDueDates(CareRequestCase):
@@ -242,31 +313,87 @@ class TestCaregiverChurch(CareRequestCase):
 class TestCareRequestOverdue(CareRequestCase):
 	def test_the_notice_names_the_person_category_and_caregiver(self):
 		caregiver, _user = self.make_caregiver("Notice")
-		request = self.request(caregiver=caregiver, due_on=add_days(nowdate(), -1))
-		notification, markdown = shipped_templates("church_communications", "Care Request Overdue")
+		request = self.request(
+			caregiver=caregiver, submitted_on=add_days(nowdate(), -3), due_on=add_days(nowdate(), -1)
+		)
+		notification = reminder_templates()["Care Request Overdue"]
 
-		for template in (notification["subject"], notification["message"], markdown):
+		for template in (notification["subject"], notification["message"]):
 			rendered = frappe.render_template(template, get_context(request))
 			self.assertIn("_Test Care Requester", rendered)
 			self.assertIn("_Test Need", rendered)
-		self.assertIn(
-			"Notice Caregiver", frappe.render_template(notification["message"], get_context(request))
-		)
-		self.assertEqual(notification["message"], markdown)
+		message = frappe.render_template(notification["message"], get_context(request))
+		self.assertIn("Notice Caregiver", message)
+		self.assertIn(frappe.utils.format_date(request.due_on, "EEEE, MMMM d, yyyy"), message)
 
 	def test_it_goes_out_the_day_after_an_open_request_was_due(self):
 		caregiver, user = self.make_caregiver("Late")
-		late = self.request(caregiver=caregiver, due_on=add_days(nowdate(), -1))
-		resolved = self.request(due_on=add_days(nowdate(), -1), status="Resolved")
+		submitted_on = add_days(nowdate(), -3)
+		late = self.request(caregiver=caregiver, submitted_on=submitted_on, due_on=add_days(nowdate(), -1))
+		resolved = self.request(submitted_on=submitted_on, due_on=add_days(nowdate(), -1), status="Resolved")
 		not_yet = self.request(due_on=nowdate())
+		create_reminders()
+		frappe.db.set_value("Notification", "Care Request Overdue", "days_in_advance", 1)
 		notice = frappe.get_doc("Notification", "Care Request Overdue")
 
 		due = [doc.name for doc in notice.get_documents_for_today()]
 		self.assertIn(late.name, due)
 		self.assertNotIn(resolved.name, due)
 		self.assertNotIn(not_yet.name, due)
-		self.assertFalse(notice.enabled)
 		self.assertIn(user, notice.get_list_of_recipients(late, get_context(late))[0])
+
+
+class TestNewCareRequestNotice(CareRequestCase):
+	"""The care team hears of a new request only when no caregiver gets it on their To Do list."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		create_new_care_request_notification()
+		cls.addClassCleanup(clear_notification_cache)
+		cls.care_team = ensure_user(
+			"_test_care_team@example.com", "CareTeam", roles=("Church Pastoral Care",)
+		)
+
+	def emailed(self, **values):
+		"""Everyone the New Care Request Notification emails for a new request with *values*."""
+		with (
+			patch("churchit.church_communications.outgoing_email.can_send_email", return_value=True),
+			patch("frappe.sendmail") as sendmail,
+		):
+			self.request(**values)
+		return {
+			recipient
+			for call in sendmail.call_args_list
+			if call.kwargs.get("subject", "").startswith("New care request")
+			for recipient in call.kwargs["recipients"]
+		}
+
+	def test_a_request_without_a_caregiver_reaches_the_care_team(self):
+		self.assertIn(self.care_team, self.emailed())
+
+	def test_a_request_with_a_caregiver_reaches_only_the_caregiver(self):
+		caregiver, user = self.make_caregiver("Assigned")
+
+		self.assertEqual(self.emailed(caregiver=caregiver), set())
+		self.assertEqual([row.allocated_to for row in self.todos(self.request(caregiver=caregiver))], [user])
+
+	def test_a_caregiver_with_no_login_leaves_the_care_team_to_hear_of_it(self):
+		caregiver = make_person("NoLogin", "Caregiver").name
+
+		self.assertIn(self.care_team, self.emailed(caregiver=caregiver))
+
+	def test_the_patch_adds_the_condition_once_and_keeps_a_churchs_own(self):
+		frappe.db.set_value("Notification", CARE_NOTIFICATION, "condition", None)
+		tell_care_team_of_requests_without_caregiver.execute()
+		tell_care_team_of_requests_without_caregiver.execute()
+		self.assertEqual(frappe.db.get_value("Notification", CARE_NOTIFICATION, "condition"), CARE_CONDITION)
+
+		frappe.db.set_value("Notification", CARE_NOTIFICATION, "condition", "doc.urgency == 'Urgent'")
+		tell_care_team_of_requests_without_caregiver.execute()
+		self.assertEqual(
+			frappe.db.get_value("Notification", CARE_NOTIFICATION, "condition"), "doc.urgency == 'Urgent'"
+		)
 
 
 class TestRenameAssignedTo(CareRequestCase):
@@ -308,3 +435,17 @@ class TestRenameAssignedTo(CareRequestCase):
 		rename_assigned_to()
 
 		self.assertEqual(self.caregiver_of(request), later)
+
+
+class TestCareRequestDates(CareRequestCase):
+	def test_a_due_date_before_the_submitted_date_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.request(submitted_on=nowdate(), due_on=add_days(nowdate(), -1))
+
+	def test_a_stored_reversed_pair_can_still_be_saved(self):
+		request = self.request(submitted_on=add_days(nowdate(), -5), due_on=add_days(nowdate(), 1))
+		frappe.db.set_value("Care Request", request.name, "due_on", add_days(nowdate(), -9))
+
+		request = frappe.get_doc("Care Request", request.name)
+		request.description = "Changed"
+		request.save(ignore_permissions=True)

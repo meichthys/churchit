@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-04-15 18:53:18.454663",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Church Location",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Locations",
- "modified": "2026-10-29 23:30:30.000000",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Locations",

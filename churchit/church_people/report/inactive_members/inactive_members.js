@@ -8,4 +8,8 @@ frappe.query_reports["Inactive Members"] = {
 			default: 60,
 		},
 	],
+	onload: function (report) {
+		const filter = report.get_filter("threshold_days");
+		filter.$input.attr("title", filter.df.label);
+	},
 };

@@ -26,4 +26,8 @@ frappe.query_reports["Assimilation Funnel"] = {
 			reqd: 1,
 		},
 	],
+	onload: function (report) {
+		const filter = report.get_filter("weeks");
+		filter.$input.attr("title", filter.df.label);
+	},
 };

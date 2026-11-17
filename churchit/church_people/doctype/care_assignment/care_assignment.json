@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "person",
+  "person_name",
   "church",
   "deacon",
   "start_date",
@@ -25,6 +26,15 @@
    "reqd": 1
   },
   {
+   "fetch_from": "person.full_name",
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Person Name",
+   "read_only": 1,
+   "width": "220px"
+  },
+  {
    "depends_on": "eval:!(frappe.boot.churchit && frappe.boot.churchit.single_church)",
    "fetch_from": "person.church",
    "fieldname": "church",
@@ -38,19 +48,19 @@
   {
    "fieldname": "deacon",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Caregiver",
    "options": "Person",
-   "reqd": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1
+   "reqd": 1
   },
   {
+   "default": "Today",
    "fieldname": "start_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Start Date",
-   "reqd": 1,
-   "default": "Today",
-   "in_list_view": 1
+   "reqd": 1
   },
   {
    "fieldname": "column_break_1",
@@ -73,7 +83,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-31 13:11:40.000000",
+ "modified": "2026-11-15 15:07:43.355586",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Assignment",
@@ -118,9 +128,10 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "start_date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "person",
+ "title_field": "person_name",
  "track_changes": 1
 }

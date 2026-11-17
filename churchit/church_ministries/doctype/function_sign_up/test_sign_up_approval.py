@@ -9,7 +9,10 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	PENDING,
 	WAITLISTED,
 )
-from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import make_sign_up
+from churchit.church_ministries.doctype.function_sign_up.test_sign_up_seats import (
+	make_sign_up,
+	take_payments_online,
+)
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -67,6 +70,7 @@ class TestSignUpApproval(RollbackEachTest):
 		self.assertEqual([row.person for row in attendance], [self.people[0]])
 
 	def test_approving_a_sign_up_with_an_amount_due_holds_it_for_payment(self):
+		take_payments_online(self)
 		function = self.make_function(selections=[{"selection": "Adult", "price": 30}])
 		sign_up = make_sign_up(
 			function, self.people[0], attendees=[{"person": self.people[0], "selection": "Adult"}]

@@ -6,13 +6,16 @@
 import re
 
 import frappe
+from frappe import _
 from frappe.desk.search import get_std_fields_list, relevance_sorter
 from frappe.model.db_query import get_order_by
 from frappe.utils.data import make_filter_tuple
 
 from churchit.church_people.privacy import ANONYMIZED
+from churchit.church_scope import CHURCH_FIELD, is_multi_church, session_church
 from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, phone_digits
 
+DECEASED_FIELD = "is_deceased"
 # Fewer digits than this are too common to search for, the same rule as the Check-In Station.
 MIN_SEARCH_DIGITS = 4
 # The field types Frappe's own Link search looks in.
@@ -61,6 +64,10 @@ def search_people(
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if meta.show_title_field_in_link and meta.title_field:
 		fields.insert(1, f"{meta.title_field} as label")
+	is_multi = is_multi_church()
+	if is_multi:
+		fields.append(CHURCH_FIELD)
+	fields.append(DECEASED_FIELD)
 
 	people = frappe.get_list(
 		"Person",
@@ -74,7 +81,35 @@ def search_people(
 		as_list=not as_dict,
 		strict=False,
 	)
+	home_church = session_church() if is_multi else None
+	people = [describe_person(person, as_dict, is_multi, home_church) for person in people]
 	return sorted(people, key=lambda person: relevance_sorter(person, txt, as_dict))
+
+
+def describe_person(person, as_dict: bool, is_multi: bool, home_church: str | None):
+	"""*person* with the church column swapped for the church's title, or dropped for the reader's own church,
+	and the deceased column swapped for a "Deceased" description, so a picker marks who has died."""
+	is_deceased = person[DECEASED_FIELD] if as_dict else person[-1]
+	title = None
+	if is_multi:
+		church = person[CHURCH_FIELD] if as_dict else person[-2]
+		if church and church != home_church:
+			title = frappe.get_cached_value("Church", church, "church_name")
+
+	if as_dict:
+		# A frappe._dict, because Frappe's relevance_sorter reads `.name`.
+		row = frappe._dict(person)
+		row.pop(DECEASED_FIELD)
+		if is_multi:
+			row.pop(CHURCH_FIELD)
+		if title:
+			row[CHURCH_FIELD] = title
+		if is_deceased:
+			row[DECEASED_FIELD] = _("Deceased")
+		return row
+
+	row = person[: -2 if is_multi else -1]
+	return (*row, *filter(None, (title, _("Deceased") if is_deceased else None)))
 
 
 def get_searched_fields(meta) -> list[str]:

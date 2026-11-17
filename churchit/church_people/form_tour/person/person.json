@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 01:29:19.000000",
+ "modified": "2026-11-15 15:08:21.267047",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",
@@ -17,7 +17,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "A `First Name` is the only required(*) field.\nLet's give this person a name.",
+   "description": "A first name is the only required (*) field.\nLet's give this person a name.",
    "fieldname": "first_name",
    "fieldtype": "Data",
    "has_next_condition": 1,
@@ -35,7 +35,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Add a `Last Name`.\nThe `Last Name` field is required if you want to create a family from this person.\nAfter saving, the `Full Name` shows as the title of the form.",
+   "description": "Add a last name.\nThe last name is required if you want to create a family from this person.\nAfter saving, the full name shows as the title of the form.",
    "fieldname": "last_name",
    "fieldtype": "Data",
    "has_next_condition": 1,
@@ -53,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "`Membership` says how this person is connected to the church: `Member`, `Regular Attender`, `Visitor` or `Contact`.\nAdding a `Membership` life event sets `Member` for you. Let's choose `Visitor` for now.",
+   "description": "Membership says how this person is connected to the church: Member, Regular Attender, Visitor or Contact.\nAdding a Membership life event sets Member for you. Let's choose Visitor for now.<br><br><b>Pick a Membership to continue.</b>",
    "fieldname": "membership",
    "fieldtype": "Link",
    "has_next_condition": 1,
@@ -66,12 +66,12 @@
    "offset_x": 0,
    "offset_y": 0,
    "popover_element": 0,
-   "position": "Top",
+   "position": "Bottom",
    "title": "Membership",
    "ui_tour": 0
   },
   {
-   "description": "`Status` is `Active` for everyone who still takes part in the church. Set it to `Inactive` when someone leaves, and give the reason. A `Death` life event sets it for you.",
+   "description": "Status is Active for everyone who still takes part in the church. Set it to Inactive when someone leaves, and give the reason. A Death life event sets it for you.",
    "fieldname": "membership_status",
    "fieldtype": "Link",
    "has_next_condition": 1,
@@ -89,7 +89,7 @@
    "ui_tour": 0
   },
   {
-   "description": "You can define `Church Position`s that this person has been or is currently assigned.\nGo ahead and assign this person a 'Secretary' position starting today by clicking on the `Add Row` button below.",
+   "description": "You can add the positions that this person has been or is now assigned.\nGo ahead and assign this person a 'Secretary' position starting today. Click the Add Row button below.",
    "fieldname": "positions",
    "fieldtype": "Table",
    "has_next_condition": 0,

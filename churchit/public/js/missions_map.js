@@ -40,8 +40,8 @@
 		if (!hiddenCount) return;
 		const label =
 			hiddenCount === 1
-				? "1 missionary not shown for their safety"
-				: `${hiddenCount} missionaries not shown for their safety`;
+				? __("1 missionary not shown for their safety")
+				: __("{0} missionaries not shown for their safety", [hiddenCount]);
 		const notice = document.createElement("div");
 		notice.className = "missions-map-notice";
 		notice.innerHTML = `<span class="missions-map-pill">${label}</span>`;
@@ -64,14 +64,29 @@
 			if (!markers.length) return;
 
 			const points = markers.map((marker) => {
-				L.marker([marker.latitude, marker.longitude], { icon: markerIcon(marker.photo) })
+				L.marker([marker.latitude, marker.longitude], {
+					icon: markerIcon(marker.photo),
+					title: marker.title,
+					alt: marker.title,
+				})
+					.on("add", (event) => {
+						// a pin is a Tab stop that opens its popup, so it is a named button
+						const pin = event.target.getElement();
+						pin.setAttribute("role", "button");
+						pin.setAttribute("aria-label", marker.title);
+					})
 					.addTo(map)
 					.bindPopup(popupContent(marker));
 				return [marker.latitude, marker.longitude];
 			});
 
 			if (points.length > 1) {
-				map.fitBounds(points, { padding: [30, 30], maxZoom: 6 });
+				// a pin stands 50px above its point, so the top needs the room
+				map.fitBounds(points, {
+					paddingTopLeft: [30, 60],
+					paddingBottomRight: [30, 30],
+					maxZoom: 6,
+				});
 			} else {
 				map.setView(points[0], 5);
 			}

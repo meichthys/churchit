@@ -8,4 +8,8 @@ frappe.query_reports["Function Attendance by Type"] = {
 			options: "Group",
 		},
 	],
+	onload: function (report) {
+		report.page_title = __("Check-Ins by Function");
+		report.page.set_title(report.page_title);
+	},
 };

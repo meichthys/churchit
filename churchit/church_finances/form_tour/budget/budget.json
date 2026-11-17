@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:16:12.000000",
+ "modified": "2026-11-15 05:40:15.444271",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Budget",
@@ -32,6 +32,24 @@
    "popover_element": 0,
    "position": "Bottom",
    "title": "The Period",
+   "ui_tour": 0
+  },
+  {
+   "description": "The last day this budget covers. It is required. The budget starts on the start date.",
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "End Date",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.end_date",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "End Date",
    "ui_tour": 0
   },
   {

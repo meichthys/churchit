@@ -4,7 +4,7 @@
  "allow_rename": 1,
  "autoname": "ASSET-.####",
  "creation": "2025-12-15 00:18:29.399376",
- "description": "Items that the Church owns (i.e. appliances, equipment, etc)",
+ "description": "Items that the church owns, such as appliances and equipment.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-operations",
  "engine": "InnoDB",
@@ -122,7 +122,7 @@
    "link_fieldname": "asset"
   }
  ],
- "modified": "2026-11-02 23:52:22.000000",
+ "modified": "2026-11-15 05:42:25.575983",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Church Asset",

@@ -99,6 +99,12 @@ class TestServingSummary(RollbackEachTest):
 		self.assertEqual(queued_people(lambda: function.save(ignore_permissions=True)), [[self.person]])
 		self.assertEqual(self.summary().last_served_on, getdate(add_days(today(), -5)))
 
+	def test_a_save_that_keeps_the_date_and_church_leaves_the_team_alone(self):
+		function = frappe.get_doc("Function", self.serve(-10).function)
+		function.description = "Notes"
+
+		self.assertEqual(queued_people(lambda: function.save(ignore_permissions=True)), [])
+
 
 class TestTeamPositionsSummary(RollbackEachTest):
 	def setUp(self):

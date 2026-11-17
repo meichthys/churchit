@@ -5,14 +5,28 @@ from unittest.mock import patch
 
 import frappe
 from frappe.exceptions import ValidationError
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_months, get_datetime, getdate, now
+from frappe.utils import (
+	add_days,
+	add_months,
+	add_years,
+	get_datetime,
+	get_first_day_of_week,
+	getdate,
+	now,
+	today,
+)
 
-from churchit.church_finances.doctype.collection.collection import ONLINE_PAYMENT_TYPE
+from churchit.church_finances.doctype.collection.collection import ONLINE_PAYMENT_TYPE, add_single_donation
+from churchit.church_finances.doctype.fund.fund import add_transaction, format_amount
 from churchit.church_finances.doctype.online_donation import online_donation
 from churchit.church_finances.report.fund_transactions_by_date import fund_transactions_by_date
-from churchit.patches.v1_0 import date_collection_ledger_rows, retitle_collections
-from churchit.tests.helpers import RollbackEachTest, make_function, make_person
+from churchit.church_summary.metrics import record_week
+from churchit.patches.v1_0 import (
+	date_collection_ledger_rows,
+	remove_donation_acknowledgment_notification,
+	retitle_collections,
+)
+from churchit.tests.helpers import RollbackEachTest, ensure_root_church, make_function, make_person
 
 
 def _ensure(doctype, filters, values):
@@ -22,8 +36,9 @@ def _ensure(doctype, filters, values):
 	return frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True).name
 
 
-class TestCollection(FrappeTestCase):
+class TestCollection(RollbackEachTest):
 	def setUp(self):
+		super().setUp()
 		self.fund = (
 			frappe.get_doc({"doctype": "Fund", "fund": "_Test Collection Fund"})
 			.insert(ignore_permissions=True)
@@ -45,6 +60,76 @@ class TestCollection(FrappeTestCase):
 		)
 		return collection.insert(ignore_permissions=True)
 
+	def make_giver(self, first_name, email):
+		person = make_person(first_name, "_Test Receipt")
+		person.append("emails", {"email_address": email, "is_primary": 1})
+		return person.save(ignore_permissions=True).name
+
+	def submit_with_receipts(self, rows, switch=1, **values):
+		"""Submit a collection of (person, amount) rows and return the emails it sent."""
+		frappe.db.set_single_value("Giving Settings", "email_receipts", switch)
+		collection = frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": "2030-04-07 09:00:00",
+				"expected_total": sum(amount for _person, amount in rows),
+				**values,
+			}
+		)
+		for person, amount in rows:
+			collection.append(
+				"donations",
+				{"payment_type": self.payment_type, "fund": self.fund, "person": person, "amount": amount},
+			)
+		collection.insert(ignore_permissions=True)
+		with (
+			patch("frappe.sendmail") as sendmail,
+			patch("churchit.church_finances.doctype.collection.collection.can_send_email", return_value=True),
+		):
+			collection.submit()
+		return sendmail.call_args_list
+
+	def test_a_submit_emails_each_giver_one_receipt_with_their_total(self):
+		anna = self.make_giver("_Test Anna", "_test_receipt_anna@example.com")
+		ben = self.make_giver("_Test Ben", "_test_receipt_ben@example.com")
+
+		calls = self.submit_with_receipts([(anna, 30), (ben, 20), (anna, 12.5), (None, 5)])
+
+		sent = {call.kwargs["recipients"][0]: call.kwargs for call in calls}
+		self.assertEqual(set(sent), {"_test_receipt_anna@example.com", "_test_receipt_ben@example.com"})
+		self.assertEqual(len(calls), 2)
+		self.assertIn(format_amount(42.5), sent["_test_receipt_anna@example.com"]["message"])
+		self.assertIn("_Test Anna", sent["_test_receipt_anna@example.com"]["message"])
+		self.assertIn("Sunday, April 7, 2030", sent["_test_receipt_ben@example.com"]["message"])
+
+	def test_no_receipts_while_the_setting_is_off(self):
+		anna = self.make_giver("_Test Anna", "_test_receipt_off@example.com")
+
+		self.assertEqual(self.submit_with_receipts([(anna, 30)], switch=0), [])
+
+	def test_the_form_gets_the_receipts_switch_to_draw_its_note(self):
+		for switch in (0, 1):
+			frappe.db.set_single_value("Giving Settings", "email_receipts", switch)
+			collection = frappe.new_doc("Collection")
+			collection.run_method("onload")
+
+			self.assertEqual(bool(collection.get_onload("email_receipts")), bool(switch))
+
+	def test_an_imported_batch_sends_no_receipts(self):
+		anna = self.make_giver("_Test Anna", "_test_receipt_import@example.com")
+
+		self.assertEqual(self.submit_with_receipts([(anna, 30)], import_batch="_Test Batch"), [])
+
+	def test_an_online_gift_sends_no_second_receipt(self):
+		_ensure("Payment Type", {"type": ONLINE_PAYMENT_TYPE}, {"type": ONLINE_PAYMENT_TYPE})
+		anna = self.make_giver("_Test Anna", "_test_receipt_online@example.com")
+		frappe.db.set_single_value("Giving Settings", "email_receipts", 1)
+
+		with patch("frappe.sendmail") as sendmail:
+			add_single_donation(ensure_root_church(), self.fund, 25, "online", person=anna)
+
+		sendmail.assert_not_called()
+
 	def test_totals_and_breakdowns_computed(self):
 		collection = self._make_collection(amount=200)
 		self.assertEqual(collection.total_amount, 200)
@@ -63,6 +148,68 @@ class TestCollection(FrappeTestCase):
 		collection = self._make_collection(amount=200, expected_total=250)
 		with self.assertRaises(ValidationError):
 			collection.submit()
+
+	def test_the_imbalance_message_shows_the_amount_in_the_site_currency(self):
+		collection = self._make_collection(amount=200, expected_total=1450)
+		with self.assertRaises(ValidationError) as raised:
+			collection.submit()
+		self.assertIn(format_amount(-1250), str(raised.exception))
+
+	def test_submit_and_cancel_alert_the_change_and_warn_only_of_a_negative_balance(self):
+		collection = self._make_collection(amount=1500)
+		frappe.local.message_log = []
+		collection.submit()
+		[alert] = frappe.get_message_log()
+		self.assertTrue(alert["alert"])
+		self.assertIn(f"fund increased by {format_amount(1500)}", alert["message"])
+		self.assertNotIn("$", alert["message"].replace(format_amount(1500), ""))
+
+		refund = self._make_collection(amount=-1600)
+		frappe.local.message_log = []
+		refund.submit()
+		alert, warning = frappe.get_message_log()
+		self.assertIn(f"fund decreased by {format_amount(1600)}", alert["message"])
+		self.assertEqual(warning["indicator"], "orange")
+		self.assertIn(format_amount(-100), warning["message"])
+
+		frappe.local.message_log = []
+		collection.cancel()
+		alert, warning = frappe.get_message_log()
+		self.assertIn(f"fund decreased by {format_amount(1500)}", alert["message"])
+		self.assertIn(format_amount(-1600), warning["message"])
+
+	def test_a_gift_into_a_fund_in_deficit_gives_no_warning(self):
+		add_transaction(self.fund, -500, "Expense", "_TEST-DEFICIT", now())
+		collection = self._make_collection(amount=100)
+		frappe.local.message_log = []
+		collection.submit()
+
+		self.assertEqual([message.get("indicator") for message in frappe.get_message_log()], ["green"])
+
+	def test_a_fund_whose_rows_net_to_zero_gets_no_message(self):
+		collection = frappe.get_doc({"doctype": "Collection", "date": now(), "expected_total": 0})
+		for amount in (0.1, 0.2, -0.3):
+			collection.append(
+				"donations", {"payment_type": self.payment_type, "fund": self.fund, "amount": amount}
+			)
+		collection.insert(ignore_permissions=True)
+		frappe.local.message_log = []
+		# The desk submits the stored rows, and their float sum is not exactly zero.
+		frappe.get_doc("Collection", collection.name).submit()
+
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_an_online_gift_shows_the_giver_no_fund_message(self):
+		_ensure("Payment Type", {"type": ONLINE_PAYMENT_TYPE}, {"type": ONLINE_PAYMENT_TYPE})
+		add_transaction(self.fund, -500, "Expense", "_TEST-DEFICIT", now())
+		frappe.local.message_log = []
+		frappe.msgprint("Thank you")
+		frappe.set_user("Guest")
+
+		add_single_donation(ensure_root_church(), self.fund, 40, "Online gift")
+
+		self.assertEqual([message["message"] for message in frappe.get_message_log()], ["Thank you"])
+		self.assertEqual(frappe.db.get_value("Fund", self.fund, "balance"), -460)
 
 	def test_submit_increases_fund_balance(self):
 		self._make_collection(amount=200).submit()
@@ -126,13 +273,68 @@ class TestCollection(FrappeTestCase):
 		self.assertEqual(self.ledger_dates(last_month, last_month), [get_datetime(f"{last_month} 10:00:00")])
 		self.assertEqual(self.ledger_dates(getdate(), getdate()), [])
 
-	def test_the_title_is_the_day_and_the_functions_name(self):
+	def test_an_old_collection_queues_a_recount_of_its_week(self):
+		old = add_days(get_first_day_of_week(today()), -10)
+		with patch.object(frappe, "enqueue") as enqueue:
+			collection = self._make_collection(date=f"{old} 10:00:00")
+			collection.submit()
+			collection.cancel()
+
+		week_start = get_first_day_of_week(old)
+		self.assertEqual(enqueue.call_count, 2)
+		self.assertEqual(enqueue.call_args.args, (record_week,))
+		self.assertEqual(
+			enqueue.call_args.kwargs,
+			{
+				"week_start": week_start,
+				"job_id": f"weekly_metrics_{week_start}",
+				"deduplicate": True,
+				"enqueue_after_commit": True,
+			},
+		)
+
+	def test_a_collection_of_this_week_or_last_week_leaves_the_recount_to_the_daily_job(self):
+		last_week = add_days(get_first_day_of_week(today()), -7)
+		with patch.object(frappe, "enqueue") as enqueue:
+			self._make_collection().submit()
+			self._make_collection(date=f"{last_week} 10:00:00").submit()
+		enqueue.assert_not_called()
+
+	def save_as_a_person(self, collection, date):
+		collection.flags.ignore_permissions = False
+		collection.date = date
+		frappe.local.message_log = []
+		collection.save()
+		return [message["message"] for message in frappe.get_message_log()]
+
+	def test_a_date_far_from_today_warns_but_saves(self):
+		collection = self._make_collection()
+		long_ago = add_days(add_years(today(), -1), -1)
+
+		[ahead] = self.save_as_a_person(collection, f"{add_days(today(), 31)} 10:00:00")
+		[back] = self.save_as_a_person(collection, f"{long_ago} 10:00:00")
+
+		self.assertIn("more than 30 days after today", ahead)
+		self.assertIn("more than a year before today", back)
+		self.assertEqual(
+			getdate(frappe.db.get_value("Collection", collection.name, "date")), getdate(long_ago)
+		)
+
+	def test_a_near_date_an_unchanged_date_or_an_import_gives_no_date_warning(self):
+		collection = self._make_collection(date=f"{add_days(today(), 31)} 10:00:00")
+		self.assertEqual(self.save_as_a_person(collection, collection.date), [])
+		self.assertEqual(self.save_as_a_person(collection, f"{add_days(today(), 30)} 10:00:00"), [])
+		self.assertEqual(self.save_as_a_person(collection, f"{add_years(today(), -1)} 10:00:00"), [])
+		with patch.dict(frappe.flags, in_import=True):
+			self.assertEqual(self.save_as_a_person(collection, "2062-11-15 10:00:00"), [])
+
+	def test_the_title_is_the_functions_name_and_the_long_date(self):
 		collection = self._make_collection(date="2030-04-04 09:30:00")
-		self.assertEqual(collection.title, "2030-04-04 Collection")
+		self.assertEqual(collection.title, "Collection, Thursday, April 4, 2030")
 
 		collection.function = make_function("_Test Title Service").name
 		collection.save(ignore_permissions=True)
-		self.assertEqual(collection.title, "2030-04-04 _Test Title Service")
+		self.assertEqual(collection.title, "_Test Title Service, Thursday, April 4, 2030")
 
 	def test_the_patch_retitles_each_collection_once_and_keeps_its_modified_time(self):
 		collection = self._make_collection(date="2030-04-04 09:30:00")
@@ -149,8 +351,44 @@ class TestCollection(FrappeTestCase):
 
 		self.assertEqual(
 			frappe.db.get_value("Collection", collection.name, ["title", "modified"]),
-			("2030-04-04 _Test Retitle Service", modified),
+			("_Test Retitle Service, Thursday, April 4, 2030", modified),
 		)
+
+	def make_notification(self, name, is_standard):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": name,
+				"subject": "Thanks",
+				"document_type": "Collection",
+				"event": "Submit",
+				"channel": "Email",
+				"message": "<p>Thanks</p>",
+				"recipients": [{"receiver_by_document_field": "owner"}],
+			}
+		)
+		doc.insert(ignore_permissions=True, set_name=name)
+		frappe.db.set_value("Notification", name, "is_standard", is_standard)
+
+	def test_the_patch_removes_the_standard_notification_and_keeps_a_churchs_own_copy(self):
+		frappe.db.delete("Notification", {"name": "Donation Acknowledgment"})
+		self.make_notification("Donation Acknowledgment", 1)
+		self.make_notification("_Test Own Receipt", 0)
+
+		with patch.dict(frappe.flags, in_patch=True):
+			remove_donation_acknowledgment_notification.execute()
+			remove_donation_acknowledgment_notification.execute()
+
+		self.assertFalse(frappe.db.exists("Notification", "Donation Acknowledgment"))
+		self.assertTrue(frappe.db.exists("Notification", "_Test Own Receipt"))
+
+	def test_the_patch_leaves_a_church_s_own_notification_with_the_same_name(self):
+		frappe.db.delete("Notification", {"name": "Donation Acknowledgment"})
+		self.make_notification("Donation Acknowledgment", 0)
+
+		remove_donation_acknowledgment_notification.execute()
+
+		self.assertTrue(frappe.db.exists("Notification", "Donation Acknowledgment"))
 
 	def test_the_patch_dates_old_ledger_rows_from_their_collection(self):
 		collection = self._make_collection(amount=321, date="2030-04-04 09:30:00")

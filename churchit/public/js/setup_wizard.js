@@ -15,9 +15,9 @@ frappe.setup.on("before_load", function () {
 				fieldname: "create_sample_data",
 				label: __("Create Sample Data"),
 				fieldtype: "Check",
-				default: 1,
+				default: 0,
 				description: __(
-					"Populate the site with a sample church, people, families, donations, prayer requests, and more so you can explore the app right away. You can remove this data later."
+					"Fills the site with a made-up church, so you can try every part. Demo logins use their email address as the password. Do not use sample data on a site that people can reach from the internet. To start fresh, open Settings > Sample Data and click Delete All Data. It removes the sample records, the demo logins and every record you added."
 				),
 			},
 		],

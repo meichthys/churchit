@@ -1,14 +1,19 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_years, today
+from frappe.utils import add_months, add_years, getdate, today
 
 from churchit.church_people.number_card.anniversaries_this_week import anniversaries_this_week
 from churchit.church_people.report.person_anniversaries_this_month import person_anniversaries_this_month
 from churchit.tests.helpers import ensure, make_person
 
 DEATH = {"event_type": "Death", "date": "2024-01-01"}
+REPORT_DATE = (
+	"churchit.church_people.report.person_anniversaries_this_month.person_anniversaries_this_month.getdate"
+)
 
 
 def marry(first_name, spouse, **values):
@@ -46,3 +51,21 @@ class TestAnniversaryLists(FrappeTestCase):
 
 		self.assertEqual(years[known.name], 20)
 		self.assertIsNone(years[unknown.name])
+
+	def test_this_month_is_the_month_of_the_sites_date(self):
+		next_month = add_months(getdate(), 1)
+		couple = make_person(
+			"Next Month",
+			"_Test Anniversary",
+			spouse=make_person("Spouse", "_Test Anniversary").name,
+			marital_status="Married",
+			anniversary=add_years(next_month, -20),
+		)
+
+		with patch(REPORT_DATE, return_value=next_month):
+			self.assertIn(couple.name, listed())
+		self.assertNotIn(couple.name, listed())
+
+
+def listed():
+	return [row["name"] for row in person_anniversaries_this_month.execute({})[1]]

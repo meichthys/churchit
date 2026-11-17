@@ -2,13 +2,13 @@ import frappe
 from frappe import _
 from pypika import Order
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.query import Date
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -20,6 +20,20 @@ def get_columns():
 		{"fieldname": "amount", "fieldtype": "Currency", "label": _("Amount"), "width": 120},
 		{"fieldname": "notes", "fieldtype": "Data", "label": _("Notes"), "width": 300},
 		{"fieldname": "date", "fieldtype": "Datetime", "label": _("Date"), "width": 150},
+		{
+			"fieldname": "source_type",
+			"fieldtype": "Link",
+			"label": _("Source Type"),
+			"options": "DocType",
+			"width": 120,
+		},
+		{
+			"fieldname": "source",
+			"fieldtype": "Dynamic Link",
+			"label": _("Source"),
+			"options": "source_type",
+			"width": 150,
+		},
 	]
 
 
@@ -35,7 +49,15 @@ def get_data(filters):
 		frappe.qb.from_(Fund)
 		.join(Transaction)
 		.on(Transaction.parent == Fund.name)
-		.select(Fund.fund, Transaction.amount, Transaction.notes, Transaction.date)
+		.select(
+			Fund.fund,
+			Fund.church,
+			Transaction.amount,
+			Transaction.notes,
+			Transaction.date,
+			Transaction.source_type,
+			Transaction.source,
+		)
 		.where(Transaction.parenttype == "Fund")
 		.orderby(Fund.fund)
 		.orderby(Transaction.date, order=Order.desc)

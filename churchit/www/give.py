@@ -7,7 +7,10 @@ import frappe
 from frappe import _
 from frappe.utils import flt, get_fullname, sbool
 
-from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
+from churchit.church_finances.doctype.giving_settings.giving_settings import (
+	GivingSettings,
+	get_currency,
+)
 from churchit.church_finances.payments import get_fee_to_cover, get_payment_url
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_scope import church_filters
@@ -26,7 +29,7 @@ def get_context(context):
 	context.gateways = settings.get_offered_gateways(church)
 	# Without a gateway, which needs the payments app, the form could take no gift.
 	context.enabled = bool(settings.enabled and context.gateways)
-	context.currency = settings.currency or "USD"
+	context.currency = get_currency()
 	context.thank_you_message = settings.get_thank_you_message(church)
 	context.other_ways_to_give = settings.get_other_ways_to_give(church)
 	context.success = frappe.form_dict.get("success")
@@ -123,7 +126,7 @@ def start_donation(
 		if not (donor_name and email):
 			frappe.throw(_("Please provide your name and email."))
 
-	currency = settings.currency or "USD"
+	currency = get_currency()
 	gift = frappe.get_doc(
 		{
 			"doctype": "Online Donation",

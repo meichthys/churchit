@@ -1,0 +1,13 @@
+{
+ "creation": "2026-11-15 15:16:51.448534",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-11-15 15:16:51.448534",
+ "modified_by": "Administrator",
+ "module": "Church Prayers",
+ "name": "Active Prayer Requests by Type",
+ "owner": "Administrator",
+ "source_name": "Active Prayer Requests by Type",
+ "timeseries": 0
+}

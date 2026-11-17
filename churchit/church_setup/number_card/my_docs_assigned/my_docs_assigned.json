@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-05-16 00:00:00.000000",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "ToDo",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Documents Assigned to Me",
- "modified": "2026-05-16 14:00:00.000000",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "My Docs Assigned",

@@ -7,10 +7,18 @@ from frappe.model.document import Document
 from frappe.utils import flt
 
 from churchit.church_finances.payments import is_payments_on
+from churchit.church_foundations import church_access
 
 # Gateways whose checkout takes an Online Donation and whose callback reaches on_payment_authorized.
 # Braintree is not here: its checkout loads the reference as a Payment Request.
 SUPPORTED_GATEWAY_SETTINGS = ("Stripe Settings", "PayPal Settings")
+# The tables whose rows each serve the church they name; the rest serves every church.
+CHURCH_TABLES = ("gateways", "church_wording")
+
+
+def get_currency() -> str:
+	"""The currency gifts, prices and statements use: Giving Settings, else the site default, else USD."""
+	return frappe.get_cached_doc("Giving Settings").currency or frappe.db.get_default("currency") or "USD"
 
 
 def is_supported_gateway(payment_gateway: str) -> bool:
@@ -21,8 +29,10 @@ def is_supported_gateway(payment_gateway: str) -> bool:
 class GivingSettings(Document):
 	def onload(self):
 		self.set_onload("is_payments_on", is_payments_on())
+		self.set_onload("has_every_church", church_access.has_every_church(frappe.session.user))
 
 	def validate(self):
+		church_access.refuse_changing_shared_settings(self, CHURCH_TABLES)
 		self.refuse_online_giving_without_payments()
 		self.refuse_unsupported_gateways()
 		self.refuse_bad_fee_rates()

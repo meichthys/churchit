@@ -29,6 +29,7 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 	PASTORAL_CARE,
 	create_communication_purposes,
 )
+from churchit.church_communications.test_unsubscribe_link import click_unsubscribe_link
 from churchit.patches.v1_0 import date_future_consent_when_entered, record_consent_from_unsubscribes
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -238,10 +239,7 @@ class TestUnsubscribes(RollbackEachTest):
 			self.assertTrue(allowed(person.name, EMAIL, PASTORAL_CARE))
 
 	def test_the_link_in_a_church_email_records_how_the_person_stopped(self):
-		frappe.set_user("Guest")
-		with mock.patch.object(frappe.db, "commit"):
-			newsletter.unsubscribe(email=SHARED_EMAIL, church=self.church, doctype="Church Email", name="x")
-		frappe.set_user("Administrator")
+		click_unsubscribe_link(email=SHARED_EMAIL, church=self.church)
 		self.assertEqual(consents(self.owner.name)[0].method, "Unsubscribe Link")
 
 	def test_leaving_one_conversation_records_no_consent(self):

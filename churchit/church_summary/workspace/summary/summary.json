@@ -46,7 +46,7 @@
  "is_hidden": 0,
  "label": "Summary",
  "links": [],
- "modified": "2026-11-10 07:45:00.000000",
+ "modified": "2026-11-17 00:28:22.768726",
  "modified_by": "Administrator",
  "module": "Church Summary",
  "name": "Summary",
@@ -104,12 +104,10 @@
   },
   {
    "color": "Orange",
-   "doc_view": "List",
-   "format": "{} open",
    "label": "Open Care Requests",
-   "link_to": "Care Request",
-   "stats_filter": "[[\"Care Request\",\"status\",\"not in\",[\"Resolved\",\"Closed\"]]]",
-   "type": "DocType"
+   "link_to": "Open Care Requests",
+   "report_ref_doctype": "Care Request",
+   "type": "Report"
   },
   {
    "color": "Blue",

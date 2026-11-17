@@ -22,13 +22,14 @@ from churchit.church_finances.doctype.payment_type.payment_type import (
 	NON_CASH,
 	create_non_cash_payment_type,
 )
-from churchit.church_foundations.church_access import set_user_church
+from churchit.church_foundations.church_access import set_include_branches, set_user_church
 from churchit.patches.v1_0 import add_giving_statement_email_template, mark_funds_tax_deductible
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
 	ensure_root_church,
 	ensure_user,
+	make_address,
 	make_branch,
 	make_person,
 	make_primary_contact,
@@ -187,6 +188,74 @@ class TestStatementGeneration(FrappeTestCase):
 			frappe.db.count("Giving Statement", {"person": giver.name, "from_date": PERIOD[0]}), 1
 		)
 
+	def make_household(self, name):
+		family = frappe.get_doc({"doctype": "Family", "family_name": name}).insert(ignore_permissions=True)
+		head = make_primary_contact(make_person(name, "Head", family=family.name))
+		spouse = make_person(name, "Spouse", family=family.name)
+		make_collection("2029-03-03", [(head.name, 10), (spouse.name, 20)])
+		family.reload()  # adding the members changed the Family
+		return family, head, spouse
+
+	def test_a_new_primary_contact_takes_over_the_household_statement(self):
+		family, _head, spouse = self.make_household("_Test Takeover")
+		generate_statements(*PERIOD)
+		make_primary_contact(spouse)
+
+		result = generate_statements(*PERIOD)
+
+		statements = frappe.get_all("Giving Statement", filters={"family": family.name}, fields=["person"])
+		self.assertEqual([row.person for row in statements], [spouse.name])
+		self.assertEqual(result["created"], 0)
+
+	def test_changing_to_household_grouping_removes_the_old_individual_statements(self):
+		frappe.db.set_single_value("Giving Settings", "statement_grouping", "Person")
+		family, head, spouse = self.make_household("_Test Regroup")
+		generate_statements(*PERIOD)
+		frappe.db.set_single_value("Giving Settings", "statement_grouping", "Household")
+
+		result = generate_statements(*PERIOD)
+
+		self.assertGreaterEqual(result["removed"], 2)
+		self.assertEqual(frappe.db.count("Giving Statement", {"family": family.name}), 1)
+		self.assertFalse(
+			frappe.db.exists("Giving Statement", {"person": spouse.name, "family": ("is", "not set")})
+		)
+
+	def test_an_emailed_statement_that_no_one_covers_any_more_stays_and_is_counted(self):
+		giver = make_person("_Test Emailed", "Stale")
+		make_collection("2029-04-04", [(giver.name, 15)])
+		generate_statements(*PERIOD)
+		name = frappe.db.get_value("Giving Statement", {"person": giver.name})
+		frappe.db.set_value("Giving Statement", name, "emailed_on", frappe.utils.now_datetime())
+		frappe.db.set_value("Giving Statement", name, "person", make_person("_Test Moved", "Away").name)
+
+		result = generate_statements(*PERIOD)
+
+		self.assertGreaterEqual(result["emailed_uncovered"], 1)
+		self.assertTrue(frappe.db.exists("Giving Statement", name))
+
+	def test_a_household_statement_prints_the_familys_mailing_address(self):
+		family, head, _spouse = self.make_household("_Test Printed")
+		address = make_address("_Test Printed Home", address_line1="77 Household Lane")
+		family.append("addresses", {"address": address.name, "is_primary": 1})
+		family.save(ignore_permissions=True)
+		generate_statements(*PERIOD)
+		name = frappe.db.get_value("Giving Statement", {"family": family.name})
+
+		html = frappe.get_print("Giving Statement", name, PRINT_FORMAT)
+
+		self.assertIn("77 Household Lane", html)
+
+	def test_a_household_statement_falls_back_to_the_persons_address(self):
+		family, head, _spouse = self.make_household("_Test Fallback")
+		address = make_address("_Test Fallback Home", address_line1="9 Person Street")
+		head.append("addresses", {"address": address.name, "is_primary": 1})
+		head.save(ignore_permissions=True)
+		generate_statements(*PERIOD)
+		name = frappe.db.get_value("Giving Statement", {"family": family.name})
+
+		self.assertIn("9 Person Street", frappe.get_print("Giving Statement", name, PRINT_FORMAT))
+
 	def test_people_without_gifts_get_no_statement(self):
 		quiet = make_person("_Test Quiet", "Person")
 		generate_statements(*PERIOD)
@@ -207,6 +276,10 @@ class TestStatementGeneration(FrappeTestCase):
 			)
 
 		self.assertFalse(frappe.db.exists("Giving Statement", {"person": giver.name}))
+
+
+def _root_of(church: str) -> str:
+	return frappe.db.get_value("Church", church, "parent_church")
 
 
 class TestStatementChurch(RollbackEachTest):
@@ -250,13 +323,66 @@ class TestStatementChurch(RollbackEachTest):
 		make_collection("2029-05-05", [(self.giver_b, 10)], church=self.branch_a)
 		frappe.set_user(self.finance_a)
 
-		self.assertEqual(generate_statements(*PERIOD), {"created": 1, "updated": 0})
+		self.assertEqual(
+			generate_statements(*PERIOD), {"created": 1, "updated": 0, "removed": 0, "emailed_uncovered": 0}
+		)
 		self.assertEqual(
 			frappe.get_all(
 				"Giving Statement", filters={"person": self.giver_b}, pluck="church", order_by="church"
 			),
 			sorted([self.branch_a, self.branch_b]),
 		)
+
+	def test_a_run_keeps_a_statement_for_gifts_outside_its_churches_until_they_are_gone(self):
+		"""Administrator files a statement in the giver's church, whose own run cannot see the gifts it lists."""
+		collection = make_collection("2029-06-06", [(self.giver_b, 30)], church=self.branch_a)
+		statement = self.statement(made_by_run=1).insert()
+		self.assertEqual(statement.church, self.branch_b)
+		finance_b = ensure_user(
+			"_test_statement_finance_b@example.com", "Finance B", roles=("Church Finance",)
+		)
+		set_user_church(finance_b, self.branch_b)
+
+		frappe.set_user(finance_b)
+		generate_statements(*PERIOD)
+		self.assertTrue(frappe.db.exists("Giving Statement", statement.name))
+
+		frappe.set_user("Administrator")
+		collection.cancel()
+		frappe.set_user(finance_b)
+		generate_statements(*PERIOD)
+		self.assertFalse(frappe.db.exists("Giving Statement", statement.name))
+
+	def test_a_hand_made_statement_stays_when_no_gift_needs_it_any_more(self):
+		frappe.set_user(self.finance_a)
+		statement = self.statement().insert()
+
+		result = generate_statements(*PERIOD)
+
+		self.assertEqual(result["removed"], 0)
+		self.assertTrue(frappe.db.exists("Giving Statement", statement.name))
+
+	def test_a_run_made_statement_with_no_gifts_left_goes(self):
+		frappe.set_user(self.finance_a)
+		statement = self.statement(made_by_run=1, church=self.branch_a).insert()
+
+		result = generate_statements(*PERIOD)
+
+		self.assertEqual(result["removed"], 1)
+		self.assertFalse(frappe.db.exists("Giving Statement", statement.name))
+
+	def test_a_main_church_run_with_branches_included_leaves_a_branchs_draft_alone(self):
+		root, branch = _root_of(self.branch_a), self.branch_b
+		statement = self.statement(made_by_run=1, church=branch).insert(ignore_permissions=True)
+		main = ensure_user("_test_statement_main@example.com", "Main", roles=("Church Finance",))
+		set_user_church(main, root)
+		frappe.set_user(main)
+		set_include_branches(True)
+		self.assertIn(statement.name, frappe.get_list("Giving Statement", pluck="name"))
+
+		generate_statements(*PERIOD)
+
+		self.assertTrue(frappe.db.exists("Giving Statement", statement.name))
 
 	def test_another_church_cannot_take_a_statement(self):
 		"""Frappe checks write on the church the caller sends, as a REST update does."""
@@ -577,7 +703,9 @@ class TestStatementEmail(RollbackEachTest):
 
 		frappe.set_user(self.finance_a)
 		with patch("frappe.enqueue") as enqueue:
-			self.assertEqual(email_statements(*PERIOD, resend="1"), 2)
+			self.assertEqual(
+				email_statements(*PERIOD, resend="1"), {"queued": 1, "no_email": 1, "already_emailed": 0}
+			)
 		self.assertEqual(enqueue.call_args.kwargs["queue"], "long")
 		self.assertCountEqual(enqueue.call_args.kwargs["names"], [self.statement, self.unreachable])
 		self.assertIs(enqueue.call_args.kwargs["resend"], True)
@@ -599,6 +727,29 @@ class TestStatementEmail(RollbackEachTest):
 		):
 			email_statements(*PERIOD)
 		enqueue.assert_not_called()
+
+	def test_a_missing_outgoing_account_asks_for_a_system_manager_and_names_the_print_route(self):
+		frappe.set_user(self.finance_a)
+		with (
+			patch.object(EmailAccount, "find_default_outgoing", return_value=None),
+			patch.object(frappe.local, "outgoing_email_account", {}, create=True),
+			self.assertRaises(frappe.OutgoingEmailError),
+		):
+			email_statements(*PERIOD)
+
+		messages = " ".join(str(message) for message in frappe.get_message_log())
+		self.assertIn("System Manager", messages)
+		self.assertNotIn("Tools > Email Account", messages)
+
+	def test_the_counts_say_how_many_go_out_and_why_the_rest_do_not(self):
+		frappe.db.set_value("Giving Statement", self.statement, "emailed_on", frappe.utils.now_datetime())
+		frappe.set_user(self.finance_a)
+		with patch("frappe.enqueue"):
+			skipped = email_statements(*PERIOD)
+			again = email_statements(*PERIOD, resend="1")
+
+		self.assertEqual(skipped, {"queued": 0, "no_email": 1, "already_emailed": 1})
+		self.assertEqual(again, {"queued": 1, "no_email": 1, "already_emailed": 0})
 
 	def test_emailing_takes_a_post(self):
 		frappe.set_user(self.finance_a)

@@ -18,7 +18,7 @@
 
 {% block page_content %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-1">{{ _("Communication Preferences") }}</h3>
+	<h1 class="my-account-header mb-1">{{ _("Communication Preferences") }}</h1>
 	<p class="text-muted">
 		{{ _("Choose how {0} may contact you.").format(church_name or _("your church")) | e }}
 	</p>
@@ -29,20 +29,28 @@
 		</p>
 	{% else %}
 		{% if email or phone %}
-			<p class="mb-4">{{ email | e if email }}{{ " · " if email and phone }}{{ phone | e if phone }}</p>
+			{# a phone number breaks only at the separator, never inside the number #}
+			<p class="mb-4">{{ email | e if email }}{{ " · " if email and phone }}{% if phone %}<span class="text-nowrap">{{ phone | e }}</span>{% endif %}</p>
 		{% endif %}
 
 		{% if not email %}
 			<div class="alert alert-warning">
 				{{ _("There is no email address on file for you, so you cannot choose emails here. Please contact the church office to add one.") }}
 			</div>
-		{% elif is_globally_unsubscribed %}
-			<div class="alert alert-info" id="preferences-stopped">
-				{{ _("You stopped every email to {0}. When you turn on an email switch, emails to this address start again.").format(email) | e }}
+		{% else %}
+			{% if is_globally_unsubscribed %}
+				<div class="alert alert-info" id="preferences-stopped">
+					{{ _("You stopped every email to {0}. When you turn on an email switch, emails to this address start again.").format(email) | e }}
+				</div>
+			{% endif %}
+			{# An older unsubscribe from all of the church's emails; the page shows or hides this after each switch. #}
+			<div class="alert alert-info" id="preferences-church-stopped" {{ "hidden" if not has_stopped_church_emails }}>
+				{{ _("You stopped all emails from {0} to {1}. Turn on Church News by email to start them again.").format(church_name or _("your church"), email) | e }}
 			</div>
 		{% endif %}
 
 		{% if channels %}
+			<p class="text-muted small">{{ _("Each switch changes only that kind of message. For example, turning off Church News stops only news.") }}</p>
 			<table class="preferences-table">
 				<thead>
 					<tr>
@@ -83,7 +91,7 @@
 
 		{# public/js/pwa.js shows this while the browser can install the app. #}
 		<div class="mt-5 d-none" data-install-app>
-			<h5>{{ _("App on this device") }}</h5>
+			<h2 class="h5">{{ _("App on this device") }}</h2>
 			<p class="text-muted">{{ _("Open {0} from your home screen, Dock or taskbar like any other app.").format(church_name or _("your church")) | e }}</p>
 			<button type="button" class="btn btn-primary btn-sm" data-install-app-button>{{ _("Install app") }}</button>
 		</div>
@@ -91,7 +99,7 @@
 		{% if push_public_key %}
 			<div class="mt-5" id="push-notifications" data-public-key="{{ push_public_key | e }}"
 				data-has-push-column="{{ 1 if 'Push' in channels else 0 }}">
-				<h5>{{ _("Notifications on this device") }}</h5>
+				<h2 class="h5">{{ _("Notifications on this device") }}</h2>
 				<p class="text-muted">{{ _("Let {0} show notifications on this phone or computer.").format(church_name or _("your church")) | e }}</p>
 				<button type="button" class="btn btn-primary btn-sm d-none" id="allow-notifications">{{ _("Allow notifications") }}</button>
 				<p class="d-none" id="notifications-on">
@@ -127,6 +135,8 @@ frappe.ready(function () {
 					frappe.show_alert({ message: r.message.message, indicator: input.checked ? "green" : "blue" });
 					var stopped = document.getElementById("preferences-stopped");
 					if (stopped && !r.message.is_globally_unsubscribed) stopped.remove();
+					var church_stopped = document.getElementById("preferences-church-stopped");
+					if (church_stopped) church_stopped.hidden = !r.message.has_stopped_church_emails;
 				},
 				error: function () {
 					input.disabled = false;

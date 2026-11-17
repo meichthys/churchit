@@ -5,7 +5,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from churchit.tests.helpers import ensure, make_function, make_person
-from churchit.utils import resolve_link_titles, set_report_link_titles
+from churchit.utils import get_dated_title, resolve_link_titles, set_report_link_titles
 
 
 class TestSetReportLinkTitles(FrappeTestCase):
@@ -72,3 +72,26 @@ class TestResolveLinkTitles(FrappeTestCase):
 		rows = [frappe._dict(requestor="PRSN-DOES-NOT-EXIST", recipient_type=None, recipient=None)]
 		resolve_link_titles(rows, "Prayer Request")
 		self.assertEqual(rows[0].requestor, "PRSN-DOES-NOT-EXIST")
+
+
+class TestGetDatedTitle(FrappeTestCase):
+	def test_the_name_and_the_long_date_join_with_a_comma(self):
+		self.assertEqual(
+			get_dated_title("Sunday Worship", "2026-11-15"), "Sunday Worship, Sunday, November 15, 2026"
+		)
+
+	def test_the_date_does_not_follow_the_system_date_format(self):
+		self.addCleanup(setattr, frappe.local, "user_date_format", None)
+		frappe.local.user_date_format = "dd-mm-yyyy"
+
+		self.assertEqual(get_dated_title("Camp", "2026-11-21"), "Camp, Saturday, November 21, 2026")
+
+	def test_a_missing_part_is_left_out(self):
+		self.assertEqual(get_dated_title(None, "2026-11-15"), "Sunday, November 15, 2026")
+		self.assertEqual(get_dated_title("Sunday Worship", None), "Sunday Worship")
+		self.assertEqual(get_dated_title("", ""), "")
+
+	def test_a_long_name_is_cut_so_the_title_fits_a_data_field(self):
+		title = get_dated_title("W" * 140, "2026-09-30")
+		self.assertEqual(len(title), 140)
+		self.assertTrue(title.endswith(", Wednesday, September 30, 2026"))

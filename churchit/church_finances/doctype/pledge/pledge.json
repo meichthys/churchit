@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "PLDG-.#####",
  "creation": "2026-10-23 01:11:13",
  "description": "What a person or a household promises to give to a Pledge Campaign. The Pledge Progress report compares it with their gifts.",
@@ -87,7 +86,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-31 13:13:13.000000",
+ "modified": "2026-11-15 15:06:09.949155",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Pledge",
@@ -137,6 +136,10 @@
    "read": 1,
    "role": "Church User",
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Church User"
   }
  ],
  "row_format": "Dynamic",

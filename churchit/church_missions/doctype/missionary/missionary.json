@@ -115,7 +115,7 @@
   },
   {
    "default": "Active",
-   "description": "Inactive ones are left out of the Church Directory and Missionary of the Week.",
+   "description": "Inactive ones are left off the website, directory and Missionary of the Week.",
    "fieldname": "status",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -312,7 +312,7 @@
    "link_fieldname": "missionary"
   }
  ],
- "modified": "2026-11-14 18:01:02.000000",
+ "modified": "2026-11-15 05:47:03.693728",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missionary",

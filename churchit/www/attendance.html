@@ -17,7 +17,30 @@
 
 {% block page_content %}
 <div class="my-account-container">
-	<h3 class="my-account-header mb-4">{{ _("Attendance") }}</h3>
+	<h1 class="my-account-header mb-4">{{ _("Attendance") }}</h1>
+
+	{% if upcoming %}
+		<h2 class="h5">{{ _("Upcoming") }}</h2>
+		{%- set sign_ups_on = "function-sign-up" not in get_switched_off_pages() %}
+		<ul class="attendance-list mb-5">
+			{% for row in upcoming %}
+			<li>
+				<span class="date">{{ frappe.format(row.start_date, {"fieldtype": "Date"}) }}</span>
+				{#- A sign-up the member made, or that names them, opens on the sign-up form. #}
+				<span class="function">
+					{%- if row.sign_up and sign_ups_on -%}
+					<a href="/function-sign-up/{{ row.sign_up | urlencode }}">{{ row.function_name | e }}</a>
+					{%- else -%}
+					{{ row.function_name | e }}
+					{%- endif -%}
+				</span>
+				{#- A Pending or Waitlisted sign-up shows its status; a Confirmed one shows as Signed-Up. -#}
+				<span class="status">{{ _(row.status) | e if row.status and row.status != "Confirmed" else _("Signed-Up") }}</span>
+			</li>
+			{% endfor %}
+		</ul>
+		<h2 class="h5">{{ _("Past") }}</h2>
+	{% endif %}
 
 	{% if not person %}
 		<p class="text-muted">
@@ -52,26 +75,32 @@
 			{% endfor %}
 		</ul>
 	{% endif %}
+	<div class="sr-only" id="attendance-saved" role="status" aria-live="polite"></div>
 </div>
 {% endblock %}
 
 {% block script %}
 <script>
 frappe.ready(function () {
+	var announcer = document.getElementById("attendance-saved");
+	var saved_message = {{ _("Attendance saved.") | tojson }};
+	// The select keeps focus while it saves, so a keyboard user can go on; aria-busy marks the wait.
 	document.querySelectorAll(".attendance-choice").forEach(function (select) {
 		var saved = select.value;
 		select.addEventListener("change", function () {
-			select.disabled = true;
+			select.setAttribute("aria-busy", "true");
+			announcer.textContent = "";
 			frappe.call({
 				method: "churchit.church_ministries.member_attendance.change_own_attendance",
 				args: { function: select.dataset.function, attendance_type: select.value },
 				callback: function () {
-					select.disabled = false;
+					select.removeAttribute("aria-busy");
 					saved = select.value;
-					frappe.show_alert({ message: "{{ _('Attendance saved.') }}", indicator: "green" });
+					announcer.textContent = saved_message;
+					frappe.show_alert({ message: saved_message, indicator: "green" });
 				},
 				error: function () {
-					select.disabled = false;
+					select.removeAttribute("aria-busy");
 					select.value = saved;
 				},
 			});

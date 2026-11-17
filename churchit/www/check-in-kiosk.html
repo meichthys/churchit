@@ -23,6 +23,7 @@
 	.kiosk-member { display: flex; align-items: center; gap: 16px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer;
 		border: 2px solid var(--border-color, #e5e7eb); border-radius: var(--ch-radius, 12px); }
 	.kiosk-member.is-chosen { border-color: var(--primary-color, #4338ca); }
+	.kiosk-member.is-checked-in { cursor: default; opacity: 0.6; }
 	.kiosk-member input[type="checkbox"] { width: 28px; min-width: 28px; height: 28px; flex: 0 0 auto; margin: 0;
 		accent-color: var(--primary-color, #4338ca); }
 	.kiosk-avatar { width: 56px; height: 56px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; display: flex;
@@ -172,12 +173,15 @@ frappe.ready(function () {
 		});
 	}
 
+	// Someone checked in already shows greyed, as on the Check-In Station, and cannot be ticked.
 	function member_card(member, titles) {
 		var card = document.createElement("label");
 		card.className = "kiosk-member";
+		card.classList.toggle("is-checked-in", member.checked_in);
 		card.dataset.person = member.name;
 		var box = document.createElement("input");
 		box.type = "checkbox";
+		box.disabled = member.checked_in;
 		box.addEventListener("change", function () {
 			card.classList.toggle("is-chosen", box.checked);
 		});
@@ -196,7 +200,14 @@ frappe.ready(function () {
 			grade.textContent = __(member.grade);
 			who.appendChild(grade);
 		}
-		who.appendChild(function_choice(member, titles));
+		if (member.checked_in) {
+			var done = document.createElement("div");
+			done.className = "kiosk-detail";
+			done.textContent = __("Checked in");
+			who.appendChild(done);
+		} else {
+			who.appendChild(function_choice(member, titles));
+		}
 		card.appendChild(who);
 		return card;
 	}

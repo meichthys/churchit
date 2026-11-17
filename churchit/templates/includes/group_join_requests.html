@@ -1,7 +1,7 @@
 {#- The open join requests of one group on the leader page: `group` is the group, `join_requests` maps each group to its requests. -#}
 {%- set requests = join_requests.get(group) or [] -%}
 <div class="group-join-requests">
-	<h5 class="mt-4">{{ _("Requests to Join") }}</h5>
+	<h3 class="h5 mt-4">{{ _("Requests to Join") }}</h3>
 	{% if requests %}
 	<ul class="list-unstyled mb-0">
 		{% for request in requests %}

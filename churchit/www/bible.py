@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from churchit.scripture import get_books, get_chapter, get_readable_translations
+from churchit.scripture import TRANSLATION, get_books, get_chapter, get_readable_translations
 
 # What a visitor may read depends on who they are, so a rendered page is never shared.
 no_cache = 1
@@ -21,12 +21,10 @@ def get_context(context):
 	context.translations = get_readable_translations()
 	if not context.translations:
 		return
-	requested = frappe.form_dict.get("translation")
-	context.translation = next(
-		(translation for translation in context.translations if translation.name == requested),
-		context.translations[0],
-	)
-	context.books = get_books(context.translation.name)
+	context.translation, context.books = open_translation(context, frappe.form_dict.get("translation"))
+	if not context.translation:
+		context.translations = []
+		return
 	requested = (frappe.form_dict.get("book") or "").upper()
 	context.book = next((book for book in context.books if book["id"] == requested), context.books[0])
 	context.chapter = min(max(cint(frappe.form_dict.get("chapter")), 1), context.book["chapters"])
@@ -35,6 +33,29 @@ def get_context(context):
 		get_chapter_url(context.translation.name, *neighbour, context.church) if neighbour else None
 		for neighbour in get_neighbours(context.books, context.book["id"], context.chapter)
 	)
+
+
+def open_translation(context, requested):
+	"""The translation to read and its books: the one asked for, else the first that opens.
+
+	One that cannot be read, such as a download that fails, gives way to a ready one with a notice.
+	Only the first choice can start a download, so the page waits for one download at most.
+	"""
+	first = next((item for item in context.translations if item.name == requested), context.translations[0])
+	ready = [item for item in context.translations if item.status == "Ready" and item is not first]
+	wanted = requested if requested and frappe.db.exists(TRANSLATION, requested) else first.name
+	for translation in (first, *ready):
+		try:
+			books = get_books(translation.name)
+		except frappe.PermissionError:
+			frappe.clear_messages()
+			continue
+		if translation.name != wanted:
+			context.notice = _("{0} is not available now. {1} is shown instead.").format(
+				wanted, translation.name
+			)
+		return translation, books
+	return None, None
 
 
 def get_neighbours(books, book, chapter):

@@ -17,6 +17,7 @@ frappe.listview_settings["Function Check-In"] = {
 			];
 		if (doc.collected_at)
 			return [__("Checked Out"), "gray", "security_code,is,not set|collected_at,is,set"];
+		return [__("Checked In"), "blue", "security_code,is,not set|collected_at,is,not set"];
 	},
 	onload(listview) {
 		listview.page.add_inner_button(__("Check-In Station"), () => frappe.set_route("check-in"));

@@ -148,13 +148,16 @@
 
       {%- if order_of_worship %}
       {{ section(_("Order of Worship")) }}
+      {%- set has_times = order_of_worship | selectattr("time") | list | length > 0 -%}
       <table class="rows">
         {%- for item in order_of_worship %}
         {%- if item.is_header %}
-        <tr><th colspan="2">{{ item.title | e }}</th></tr>
+        <tr><th colspan="{{ 2 if has_times else 1 }}">{{ item.title | e }}</th></tr>
         {%- else %}
         <tr>
+          {%- if has_times %}
           <td class="when">{{ item.time or "" }}</td>
+          {%- endif %}
           <td>{{ item.title | e }}{% if item.detail %}<div class="entry-detail">{{ item.detail | e }}</div>{% endif %}</td>
         </tr>
         {%- endif %}
@@ -219,7 +222,7 @@
       <h3>{{ entry.sermon.title | e }}</h3>
       <div class="meta">
         {%- if entry.preacher %}{{ entry.preacher | e }} &middot; {% endif -%}
-        {{ frappe.utils.formatdate(doc.function_date, "MMMM d, yyyy") }}
+        {{ frappe.utils.formatdate(doc.function_date, "EEEE, MMMM d, yyyy") }}
       </div>
       <div class="content">{{ entry.handout.rendered_content }}</div>
     </div>

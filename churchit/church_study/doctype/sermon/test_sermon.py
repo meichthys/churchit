@@ -4,6 +4,8 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.utils import LONG_DATE_FORMAT
+
 
 class TestSermon(FrappeTestCase):
 	def _sermon(self, title, **values):
@@ -88,6 +90,18 @@ class TestSermon(FrappeTestCase):
 
 		html = frappe.get_print("Sermon", sermon.name, print_format="Sermon Outline")
 
-		self.assertIn(frappe.utils.formatdate("2031-03-01"), html)
+		self.assertIn(frappe.utils.formatdate("2031-03-01", LONG_DATE_FORMAT), html)
 		self.assertIn("_Test Newer Hall", html)
 		self.assertNotIn("_Test Older Hall", html)
+
+
+class TestSermonTitle(FrappeTestCase):
+	def test_a_second_sermon_with_the_title_says_which_to_change(self):
+		title = "_Test The Good Shepherd"
+		sermon = frappe.get_doc({"doctype": "Sermon", "title": title}).insert(ignore_permissions=True)
+		self.addCleanup(sermon.delete)
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			frappe.get_doc({"doctype": "Sermon", "title": title}).insert(ignore_permissions=True)
+
+		self.assertIn("Another sermon is called", str(caught.exception))

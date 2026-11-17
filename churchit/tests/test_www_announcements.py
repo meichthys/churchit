@@ -56,6 +56,7 @@ class TestAnnouncementsPage(RollbackEachTest):
 		html = self.serve(self.church_a)
 
 		self.assertIn("_Test Shared A news", html)
+		self.assertIn("Sunday, June 1, 2031", html)
 		for absent in ("_Test Welcome Text", "_Test Shared B", "_Test Not Shared A", "_Test Unpublished A"):
 			self.assertNotIn(absent, html)
 

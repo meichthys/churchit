@@ -24,6 +24,10 @@ from churchit.tests.helpers import (
 HANDOUT = "<p>God so loved the [world] that he gave his [only Son], so that we [believe].</p>"
 
 
+# Later than any other sermon on the site, so a test's sermon is on the first page of /sermons.
+LAST_DATE = "2099-12-31"
+
+
 def make_sermon(title, **values):
 	return frappe.get_doc({"doctype": "Sermon", "title": title, "publish": 1, **values}).insert(
 		ignore_permissions=True
@@ -71,7 +75,7 @@ class TestSermonPage(RollbackEachTest):
 		self.assertIn("_Test Page Sermon", html)
 		self.assertIn("John 3:16", html)
 		self.assertIn("_Test the main points", html)
-		self.assertIn(frappe.utils.formatdate("2031-03-02"), html)
+		self.assertIn("Sunday, March 2, 2031", html)
 
 	def test_an_unpublished_or_missing_sermon_is_not_found(self):
 		draft = make_sermon("_Test Draft Page Sermon", publish=0)
@@ -429,9 +433,12 @@ class TestSermonsPage(RollbackEachTest):
 		return serve("sermons", fresh="1", **query).get_data(as_text=True)
 
 	def test_a_search_lists_only_matching_title_or_scripture(self):
-		by_title = make_sermon("_Test John Sermon Title")
-		by_scripture = make_sermon("_Test Search Scripture Sermon", scripture="John 1:1")
-		other = make_sermon("_Test Search Other Sermon", scripture="Psalms 23")
+		# Dated after every other sermon, so each is on the first page of 12.
+		by_title = make_sermon("_Test John Sermon Title", sermon_date=LAST_DATE)
+		by_scripture = make_sermon(
+			"_Test Search Scripture Sermon", scripture="John 1:1", sermon_date=LAST_DATE
+		)
+		other = make_sermon("_Test Search Other Sermon", scripture="Psalms 23", sermon_date=LAST_DATE)
 
 		html = self.serve_sermons(q="John")
 		self.assertIn(by_title.title, html)
@@ -461,7 +468,7 @@ class TestSermonsPage(RollbackEachTest):
 				"image": "/files/_test_series.png",
 			}
 		).insert(ignore_permissions=True)
-		make_sermon("_Test Image Series Sermon", series=series.name)
+		make_sermon("_Test Image Series Sermon", series=series.name, sermon_date=LAST_DATE)
 
 		html = self.serve_sermons()
 		self.assertIn('src="/files/_test_series.png"', html)

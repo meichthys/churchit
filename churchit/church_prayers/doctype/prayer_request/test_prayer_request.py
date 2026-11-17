@@ -53,8 +53,14 @@ class TestPrayerRequest(FrappeTestCase):
 		frappe.set_user("Guest")
 		self.assertFalse(public.has_webform_permission())
 
-	def test_visibility_defaults_to_whole_church(self):
-		self.assertEqual(self._request().visibility, "Whole Church")
+	def test_visibility_defaults_to_the_most_private_option(self):
+		self.assertEqual(self._request().visibility, "Private")
+
+	def test_the_web_forms_offer_private_first(self):
+		for name in ("prayer-request", "prayer-request-anonymous"):
+			field = frappe.get_doc("Web Form", name).get("web_form_fields", {"fieldname": "visibility"})[0]
+			self.assertEqual(frappe.get_meta("Prayer Request").get_field("visibility").default, "Private")
+			self.assertEqual(field.default or "Private", "Private")
 
 	def test_a_guest_request_waits_for_approval(self):
 		ensure("Prayer Request Status", {"status": "Answered"})

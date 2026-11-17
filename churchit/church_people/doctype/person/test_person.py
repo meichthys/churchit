@@ -12,7 +12,7 @@ from frappe.desk.search import search_link
 from frappe.handler import run_doc_method
 from frappe.permissions import add_user_permission
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_years, getdate, nowdate
+from frappe.utils import add_days, add_years, getdate, nowdate
 
 from churchit.church_communications.newsletter import email_church, has_unsubscribed, set_subscribed
 from churchit.church_foundations.church_access import set_user_church, user_church_permissions
@@ -419,6 +419,29 @@ class TestPerson(FrappeTestCase):
 		ensure_outgoing_email_account()
 		with self.assertRaises(frappe.ValidationError):
 			person.invite_to_portal()
+
+	def test_the_portal_invitation_messages_are_plain_and_escape_the_name(self):
+		person = self._make_person(
+			first_name="Ann<b>",
+			last_name="Invitee",
+			emails=[{"email_address": "_ann_invitee@example.com", "is_primary": 1}],
+		)
+		frappe.local.message_log = []
+		with (
+			patch("churchit.church_people.doctype.person.person.get_email_problem", return_value=None),
+			patch("frappe.core.doctype.user.user.User.send_welcome_mail_to_user"),
+		):
+			person.invite_to_portal()
+			created = frappe.local.message_log[-1]["message"]
+			self.assertIn("can now sign in to the portal", created)
+			self.assertIn("/desk/user/_ann_invitee%40example.com", created)
+			self.assertNotIn("<b>", created)
+			self.assertTrue(created.isascii())
+
+			frappe.local.message_log = []
+			person.db_set("user", None)
+			person.invite_to_portal()
+		self.assertIn("already had a portal login", frappe.local.message_log[-1]["message"])
 
 	def test_user_dashboard_data_links_the_person_doctype(self):
 		from churchit.church_people.doctype.person.person import get_user_dashboard_data
@@ -1169,3 +1192,120 @@ class TestPersonDataImport(ImportCase):
 			self.table(person.phones, "phone_number"), [("555-010-0301", 0), ("555-010-0302", 1)]
 		)
 		self.assertEqual(person.primary_phone, "555-010-0302")
+
+
+class TestPersonDateRules(RollbackEachTest):
+	def setUp(self):
+		super().setUp()
+		for event_type in ("Birth", "Death"):
+			_ensure("Life Event Type", {"type": event_type}, {"type": event_type})
+		self.person = make_person(
+			"_Test Dates", "Rules", life_events=[{"event_type": "Birth", "date": "1980-04-02"}]
+		)
+
+	def assertRefused(self, message, change):
+		with self.assertRaises(frappe.ValidationError) as raised:
+			change(self.person)
+			self.person.save()
+		self.assertIn(message, str(raised.exception))
+
+	def test_a_birth_date_in_the_future_is_refused(self):
+		def change(person):
+			person.life_events[0].date = add_years(nowdate(), 1)
+
+		self.assertRefused("A birth date cannot be in the future.", change)
+
+	def test_a_birthday_typed_on_the_portal_in_the_future_is_refused(self):
+		self.assertRefused(
+			"A birth date cannot be in the future.", lambda p: p.set("birthday", add_years(nowdate(), 1))
+		)
+
+	def test_a_death_date_before_the_birth_is_refused(self):
+		self.assertRefused(
+			"A death date cannot be before the birth date.",
+			lambda p: p.append("life_events", {"event_type": "Death", "date": "1970-01-01"}),
+		)
+
+	def test_an_anniversary_in_the_future_or_before_the_birth_is_refused(self):
+		self.assertRefused(
+			"An anniversary cannot be in the future.", lambda p: p.set("anniversary", add_years(nowdate(), 1))
+		)
+		self.person.reload()
+		self.assertRefused(
+			"An anniversary cannot be before the birth date.", lambda p: p.set("anniversary", "1950-01-01")
+		)
+
+	def test_unticking_no_year_on_a_date_ahead_is_refused(self):
+		ahead = add_days(nowdate(), 30)
+		frappe.db.set_value("Life Event", self.person.life_events[0].name, {"date": ahead, "year_unknown": 1})
+		frappe.db.set_value("Person", self.person.name, {"anniversary": ahead, "anniversary_year_unknown": 1})
+		self.person.reload()
+		self.assertRefused(
+			"A birth date cannot be in the future.", lambda p: p.life_events[0].set("year_unknown", 0)
+		)
+		self.person.reload()
+		self.assertRefused(
+			"An anniversary cannot be in the future.", lambda p: p.set("anniversary_year_unknown", 0)
+		)
+
+	def test_a_second_birth_event_is_refused(self):
+		self.assertRefused(
+			"A person can have only one Birth life event.",
+			lambda p: p.append("life_events", {"event_type": "Birth", "date": "1981-01-01"}),
+		)
+
+	def test_a_position_that_ends_before_it_starts_is_refused(self):
+		_ensure(
+			"Position Type",
+			{"position": "_Test Dates Position"},
+			{"position": "_Test Dates Position"},
+		)
+		self.assertRefused(
+			"the End Date cannot be before the Start Date",
+			lambda p: p.append(
+				"positions",
+				{"position": "_Test Dates Position", "start_date": "2020-05-01", "end_date": "2020-01-01"},
+			),
+		)
+
+	def test_an_old_bad_date_does_not_block_other_changes(self):
+		frappe.db.set_value("Life Event", self.person.life_events[0].name, "date", add_years(nowdate(), 2))
+		self.person.reload()
+		self.person.first_name = "_Test Dates Renamed"
+		self.person.save()
+
+		self.assertEqual(frappe.db.get_value("Person", self.person.name, "first_name"), "_Test Dates Renamed")
+
+
+class TestPersonEmailNotes(RollbackEachTest):
+	def test_a_bounced_primary_email_is_sent_to_the_form(self):
+		person = make_person(
+			"_Test Bounce", "Note", emails=[{"email_address": "bounce.note@example.com", "is_primary": 1}]
+		)
+		self.assertIsNone(person.bounced_email)
+
+		frappe.db.set_value("Email Address", person.emails[0].name, "is_bounced", 1)
+		person.reload()
+		self.assertEqual(person.bounced_email, "bounce.note@example.com")
+
+	def test_a_user_who_cannot_set_up_email_is_told_to_ask_a_system_manager(self):
+		from churchit.church_people.doctype.person import person as module
+
+		with patch.object(module, "can_send_email", return_value=False):
+			with patch.object(frappe, "has_permission", return_value=False):
+				self.assertEqual(module.get_email_problem(), "Ask a System Manager to set up outgoing email.")
+			with patch.object(frappe, "has_permission", return_value=True):
+				self.assertIn("/desk/email-account", module.get_email_problem())
+		with patch.object(module, "can_send_email", return_value=True):
+			self.assertIsNone(module.get_email_problem())
+
+	def test_ending_a_marriage_names_both_people_without_emoji(self):
+		first = make_person("_Test Spouse", "One")
+		second = make_person("_Test Spouse", "Two", spouse=first.name, marital_status="Married")
+		first.reload()
+		frappe.local.message_log = []
+		first.unlink_spouse(second.name)
+		message = " ".join(str(entry) for entry in frappe.local.message_log)
+
+		self.assertIn("is no longer recorded as the spouse of", message)
+		self.assertTrue(message.isascii())

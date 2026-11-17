@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-31 13:42:09.000000",
+ "modified": "2026-11-15 05:53:16.970601",
  "modified_by": "Administrator",
  "module": "Church Website",
  "name": "Website Settings",
@@ -17,7 +17,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "The route a visitor lands on, written without the leading slash. Churchit installs <code>home</code>; change it only once you have built a page of your own to replace it.",
+   "description": "The page a visitor sees first. Type its address without the first slash. The app sets it to 'home'. Change it only after you build a page of your own to replace it.",
    "fieldname": "home_page",
    "fieldtype": "Data",
    "has_next_condition": 0,
@@ -35,7 +35,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Churchit installs a <b>Churchit</b> theme and selects it here. Switching to Standard drops the church styling, so change it only if you have built your own theme.",
+   "description": "The app installs a theme named <b>Churchit</b> and selects it here. Switching to Standard drops the church styling, so change it only if you have built your own theme.",
    "fieldname": "website_theme",
    "fieldtype": "Link",
    "has_next_condition": 0,
@@ -53,7 +53,7 @@
    "ui_tour": 0
   },
   {
-   "description": "Your logo, shown at the left of the public navbar. A transparent PNG works best; the navbar scales it to its own height rather than the other way round.",
+   "description": "Your logo, shown at the left of the website menu. A transparent PNG works best. The menu sets its own height for the logo.",
    "fieldname": "banner_image",
    "fieldtype": "Attach Image",
    "has_next_condition": 0,
@@ -89,7 +89,7 @@
    "ui_tour": 0
   },
   {
-   "description": "The public menu, seeded at install with the pages churchit ships: Home, Beliefs, Sermons, Missions, Ministries, Calendar, About, Contact, Give. It is yours from then on; nothing rewrites it. Removing a link here leaves its Web Page published, so churchit offers to unpublish the page when you save.",
+   "description": "The website menu. It starts with the pages that the app ships: Home, Beliefs, Sermons, Missions, Ministries, Calendar, About, Contact and Give. After that it is yours: nothing changes it for you. If you remove a link, its page stays published, so the app asks if you want to unpublish the page when you save.",
    "fieldname": "top_bar_items",
    "fieldtype": "Table",
    "has_next_condition": 0,

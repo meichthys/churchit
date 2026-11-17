@@ -433,6 +433,22 @@ class TestFamilyAcrossChurches(RollbackEachTest):
 			frappe.set_user("Administrator")
 		self.assertEqual(frappe.db.get_value("Person", theirs, "family"), household)
 
+	def test_the_refusal_never_names_another_churchs_household(self):
+		mine = make_person("_Test Across", "Head", church=self.branch_a).name
+		theirs = make_person("_Test Across", "Housed", church=self.branch_b).name
+		make_household_of(theirs, family_name="_Test Across Their Household")
+		household = make_household_of(mine, primary_contact=mine)
+
+		frappe.set_user(self.editor_a)
+		try:
+			family = frappe.get_doc("Family", household)
+			family.append("members", {"member": theirs})
+			with self.assertRaises(frappe.PermissionError) as caught:
+				family.save()
+		finally:
+			frappe.set_user("Administrator")
+		self.assertNotIn("_Test Across Their Household", str(caught.exception))
+
 	def user(self, email, role, church):
 		ensure_user(email, email.split("@")[0], roles=(role,))
 		set_user_church(email, church)
@@ -458,3 +474,73 @@ def pickups_of(family):
 	return frappe.get_all(
 		"Authorized Pickup", filters={"family": family}, pluck="person", order_by="creation"
 	)
+
+
+class TestFamilyMembership(RollbackEachTest):
+	def household(self, name, *people):
+		return frappe.get_doc(
+			{"doctype": "Family", "family_name": name, "members": [{"member": person} for person in people]}
+		).insert()
+
+	def test_a_person_of_another_household_is_refused_for_a_new_one(self):
+		sarah = make_person("_Test Move", "Sarah").name
+		old = self.household("_Test Old Household", sarah)
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			self.household("_Test New Household", sarah)
+
+		self.assertIn("_Test Old Household", str(caught.exception))
+		self.assertEqual([row.member for row in frappe.get_doc("Family", old.name).members], [sarah])
+
+	def test_a_person_of_another_household_is_refused_when_added_to_a_saved_one(self):
+		sarah = make_person("_Test Move", "Sarah").name
+		self.household("_Test Old Household", sarah)
+		other = self.household("_Test Other Household", make_person("_Test Move", "Tom").name)
+
+		other.append("members", {"member": sarah})
+
+		self.assertRaises(frappe.ValidationError, other.save)
+
+	def test_moving_through_the_person_still_works(self):
+		sarah = make_person("_Test Move", "Sarah")
+		old = self.household("_Test Old Household", sarah.name)
+		new = self.household("_Test New Household", make_person("_Test Move", "Tom").name)
+
+		sarah.reload()
+		sarah.family = new.name
+		sarah.save()
+
+		self.assertEqual(frappe.get_doc("Family", old.name).member_names, [])
+		self.assertIn(sarah.name, frappe.get_doc("Family", new.name).member_names)
+
+	def test_a_person_on_two_rows_is_refused(self):
+		martha = make_person("_Test Twice", "Martha").name
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			self.household("_Test Twice Household", martha, martha)
+
+		self.assertIn("Row 2", str(caught.exception))
+		self.assertIn("already in row 1", str(caught.exception))
+
+	def test_a_repeat_stored_earlier_does_not_block_another_save(self):
+		martha = make_person("_Test Twice", "Martha").name
+		family = self.household("_Test Twice Household", martha)
+		family.append("members", {"member": martha})
+		family.flags.ignore_validate = True
+		family.save()
+		family = frappe.get_doc("Family", family.name)
+		self.assertEqual(len(family.members), 2)
+
+		family.family_name = "_Test Twice Renamed"
+		family.save()
+
+		self.assertEqual(frappe.db.get_value("Family", family.name, "family_name"), "_Test Twice Renamed")
+
+	def test_a_merge_keeps_working(self):
+		sarah = make_person("_Test Move", "Sarah").name
+		old = self.household("_Test Old Household", sarah)
+		kept = self.household("_Test Kept Household", make_person("_Test Move", "Tom").name)
+
+		merge_families(kept.name, old.name)
+
+		self.assertIn(sarah, frappe.get_doc("Family", kept.name).member_names)

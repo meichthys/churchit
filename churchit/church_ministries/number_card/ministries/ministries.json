@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2026-03-26 20:29:30.829035",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Ministry",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Ministries",
- "modified": "2026-10-31 13:19:37.000000",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",

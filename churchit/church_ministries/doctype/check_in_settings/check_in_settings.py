@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from churchit.church_foundations import church_access
 from churchit.church_ministries.doctype.function_check_in.function_check_in import VOLUNTEER
 from churchit.church_ministries.page.check_in.team import get_position
 
@@ -28,7 +29,11 @@ VOLUNTEER_NAME_TAG = "Volunteer Name Tag"
 class CheckInSettings(Document):
 	"""Name tag rendering and delivery for the Check-In Station."""
 
+	def onload(self):
+		self.set_onload("has_every_church", church_access.has_every_church(frappe.session.user))
+
 	def validate(self):
+		church_access.refuse_changing_shared_settings(self, ("printers",))
 		if (self.label_width or 0) <= 0 or (self.label_height or 0) <= 0:
 			frappe.throw(_("Label width and height must be greater than zero."))
 		for formats in [self, *self.tag_formats]:

@@ -1,0 +1,16 @@
+{
+ "channel": "Email",
+ "condition": "doc.status == \"Open\" and not doc.snoozed_until",
+ "condition_type": "Python",
+ "date_changed": "due_on",
+ "days_in_advance": 1,
+ "document_type": "Follow-up Card",
+ "enabled": 0,
+ "event": "Days After",
+ "message_type": "HTML",
+ "name": "Follow-up Card Overdue",
+ "recipients": [],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 1,
+ "subject": "Follow-up overdue: {{ doc.person_name or doc.person }}"
+}

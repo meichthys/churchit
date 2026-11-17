@@ -1,14 +1,23 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 
-from churchit.church_people.matching import find_matches, get_possible_matches, is_same_phone
+from churchit.church_people.matching import (
+	find_matches,
+	find_or_add_person,
+	get_possible_matches,
+	is_same_phone,
+)
 from churchit.contacts import phone_digits
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
+	ensure_root_church,
 	ensure_user,
+	force_single_church,
 	make_person,
 	make_two_churches,
 	set_private_people,
@@ -177,3 +186,52 @@ class TestMatchesAcrossChurches(RollbackEachTest):
 		frappe.set_user(self.member)
 		with self.assertRaises(frappe.PermissionError):
 			get_possible_matches({"first_name": "Mary", "last_name": LAST_NAME, "phones": ["2175550170"]})
+
+
+class TestAddVisitor(RollbackEachTest):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		force_single_church()
+		cls.church = ensure_root_church()
+		cls.staff = ensure_user("_test_matching_staff@example.com", "_Test Staff", roles=("Church Manager",))
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("People Settings", "match_threshold", 80)
+		# A card queues its processing after the commit a test never makes; the test calls process() itself.
+		enqueue = patch("frappe.enqueue_doc")
+		enqueue.start()
+		self.addCleanup(enqueue.stop)
+
+	def test_a_visitor_a_guests_connection_card_adds_is_made_by_administrator(self):
+		card = frappe.get_doc(
+			{
+				"doctype": "Connection Card",
+				"first_name": "_Test Owner",
+				"last_name": LAST_NAME,
+				"email": "_test_owner_card@example.com",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+		try:
+			card.process()
+		finally:
+			frappe.set_user("Administrator")
+
+		person = frappe.get_doc("Person", frappe.db.get_value("Connection Card", card.name, "person"))
+		self.assertEqual(person.first_name, "_Test Owner")
+		self.assertEqual((person.owner, person.modified_by), ("Administrator", "Administrator"))
+
+	def test_a_visitor_staff_add_keeps_staff_as_its_maker(self):
+		frappe.set_user(self.staff)
+		try:
+			person, added = find_or_add_person(
+				{"first_name": "_Test Typed", "last_name": LAST_NAME}, self.church, "Connection Card"
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertTrue(added)
+		self.assertEqual(frappe.db.get_value("Person", person, "owner"), self.staff)

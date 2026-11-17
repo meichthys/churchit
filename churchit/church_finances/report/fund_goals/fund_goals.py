@@ -2,13 +2,13 @@ import frappe
 from frappe import _
 from pypika import Field, Order
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.query import Greatest, Round
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -31,6 +31,7 @@ def get_data(filters=None):
 		frappe.qb.from_(Fund)
 		.select(
 			Fund.name.as_("fund"),
+			Fund.church,
 			Fund.goal_amount,
 			Fund.balance,
 			Greatest(Fund.goal_amount - Fund.balance, 0).as_("remaining"),

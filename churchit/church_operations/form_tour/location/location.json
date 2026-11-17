@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-10-29 23:30:30.000000",
+ "modified": "2026-11-15 05:40:15.427056",
  "modified_by": "Administrator",
  "module": "Church Operations",
  "name": "Location",
@@ -16,6 +16,24 @@
  "reference_doctype": "Church Location",
  "save_on_complete": 1,
  "steps": [
+  {
+   "description": "The name of the place, such as 'Main Building' or 'Fellowship Hall'. It is required.",
+   "fieldname": "location_name",
+   "fieldtype": "Data",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Location Name",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.location_name",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Location Name",
+   "ui_tour": 0
+  },
   {
    "description": "Tick Is Group to make this a container (e.g. a campus or building) other Locations nest under. Leave off for an actual place.",
    "fieldname": "is_group",

@@ -10,7 +10,7 @@
 {%- set first_name = ((person.nickname or person.first_name) if person else "") or "" -%}
 {%- set last_name = (person.last_name if person else "") or "" -%}
 {%- set allergies = (person.alergies if person and settings.print_allergies else "") or "" -%}
-{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date, "MMM d, yyyy") if function and function.start_date else ""]|select|join(" · ") -%}
+{%- set footer = [function.function_name if function else "", frappe.utils.formatdate(function.start_date) if function and function.start_date else ""]|select|join(" · ") -%}
 {%- set first_size = (height * 0.32) if first_name|length <= 9 else (height * 0.32 * 9 / first_name|length) -%}
 <style>
   .print-format { page-width: {{ width }}in; page-height: {{ height }}in; margin-top: 0mm; margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; max-width: none; padding: 0; }
@@ -30,7 +30,7 @@
 {%- if pickup_names %}
 <div class="name-tag pickup">
   {% if doc.security_code %}<img class="qr-code" src="{{ get_qr_code(doc.security_code) }}" alt="">{% endif %}
-  <div class="pickup-title">Pickup</div>
+  <div class="pickup-title">{{ _("Pickup") }}</div>
   <div class="code">{{ doc.security_code or "" }}</div>
   <div class="names">{{ pickup_names|join(", ")|e }}</div>
   <div class="footer"><span>{{ footer }}</span></div>
@@ -39,7 +39,7 @@
 <div class="name-tag">
   <div class="first-name" style="font-size: {{ first_size|round(2) }}in">{{ first_name|e }}</div>
   <div class="last-name">{{ last_name|e }}</div>
-  {% if allergies %}<div class="allergies">Allergies: {{ allergies|e }}</div>{% endif %}
+  {% if allergies %}<div class="allergies">{{ _("Allergies: {0}").format(allergies|e) }}</div>{% endif %}
   <div class="footer">
     <span>{{ footer }}</span>
     {% if doc.security_code %}<span class="code">{{ doc.security_code }}</span>{% endif %}

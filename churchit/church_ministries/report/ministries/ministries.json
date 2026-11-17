@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2026-09-28 12:00:00",
+ "modified": "2026-11-17 00:28:30.834318",
  "modified_by": "Administrator",
  "module": "Church Ministries",
  "name": "Ministries",
@@ -28,6 +28,9 @@
   },
   {
    "role": "Church Staff"
+  },
+  {
+   "role": "Church Check-In"
   }
  ],
  "timeout": 0

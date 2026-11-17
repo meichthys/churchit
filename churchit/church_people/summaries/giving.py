@@ -3,8 +3,9 @@
 
 """Giving: the dates of a person's first and last gift, and whether their giving has lapsed.
 
-A gift is a Donation row on a submitted Collection, as a giving statement counts it. A paid Online Donation records
-one, dated when it was paid, so the Online Donation itself is not read.
+A gift is a cash Donation row on a submitted Collection. Donated property (a non-cash row) is not a gift here, so a
+person who once gave property does not become a lapsed giver. A paid Online Donation records one, dated when it was
+paid, so the Online Donation itself is not read.
 """
 
 import frappe
@@ -43,7 +44,7 @@ def compute(people: list[str]) -> dict[str, dict]:
 		.join(Person)
 		.on(Person.name == Donation.person)
 		.select(Donation.person, Min(Collection.date).as_("first"), Max(Collection.date).as_("last"))
-		.where(Donation.person.isin(people) & (Collection.docstatus == 1))
+		.where(Donation.person.isin(people) & (Donation.is_non_cash == 0) & (Collection.docstatus == 1))
 		.where(Collection.date < tomorrow)
 		.where(same_church(Collection, Person))
 		.groupby(Donation.person)

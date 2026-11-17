@@ -1,10 +1,10 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_rename": 0,
  "autoname": "EXP-.####",
  "creation": "2025-10-09 02:25:29.401455",
  "default_print_format": "Expense Voucher",
- "description": "A financial transaction that reduces the balance of a `Fund`",
+ "description": "Money paid out of a fund. Save it to ask for approval; submitting it takes the amount from the fund.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-finances",
  "engine": "InnoDB",
@@ -19,6 +19,8 @@
   "associated_fund",
   "ministry",
   "missionary",
+  "paid_on",
+  "payment_reference",
   "section_break_fdwq",
   "notes",
   "amended_from"
@@ -48,6 +50,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Amount",
+   "non_negative": 1,
    "reqd": 1
   },
   {
@@ -99,12 +102,29 @@
    "search_index": 1
   },
   {
+   "allow_on_submit": 1,
+   "description": "The day the money was paid out. Fill it in after approval.",
+   "fieldname": "paid_on",
+   "fieldtype": "Date",
+   "label": "Paid On",
+   "no_copy": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "The check number or transfer reference.",
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference",
+   "no_copy": 1
+  },
+  {
    "default": "Now",
    "fieldname": "date",
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "in_preview": 1,
-   "label": "Date"
+   "label": "Date",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_nqye",
@@ -137,13 +157,8 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "link_doctype": "Fund",
-   "link_fieldname": "source"
-  }
- ],
- "modified": "2026-11-14 18:01:02.000000",
+ "links": [],
+ "modified": "2026-11-17 00:23:46.379574",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Expense",

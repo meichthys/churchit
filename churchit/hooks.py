@@ -55,13 +55,15 @@ fixtures = [
 # Apps
 # ------------------
 
-# The Churchit tile on the Apps screen, which opens on Summary.
+# The Churchit tile on the Apps screen, which opens on Summary. Only desk users get it, because Frappe
+# sends a member who signs in to their tile's route instead of the Church User home page, the portal.
 add_to_apps_screen = [
 	{
 		"name": "churchit",
 		"logo": app_logo_url,
 		"title": app_title,
 		"route": "/desk/summary",
+		"has_permission": "frappe.permissions.is_system_user",
 	}
 ]
 
@@ -85,6 +87,7 @@ app_include_js = [
 	"/assets/churchit/js/ai_actions.js",
 	"/assets/churchit/js/ai_writing.js",
 	"/assets/churchit/js/ai_people.js",
+	"/assets/churchit/js/desk_search.js",
 ]
 
 # include js, css files in header of web template
@@ -96,6 +99,7 @@ web_include_js = [
 	"/assets/churchit/js/portal_groups.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
+	"/assets/churchit/js/web_form_lists.js",
 	"/assets/churchit/js/pwa.js",
 	"/assets/churchit/js/questions.js",
 ]
@@ -117,8 +121,13 @@ doctype_js = {
 	"Web Form": "public/js/web_form_qr.js",
 	# Translate with AI: a draft translation of a public page, for a fluent person to check.
 	"Web Page": "public/js/web_page_ai.js",
+	# How to use a shipped notification, which cannot be turned on: duplicate it.
+	"Notification": "public/js/notification.js",
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {
+	# Names each notification as the manuals do, not by its subject template.
+	"Notification": "public/js/notification_list.js",
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -154,10 +163,13 @@ page_renderer = [
 	"churchit.church_website.pages.MembersOnlyPage",
 ]
 
-# A members-only Web Page stays out of guest search, and a switched-off web form takes no submission.
+# A members-only Web Page stays out of guest search, a switched-off web form takes no submission, and a
+# Notification sends no email while no Email Account can send it.
 extend_doctype_class = {
 	"Web Page": ["churchit.church_website.pages.MembersOnlyWebPage"],
 	"Web Form": ["churchit.church_website.pages.SwitchedOffWebForm"],
+	"Notification": ["churchit.church_communications.outgoing_email.EmailOnlyWithAnAccount"],
+	"Email Template": ["churchit.church_communications.sending.ChurchNameInEmailTemplates"],
 }
 
 # website user home page (by Role)
@@ -185,6 +197,7 @@ jinja = {
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
 		"churchit.church_website.pages.get_switched_off_pages",
+		"churchit.church_website.portal_home.get_portal_home_sections",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.
@@ -212,6 +225,8 @@ after_migrate = [
 	"churchit.ai.flow_switch.forget_missing_blocked_doctypes",
 	# With AI on and a Flow embedding model, the manuals become the Church Office agent's knowledge.
 	"churchit.ai.manual_knowledge.queue_sync",
+	# The published-field scan is cached; a migrate can change web pages, web forms and doctypes.
+	"churchit.church_website.published_fields.clear_published_field_cache",
 ]
 
 # Frappe collects the login notes on `on_login`, which runs before the session
@@ -292,16 +307,22 @@ has_permission = {
 	"Prayer Request": "churchit.church_prayers.prayer_access.has_prayer_permission",
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
+	"Pledge": "churchit.church_people.member_access.has_own_record_permission",
+	"Function Sign-Up": "churchit.church_people.member_access.has_own_record_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
 	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
 	"Flow Agent": "churchit.ai.flow_switch.has_agent_permission",
 	"Flow Session": "churchit.ai.flow_switch.has_session_permission",
+	"Meeting Minutes": "churchit.church_operations.doctype.meeting_minutes.meeting_minutes.has_minutes_permission",
+	"Number Card": "churchit.church_summary.card_access.has_card_permission",
 }
 
 # A portal member lists only their own Person, a Note Category limits who reads its
 # notes, the follow-up role lists only the cards assigned to it, and a portal member
-# lists only the files of their own groups, and a user lists only their own push
-# subscriptions. Church scoping never uses this.
+# lists only the files of their own groups and the pledges and sign-ups that name them
+# or that they made, and a user lists only their own push subscriptions. Church Staff list only
+# Published minutes, and a user who reads only their own prayer or care requests gets no card that
+# counts every request. Church scoping never uses this.
 permission_query_conditions = {
 	"Person": "churchit.church_people.member_access.person_query_conditions",
 	"Family": "churchit.church_people.member_access.family_query_conditions",
@@ -309,8 +330,12 @@ permission_query_conditions = {
 	"Person Note": "churchit.church_people.notes.note_query_conditions",
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
+	"Pledge": "churchit.church_people.member_access.own_records_query_conditions",
+	"Function Sign-Up": "churchit.church_people.member_access.own_records_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
+	"Meeting Minutes": "churchit.church_operations.doctype.meeting_minutes.meeting_minutes.minutes_query_conditions",
+	"Number Card": "churchit.church_summary.card_access.card_query_conditions",
 }
 
 # A person's notes, visits, care requests, life events, transfers and connection cards show on their
@@ -342,13 +367,19 @@ churchit_people_events = {
 # connects an AI app.
 doc_events = {
 	"*": {
-		"validate": "churchit.church_scope.ensure_church",
+		# Only someone across every church changes a lookup that every church picks from (church_access.GLOBAL_LOOKUPS).
+		"validate": [
+			"churchit.church_scope.ensure_church",
+			"churchit.church_foundations.church_access.refuse_changing_global_lookup",
+		],
+		"before_rename": "churchit.church_foundations.church_access.refuse_changing_global_lookup",
 		"before_cancel": "churchit.church_scope.refuse_changing_another_churches_record",
 		"before_update_after_submit": "churchit.church_scope.refuse_changing_another_churches_record",
 		"on_update": "churchit.church_people.summaries.on_change",
 		"on_cancel": "churchit.church_people.summaries.on_change",
 		"on_trash": [
 			"churchit.church_scope.refuse_deleting_another_churches_record",
+			"churchit.church_foundations.church_access.refuse_changing_global_lookup",
 			"churchit.church_people.summaries.on_change",
 		],
 	},
@@ -375,6 +406,9 @@ doc_events = {
 	},
 	"Group": {
 		"on_trash": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.clear_group",
+	},
+	"Notification Log": {
+		"after_insert": "churchit.church_communications.outgoing_email.forget_no_account_message",
 	},
 	"Person": {
 		"on_trash": "churchit.church_people.duplicates.drop_pairs",
@@ -435,12 +469,25 @@ doc_events = {
 	"User": {
 		"validate": "churchit.church_summary.home.land_on_summary",
 		"after_insert": "churchit.church_foundations.church_access.scope_new_user",
-		"on_update": "churchit.church_communications.push.delete_user_subscriptions",
+		"on_update": [
+			"churchit.church_communications.push.delete_user_subscriptions",
+			"churchit.church_setup.doctype.church_features.user_dock.sync_user_on_roles_change",
+		],
 		"on_trash": "churchit.church_communications.push.delete_user_subscriptions",
 	},
 	"Web Page": {
-		"on_update": "churchit.church_website.menu.sync_web_page",
-		"on_trash": "churchit.church_website.menu.remove_from_menu",
+		"on_update": [
+			"churchit.church_website.menu.sync_web_page",
+			"churchit.church_website.published_fields.clear_published_field_cache",
+		],
+		"on_trash": [
+			"churchit.church_website.menu.remove_from_menu",
+			"churchit.church_website.published_fields.clear_published_field_cache",
+		],
+	},
+	"Web Form": {
+		"on_update": "churchit.church_website.published_fields.clear_published_field_cache",
+		"on_trash": "churchit.church_website.published_fields.clear_published_field_cache",
 	},
 }
 
@@ -545,8 +592,12 @@ flow_agents = ["churchit.ai.flow.agents"]
 # (churchit.ai.runner), survive a full clear_cache, such as a migrate or a Church Features save.
 persistent_cache_keys = ["churchit:ai_draft:*", "churchit:ai_run:*"]
 
-# A Person Link field also finds people by phone number or email address.
-standard_queries = {"Person": "churchit.church_people.search.search_people"}
+# A Person Link field also finds people by phone number or email address, and a Function Link field
+# offers the coming functions first.
+standard_queries = {
+	"Person": "churchit.church_people.search.search_people",
+	"Function": "churchit.church_ministries.search.search_functions",
+}
 
 # The search bar (Ctrl+K) finds these records by their title field. Never add a record about one person's
 # care, prayer or history. They come first in Global Search Settings, whose first 5 rows are the search
@@ -558,8 +609,8 @@ global_search_doctypes = {
 		{"doctype": "Family", "index": 1},
 		{"doctype": "Group", "index": 2},
 		{"doctype": "Sermon", "index": 3},
-		{"doctype": "Song", "index": 4},
-		{"doctype": "Function", "index": 5},
+		{"doctype": "Function", "index": 4},
+		{"doctype": "Song", "index": 5},
 		{"doctype": "Ministry", "index": 6},
 		{"doctype": "Sermon Series", "index": 7},
 		{"doctype": "Missionary", "index": 8},

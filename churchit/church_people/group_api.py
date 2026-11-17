@@ -39,14 +39,7 @@ def joinable_public_groups() -> list[dict]:
 	`requires_approval` marks a group whose leaders decide, and `requested` one the user already asked to join.
 	"""
 	person = _session_person()
-	mine = (
-		{
-			r.parent
-			for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])
-		}
-		if person
-		else set()
-	)
+	mine = set(get_member_groups())
 	# church-scope: the session's own requests
 	requested = set(
 		frappe.get_all("Group Join Request", {"person": person, "status": REQUESTED}, pluck="group")
@@ -64,6 +57,21 @@ def joinable_public_groups() -> list[dict]:
 		for r in rows
 		if r.name not in mine and frappe.get_doc("Group", r.name).is_enrollment_open
 	]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_member_groups() -> list[str]:
+	"""The names of the groups the caller is a member of. Reads only.
+
+	/find-a-group marks these, so the public page itself reads no member row.
+	"""
+	person = _session_person()
+	if not person:
+		return []
+	# church-scope: the session's own member rows
+	return frappe.get_all(
+		"Group Member", {"person": person, "parenttype": "Group"}, pluck="parent", distinct=True
+	)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -94,6 +102,31 @@ def join_group(group: str | None, message: str | None = None) -> dict:
 	refuse_a_closed_group(doc)
 	add_member(doc, person)
 	return {"joined": True, "group_name": group_name}
+
+
+@frappe.whitelist(methods=["POST"])
+def leave_group(group: str | None) -> dict:
+	"""Remove the caller's own Person from *group*. Changes data.
+
+	It never removes another person. The only leader cannot leave, so the group is never left with none.
+	"""
+	person = _session_person()
+	if not group or not person:
+		frappe.throw(_("Your user account isn't linked to a Person record yet."), frappe.PermissionError)
+
+	doc = frappe.get_doc("Group", group, for_update=True)
+	rows = [member for member in doc.members if member.person == person]
+	if not rows:
+		frappe.throw(_("You are not a member of this group."), frappe.PermissionError)
+	if get_leaders(doc.name) == [person]:
+		frappe.throw(
+			_("You are the only leader of this group. Ask the church office to name another leader.")
+		)
+
+	for row in rows:
+		doc.remove(row)
+	doc.save(ignore_permissions=True)
+	return {"left": True, "group_name": doc.group_name}
 
 
 def get_portal_group_name(group: str | None) -> str:

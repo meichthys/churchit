@@ -58,22 +58,43 @@ LAYOUT_FIELDTYPES = {"Section Break", "Column Break", "Tab Break", "Heading", "H
 # How far to follow a page into the helpers, templates and jinja methods it calls.
 HELPER_DEPTH = 3
 
+# The scan reads the app's source and every published page and form; it changes only on a deploy or an edit of one.
+CACHE_KEY = "churchit_published_field_entries"
 
-def published_field_map():
+
+def published_field_map(use_cache=False):
 	"""Every field the website shows, as ``{doctype: {fieldname: [source, …]}}``.
 
 	Each source is a ``{"title", "route", "access"}`` dict naming the page, form
 	or API that shows the field, so the desk badge can say where it appears and
-	whether anyone sees it or only a signed-in member.
+	whether anyone sees it or only a signed-in member. With *use_cache* the scan
+	is read from the cache, which `clear_published_field_cache` empties.
 	"""
 	published = defaultdict(lambda: defaultdict(list))
-	for source, doctype, fieldname in published_entries():
+	for source, doctype, fieldname in published_entries(use_cache):
 		published[doctype][fieldname].append(source)
 	return {doctype: dict(fields) for doctype, fields in published.items()}
 
 
-def published_entries():
+def published_entries(use_cache=False):
 	"""Yield ``(source, doctype, fieldname)`` for everything the website shows."""
+	entries = frappe.cache.get_value(CACHE_KEY) if use_cache else None
+	if entries is None:
+		entries = list(scanned_entries())
+		if use_cache:
+			frappe.cache.set_value(CACHE_KEY, entries)
+	yield from entries
+	# Schedule rows change with every Function, so they are read on each call.
+	yield from schedule_item_entries(set(frappe.get_all("DocType", pluck="name")))
+
+
+def clear_published_field_cache(doc=None, method=None):
+	"""Forget the scan. Runs after a migrate and when a Web Page or Web Form changes or is deleted."""
+	frappe.cache.delete_value(CACHE_KEY)
+
+
+def scanned_entries():
+	"""Yield the entries read from source code, Web Pages and Web Forms."""
 	doctypes = set(frappe.get_all("DocType", pluck="name"))
 	for source, code in code_sources():
 		code = with_helper_code(code)
@@ -82,7 +103,6 @@ def published_entries():
 			for fieldname in fields_used_in(doctype, code, attributes):
 				yield source, doctype, fieldname
 	yield from web_form_entries()
-	yield from schedule_item_entries(doctypes)
 
 
 def schedule_item_entries(doctypes):
@@ -171,17 +191,19 @@ def guest_api_sources():
 
 def web_form_entries():
 	"""Yield ``(source, doctype, fieldname)`` for the fields each published Web Form shows."""
-	for form in frappe.get_all(
+	forms = frappe.get_all(
 		"Web Form",
 		filters={"published": 1},
 		fields=["name", "title", "route", "doc_type", "login_required", "key_required"],
-	):
+	)
+	shown = web_form_fieldnames([form.name for form in forms])
+	for form in forms:
 		source = {
 			"title": (form.title or form.name).strip(),
 			"route": form.route or form.name,
 			"access": web_form_access(form),
 		}
-		for fieldname in web_form_fieldnames(form) & field_names(form.doc_type):
+		for fieldname in shown[form.name] & field_names(form.doc_type):
 			yield source, form.doc_type, fieldname
 
 
@@ -195,18 +217,19 @@ def web_form_access(form):
 	return LINK_HOLDERS if form.key_required else PUBLIC
 
 
-def web_form_fieldnames(form):
-	"""Fields a Web Form puts on the page, from its inputs and its list columns."""
-	shown = {
-		row.fieldname
-		for row in frappe.get_all(
-			"Web Form Field", filters={"parent": form.name}, fields=["fieldname", "fieldtype"]
-		)
-		if row.fieldtype not in LAYOUT_FIELDTYPES
-	}
-	return shown | set(
-		frappe.get_all("Web Form List Column", filters={"parent": form.name}, pluck="fieldname")
-	)
+def web_form_fieldnames(names):
+	"""Form name to the fields that Web Form puts on the page, from its inputs and its list columns."""
+	shown = defaultdict(set)
+	for row in frappe.get_all(
+		"Web Form Field", filters={"parent": ["in", names]}, fields=["parent", "fieldname", "fieldtype"]
+	):
+		if row.fieldtype not in LAYOUT_FIELDTYPES:
+			shown[row.parent].add(row.fieldname)
+	for row in frappe.get_all(
+		"Web Form List Column", filters={"parent": ["in", names]}, fields=["parent", "fieldname"]
+	):
+		shown[row.parent].add(row.fieldname)
+	return shown
 
 
 def with_helper_code(code, depth=HELPER_DEPTH, seen=None):

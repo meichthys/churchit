@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Sum
-from frappe.utils import add_days
+from frappe.utils import add_days, flt
 from pypika import Order
 
 from churchit.church_scope import scoped
@@ -12,6 +12,8 @@ def execute(filters=None):
 	columns = get_columns()
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
+	if data:
+		data.append(get_total_row(data))
 	return columns, data
 
 
@@ -20,6 +22,12 @@ def get_columns():
 		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 200},
 		{"fieldname": "total_amount", "fieldtype": "Currency", "label": _("Total Amount"), "width": 150},
 	]
+
+
+def get_total_row(rows):
+	return frappe._dict(
+		person=_("Total"), total_amount=sum(flt(row.total_amount) for row in rows), is_total_row=1
+	)
 
 
 def get_data(filters=None):
@@ -35,7 +43,10 @@ def get_data(filters=None):
 		.on(Collection.name == Donation.parent)
 		.select(Donation.person, total_amount)
 		.where(
-			(Donation.parenttype == "Collection") & Donation.person.isnotnull() & (Collection.docstatus == 1)
+			(Donation.parenttype == "Collection")
+			& Donation.person.isnotnull()
+			& (Donation.is_non_cash == 0)
+			& (Collection.docstatus == 1)
 		)
 		.groupby(Donation.person)
 		.orderby(Sum(Donation.amount), order=Order.desc)

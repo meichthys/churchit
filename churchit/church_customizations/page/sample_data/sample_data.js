@@ -9,22 +9,31 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 	});
 
 	const $container = $(`
-		<div class="sample-data-page" style="max-width: 600px; margin: 40px auto;">
+		<div class="sample-data-page" style="max-width: 600px; margin: 40px auto; padding: 0 var(--padding-md);">
 			<p style="font-size: var(--text-lg); color: var(--text-muted);">
 				${__(
-					"Sample data lets you explore the Church app with a pre-populated church: people and families, groups, follow-up, missionaries, giving and pledges, expenses, prayer requests, functions with paid sign-ups, forms, songs, rooms and equipment, tasks, sermons with handouts, bulletins, a members-only web page, and related Bible study data."
+					"Sample data lets you explore Churchit with a pre-populated church: people and families, groups, follow-up, missionaries, giving and pledges, expenses, prayer requests, functions with paid sign-ups, forms, songs, rooms and equipment, tasks, sermons with handouts, bulletins, a members-only web page, and related Bible study data."
 				)}
 			</p>
-			<div class="mt-3">
-				<button class="btn btn-primary btn-md btn-create-sample-data">
+			<div class="alert alert-warning">
+				<p>${__(
+					"Demo logins use their email address as the password. Do not use sample data on a site that people can reach from the internet."
+				)}</p>
+				<p class="mb-0">${__(
+					"To start fresh, click Delete All Data. It removes the sample records, the demo logins and every record you added."
+				)}</p>
+			</div>
+			<p class="sample-data-status font-weight-bold"></p>
+			<div class="mt-3 sample-data-buttons">
+				<button class="btn btn-primary btn-md btn-create-sample-data" style="display: none;">
 					${__("Create Sample Data")}
 				</button>
-				<button class="btn btn-danger btn-md ml-2 btn-delete-sample-data">
+				<button class="btn btn-danger btn-md btn-delete-sample-data" style="display: none;">
 					${__("Delete All Data")}
 				</button>
 			</div>
 			<div class="mt-4">
-				<a href="/app/summary" class="btn btn-default btn-md">
+				<a href="/desk/summary" class="btn btn-default btn-md">
 					${__("Back to Summary")}
 				</a>
 			</div>
@@ -32,6 +41,22 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 	`);
 
 	$(page.body).html($container);
+
+	const show_status = () =>
+		frappe.xcall("churchit.setup.sample_data.get_status", {}, "GET").then((status) => {
+			let message = status.is_loaded ? __("Sample data is loaded.") : __("No sample data.");
+			if (!status.can_change) {
+				message += " " + __("Only a System Manager can create or delete sample data.");
+			}
+			$container.find(".sample-data-status").text(message);
+			$container
+				.find(".btn-create-sample-data")
+				.toggle(status.can_change && !status.is_loaded);
+			$container
+				.find(".btn-delete-sample-data")
+				.toggle(status.can_change && status.is_loaded);
+		});
+	show_status();
 
 	$container.find(".btn-create-sample-data").on("click", function () {
 		frappe.confirm(__("This will create sample records. Continue?"), function () {
@@ -44,6 +69,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 						message: __("Sample data has been created."),
 						indicator: "green",
 					});
+					show_status();
 				},
 			});
 		});
@@ -57,7 +83,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 				{
 					fieldtype: "HTML",
 					options: `
-						<div style="color: var(--red-600); margin-bottom: 12px;">
+						<div style="color: var(--ink-red-7); margin-bottom: 12px;">
 							<p style="margin-bottom: 8px;"><strong>🛑 This cannot be undone.</strong></p>
 							<p style="margin-bottom: 8px;">This will permanently delete <strong>ALL</strong> records in:</p>
 							<p style="margin-bottom: 8px;">
@@ -98,6 +124,7 @@ frappe.pages["sample-data"].on_page_show = function (wrapper) {
 							message: __("All data has been deleted."),
 							indicator: "green",
 						});
+						show_status();
 					},
 				});
 			},

@@ -4,13 +4,13 @@
 import frappe
 from frappe import _
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -55,6 +55,7 @@ def get_data(filters) -> list[dict]:
 		.on((BookingAsset.parent == Booking.name) & (BookingAsset.parenttype == "Room Booking"))
 		.select(
 			Booking.name,
+			Booking.church,
 			BookingAsset.asset,
 			Booking.purpose,
 			Booking.requester,

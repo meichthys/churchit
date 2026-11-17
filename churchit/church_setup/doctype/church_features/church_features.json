@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-08-24 00:00:00",
- "description": "Turn churchit modules on or off for this church. Disabled modules are hidden from the desk.",
+ "description": "Turn churchit modules on or off for every church on this site. Disabled modules are hidden from the desk.",
  "doctype": "DocType",
  "documentation": "/app/help",
  "editable_grid": 1,
@@ -36,7 +36,7 @@
   {
    "fieldname": "features_intro",
    "fieldtype": "HTML",
-   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its entry in the dock for everyone, and takes its website pages off the website. Nothing is deleted and no permissions change, so records stay reachable in the desk by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. Under Website Pages you can also take one page off the website. The Multi-Church switch below is different: it changes what every user can see, so click the (i) beside it and read its help before you turn it on.</p>"
+   "options": "<p class=\"text-muted small\">Unchecking a module hides its workspaces and its entry in the dock for everyone, and takes its website pages off the website. Nothing is deleted and no permissions change, so records stay reachable in the desk by direct link for anyone who already has access. Re-check the box to bring the module back exactly as it was. Under Website Pages you can also take one page off the website. The Multi-Church switch below is different: it changes what every user can see, so read its warning before you turn it on.</p>"
   },
   {
    "fieldname": "section_modules",
@@ -84,7 +84,7 @@
   },
   {
    "default": "1",
-   "description": "Letters, slides and newsletters.",
+   "description": "Church emails and texts, bulletins, email templates, consent and letters.",
    "fieldname": "enable_communications",
    "fieldtype": "Check",
    "label": "Communications"
@@ -126,7 +126,7 @@
    "description": "The Summary and Help pages. Settings always stays, so this page stays reachable.",
    "fieldname": "enable_setup",
    "fieldtype": "Check",
-   "label": "Setup"
+   "label": "Summary and Help"
   },
   {
    "collapsible": 1,
@@ -158,26 +158,25 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "enable_multi_church",
+   "description": "Turning on Multi-Church changes every record and every user. You cannot undo it while branches exist.",
    "fieldname": "section_multi_church",
    "fieldtype": "Section Break",
    "label": "Multi-Church"
   },
   {
    "default": "0",
-   "description": "Allow branch churches under the main church. Every record gains a Church field and users only see the records of the church their Person belongs to (parent-church users can choose to include branches). People and families are the exception: every church can look them up unless you keep them private below. Turning this on stamps the main church on every existing record and limits every existing user to it; it cannot be turned off again while branches exist.",
+   "description": "Adds branch churches. Each user then sees only the records of their own church.",
    "fieldname": "enable_multi_church",
    "fieldtype": "Check",
-   "label": "Enable Multi-Church",
-   "show_description_on_click": 1
+   "label": "Enable Multi-Church"
   },
   {
    "default": "0",
    "depends_on": "enable_multi_church",
-   "description": "Every church can look up every person and family by default, the way one congregation spread over several campuses expects. Only a person's own church can change them, and prayer requests, care, counseling and giving stay with each church. Tick this to hide each church's people and families from the other churches as well. Their addresses stay readable by the staff of every church.",
+   "description": "Every church looks up every person and family unless you tick this.",
    "fieldname": "private_people",
    "fieldtype": "Check",
-   "label": "Keep People and Families Private to Each Church",
-   "show_description_on_click": 1
+   "label": "Keep People and Families Private to Each Church"
   },
   {
    "fieldname": "section_state",
@@ -196,7 +195,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-03 13:55:28.000000",
+ "modified": "2026-11-15 11:46:52.691533",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "person",
+  "person_name",
   "church",
   "preferred_contact",
   "category",
@@ -29,6 +30,15 @@
    "label": "Person",
    "options": "Person",
    "reqd": 1,
+   "width": "220px"
+  },
+  {
+   "fetch_from": "person.full_name",
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Person Name",
+   "read_only": 1,
    "width": "220px"
   },
   {
@@ -131,7 +141,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-11-14 18:01:02.000000",
+ "modified": "2026-11-15 05:49:38.794501",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Care Request",
@@ -195,6 +205,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "due_on",
  "sort_order": "ASC",
  "states": [
@@ -219,6 +230,6 @@
    "title": "Closed"
   }
  ],
- "title_field": "person",
+ "title_field": "person_name",
  "track_changes": 1
 }

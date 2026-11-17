@@ -23,6 +23,7 @@ frappe.query_reports["Function Attendance by Person"] = {
 			fieldname: "start",
 			label: __("Start Date"),
 			fieldtype: "Date",
+			default: frappe.datetime.add_months(frappe.datetime.get_today(), -3),
 		},
 		{
 			fieldname: "end",

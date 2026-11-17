@@ -11,6 +11,7 @@
   "church",
   "status",
   "column_break_response",
+  "full_name",
   "first_name",
   "last_name",
   "email",
@@ -63,7 +64,6 @@
   {
    "fieldname": "last_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Last Name"
   },
   {
@@ -112,11 +112,19 @@
    "no_copy": 1,
    "options": "\nUnpaid\nPaid\nRefunded",
    "read_only": 1
+  },
+  {
+   "description": "First and last name, set when the response is saved.",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "read_only": 1,
+   "width": "220px"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 13:18:47.000000",
+ "modified": "2026-11-15 02:36:44.707885",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Form Response",
@@ -182,6 +190,6 @@
    "title": "Processed"
   }
  ],
- "title_field": "first_name",
+ "title_field": "full_name",
  "track_changes": 1
 }

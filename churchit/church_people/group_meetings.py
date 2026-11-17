@@ -25,7 +25,7 @@ from churchit.church_communications.doctype.communication_purpose.communication_
 	GROUP_MESSAGES,
 )
 from churchit.church_communications.sending import send
-from churchit.church_ministries.attendance import record
+from churchit.church_ministries.attendance import record_many
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
@@ -194,11 +194,8 @@ def record_group_attendance(
 		outside = {*present, *absent} - set(members) - {row.person for row in meeting.attendance}
 		if outside:
 			frappe.throw(_("These people are not in this group: {0}").format(", ".join(sorted(outside))))
-		# Members cannot write a Function. The checks above confine these saves to the group's people.
-		for person in present:
-			record(person, function, "Confirmed")
-		for person in absent:
-			record(person, function, "Absent")
+		# Members cannot write a Function. The checks above confine this save to the group's people.
+		record_many(function, {**dict.fromkeys(present, "Confirmed"), **dict.fromkeys(absent, "Absent")})
 
 	meeting.db_set({"did_not_meet": int(did_not_meet), "attendance_recorded_on": now_datetime()})
 	leader_name = escape_html(frappe.db.get_value("Person", leader, "full_name"))
@@ -246,7 +243,7 @@ def send_attendance_reminders() -> None:
 			template=REMINDER_TEMPLATE,
 			context={
 				"group_name": frappe.db.get_value("Group", meeting.group, "group_name"),
-				"date": format_date(meeting.start_date),
+				"date": format_date(meeting.start_date, "EEEE, MMMM d, yyyy"),
 				"link": get_url(f"/group-leader?{urlencode({'group': meeting.group})}"),
 			},
 		)

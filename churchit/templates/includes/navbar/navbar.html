@@ -1,0 +1,6 @@
+{#- Shadows frappe's template of the same path (apps are searched in reverse
+    install order) so that the links show on the bar from 1200px (xl), not
+    992px (lg): below 1200px the shipped menu does not fit on one row, so it
+    goes into the menu button. The rest is frappe's own template. -#}
+{%- set navbar -%}{% include "frappe/templates/includes/navbar/navbar.html" %}{%- endset -%}
+{{ navbar | replace("navbar-expand-lg", "navbar-expand-xl", 1) }}

@@ -4,13 +4,13 @@ from frappe.utils import get_first_day, get_last_day, getdate
 
 from churchit.church_people.celebrations import get_birthday_rows
 from churchit.church_people.membership import living_people_filter
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.contacts import primary_email_query, primary_phone_query
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -34,6 +34,7 @@ def get_data(filters=None):
 		.select(
 			Person.name,
 			Person.full_name,
+			Person.church,
 			Person.birth_month,
 			Person.birth_day,
 			Person.birth_date,

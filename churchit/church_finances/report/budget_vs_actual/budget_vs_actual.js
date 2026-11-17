@@ -22,6 +22,10 @@ frappe.query_reports["Budget vs Actual"] = {
 	],
 
 	formatter: function (value, row, column, data, default_formatter) {
+		if (data && data.is_total_row) {
+			if (column.fieldname === "expense_type") return `<b>${__("Total")}</b>`;
+			return `<b>${default_formatter(value, row, column, data)}</b>`;
+		}
 		value = default_formatter(value, row, column, data);
 		if (column.fieldname === "status" && data && data.status) {
 			const indicator = data.actual > data.budgeted ? "red" : "green";

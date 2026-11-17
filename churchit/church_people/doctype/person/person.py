@@ -6,13 +6,23 @@ from collections import Counter
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, cstr, get_link_to_form, today
+from frappe.utils import cint, cstr, escape_html, get_link_to_form, today
 
 from churchit.church_communications import newsletter
 from churchit.church_foundations import church_access
 from churchit.church_ministries.attendance import COUNTED_TYPES
+from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
+	can_send_email,
+)
 from churchit.church_people import events, followup, household, matching, membership, summaries
-from churchit.church_people.derived import BIRTH, DEATH, get_marriage_years, sync_derived
+from churchit.church_people.date_rules import refuse_impossible_dates
+from churchit.church_people.derived import (
+	BIRTH,
+	DEATH,
+	get_marriage_years,
+	get_next_anniversary,
+	sync_derived,
+)
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
 from churchit.church_people.doctype.inactive_reason.inactive_reason import DECEASED
 from churchit.church_people.doctype.marital_status.marital_status import MARRIED, WIDOWED, WITH_SPOUSE
@@ -42,6 +52,7 @@ from churchit.contacts import (
 	PHONE_DOCTYPE,
 	PHONE_FIELD,
 	contact_key,
+	pick,
 	primary_email,
 	stop_sharing_from,
 	validate_contact_tables,
@@ -72,6 +83,18 @@ MERGED_TABLES = {
 }
 
 
+def get_email_problem() -> str | None:
+	"""Why this site cannot send an email yet, in words for the user's role, or None."""
+	if can_send_email():
+		return None
+	if frappe.has_permission("Email Account", "create"):
+		return _("Outgoing email is not configured. Set up a default {0} first.").format(
+			"<a href='/desk/email-account'>" + _("Email Account") + "</a>"
+		)
+	# Frappe lets only a System Manager create an Email Account (a Church Manager cannot).
+	return _("Ask a System Manager to set up outgoing email.")
+
+
 def get_display_name(first_name, last_name=None, nickname=None, suffix=None) -> str:
 	"""The name a person goes by: the nickname or first name, the last name and the suffix ("Bob Smith Jr.")."""
 	return " ".join(filter(None, (nickname or first_name, last_name, suffix)))
@@ -85,6 +108,9 @@ class Person(Document):
 		self.set_onload("is_primary_contact", self.is_primary_contact)
 		self.set_onload("has_unsubscribed", newsletter.has_unsubscribed(self))
 		self.set_onload("ai_state", get_staff_ai_state(self.church))
+		self.set_onload("login_church_note", self.login_church_note)
+		self.set_onload("email_problem", get_email_problem())
+		self.set_onload("bounced_email", self.bounced_email)
 
 	def on_update(self):
 		self.sync_church_permission()
@@ -151,6 +177,11 @@ class Person(Document):
 				setattr(before, fieldname, value)
 
 	@property
+	def bounced_email(self) -> str | None:
+		"""The primary email address when it bounced, which Church Emails skip."""
+		return primary_email(self) if pick(self.get(EMAIL_FIELD), "is_bounced") else None
+
+	@property
 	def is_primary_contact(self):
 		return (
 			bool(self.family) and frappe.db.get_value("Family", self.family, "primary_contact") == self.name
@@ -175,6 +206,33 @@ class Person(Document):
 			return
 		church_access.set_user_church(self.user, self.church)
 
+	@property
+	def login_church_note(self) -> dict | None:
+		"""Where the linked login works, when this person's church is not one of its churches.
+
+		A login made in the desk starts in the church of whoever made it, the main church for
+		Administrator, and a staff login linked by hand keeps its churches. The form warns on
+		the save that links it and offers `church_access.limit_login_to_church`.
+		"""
+		if not is_multi_church() or not self.user or not self.church:
+			return None
+		held = [permission.for_value for permission in church_access.user_church_permissions(self.user)]
+		if not held or self.church in held:
+			return None
+		names = dict(
+			frappe.get_all(
+				"Church",
+				filters={"name": ("in", [*held, self.church])},
+				fields=["name", "church_name"],
+				as_list=True,
+			)
+		)
+		return frappe._dict(
+			works_in=", ".join(names.get(church, church) for church in held),
+			church=names.get(self.church, self.church),
+			can_limit=church_access.can_limit_logins(),
+		)
+
 	def sync_family_church(self):
 		"""Move the family with its primary contact when they change church."""
 		if not is_multi_church() or not self.is_primary_contact:
@@ -198,6 +256,7 @@ class Person(Document):
 		self.full_name = f"{self.first_name}" + ((" " + self.last_name) if self.last_name else "")
 		self.display_name = get_display_name(self.first_name, self.last_name, self.nickname, self.suffix)
 		self.sync_birthday()
+		refuse_impossible_dates(self)
 		sync_derived(self)
 		self.update_membership_from_life_events()
 		self.update_inactive_details()
@@ -570,7 +629,7 @@ class Person(Document):
 		self.flags.leads_new_family = True
 		if not frappe.flags.in_import:
 			family_link = get_link_to_form("Family", family.name, family.family_name)
-			frappe.msgprint(f"👨‍👩‍👧‍👦 New family created: {family_link}")
+			frappe.msgprint(_("New family created: {0}").format(family_link))
 
 	def link_spouse(self):
 		"""Point the spouse back at this person as Married, sharing the anniversary.
@@ -589,7 +648,11 @@ class Person(Document):
 				spouse.unlink_spouse(spouse.spouse)
 			values.update(spouse=self.name, marital_status=MARRIED)
 			if not frappe.flags.in_import:
-				frappe.msgprint(f"Spouses have been linked:<br>{self.full_name} 👩‍❤️‍👨 {spouse.full_name}")
+				frappe.msgprint(
+					_("{0} is now recorded as the spouse of {1}.").format(
+						escape_html(self.full_name), escape_html(spouse.full_name)
+					)
+				)
 		year_unknown = cint(self.anniversary_year_unknown)
 		if (cstr(spouse.anniversary), spouse.anniversary_year_unknown) != (
 			cstr(self.anniversary),
@@ -599,6 +662,7 @@ class Person(Document):
 				anniversary=self.anniversary,
 				anniversary_year_unknown=year_unknown,
 				marriage_years=get_marriage_years(self.anniversary, year_unknown),
+				next_anniversary=get_next_anniversary(self.anniversary, spouse.is_deceased),
 			)
 		if values:
 			frappe.db.set_value("Person", spouse.name, values)
@@ -617,10 +681,15 @@ class Person(Document):
 				"anniversary": None,
 				"anniversary_year_unknown": 0,
 				"marriage_years": 0,
+				"next_anniversary": None,
 			},
 		)
 		if not frappe.flags.in_import:
-			frappe.msgprint(f"Spouses have been unlinked:<br>{self.full_name} 💔 {spouse.full_name}")
+			frappe.msgprint(
+				_("{0} is no longer recorded as the spouse of {1}.").format(
+					escape_html(spouse.full_name), escape_html(self.full_name)
+				)
+			)
 
 	@frappe.whitelist(methods=["POST"])
 	def new_family_from_person(self) -> None:
@@ -639,7 +708,9 @@ class Person(Document):
 			self.save()
 			family_link = get_link_to_form("Family", existing_family, self.household_name)
 			frappe.msgprint(
-				f"⚠️ The {family_link} family already exists. This person has been added to that family."
+				_("The {0} family already exists. This person has been added to that family.").format(
+					family_link
+				)
 			)
 
 			return  # Don't create a new family
@@ -652,7 +723,7 @@ class Person(Document):
 		self.save()
 		self.reload()
 		family_link = get_link_to_form("Family", doc.name, doc.family_name)
-		frappe.msgprint(f"👨‍👩‍👧‍👦 New family created: {family_link}")
+		frappe.msgprint(_("New family created: {0}").format(family_link))
 
 	@frappe.whitelist(methods=["POST"])
 	def resubscribe_to_church_emails(self) -> None:
@@ -669,15 +740,8 @@ class Person(Document):
 		"""Give this person a portal login with a welcome email, or link the login their email has. Sends messages."""
 		self.reload()  # the saved record, not the copy the browser sent
 		self.check_permission("write")
-		# Block invitation if outgoing email is not configured
-		if not frappe.db.exists("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}):
-			frappe.throw(
-				_(
-					"Outgoing email is not configured. Please set up a default "
-					"<a href='/app/email-account'>Email Account</a> before inviting portal users."
-				),
-				title=_("Email Not Configured"),
-			)
+		if problem := get_email_problem():
+			frappe.throw(problem, title=_("Email Not Configured"))
 
 		# The invitation goes to the address marked primary in the Emails table.
 		email = primary_email(self)
@@ -706,9 +770,10 @@ class Person(Document):
 			self.save(ignore_permissions=True)
 
 			frappe.msgprint(
-				f"👤 Portal user created for <a href='/app/user/{new_user.name}'>{self.full_name}</a> "
-				f"and an invitation email was sent to {email}.",
-				title="Invitation Sent",
+				_("{0} can now sign in to the portal. An invitation email was sent to {1}.").format(
+					get_link_to_form("User", new_user.name, escape_html(self.full_name)), escape_html(email)
+				),
+				title=_("Invitation Sent"),
 				indicator="green",
 			)
 		else:
@@ -716,7 +781,9 @@ class Person(Document):
 			self.user = user
 			self.save()
 			frappe.msgprint(
-				f"⚠️ Portal user <a href='/app/user/{user}'>{user}</a> already exists. User is now linked to this person."
+				_("{0} already had a portal login. It is now linked to this person.").format(
+					get_link_to_form("User", user)
+				)
 			)
 
 
@@ -759,6 +826,7 @@ def get_timeline_data(doctype: str, name: str) -> dict:
 			["Function Attendance", "person", "=", name],
 			["Function Attendance", "attendance_type", "in", COUNTED_TYPES],
 			["start_date", "between", [frappe.utils.add_years(today(), -1), today()]],
+			["auto_repeat", "=", 0],
 		],
 		fields=["name", "start_date"],
 		distinct=True,

@@ -1,12 +1,14 @@
 import frappe
 from frappe import _
+from pypika import Order
 
-from churchit.church_scope import church_query_filters
+from churchit.church_people.doctype.visitation_log.visitation_log import has_no_later_visit
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -15,7 +17,7 @@ def execute(filters=None):
 def get_columns():
 	return [
 		{"fieldname": "person", "fieldtype": "Link", "label": _("Person"), "options": "Person", "width": 220},
-		{"fieldname": "visit_date", "fieldtype": "Date", "label": _("Visit Date"), "width": 100},
+		{"fieldname": "visit_date", "fieldtype": "Date", "label": _("Visit Date"), "width": 110},
 		{
 			"fieldname": "visit_type",
 			"fieldtype": "Link",
@@ -36,9 +38,19 @@ def get_columns():
 
 
 def get_data(filters=None):
-	return frappe.get_all(
-		"Visitation Log",
-		filters={"follow_up_needed": 1, **church_query_filters(filters)},
-		fields=["person", "visit_date", "visit_type", "visited_by", "status", "notes"],
-		order_by="visit_date desc",
+	Visit = frappe.qb.DocType("Visitation Log")
+	query = (
+		frappe.qb.from_(Visit)
+		.select(
+			Visit.person,
+			Visit.church,
+			Visit.visit_date,
+			Visit.visit_type,
+			Visit.visited_by,
+			Visit.status,
+			Visit.notes,
+		)
+		.where((Visit.follow_up_needed == 1) & has_no_later_visit(Visit))
+		.orderby(Visit.visit_date, order=Order.desc)
 	)
+	return scoped(query, Visit, filters).run(as_dict=True)

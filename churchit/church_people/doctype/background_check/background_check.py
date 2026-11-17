@@ -19,7 +19,7 @@ class BackgroundCheck(Document):
 			_("{0} belongs to another church, so only that church can record their background checks."),
 		)
 		if self.status in RESULT_STATUSES and not self.completed_on:
-			frappe.throw(f"Completed On is required when the status is {self.status}.")
+			frappe.throw(_("Completed On is required when the status is {0}.").format(_(self.status)))
 		if self.completed_on and not self.expires_on:
 			self.expires_on = self.default_expiry
 		if self.status == "Cleared" and self.is_past_expiry:

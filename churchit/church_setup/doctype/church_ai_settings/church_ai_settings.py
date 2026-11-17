@@ -34,6 +34,10 @@ class ChurchAISettings(Document):
 		"""The doctypes in Only for Local or Zero Retention Models (churchit.ai.private_doctypes)."""
 		return {row.document_type for row in self.get("private_model_doctypes") or []}
 
+	def onload(self):
+		# The form tells a manager of some churches up front which changes the save refuses.
+		self.set_onload("can_loosen", can_loosen())
+
 	def validate(self):
 		before = self.get_doc_before_save()
 		turned_on = [
@@ -150,9 +154,14 @@ def check_reviewer(row, is_repeated: bool) -> None:
 			)
 
 
-def refuse_for_some_churches(message: str) -> None:
-	"""A Church Manager restricted to some churches would decide for churches they cannot see."""
+def can_loosen() -> bool:
+	"""True for a System Manager or a Church Manager with no Church restriction: only they turn AI on
+	or loosen its lists. A Church Manager restricted to some churches would decide for churches they
+	cannot see."""
 	roles = frappe.get_roles()
-	if "System Manager" in roles or ("Church Manager" in roles and allowed_churches() is None):
-		return
-	frappe.throw(message, frappe.PermissionError)
+	return "System Manager" in roles or ("Church Manager" in roles and allowed_churches() is None)
+
+
+def refuse_for_some_churches(message: str) -> None:
+	if not can_loosen():
+		frappe.throw(message, frappe.PermissionError)

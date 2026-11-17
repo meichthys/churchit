@@ -3,12 +3,12 @@ from frappe import _
 from frappe.query_builder.functions import Sum
 from frappe.utils import add_days
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -54,9 +54,13 @@ def get_data(filters=None):
 	expenses = {r["fund"]: r["total"] for r in scoped(expense_query, Expense, filters).run(as_dict=True)}
 
 	funds = sorted(set(income) | set(expenses))
+	# church-scope: only the church of funds the scoped queries above already found
+	churches = dict(
+		frappe.get_all("Fund", filters={"name": ("in", funds)}, fields=["name", "church"], as_list=True)
+	)
 	rows = []
 	for f in funds:
 		inc = income.get(f, 0) or 0
 		exp = expenses.get(f, 0) or 0
-		rows.append({"fund": f, "income": inc, "expense": exp, "net": inc - exp})
+		rows.append({"fund": f, "church": churches.get(f), "income": inc, "expense": exp, "net": inc - exp})
 	return rows

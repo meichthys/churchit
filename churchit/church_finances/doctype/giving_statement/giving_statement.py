@@ -10,7 +10,14 @@ from frappe.utils import add_days, flt, getdate, now_datetime, sbool
 
 from churchit.church_foundations.doctype.church.church import inherited_value
 from churchit.church_people.household import salutation
-from churchit.church_scope import CHURCH_FIELD, has_church_access, root_church, scoped
+from churchit.church_scope import (
+	CHURCH_FIELD,
+	default_church,
+	has_church_access,
+	is_multi_church,
+	root_church,
+	scoped,
+)
 from churchit.contacts import primary_email
 
 STATEMENT_ROLES = ("Church Manager", "Church Finance", "System Manager")
@@ -138,8 +145,11 @@ def get_line_values(lines) -> list[tuple]:
 	)
 
 
-def get_donations(people, from_date, to_date):
-	"""Submitted donations by *people* to tax-deductible funds between the two dates, oldest first."""
+def get_donations(people, from_date, to_date, every_church: bool = False):
+	"""Submitted donations by *people* to tax-deductible funds between the two dates, oldest first.
+
+	Only the reader's churches count, unless *every_church* is set.
+	"""
 	if not people:
 		return []
 
@@ -172,6 +182,9 @@ def get_donations(people, from_date, to_date):
 		)
 		.orderby(Collection.date)
 	)
+	if every_church:
+		# church-scope: whether a statement still has gifts anywhere, which decides only if a run may delete it
+		return query.run(as_dict=True)
 	return scoped(query, Collection, {}).run(as_dict=True)
 
 
@@ -264,48 +277,111 @@ def household_recipient(family, fallback):
 	return frappe.db.get_value("Family", family, "primary_contact") or fallback
 
 
+def find_statement(recipient: dict, from_date: str, to_date: str) -> str | None:
+	"""The issuer's statement for *recipient* and the period: a household's by family, a person's by person.
+
+	Only the issuer's statements count: another church may have issued its own for this giver.
+	"""
+	filters = {"from_date": from_date, "to_date": to_date}
+	if recipient["family"]:
+		filters["family"] = recipient["family"]
+	else:
+		filters.update(person=recipient["person"], family=("is", "not set"))
+
+	existing = frappe.get_list("Giving Statement", filters=filters, pluck="name", limit=1)
+	return existing[0] if existing else None
+
+
+def is_regrouped(statement: GivingStatement, recipients: list[dict]) -> bool:
+	"""True when *recipients* take over *statement*'s giving in the other grouping: by household, or person by person."""
+	if statement.family:
+		people = set(statement.covered_people)
+		return any(not recipient["family"] and recipient["person"] in people for recipient in recipients)
+	family = frappe.db.get_value("Person", statement.person, "family")
+	return bool(family) and any(recipient["family"] == family for recipient in recipients)
+
+
+def remove_uncovered_statements(
+	from_date: str, to_date: str, recipients: list[dict], covered: list[str]
+) -> dict:
+	"""Delete the period's statements that a run made and that the run regrouped or that no gift needs any more.
+
+	Only a statement that Generate Statements made and that belongs to the issuer's own church goes. A
+	hand-made statement, one made before the mark existed and a branch's statement stay. A statement that
+	was emailed stays, so the church keeps its record of what it sent. A statement for gifts at another
+	church stays for an issuer who sees them.
+	"""
+	filters = {"from_date": from_date, "to_date": to_date, "made_by_run": 1}
+	if is_multi_church():
+		filters[CHURCH_FIELD] = default_church()
+	if covered:
+		filters["name"] = ("not in", covered)
+
+	removed = emailed = 0
+	for name in frappe.get_list("Giving Statement", filters=filters, pluck="name"):
+		statement = frappe.get_doc("Giving Statement", name)
+		if not is_regrouped(statement, recipients) and get_donations(
+			statement.covered_people, from_date, to_date, every_church=True
+		):
+			continue
+		if statement.emailed_on:
+			emailed += 1
+			continue
+		frappe.delete_doc("Giving Statement", name)
+		removed += 1
+	return {"removed": removed, "emailed_uncovered": emailed}
+
+
 @frappe.whitelist(methods=["POST"])
 def generate_statements(from_date: str, to_date: str):
-	"""Create a statement for every giver in the period, and return how many were made or rebuilt. Changes data.
+	"""Create a statement for every giver in the period, and return how many were made, rebuilt or removed. Changes data.
 
-	Re-running is safe: a statement already covering the same period for the same
-	recipient is rebuilt rather than duplicated.
+	Re-running is safe: a statement already covering the same period for the same recipient is rebuilt
+	rather than duplicated. A household statement is found by its family, so a new primary contact takes
+	it over. A statement that the run regrouped, or that has no gifts left in any church, is removed, unless
+	it was emailed. Only statements that a run made are removed, and only in the issuer's own church.
 	"""
 	frappe.only_for(STATEMENT_ROLES)
 
 	created = updated = 0
-	for recipient in get_statement_recipients(from_date, to_date):
-		# Only the issuer's statements count: another church may have issued its own for this giver.
-		existing = frappe.get_list(
-			"Giving Statement",
-			filters={"person": recipient["person"], "from_date": from_date, "to_date": to_date},
-			pluck="name",
-			limit=1,
-		)
+	covered = []
+	recipients = get_statement_recipients(from_date, to_date)
+	for recipient in recipients:
+		existing = find_statement(recipient, from_date, to_date)
 		if existing:
-			frappe.get_doc("Giving Statement", existing[0]).save()
+			statement = frappe.get_doc("Giving Statement", existing)
+			statement.person = recipient["person"]
+			statement.save()
+			covered.append(statement.name)
 			updated += 1
 			continue
 
-		frappe.get_doc(
+		statement = frappe.get_doc(
 			{
 				"doctype": "Giving Statement",
 				"person": recipient["person"],
 				"family": recipient["family"],
 				"from_date": from_date,
 				"to_date": to_date,
+				"made_by_run": 1,
 			}
 		).insert()
+		covered.append(statement.name)
 		created += 1
 
-	return {"created": created, "updated": updated}
+	return {
+		"created": created,
+		"updated": updated,
+		**remove_uncovered_statements(from_date, to_date, recipients, covered),
+	}
 
 
 @frappe.whitelist(methods=["POST"])
-def email_statements(from_date: str, to_date: str, resend: bool = False) -> int:
-	"""Queue an email of every statement for the period that the user can read, and return how many. Sends messages.
+def email_statements(from_date: str, to_date: str, resend: bool = False) -> dict:
+	"""Queue an email of every statement for the period that the user can read, and say how many go out. Sends messages.
 
-	The job skips a statement with no email, and one already emailed unless *resend* is set.
+	The job skips a statement with no email, and one already emailed unless *resend* is set. Returns
+	``queued``, ``no_email`` and ``already_emailed`` counts.
 	"""
 	frappe.only_for(STATEMENT_ROLES)
 	if not frappe.db.exists("Email Template", EMAIL_TEMPLATE):
@@ -315,20 +391,39 @@ def email_statements(from_date: str, to_date: str, resend: bool = False) -> int:
 			)
 		)
 
-	EmailAccount.find_outgoing(_raise_error=True)
+	try:
+		EmailAccount.find_outgoing(_raise_error=True)
+	except frappe.OutgoingEmailError:
+		frappe.clear_last_message()
+		frappe.throw(
+			_(
+				"Statements cannot be emailed until a System Manager sets up outgoing email. You can still print them from the list (select, then Actions > Print)."
+			),
+			frappe.OutgoingEmailError,
+		)
 
-	names = frappe.get_list(
-		"Giving Statement", filters={"from_date": from_date, "to_date": to_date}, pluck="name"
+	resend = bool(sbool(resend))
+	rows = frappe.get_list(
+		"Giving Statement",
+		filters={"from_date": from_date, "to_date": to_date},
+		fields=["name", "email", "emailed_on"],
 	)
-	if names:
+	if rows:
 		frappe.enqueue(
 			send_statement_emails,
 			queue="long",
-			names=names,
-			resend=bool(sbool(resend)),
+			names=[row.name for row in rows],
+			resend=resend,
 			enqueue_after_commit=True,
 		)
-	return len(names)
+
+	no_email = sum(1 for row in rows if not row.email)
+	already_emailed = 0 if resend else sum(1 for row in rows if row.email and row.emailed_on)
+	return {
+		"queued": len(rows) - no_email - already_emailed,
+		"no_email": no_email,
+		"already_emailed": already_emailed,
+	}
 
 
 def send_statement_emails(names: list[str], resend: bool = False):

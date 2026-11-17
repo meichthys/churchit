@@ -109,7 +109,18 @@ class TestFindAGroup(RollbackEachTest):
 		group = self.make_group("_Test Finder Guest Join")
 		target = quote(f"/find-a-group?group={group.name}&church={self.church}", safe="")
 
-		self.assertIn(f'href="/login?redirect-to={target}"', self.serve())
+		html = self.serve()
+		self.assertIn(f'href="/login?redirect-to={target}"', html)
+		self.assertIn("Sign in to join", html)
+
+	def test_a_guest_is_offered_the_connection_card(self):
+		self.make_group("_Test Finder Newcomer")
+		# The footer's I'm New link shows to everyone, so look for the page's own line.
+		self.assertIn("Fill in a Connection Card", self.serve())
+
+		user = ensure_user("_test_finder_regular@example.com", "_Test Finder Regular")
+		make_person("_Test Finder", "Regular", church=self.church, user=user)
+		self.assertNotIn("Fill in a Connection Card", self.serve(user))
 
 	def test_a_member_joins_on_the_page(self):
 		self.make_group("_Test Finder Member Join", requires_approval=1)
@@ -119,6 +130,15 @@ class TestFindAGroup(RollbackEachTest):
 		self.assertIn("find-group-join", html)
 		self.assertIn("Ask to Join", html)
 		self.assertNotIn("/login?redirect-to=", html)
+
+	def test_the_filter_count_is_announced_and_a_new_badge_keeps_focus(self):
+		self.make_group("_Test Finder Announced")
+
+		html = self.serve()
+
+		self.assertRegex(html, r'<p[^>]*id="find-group-count"[^>]*role="status"')
+		self.assertIn("groups shown", html)
+		self.assertIn('tabindex="-1"', html)
 
 	def test_full_and_closed_groups_say_so(self):
 		person = make_person("_Test Finder", "Member Two", church=self.church).name

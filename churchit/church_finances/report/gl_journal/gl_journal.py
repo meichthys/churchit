@@ -5,12 +5,12 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, flt, getdate
 
-from churchit.church_scope import is_multi_church, root_church, scoped
+from churchit.church_scope import get_church_columns, is_multi_church, root_church, scoped
 
 
 def execute(filters=None):
 	filters = filters or {}
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	if not (filters.get("from_date") and filters.get("to_date")):
 		return columns, []
 
@@ -166,6 +166,7 @@ class Journal:
 				"debit": amount if side == "debit" else 0,
 				"credit": amount if side == "credit" else 0,
 				"memo": f"{source['doctype']} {source['name']}",
+				"church": source["church"],
 			}
 		)
 

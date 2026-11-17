@@ -78,3 +78,39 @@ class TestChurchAttendance(GroupMeetings, RollbackEachTest):
 
 	def rows(self, **filters):
 		return execute(filters)[1]
+
+	def test_a_manager_who_names_another_churchs_function_is_refused(self):
+		frappe.set_user(self.manager_b)
+
+		self.assertRaises(frappe.PermissionError, self.rows, function=self.meeting)
+
+
+class TestChurchAttendanceFilters(RollbackEachTest):
+	def attended(self, name, days_ago, person):
+		function = make_function(name, start_date=add_days(today(), -days_ago))
+		record(person, function.name, "Checked-In")
+		return function.name
+
+	def test_the_report_has_a_date_and_lists_the_latest_function_first(self):
+		person = make_person("_Test Attendance Order").name
+		older = self.attended("_Test Attendance Older", 20, person)
+		newer = self.attended("_Test Attendance Newer", 3, person)
+		# A later edit of the older function does not move it up.
+		frappe.db.set_value("Function", older, "headcount", 5)
+
+		columns, rows = execute({"function": older})
+		self.assertEqual(columns[0]["fieldname"], "start_date")
+		self.assertEqual([row.name for row in rows], [older])
+
+		names = [row.name for row in execute({})[1] if row.name in (older, newer)]
+		self.assertEqual(names, [newer, older])
+
+	def test_the_date_filters_keep_the_functions_in_the_range(self):
+		person = make_person("_Test Attendance Range").name
+		old = self.attended("_Test Attendance Old", 40, person)
+		recent = self.attended("_Test Attendance Recent", 3, person)
+
+		rows = execute({"from_date": add_days(today(), -28), "to_date": today()})[1]
+		names = {row.name for row in rows}
+		self.assertIn(recent, names)
+		self.assertNotIn(old, names)

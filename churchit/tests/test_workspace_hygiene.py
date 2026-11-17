@@ -153,11 +153,13 @@ def has_five_parts(condition_json: str | None) -> bool:
 
 def get_desk_link_problem(href: str, doctypes: dict, pages: set) -> str | None:
 	"""Why a manual's desk link does not open its page, or None. Links off the desk are not checked."""
-	if href.startswith(("http://app/", "https://app/")):
+	if href.startswith(("http://app/", "https://app/", "http://desk/", "https://desk/")):
 		return "not a site path"
 	url = urlsplit(href)
 	if url.scheme or url.netloc or not url.path.startswith(("/app/", "/desk/")):
 		return None
+	if url.path.startswith("/app/"):
+		return "an old /app/ path: use /desk/"
 
 	route, *rest = [unquote(part) for part in url.path.split("/")[2:] if part]
 	if route == "query-report":

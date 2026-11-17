@@ -1,10 +1,12 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Keeps each user's Church User Permission in step with their Person."""
+"""Keeps each user's Church User Permission in step with their Person, and guards the settings and lookups every church shares."""
 
 import frappe
 from frappe import _
+from frappe.core.doctype.version.version import get_diff
+from frappe.model.document import Document
 from frappe.permissions import add_user_permission
 from frappe.utils import sbool
 
@@ -18,6 +20,44 @@ from churchit.church_scope import (
 )
 
 UNSCOPED_USERS = ("Administrator", "Guest")
+
+# The vocabulary every church picks from: one branch's change reaches every church. Note Category guards
+# itself (NoteCategory.refuse_unless_every_church): a branch may still describe one, but not change who reads it.
+GLOBAL_LOOKUPS = frozenset(
+	{
+		"Address Type",
+		"Background Check Type",
+		"Care Request Type",
+		"Case Type",
+		"Communication Purpose",
+		"Connection Card Interest",
+		"Email Type",
+		"Expense Type",
+		"Function Attendance Type",
+		"Function Type",
+		"Group Role",
+		"Group Status",
+		"Group Type",
+		"Inactive Reason",
+		"Life Event Type",
+		"Marital Status",
+		"Member Status",
+		"Membership Type",
+		"Missionary Status",
+		"Missionary Support Frequency",
+		"Payment Type",
+		"Person Relation Type",
+		"Phone Type",
+		"Position Type",
+		"Prayer Request Status",
+		"Prayer Request Type",
+		"Sign-Up Item",
+		"Skill",
+		"Visit Type",
+	}
+)
+BRANCH_MANAGER_PROFILE = "Church Branch Manager"
+MANAGER_PROFILE = "Church Manager"
 
 
 def user_church_permissions(user):
@@ -40,6 +80,75 @@ def has_every_church(user: str) -> bool:
 	return set(frappe.get_all("Church", filters={"parent_church": ("is", "not set")}, pluck="name")) <= held
 
 
+def refuse_changing_shared_settings(doc: Document, church_tables: tuple[str, ...] = ()) -> None:
+	"""validate on a Single that every church shares: only someone across every church changes it.
+
+	A row of a table in *church_tables* belongs to the church it names, so a user may change the
+	rows of their own churches. A row that names no church serves every church. Otherwise one
+	branch's manager could untick Keep People and Families Private and read every church's people.
+	Saves with ignore_permissions are the app's own.
+	"""
+	if doc.flags.ignore_permissions or has_every_church(frappe.session.user):
+		return
+	before = doc.get_doc_before_save() or frappe.get_doc(doc.doctype)
+	for row in (doc, *doc.get_all_children()):
+		# get_diff compares links by these caller-sent titles, so they could make a change look like none.
+		row.delete_key("__link_titles")
+	diff = get_diff(before, doc)
+	if not diff:
+		return
+	tables = {change[0] for change in diff.added + diff.removed + diff.row_changed}
+	if diff.changed or tables - set(church_tables):
+		frappe.throw(
+			_(
+				"{0} apply to every church. Only someone who works across every church can change them."
+			).format(_(doc.doctype)),
+			frappe.PermissionError,
+		)
+
+	rows = [frappe._dict(row) for _table, row in diff.added + diff.removed]
+	for table, index, name, _changes in diff.row_changed:
+		rows += [doc.get(table)[index], *(row for row in before.get(table) if row.name == name)]
+	allowed = allowed_churches()
+	for row in rows:
+		if row.church not in allowed:
+			refuse_another_churches_row(doc, row)
+
+
+def refuse_changing_global_lookup(doc: Document, method: str | None = None, *args, **kwargs) -> None:
+	"""validate, on_trash and before_rename on every doctype: only someone across every church changes a global lookup.
+
+	Otherwise one branch's manager could rename a Member Status or delete an Expense Type that every
+	church uses. Saves with ignore_permissions, installs, migrations and patches are the app's own.
+	"""
+	if doc.doctype not in GLOBAL_LOOKUPS or doc.flags.ignore_permissions:
+		return
+	if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_patch:
+		return
+	if has_every_church(frappe.session.user):
+		return
+	frappe.throw(
+		_(
+			"{0} is shared by every church. Only someone who works across every church can add, change or delete one."
+		).format(_(doc.doctype)),
+		frappe.PermissionError,
+	)
+
+
+def refuse_another_churches_row(doc: Document, row) -> None:
+	table = _(doc.meta.get_label(row.parentfield))
+	if not row.church:
+		message = _(
+			"Row {0} of {1} serves every church. Only someone who works across every church can change it."
+		)
+		frappe.throw(message.format(row.idx, table), frappe.PermissionError)
+	church = frappe.db.get_value("Church", row.church, "church_name") or row.church
+	frappe.throw(
+		_("Row {0} of {1} belongs to {2}. Only that church can change it.").format(row.idx, table, church),
+		frappe.PermissionError,
+	)
+
+
 def set_user_church(user, church):
 	"""Point the user's Church permission at `church`, replacing any other one."""
 	existing = user_church_permissions(user)
@@ -48,6 +157,54 @@ def set_user_church(user, church):
 	for permission in existing:
 		frappe.delete_doc("User Permission", permission.name, ignore_permissions=True, force=True)
 	add_user_permission("Church", church, user, ignore_permissions=True, is_default=1, hide_descendants=1)
+
+
+def can_limit_logins(user: str | None = None) -> bool:
+	"""True when *user* may point a login at its person's church: a System Manager or someone across every church."""
+	user = user or frappe.session.user
+	return "System Manager" in frappe.get_roles(user) or has_every_church(user)
+
+
+@frappe.whitelist(methods=["POST"])
+def limit_login_to_church(person: str) -> None:
+	"""Point the Church permission of *person*'s login at *person*'s church, branches hidden. Changes data.
+
+	A staff login linked by hand keeps the churches it had (`Person.sync_church_permission`), so a
+	login made in the desk for a branch's staff still works in the main church until someone limits it.
+	"""
+	if not is_multi_church() or not can_limit_logins():
+		frappe.throw(
+			_("Only someone who works across every church can limit a login to a church."),
+			frappe.PermissionError,
+		)
+	doc = frappe.get_doc("Person", person)
+	doc.check_permission("write")
+	if not doc.user or not doc.church:
+		frappe.throw(_("Set the Church and the Portal User of {0} first.").format(doc.full_name))
+	set_user_church(doc.user, doc.church)
+	suggest_branch_profile(doc.user, doc.church)
+
+
+def suggest_branch_profile(user: str, church: str) -> None:
+	"""Say that a manager limited to a branch fits the Church Branch Manager profile better.
+
+	The Church Manager profile also holds Website, Workspace, Report and Dashboard Manager, which
+	change Frappe settings that act on every church.
+	"""
+	if not frappe.db.get_value("Church", church, "parent_church"):
+		return
+	profiles = frappe.get_all("User Role Profile", filters={"parent": user}, pluck="role_profile")
+	if MANAGER_PROFILE not in profiles:
+		return
+	frappe.msgprint(
+		_(
+			"{0} has the {1} role profile, which can also change the website, workspaces, reports and "
+			"dashboards of every church. For the manager of one branch, give the login the {2} role "
+			"profile in the User form instead."
+		).format(frappe.bold(user), _(MANAGER_PROFILE), _(BRANCH_MANAGER_PROFILE)),
+		title=_("Branch Manager Profile"),
+		indicator="orange",
+	)
 
 
 def move_church_permissions(church, destination):

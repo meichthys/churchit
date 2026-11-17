@@ -12,11 +12,16 @@ from frappe.utils import add_days, getdate
 
 from churchit.church_communications.doctype.bulletin.bulletin import get_defaults as bulletin_defaults
 from churchit.church_finances.doctype.church_budget.church_budget import get_expense_totals
+from churchit.church_finances.doctype.giving_settings.test_giving_settings import make_gateway
 from churchit.church_finances.doctype.giving_statement.giving_statement import (
 	generate_statements,
 	get_givers,
 )
 from churchit.church_foundations.church_access import (
+	BRANCH_MANAGER_PROFILE,
+	GLOBAL_LOOKUPS,
+	MANAGER_PROFILE,
+	limit_login_to_church,
 	set_church_filter_expansion,
 	set_include_branches,
 	user_church_permissions,
@@ -28,12 +33,14 @@ from churchit.church_ministries.recurrence import create_scheduled_functions
 from churchit.church_missions.doctype.missionary.missionary import create_missionary_expenses
 from churchit.church_people.group_api import joinable_public_groups
 from churchit.church_people.report.church_directory_report import church_directory_report as directory
+from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.report.active_prayer_list import active_prayer_list
 from churchit.church_prayers.web_form.community_prayer_requests import (
 	community_prayer_requests as prayer_form,
 )
-from churchit.church_scope import SHARED, extend_bootinfo, scoped
+from churchit.church_scope import SHARED, extend_bootinfo, is_people_directory_private, scoped
 from churchit.tests.helpers import (
+	RollbackEachTest,
 	assert_scoped,
 	ensure,
 	ensure_root_church,
@@ -48,11 +55,21 @@ from churchit.tests.helpers import (
 	set_private_people,
 )
 
+# The Frappe roles whose settings act on every church.
+FRAPPE_MANAGER_ROLES = {"Website Manager", "Workspace Manager", "Report Manager", "Dashboard Manager"}
+
 
 def make_prayer_request(title, church):
+	"""A Whole Church request, which every list, report and bulletin of its church shows."""
 	request_type = ensure("Prayer Request Type", {"type": "_Test Scope"})
 	return frappe.get_doc(
-		{"doctype": "Prayer Request", "title": title, "type": request_type, "church": church}
+		{
+			"doctype": "Prayer Request",
+			"title": title,
+			"type": request_type,
+			"church": church,
+			"visibility": "Whole Church",
+		}
 	).insert(ignore_permissions=True)
 
 
@@ -159,6 +176,68 @@ class TestChurchPermissions(FrappeTestCase):
 		(permission,) = user_church_permissions(user)
 		self.assertEqual(permission.for_value, self.branch_b)
 
+	def make_staff_login(self, email):
+		"""A desk login that Administrator adds in the User list, as a branch's staff member is set up."""
+		user = frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Staff", "roles": [{"role": "Church Manager"}]}
+		)
+		user.flags.no_welcome_mail = True
+		return user.insert(ignore_permissions=True).name
+
+	def test_a_staff_login_linked_to_a_branch_person_is_flagged_and_can_be_limited(self):
+		"""A login made by Administrator starts in the main church and kept it, unannounced, when linked to a branch."""
+		user = self.make_staff_login("_test_branch_staff@example.com")
+		self.assertEqual([p.for_value for p in user_church_permissions(user)], [self.root])
+
+		person = frappe.get_doc(
+			{"doctype": "Person", "first_name": "_Test Branch", "last_name": "Staff"}
+			| {"church": self.branch_a, "user": user}
+		).insert()
+
+		self.assertEqual(
+			[p.for_value for p in user_church_permissions(user)],
+			[self.root],
+			"a staff login linked by hand keeps the churches an administrator gave it",
+		)
+		person.run_method("onload")
+		self.assertTrue(person.get_onload().login_church_note.can_limit)
+
+		limit_login_to_church(person.name)
+
+		(permission,) = user_church_permissions(user)
+		self.assertEqual(permission.for_value, self.branch_a)
+		person.run_method("onload")
+		self.assertIsNone(person.get_onload().login_church_note)
+
+	def test_only_someone_across_every_church_may_limit_a_login(self):
+		user = self.make_staff_login("_test_limited_by_branch@example.com")
+		person = make_person("_Test Limited", "Staff", church=self.branch_a)
+		frappe.db.set_value("Person", person.name, "user", user)
+
+		frappe.set_user(self.manager_a)
+		with self.assertRaises(frappe.PermissionError):
+			limit_login_to_church(person.name)
+		frappe.set_user("Administrator")
+
+		self.assertEqual([p.for_value for p in user_church_permissions(user)], [self.root])
+
+	def test_the_person_form_names_the_church_a_staff_login_works_in(self):
+		user = self.make_staff_login("_test_works_elsewhere@example.com")
+		person = make_person("_Test Works", "Elsewhere", church=self.branch_a)
+		frappe.db.set_value("Person", person.name, "user", user)
+
+		person = frappe.get_doc("Person", person.name)
+		person.run_method("onload")
+
+		note = person.get_onload().login_church_note
+		self.assertEqual(note.works_in, frappe.db.get_value("Church", self.root, "church_name"))
+		self.assertEqual(note.church, frappe.db.get_value("Church", self.branch_a, "church_name"))
+		self.assertTrue(note.can_limit)
+
+		frappe.set_user(self.manager_a)
+		person.run_method("onload")
+		self.assertFalse(person.get_onload().login_church_note.can_limit)
+
 	def test_linking_a_user_creates_the_church_permission(self):
 		(permission,) = user_church_permissions(self.manager_a)
 		self.assertEqual(permission.for_value, self.branch_a)
@@ -261,7 +340,10 @@ class TestChurchPermissions(FrappeTestCase):
 		self.assertEqual(names, [self.request_b.name])
 
 	def test_notifications_skip_managers_of_other_churches(self):
-		notification = frappe.get_doc("Notification", "Prayer Request New")
+		prayer_request.create_new_prayer_request_notifications(
+			names=(prayer_request.PRAYER_TEAM_NOTIFICATION,)
+		)
+		notification = frappe.get_doc("Notification", prayer_request.PRAYER_TEAM_NOTIFICATION)
 		recipients, _cc, _bcc = notification.get_list_of_recipients(self.request_a, {"doc": self.request_a})
 		self.assertIn(self.manager_a, recipients)
 		self.assertNotIn(self.manager_b, recipients)
@@ -906,6 +988,331 @@ class TestChurchPermissions(FrappeTestCase):
 
 		branch = get_expense_totals("2031-01-01", "2031-12-31", church=self.branch_a, include_branches=True)
 		self.assertEqual(branch.get(expense_type), 40, "a branch with no branches of its own counts itself")
+
+
+class TestSettingsEveryChurchShares(RollbackEachTest):
+	"""Church Features, People Settings and the site-wide part of Giving, Check-In and Bulletin Settings serve every church."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root = ensure_root_church()
+		set_multi_church(True)
+		cls.branch = make_branch("_Test Settings Branch", "TSEB")
+		cls.branch_manager = TestChurchPermissions.bind_manager(
+			"_test_settings_branch@example.com", "SettingsBranch", cls.branch
+		)
+		cls.root_manager = TestChurchPermissions.bind_manager(
+			"_test_settings_root@example.com", "SettingsRoot", cls.root
+		)
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def save_as(self, user, doctype, change):
+		"""Apply *change* to the stored *doctype* and save it as *user*."""
+		doc = frappe.get_single(doctype)
+		change(doc)
+		frappe.set_user(user)
+		try:
+			doc.save()
+		finally:
+			frappe.set_user("Administrator")
+
+	def add_row(self, doctype, table, church):
+		doc = frappe.get_single(doctype)
+		doc.append(table, {"church": church})
+		doc.save()
+
+	def test_a_branch_manager_cannot_open_every_churchs_people(self):
+		set_private_people(True)
+
+		with self.assertRaises(frappe.PermissionError):
+			self.save_as(
+				self.branch_manager, "Church Features", lambda doc: doc.update({"private_people": 0})
+			)
+
+		self.assertTrue(is_people_directory_private())
+
+	def test_a_branch_manager_cannot_switch_a_module_off_for_every_church(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.save_as(
+				self.branch_manager, "Church Features", lambda doc: doc.update({"enable_finances": 0})
+			)
+
+	def test_a_branch_manager_cannot_switch_online_giving_for_every_church(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.save_as(
+				self.branch_manager, "Giving Settings", lambda doc: doc.update({"enabled": 1 - doc.enabled})
+			)
+
+	def test_link_titles_sent_with_a_change_do_not_hide_it(self):
+		"""get_diff reads a link through the titles the caller sends, so a crafted title made a new fund look unchanged."""
+		fund = ensure("Fund", {"fund": "_Test Settings Fund"})
+		stored = frappe.db.get_single_value("Giving Settings", "default_fund") or ""
+
+		def change(doc):
+			doc.default_fund = fund
+			doc.set("__link_titles", {f"Fund::{fund}": stored})
+
+		with self.assertRaisesRegex(frappe.PermissionError, "apply to every church"):
+			self.save_as(self.branch_manager, "Giving Settings", change)
+
+	def test_a_branch_manager_cannot_change_the_people_settings_of_every_church(self):
+		"""Remove Personal Data After reaches the inactive people of every church."""
+		with self.assertRaises(frappe.PermissionError):
+			self.save_as(
+				self.branch_manager,
+				"People Settings",
+				lambda doc: doc.update(
+					{"remove_inactive_after_years": (doc.remove_inactive_after_years or 0) + 1}
+				),
+			)
+
+	def test_saving_nothing_new_is_not_refused(self):
+		self.save_as(self.branch_manager, "Church Features", lambda doc: None)
+
+	def test_a_branch_manager_cannot_change_the_check_in_or_bulletin_defaults(self):
+		changes = {
+			"Check-In Settings": lambda doc: doc.update({"label_width": doc.label_width + 1}),
+			"Bulletin Settings": lambda doc: doc.update(
+				{"celebration_days": (doc.celebration_days or 0) + 1}
+			),
+		}
+		for doctype, change in changes.items():
+			with self.subTest(doctype), self.assertRaises(frappe.PermissionError):
+				self.save_as(self.branch_manager, doctype, change)
+
+	def test_a_branch_manager_changes_only_its_own_churchs_rows(self):
+		tables = {
+			"Bulletin Settings": "church_sections",
+			"Check-In Settings": "printers",
+			"Giving Settings": "church_wording",
+		}
+		for doctype, table in tables.items():
+			self.add_row(doctype, table, self.root)
+
+			def theirs(doc, table=table):
+				return next(row for row in doc.get(table) if row.church == self.root)
+
+			self.save_as(
+				self.branch_manager,
+				doctype,
+				lambda doc, table=table: doc.append(table, {"church": self.branch}),
+			)
+			refused = {
+				"add a row for another church": lambda doc, table=table: doc.append(
+					table, {"church": self.root}
+				),
+				"move another church's row": lambda doc, theirs=theirs: theirs(doc).update(
+					{"church": self.branch}
+				),
+				"delete another church's row": lambda doc, table=table, theirs=theirs: doc.remove(
+					theirs(doc)
+				),
+			}
+			for case, change in refused.items():
+				with self.subTest(doctype=doctype, case=case), self.assertRaises(frappe.PermissionError):
+					self.save_as(self.branch_manager, doctype, change)
+
+	def test_a_main_church_manager_changes_what_every_church_shares(self):
+		"""Holding the main church reaches every church, even while its branches are hidden."""
+		self.save_as(
+			self.root_manager,
+			"Church Features",
+			lambda doc: doc.update({"offer_app_install": 1 - doc.offer_app_install}),
+		)
+		self.save_as(
+			self.root_manager,
+			"Bulletin Settings",
+			lambda doc: doc.append("church_sections", {"church": self.branch}),
+		)
+
+	def test_each_church_reads_the_settings_that_hold_another_churchs_row(self):
+		self.add_row("Bulletin Settings", "church_sections", self.root)
+		self.add_row("Bulletin Settings", "church_sections", self.branch)
+
+		for user in (self.branch_manager, self.root_manager):
+			frappe.set_user(user)
+			self.assertTrue(
+				frappe.has_permission("Bulletin Settings", "write", doc="Bulletin Settings"), user
+			)
+
+	def test_the_forms_tell_who_can_change_the_shared_settings(self):
+		for doctype in (
+			"Church Features",
+			"Giving Settings",
+			"Check-In Settings",
+			"Bulletin Settings",
+			"People Settings",
+		):
+			for user, expected in ((self.branch_manager, False), (self.root_manager, True)):
+				frappe.set_user(user)
+				doc = frappe.get_single(doctype)
+				doc.run_method("onload")
+				self.assertEqual(doc.get_onload().get("has_every_church"), expected, (doctype, user))
+
+	def test_a_single_church_site_keeps_every_manager_in_charge(self):
+		force_single_church()
+
+		self.save_as(self.branch_manager, "Church Features", lambda doc: doc.update({"enable_finances": 0}))
+
+		self.assertFalse(frappe.db.get_single_value("Church Features", "enable_finances"))
+
+	def test_a_branch_manager_cannot_change_the_directory_switch_or_the_address_lookup(self):
+		for field in ("member_directory", "look_up_addresses"):
+			with self.subTest(field), self.assertRaises(frappe.PermissionError):
+				self.save_as(
+					self.branch_manager,
+					"People Settings",
+					lambda doc, field=field: doc.update({field: 1 - frappe.utils.cint(doc.get(field))}),
+				)
+
+	def test_a_branch_manager_picks_its_own_payment_gateway(self):
+		"""A gift on a branch's page goes through the branch's own merchant account, which the branch sets up."""
+		gateway = make_gateway("_Test Branch Gateway")
+
+		self.save_as(
+			self.branch_manager,
+			"Giving Settings",
+			lambda doc: doc.append("gateways", {"payment_gateway": gateway, "church": self.branch}),
+		)
+
+		rows = frappe.get_single("Giving Settings").gateways
+		self.assertIn((gateway, self.branch), {(row.payment_gateway, row.church) for row in rows})
+		with self.assertRaises(frappe.PermissionError):
+			self.save_as(
+				self.branch_manager,
+				"Giving Settings",
+				lambda doc: doc.append("gateways", {"payment_gateway": gateway}),
+			)
+
+
+class TestGlobalLookups(RollbackEachTest):
+	"""Every church picks from the same lookups, so only someone across every church adds, changes or deletes one."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.root = ensure_root_church()
+		set_multi_church(True)
+		cls.branch = make_branch("_Test Lookup Branch", "TLKB")
+		cls.branch_manager = TestChurchPermissions.bind_manager(
+			"_test_lookup_branch@example.com", "LookupBranch", cls.branch
+		)
+		cls.root_manager = TestChurchPermissions.bind_manager(
+			"_test_lookup_root@example.com", "LookupRoot", cls.root
+		)
+		cls.fund = ensure("Fund", {"fund": "_Test Lookup Fund"})
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def new_lookup(self, doctype, title):
+		"""An unsaved *doctype* record titled *title*: Member Status, Function Type or Expense Type."""
+		field = "status" if doctype == "Member Status" else "type"
+		values = {"fund": self.fund} if doctype == "Expense Type" else {}
+		return frappe.get_doc({"doctype": doctype, field: title, **values})
+
+	def test_a_branch_manager_cannot_add_change_or_delete_a_global_lookup(self):
+		for doctype in ("Member Status", "Expense Type", "Function Type"):
+			stored = self.new_lookup(doctype, f"_Test Shared {doctype}").insert(ignore_permissions=True)
+			frappe.set_user(self.branch_manager)
+			cases = {
+				"add": lambda doctype=doctype: self.new_lookup(doctype, f"_Test Branch {doctype}").insert(),
+				"change": lambda stored=stored: frappe.get_doc(stored.doctype, stored.name).save(),
+				"delete": lambda stored=stored: frappe.delete_doc(stored.doctype, stored.name),
+			}
+			for case, change in cases.items():
+				with self.subTest(doctype=doctype, case=case):
+					self.assertRaisesRegex(frappe.PermissionError, "shared by every church", change)
+			frappe.set_user("Administrator")
+			self.assertTrue(frappe.db.exists(doctype, stored.name))
+
+	def test_a_branch_manager_cannot_rename_a_global_lookup(self):
+		stored = self.new_lookup("Function Type", "_Test Renamed Type").insert(ignore_permissions=True)
+		frappe.set_user(self.branch_manager)
+
+		with self.assertRaises(frappe.PermissionError):
+			frappe.rename_doc("Function Type", stored.name, "_Test Renamed By Branch")
+
+	def test_a_main_church_manager_adds_changes_and_deletes_global_lookups(self):
+		frappe.set_user(self.root_manager)
+		for doctype in ("Member Status", "Expense Type", "Function Type"):
+			with self.subTest(doctype):
+				doc = self.new_lookup(doctype, f"_Test Root {doctype}").insert()
+				doc.save()
+				frappe.delete_doc(doctype, doc.name)
+
+	def test_the_apps_own_saves_still_add_lookups(self):
+		"""Sample data and patches insert with ignore_permissions, whoever runs them."""
+		frappe.set_user(self.branch_manager)
+
+		self.new_lookup("Member Status", "_Test Sample Status").insert(ignore_permissions=True)
+
+		self.assertTrue(frappe.db.exists("Member Status", "_Test Sample Status"))
+
+	def test_a_single_church_site_keeps_every_manager_in_charge(self):
+		force_single_church()
+		frappe.set_user(self.branch_manager)
+
+		self.new_lookup("Member Status", "_Test Single Church Status").insert()
+
+	def test_every_shared_lookup_is_guarded(self):
+		"""The hygiene test lists the shared vocabulary; a new lookup there needs the same guard."""
+		from churchit.tests.test_church_scope_hygiene import GLOBAL_DOCTYPES
+
+		self.assertEqual(
+			GLOBAL_LOOKUPS | {"Note Category"},
+			GLOBAL_DOCTYPES["the shared vocabulary every church picks from"],
+		)
+
+
+class TestRoleProfiles(FrappeTestCase):
+	"""The Role Profiles that churchit ships."""
+
+	def profile_roles(self, profile):
+		return {row.role for row in frappe.get_doc("Role Profile", profile).roles}
+
+	def test_the_branch_profile_cannot_change_frappe_settings_of_every_church(self):
+		roles = self.profile_roles(BRANCH_MANAGER_PROFILE)
+
+		self.assertLessEqual({"Church Manager", "Church User"}, roles)
+		self.assertFalse(roles & FRAPPE_MANAGER_ROLES, roles)
+		self.assertLessEqual(FRAPPE_MANAGER_ROLES, self.profile_roles(MANAGER_PROFILE))
+
+	def test_volunteer_profiles_get_no_email_inbox(self):
+		for profile in ("Church Check-In Volunteer", "Church Follow-up Team"):
+			with self.subTest(profile):
+				self.assertNotIn("Inbox User", self.profile_roles(profile))
+
+
+class TestBranchProfileHint(RollbackEachTest):
+	"""Limiting a Church Manager's login to a branch names the profile that fits a branch."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		ensure_root_church()
+		set_multi_church(True)
+		cls.branch = make_branch("_Test Hint Branch", "THB")
+		cls.addClassCleanup(frappe.clear_cache)
+
+	def limit(self, email, profile):
+		user = ensure_user(email, "Hinted")
+		user_doc = frappe.get_doc("User", user)
+		user_doc.append("role_profiles", {"role_profile": profile})
+		user_doc.save(ignore_permissions=True)
+		person = make_person("_Test Hinted", "Login", church=self.branch, user=user)
+		frappe.clear_messages()
+		limit_login_to_church(person.name)
+		return [message.get("message", "") for message in frappe.get_message_log()]
+
+	def test_a_manager_limited_to_a_branch_hears_of_the_branch_profile(self):
+		messages = self.limit("_test_hint_manager@example.com", MANAGER_PROFILE)
+
+		self.assertTrue(any(BRANCH_MANAGER_PROFILE in message for message in messages), messages)
+
+	def test_a_staff_login_limited_to_a_branch_hears_nothing(self):
+		messages = self.limit("_test_hint_staff@example.com", "Church Staff")
+
+		self.assertFalse(any(BRANCH_MANAGER_PROFILE in message for message in messages), messages)
 
 
 class TestSingleChurchDesk(FrappeTestCase):

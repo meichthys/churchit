@@ -13,12 +13,11 @@ frappe.ui.form.on("Alms Request", {
 		}
 	},
 	refresh(frm) {
-		// One expense per request, for whoever keeps the books, once it has an amount and a type
+		// One submitted expense per request, for whoever keeps the books, once it has an amount to pay
 		if (
 			!frm.is_new() &&
-			!frm.doc.associated_expense &&
-			frm.doc.amount &&
-			frm.doc.expense_type &&
+			!(frm.doc.__onload || {}).is_paid &&
+			frm.doc.amount > 0 &&
 			frappe.model.can_create("Expense")
 		) {
 			frm.add_custom_button(__("Create Expense"), () => create_expense(frm), __("Actions"));
@@ -39,21 +38,53 @@ frappe.ui.form.on("Alms Request", {
 		// Prompt user to create an expense when status is set to "Distributed"
 		if (
 			frm.doc.status === "Distributed" &&
-			!frm.doc.associated_expense &&
+			!(frm.doc.__onload || {}).is_paid &&
+			!frm.creating_expense &&
 			frappe.model.can_create("Expense")
 		) {
-			frappe.confirm("Would you like to create an associated expense?", () =>
-				create_expense(frm)
-			);
+			frappe.confirm(__("Record this gift as an Expense now?"), () => create_expense(frm));
 		}
 	},
 });
 
 function create_expense(frm) {
+	if (frm.doc.expense_type) return call_create_expense(frm);
+
+	frappe.prompt(
+		{
+			fieldname: "expense_type",
+			fieldtype: "Link",
+			options: "Expense Type",
+			label: __("Expense Type"),
+			reqd: 1,
+		},
+		({ expense_type }) => {
+			// This save asks nothing in after_save: the expense follows it
+			frm.creating_expense = true;
+			frm.set_value("expense_type", expense_type);
+			frm.save().then(() => {
+				frm.creating_expense = false;
+				if (!frm.is_dirty()) call_create_expense(frm);
+			});
+		},
+		__("Create Expense"),
+		__("Create")
+	);
+}
+
+function call_create_expense(frm) {
 	frappe.call({
 		method: "churchit.church_finances.doctype.alms_request.alms_request.create_expense",
 		args: { alms_request_name: frm.doc.name },
-		callback: () => frm.reload_doc(),
+		callback: (r) => {
+			frm.reload_doc();
+			frappe.show_alert({
+				message: __("Expense {0} is created and submitted.", [
+					frappe.utils.get_form_link("Expense", r.message, true),
+				]),
+				indicator: "green",
+			});
+		},
 	});
 }
 

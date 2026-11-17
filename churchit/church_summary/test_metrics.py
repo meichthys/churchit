@@ -8,6 +8,7 @@ from frappe.client import get as get_document
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get as get_chart
 from frappe.utils import add_days, get_first_day_of_week, getdate, today
 
+from churchit.church_finances.doctype.payment_type.payment_type import create_non_cash_payment_type
 from churchit.church_summary import metrics
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -209,6 +210,30 @@ class TestWeeklyMetrics(RollbackEachTest):
 		self.assertEqual(enqueue.call_args.kwargs["queue"], "long")
 		self.assertEqual(enqueue.call_args.kwargs["job_id"], metrics.BACKFILL_JOB)
 		self.assertTrue(enqueue.call_args.kwargs["deduplicate"])
+
+	def test_a_giver_of_property_only_is_no_giver(self):
+		create_non_cash_payment_type()
+		give(self.branch_a, 10, f"{WEEK} 09:00:00", make_member("_Test Cash Giver", self.branch_a))
+		collection = frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": f"{WEEK} 10:00:00",
+				"church": self.branch_a,
+				"expected_total": 0,
+				"donations": [
+					{
+						"person": make_member("_Test Property Giver", self.branch_a),
+						"fund": ensure("Fund", {"fund": "_Test Metrics Fund"}),
+						"payment_type": frappe.db.get_value("Payment Type", {"is_non_cash": 1}),
+						"amount": 0,
+						"description": "_Test laptop",
+					}
+				],
+			}
+		)
+		collection.insert(ignore_permissions=True).submit()
+
+		self.assertEqual(metrics.get_giving(self.branch_a, WEEK, add_days(WEEK, 6))["givers"], 1)
 
 	def test_the_backfill_writes_attendance_and_giving_for_the_weeks_before_last_week(self):
 		this_week = get_first_day_of_week(today())

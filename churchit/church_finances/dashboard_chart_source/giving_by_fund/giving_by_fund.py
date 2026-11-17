@@ -1,5 +1,6 @@
 import frappe
 from frappe.query_builder.functions import Coalesce, Sum
+from frappe.utils import get_year_start, today
 from pypika import Order
 
 from churchit.church_scope import scoped
@@ -13,7 +14,7 @@ def get(
 	filters: str | list | dict | None = None,
 	**kwargs,
 ) -> dict:
-	"""Chart source: submitted giving of the ten largest funds, in the reader's churches. Reads only."""
+	"""Chart source: this year's submitted giving of the ten largest funds, in the reader's churches. Reads only."""
 	frappe.has_permission("Collection", "report", throw=True)
 	Donation = frappe.qb.DocType("Donation")
 	Collection = frappe.qb.DocType("Collection")
@@ -29,7 +30,11 @@ def get(
 			Coalesce(Fund.fund, Donation.fund).as_("label"),
 			Sum(Donation.amount).as_("total"),
 		)
-		.where((Collection.docstatus == 1) & Donation.fund.isnotnull())
+		.where(
+			(Collection.docstatus == 1)
+			& Donation.fund.isnotnull()
+			& (Collection.date >= get_year_start(today()))
+		)
 		.groupby(Donation.fund)
 		.orderby(Sum(Donation.amount), order=Order.desc)
 		.limit(10)

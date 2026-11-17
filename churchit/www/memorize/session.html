@@ -1,11 +1,11 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ reference_label }} · Memorize{% endblock %}
+{% block title %}{{ _("{0} · Memorize").format(reference_label) }}{% endblock %}
 
 {% block page_content %}
 <div id="memorize-session" data-mode="{{ mode }}" data-item="{{ item_name }}">
     <header class="memorize-header">
-        <a href="/memorize" class="memorize-back" title="Back to list">&larr;</a>
+        <a href="/memorize" class="memorize-back" title="{{ _("Back to list") }}" aria-label="{{ _("Back to list") }}">&larr;</a>
         <div class="memorize-meta">
             <div class="memorize-ref">{{ reference_label }}</div>
             <div class="memorize-progress">
@@ -18,18 +18,19 @@
         <div class="memorize-controls" id="memorize-controls"></div>
     </header>
 
-    <main class="memorize-stage">
+    <main class="memorize-stage" id="memorize-stage">
+        <input class="memorize-input" id="memorize-input" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" aria-label="{{ _("Type the first letter of each word") }}" hidden>
         <div class="memorize-passage" id="memorize-passage"></div>
         <div class="memorize-hint" id="memorize-hint"></div>
     </main>
 
     <div class="memorize-banner" id="memorize-banner" hidden>
         <div class="memorize-banner-inner">
-            <h2 id="banner-title">Session complete</h2>
+            <h2 id="banner-title">{{ _("Session complete") }}</h2>
             <p id="banner-detail"></p>
             <div class="memorize-banner-actions">
-                <a href="/memorize" class="m-btn m-btn-primary">Back to list</a>
-                <button id="banner-again" class="m-btn m-btn-outline">Practice again</button>
+                <a href="/memorize" class="m-btn m-btn-primary">{{ _("Back to list") }}</a>
+                <button id="banner-again" class="m-btn m-btn-outline">{{ _("Practice again") }}</button>
             </div>
         </div>
     </div>
@@ -78,6 +79,8 @@
     .memorize-passage .tok-word.blur-3 { filter: blur(7px); }
     .memorize-passage .tok-word.blur-4 { color: transparent; text-shadow: 0 0 8px rgba(232,234,246,0.7); }
     .memorize-hint { margin-top: 16px; min-height: 24px; color: #b0b8d8; font-size: 14px; }
+    /* Takes the letters a phone's on-screen keyboard types; a phone sends no usable keydown. */
+    .memorize-input { position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
 
     .memorize-banner { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); z-index: 999; }
     .memorize-banner-inner { background: #1a2150; padding: 28px 36px; border-radius: 10px; max-width: 480px; text-align: center; }
@@ -96,6 +99,27 @@
 <script>
 (function() {
     const TEXT = {{ reference_text|tojson }};
+    const MESSAGES = {{ {
+        "progress": _("Progress: {0}%"),
+        "bonus": _("+{0}% this session"),
+        "memorized": _("Memorized!"),
+        "saving": _("Saving session…"),
+        "type_prompt": _("Type the first letter of each word"),
+        "type_hint": _("Each wrong letter takes 2% off your progress. Finish with no mistakes to add 50%, or with 1 or 2 mistakes to add 10%."),
+        "tap_to_type": _("Tap the passage to open the keyboard."),
+        "reveal": _("Hold to show the whole passage"),
+        "less_blur": _("- Decrease Blur"),
+        "less_blur_title": _("Undo the last step"),
+        "more_blur": _("+ Increase Blur"),
+        "more_blur_title": _("Hide more words"),
+        "reset": _("Reset"),
+        "done": _("Done"),
+        "done_title": _("Save and add 5% to your progress"),
+        "blur_hint": _("Hold 👀 to show the whole passage. Tap + to hide more words. Tap Done to add 5% to your progress (up to 99%; only Type mode reaches 100%)."),
+        "no_text": _("No passage text available. Try again from {0}.").format('<a href="/memorize">' ~ _("your list") ~ "</a>"),
+    } | tojson }};
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const format = (message, value) => message.replace("{0}", value);
     const MODE = "{{ mode }}";
     const ITEM = "{{ item_name }}";
     const INITIAL_PROGRESS = {{ progress }};
@@ -112,8 +136,13 @@
     const progressLabel = document.getElementById("progress-label");
 
     // --- Tokenization -------------------------------------------------------
-    // Word = anything containing a letter. Verse numbers (e.g. "16") and
+    // Word = anything containing a letter, in any alphabet. Verse numbers (e.g. "16") and
     // pure punctuation are skipped during typing/blur but kept in the layout.
+    // A letter is compared without its accents, so "e" types "é".
+    function baseLetter(letter) {
+        return letter.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    }
+
     function tokenize(text) {
         const tokens = [];
         let wordIndex = 0;
@@ -125,8 +154,9 @@
                 tokens.push({ raw, kind: "space" });
                 continue;
             }
-            if (/[A-Za-z]/.test(raw)) {
-                const firstLetter = (raw.match(/[A-Za-z]/) || [""])[0].toLowerCase();
+            const letter = raw.match(/\p{L}/u);
+            if (letter) {
+                const firstLetter = baseLetter(letter[0]);
                 tokens.push({ raw, kind: "word", wordIndex, firstLetter });
                 wordIndex += 1;
             } else {
@@ -245,9 +275,9 @@
 
     function showBanner(result) {
         const parts = [];
-        parts.push(`Progress: ${result.progress}%`);
-        if (result.bonus) parts.push(`+${result.bonus} this session`);
-        if (result.memorized) parts.push("Memorized!");
+        parts.push(format(MESSAGES.progress, result.progress));
+        if (result.bonus) parts.push(format(MESSAGES.bonus, result.bonus));
+        if (result.memorized) parts.push(MESSAGES.memorized);
         bannerDetail.textContent = parts.join(" · ");
         bannerEl.hidden = false;
     }
@@ -268,7 +298,7 @@
                 const el = wordSpan(state.idx);
                 if (el) {
                     el.classList.add("current");
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    el.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "center" });
                 }
             }
             const blurAmount = blurForProgress(state.currentProgress);
@@ -296,12 +326,10 @@
             refreshHeat(wordIndex);
         }
 
-        function onKey(ev) {
+        function typeLetter(typed) {
             if (state.idx >= totalWords) return;
-            if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
-            const key = (ev.key || "").toLowerCase();
-            if (!/^[a-z]$/.test(key)) return;
-            ev.preventDefault();
+            const key = baseLetter(typed);
+            if (!/^\p{L}$/u.test(key)) return;
             const target = wordTokens[state.idx];
             if (key === target.firstLetter) {
                 fadeCorrect(target.wordIndex);
@@ -309,7 +337,8 @@
                 state.idx += 1;
                 highlightCurrent();
                 if (state.idx >= totalWords) {
-                    hintEl.textContent = "Saving session…";
+                    hintEl.textContent = MESSAGES.saving;
+                    inputEl.blur();
                     completeSession(state.mistakes, [...state.correctIndices]);
                 }
             } else {
@@ -319,10 +348,47 @@
             }
         }
 
-        controlsEl.innerHTML = `<span class="text-muted" style="color:#b0b8d8;">Type the first letter of each word</span>`;
-        hintEl.textContent = "Mistakes reduce the memorized by 2%. Three mistakes or less increases memorized by 10%. No mistakes increases memorized by 50%";
+        // A keyboard types into the page; a phone's on-screen keyboard needs a
+        // focused field, which only opens from a tap.
+        function onKey(ev) {
+            if (document.activeElement === inputEl) return;
+            if (ev.metaKey || ev.ctrlKey || ev.altKey || (ev.key || "").length !== 1) return;
+            ev.preventDefault();
+            typeLetter(ev.key);
+        }
+
+        // A phone keyboard may compose a word in the field: take only the new
+        // letters, and empty the field once the composition ends.
+        let typedCount = 0;
+        let isComposing = false;
+        function onInput() {
+            const letters = [...inputEl.value];
+            letters.slice(typedCount).forEach(typeLetter);
+            typedCount = letters.length;
+            if (!isComposing) clearInput();
+        }
+
+        function clearInput() {
+            inputEl.value = "";
+            typedCount = 0;
+        }
+
+        const inputEl = document.getElementById("memorize-input");
+        inputEl.hidden = false;
+        inputEl.addEventListener("input", onInput);
+        inputEl.addEventListener("compositionstart", () => { isComposing = true; });
+        inputEl.addEventListener("compositionend", () => { isComposing = false; clearInput(); });
+        document.getElementById("memorize-stage").addEventListener("click", () => inputEl.focus());
+
+        const prompt = document.createElement("span");
+        prompt.style.color = "#b0b8d8";
+        prompt.textContent = MESSAGES.type_prompt;
+        controlsEl.replaceChildren(prompt);
+        const isTouch = window.matchMedia("(pointer: coarse)").matches;
+        hintEl.textContent = isTouch ? `${MESSAGES.tap_to_type} ${MESSAGES.type_hint}` : MESSAGES.type_hint;
         highlightCurrent();
         document.addEventListener("keydown", onKey);
+        inputEl.focus({ preventScroll: true });
     }
 
     // --- Word Blur mode -----------------------------------------------------
@@ -373,14 +439,14 @@
         }
 
         controlsEl.innerHTML = `
-            <button id="blur-reveal" title="Click to reveal entire verse" style="font-size:24px;padding:6px 12px;">👀</button>
-            <button id="blur-back" title="Undo last step">- Decrease Blur</button>
-            <button id="blur-plus" title="Hide more words">+ Increase Blur</button>
+            <button id="blur-reveal" title="${escapeHtml(MESSAGES.reveal)}" aria-label="${escapeHtml(MESSAGES.reveal)}" style="font-size:24px;padding:6px 12px;">👀</button>
+            <button id="blur-back" title="${escapeHtml(MESSAGES.less_blur_title)}">${escapeHtml(MESSAGES.less_blur)}</button>
+            <button id="blur-plus" title="${escapeHtml(MESSAGES.more_blur_title)}">${escapeHtml(MESSAGES.more_blur)}</button>
             <div style="width:8px;"></div>
-            <button id="blur-reset" title="Reset">Reset</button>
-            <button id="blur-done" title="Save +5 progress" class="btn-primary" style="background:#4cc9f0;color:#0f1530;font-weight:600;">Done</button>
+            <button id="blur-reset">${escapeHtml(MESSAGES.reset)}</button>
+            <button id="blur-done" title="${escapeHtml(MESSAGES.done_title)}" class="btn-primary" style="background:#4cc9f0;color:#0f1530;font-weight:600;">${escapeHtml(MESSAGES.done)}</button>
         `;
-        hintEl.textContent = "Tap 👀 to reveal entire verse. Tap + to hide more words. Tap Done to save +5 progress (capped at 99).";
+        hintEl.textContent = MESSAGES.blur_hint;
 
         const revealBtn = document.getElementById("blur-reveal");
         const setReveal = (on) => {
@@ -405,14 +471,14 @@
         document.getElementById("blur-back").addEventListener("click", backStep);
         document.getElementById("blur-reset").addEventListener("click", reset);
         document.getElementById("blur-done").addEventListener("click", () => {
-            hintEl.textContent = "Saving session…";
+            hintEl.textContent = MESSAGES.saving;
             completeSession(0, []);
         });
     }
 
     // --- Bootstrap ----------------------------------------------------------
     if (!TEXT || !totalWords) {
-        passageEl.innerHTML = `<div style="text-align:center;color:#b0b8d8;">No passage text available. Try again from <a href="/memorize">your list</a>.</div>`;
+        passageEl.innerHTML = `<div style="text-align:center;color:#b0b8d8;">${MESSAGES.no_text}</div>`;
         return;
     }
 

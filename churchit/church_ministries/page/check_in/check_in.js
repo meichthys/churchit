@@ -6,6 +6,7 @@ frappe.pages["check-in"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["check-in"].on_page_show = function (wrapper) {
+	if (window.innerWidth < 1000) frappe.app.sidebar?.fold_for_page();
 	wrapper.station.apply_route_options();
 	wrapper.station.focus_search();
 };
@@ -17,7 +18,7 @@ const ROSTER_REFRESH_SECONDS = 10;
 const STATION_HTML = `
 <style>
 	.check-in-station { display: grid; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: var(--padding-xl); padding: var(--padding-md) var(--padding-lg) var(--padding-2xl); }
-	@media (max-width: 900px) { .check-in-station { grid-template-columns: 1fr; } }
+	@media (max-width: 900px) { .check-in-station { grid-template-columns: minmax(0, 1fr); } }
 	.check-in-station .station-search { font-size: var(--text-xl); padding: 14px 16px; height: auto; }
 	.check-in-station .station-hint { color: var(--text-muted); margin-top: var(--margin-sm); }
 	.check-in-station .family-card { border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: var(--padding-sm) var(--padding-md); margin-top: var(--margin-md); background: var(--card-bg); }
@@ -27,9 +28,12 @@ const STATION_HTML = `
 	.check-in-station .member { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 8px 14px 8px 8px; background: var(--bg-color); cursor: pointer; font-size: var(--text-lg); line-height: 1.2; text-align: left; }
 	.check-in-station .member .avatar { flex: none; }
 	.check-in-station .member small { display: block; color: var(--text-muted); font-size: var(--text-sm); }
-	.check-in-station .member.selected { background: var(--primary); color: var(--white); border-color: var(--primary); }
+	.check-in-station .member.selected { background: var(--btn-primary); color: var(--neutral); border-color: var(--btn-primary); }
 	.check-in-station .member.selected small { color: inherit; opacity: 0.85; }
 	.check-in-station .member.checked-in { opacity: 0.55; cursor: default; }
+	.check-in-station .member-item { display: flex; }
+	.check-in-station .member-item .member-care { padding: 0 10px; margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+	.check-in-station .member-item.has-care .member { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 	.check-in-station .station-actions { position: sticky; bottom: 0; padding: var(--padding-md) 0; background: var(--bg-color); }
 	.check-in-station .station-actions .btn { font-size: var(--text-lg); padding: 10px 24px; }
 	.check-in-station .roster-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--margin-sm); }
@@ -38,9 +42,19 @@ const STATION_HTML = `
 	.check-in-station .roster-row .time, .check-in-station .roster-row .code { color: var(--text-muted); font-size: var(--text-sm); }
 	.check-in-station .roster-row .code { font-family: var(--font-family-mono, monospace); font-weight: 600; }
 	.check-in-station .roster-row .btn { padding: 2px 6px; }
+	.check-in-station .roster-row .btn-undo { margin-left: var(--margin-md); }
+	@media (max-width: 767px) {
+		.check-in-station .roster-row { flex-wrap: wrap; }
+		.check-in-station .roster-row .btn { min-width: 36px; min-height: 36px; }
+	}
 	.check-in-station .empty { color: var(--text-muted); padding: var(--padding-lg) 0; text-align: center; }
-	.check-in-station .empty .add-visitor { color: var(--text-color); text-decoration: underline; cursor: pointer; }
-	.check-in-station .search-row { display: flex; gap: var(--margin-sm); }
+	.check-in-station .empty .add-visitor { color: var(--text-color); text-decoration: underline; font-size: inherit; vertical-align: baseline; }
+	.check-in-station .search-row { display: flex; flex-wrap: wrap; gap: var(--margin-sm); }
+	.check-in-station .search-row .station-search { flex: 1 1 14rem; min-width: 0; }
+	.check-in-station .station-tabs .nav-link { background: none; }
+	.check-in-station .station-tabs .nav-link.active { color: var(--text-color); border-color: var(--border-color) var(--border-color) var(--bg-color); }
+	[data-page-route="check-in"] [data-fieldname="print_tags"] label { white-space: nowrap; }
+	[data-page-route="check-in"] [data-fieldname="print_tags"] input[type="checkbox"] { --checkbox-size: 22px; }
 	.check-in-station .search-row .btn { flex: none; font-size: var(--text-lg); }
 	.pickup-families .pickup-family { border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: var(--padding-sm) var(--padding-md); margin-top: var(--margin-md); }
 	.pickup-families .pickup-heading { color: var(--text-muted); font-size: var(--text-sm); margin-top: var(--margin-sm); }
@@ -54,7 +68,8 @@ const STATION_HTML = `
 	<div>
 		<div class="search-row">
 			<input class="form-control station-search" type="search" autocomplete="off"
-				placeholder="${__("Search by name or phone number…")}">
+				placeholder="${__("Search by name or phone number…")}"
+				aria-label="${__("Search by name or phone number")}">
 			<button class="btn btn-default btn-scan-card">
 				${frappe.utils.icon("scan-barcode", "md")} ${__("Scan Card")}
 			</button>
@@ -77,7 +92,8 @@ const STATION_HTML = `
 			</div>
 		</div>
 		<input class="form-control input-xs roster-filter mb-2" type="search" autocomplete="off"
-			placeholder="${__("Filter by name or code")}">
+			placeholder="${__("Filter by name or code")}"
+			aria-label="${__("Filter checked-in people")}">
 		<div class="roster-list"></div>
 	</div>
 </div>`;
@@ -95,7 +111,10 @@ class CheckInStation {
 		this.make();
 		this.load_context();
 		$(wrapper).on("show", () => this.start_polling());
-		$(wrapper).on("hide", () => this.stop_polling());
+		$(wrapper).on("hide", () => {
+			this.stop_polling();
+			frappe.app.sidebar?.unfold_after_leaving_page();
+		});
 		document.addEventListener("visibilitychange", () => this.start_polling());
 	}
 
@@ -108,11 +127,14 @@ class CheckInStation {
 		});
 		this.print_field.set_value(1);
 		this.page.set_primary_action(
-			__("New Visitor"),
+			{ label: __("New Visitor"), short_label: __("Visitor") },
 			() => this.new_visitor(this.$search.val().trim()),
 			"add"
 		);
-		this.page.set_secondary_action(__("Verify Pickup"), () => this.verify_pickup());
+		this.page.set_secondary_action(
+			{ label: __("Verify Pickup"), short_label: __("Pickup") },
+			() => this.verify_pickup()
+		);
 		this.page.add_menu_item(__("Check-In Settings"), () =>
 			frappe.set_route("Form", "Check-In Settings")
 		);
@@ -140,7 +162,8 @@ class CheckInStation {
 				label: __("Function"),
 				placeholder: __("Function"),
 				options: "Function",
-				input_class: "input-xs",
+				// A recurring template takes no check-ins: its occurrences do.
+				get_query: () => ({ filters: { auto_repeat: 0 } }),
 				change: () => this.set_function(field.get_value()),
 			},
 			parent: this.page.page_form,
@@ -166,7 +189,6 @@ class CheckInStation {
 			this.toggle($(event.currentTarget).data("person"));
 		});
 		this.$results.on("click", ".member-care", (event) => {
-			event.stopPropagation();
 			this.show_care($(event.currentTarget).data("person"));
 		});
 		this.$results.on("click", ".select-family", (event) => {
@@ -213,22 +235,24 @@ class CheckInStation {
 		if (choice && choice !== this.function) this.function_field.set_value(choice);
 	}
 
-	// The function last used on this computer, else the next one on the calendar.
+	// The function last used on this computer when it is on today, else the next one on the calendar.
 	default_function() {
+		const { functions, today } = this.context;
 		const remembered = localStorage.getItem(LAST_FUNCTION_KEY);
-		if (this.context.functions.some((f) => f.name === remembered)) return remembered;
-		const next =
-			this.context.functions.find((f) => f.start_date >= this.context.today) ||
-			this.context.functions[0];
+		if (functions.some((f) => f.name === remembered && f.start_date === today))
+			return remembered;
+		const next = functions.find((f) => f.start_date >= today);
 		return next && next.name;
 	}
 
 	set_function(name) {
 		this.function = name;
+		this.function_doc = null;
 		if (!name) return this.stop_polling();
 		localStorage.setItem(LAST_FUNCTION_KEY, name);
 		frappe.db.get_value("Function", name, ["function_name", "start_date"]).then((r) => {
 			const doc = r.message || {};
+			if (name === this.function) this.function_doc = doc;
 			this.$body
 				.find(".roster-function")
 				.attr("href", frappe.utils.get_form_link("Function", name))
@@ -252,8 +276,9 @@ class CheckInStation {
 	show_headcount() {
 		if (!this.$headcount) {
 			this.$headcount = $(`<div class="headcount d-flex align-items-center mb-3">
-				<label class="m-0 mr-2 text-muted">${__("Headcount")}</label>
-				<input class="form-control input-xs mr-2" type="number" min="0" style="width: 6em">
+				<label class="m-0 mr-2 text-muted" for="checkin-headcount">${__("Headcount")}</label>
+				<input class="form-control input-xs mr-2" type="number" min="0" style="width: 6em"
+					id="checkin-headcount">
 				<button class="btn btn-default btn-xs">${__("Save")}</button>
 			</div>`).insertAfter(this.$body.find(".roster-head"));
 			const save = () =>
@@ -272,18 +297,19 @@ class CheckInStation {
 						})
 					);
 			this.$headcount.find("button").on("click", save);
-			this.$headcount
-				.find("input")
-				.on("keydown", (event) => event.key === "Enter" && save());
+			this.$headcount.find("input").on("keydown", (event) => {
+				if (event.key === "Enter") save();
+			});
 		}
 		const name = this.function;
 		frappe.db.get_value("Function", name, ["start_date", "headcount"]).then((r) => {
 			const doc = r.message || {};
 			if (name !== this.function) return;
-			// The server refuses a headcount before the function starts.
-			this.$headcount.toggle(
-				Boolean(doc.start_date) && doc.start_date <= frappe.datetime.get_today()
-			);
+			// The server refuses a headcount before the function starts. Bootstrap's d-flex is
+			// !important, so it goes too, or the box would never hide.
+			const started =
+				Boolean(doc.start_date) && doc.start_date <= frappe.datetime.get_today();
+			this.$headcount.toggleClass("d-flex", started).toggle(started);
 			this.$headcount.find("input").val(doc.headcount || "");
 		});
 	}
@@ -381,9 +407,11 @@ class CheckInStation {
 			const query = this.$search.val().trim();
 			this.$results.html(
 				query.length >= 2
-					? `<div class="empty">${__("No one found.")} <a class="add-visitor">${__(
+					? `<div class="empty">${__(
+							"No one found."
+					  )} <button type="button" class="btn btn-link p-0 add-visitor">${__(
 							"Add them as a new visitor."
-					  )}</a></div>`
+					  )}</button></div>`
 					: ""
 			);
 			this.update_button();
@@ -422,22 +450,33 @@ class CheckInStation {
 			  ])}</span>`
 			: "";
 		// The server sends these only to readers of Person permission level 1.
-		const care =
-			member.medical_notes || member.emergency_contact_name || member.emergency_contact_phone
-				? `<span class="member-care" role="button" data-person="${member.name}"
-					title="${__("Medical notes and emergency contact")}">
-					${frappe.utils.icon("stethoscope", "md")}
-				</span>`
-				: "";
-		return `<button type="button" class="${classes.join(" ")}" data-person="${member.name}">
-			${frappe.get_avatar("avatar-medium", member.full_name, member.photo)}
-			<span>
-				${frappe.utils.escape_html(member.full_name)}${checked_in ? " ✓" : ""}
-				<small>${frappe.utils.escape_html(detail)}</small>
-				${allergies}
-			</span>
+		const has_care =
+			member.medical_notes ||
+			member.emergency_contact_name ||
+			member.emergency_contact_phone;
+		const care_label = __("Medical notes and emergency contact");
+		const care = has_care
+			? `<button type="button" class="btn btn-default member-care" data-person="${
+					member.name
+			  }"
+				title="${care_label}" aria-label="${care_label}">
+				${frappe.utils.icon("stethoscope", "md")}
+			</button>`
+			: "";
+		const state = checked_in
+			? `aria-disabled="true"`
+			: `aria-pressed="${this.selected.has(member.name)}"`;
+		return `<div class="member-item${has_care ? " has-care" : ""}">
+			<button type="button" class="${classes.join(" ")}" data-person="${member.name}" ${state}>
+				${frappe.get_avatar("avatar-medium", member.full_name, member.photo)}
+				<span>
+					${frappe.utils.escape_html(member.full_name)}${checked_in ? " ✓" : ""}
+					<small>${frappe.utils.escape_html(detail)}</small>
+					${allergies}
+				</span>
+			</button>
 			${care}
-		</button>`;
+		</div>`;
 	}
 
 	show_care(person) {
@@ -461,10 +500,12 @@ class CheckInStation {
 		});
 	}
 
+	// The chips are drawn again, so the focus goes back to the one just pressed.
 	toggle(person) {
 		if (this.selected.has(person)) this.selected.delete(person);
 		else this.selected.add(person);
 		this.render_results();
+		this.$results.find(`.member[data-person="${CSS.escape(person)}"]`).trigger("focus");
 	}
 
 	update_button() {
@@ -483,8 +524,9 @@ class CheckInStation {
 		if (matches.length === 1) this.check_in([matches[0].name]);
 	}
 
-	// A person outside the function's age or grade limits is checked in only after a confirm.
-	check_in(persons, kind) {
+	// A function on another day, or a person outside its age or grade limits, is checked in only after a
+	// confirm. A new visitor was asked about before they were added, so *confirmed* skips both.
+	check_in(persons, kind, confirmed = false) {
 		if (!persons.length || !this.function) return;
 		const send = () =>
 			frappe
@@ -514,13 +556,17 @@ class CheckInStation {
 					this.refresh_roster();
 					if (r.message.print) return church.name_tags.print(r.message.print);
 				});
-		if (kind === "Volunteer") return send();
-		return frappe
-			.call({
-				method: "churchit.church_ministries.check_in_limits.get_bound_problems",
-				type: "GET",
-				args: { function: this.function, persons },
-			})
+		if (confirmed) return send();
+		const day = this.confirm_day();
+		if (kind === "Volunteer") return day.then(send);
+		return day
+			.then(() =>
+				frappe.call({
+					method: "churchit.church_ministries.check_in_limits.get_bound_problems",
+					type: "GET",
+					args: { function: this.function, persons },
+				})
+			)
 			.then((r) => {
 				const problems = Object.values(r.message || {});
 				if (!problems.length) return send();
@@ -529,13 +575,30 @@ class CheckInStation {
 					({ full_name, problem }) =>
 						`<li><b>${escape(full_name)}</b>: ${escape(problem)}</li>`
 				);
-				frappe.confirm(
-					`<p>${__("Outside the age or grade limits of this function:")}</p>
-					<ul>${lines.join("")}</ul>
-					<p>${__("Check in anyway?")}</p>`,
-					send
+				return new Promise((resolve) =>
+					frappe.confirm(
+						`<p>${__("Outside the age or grade limits of this function:")}</p>
+						<ul>${lines.join("")}</ul>
+						<p>${__("Check in anyway?")}</p>`,
+						() => resolve(send())
+					)
 				);
 			});
+	}
+
+	// Resolves at once for a function on today, else only once the volunteer says Yes.
+	confirm_day() {
+		const { function_name, start_date } = this.function_doc || {};
+		if (!start_date || start_date === frappe.datetime.get_today()) return Promise.resolve();
+		return new Promise((resolve) =>
+			frappe.confirm(
+				__("{0} is on {1}, not today. Check in anyway?", [
+					frappe.utils.escape_html(function_name),
+					moment(start_date).format("dddd, LL"),
+				]),
+				resolve
+			)
+		);
 	}
 
 	clear() {
@@ -701,12 +764,14 @@ class CheckInStation {
 		const $people = this.$body.find(
 			".search-row, .station-hint, .station-results, .station-actions"
 		);
-		const $tabs = $(`<ul class="nav nav-tabs mb-3">
-			<li class="nav-item">
-				<a class="nav-link active" role="button" data-tab="people">${__("People")}</a>
+		const $tabs = $(`<ul class="nav nav-tabs station-tabs mb-3" role="tablist">
+			<li class="nav-item" role="presentation">
+				<button type="button" class="nav-link active" role="tab" aria-selected="true"
+					data-tab="people">${__("People")}</button>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link" role="button" data-tab="team">${__("Team")}</a>
+			<li class="nav-item" role="presentation">
+				<button type="button" class="nav-link" role="tab" aria-selected="false"
+					data-tab="team">${__("Team")}</button>
 			</li>
 		</ul>`).insertBefore(this.$body.find(".search-row"));
 		this.$team = $(`<div class="station-team"></div>`)
@@ -714,8 +779,8 @@ class CheckInStation {
 			.insertAfter(this.$body.find(".station-actions"));
 		$tabs.on("click", ".nav-link", (event) => {
 			const is_team = event.currentTarget.dataset.tab === "team";
-			$tabs.find(".nav-link").removeClass("active");
-			$(event.currentTarget).addClass("active");
+			$tabs.find(".nav-link").removeClass("active").attr("aria-selected", "false");
+			$(event.currentTarget).addClass("active").attr("aria-selected", "true");
 			$people.toggle(!is_team);
 			this.$team.toggle(is_team);
 			if (is_team) this.refresh_team();
@@ -988,6 +1053,12 @@ class CheckInStation {
 					label: __("Last Name"),
 					default: rest.join(" "),
 				},
+				{
+					fieldtype: "Date",
+					fieldname: "birth_date",
+					label: __("Birth Date"),
+					description: __("Needed when the function has an age limit."),
+				},
 				{ fieldtype: "Column Break" },
 				{
 					fieldtype: "Data",
@@ -1046,11 +1117,36 @@ class CheckInStation {
 			},
 		});
 		const add = (values) =>
-			frappe.call({ method: `${API}.add_visitor`, args: values }).then((r) => {
-				dialog.hide();
-				this.check_in([r.message.name], "Guest");
-			});
+			this.confirm_day()
+				.then(() => this.confirm_visitor_bounds(values))
+				.then(() => frappe.call({ method: `${API}.add_visitor`, args: values }))
+				.then((r) => {
+					dialog.hide();
+					this.check_in([r.message.name], "Guest", true);
+				});
 		dialog.show();
+	}
+
+	// Asked before the visitor is added, so a No leaves no Person behind.
+	confirm_visitor_bounds({ first_name, last_name, birth_date }) {
+		if (!this.function) return Promise.resolve();
+		return frappe
+			.call({
+				method: `${API}.get_visitor_bound_problem`,
+				type: "GET",
+				args: { function: this.function, birth_date },
+			})
+			.then((r) => {
+				if (!r.message) return;
+				const name = frappe.utils.escape_html([first_name, last_name].join(" ").trim());
+				return new Promise((resolve) =>
+					frappe.confirm(
+						`<p><b>${name}</b>: ${frappe.utils.escape_html(r.message)}</p>
+						<p>${__("Check in anyway?")}</p>`,
+						resolve
+					)
+				);
+			});
 	}
 
 	show_visitor_matches(dialog, groups) {

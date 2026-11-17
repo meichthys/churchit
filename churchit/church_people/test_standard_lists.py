@@ -114,6 +114,21 @@ class TestListsPickTheRightPeople(FrappeTestCase):
 
 		self.assert_list("First-Time Visitors", self.staff, [new], [earlier, never, died])
 
+	def test_first_time_visitors_leave_out_members_and_the_card_agrees(self):
+		recent = add_days(today(), -10)
+		ensure("Membership Type", {"type": "Member"})
+		ensure("Membership Type", {"type": "Friend"})
+		guest = person("_Test List", "Guest", first_attended_on=recent)
+		friend = person("_Test List", "Friend", first_attended_on=recent, membership="Friend")
+		member = person("_Test List", "Longtime", first_attended_on=recent, membership="Member")
+
+		self.assert_list("First-Time Visitors", self.staff, [guest, friend], [member])
+		frappe.set_user("Administrator")
+		self.assertEqual(
+			count_people_in_list("First-Time Visitors")["value"],
+			len(shown("First-Time Visitors", "Administrator")),
+		)
+
 	def test_not_in_a_group_lists_active_adults_in_no_group(self):
 		alone = person("_Test List", "Alone")
 		grouped = person("_Test List", "Grouped", group_count=2)

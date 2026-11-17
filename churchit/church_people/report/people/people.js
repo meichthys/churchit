@@ -29,21 +29,4 @@ frappe.query_reports["People"] = {
 			fieldtype: "Check",
 		},
 	],
-
-	formatter: function (value, row, column, data) {
-		if (column.fieldname === "full_name" && data) {
-			return `<a href="/app/person/${data.name}">${frappe.utils.escape_html(value)}</a>`;
-		}
-		if (column.fieldname === "family_name" && data) {
-			if (!data.family) return "";
-			return `<a href="/app/family/${data.family}">${frappe.utils.escape_html(value)}</a>`;
-		}
-		if (column.fieldname === "roles" && !value) {
-			return "";
-		}
-		if (column.fieldname === "is_baptized") {
-			return value ? __("Yes") : __("No");
-		}
-		return value;
-	},
 };

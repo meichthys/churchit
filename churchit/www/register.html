@@ -12,17 +12,25 @@
 
 	<form id="register-form">
 		<input type="hidden" name="function" value="{{ function.name | e }}">
+		{#- A signed-in member registers as their own Person, so their account fills in the name and email. -#}
+		{% set own_name = registrant.full_name if registrant else "" %}
+		{% set own_email = registrant.email if registrant else "" %}
 		<div class="form-group mb-3">
 			<label for="register-name">{{ _("Your Name") }}</label>
-			<input type="text" class="form-control" id="register-name" name="registrant_name" autocomplete="name" required>
+			<input type="text" class="form-control" id="register-name" name="registrant_name" autocomplete="name" maxlength="140" required
+				{% if own_name %}value="{{ own_name | e }}" readonly{% endif %}>
 		</div>
 		<div class="form-group mb-3">
 			<label for="register-email">{{ _("Your Email") }}</label>
-			<input type="email" class="form-control" id="register-email" name="email" autocomplete="email" required>
+			<input type="email" class="form-control" id="register-email" name="email" autocomplete="email" maxlength="140" required
+				{% if own_email %}value="{{ own_email | e }}" readonly{% endif %}>
+			{% if own_name and own_email %}
+			<small class="form-text text-muted">{{ _("You are signed in, so these come from your account.") }}</small>
+			{% endif %}
 		</div>
 		<div class="form-group mb-3">
 			<label for="register-phone">{{ _("Your Phone (optional)") }}</label>
-			<input type="tel" class="form-control" id="register-phone" name="phone" autocomplete="tel">
+			<input type="tel" class="form-control" id="register-phone" name="phone" autocomplete="tel" maxlength="140">
 		</div>
 		{% include "churchit/templates/includes/register/household.html" %}
 		{% include "churchit/templates/includes/register/questions.html" %}
@@ -30,7 +38,9 @@
 			<label for="register-notes">{{ _("Notes (optional)") }}</label>
 			<textarea class="form-control" id="register-notes" name="notes" rows="2"></textarea>
 		</div>
+		{% if has_discount_code %}
 		{% include "churchit/templates/includes/register/discount.html" %}
+		{% endif %}
 		{#- Hidden from people; a bot that fills it in is not registered. -#}
 		<div style="position: absolute; left: -10000px;" aria-hidden="true">
 			<label for="register-website">{{ _("Website") }}</label>
@@ -45,12 +55,14 @@
 		<p id="register-amount" style="display: none;"></p>
 		<p>
 			<a class="btn btn-default mr-2" id="register-calendar" style="display: none;">{{ _("Add to calendar") }}</a>
+			{% if registrant and "function-sign-up" not in get_switched_off_pages() %}<a class="btn btn-default mr-2" href="/function-sign-up/list">{{ _("See your sign-ups") }}</a>{% endif %}
 			<a class="btn btn-primary" id="register-pay" style="display: none;">{{ _("Pay now") }}</a>
 		</p>
 	</div>
 	{% else %}
 	{% if is_unknown_function %}
-	<div class="alert alert-info" role="alert">{{ _("This function is not open for registration.") }}</div>
+	<div class="alert alert-info" role="alert">{{ _("This function is not open for registration.") }}
+		{%- if login_url %} {{ _("Some functions are open only to members who sign in.") }} <a class="alert-link" href="{{ login_url | e }}">{{ _("Sign in") }}</a>{% endif %}</div>
 	{% endif %}
 	{% if functions %}
 	<div class="list-group">
@@ -81,6 +93,8 @@ frappe.ready(function () {
 
 	const amountDue = {{ _("The amount due is {0}.") | tojson }};
 	const amountWithDiscount = {{ _("The amount due is {0}, after a discount of {1}.") | tojson }};
+	// The church takes no payment online, so the seats are confirmed and the amount is paid in person.
+	const payAtChurch = {{ _("Pay it at the church.") | tojson }};
 
 	function showLink(id, url) {
 		if (!url) return;
@@ -111,6 +125,9 @@ frappe.ready(function () {
 					amount.textContent = (response.discount ? amountWithDiscount : amountDue)
 						.replace('{0}', response.amount_due)
 						.replace('{1}', response.discount);
+					if (!response.pay_url && response.status === 'Confirmed') {
+						amount.textContent += ' ' + payAtChurch;
+					}
 					amount.style.display = '';
 				}
 				document.getElementById('register-success').style.display = '';

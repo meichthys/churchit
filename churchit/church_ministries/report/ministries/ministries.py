@@ -1,12 +1,12 @@
 import frappe
 from frappe import _
 
-from churchit.church_scope import scoped
+from churchit.church_scope import get_church_columns, scoped
 from churchit.utils import set_report_link_titles
 
 
 def execute(filters=None):
-	columns = get_columns()
+	columns = [*get_columns(), *get_church_columns(filters)]
 	data = get_data(filters)
 	set_report_link_titles(columns, data)
 	return columns, data
@@ -14,7 +14,13 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "ministry_name", "fieldtype": "Data", "label": _("Ministry"), "width": 200},
+		{
+			"fieldname": "name",
+			"fieldtype": "Link",
+			"label": _("Ministry"),
+			"options": "Ministry",
+			"width": 200,
+		},
 		{"fieldname": "status", "fieldtype": "Data", "label": _("Status"), "width": 100},
 		{"fieldname": "start_date", "fieldtype": "Date", "label": _("Start Date"), "width": 120},
 		{"fieldname": "end_date", "fieldtype": "Date", "label": _("End Date"), "width": 120},
@@ -33,7 +39,7 @@ def get_data(filters=None):
 		frappe.qb.from_(Ministry)
 		.select(
 			Ministry.name,
-			Ministry.ministry_name,
+			Ministry.church,
 			Ministry.status,
 			Ministry.start_date,
 			Ministry.end_date,

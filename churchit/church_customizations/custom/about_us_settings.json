@@ -28,7 +28,7 @@
    "property": "description",
    "property_type": "Text",
    "row_name": null,
-   "value": "Introduce your church to the website visitor."
+   "value": "Shown only when the Church record has no About text. Foundations > Churches > About is the place for the introduction of your church."
   },
   {
    "default_value": null,

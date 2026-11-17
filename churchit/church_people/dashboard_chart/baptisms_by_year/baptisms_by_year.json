@@ -1,7 +1,7 @@
 {
  "chart_name": "Baptisms by Year",
  "chart_type": "Custom",
- "color": "#1f3c88",
+ "color": "#3b6fd8",
  "creation": "2026-05-29 00:00:00.000000",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
@@ -11,7 +11,7 @@
  "idx": 0,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2026-09-28 12:00:00.000000",
+ "modified": "2026-11-15 15:07:12.956784",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Baptisms by Year",

@@ -21,6 +21,7 @@ from churchit.church_people.followup import FORM_SUBMITTED
 from churchit.church_people.membership import VISITOR
 from churchit.church_people.privacy import anonymize
 from churchit.church_setup.doctype.form_response.form_response import FORM, NEW, PROCESSED, get_form, pay
+from churchit.patches.v1_0 import fill_full_names_in_form_response_and_memory_lists as show_full_names
 from churchit.questions import get_fields
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -99,6 +100,32 @@ class TestFormResponseWebForm(FormResponseTestCase):
 		self.assertEqual(frappe.db.count("Form Response", {"question_set": self.question_set}), 1)
 		self.assertEqual(self.enqueue_doc.call_args.args, ("Form Response", response.name, "process"))
 		self.assertTrue(self.enqueue_doc.call_args.kwargs["enqueue_after_commit"])
+
+	def add_response(self):
+		return frappe.get_doc(
+			{
+				"doctype": "Form Response",
+				"question_set": self.question_set,
+				"first_name": "Rachel",
+				"last_name": "Cooper",
+				"email": EMAIL,
+				"answers": ANSWERS,
+			}
+		).insert(ignore_permissions=True)
+
+	def test_the_title_is_the_full_name(self):
+		response = self.add_response()
+
+		self.assertEqual(response.full_name, "Rachel Cooper")
+		self.assertEqual(response.get_title(), "Rachel Cooper")
+
+	def test_the_patch_fills_the_full_name_of_an_old_response(self):
+		response = self.add_response()
+		frappe.db.set_value("Form Response", response.name, "full_name", None)
+
+		show_full_names.execute()
+
+		self.assertEqual(frappe.db.get_value("Form Response", response.name, "full_name"), "Rachel Cooper")
 
 	def test_the_answers_are_rebuilt_from_the_set(self):
 		forged = [{**ANSWERS[0], "label": "Forged"}, ANSWERS[1]]

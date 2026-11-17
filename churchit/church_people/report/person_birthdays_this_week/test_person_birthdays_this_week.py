@@ -9,6 +9,7 @@ from frappe.utils import add_years, getdate, today
 from churchit.church_people.number_card.birthdays_this_week import birthdays_this_week
 from churchit.church_people.report.person_birthdays_this_month import person_birthdays_this_month
 from churchit.church_people.report.person_birthdays_this_week import person_birthdays_this_week
+from churchit.query import this_week
 from churchit.tests.helpers import ensure, make_person
 
 
@@ -76,6 +77,27 @@ class TestBirthdayLists(FrappeTestCase):
 
 			self.assertEqual(birthdays_this_week.get_count(), count + 1)
 		self.assertEqual(rows[leapling.name], (getdate("2031-02-28"), 43))
+
+	def test_the_week_starts_on_the_sites_first_day_of_the_week(self):
+		ensure("Life Event Type", {"type": "Birth"})
+		past_monday = make_person("_Test Birthday", "Past Monday", life_events=[birth_on("1990-11-10")])
+		wednesday = make_person("_Test Birthday", "Wednesday", life_events=[birth_on("1990-11-19")])
+		sunday = getdate("2031-11-16")
+
+		for first_day, week in (
+			("Sunday", (getdate("2031-11-16"), getdate("2031-11-22"))),
+			("Monday", (getdate("2031-11-10"), getdate("2031-11-16"))),
+		):
+			with (
+				self.subTest(first_day),
+				patch("churchit.query.getdate", return_value=sunday),
+				patch("frappe.utils.data.get_first_day_of_the_week", return_value=first_day),
+			):
+				names = {row["name"] for row in person_birthdays_this_week.execute({})[1]}
+
+				self.assertEqual(this_week(), week)
+				self.assertEqual(wednesday.name in names, first_day == "Sunday")
+				self.assertEqual(past_monday.name in names, first_day == "Monday")
 
 
 def birth_on(date, year_unknown=0):

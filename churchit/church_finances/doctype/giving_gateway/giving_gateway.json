@@ -49,6 +49,7 @@
    "description": "Leave blank to offer this gateway to every church.",
    "fieldname": "church",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Church",
    "options": "Church"
@@ -78,7 +79,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-31 13:13:13.000000",
+ "modified": "2026-11-15 12:28:40.277441",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Giving Gateway",

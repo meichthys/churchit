@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "",
  "creation": "2025-09-14 23:18:13.063400",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Prayer Request",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Prayer Request Count (Answered)",
- "modified": "2025-09-21 22:44:03.076610",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Prayers",
  "name": "Prayer Request Count (Answered)",

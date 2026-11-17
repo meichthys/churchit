@@ -24,13 +24,21 @@ class TestPrayer(FrappeTestCase):
 
 	def test_title_names_the_person_and_the_day(self):
 		prayer = self._prayer()
-		self.assertEqual(prayer.title, "_Test Prayer Intercessor, 2031-05-01")
+		self.assertEqual(prayer.title, "_Test Prayer Intercessor, Thursday, May 1, 2031")
+
+	def test_title_does_not_follow_the_system_date_format(self):
+		self.addCleanup(setattr, frappe.local, "user_date_format", None)
+		frappe.local.user_date_format = "dd.mm.yyyy"
+
+		prayer = self._prayer()
+
+		self.assertEqual(prayer.title, "_Test Prayer Intercessor, Thursday, May 1, 2031")
 
 	def test_title_is_rebuilt_when_the_date_changes(self):
 		prayer = self._prayer()
 		prayer.date = "2031-06-02 14:00:00"
 		prayer.save(ignore_permissions=True)
-		self.assertEqual(prayer.title, "_Test Prayer Intercessor, 2031-06-02")
+		self.assertEqual(prayer.title, "_Test Prayer Intercessor, Monday, June 2, 2031")
 
 	def test_the_patch_retitles_a_prayer_named_by_the_person_id(self):
 		prayer = self._prayer()
@@ -54,7 +62,7 @@ class TestPrayerOfAnAnonymizedPerson(RollbackEachTest):
 		anonymize(person.name)
 
 		title = frappe.db.get_value("Prayer", prayer.name, "title")
-		self.assertEqual(title, f"{ANONYMIZED}, 2031-05-01")
+		self.assertEqual(title, f"{ANONYMIZED}, Thursday, May 1, 2031")
 
 
 class TestPrayerAcrossChurches(RollbackEachTest):

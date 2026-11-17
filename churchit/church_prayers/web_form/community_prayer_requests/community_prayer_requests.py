@@ -14,7 +14,7 @@ def get_list_context(context):
 	# The Prayer Request doctype's get_list_context restricts to `owner = <user>`.
 	# Clear that so this community view shows requests from everyone.
 	context.filters = None
-	context.order_by = "modified desc"
+	context.order_by = "urgent desc, modified desc"
 
 	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
 		if isinstance(filters, dict):
@@ -36,7 +36,7 @@ def get_list_context(context):
 			or_filters=or_filters,
 			limit_start=limit_start,
 			limit_page_length=limit_page_length,
-			order_by="modified desc",
+			order_by="urgent desc, modified desc",
 			ignore_permissions=True,
 		)
 		resolve_link_titles(rows, doctype)

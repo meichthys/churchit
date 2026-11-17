@@ -43,7 +43,8 @@ If you would like to test out the current state of the application, you can try 
 The following features have been implemented in this app (see the [🗺️ Roadmap](#-feature-roadmap) below for future plans):
 
 ### People & Families
-- Comprehensive person profiles with contact info, photos, life events, school grade and an engagement panel (attendance heatmap, groups, serving, giving)
+- Comprehensive person profiles with contact info, photos, life events, school grade and engagement figures (attendance, groups, serving, giving)
+- Birthday and anniversary greeting emails, sent on the day, that a church turns on in Notifications
 - Membership tracking: how each person is connected (Member, Regular Attender, Visitor, Contact), an Active or Inactive status with a reason, and baptism records
 - Family/household management with household roles, spouse sync and authorized pickups
 - Church position tracking
@@ -58,7 +59,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Church fields: a System Manager adds the church's own Person and Family fields with Customize Form
 - Relationships to people in other households, such as grandparents, shown on both people's forms
 - Pathways: ordered steps, each a smart list, with a progress report; an Assimilation Funnel report
-- Care requests with a caregiver and due date, a Care Board that shows them by status, and background checks a position or a group can require
+- Care requests with a caregiver and due date, an email to the care team for each new request, a Care Board that shows them by status, and background checks a position or a group can require
 - Duplicate warnings, merging with a choice of the value to keep for each detail, and imports from Planning Center, Rock RMS, Breeze or a spreadsheet
 - Envelope numbers, unique in each church, that find the giver in a gift's Person field
 - Remove Personal Data on request or after a set number of inactive years
@@ -163,7 +164,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund management with automatic balance updates on submission
 - Fund transfers between accounts
 - Expense tracking by category
-- Alms request system for financial assistance (with web form), with an email to the care team and Benevolence case notes that only the care team reads
+- Alms request system for financial assistance (with web form), with an email to the care team, an email to Finance when a request is approved, and Benevolence case notes that only the care team reads
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover (needs the optional [Payments app](#online-payments-optional))
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link

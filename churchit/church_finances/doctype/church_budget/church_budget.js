@@ -80,11 +80,13 @@ function render_status(frm, rows) {
 	const budgeted = frm.doc.budgeted_amount || 0;
 	const actual = rows.reduce((sum, row) => sum + row.actual, 0);
 	const pct = budgeted ? Math.round((actual / budgeted) * 100) : 0;
+	// Format as the Currency fields beside it do, so the headline shows the same currency.
+	const money = (value) => frappe.format(value, { fieldtype: "Currency" }, { inline: true });
 	wrapper.html(`
 		<div class="row" style="margin-bottom: 15px;">
-			${_headline(__("Total Actual"), format_currency(actual))}
+			${_headline(__("Total Actual"), money(actual))}
 			${_headline(__("% Budget Used"), `${pct}%`)}
-			${_headline(__("Remaining Amount"), format_currency(budgeted - actual))}
+			${_headline(__("Remaining Amount"), money(budgeted - actual))}
 		</div>`);
 }
 

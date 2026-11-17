@@ -1,7 +1,9 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Attendance: when a person first and last attended a function, and how often in the last 90 days."""
+"""Attendance: when a person first and last attended a function, and how often in the last 90 days.
+
+A recurring template is a rule, so its roster counts here only through its occurrences."""
 
 import frappe
 from frappe.query_builder.functions import Count, Max, Min
@@ -16,9 +18,25 @@ WINDOW_DAYS = 90
 
 
 def function_attendees(doc) -> set[str]:
+	"""The people whose attendance rows the save added, removed or changed.
+
+	Everyone the Function had or has when its date, church or Automatically Recreate changes, or when it
+	is new or deleted.
+	"""
 	before = doc.get_doc_before_save()
-	rows = [*(doc.get("attendance") or []), *(before.get("attendance") or [] if before else [])]
-	return {row.person for row in rows}
+	rows = get_rows(doc)
+	rows_before = get_rows(before) if before else set()
+	if not before or any(
+		doc.has_value_changed(field) for field in ("start_date", "church", "is_shared", "auto_repeat")
+	):
+		changed = rows | rows_before
+	else:
+		changed = rows ^ rows_before
+	return {person for person, _attendance_type in changed}
+
+
+def get_rows(doc) -> set[tuple[str, str]]:
+	return {(row.person, row.attendance_type) for row in doc.get("attendance") or []}
 
 
 SOURCES = {"Function": function_attendees}
@@ -45,7 +63,7 @@ def compute(people: list[str]) -> dict[str, dict]:
 			Count(Case().when(Function.start_date >= since, Function.name)).distinct().as_("recent"),
 		)
 		.where(Attendance.person.isin(people) & Attendance.attendance_type.isin(COUNTED_TYPES))
-		.where(Function.start_date <= today)
+		.where((Function.start_date <= today) & (Function.auto_repeat == 0))
 		.where(same_church(Function, Person))
 		.groupby(Attendance.person)
 		.run(as_dict=True)

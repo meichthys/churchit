@@ -1,7 +1,6 @@
 {
  "aggregate_function_based_on": "total_amount",
  "creation": "2026-05-29 00:00:00",
- "currency": "USD",
  "docstatus": 0,
  "doctype": "Number Card",
  "document_type": "Collection",
@@ -12,7 +11,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Last 7-Day Collections",
- "modified": "2026-05-31 17:39:40.970776",
+ "modified": "2026-11-17 00:20:43.937042",
  "modified_by": "Administrator",
  "module": "Church Finances",
  "name": "Last 7-Day Collections",

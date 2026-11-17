@@ -7,7 +7,7 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "List",
- "modified": "2026-03-12 17:33:38.451347",
+ "modified": "2026-11-15 05:53:33.760981",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Manager",
@@ -18,7 +18,7 @@
  "save_on_complete": 1,
  "steps": [
   {
-   "description": "Enter the email of the user. This may be used for resetting passwords, sending notifications, etc.\nFor email notifications to work, the Administrator must configure a default outgoing email server using the `New Email Account` action.",
+   "description": "Enter the email address of the new user. It is used to reset the password and to send notices.",
    "fieldname": "email",
    "fieldtype": "Data",
    "has_next_condition": 1,
@@ -36,7 +36,7 @@
    "ui_tour": 0
   },
   {
-   "description": "A first name is required. You can use something generic like \"Manager\" or \"ChurchManager\".",
+   "description": "A first name is required. A job name such as 'Office' or 'Pastor' is fine.",
    "fieldname": "first_name",
    "fieldtype": "Data",
    "has_next_condition": 1,
@@ -45,7 +45,7 @@
    "label": "First Name",
    "modal_trigger": 0,
    "next_on_click": 0,
-   "next_step_condition": "eval: doc.first_name !== null;",
+   "next_step_condition": "eval: doc.first_name",
    "offset_x": 0,
    "offset_y": 0,
    "popover_element": 0,
@@ -71,7 +71,25 @@
    "ui_tour": 0
   },
   {
-   "description": "Select \"Church\" as the Module Profile.\nThis gives the user access to all the 'Church' app modules.\n\n\u26a0\ufe0f After saving this user, come back to this page and assign the \"Church Manager\" (or \"Church User\") 'RoleProfile' to this user (Not just the \"Church Manager\" permission). This will give the user permission to actually make changes to the Church records.",
+   "description": "Choose what this user may do. Church Manager is for church leaders. For other staff, choose the profile for the job: Church Staff, Church Office, Church Treasurer, Church Care Team, Church Check-In Volunteer or Church Follow-up Team. Church User is for members and gives no access to the desk.",
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "has_next_condition": 1,
+   "hide_buttons": 0,
+   "is_table_field": 0,
+   "label": "Role Profiles",
+   "modal_trigger": 0,
+   "next_on_click": 0,
+   "next_step_condition": "eval: doc.role_profiles && doc.role_profiles.length",
+   "offset_x": 0,
+   "offset_y": 0,
+   "popover_element": 0,
+   "position": "Bottom",
+   "title": "Role Profiles",
+   "ui_tour": 0
+  },
+  {
+   "description": "Choose Church as the Module Profile. It shows all the Church modules in the menu of this user.",
    "fieldname": "module_profile",
    "fieldtype": "Link",
    "has_next_condition": 1,
@@ -89,7 +107,7 @@
    "ui_tour": 0
   },
   {
-   "description": "After saving the user, you can come back to this settings tab to set (reset) the user's password.",
+   "description": "After you save, come back to this tab to set a password for the user.",
    "element_selector": "#user-settings_tab-tab",
    "fieldname": "mute_sounds",
    "fieldtype": "Check",

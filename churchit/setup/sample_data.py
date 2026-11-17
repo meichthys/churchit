@@ -30,9 +30,9 @@ from churchit.church_people.doctype.marital_status.marital_status import MARRIED
 from churchit.church_people.doctype.note_category.note_category import GENERAL, PASTORAL_CARE
 from churchit.church_people.followup import add_card
 from churchit.church_people.membership import MEMBER, REGULAR_ATTENDER
+from churchit.church_scope import root_church
 from churchit.church_summary import metrics
 from churchit.contacts import get_primary_email
-from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 from churchit.query import this_week
 
 _PATHWAY = "Next Steps"
@@ -88,9 +88,9 @@ _DELETE_STEPS = [
 	(False, "Counseling Case", {}),
 	(False, "Care Request", {}),
 	(False, "Care Assignment", {}),
+	(True, "Expense", {}),
 	(False, "Alms Request", {}),
 	(False, "Prayer Request", {}),
-	(True, "Expense", {}),
 	(False, "Vendor", {}),
 	(False, "Church Budget", {}),
 	(False, "Expense Type", {}),
@@ -137,6 +137,14 @@ def setup_wizard_complete(args):
 		create_sample_data()
 
 
+def get_root_church() -> str:
+	"""The top church record, whatever name the church gave it."""
+	church = root_church()
+	if not church:
+		frappe.throw(_("There is no church yet. Create the church record first."))
+	return church
+
+
 @frappe.whitelist(methods=["POST"])
 def create() -> None:
 	"""Create the sample people, families, funds and events. Changes data.
@@ -145,6 +153,7 @@ def create() -> None:
 	"""
 	frappe.only_for("System Manager")
 	create_sample_data()
+	frappe.clear_messages()
 	frappe.msgprint(_("Sample data has been created."), indicator="green", alert=True)
 
 
@@ -156,14 +165,23 @@ def delete() -> None:
 	"""
 	frappe.only_for("System Manager")
 	delete_sample_data()
+	frappe.clear_messages()
 	frappe.msgprint(_("Sample data has been removed."), indicator="green", alert=True)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_status() -> dict:
+	"""Say whether the sample data is loaded and whether the user may change it. Reads only."""
+	frappe.only_for(["Church Manager", "System Manager"])
+	return {
+		"is_loaded": bool(frappe.db.exists("User", _CHURCH_MANAGER_EMAIL)),
+		"can_change": "System Manager" in frappe.get_roles(),
+	}
 
 
 def create_sample_data():
 	"""Create all sample data in dependency order."""
-	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
-	if not church:
-		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found. Run after_install first.")
+	get_root_church()
 
 	position_refs = _create_positions()
 	people = _create_people(position_refs)
@@ -254,9 +272,7 @@ def create_sample_data():
 
 def delete_sample_data():
 	"""Execute all deletion steps"""
-	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
-	if not church:
-		frappe.throw(f"Default church '{DEFAULT_CHURCH_NAME}' not found.")
+	get_root_church()
 
 	# The doctypes this delete empties. Their history goes first: deleting a record unlinks the old
 	# Communications about its name, which would then be found by nothing.
@@ -298,13 +314,13 @@ def delete_sample_data():
 
 def _this_week_in(day_offset, year):
 	"""Return the date (as string) of the weekday *day_offset* days after today, inside
-	this Monday-to-Sunday week, moved to *year*.
+	this week (`query.this_week`), moved to *year*.
 
-	A day past Sunday wraps round to Monday, so a birthday or anniversary made this way
-	shows up in the "this week" cards and reports whenever sample data is created.
+	A day past the last day of the week wraps round to the first, so a birthday or anniversary made
+	this way shows up in the "this week" cards and reports whenever sample data is created.
 	*year* is a leap year, so a Feb 29 in this week exists in it."""
-	monday, _sunday = this_week()
-	target = add_days(monday, (getdate().weekday() + day_offset) % 7)
+	start, _end = this_week()
+	target = add_days(start, ((getdate() - start).days + day_offset) % 7)
 	return str(target.replace(year=year))
 
 
@@ -936,6 +952,10 @@ def _delete_sample_users():
 	emails = [email for email, _person, _role_profile in _SAMPLE_USERS]
 	# Deleting a User keeps its Notification Settings in Deleted Document and only unlinks its Contact.
 	_delete_docs("Notification Settings", {"name": ["in", emails]})
+	# Likewise each login's own dock layer, which hides the modules its roles cannot open.
+	_delete_docs("Dock", {"user": ["in", emails]})
+	# Frappe logs each User Permission change; deleting them here also removes those Permission Log rows.
+	_delete_docs("User Permission", {"user": ["in", emails]})
 	# Only the Contact Frappe made with the login: an older Contact with that address is not ours.
 	for email, created in frappe.get_all(
 		"User", {"name": ["in", emails]}, ["name", "creation"], as_list=True
@@ -1903,7 +1923,9 @@ def _create_care_requests(people):
 			"Care Request", {"person": request["person"], "submitted_on": request["submitted_on"]}
 		):
 			continue
-		frappe.get_doc({"doctype": "Care Request", **request}).insert(ignore_permissions=True)
+		# Quiet: the New Care Request notification would leave a Communication that the delete keeps.
+		with _as_quiet_import():
+			frappe.new_doc("Care Request").update(request).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -3377,7 +3399,7 @@ def _create_bulletin():
 
 def _set_live_stream():
 	"""Give the church a live stream link when it has none, so the streamed Sunday Worship shows Watch Live."""
-	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
+	church = get_root_church()
 	if not frappe.db.get_value("Church", church, "live_stream_url"):
 		frappe.db.set_value("Church", church, "live_stream_url", _LIVE_STREAM_URL, update_modified=False)
 		frappe.clear_document_cache("Church", church)
@@ -3385,7 +3407,7 @@ def _set_live_stream():
 
 def _clear_live_stream():
 	"""Take the sample link off the church, and leave a link the church set itself."""
-	church = frappe.db.get_value("Church", {"church_name": DEFAULT_CHURCH_NAME}, "name")
+	church = get_root_church()
 	if frappe.db.get_value("Church", church, "live_stream_url") == _LIVE_STREAM_URL:
 		frappe.db.set_value("Church", church, "live_stream_url", None, update_modified=False)
 		frappe.clear_document_cache("Church", church)
@@ -3402,6 +3424,9 @@ def _create_members_page():
 			"route": _MEMBERS_PAGE,
 			"published": 1,
 			"members_only": 1,
+			# Frappe's defaults drop the page container and the title.
+			"full_width": 0,
+			"show_title": 1,
 			"content_type": "Rich Text",
 			"main_section": "<p>News for members: the annual business meeting is next month.</p>",
 		}

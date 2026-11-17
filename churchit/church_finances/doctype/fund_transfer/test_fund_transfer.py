@@ -3,16 +3,17 @@
 
 import frappe
 from frappe.exceptions import ValidationError
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import now
+from frappe.utils import add_years, now, today
 
+from churchit.church_finances.doctype.fund.fund import format_amount
 from churchit.church_foundations.church_access import set_user_church
-from churchit.patches.v1_0 import retitle_fund_transfers
+from churchit.patches.v1_0 import name_funds_in_transfer_notes, retitle_fund_transfers
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_two_churches
 
 
-class TestFundTransfer(FrappeTestCase):
+class TestFundTransfer(RollbackEachTest):
 	def setUp(self):
+		super().setUp()
 		self.from_fund = (
 			frappe.get_doc({"doctype": "Fund", "fund": "_Test Transfer From"})
 			.insert(ignore_permissions=True)
@@ -60,6 +61,10 @@ class TestFundTransfer(FrappeTestCase):
 		with self.assertRaises(ValidationError):
 			self._make_transfer(amount=0)
 
+	def test_a_transfer_with_no_source_names_the_missing_field(self):
+		with self.assertRaises(frappe.MandatoryError):
+			self._make_transfer(from_fund=None)
+
 	def test_submit_moves_balance_between_funds(self):
 		self._make_transfer(amount=50).submit()
 		self.assertEqual(frappe.db.get_value("Fund", self.from_fund, "balance"), -50)
@@ -74,14 +79,72 @@ class TestFundTransfer(FrappeTestCase):
 		self.assertEqual(
 			frappe.get_all("Financial Transaction", ledger, ["parent", "amount", "notes"], order_by="amount"),
 			[
-				{"parent": self.from_fund, "amount": -50, "notes": f"Transfer to {self.to_fund}: Roof"},
-				{"parent": self.to_fund, "amount": 50, "notes": f"Transfer from {self.from_fund}: Roof"},
+				{"parent": self.from_fund, "amount": -50, "notes": "Transfer to _Test Transfer To: Roof"},
+				{"parent": self.to_fund, "amount": 50, "notes": "Transfer from _Test Transfer From: Roof"},
 			],
 		)
 		self.assertEqual(frappe.db.count("Version", {"ref_doctype": "Fund"}), versions)
 
 		transfer.cancel()
 		self.assertFalse(frappe.db.exists("Financial Transaction", ledger))
+
+	def test_the_patch_names_the_funds_in_old_notes_and_can_run_again(self):
+		transfer = self._make_transfer(amount=50, notes="Roof")
+		transfer.submit()
+		ledger = {"source_type": "Fund Transfer", "source": transfer.name}
+		old_notes = {
+			self.from_fund: f"Transfer to {self.to_fund}: Roof",
+			self.to_fund: f"Transfer from {self.from_fund}",
+		}
+		for fund, notes in old_notes.items():
+			frappe.db.set_value("Financial Transaction", {**ledger, "parent": fund}, "notes", notes)
+
+		name_funds_in_transfer_notes.execute()
+		name_funds_in_transfer_notes.execute()
+
+		self.assertEqual(
+			frappe.get_all("Financial Transaction", ledger, ["parent", "notes"], order_by="amount"),
+			[
+				{"parent": self.from_fund, "notes": "Transfer to _Test Transfer To: Roof"},
+				{"parent": self.to_fund, "notes": "Transfer from _Test Transfer From"},
+			],
+		)
+
+	def test_a_draft_that_takes_the_source_below_zero_warns_in_orange(self):
+		frappe.local.message_log = []
+		self._make_transfer(amount=50)
+
+		[warning] = frappe.get_message_log()
+		self.assertEqual(warning["indicator"], "orange")
+		self.assertIn("_Test Transfer From", warning["message"])
+		self.assertIn(format_amount(-50), warning["message"])
+
+	def test_submit_alerts_the_move_in_the_site_currency(self):
+		transfer = self._make_transfer(amount=1500)
+		frappe.local.message_log = []
+		transfer.submit()
+
+		alert, warning = frappe.get_message_log()
+		self.assertTrue(alert["alert"])
+		self.assertIn(format_amount(1500), alert["message"])
+		self.assertNotIn("$", alert["message"].replace(format_amount(1500), ""))
+		self.assertIn(format_amount(-1500), warning["message"])
+
+	def test_a_typed_date_far_from_today_warns_but_saves(self):
+		transfer = self._make_transfer(amount=50)
+		transfer.flags.ignore_permissions = False
+		transfer.date = "2206-01-01 10:00:00"
+		frappe.local.message_log = []
+		transfer.save()
+
+		messages = [message["message"] for message in frappe.get_message_log()]
+		self.assertTrue(any("more than 30 days after today" in message for message in messages), messages)
+
+		transfer.date = f"{add_years(today(), -2)} 10:00:00"
+		frappe.local.message_log = []
+		transfer.save()
+		messages = [message["message"] for message in frappe.get_message_log()]
+		self.assertTrue(any("more than a year before today" in message for message in messages), messages)
 
 	def test_cancel_reverses_the_transfer(self):
 		transfer = self._make_transfer(amount=50)

@@ -2,17 +2,42 @@
 // and is licensed under MIT No Attribution (MIT-0).
 
 frappe.ui.form.on("Person", {
-	setup() {
+	setup(frm) {
+		// No "+" in Connections: the first four link through a child table, so "+" would open a blank record,
+		// and the last three come from the Check-In Station or the website, not from a form.
+		frm.can_make_methods = {
+			Person: () => false,
+			Group: () => false,
+			Function: () => false,
+			Missionary: () => false,
+			"Function Check-In": () => false,
+			"Group Join Request": () => false,
+			"Form Response": () => false,
+		};
+
 		// The grid draws a Check on every row: draw No Year on Birth rows only, like the row form.
 		// The blank must be a non-empty string, because the grid formats an empty cell again against the Person.
 		const year_unknown = frappe.meta.docfield_map["Life Event"].year_unknown;
 		year_unknown.formatter = (value, df, options, doc) =>
 			doc?.event_type === "Birth" ? frappe.form.formatters.Check(value) : "<span></span>";
 	},
+	onload(frm) {
+		// A Person changes its name by a merge only (Actions > Merge Into), which the server still allows.
+		frm.meta.allow_rename = 0;
+	},
 	refresh(frm) {
 		// The Connections tab holds the dashboard, so this alert sits above the tabs instead.
 		if (frm.doc.__onload?.has_unsubscribed) {
 			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");
+		} else if (frm.doc.__onload?.bounced_email) {
+			const address = frappe.utils.escape_html(frm.doc.__onload.bounced_email);
+			frm.dashboard.set_headline_alert(
+				__(
+					"Email bounced: {0}. Church Emails skip it until you correct it or untick Bounced.",
+					[address]
+				),
+				"orange"
+			);
 		}
 
 		// Whether AI is in use, under Keep Out of Churchit's AI Features (churchit.ai.opt_outs).
@@ -21,14 +46,20 @@ frappe.ui.form.on("Person", {
 			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
 		);
 
+		show_login_church(frm);
+		frm.saved_user = frm.doc.user;
 		if (!frm.is_new()) {
 			add_actions(frm);
 			show_background_check_status(frm);
 			show_alert_notes(frm);
 			add_merge_menu_item(frm);
-			show_engagement(frm);
 			add_remove_personal_data_menu_item(frm);
 		}
+	},
+	after_save(frm) {
+		// after_save runs before refresh, so saved_user is still the login before this save.
+		const login = frm.doc.__onload?.login_church_note;
+		if (login && frm.doc.user !== frm.saved_user) warn_about_login_church(frm, login);
 	},
 });
 
@@ -45,16 +76,78 @@ function add_actions(frm) {
 
 	const has_email = (frm.doc.emails || []).some((row) => row.email_address);
 	if (has_email && !frm.doc.user) {
-		action(__("Invite to Portal"), () => frm.call("invite_to_portal"));
+		action(
+			__("Invite to Portal"),
+			() => refuse_without_email(frm) || frm.call("invite_to_portal")
+		);
 	}
 
 	add_details_link_action(frm, action);
+
+	const login = frm.doc.__onload?.login_church_note;
+	if (login?.can_limit) {
+		action(__("Limit Login to {0}", [frappe.utils.escape_html(login.church)]), () =>
+			limit_login(frm)
+		);
+	}
 
 	if (frm.doc.__onload?.has_unsubscribed && frappe.model.can_write("Person")) {
 		action(__("Resubscribe to Church Emails"), () =>
 			frm.call("resubscribe_to_church_emails").then(() => frm.reload_doc())
 		);
 	}
+}
+
+// A staff login keeps the churches it works in when it is linked (Person.login_church_note),
+// so say so by the field when this person's church is not one of them.
+function show_login_church(frm) {
+	const login = frm.doc.__onload?.login_church_note;
+	if (!login) {
+		frm.set_df_property(
+			"user",
+			"description",
+			frappe.meta.get_docfield("Person", "user").description
+		);
+		return;
+	}
+	const [works_in, church] = [login.works_in, login.church].map(frappe.utils.escape_html);
+	let description = __("This login works in {0}, not in {1}.", [works_in, church]);
+	if (login.can_limit) {
+		description += " " + __("Actions > Limit Login to {0} changes that.", [church]);
+	}
+	frm.set_df_property("user", "description", description);
+}
+
+// Linking a staff login does not move it to this person's church, so say so on the save that links it.
+function warn_about_login_church(frm, login) {
+	const [user, works_in, church] = [frm.doc.user, login.works_in, login.church].map(
+		frappe.utils.escape_html
+	);
+	let message = __(
+		"{0} works in {1}, not in {2}. Linking it to this person does not change that.",
+		[`<b>${user}</b>`, works_in, church]
+	);
+	if (!login.can_limit) {
+		message +=
+			" " + __("Ask someone who works across every church to limit it to {0}.", [church]);
+	}
+	frappe.msgprint({
+		title: __("Login Works in Another Church"),
+		indicator: "orange",
+		message,
+		primary_action: login.can_limit && {
+			label: __("Limit Login to {0}", [church]),
+			action: () => limit_login(frm).then(() => frappe.hide_msgprint()),
+		},
+	});
+}
+
+function limit_login(frm) {
+	return frappe
+		.xcall("churchit.church_foundations.church_access.limit_login_to_church", {
+			person: frm.doc.name,
+		})
+		.then(() => frm.reload_doc());
 }
 
 // Show the most recent background check so leaders can see at a glance whether this person is
@@ -103,48 +196,38 @@ function show_alert_notes(frm) {
 	});
 }
 
+// Say why an email cannot go out, in words for this user's role. True when it said so.
+function refuse_without_email(frm) {
+	const problem = frm.doc.__onload?.email_problem;
+	if (problem) {
+		frappe.msgprint({
+			title: __("Email Not Configured"),
+			message: problem,
+			indicator: "orange",
+		});
+	}
+	return !!problem;
+}
+
 // The link lets the person change their own details without a login, once, for 7 days.
 function add_details_link_action(frm, action) {
 	const has_email = (frm.doc.emails || []).some((row) => row.is_primary && row.email_address);
 	if (!frm.perm[0]?.write || !has_email) return;
-	action(__("Send Details Link"), () =>
-		frappe
-			.xcall("churchit.church_people.details_link.send_details_link", {
-				person: frm.doc.name,
-			})
-			.then((email) =>
-				frappe.show_alert({
-					message: __("Details link sent to {0}", [frappe.utils.escape_html(email)]),
-					indicator: "green",
+	action(
+		__("Send Details Link"),
+		() =>
+			refuse_without_email(frm) ||
+			frappe
+				.xcall("churchit.church_people.details_link.send_details_link", {
+					person: frm.doc.name,
 				})
-			)
+				.then((email) =>
+					frappe.show_alert({
+						message: __("Details link sent to {0}", [frappe.utils.escape_html(email)]),
+						indicator: "green",
+					})
+				)
 	);
-}
-
-// The stored attendance, groups, serving and giving figures, as indicators on the form dashboard.
-// Giving shows only to a reader who may read its permission level.
-function show_engagement(frm) {
-	const doc = frm.doc;
-	const add = (label, value, color) =>
-		frm.dashboard.add_indicator(`${label}: ${frappe.utils.escape_html(String(value))}`, color);
-	const date = (value) => frappe.datetime.str_to_user(value);
-
-	if (doc.first_attended_on) {
-		add(__("First Attended"), date(doc.first_attended_on), "blue");
-		add(__("Last Attended"), date(doc.last_attended_on), "blue");
-	}
-	add(
-		__("Times Attended (90 Days)"),
-		doc.times_attended_90d || 0,
-		doc.times_attended_90d ? "green" : "orange"
-	);
-	add(__("Groups"), doc.group_count || 0, doc.group_count ? "green" : "orange");
-	if (doc.last_served_on) {
-		add(__("Last Served"), date(doc.last_served_on), "blue");
-	}
-	if (frm.perm[2]?.read && doc.last_gift_on) {
-		add(__("Last Gift"), date(doc.last_gift_on), doc.is_lapsed_giver ? "orange" : "green");
-	}
 }
 
 // A dialog keeps the person's unsaved changes; the Activity list and the alerts then load the new note.

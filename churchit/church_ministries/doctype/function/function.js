@@ -14,6 +14,10 @@ frappe.ui.form.on("Function", {
 		// The grid caches its visible columns, so it is reset to show the price.
 		grid.reset_grid();
 
+		// Add Multiple takes a list of names from a sign-in sheet in one go.
+		frm.fields_dict.attendance.grid.set_multiple_add("person");
+		show_roster_hint(frm);
+
 		// Populate the virtual quantity_signed_up column for each Sign-Up Item row.
 		populate_signed_up_totals(frm);
 		show_freely_given_hint(frm);
@@ -77,6 +81,20 @@ frappe.ui.form.on("Function", {
 		}
 	},
 
+	// A weekly function repeats on the weekday of its start date, until a user chooses another.
+	start_date(frm) {
+		set_repeat_defaults(frm);
+	},
+
+	auto_repeat(frm) {
+		set_repeat_defaults(frm);
+		show_roster_hint(frm);
+	},
+
+	repeat_frequency(frm) {
+		set_repeat_defaults(frm);
+	},
+
 	type: function (frm) {
 		// Refresh form to re-evaluate button visibility
 		frm.trigger("refresh");
@@ -96,26 +114,85 @@ frappe.ui.form.on("Function Attendance", {
 	},
 });
 
-// Record actions under one Actions button, for a saved function.
+// A recurring template is a rule: its people are a roster each occurrence copies, not attendance.
+function show_roster_hint(frm) {
+	const hint = frm.doc.auto_repeat
+		? __(
+				"A roster: each new occurrence copies these people. They do not count as attendance here."
+		  )
+		: "";
+	frm.set_df_property("attendance", "description", hint);
+	// The grid writes its description only when it is made.
+	$(frm.fields_dict.attendance.grid.parent)
+		.find(".grid-description")
+		.text(hint)
+		.toggle(Boolean(hint));
+}
+
+// A value filled here follows the start date of this record. A value the user chose stays.
+function set_repeat_defaults(frm) {
+	if (!frm.doc.auto_repeat || !frm.doc.start_date) return;
+
+	if (frm.filled_repeat_defaults?.name !== frm.doc.name) {
+		frm.filled_repeat_defaults = { name: frm.doc.name };
+	}
+	const filled = frm.filled_repeat_defaults;
+	const fill = (fieldname, value) => {
+		if (frm.doc[fieldname] && frm.doc[fieldname] !== filled[fieldname]) return;
+		filled[fieldname] = value;
+		frm.set_value(fieldname, value);
+	};
+
+	const start = moment(frm.doc.start_date);
+	const is_monthly = frm.doc.repeat_frequency === "Monthly";
+	if (is_monthly || frm.doc.repeat_frequency === "Weekly") {
+		fill("repeat_day_of_week", start.clone().locale("en").format("dddd"));
+	}
+	if (is_monthly) fill("repeat_month_day", start.date());
+}
+
+// Record actions under one Actions button, for a saved function. Each one only for a user who may use it.
 function add_actions(frm) {
-	const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
-	action(__("Check-In Station"), () => {
-		frappe.route_options = { function: frm.doc.name };
-		frappe.set_route("check-in");
-	});
+	const actions = [];
+	// A recurring template takes no check-ins: its occurrences do.
+	if (frappe.model.can_create("Function Check-In") && !frm.doc.auto_repeat) {
+		actions.push([
+			__("Check-In Station"),
+			() => {
+				frappe.route_options = { function: frm.doc.name };
+				frappe.set_route("check-in");
+			},
+		]);
+	}
 	// Each Room Booking links back to this function.
-	action(__("Book a Room"), () => book_rooms(frm));
-	action(__("New Bulletin"), () => frappe.new_doc("Bulletin", { function: frm.doc.name }));
-	action(__("Email the Team"), () => email_the_team(frm));
-	add_fill_open_needs_action(frm, action);
+	if (frappe.model.can_create("Room Booking")) {
+		actions.push([__("Book a Room"), () => book_rooms(frm)]);
+	}
+	if (frappe.model.can_create("Bulletin")) {
+		actions.push([
+			__("New Bulletin"),
+			() => frappe.new_doc("Bulletin", { function: frm.doc.name }),
+		]);
+	}
+	// The team's addresses come from their Ministry Team Assignments.
+	if (frappe.model.can_email("Function") && frappe.model.can_read("Ministry Team Assignment")) {
+		actions.push([__("Email the Team"), () => email_the_team(frm)]);
+	}
+	for (const [label, fn] of actions) frm.add_custom_button(label, fn, __("Actions"));
+	add_fill_open_needs_action(frm, (label, fn) =>
+		frm.add_custom_button(label, fn, __("Actions"))
+	);
 }
 
 // Reports about this function under one View button. The sign-up ones only once it takes sign-ups.
 function add_views(frm) {
 	const view = (label, fn) => frm.add_custom_button(label, fn, __("View"));
-	view(__("Team Schedule"), () =>
-		frappe.set_route("query-report", "Ministry Team Schedule", { function: frm.doc.name })
-	);
+	if (frappe.model.can_read("Ministry Team Assignment")) {
+		view(__("Team Schedule"), () =>
+			frappe.set_route("query-report", "Ministry Team Schedule", { function: frm.doc.name })
+		);
+	}
+	if (!frappe.model.can_read("Function Sign-Up")) return;
 
 	const has_items = (frm.doc.table_cxhh || []).length > 0;
 	frappe.db.count("Function Sign-Up", { filters: { function: frm.doc.name } }).then((count) => {
@@ -203,7 +280,9 @@ function book_rooms(frm) {
 		}
 		// Room Booking requires end > start; default to a 1-hour slot otherwise
 		if (!end_datetime || end_datetime <= start_datetime) {
-			end_datetime = frappe.datetime.add_to_date(start_datetime, { hours: 1 });
+			end_datetime = frappe.datetime.get_datetime_as_string(
+				moment(start_datetime).add(1, "hours")
+			);
 		}
 	}
 	const dialog = new frappe.ui.Dialog({
@@ -216,11 +295,7 @@ function book_rooms(frm) {
 				description: __(
 					"Each room gets its own booking. Book a room that asks questions on its own Room Booking form."
 				),
-				get_data: (txt) =>
-					frappe.db.get_link_options("Room", txt, {
-						is_bookable: 1,
-						question_set: ["is", "not set"],
-					}),
+				get_data: get_bookable_rooms,
 			},
 			{
 				fieldname: "assets",
@@ -272,6 +347,28 @@ function book_rooms(frm) {
 	});
 }
 
+// The rooms the Book a Room dialog offers, each with its capacity under its name.
+function get_bookable_rooms(txt) {
+	return frappe.db
+		.get_list("Room", {
+			filters: {
+				is_bookable: 1,
+				question_set: ["is", "not set"],
+				room_name: ["like", `%${txt || ""}%`],
+			},
+			fields: ["name", "room_name", "capacity"],
+			order_by: "room_name asc",
+			limit: 20,
+		})
+		.then((rooms) =>
+			rooms.map((room) => ({
+				value: room.name,
+				label: frappe.utils.escape_html(room.room_name),
+				description: room.capacity ? __("Up to {0} people", [room.capacity]) : "",
+			}))
+		);
+}
+
 // One normal insert per room, so permissions and every booking check run on the server.
 async function insert_room_bookings(frm, dialog, values) {
 	const rooms = values.rooms || [];
@@ -301,22 +398,22 @@ async function insert_room_bookings(frm, dialog, values) {
 		}
 	}
 	if (made.length) {
+		// The room's name, not the booking number, says what was booked.
+		const links = await Promise.all(
+			made.map(async (booking) => {
+				const what = booking.room
+					? await frappe.utils.fetch_link_title("Room", booking.room)
+					: __("Equipment");
+				return frappe.utils.get_form_link(
+					"Room Booking",
+					booking.name,
+					true,
+					`${frappe.utils.escape_html(what)} (${__(booking.status)})`
+				);
+			})
+		);
 		frappe.show_alert(
-			{
-				message: __("Booked: {0}", [
-					made
-						.map((booking) =>
-							frappe.utils.get_form_link(
-								"Room Booking",
-								booking.name,
-								true,
-								`${booking.name} (${__(booking.status)})`
-							)
-						)
-						.join(", "),
-				]),
-				indicator: "green",
-			},
+			{ message: __("Booked: {0}", [links.join(", ")]), indicator: "green" },
 			10
 		);
 	}

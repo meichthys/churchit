@@ -79,7 +79,7 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
-   "label": "Unread Letters",
+   "label": "Letters Not Yet Read",
    "link_to": "Missionary Letters Not Yet Read",
    "link_type": "Report",
    "open_in_new_tab": 1,
@@ -148,7 +148,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-31 13:31:20.000000",
+ "modified": "2026-11-17 00:29:36.633066",
  "modified_by": "Administrator",
  "module": "Church Missions",
  "name": "Missions",

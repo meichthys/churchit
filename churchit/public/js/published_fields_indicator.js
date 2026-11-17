@@ -42,9 +42,41 @@
 		return lines.join("\n");
 	}
 
+	// A touch screen has no hover, so the first tap shows the text and its link.
+	// It opens above the badge, so it never covers the input under the label.
+	function show_on_first_tap($badge, tooltip, route) {
+		const $content = $("<div>");
+		tooltip.split("\n").forEach((line) => $("<div>").text(line).appendTo($content));
+		$("<a target='_blank'>").attr("href", route).text(__("Open page")).appendTo($content);
+
+		$badge.removeAttr("title").attr("aria-label", tooltip).popover({
+			trigger: "click",
+			placement: "top",
+			container: "body",
+			html: true,
+			content: $content,
+		});
+		$badge.attr("href", "#").on("click", (event) => event.preventDefault());
+	}
+
+	// A tap outside the open badge closes its text.
+	$(document).on("click", (event) => {
+		const $target = $(event.target);
+		if ($target.closest(".popover").length) return;
+		$("." + INDICATOR_CLASS)
+			.not($target.closest("." + INDICATOR_CLASS))
+			.popover("hide");
+	});
+
+	// The text sits in body, so it would stay over the next page.
+	frappe.router.on("change", () => $("." + INDICATOR_CLASS).popover("hide"));
+
 	function apply_indicators(frm, published) {
 		// Remove any existing indicators first (in case of re-render)
-		frm.$wrapper.find("." + INDICATOR_CLASS).remove();
+		frm.$wrapper
+			.find("." + INDICATOR_CLASS)
+			.popover("dispose")
+			.remove();
 
 		for (const fieldname of Object.keys(published)) {
 			const field = frm.fields_dict[fieldname];
@@ -67,11 +99,14 @@
 				.attr("href", route)
 				.attr("target", "_blank")
 				.css({ "margin-left": "6px" })
+				.toggleClass("published-field-touch", frappe.is_mobile())
 				.html(
 					'<svg class="icon icon-sm" aria-hidden="true">' +
 						`<use href="#${icon}"></use>` +
 						"</svg>"
 				);
+
+			if (frappe.is_mobile()) show_on_first_tap($badge, tooltip, route);
 
 			// Append to the label area if available
 			const $label = field.$wrapper.find(".clearfix .label-area, .clearfix label");

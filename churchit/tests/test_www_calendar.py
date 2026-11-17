@@ -98,8 +98,20 @@ class TestCalendarPage(FrappeTestCase):
 		self.assertEqual(events[timed.name]["description"], "Bring a friend")
 
 		self.assertEqual(events[all_day.name]["start"], str(getdate()))
+		self.assertEqual(events[all_day.name]["end"], str(add_days(getdate(), 1)))
 		self.assertTrue(events[all_day.name]["allDay"])
 		self.assertIsNone(events[all_day.name]["address"])
+
+	def test_a_multi_day_all_day_event_ends_the_day_after_its_last_day(self):
+		# FullCalendar reads an all-day end as exclusive, as the .ics feed writes it.
+		camp = make_function(
+			"_Test Family Camp", start_date=getdate(), end_date=add_days(getdate(), 2), all_day=1, publish=1
+		)
+
+		event = self._events()[camp.name]
+
+		self.assertEqual(event["start"], str(getdate()))
+		self.assertEqual(event["end"], str(add_days(getdate(), 3)))
 
 	def test_combine_and_format_helpers(self):
 		self.assertIsNone(_combine(None, "09:00:00", 0))
@@ -378,6 +390,16 @@ class TestCalendarSubscribeLinks(RollbackEachTest):
 		path = "/api/method/churchit.ics.get_public_calendar?" + escape(urlencode({"church": self.branch_a}))
 		self.assertRegex(html, rf'href="webcal://[^/"]+{re.escape(path)}">')
 		self.assertRegex(html, rf'href="https?://[^/"]+{re.escape(path)}" download')
+
+	def test_the_dialog_returns_focus_to_the_event_that_was_clicked(self):
+		frappe.set_user("Guest")
+		set_request(method="GET", path="calendar", query_string=urlencode({"church": self.branch_a}))
+		self.addCleanup(setattr, frappe.local, "request", None)
+		frappe.local.form_dict = frappe._dict(church=self.branch_a)
+		html = get_response("calendar").get_data(as_text=True)
+
+		self.assertIn("openModal(info.event, info.el)", html)
+		self.assertIn("opener = element || document.activeElement", html)
 
 
 class TestCalendarMeetingLink(RollbackEachTest):

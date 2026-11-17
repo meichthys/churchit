@@ -5,4 +5,12 @@ frappe.listview_settings["Church Task"] = {
 	hide_name_column: true,
 	hide_name_filter: true,
 	filters: [["status", "!=", "Completed"]],
+	// The sidebar with its Assigned To list is hidden on a phone, so one button filters to my tasks.
+	onload(listview) {
+		listview.page.add_inner_button(__("My Tasks"), () =>
+			listview.filter_area.add([
+				["Church Task", "_assign", "like", `%${frappe.session.user}%`],
+			])
+		);
+	},
 };

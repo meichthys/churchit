@@ -7,7 +7,7 @@
   "include_name_field": 0,
   "is_standard": 1,
   "list_name": "List",
-  "modified": "2026-10-31 13:14:57.000000",
+  "modified": "2026-11-15 05:40:15.441645",
   "modified_by": "Administrator",
   "module": "Church Ministries",
   "name": "Ministry",
@@ -16,6 +16,24 @@
   "reference_doctype": "Ministry",
   "save_on_complete": 1,
   "steps": [
+    {
+      "description": "The name of the ministry, such as 'Children's Ministry'. It is required.",
+      "fieldname": "ministry_name",
+      "fieldtype": "Data",
+      "has_next_condition": 1,
+      "hide_buttons": 0,
+      "is_table_field": 0,
+      "label": "Name",
+      "modal_trigger": 0,
+      "next_on_click": 0,
+      "next_step_condition": "eval: doc.ministry_name",
+      "offset_x": 0,
+      "offset_y": 0,
+      "popover_element": 0,
+      "position": "Bottom",
+      "title": "Name",
+      "ui_tour": 0
+    },
     {
       "description": "Linking a Group lets ministry membership and communication flow from your existing people groups.",
       "fieldname": "group",

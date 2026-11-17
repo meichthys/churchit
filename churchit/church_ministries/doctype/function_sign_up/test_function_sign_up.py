@@ -264,3 +264,18 @@ class TestFunctionSignUpChurches(RollbackEachTest):
 		with self.assertRaises(frappe.PermissionError):
 			update_doc(SIGN_UP, theirs)
 		self.assertEqual(frappe.db.get_value(SIGN_UP, theirs, "function"), self.function_b)
+
+
+class TestSignUpAfterDeath(RollbackEachTest):
+	def test_a_sign_up_for_someone_who_died_saves_with_a_warning(self):
+		person = make_person("_Test Signup", "Departed")
+		frappe.db.set_value("Person", person.name, {"is_deceased": 1, "deceased_date": "2020-01-01"})
+		function = make_function("_Test Signup After Death", allow_sign_ups=1)
+		frappe.local.message_log = []
+
+		sign_up = frappe.get_doc(
+			{"doctype": SIGN_UP, "function": function.name, "person": person.name}
+		).insert(ignore_permissions=True)
+
+		self.assertTrue(frappe.db.exists(SIGN_UP, sign_up.name))
+		self.assertIn("died on", frappe.local.message_log[-1]["message"])

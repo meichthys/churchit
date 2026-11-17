@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Every staff role profile can use the forms it may fill in.
+"""Every staff role profile can use the forms it may fill in and the lists it reads.
 
 A role that can write a form but not read or select a doctype one of its Link
 fields points at gets an empty picker, or "Insufficient Permission" on save.
@@ -9,6 +9,8 @@ Nothing else catches that, because each role is only ever tried with the others.
 """
 
 import json
+import re
+from pathlib import Path
 
 import frappe
 from frappe.desk.desktop import Workspace as DeskWorkspace
@@ -56,6 +58,22 @@ def can_pick(doctype, roles):
 	return any(row.read or row.select for row in permission_rows(doctype, roles))
 
 
+def can_read(doctype, roles):
+	return any(row.read for row in permission_rows(doctype, roles))
+
+
+def list_filter_links():
+	"""(doctype, fieldname, target) for each Link field that a doctype's list filters on by default."""
+	for path in Path(frappe.get_app_path("churchit")).glob("*/doctype/*/*_list.js"):
+		filters = re.search(r"^\tfilters: (\[.*\]),$", path.read_text(), re.MULTILINE)
+		if not filters:
+			continue
+		meta = frappe.get_meta(json.loads(path.with_name(f"{path.parent.name}.json").read_text())["name"])
+		for fieldname, *_condition in json.loads(filters.group(1)):
+			if (field := meta.get_field(fieldname)) and field.fieldtype == "Link":
+				yield meta.name, fieldname, field.options
+
+
 def pickable_links(doctype, creating):
 	"""(fieldname, target) for every Link a user picks on the form, child tables included.
 
@@ -92,6 +110,19 @@ class TestRoleHygiene(FrappeTestCase):
 				for fieldname, target in pickable_links(doctype, can_create(doctype, roles)):
 					if target in ours and not can_pick(target, roles):
 						unpickable.append(f"{profile}: {doctype}.{fieldname} -> {target}")
+		self.assertEqual(unpickable, [], "Give the profile read or select on these targets")
+
+	def test_every_staff_profile_can_check_the_default_filters_of_the_lists_it_reads(self):
+		"""The list checks each Link filter value, so a profile that reads the list but cannot pick the
+		value gets "Insufficient Permission" each time the list opens."""
+		links = list(list_filter_links())
+		self.assertIn(("Person", "membership_status", "Member Status"), links)
+		unpickable = []
+		for profile in STAFF_PROFILES:
+			roles = profile_roles(profile)
+			for doctype, fieldname, target in links:
+				if can_read(doctype, roles) and not can_pick(target, roles):
+					unpickable.append(f"{profile}: {doctype} list filter {fieldname} -> {target}")
 		self.assertEqual(unpickable, [], "Give the profile read or select on these targets")
 
 

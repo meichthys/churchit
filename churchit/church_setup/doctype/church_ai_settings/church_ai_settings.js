@@ -10,7 +10,12 @@ const DIALOG_MINUTES = 65;
 frappe.ui.form.on("Church AI Settings", {
 	refresh(frm) {
 		frm.get_field("intro_html").$wrapper.html(intro_html());
-		const warnings = get_warnings(Boolean(frappe.boot.churchit?.ai?.flow));
+		const has_flow = Boolean(frappe.boot.churchit?.ai?.flow);
+		// The server refuses these saves (refuse_for_some_churches); this says so up front.
+		if (frm.doc.__onload?.can_loosen === false && frm.has_perm("write")) {
+			frm.set_intro(restricted_manager_note(has_flow), "blue");
+		}
+		const warnings = get_warnings(has_flow);
 		for (const [fieldname, html] of Object.entries(warnings)) {
 			frm.get_field(`${fieldname}_html`).$wrapper.html(
 				`<div style="max-width: 46rem">${html}</div>`
@@ -123,6 +128,16 @@ function use_recommended(frm, method) {
 		});
 		if (added) frm.reload_doc();
 	});
+}
+
+function restricted_manager_note(has_flow) {
+	return has_flow
+		? __(
+				"Church AI Settings apply to every church. You can turn AI off, turn the suggestions off and block more DocTypes. Only a System Manager or a Church Manager with no church restriction can turn AI or the suggestions on, remove a DocType from a list or change the reviewers."
+		  )
+		: __(
+				"Church AI Settings apply to every church. You can turn AI off. Only a System Manager or a Church Manager with no church restriction can turn it on."
+		  );
 }
 
 function intro_html() {

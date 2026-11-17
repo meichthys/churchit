@@ -5,7 +5,7 @@
  "doctype": "Page",
  "icon": "fa fa-database",
  "idx": 0,
- "modified": "2026-03-14 00:00:00.000000",
+ "modified": "2026-11-15 15:07:25.629875",
  "modified_by": "Administrator",
  "module": "Church Customizations",
  "name": "sample-data",
@@ -16,10 +16,10 @@
    "role": "Administrator"
   },
   {
-   "role": "System Manager"
+   "role": "Church Manager"
   },
   {
-   "role": "Church Manager"
+   "role": "System Manager"
   }
  ],
  "standard": "Yes",

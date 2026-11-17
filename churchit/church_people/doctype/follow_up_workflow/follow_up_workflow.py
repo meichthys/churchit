@@ -57,6 +57,14 @@ class FollowupWorkflow(Document):
 		for row in self.steps:
 			if row.assign_to:
 				validate_step_user(row, church)
+			else:
+				frappe.msgprint(
+					_("Nobody is told when a card reaches the step {0}, because it has no Assign To.").format(
+						row.step
+					),
+					indicator="orange",
+					alert=True,
+				)
 
 	def refuse_removing_steps_with_open_cards(self):
 		before = self.get_doc_before_save()
