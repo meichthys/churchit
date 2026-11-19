@@ -42,7 +42,7 @@ Work through "Every change" and each section that the change touches. Each item 
 
 [Adding a doctype](../../../AGENTS.md#adding-a-doctype), [README steps](../../../README.md#steps-for-adding-a-new-doctype), `test_church_scope_hygiene`, `test_permission_hygiene`, `test_doctype_documentation`, `test_desk_ui_hygiene`, `test_navigation_hygiene`, `test_role_hygiene`.
 
-- [ ] The name is unlikely in another Frappe app. Put "Church" before a common word (`Church Task`, `Church Budget`). ERPNext ships `Bank Transaction`, `Payment Entry`, `Budget`, `Project`, `Task`, `Location` and many more, and the app installed last takes over the record.
+- [ ] The name is unlikely in another Frappe app. Put "Church" before a common word (`Church Task`, `Church Budget`). ERPNext ships `Bank Transaction`, `Payment Entry`, `Budget`, `Project`, `Task`, `Location` and many more, and the app installed last takes over the record. `python scripts/check_app_clashes.py` finds no new clash with an app of the Frappe organization.
 - [ ] The doctype has the hidden `church` field from AGENTS.md (`hidden: 1`, `in_standard_filter: 0`, the `single_church` `depends_on`), with `fetch_from` and `read_only` when the record hangs off another scoped record. A doctype that belongs to no church is in `GLOBAL_DOCTYPES` in the hygiene test, with the reason.
 - [ ] The Settings tab has a description. Each field that is not obvious has a description.
 - [ ] Church Manager and the role that owns the area have permissions. Church Staff reads it if staff look it up. Church User has only `if_owner` rights, for records that a member makes on the portal (Pledge and Function Sign-Up also give it read, which `member_access` hooks limit to the member's own, because staff record them for members) ([Roles](../../../AGENTS.md#roles)). Child tables have no permissions.
@@ -66,7 +66,7 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] A scoped script report whose rows each belong to one church selects `church` and ends its columns with `get_church_columns(filters)`.
 - [ ] A report, card or page that reads Function dates or attendance filters `auto_repeat = 0`: a recurring template is only a rule ([Adding a report, chart or number card](../../../AGENTS.md#adding-a-report-chart-or-number-card)).
 - [ ] A report that takes a record name in its filters checks that record with `frappe.has_permission`.
-- [ ] The report name is specific to churchit. "Reconciliation" or "Variance" alone is too general.
+- [ ] The report name is specific to churchit. "Reconciliation" or "Variance" alone is too general. `python scripts/check_app_clashes.py` finds no new clash.
 - [ ] A Custom chart or card method starts with `frappe.has_permission(<doctype>, "report", throw=True)` and scopes its query by hand.
 - [ ] A changed Add Total Row, Disabled or Prepared Report on a shipped report has a patch: migrate keeps the site's value ([Adding a report, chart or number card](../../../AGENTS.md#adding-a-report-chart-or-number-card)).
 - [ ] A report passes `frappe.utils.getdate()` as a value, never CURDATE(), and takes a week from `query.this_week()` (`test_reports_hygiene`).

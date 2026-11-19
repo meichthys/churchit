@@ -678,45 +678,48 @@ def _create_custom_html_blocks():
 # ---------------------------------------------------------------------------
 
 
+# The default church website pages. church_setup/app_names.py lists their routes too.
+WEB_PAGES = [
+	{
+		"name": "home",
+		"title": "Home",
+		"route": "home",
+		"template_file": "home.html",
+	},
+	{
+		"name": "beliefs",
+		"title": "Beliefs",
+		"route": "beliefs",
+		"template_file": "beliefs.html",
+	},
+	{
+		"name": "missions",
+		"title": "Missions",
+		"route": "missions",
+		"template_file": "missions.html",
+	},
+	{
+		"name": "sermons",
+		"title": "Sermons",
+		"route": "sermons",
+		"template_file": "sermons.html",
+	},
+	{
+		"name": "ministries",
+		"title": "Ministries",
+		"route": "ministries",
+		"template_file": "ministries.html",
+	},
+]
+
+
 def _create_web_pages():
 	"""Create the default church website pages.
 
 	HTML content is stored in separate template files under templates/ so it
 	can be edited without touching this Python script.
 	"""
-	pages = [
-		{
-			"name": "home",
-			"title": "Home",
-			"route": "home",
-			"template_file": "home.html",
-		},
-		{
-			"name": "beliefs",
-			"title": "Beliefs",
-			"route": "beliefs",
-			"template_file": "beliefs.html",
-		},
-		{
-			"name": "missions",
-			"title": "Missions",
-			"route": "missions",
-			"template_file": "missions.html",
-		},
-		{
-			"name": "sermons",
-			"title": "Sermons",
-			"route": "sermons",
-			"template_file": "sermons.html",
-		},
-		{
-			"name": "ministries",
-			"title": "Ministries",
-			"route": "ministries",
-			"template_file": "ministries.html",
-		},
-	]
-	for page in pages:
+	for page in WEB_PAGES:
 		if frappe.db.exists("Web Page", page["name"]):
 			continue
 		frappe.get_doc(

@@ -8,8 +8,10 @@ from unittest.mock import patch
 
 import frappe
 
+from churchit.ai.policy import PAGE_NAME
 from churchit.church_setup.app_clashes import get_record_names, refuse_clashing_app
-from churchit.church_setup.app_names import get_shared_names
+from churchit.church_setup.app_names import INSTALL_ROUTES, ROUTE, get_shared_names
+from churchit.patches.after_install import WEB_PAGES
 from churchit.tests.helpers import RollbackEachTest
 
 CLASHING_APP = "_test_clashing_app"
@@ -128,6 +130,24 @@ class TestAppClashes(RollbackEachTest):
 		refuse_clashing_app("frappe")
 		if "payments" in frappe.get_all_apps():
 			refuse_clashing_app("payments")
+
+	def test_frappe_shares_only_the_pages_churchit_replaces(self):
+		# refuse_clashing_installed_apps checks Frappe on every new site, and leaves these routes out.
+		shared = get_shared_names(get_record_names("churchit"), get_record_names("frappe"))
+		self.assertEqual(
+			{(name.doctype, name.name) for name, _other in shared},
+			{(ROUTE, "about"), (ROUTE, "contact"), (ROUTE, "portal")},
+		)
+
+	def test_install_routes_are_the_pages_after_install_makes(self):
+		routes = {page["route"] for page in WEB_PAGES} | {PAGE_NAME}
+		self.assertEqual(set(INSTALL_ROUTES["churchit"]), routes)
+
+	def test_an_app_page_on_a_route_churchit_makes_at_install_is_refused(self):
+		self.clashing_file("www/sermons.html", "<p>Another sermon list</p>")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "sermons"):
+			refuse_clashing_app(CLASHING_APP)
 
 	def test_frappe_learning_shares_function(self):
 		if "lms" not in frappe.get_all_apps():

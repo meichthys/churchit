@@ -15,6 +15,17 @@ on:
       - "churchit/www/**"
       - churchit/modules.txt
       - churchit/church_setup/app_names.py
+      - churchit/hooks.py
+      - churchit/patches/after_install/__init__.py
+      - scripts/check_app_clashes.py
+  pull_request:
+    paths:
+      - "churchit/**/*.json"
+      - "churchit/www/**"
+      - churchit/modules.txt
+      - churchit/church_setup/app_names.py
+      - churchit/hooks.py
+      - churchit/patches/after_install/__init__.py
       - scripts/check_app_clashes.py
   workflow_dispatch:
 

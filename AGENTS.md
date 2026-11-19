@@ -165,8 +165,9 @@ Frappe keeps one record of each name, so an ERPNext `Budget` would take over a C
 record of the same name, and `test_app_clashes` checks ERPNext, Frappe HR and Frappe Learning when
 they are on the bench. `church_setup/app_names.py` is the one rule for which names clash: each
 record in a module folder at any depth, fixture, custom field, property setter, web form or web page
-route and `www` route, compared without case, because MariaDB compares names without case. It uses
-only the standard library, so `scripts/check_app_clashes.py` reads the apps of the Frappe
+route, `www` route and `website_route_rules` route, compared without case or accents as MariaDB
+compares names. A Web Page that `after_install` makes is in no file, so its route goes in
+`INSTALL_ROUTES` there (`test_app_clashes` compares the two). It uses only the standard library, so `scripts/check_app_clashes.py` reads the apps of the Frappe
 organization on GitHub without a bench, and the weekly `app-clashes` workflow fails on a clash that
 its `KNOWN_CLASHES` does not list, or on a listed clash that is gone. Run the script before you add a
 doctype, report, web form or page; `--repo <git URL>` checks one app, also outside the organization.

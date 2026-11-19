@@ -4,17 +4,16 @@
 """Refuse to put Churchit and another app that ships a record of the same name on one site.
 
 Frappe keeps one doctype, report, page or other standard record per name, so the app installed
-last takes over the other app's record. `app_names` says which names an app ships. Frappe
-Learning (the Function doctype), Frappe Education (Room, Room Booking), Lending (Pledge), Frappe
-Mail and Frappe Suite (Email Address, Push Subscription, Slide) clash today. The install hooks
-check; migrate does not, so an existing site is left alone. `scripts/check_app_clashes.py` checks
-every app of the Frappe organization on GitHub, also the apps that are not on this bench.
+last takes over the other app's record. `app_names` says which names an app ships. The install
+hooks check; migrate does not, so an existing site is left alone. `scripts/check_app_clashes.py`
+checks every app of the Frappe organization on GitHub, also the apps that are not on this bench, and
+its KNOWN_CLASHES lists the apps that clash today.
 """
 
 import frappe
 from frappe import _
 
-from churchit.church_setup.app_names import ROUTE, ShippedName, get_shared_names, get_shipped_names
+from churchit.church_setup.app_names import ROUTE, ShippedName, get_key, get_shared_names, get_shipped_names
 
 APP = "churchit"
 
@@ -25,7 +24,7 @@ def get_record_names(app: str) -> dict[tuple[str, str], ShippedName]:
 
 
 def get_site_record_names(app: str) -> dict[tuple[str, str], ShippedName]:
-	"""The (doctype, name) of each standard DocType and Report the site holds for *app*, as of its last migrate.
+	"""Each standard DocType and Report the site holds for *app* since its last migrate, keyed by get_key.
 
 	Records a church made itself are left out: migrate never renames them.
 	"""
@@ -35,17 +34,18 @@ def get_site_record_names(app: str) -> dict[tuple[str, str], ShippedName]:
 		"Report": {"is_standard": "Yes", "module": modules},
 	}
 	return {
-		(doctype, name.casefold()): ShippedName(doctype, name, "")
+		(doctype, get_key(name)): ShippedName(doctype, name, "")
 		for doctype, filters in standard.items()
 		for name in frappe.get_all(doctype, filters=filters, pluck="name")
 	}
 
 
-def refuse_clashing_app(app_name: str):
+def refuse_clashing_app(app_name: str, churchit_names: dict[tuple[str, str], ShippedName] | None = None):
 	"""before_app_install hook: refuse an app that ships a record with the name of a Churchit record.
 
 	The site is checked as well as the code: until migrate renames a record, the site still holds
-	it under its old name, which the other app's install would take over.
+	it under its old name, which the other app's install would take over. *churchit_names* saves
+	reading Churchit's files again for each app.
 	"""
 	if app_name == APP:
 		return
@@ -53,7 +53,7 @@ def refuse_clashing_app(app_name: str):
 	if app_name == "frappe":
 		# Churchit replaces some of Frappe's own pages, such as /contact, on purpose.
 		incoming = {key: name for key, name in incoming.items() if name.doctype != ROUTE}
-	shared = [name for name, _other in get_shared_names(get_record_names(APP), incoming)]
+	shared = [name for name, _other in get_shared_names(churchit_names or get_record_names(APP), incoming)]
 	if shared:
 		frappe.throw(
 			_("{0} cannot be installed with Churchit, because both apps have these records: {1}").format(
@@ -78,5 +78,6 @@ def describe_records(records: list[ShippedName]) -> str:
 
 def refuse_clashing_installed_apps():
 	"""before_install hook: refuse to install Churchit on a site that has a clashing app."""
+	churchit_names = get_record_names(APP)
 	for app in frappe.get_installed_apps():
-		refuse_clashing_app(app)
+		refuse_clashing_app(app, churchit_names)
