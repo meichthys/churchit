@@ -29,6 +29,7 @@ GLOBAL_LOOKUPS = frozenset(
 		"Background Check Type",
 		"Care Request Type",
 		"Case Type",
+		"Church Skill",
 		"Communication Purpose",
 		"Connection Card Interest",
 		"Email Type",
@@ -52,7 +53,6 @@ GLOBAL_LOOKUPS = frozenset(
 		"Prayer Request Status",
 		"Prayer Request Type",
 		"Sign-Up Item",
-		"Skill",
 		"Visit Type",
 	}
 )

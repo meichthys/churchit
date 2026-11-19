@@ -3,7 +3,7 @@
 
 """Give existing sites the starting spiritual gifts a person can have."""
 
-from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
+from churchit.church_people.doctype.church_skill.church_skill import create_spiritual_gifts
 
 
 def execute():

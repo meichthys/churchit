@@ -36,6 +36,7 @@ from churchit.church_people.doctype.background_check_type.background_check_type 
 	create_background_check_types,
 )
 from churchit.church_people.doctype.care_request.care_request import create_new_care_request_notification
+from churchit.church_people.doctype.church_skill.church_skill import create_spiritual_gifts
 from churchit.church_people.doctype.connection_card_interest.connection_card_interest import (
 	create_connection_card_interests,
 )
@@ -49,7 +50,6 @@ from churchit.church_people.doctype.people_settings.people_settings import (
 	store_defaults,
 	sync_directory_menu_item,
 )
-from churchit.church_people.doctype.skill.skill import create_spiritual_gifts
 from churchit.church_people.membership import MEMBER_STATUSES, MEMBERSHIP_TYPES
 from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 	create_new_prayer_request_notifications,

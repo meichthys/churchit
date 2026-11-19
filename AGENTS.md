@@ -160,9 +160,10 @@ Watch for three things that switch the checks off:
 
 Give a doctype, report or other shipped record a name that no other Frappe app is likely to use.
 Frappe keeps one record of each name, so an ERPNext `Budget` would take over a Churchit `Budget`. Put
-"Church" before a common word, as in `Church Asset`, `Church Budget`, `Church Location` and
-`Church Task`. `church_setup/app_clashes.py` refuses to install an app that ships a record of the same
-name, and `test_app_clashes` checks ERPNext and Frappe Learning when they are on the bench.
+"Church" before a common word, as in `Church Asset`, `Church Budget`, `Church Location`,
+`Church Skill` and `Church Task`. `church_setup/app_clashes.py` refuses to install an app that ships a
+record of the same name, and `test_app_clashes` checks ERPNext, Frappe HR and Frappe Learning when
+they are on the bench.
 
 Every doctype that stores records must either carry a church or be declared global; the hygiene test
 fails until one is true. Child tables and Singles are exempt automatically.
@@ -1248,9 +1249,9 @@ push or open a pull request. It takes more than 15 minutes, and CI does not run 
   `churchit.setup.sample_data.create_sample_data()`, which is idempotent, or run single modules while
   developing.
 - **`delete_sample_data` removes every sample record.** A new sample doctype needs a delete step (all
-  rows, or a filter for a shared lookup such as Skill), and a value the load sets on an existing record
-  (the Church, Website Settings) needs its undo. Insert a record that fires a Notification or starts a
-  follow-up card inside `_as_quiet_import`, as the sample check-ins are. `TestSampleDataRoundTrip`
+  rows, or a filter for a shared lookup such as Church Skill), and a value the load sets on an existing
+  record (the Church, Website Settings) needs its undo. Insert a record that fires a Notification or
+  starts a follow-up card inside `_as_quiet_import`, as the sample check-ins are. `TestSampleDataRoundTrip`
   fails when a load and a delete change a table's row count, a Series counter, a Singles value or a
   field of the Church. It loads with an outgoing Email Account, so the emails the load queues count too.
   For each doctype the delete empties, `_clear_history` also deletes every row that refers to its

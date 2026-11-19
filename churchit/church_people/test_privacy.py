@@ -269,7 +269,8 @@ class TestAnonymizePerson(RollbackEachTest):
 
 	def test_skills_and_how_they_heard_are_cleared(self):
 		person = self.make_member(
-			how_heard="_Test A friend", skills=[{"skill": ensure("Skill", {"skill_name": "_Test Teaching"})}]
+			how_heard="_Test A friend",
+			skills=[{"skill": ensure("Church Skill", {"skill_name": "_Test Teaching"})}],
 		)
 
 		anonymize_person(person.name)

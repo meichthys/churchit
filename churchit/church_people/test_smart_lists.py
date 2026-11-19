@@ -113,7 +113,7 @@ class TestSkillLists(RollbackEachTest):
 
 	def test_a_list_on_a_skill_holds_the_people_of_the_church_who_have_it(self):
 		teaching, mercy = (
-			ensure("Skill", {"skill_name": name}) for name in ("_Test Teaching", "_Test Mercy")
+			ensure("Church Skill", {"skill_name": name}) for name in ("_Test Teaching", "_Test Mercy")
 		)
 		smart_list = make_smart_list("_Test Smart Teachers", [["Person Skill", "skill", "=", teaching]])
 		teacher = make_person(
