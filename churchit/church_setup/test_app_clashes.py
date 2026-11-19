@@ -9,6 +9,7 @@ from unittest.mock import patch
 import frappe
 
 from churchit.church_setup.app_clashes import get_record_names, refuse_clashing_app
+from churchit.church_setup.app_names import get_shared_names
 from churchit.tests.helpers import RollbackEachTest
 
 CLASHING_APP = "_test_clashing_app"
@@ -17,12 +18,18 @@ CLASHING_APP = "_test_clashing_app"
 class TestAppClashes(RollbackEachTest):
 	def clashing_app(self, doctype, name):
 		"""Point Frappe at a temporary app whose one module ships one record."""
+		folder = frappe.scrub(name)
+		self.clashing_file(
+			f"clash_module/{frappe.scrub(doctype)}/{folder}/{folder}.json", {"doctype": doctype, "name": name}
+		)
+
+	def clashing_file(self, path, content):
+		"""Point Frappe at a temporary app with the module Clash Module that holds one file at *path*."""
 		folder = tempfile.TemporaryDirectory()
 		self.addCleanup(folder.cleanup)
-		record = os.path.join(folder.name, "clash_module", frappe.scrub(doctype), frappe.scrub(name))
-		os.makedirs(record)
-		with open(os.path.join(record, f"{frappe.scrub(name)}.json"), "w") as file:
-			json.dump({"doctype": doctype, "name": name}, file)
+		os.makedirs(os.path.dirname(os.path.join(folder.name, path)))
+		with open(os.path.join(folder.name, path), "w") as file:
+			file.write(content if isinstance(content, str) else json.dumps(content))
 
 		get_module_list, get_app_path = frappe.get_module_list, frappe.get_app_path
 
@@ -84,6 +91,34 @@ class TestAppClashes(RollbackEachTest):
 
 		refuse_clashing_app(CLASHING_APP)
 
+	def test_a_name_in_other_letters_is_refused(self):
+		# MariaDB compares names without case, so the two would be one record.
+		self.clashing_app("DocType", "FUNCTION")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Function"):
+			refuse_clashing_app(CLASHING_APP)
+
+	def test_a_record_deeper_in_a_module_is_refused(self):
+		self.clashing_file(
+			"clash_module/doctype/thing/kanban_board/care_requests.json",
+			{"doctype": "Kanban Board", "name": "Care Requests"},
+		)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Care Requests"):
+			refuse_clashing_app(CLASHING_APP)
+
+	def test_a_fixture_with_a_churchit_name_is_refused(self):
+		self.clashing_file("fixtures/role.json", [{"doctype": "Role", "name": "Church Manager"}])
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Church Manager"):
+			refuse_clashing_app(CLASHING_APP)
+
+	def test_a_page_on_a_churchit_route_is_refused(self):
+		self.clashing_file("www/calendar.html", "<p>Another calendar</p>")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "calendar"):
+			refuse_clashing_app(CLASHING_APP)
+
 	def test_the_same_name_on_another_record_type_installs(self):
 		self.clashing_app("Report", "Function")
 
@@ -97,17 +132,18 @@ class TestAppClashes(RollbackEachTest):
 	def test_frappe_learning_shares_function(self):
 		if "lms" not in frappe.get_all_apps():
 			self.skipTest("Frappe Learning is not on this bench")
-		self.assertEqual(get_record_names("lms") & get_record_names("churchit"), {("DocType", "Function")})
+		shared = get_shared_names(get_record_names("churchit"), get_record_names("lms"))
+		self.assertEqual([(name.doctype, name.name) for name, _other in shared], [("DocType", "Function")])
 
 	def test_erpnext_shares_no_record(self):
 		if "erpnext" not in frappe.get_all_apps():
 			self.skipTest("ERPNext is not on this bench")
-		self.assertFalse(get_record_names("erpnext") & get_record_names("churchit"))
+		self.assertFalse(get_shared_names(get_record_names("churchit"), get_record_names("erpnext")))
 
 	def test_frappe_hr_shares_no_record(self):
 		if "hrms" not in frappe.get_all_apps():
 			self.skipTest("Frappe HR is not on this bench")
-		self.assertFalse(get_record_names("hrms") & get_record_names("churchit"))
+		self.assertFalse(get_shared_names(get_record_names("churchit"), get_record_names("hrms")))
 
 	def test_migrate_runs_no_check(self):
 		hooks = [*frappe.get_hooks("before_migrate"), *frappe.get_hooks("after_migrate")]

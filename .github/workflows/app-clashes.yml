@@ -1,0 +1,36 @@
+# Finds the doctypes, reports, web forms, routes and other records that Churchit
+# shares with an app of the Frappe organization on GitHub (scripts/check_app_clashes.py).
+# Frappe keeps one record of each name, so such an app cannot share a site with
+# Churchit. The run fails when a clash is not in the script's KNOWN_CLASHES, so a
+# new Frappe app, or a new Churchit record, is found before a church installs it.
+name: app-clashes
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # each Monday
+  push:
+    branches: [develop, version-16]
+    paths:
+      - "churchit/**/*.json"
+      - "churchit/www/**"
+      - churchit/modules.txt
+      - churchit/church_setup/app_names.py
+      - scripts/check_app_clashes.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: python scripts/check_app_clashes.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

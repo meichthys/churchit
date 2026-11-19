@@ -298,7 +298,7 @@ pilot -b church setup production
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
 
-Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
+Churchit cannot share a site with an app that ships a doctype, report, web form, page route or other standard record of the same name. Today this includes Frappe Learning (Function), Frappe Education (Room, Room Booking), Lending (Pledge), Marley Health (the personal-details web form), Frappe Mail (Email Address, Push Subscription), Frappe Suite (Email Address, Push Subscription, Slide), Letters (Letter) and the older Non Profit (Donation, Membership Type) and Meeting (Meeting Attendee) apps. Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records. ERPNext, Frappe HR, CRM, Helpdesk, Insights, Builder, Wiki, Drive, Gameplan, Raven, Print Designer, Payments and the other Frappe apps share no name with Churchit. Each week, the `app-clashes` GitHub workflow checks every app of the Frappe organization again (`scripts/check_app_clashes.py`).
 
 #### Churchit and ERPNext on one site
 
