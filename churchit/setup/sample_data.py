@@ -118,7 +118,7 @@ _DELETE_STEPS = [
 	# Skills are shared lookups, so only the sample's own go.
 	(
 		False,
-		"Skill",
+		"Church Skill",
 		{"name": ["in", [name for name, _ in _SKILLS]], "description": ["in", [text for _, text in _SKILLS]]},
 	),
 ]
@@ -1154,7 +1154,7 @@ def _create_person_skills(people):
 	"""Skills and spiritual gifts on a few people, so a church can find who can help."""
 	for skill_name, description in _SKILLS:
 		_insert_if_missing(
-			"Skill", {"skill_name": skill_name}, skill_name=skill_name, description=description
+			"Church Skill", {"skill_name": skill_name}, skill_name=skill_name, description=description
 		)
 	for person, skills in (
 		("James Wilson", ["Teaching", "Shepherding"]),
@@ -1165,7 +1165,7 @@ def _create_person_skills(people):
 		doc = frappe.get_doc("Person", people[person])
 		if doc.skills:
 			continue
-		doc.set("skills", [{"skill": skill} for skill in skills if frappe.db.exists("Skill", skill)])
+		doc.set("skills", [{"skill": skill} for skill in skills if frappe.db.exists("Church Skill", skill)])
 		doc.save(ignore_permissions=True)
 
 

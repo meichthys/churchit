@@ -22,17 +22,17 @@ STARTER_GIFTS = (
 )
 
 
-class Skill(Document):
+class ChurchSkill(Document):
 	"""A skill, interest or spiritual gift that a person can have, shared by every church."""
 
 
 def create_spiritual_gifts():
 	"""Make the starting spiritual gifts the site does not have yet."""
 	for skill_name, description in STARTER_GIFTS:
-		if not frappe.db.exists("Skill", skill_name):
+		if not frappe.db.exists("Church Skill", skill_name):
 			frappe.get_doc(
 				{
-					"doctype": "Skill",
+					"doctype": "Church Skill",
 					"skill_name": skill_name,
 					"category": SPIRITUAL_GIFT,
 					"description": description,

@@ -72,6 +72,7 @@ FILTER_TYPES = ("Check", "Data", "Date", "Datetime", "Int", "Link", "Select")
 CHOICE_DOCTYPES = (
 	"Address Type",
 	"Church",
+	"Church Skill",
 	"Email Type",
 	"Group",
 	"Inactive Reason",
@@ -85,7 +86,6 @@ CHOICE_DOCTYPES = (
 	"Phone Type",
 	"Position Type",
 	"Salutation",
-	"Skill",
 )
 # What a briefing sends: each part of churchit.church_people.ai's briefing, and the doctype of the
 # records in it. records holds timeline cards, whose doctypes come from their links (RECORD_DOCTYPES).

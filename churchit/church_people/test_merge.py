@@ -496,7 +496,7 @@ class TestMergeFamilies(RollbackEachTest):
 class TestMergeSkills(RollbackEachTest):
 	def test_the_kept_person_has_each_skill_of_both_once(self):
 		teaching, mercy, giving = (
-			ensure("Skill", {"skill_name": name})
+			ensure("Church Skill", {"skill_name": name})
 			for name in ("_Test Teaching", "_Test Mercy", "_Test Giving")
 		)
 		kept = make_person("_Test Kept", "Skills", skills=[{"skill": teaching}, {"skill": giving}])

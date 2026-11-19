@@ -36,6 +36,7 @@ GLOBAL_DOCTYPES = {
 		"Background Check Type",
 		"Care Request Type",
 		"Case Type",
+		"Church Skill",
 		"Communication Purpose",
 		"Connection Card Interest",
 		"Email Type",
@@ -60,7 +61,6 @@ GLOBAL_DOCTYPES = {
 		"Prayer Request Status",
 		"Prayer Request Type",
 		"Sign-Up Item",
-		"Skill",
 		"Visit Type",
 	},
 	"reference data that reads the same in every church": {

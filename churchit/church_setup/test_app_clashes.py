@@ -104,6 +104,11 @@ class TestAppClashes(RollbackEachTest):
 			self.skipTest("ERPNext is not on this bench")
 		self.assertFalse(get_record_names("erpnext") & get_record_names("churchit"))
 
+	def test_frappe_hr_shares_no_record(self):
+		if "hrms" not in frappe.get_all_apps():
+			self.skipTest("Frappe HR is not on this bench")
+		self.assertFalse(get_record_names("hrms") & get_record_names("churchit"))
+
 	def test_migrate_runs_no_check(self):
 		hooks = [*frappe.get_hooks("before_migrate"), *frappe.get_hooks("after_migrate")]
 		self.assertFalse([hook for hook in hooks if "app_clashes" in hook])

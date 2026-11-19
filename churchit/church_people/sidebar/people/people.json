@@ -1177,7 +1177,7 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "Skills",
-   "link_to": "Skill",
+   "link_to": "Church Skill",
    "link_type": "DocType",
    "open_in_new_tab": 1,
    "show_arrow": 0,
@@ -1304,7 +1304,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-17 08:18:18.738625",
+ "modified": "2026-11-19 01:08:56.251834",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "People",

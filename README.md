@@ -309,7 +309,7 @@ pilot -b church get-app https://github.com/frappe/erpnext --branch version-16
 pilot -b church install-app church.example.org erpnext
 ```
 
-Update and migrate an existing Churchit site before you install ERPNext. Until you do, the install stops with an error.
+Update and migrate an existing Churchit site before you install ERPNext. Until you do, the install stops with an error. Frappe HR needs ERPNext, so the notes in this section also apply to a site with Frappe HR.
 
 When both apps are on one site:
 
@@ -326,7 +326,7 @@ When both apps are on one site:
 | Gender | Churchit keeps only Male, Female and Unknown. Installing Churchit on an ERPNext site deletes the other genders, so update the employees and contacts that used one. |
 | Apps screen | Every desk user sees an ERPNext tile. Users without ERPNext roles cannot use it. Desk users who can open Summary go to Summary after login. Other desk users go to their own default. |
 
-Churchit renamed three records so that ERPNext can use their names: **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. Migrate moves the records, the links to them, your customizations and each user's list settings. Update anything else that uses the old names, such as Client Scripts, Server Scripts, saved reports, dashboard charts, bookmarks (`/app/budget`) and API calls (`/api/resource/Location`).
+Churchit renamed four records so that ERPNext and Frappe HR can use their names. For ERPNext, **Budget** is now **Church Budget**, **Location** is now **Church Location**, and the **Open Work Orders** report is now **Open Church Work Orders**. For Frappe HR, **Skill** is now **Church Skill**. Migrate moves the records, the links to them, your customizations, each user's list settings, and the Report Builder reports, number cards, dashboard charts, saved list filters and Kanban boards of the renamed doctypes. Update anything else that uses the old names, such as Client Scripts, Server Scripts, query reports, bookmarks (`/desk/budget`, `/desk/skill`) and API calls (`/api/resource/Location`, `/api/resource/Skill`).
 
 **MCP after an update:** Churchit closes Frappe's MCP server (**System Settings > AI Agents > Enable MCP**, which a Frappe 16 update turned on in October 2026) until a church turns on AI. MCP is one setting for the site, so ERPNext and the other apps on the site lose MCP too. To open it again, turn on AI in **Settings > Module Settings > AI Settings**, then tick **Enable MCP** in System Settings. Only a Church Manager, a System Manager or a person with the new **Church AI User** role can then connect an AI app; give that role on the User record to the other people who need it. Each System Manager gets one bell notice that says so.
 

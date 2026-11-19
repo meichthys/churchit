@@ -37,10 +37,10 @@
   }
  ],
  "links": [],
- "modified": "2026-10-31 13:20:48.000000",
+ "modified": "2026-11-19 01:08:35.574587",
  "modified_by": "Administrator",
  "module": "Church People",
- "name": "Skill",
+ "name": "Church Skill",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

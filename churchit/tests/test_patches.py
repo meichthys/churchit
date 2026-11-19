@@ -46,6 +46,7 @@ from churchit.patches.v1_0 import (
 	remove_private_fields_from_versions,
 	rename_agency_logo_field,
 	rename_records_that_clash_with_erpnext,
+	rename_skill_that_clashes_with_frappe_hr,
 	restamp_shared_fund_transfers,
 	restore_shipped_people_charts,
 	scope_website_pages_to_church,
@@ -136,6 +137,125 @@ class TestRenameRecordsThatClashWithErpnext(RollbackEachTest):
 
 		self.assertTrue(frappe.db.exists("Property Setter", "Church Location-location_name-bold"))
 		self.assertFalse(frappe.db.exists("Property Setter", "Location-location_name-bold"))
+
+
+class TestRenameSkillThatClashesWithFrappeHr(RollbackEachTest):
+	"""Only Churchit's Skill moves, so Frappe HR's Skill keeps its name."""
+
+	def make_skill(self, module):
+		# Frappe HR's own Skill is there when Frappe HR is installed. db_insert makes no table or files.
+		frappe.db.delete("DocType", {"name": "Skill"})
+		frappe.get_doc({"doctype": "DocType", "name": "Skill", "module": module}).db_insert()
+
+	def drop_skill(self, *args, **kwargs):
+		frappe.db.delete("DocType", {"name": "Skill"})
+
+	def test_churchit_skill_is_renamed(self):
+		self.make_skill("Church People")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_skill_that_clashes_with_frappe_hr.execute()
+
+		rename.assert_any_call("DocType", "Skill", "Church Skill", force=True, show_alert=False)
+
+	def test_frappe_hr_skill_is_left_alone(self):
+		self.make_skill("HR")
+
+		with mock.patch("frappe.rename_doc") as rename:
+			rename_skill_that_clashes_with_frappe_hr.execute()
+
+		rename.assert_not_called()
+
+	def test_a_second_run_renames_nothing(self):
+		self.make_skill("Church People")
+
+		with mock.patch("frappe.rename_doc", side_effect=self.drop_skill) as rename:
+			rename_skill_that_clashes_with_frappe_hr.execute()
+			rename_skill_that_clashes_with_frappe_hr.execute()
+
+		rename.assert_called_once()
+
+	def test_a_saved_filter_on_the_skill_category_keeps_its_value(self):
+		self.make_skill("Church People")
+		frappe.db.sql("delete from `__UserSettings` where doctype in ('Skill', 'Church Skill')")
+		data = {
+			"List": {
+				"filters": [
+					["Skill", "category", "=", "Skill"],
+					["Skill", "category", "in", ["Skill", "Interest"]],
+				]
+			},
+			"Report": {"fields": [["skill_name", "Skill"]], "order_by": "`tabSkill`.`modified` desc"},
+		}
+		frappe.db.sql(
+			"insert into `__UserSettings` (`user`, `doctype`, `data`) values ('Administrator', 'Skill', %s)",
+			json.dumps(data),
+		)
+
+		with mock.patch("frappe.rename_doc"):
+			rename_skill_that_clashes_with_frappe_hr.execute()
+
+		moved = frappe.db.sql("select data from `__UserSettings` where doctype = 'Church Skill'")[0][0]
+		self.assertEqual(
+			json.loads(moved),
+			{
+				"List": {
+					"filters": [
+						["Church Skill", "category", "=", "Skill"],
+						["Church Skill", "category", "in", ["Skill", "Interest"]],
+					]
+				},
+				"Report": {
+					"fields": [["skill_name", "Church Skill"]],
+					"order_by": "`tabChurch Skill`.`modified` desc",
+				},
+			},
+		)
+
+	def test_saved_reports_and_cards_follow_the_renamed_doctype(self):
+		self.make_skill("Church People")
+		saved = {
+			"fields": [["skill_name", "Skill"]],
+			"filters": [["Skill", "category", "=", "Skill"]],
+			"order_by": "`tabSkill`.`modified` desc",
+		}
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "_Test Skill Report",
+				"ref_doctype": "Church Skill",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"module": "Church People",
+				"json": json.dumps(saved),
+			}
+		).insert(ignore_permissions=True)
+		card = frappe.get_doc(
+			{
+				"doctype": "Number Card",
+				"label": "_Test Skill Card",
+				"type": "Document Type",
+				"document_type": "Church Skill",
+				"function": "Count",
+				"filters_json": json.dumps(saved["filters"]),
+			}
+		).insert(ignore_permissions=True)
+
+		with mock.patch("frappe.rename_doc"):
+			rename_skill_that_clashes_with_frappe_hr.execute()
+
+		self.assertEqual(
+			json.loads(frappe.db.get_value("Report", report.name, "json")),
+			{
+				"fields": [["skill_name", "Church Skill"]],
+				"filters": [["Church Skill", "category", "=", "Skill"]],
+				"order_by": "`tabChurch Skill`.`modified` desc",
+			},
+		)
+		self.assertEqual(
+			json.loads(frappe.db.get_value("Number Card", card.name, "filters_json")),
+			[["Church Skill", "category", "=", "Skill"]],
+		)
 
 
 class TestSetChurchBrand(RollbackEachTest):
