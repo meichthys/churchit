@@ -772,6 +772,15 @@ Frappe's own resolver sets (Frappe Builder's does not). Never change the cached 
 rows: build new lists. A template that links to another shipped page asks `get_switched_off_pages()`
 first, as `sermons.html` and `home.html` do.
 
+**Turn Off the Public Website** (`disable_public_website` in Church Features) is for a church that
+has its own website. The `ClosedWebsitePage` renderer, before `SwitchedOffPage`, sends a guest from
+`/` and from every shipped page, Web Page and web form to the login page with a 302, so no browser
+keeps the redirect. `get_switched_off_pages` then adds `VISITOR_PAGES` and every published Web Page
+that is not members-only, so those pages go for members too, and `get_hidden_pages` hides every
+shipped page from a guest. A new shipped page that tells visitors about the church goes in
+`VISITOR_PAGES`. A page that a key in an email opens for someone with no login goes in
+`EMAILED_KEY_PAGES`. File routes, such as the podcast feed, stay open.
+
 ## Settings a church can differ on
 
 Three Singles hold site-wide configuration. Each takes per-church overrides through one resolution

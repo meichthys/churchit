@@ -20,6 +20,7 @@ from churchit.church_people.membership import MEMBER, VISITOR
 from churchit.church_setup.doctype.church_features.church_features import MODULE_FIELDS
 from churchit.church_website.context import before_request, update_website_context
 from churchit.church_website.pages import (
+	ClosedWebsitePage,
 	SwitchedOffPage,
 	get_hidden_pages,
 	is_link_off,
@@ -616,3 +617,82 @@ class TestLinksThatDoNotApply(RollbackEachTest):
 
 		self.assertIn('href="/group-leader"', serve("portal", leader).get_data(as_text=True))
 		self.assertNotIn('href="/group-leader"', serve("portal", member).get_data(as_text=True))
+
+
+def own_labels(items):
+	return [item.label for item in items if item.label.startswith("_Test")]
+
+
+class TestClosedWebsite(RollbackEachTest):
+	"""Turn Off the Public Website in Church Features."""
+
+	def setUp(self):
+		super().setUp()
+		sync_page_switches()
+		self.set_closed(1)
+		frappe.flags.force_website_cache = True
+		self.addCleanup(clear_website_cache)
+		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
+
+	def set_closed(self, closed):
+		frappe.set_user("Administrator")
+		features = frappe.get_single("Church Features")
+		for field in MODULE_FIELDS:
+			features.set(field, 1)
+		for row in features.website_pages:
+			row.enabled = 1
+		features.disable_public_website = closed
+		features.save()
+
+	def assert_redirect(self, path, location):
+		response = serve(path, "Guest")
+		self.assertEqual((response.status_code, response.headers.get("Location")), (302, location), path)
+
+	def test_a_guest_gets_only_the_login_page(self):
+		self.assert_redirect("", "/login")
+		self.assert_redirect("beliefs", "/login")
+		self.assert_redirect("about", "/login")
+		self.assert_redirect("bulletins", "/login?redirect-to=/bulletins")
+		self.assertEqual(serve("login", "Guest").status_code, 200)
+
+	def test_the_podcast_and_an_emailed_key_still_reach_a_guest(self):
+		self.assertEqual(serve("podcast.xml", "Guest").status_code, 200)
+		frappe.set_user("Guest")
+		self.assertNotIsInstance(resolve("ministry-team-response"), ClosedWebsitePage)
+
+	def test_a_member_keeps_the_portal_but_not_the_pages_about_the_church(self):
+		own_page = make_web_page("_Test Closed Own Page", route="_test-closed-own")
+		members_page = make_web_page(
+			"_Test Closed Members Page", route="_test-closed-members", members_only=1
+		)
+
+		for path in ("bulletins", "portal", members_page.route):
+			self.assertEqual(serve(path, "Administrator").status_code, 200, path)
+		for path in ("beliefs", "about", own_page.route):
+			self.assertEqual(serve(path, "Administrator").status_code, 404, path)
+
+	def test_a_guest_sees_no_links_to_the_church_pages(self):
+		items = [
+			frappe._dict(label=label, url=url, child_items=[])
+			for label, url in (
+				("_Test Beliefs", "/beliefs"),
+				("_Test Calendar", "/calendar"),
+				("_Test Portal", "/portal"),
+			)
+		]
+
+		frappe.set_user("Guest")
+		context = frappe._dict(top_bar_items=list(items), web_include_js=[], web_include_css=[])
+		update_website_context(context)
+		self.assertEqual(own_labels(context.top_bar_items), ["_Test Portal"])
+		self.assertNotIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))
+
+		frappe.set_user("Administrator")
+		context = frappe._dict(top_bar_items=list(items), web_include_js=[], web_include_css=[])
+		update_website_context(context)
+		self.assertEqual(own_labels(context.top_bar_items), ["_Test Calendar", "_Test Portal"])
+
+	def test_the_website_comes_back_when_it_is_on_again(self):
+		self.set_closed(0)
+		self.assertEqual(serve("beliefs", "Guest").status_code, 200)
+		self.assertEqual(serve("about", "Guest").status_code, 200)

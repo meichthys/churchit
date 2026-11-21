@@ -21,6 +21,7 @@ from churchit.church_website.pages import (
 	get_switched_off_pages,
 	is_file_route,
 	is_link_off,
+	is_public_website_on,
 )
 from churchit.www.podcast import get_feed_url
 
@@ -56,7 +57,8 @@ def update_website_context(context):
 
 
 def before_request():
-	"""Keep signed-in visitors off the shared page cache once branches or members-only pages exist.
+	"""Keep signed-in visitors off the shared page cache once branches or members-only pages exist,
+	or while the public website is off.
 
 	Frappe caches a rendered page by path alone. A member's pages show their
 	own church, and their menu links the members-only pages, so serving them the
@@ -67,7 +69,7 @@ def before_request():
 	path = frappe.request.path
 	if frappe.session.user == "Guest" or path.startswith("/api/") or is_file_route(path):
 		return
-	if is_multi_church() or get_members_only_routes():
+	if is_multi_church() or get_members_only_routes() or not is_public_website_on():
 		frappe.local.no_cache = 1
 
 

@@ -88,6 +88,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Publishable beliefs/statement of faith
 - Members-only web pages: tick Members Only on a Web Page, and visitors go to the login page
 - Turn each shipped website page off in Church Features: the page answers "Page not found" and its menu, footer and portal links go
+- Turn the whole public website off in Church Features when the church has its own website: visitors get the login page, and members keep the member portal
 - A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
 - Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
