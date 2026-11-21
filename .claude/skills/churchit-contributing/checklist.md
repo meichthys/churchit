@@ -100,6 +100,7 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] Page data is scoped with `selected_church_filters(...)` in Jinja, or with `church_filters(selected_church_name(), ...)` in Python.
 - [ ] A page reads no doctype data with `frappe.qb` or SQL. `test_published_fields` fails on one, and it must pass, because it badges each field that the website shows.
 - [ ] Guest input is checked on the server, and a guest form or API has a rate limit.
+- [ ] A new shipped page that tells visitors about the church is in `VISITOR_PAGES`, and a page that an emailed key opens for someone with no login is in `EMAILED_KEY_PAGES` ([Public website and portal](../../../AGENTS.md#public-website-and-portal)).
 - [ ] A /register endpoint checks the function against `register.get_open_functions` ([Function sign-ups](../../../AGENTS.md#function-sign-ups)).
 - [ ] A web form script that uses Jinja tags is in the prettier and eslint `exclude` lists of `.pre-commit-config.yaml`.
 

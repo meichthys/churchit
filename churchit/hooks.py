@@ -154,11 +154,12 @@ website_redirects = [
 # One page per published sermon. A sermon name can hold a slash.
 website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
 
-# /app-start, where the installed app opens. Shipped pages a church switched off answer 404
-# before Frappe's own renderers or its page cache run, and members-only Web Pages send guests
-# to the login page.
+# /app-start, where the installed app opens. With the public website off, a guest gets the login
+# page. Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
+# cache run, and members-only Web Pages send guests to the login page.
 page_renderer = [
 	"churchit.church_website.pwa.AppStartPage",
+	"churchit.church_website.pages.ClosedWebsitePage",
 	"churchit.church_website.pages.SwitchedOffPage",
 	"churchit.church_website.pages.MembersOnlyPage",
 ]
