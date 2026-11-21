@@ -135,6 +135,8 @@ def setup_wizard_complete(args):
 	"""
 	if args and args.get("create_sample_data"):
 		create_sample_data()
+		# The wizard shows the response's messages, one for each fund change and spouse link.
+		frappe.clear_messages()
 
 
 def get_root_church() -> str:

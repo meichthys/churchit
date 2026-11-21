@@ -1300,7 +1300,11 @@ Summary's roles gets it, so an ERPNext accountant on a shared site does not land
 cannot open. A desk user with no Default
 Workspace opens Summary too, because each staff role's home page is `/desk/summary`
 (`fixtures/role.json`). Church Check-In and Church Follow-up cannot open Summary, so their home pages are
-`/desk/check-in` and `/desk/follow-up-card`. The Churchit tile on the Apps screen is only for desk users
+`/desk/check-in` and `/desk/follow-up-card`. No role's home page may take a desk user out of the desk,
+where Frappe runs the setup wizard (Frappe turns `/me` into the desk for them): Administrator and the
+setup wizard's first user hold every role, and Frappe opens the home page of whichever role it reads
+first. So Church Check-In Kiosk has no home page, and the kiosk device opens `/check-in-kiosk` itself
+(`test_home`). The Churchit tile on the Apps screen is only for desk users
 (`has_permission` is `frappe.permissions.is_system_user`): Frappe sends a Website User who signs in to the
 route of their only app tile before their role's home page, so a member would land on Summary and get
 "Not Permitted". The `ModuleShortcuts` block at the top of Summary draws a tile for each

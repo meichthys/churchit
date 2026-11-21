@@ -582,6 +582,14 @@ class TestSetupWizardHook(FrappeTestCase):
 			sample_data.setup_wizard_complete({"create_sample_data": 1})
 		create.assert_called_once()
 
+	def test_the_wizard_shows_no_record_messages(self):
+		frappe.clear_messages()
+		with patch.object(
+			sample_data, "create_sample_data", side_effect=lambda: frappe.msgprint("Fund increased")
+		):
+			sample_data.setup_wizard_complete({"create_sample_data": 1})
+		self.assertEqual(frappe.get_message_log(), [])
+
 	def test_skips_when_not_opted_in(self):
 		with patch.object(sample_data, "create_sample_data") as create:
 			sample_data.setup_wizard_complete({})

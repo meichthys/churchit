@@ -109,6 +109,7 @@ Work through "Every change" and each section that the change touches. Each item 
 
 - [ ] A Frappe setting does the job before a form script or a hook does. A script or hook gives its reason in the change.
 - [ ] A list of 6 desktop columns or more sets a `width` on its title field, so it scrolls sideways instead of cutting the titles (`test_desk_ui_hygiene`).
+- [ ] A role's home page is a desk page, because Administrator holds every role and could land outside the setup wizard (`test_home`, [Desk navigation](../../../AGENTS.md#desk-navigation)).
 - [ ] Form tour steps follow the order of the fields on the form.
 - [ ] A table refuses a repeated person with `churchit/church_people/repeated_rows.py`, and a pair of dates or limits is refused only when one of its fields changes in the save ([Forms](../../../AGENTS.md#forms)).
 - [ ] A form tour with Save on Complete has a step on each field the user must type, and onboarding step, tour step and doctype descriptions have no backticks (`test_onboarding_hygiene`).
