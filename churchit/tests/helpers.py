@@ -40,6 +40,12 @@ class RollbackEachTest(FrappeTestCase):
 		test_after_rollback.run()
 
 
+def open_public_website():
+	"""before_tests: turn the public website on, which a new site starts with off."""
+	frappe.db.set_single_value("Church Features", "disable_public_website", 0)
+	frappe.db.commit()
+
+
 def ensure(doctype, filters, values=None):
 	"""Return the name of the record matching *filters*, inserting it if missing."""
 	name = frappe.db.exists(doctype, filters)

@@ -139,7 +139,7 @@
   },
   {
    "default": "0",
-   "description": "Tick when your church has its own website. Visitors who are not signed in then get only the login page. The pages about the church, and your own Web Pages that are not Members Only, go for members too. Members keep the member portal.",
+   "description": "A new site starts with this ticked, for a church that has its own website. Visitors who are not signed in then get only the login page. The pages about the church, and your own Web Pages that are not Members Only, go for members too. Members keep the member portal. Clear it to open the website.",
    "fieldname": "disable_public_website",
    "fieldtype": "Check",
    "label": "Turn Off the Public Website",
@@ -204,7 +204,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-21 00:25:00.000000",
+ "modified": "2026-11-21 09:40:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

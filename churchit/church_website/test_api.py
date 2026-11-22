@@ -1,6 +1,8 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 from frappe.exceptions import PermissionError
 from frappe.tests.utils import FrappeTestCase
@@ -31,6 +33,10 @@ class TestWebsiteApi(FrappeTestCase):
 			ensure_user("_test_home_page_staff@example.com", "_Test Staff", roles=("Church Staff",))
 		)
 		self.assertEqual(get_website_home_page(), home_page or "login")
+
+	def test_the_preview_gets_no_page_while_the_public_website_is_off(self):
+		with patch("churchit.church_website.api.is_public_website_on", return_value=False):
+			self.assertIsNone(get_website_home_page())
 
 	def test_published_fields_is_restricted_to_managers(self):
 		frappe.set_user(ensure_user("_test_church_user@example.com", "_Test Church User"))

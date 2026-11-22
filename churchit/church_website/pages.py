@@ -78,17 +78,17 @@ SHIPPED_PAGES: dict[str, tuple[str, str | None]] = {
 VISITOR_PAGES = frozenset(
 	{"about", "contact", "locations", "live", "find-a-group", "connection-card", "prayer-request-anonymous"}
 )
-# A key in an email opens this page, so a visitor still reaches it with the public website off.
-EMAILED_KEY_PAGES = frozenset({"ministry-team-response"})
+# A key in an email opens these pages, so a visitor still reaches them with the public website off.
+EMAILED_KEY_PAGES = frozenset({"ministry-team-response", "update-your-details"})
 
 
 class ClosedWebsitePage(BaseRenderer):
 	"""The login page for a Guest on a church website page while the public website is off."""
 
 	def can_render(self):
-		if frappe.session.user != "Guest" or is_public_website_on() or is_file_route(self.path):
+		if frappe.session.user != "Guest" or is_public_website_on():
 			return False
-		return is_website_page(self.path)
+		return sends_guests_to_login(self.path)
 
 	def render(self):
 		# The site root, and a page that is off for members too, have nothing to come back to after login.
@@ -105,6 +105,11 @@ class ClosedWebsitePage(BaseRenderer):
 def is_public_website_on() -> bool:
 	"""Whether a visitor who is not signed in sees the website (Church Features)."""
 	return not cint(frappe.get_cached_doc("Church Features").get("disable_public_website"))
+
+
+def sends_guests_to_login(path: str) -> bool:
+	"""Whether *path* sends a guest to the login page while the public website is off."""
+	return not is_file_route(path) and is_website_page(path)
 
 
 def is_website_page(path: str) -> bool:

@@ -659,6 +659,7 @@ class TestClosedWebsite(RollbackEachTest):
 		self.assertEqual(serve("podcast.xml", "Guest").status_code, 200)
 		frappe.set_user("Guest")
 		self.assertNotIsInstance(resolve("ministry-team-response"), ClosedWebsitePage)
+		self.assertNotIsInstance(resolve("update-your-details/new"), ClosedWebsitePage)
 
 	def test_a_member_keeps_the_portal_but_not_the_pages_about_the_church(self):
 		own_page = make_web_page("_Test Closed Own Page", route="_test-closed-own")

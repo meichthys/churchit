@@ -10,6 +10,13 @@ from pathlib import Path
 
 import frappe
 
+from churchit.church_website.pages import (
+	get_switched_off_pages,
+	is_page_off,
+	is_public_website_on,
+	sends_guests_to_login,
+)
+
 # Code that reads records on every page (navbar brand, footer, PWA manifest).
 # No route owns it, so it is scanned as one "every page" source.
 SITE_WIDE_MODULES = ("context.py", "footer.py", "pwa.py")
@@ -74,6 +81,50 @@ def published_field_map(use_cache=False):
 	for source, doctype, fieldname in published_entries(use_cache):
 		published[doctype][fieldname].append(source)
 	return {doctype: dict(fields) for doctype, fields in published.items()}
+
+
+def get_reachable_field_map() -> dict:
+	"""`published_field_map` as visitors reach it now, for the desk badge.
+
+	A page that is off shows no field. While the public website is off, a page that sends guests to the
+	login page shows its fields only to signed-in members.
+	"""
+	published = published_field_map(use_cache=True)
+	routes = {
+		source["route"] for fields in published.values() for sources in fields.values() for source in sources
+	}
+	off_pages = get_switched_off_pages()
+	off_routes = {
+		route for route in routes if any(is_page_off(page, off_pages) for page in page_routes(route))
+	}
+	closed_routes = set()
+	if not is_public_website_on():
+		closed_routes = {
+			route for route in routes - off_routes if any(map(sends_guests_to_login, page_routes(route)))
+		}
+
+	reachable = {}
+	for doctype, fields in published.items():
+		for fieldname, sources in fields.items():
+			shown = [
+				{**source, "access": MEMBERS}
+				if source["access"] == PUBLIC and source["route"] in closed_routes
+				else source
+				for source in sources
+				if source["route"] not in off_routes
+			]
+			if shown:
+				reachable.setdefault(doctype, {})[fieldname] = shown
+	return reachable
+
+
+def page_routes(route: str) -> set[str]:
+	"""The routes a scanned source may be served at.
+
+	The scan names a www/ page after its python file with dashes, so it calls /sermon_presentation
+	sermon-presentation and /podcast.xml podcast.
+	"""
+	return {route, route.replace("-", "_"), f"{route}.xml"} - {"", ".xml"}
 
 
 def published_entries(use_cache=False):
