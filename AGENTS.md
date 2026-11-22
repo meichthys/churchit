@@ -2203,16 +2203,18 @@ every page renderer, so `SwitchedOffPage` also reads `/portal/<page>` as `<page>
 The app reads and writes only through `churchit/portal/<area>.py` and a few existing whitelisted
 functions. Prayer, care and benevolence requests save through `care.save_prayer_request`,
 `save_care_request` and `save_alms_request` (deletes through `delete_prayer_request` and
-`delete_alms_request`), and a group file through `groups.add_group_file`. Each takes only the fields
-its form shows, keeps the rate limits of the web form it replaced, changes only a member's own record,
-and leaves the member rules to the controller. Comments go through `care.add_member_comment`, which
-keeps Frappe's website comment rules: no link, no email address, and its hourly limit (the
+`delete_alms_request`), and a group file through `groups.add_group_file`. Each takes only the fields its
+form shows, keeps the rate limits of the web form it replaced, changes only a member's own record, and
+leaves the member rules to the controller. Comments go through `care.add_member_comment`, which keeps
+Frappe's website comment rules: no link, no email address, and its hourly limit (the
 `comment_rate_limit` hook, 5 by default). Every portal endpoint starts with `access.require_person()`
 and `access.require_page("<old route>")`, takes the member from the session, and returns explicit
-fields, never a whole document. `published_fields.portal_api_sources`
-reads each module as a members-only source (`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or
-`frappe.db.sql` must not appear in them. The menu is the Portal Settings rows the member may see, in the
-`portal_home.get_sections` sections, less `get_hidden_pages()` (`churchit/portal/nav.py`).
+fields, never a whole document. `published_fields.portal_api_sources` reads each module as a
+members-only source (`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or `frappe.db.sql` must not appear
+in them. The menu is the Portal Settings rows the member may see, in the `portal_home.get_sections`
+sections, less `get_hidden_pages()` (`churchit/portal/nav.py`). A desk user with a Person opens the app
+from Member Portal in the desk menu that Navbar Settings fills (`standard_navbar_items`, shown while
+`frappe.boot.churchit.has_person`); migrate adds the item to an existing site.
 
 A member guard keyed on `frappe.flags.in_web_form` or `is_portal_member()` would skip a staff user who
 uses the app with a Person, so the app sets the person or requester itself and the flag: Room Booking

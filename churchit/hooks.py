@@ -552,8 +552,17 @@ extend_bootinfo = [
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed. Install App shows while
-# this browser can install the app (public/js/pwa.js).
+# this browser can install the app (public/js/pwa.js). Member Portal shows to a
+# desk user with a Person; migrate adds a new item to existing sites.
 standard_navbar_items = [
+	{
+		"item_label": "Member Portal",
+		"item_type": "Route",
+		"route": "/portal",
+		"icon": "users",
+		"condition": "frappe.boot.churchit && frappe.boot.churchit.has_person",
+		"is_standard": 1,
+	},
 	{
 		"item_label": "Include Branch Churches",
 		"item_type": "Action",

@@ -1340,6 +1340,25 @@ class TestSingleChurchDesk(FrappeTestCase):
 		self.assertFalse(self.boot()["single_church"])
 
 
+class TestDeskMemberPortalLink(RollbackEachTest):
+	"""The desk user menu offers the member portal, which needs a Person."""
+
+	def boot_of(self, user):
+		frappe.set_user(user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		bootinfo = frappe._dict()
+		extend_bootinfo(bootinfo)
+		return bootinfo.churchit
+
+	def test_the_member_portal_link_is_only_for_a_desk_user_with_a_person(self):
+		staff = ensure_user("_test_desk_portal_staff@example.com", "Desk Staff", roles=("Church Staff",))
+		member = ensure_user("_test_desk_portal_member@example.com", "Desk Member", roles=("Church Staff",))
+		make_person("_Test Desk", "Portal Member", user=member)
+
+		self.assertFalse(self.boot_of(staff)["has_person"])
+		self.assertTrue(self.boot_of(member)["has_person"])
+
+
 class TestMultiChurchTransition(FrappeTestCase):
 	"""The one-way switch: it stamps every existing record and scopes every user.
 
