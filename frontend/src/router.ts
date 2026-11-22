@@ -2,6 +2,7 @@ import { shellScrollContainer } from "frappe-ui";
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
 import { boot, isPageHidden } from "./boot";
+import { __ } from "./translate";
 
 /** Each area of the app declares its routes in pages/<area>/routes.ts. A route's meta.page is the old
  * route of its page ("household"): a page this member must not see shows Not Found, as the old route did. */
@@ -30,7 +31,7 @@ router.beforeEach((to) => {
 
 router.afterEach((to) => {
 	const church = boot.church?.title;
-	document.title = [to.meta.title, church].filter(Boolean).join(" · ") || "Member Portal";
+	document.title = [to.meta.title, church].filter(Boolean).join(" · ") || __("Member Portal");
 	if (!to.hash) shellScrollContainer.value?.scrollTo({ top: 0 });
 });
 

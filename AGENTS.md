@@ -2209,27 +2209,32 @@ leaves the member rules to the controller. Comments go through `care.add_member_
 Frappe's website comment rules: no link, no email address, and its hourly limit (the
 `comment_rate_limit` hook, 5 by default). Every portal endpoint starts with `access.require_person()`
 and `access.require_page("<old route>")`, takes the member from the session, and returns explicit
-fields, never a whole document. `published_fields.portal_api_sources` reads each module as a
-members-only source (`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or `frappe.db.sql` must not appear
-in them. The menu is the Portal Settings rows the member may see, in the `portal_home.get_sections`
-sections, less `get_hidden_pages()` (`churchit/portal/nav.py`). A desk user with a Person opens the app
-from Member Portal in the desk menu that Navbar Settings fills (`standard_navbar_items`, shown while
+fields, never a whole document. Home (`home.get_home`) is the one endpoint without `require_page`,
+because Home is always on: it leaves out the sections of the pages that are off. `care.search_recipients`
+takes the page of its request (`prayer-request` or `alms-request`), refuses any other page, and calls
+`require_page` for it. `published_fields.portal_api_sources` reads each module as a members-only source
+(`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or `frappe.db.sql` must not appear in them. The menu is
+the Portal Settings rows the member may see, in the `portal_home.get_sections` sections, less
+`get_hidden_pages()` (`churchit/portal/nav.py`). A desk user with a Person opens the app from Member
+Portal in the desk menu that Navbar Settings fills (`standard_navbar_items`, shown while
 `frappe.boot.churchit.has_person`); migrate adds the item to an existing site.
 
 A member guard keyed on `frappe.flags.in_web_form` or `is_portal_member()` would skip a staff user who
 uses the app with a Person, so the app sets the person or requester itself and the flag: Room Booking
-and Personal Details save under `in_web_form`; Pledge, Care Request and Alms Request under
-`flags.from_member_app`. `member_access.PERSONAL_DETAILS_EDITABLE` lists the Person fields a member
-changes on My Details: `save_personal_details` takes only those and refuses a stale `modified`, and
+and Personal Details save under `in_web_form`; Pledge, Care Request, Alms Request and Prayer Request
+under `flags.from_member_app`. `member_access.PERSONAL_DETAILS_EDITABLE` lists the Person fields a
+member changes on My Details: `save_personal_details` takes only those and refuses a stale `modified`, and
 `refuse_member_edits_beyond_personal_details` refuses a change to any other field. The app signs up only
 for functions that pass the simple sign-up rule (`member_sign_ups.get_simple_sign_up_functions`); any
 other links to /register. `member_sign_ups.get_sign_up_summary` is not whitelisted: the app reads a
 sign-up through `portal.events`. `portal.groups.get_portal_groups` is the one rule for a member's
-groups. A group's page (`groups.get_group`) shows its living members (`group_meetings.get_roster`) to
-the people in it: names, public photos and who leads, and an email or phone only where its person shares
-it, only to a viewer the directory is for, only while the Member Directory is on, and only for a person
-the directory lists (not hidden, not a Visitor or Contact); a photo follows the same listing rule. It
-sends no Person ID. The community prayer list sends no requester, owner, church or end date.
+groups. Group Files (`groups.get_group_files`) lists only the files of those groups, because the Group
+File permission hooks limit a portal member but not staff with a Person. A group's page
+(`groups.get_group`) shows its living members (`group_meetings.get_roster`) to the people in it: names,
+public photos and who leads, and an email or phone only where its person shares it, only to a viewer the
+directory is for, only while the Member Directory is on, and only for a person the directory lists (not
+hidden, not a Visitor or Contact); a photo follows the same listing rule. It sends no Person ID. The
+community prayer list sends no requester, owner, church or end date.
 
 Live updates are hints: `churchit.portal.realtime.notify(user, topic, name)` sends the event
 `churchit_portal` to the user's room after the commit, from the controller where the change happens

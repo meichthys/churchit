@@ -11,6 +11,7 @@ from churchit.portal import home
 from churchit.portal.test_events import make_sign_up
 from churchit.tests.helpers import (
 	RollbackEachTest,
+	ensure,
 	ensure_user,
 	make_function,
 	make_person,
@@ -153,6 +154,59 @@ class TestMemberAppHome(RollbackEachTest):
 			notice = home.get_notices()[0]
 
 		self.assertNotIn("onerror", notice["announcements"])
+
+	def test_notices_the_bulletin_and_prayer_requests_come_from_the_members_own_church(self):
+		"""A shared bulletin reaches every church, and a ?church= on the request does not pick the church."""
+		member = ensure_user("portal-home-branch@example.com", "Branch")
+		make_person("_Test Home", "Branch", church=self.branch_a, user=member)
+		# Each bulletin left out is newer than the ones shown, so a leak would push one off the list.
+		make_bulletin("2040-01-29", church=self.branch_b)
+		make_bulletin("2040-01-22", church=self.branch_a, publish=0)
+		mine = make_bulletin("2040-01-15", church=self.branch_a)
+		make_bulletin("2040-01-08", church=self.branch_a, share_announcements=0)
+		joint = make_bulletin("2040-01-01", is_shared=1)
+		request = make_prayer_request("_Test Home Ours", self.branch_a)
+		make_prayer_request("_Test Home Theirs", self.branch_b)
+		make_prayer_request("_Test Home Private", self.branch_a, visibility="Private")
+		frappe.db.set_value("Church", self.branch_b, "publish", 1)
+
+		frappe.set_user(member)
+		frappe.local.form_dict = frappe._dict(church=self.branch_b)
+		result = home.get_home()
+
+		self.assertEqual([notice["name"] for notice in result["notices"]], [mine, joint])
+		self.assertEqual(result["bulletin"]["name"], mine)
+		self.assertEqual([row["name"] for row in result["prayer_requests"]], [request])
+
+
+def make_bulletin(date, publish=1, share_announcements=1, **function_values):
+	"""The name of a bulletin with announcements, for a new function on *date*."""
+	function = make_function(f"_Test Home Service {date}", start_date=date, **function_values)
+	bulletin = frappe.get_doc(
+		{
+			"doctype": "Bulletin",
+			"function": function.name,
+			"publish": publish,
+			"share_announcements": share_announcements,
+			"announcements": "<p>_Test Home notice</p>",
+		}
+	)
+	return bulletin.insert(ignore_permissions=True).name
+
+
+def make_prayer_request(title, church, visibility="Whole Church"):
+	"""The name of an open prayer request of *church*, approved for the prayer list."""
+	request = frappe.get_doc(
+		{
+			"doctype": "Prayer Request",
+			"title": title,
+			"type": ensure("Prayer Request Type", {"type": "_Test Home"}),
+			"church": church,
+			"visibility": visibility,
+			"approved_for_list": 1,
+		}
+	)
+	return request.insert(ignore_permissions=True).name
 
 
 def make_group(title, member, show_in_portal=1):

@@ -176,7 +176,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Non-cash gifts (donated property) recorded with a description and no value
 - Funds that are not tax deductible stay off giving statements
 - Email every giving statement with its PDF in one step
-- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received
+- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received. Members can give toward a pledge from the Pledges page
 - Import giving history from another system, a spreadsheet or a payment processor's export into draft collections
 - GL export: map funds, payment types, expense types and the church to accounts, and export a balanced GL Journal as CSV
 

@@ -48,6 +48,7 @@
 			/>
 			<RecipientPicker
 				v-model="form.recipient"
+				page="prayer-request"
 				:doctype="form.recipient_type"
 				:initial-label="initialRecipientLabel"
 				:label="__('Who is it for?')"

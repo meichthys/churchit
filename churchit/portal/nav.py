@@ -7,11 +7,20 @@ The admin owns the menu rows (Desk > Portal Settings). A row for a page the app 
 /portal/<route>; any other row, such as one the admin added, stays a plain link.
 """
 
-from frappe import _
+from frappe import _, _lt
 from frappe.website.utils import get_portal_sidebar_items
 
 from churchit.church_website.pages import get_hidden_pages, is_link_off, is_page_off
 from churchit.church_website.portal_home import get_portal_home_sections
+
+# The website pages outside the portal menu that the app links to.
+SITE_LINKS = (
+	("give", _lt("Give")),
+	("register", _lt("Sign Up for an Event")),
+	("calendar", _lt("Calendar")),
+	("sermons", _lt("Sermons")),
+)
+SITE_PAGES = frozenset(page for page, title in SITE_LINKS)
 
 # The pages the app draws itself, by their old route.
 APP_PAGES = frozenset(
@@ -66,21 +75,11 @@ def get_link(row: dict) -> dict:
 
 def get_site_links(hidden: set[str]) -> list[dict]:
 	"""The website pages outside the portal menu that the app links to, less those this member must not see."""
-	links = (
-		("give", _("Give")),
-		("register", _("Sign Up for an Event")),
-		("calendar", _("Calendar")),
-		("sermons", _("Sermons")),
-	)
 	return [
-		{"page": page, "title": title, "href": "/" + page}
-		for page, title in links
+		{"page": page, "title": str(title), "href": "/" + page}
+		for page, title in SITE_LINKS
 		if not is_page_off(page, hidden)
 	]
-
-
-# The website pages the app links to, which it also checks against the hidden pages.
-SITE_PAGES = frozenset({"give", "register", "calendar", "sermons"})
 
 
 def get_menu() -> dict:

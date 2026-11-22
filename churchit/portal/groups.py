@@ -72,19 +72,20 @@ def get_group(group: str) -> dict:
 	result["next_meeting"] = meetings[0] if meetings else None
 	result["later_meetings"] = meetings[1:]
 	result["show_files"] = not is_page_off("group-files", get_hidden_pages())
-	result["files"] = get_files_of(group) if result["show_files"] else []
+	result["files"] = get_files_of([group]) if result["show_files"] else []
 	result["members"] = get_member_roster(group, person)
 	return result
 
 
 @frappe.whitelist(methods=["GET"])
 def get_group_files() -> dict:
-	"""The files of the member's groups, and the groups they lead and so may add a file to. Reads only."""
+	"""The files of the member's own groups, and the groups they lead and so may add a file to. Reads only."""
 	person = require_person()
 	require_page("group-files")
 
-	groups = get_file_groups(person)
-	return {"items": get_files_of(None), "groups": groups, "can_add": bool(groups)}
+	own_groups = [group.name for group in get_portal_groups(person, ["name"], limit_page_length=0)]
+	led_groups = get_file_groups(person)
+	return {"items": get_files_of(own_groups), "groups": led_groups, "can_add": bool(led_groups)}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -230,11 +231,11 @@ def get_upcoming_meetings(group: str) -> list[dict]:
 	]
 
 
-def get_files_of(group: str | None) -> list[dict]:
-	"""The Group Files the session user may read, newest first, of *group* or of all their groups."""
+def get_files_of(groups: list[str]) -> list[dict]:
+	"""The Group Files of *groups* that the session user may read, newest first."""
 	rows = frappe.get_list(
 		"Group File",
-		filters={"group": group} if group else {},
+		filters={"group": ("in", groups or [""])},
 		fields=["name", "title", "group", "group_name", "attached_file", "creation"],
 		order_by="creation desc",
 	)
@@ -308,6 +309,7 @@ def get_leader_group(name: str, group_name: str, join_requests: list[frappe._dic
 
 
 def get_upcoming_row(group: str) -> dict:
+	"""*group*'s next meeting date for the leader page, as a date and as text, and whether a schedule runs."""
 	upcoming = get_upcoming(group)
 	return {
 		"next_date": upcoming.next_date and str(getdate(upcoming.next_date)),

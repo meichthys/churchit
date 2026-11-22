@@ -78,7 +78,7 @@ class TestPortalMembers(FrappeTestCase):
 
 	def test_the_recipient_search_offers_names_from_the_members_church(self):
 		frappe.set_user(self.member)
-		results = search_recipients("Person", "_Test Portal")["items"]
+		results = search_recipients("prayer-request", "Person", "_Test Portal")["items"]
 		self.assertEqual({row.name for row in results}, {self.own.name, self.neighbour})
 		self.assertEqual(set(results[0]), {"name", "label"})
 

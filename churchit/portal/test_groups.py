@@ -258,6 +258,19 @@ class TestPortalGroups(RollbackEachTest):
 		self.assertIn(self.group, [row["value"] for row in result["groups"]])
 		self.assertNotIn(other, [row["value"] for row in result["groups"]])
 
+	def test_staff_with_a_person_see_only_the_files_of_their_own_groups(self):
+		"""Church Staff read every Group File of their church in the desk, but the app lists only their groups."""
+		staff_user = ensure_user(
+			"_test_portal_group_staff@example.com", "_Test Portal Staff", ("Church Staff",)
+		)
+		staff = make_person("Staff", "_Test Portal Group", church=self.church, user=staff_user).name
+		own_group = self.make_group("_Test Portal Staff Group", members=[(staff, MEMBER_ROLE)])
+		own = self.make_file(own_group, "_Test Portal Staff Own")
+		self.make_file(self.group, "_Test Portal Not Theirs")
+
+		frappe.set_user(staff_user)
+		self.assertEqual([row["name"] for row in get_group_files()["items"]], [own.name])
+
 	def test_the_leader_view_shows_the_roster_with_shared_contacts(self):
 		frappe.set_user(self.leader_user)
 

@@ -25,6 +25,7 @@
 			/>
 			<RecipientPicker
 				v-model="form.recipient"
+				page="alms-request"
 				:doctype="form.recipient_type"
 				:initial-label="initialLabel"
 				:label="__('Who is it for?')"

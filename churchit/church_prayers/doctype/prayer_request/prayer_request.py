@@ -6,13 +6,14 @@ from frappe.model.document import Document
 from frappe.utils import today
 
 from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
-from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
+from churchit.church_people.member_access import is_portal_member, validate_members_recipient
 from churchit.church_prayers.prayer_access import (
 	PRAYER_REQUEST,
 	PRAYER_TEAM_ROLE,
 	get_community_filters,
 	get_open_request_filters,
 )
+from churchit.church_scope import session_person
 
 ANSWERED = "Answered"
 PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
@@ -53,7 +54,7 @@ class PrayerRequest(Document):
 
 	def validate(self):
 		self.validate_public_church()
-		pin_to_members_own_person(self, "requestor")
+		self.fill_requestor_from_login()
 		validate_members_recipient(self)
 		# Resolve the display name for the dynamic recipient link using the linked
 		# doctype's title_field (e.g. full_name for Person). Stored so that lists,
@@ -73,6 +74,11 @@ class PrayerRequest(Document):
 		if not self.is_new():
 			# Only prayer.recount_prayers writes the count, so a form opened before a prayer cannot undo it.
 			self.prayer_count = frappe.db.get_value(self.doctype, self.name, "prayer_count", for_update=True)
+
+	def fill_requestor_from_login(self):
+		"""A member always names themselves, and the member app names whoever asks through it."""
+		if is_portal_member() or (self.flags.from_member_app and not self.requestor):
+			self.requestor = session_person()
 
 	def set_answered_on(self):
 		"""Keep the day the request turned Answered, so a later edit does not count it again."""

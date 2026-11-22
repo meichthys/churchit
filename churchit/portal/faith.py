@@ -7,6 +7,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import formatdate
 
 from churchit.church_scope import church_query_filters
@@ -84,6 +85,7 @@ def get_preview(reference: str, translation: str) -> str | None:
 
 
 @frappe.whitelist(methods=["POST"])
+@rate_limit(limit=30, seconds=60 * 60, user_based=True)
 def add_memory_item(reference: str, translation: str) -> dict:
 	"""Add a passage to the member's own memory list. Changes data.
 
@@ -105,6 +107,7 @@ def add_memory_item(reference: str, translation: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@rate_limit(limit=30, seconds=60 * 60, user_based=True)
 def remove_memory_item(item: str) -> dict:
 	"""Remove a passage, assigned or not, from the member's own list. Changes data."""
 	require_person()
@@ -147,7 +150,10 @@ def require_own_item(item: str):
 	"""The stored item, when it is the session user's. A manager's read access does not make it theirs."""
 	doc = frappe.get_doc("Bible Memory Item", item)
 	if doc.user != frappe.session.user:
-		frappe.throw(_("Not allowed"), frappe.PermissionError)
+		frappe.throw(
+			_("This memory item belongs to another member. Pick one from your own list."),
+			frappe.PermissionError,
+		)
 	return doc
 
 

@@ -198,12 +198,6 @@ def get_comparable(doc, df):
 	return doc.get(df.fieldname)
 
 
-def pin_to_members_own_person(doc, fieldname):
-	"""A member's portal request always names them, whatever the form sent."""
-	if is_portal_member():
-		doc.set(fieldname, session_person())
-
-
 def get_recipient_filters(doctype):
 	"""Filters for the records a member may name as a recipient: their church's and shared ones."""
 	if doctype not in RECIPIENT_DOCTYPES:
@@ -217,12 +211,13 @@ def get_recipient_filters(doctype):
 
 
 def validate_members_recipient(doc):
-	"""Refuse a recipient the member could not have picked in the portal's search.
+	"""Refuse a recipient the member could not have picked in the member app's search.
 
-	The request stores the recipient's title, so without this a member could post
-	any record's name and read its title back off their own request.
+	It applies to a portal member and to any save from the member app. The request stores
+	the recipient's title, so without this a member could post any record's name and read
+	its title back off their own request.
 	"""
-	if not is_portal_member() or not doc.recipient:
+	if not doc.recipient or not (is_portal_member() or doc.flags.from_member_app):
 		return
 	filters = get_recipient_filters(doc.recipient_type)
 	if not frappe.db.exists(doc.recipient_type, {"name": doc.recipient, **filters}):

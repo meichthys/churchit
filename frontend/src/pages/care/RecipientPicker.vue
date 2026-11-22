@@ -24,6 +24,7 @@ import { useRead } from "@/api";
 import type { Recipient } from "./types";
 
 const props = defineProps<{
+	page: "prayer-request" | "alms-request";
 	doctype: string;
 	initialLabel?: string;
 	label: string;
@@ -31,7 +32,7 @@ const props = defineProps<{
 }>();
 const value = defineModel<string | null>({ default: null });
 
-const search = useRead<{ items: Recipient[] }, { doctype: string; txt: string }>(
+const search = useRead<{ items: Recipient[] }, { page: string; doctype: string; txt: string }>(
 	"care.search_recipients",
 	{ immediate: false }
 );
@@ -53,7 +54,9 @@ const options = computed(() => {
 
 async function find(text: string) {
 	const id = ++requestId;
-	const result = await search.submit({ doctype: props.doctype, txt: text }).catch(() => null);
+	const result = await search
+		.submit({ page: props.page, doctype: props.doctype, txt: text })
+		.catch(() => null);
 	if (id === requestId && result) found.value = result.items;
 }
 

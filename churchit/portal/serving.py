@@ -88,6 +88,7 @@ def get_assignment_row(row: frappe._dict, person: str, schedules: dict[str, frap
 
 
 def get_schedule_row(item: frappe._dict) -> dict:
+	"""One row of a service schedule, as the app shows it."""
 	return {
 		"time": item.time,
 		"title": item.title,
@@ -101,6 +102,7 @@ def get_schedule_row(item: frappe._dict) -> dict:
 
 
 def get_block_row(block: frappe._dict) -> dict:
+	"""One block-out date range, as the app shows it."""
 	return {
 		"name": block.name,
 		"from_date": str(block.from_date),

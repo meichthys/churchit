@@ -10,7 +10,6 @@ from frappe.model import get_permitted_fields
 from frappe.utils import add_days, cint, format_time, formatdate, getdate, today
 from frappe.utils.html_utils import sanitize_html
 
-from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	DECLINED,
 	PENDING,
@@ -19,7 +18,7 @@ from churchit.church_ministries.member_attendance import get_upcoming_sign_ups
 from churchit.church_ministries.member_ministry_team import get_own_assignments
 from churchit.church_ministries.pre_check_in import get_functions
 from churchit.church_prayers.prayer_access import get_community_filters, get_open_request_filters
-from churchit.church_scope import church_filters, church_query_filters
+from churchit.church_scope import church_filters, church_query_filters, session_church
 from churchit.church_website.pages import (
 	can_open_members_only_pages,
 	get_hidden_pages,
@@ -202,11 +201,11 @@ def get_check_in(person: str) -> dict | None:
 
 
 def get_notices() -> list[dict]:
-	"""The announcements the church shares from its newest published bulletins."""
+	"""The announcements the member's own church shares from its newest published bulletins."""
 	bulletins = frappe.get_all(
 		"Bulletin",
 		filters=church_filters(
-			selected_church_name(),
+			session_church(),
 			**{"publish": 1, "share_announcements": 1, "announcements": ("is", "set")},
 		),
 		fields=["name", "function_name", "function_date", "announcements"],

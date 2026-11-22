@@ -441,7 +441,8 @@ class TestCareAndAlms(CareCase):
 
 	def test_recipient_search_stays_in_the_members_church(self):
 		frappe.set_user(self.member)
-		labels = [row["label"] for row in care.search_recipients("Person", "_Test Care")["items"]]
+		found = care.search_recipients("prayer-request", "Person", "_Test Care")["items"]
+		labels = [row["label"] for row in found]
 
 		self.assertIn("_Test Care _test_portal_care_b", labels)
 		self.assertNotIn("_Test Care _test_portal_care_c", labels)
@@ -450,7 +451,16 @@ class TestCareAndAlms(CareCase):
 		frappe.set_user(self.member)
 		for doctype in ("User", "Counseling Case"):
 			with self.assertRaises(frappe.PermissionError):
-				care.search_recipients(doctype, "admin")
+				care.search_recipients("alms-request", doctype, "admin")
+
+	def test_recipient_search_is_only_for_a_request_page_that_is_on(self):
+		self.switch_off("prayer-request")
+		frappe.set_user(self.member)
+
+		for page in ("prayer-request", "care-request", "household"):
+			with self.subTest(page=page), self.assertRaises(frappe.PermissionError):
+				care.search_recipients(page, "Person", "_Test Care")
+		self.assertTrue(care.search_recipients("alms-request", "Person", "_Test Care")["items"])
 
 
 class TestSavingRequests(CareCase):
@@ -534,6 +544,15 @@ class TestSavingRequests(CareCase):
 	def test_a_recipient_from_another_church_is_refused(self):
 		with self.assertRaises(frappe.PermissionError):
 			self.save_prayer(self.member, recipient_type="Person", recipient=self.person_of(self.stranger))
+
+	def test_staff_who_ask_in_the_app_name_themselves_and_only_their_churchs_recipients(self):
+		staff = add_member("_test_portal_care_desk@example.com", self.church, "Church Staff")
+
+		request = self.save_prayer(staff)
+
+		self.assertEqual(request.requestor, self.person_of(staff))
+		with self.assertRaises(frappe.PermissionError):
+			self.save_prayer(staff, recipient_type="Person", recipient=self.person_of(self.stranger))
 
 	def test_a_member_deletes_their_prayer_request_until_someone_prays_for_it(self):
 		request = self.save_prayer(self.member)

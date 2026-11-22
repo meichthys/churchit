@@ -37,6 +37,7 @@ from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.report.active_prayer_list import active_prayer_list
 from churchit.church_scope import SHARED, extend_bootinfo, is_people_directory_private, scoped
 from churchit.portal.care import get_community_requests
+from churchit.portal.home import get_home
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
@@ -449,6 +450,41 @@ class TestChurchPermissions(FrappeTestCase):
 		names = [row.name for row in joinable_public_groups()]
 		self.assertIn(group_a, names)
 		self.assertNotIn(group_b, names)
+
+	def make_bulletin(self, church, date):
+		"""A published bulletin of *church* that shares its announcements, deleted after the test."""
+		function = make_function(f"_Test Home Service {church}", church=church, start_date=date)
+		bulletin = frappe.get_doc(
+			{
+				"doctype": "Bulletin",
+				"function": function.name,
+				"publish": 1,
+				"share_announcements": 1,
+				"announcements": "<p>_Test notice</p>",
+			}
+		).insert(ignore_permissions=True)
+		# One transaction spans the class, so leave the functions and bulletins as they were.
+		self.addCleanup(frappe.delete_doc, "Function", function.name, ignore_permissions=True, force=True)
+		self.addCleanup(frappe.delete_doc, "Bulletin", bulletin.name, ignore_permissions=True, force=True)
+		return bulletin.name
+
+	def test_portal_home_stays_within_the_members_church(self):
+		"""Staff with a Person use the member app too, so Home reads only their own church."""
+		mine, theirs = (
+			self.make_bulletin(church, date)
+			for church, date in ((self.branch_a, "2040-02-01"), (self.branch_b, "2040-02-08"))
+		)
+
+		frappe.set_user(self.manager_a)
+		result = get_home()
+
+		notices = [notice["name"] for notice in result["notices"]]
+		self.assertIn(mine, notices)
+		self.assertNotIn(theirs, notices)
+		self.assertEqual(result["bulletin"]["name"], mine)
+		requests = [request["name"] for request in result["prayer_requests"]]
+		self.assertIn(self.request_a.name, requests)
+		self.assertNotIn(self.request_b.name, requests)
 
 	def test_a_family_follows_its_primary_contact(self):
 		family = frappe.get_doc(

@@ -417,6 +417,8 @@ class TestBulletinChurches(RollbackEachTest):
 	def test_the_pdf_uses_frappes_chrome_engine_where_wkhtmltopdf_is_missing(self):
 		bulletin = frappe.new_doc("Bulletin", function=self.function_a, publish=1).insert()
 		module = "churchit.church_communications.doctype.bulletin.bulletin"
+		self.addCleanup(setattr, frappe.local, "response", frappe.local.response)
+		frappe.local.response = frappe._dict()
 
 		for version, generator in (("0", "chrome"), ("0.12.6", None)):
 			with (

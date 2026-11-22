@@ -46,6 +46,7 @@ def clamp(color: str, lowest: float, highest: float, max_chroma: float) -> str:
 
 
 def to_oklch(color: str) -> tuple[float, float, float]:
+	"""A hex color as OKLCH lightness, chroma and hue."""
 	digits = color.strip().lstrip("#")
 	if len(digits) == 3:
 		digits = "".join(digit * 2 for digit in digits)
@@ -75,16 +76,20 @@ def from_oklch(lightness: float, chroma: float, hue: float) -> tuple[float, floa
 
 
 def is_in_srgb(channels: tuple[float, float, float]) -> bool:
+	"""Whether every linear channel is inside the sRGB range."""
 	return all(-0.0001 <= channel <= 1.0001 for channel in channels)
 
 
 def to_hex(channels: tuple[float, float, float]) -> str:
+	"""Linear sRGB channels as a hex color, clamped to the gamut."""
 	return "#" + "".join(f"{round(min(max(to_gamma(channel), 0), 1) * 255):02x}" for channel in channels)
 
 
 def to_linear(channel: float) -> float:
+	"""A gamma-encoded sRGB channel as a linear one."""
 	return channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
 
 
 def to_gamma(channel: float) -> float:
+	"""A linear sRGB channel as a gamma-encoded one."""
 	return 12.92 * channel if channel <= 0.0031308 else 1.055 * max(channel, 0) ** (1 / 2.4) - 0.055

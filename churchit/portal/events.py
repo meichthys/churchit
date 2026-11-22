@@ -157,6 +157,7 @@ def format_closing(value) -> str:
 
 
 def describe_function(function, signs_up_in: str, sign_up: str | None = None) -> dict:
+	"""A function as the app lists it, with the date parts and how the member signs up."""
 	return {
 		"name": function.name,
 		"function_name": function.function_name,
@@ -415,6 +416,7 @@ def update_sign_up(
 
 
 @frappe.whitelist(methods=["POST"])
+@rate_limit(limit=30, seconds=60 * 60, user_based=True)
 def cancel_sign_up(name: str) -> dict:
 	"""Cancel the member's sign-up and give its seats to the waitlist. Sends messages."""
 	require_person()

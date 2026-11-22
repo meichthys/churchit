@@ -25,11 +25,12 @@ from churchit.church_prayers.prayer_access import (
 	get_community_filters,
 	get_open_request_filters,
 )
-from churchit.church_scope import session_person
 from churchit.portal.access import require_page, require_person
 from churchit.portal.realtime import notify, notify_person
 
 COMMENT_PAGES = {"prayer-request": ("Prayer Request", "prayer"), "alms-request": ("Alms Request", "alms")}
+# The pages whose requests name someone they are for: only these search for a recipient.
+RECIPIENT_PAGES = ("prayer-request", "alms-request")
 # How many saves and deletes a member may make a minute: the limits Frappe sets on its web forms.
 SAVES_A_MINUTE = 10
 DELETES_A_MINUTE = 999
@@ -41,10 +42,12 @@ def get_options(doctype: str) -> list[dict]:
 
 
 def get_select_options(doctype: str, fieldname: str) -> list[str]:
+	"""The options of the Select field *fieldname* of *doctype*, without the blank one."""
 	return [option for option in frappe.get_meta(doctype).get_field(fieldname).options.split("\n") if option]
 
 
 def get_prayer_row(row: dict) -> dict:
+	"""A prayer request *row* with the date of its last change, as a date and as text to show."""
 	return {**row, "date": str(getdate(row["modified"])), "date_display": formatdate(row["modified"])}
 
 
@@ -53,7 +56,7 @@ def get_own(doctype: str, name: str, ptype: str):
 	frappe.has_permission(doctype, ptype, doc=name, throw=True)
 	doc = frappe.get_doc(doctype, name)
 	if doc.owner != frappe.session.user:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(_("You can open and change only your own requests."), frappe.PermissionError)
 	return doc
 
 
@@ -148,13 +151,16 @@ def delete_prayer_request(name: str) -> None:
 
 
 @frappe.whitelist(methods=["GET"])
-def search_recipients(doctype: str, txt: str | None = None) -> dict:
-	"""Names a request may be for, from the member's church. Reads only.
+def search_recipients(page: str, doctype: str, txt: str | None = None) -> dict:
+	"""Names that a request on *page* may be for, from the member's church. Reads only.
 
-	It reads past DocPerms on purpose: a member reads only their own Person, and it sends a name and a
-	title only.
+	*page* is prayer-request or alms-request, and it must be on for the member. It reads past DocPerms on
+	purpose: a member reads only their own Person, and it sends a name and a title only.
 	"""
 	require_person()
+	if page not in RECIPIENT_PAGES:
+		frappe.throw(_("Only prayer and benevolence requests name who they are for."), frappe.PermissionError)
+	require_page(page)
 	filters = get_recipient_filters(doctype)
 	title_field = frappe.get_meta(doctype).title_field or "name"
 	or_filters = [["name", "like", f"%{txt}%"], [title_field, "like", f"%{txt}%"]] if txt else None
@@ -215,7 +221,7 @@ def get_community_request(name: str) -> dict:
 	require_page("community-prayer-requests")
 	request = frappe.get_doc("Prayer Request", name)
 	if not (request.has_webform_permission() or frappe.has_permission("Prayer Request", "read", doc=request)):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(_("This prayer request is not on your prayer list."), frappe.PermissionError)
 
 	row = get_prayer_row({field: request.get(field) for field in COMMUNITY_FIELDS})
 	return {
@@ -274,7 +280,9 @@ def add_prayer_comment(prayer_request: str, comment: str) -> dict:
 	require_page("community-prayer-requests")
 	request = frappe.get_doc("Prayer Request", prayer_request)
 	if not (request.has_webform_permission() or frappe.has_permission("Prayer Request", "read", doc=request)):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(
+			_("You can comment only on a prayer request on your prayer list."), frappe.PermissionError
+		)
 
 	add_member_comment(request, comment)
 	notify_person(request.requestor, "prayer", prayer_request)
@@ -284,7 +292,7 @@ def add_prayer_comment(prayer_request: str, comment: str) -> dict:
 def get_own_request(page: str, name: str):
 	"""The member's own request on a page that takes comments. Refuses a switched-off page."""
 	if page not in COMMENT_PAGES:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(_("Only prayer and benevolence requests take comments."), frappe.PermissionError)
 
 	require_person()
 	require_page(page)
@@ -367,7 +375,7 @@ def save_care_request(
 @frappe.whitelist(methods=["GET"])
 def get_my_alms_requests() -> dict:
 	"""The benevolence requests the member made. A request can change only until the church reviews it. Reads only."""
-	require_person()
+	person = require_person()
 	require_page("alms-request")
 	rows = frappe.get_list(
 		"Alms Request",
@@ -401,10 +409,9 @@ def get_my_alms_requests() -> dict:
 		}
 		for row in rows
 	]
-	person = session_person()
 	return {
 		"items": items,
-		"can_add": bool(person),
+		"can_add": True,
 		"me": {"name": person, "full_name": frappe.db.get_value("Person", person, "full_name")},
 	}
 
