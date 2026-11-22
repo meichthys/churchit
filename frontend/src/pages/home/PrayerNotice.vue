@@ -1,6 +1,11 @@
 <template>
 	<li class="py-4 first:pt-0">
-		<p v-if="request.title" class="t-subhead text-ink-gray-9">{{ request.title }}</p>
+		<RouterLink
+			:to="`/community-prayer-requests/${encodeURIComponent(request.name)}`"
+			class="t-subhead inline-block py-2 text-ink-gray-9 underline decoration-outline-gray-3 underline-offset-4 hover:decoration-ink-gray-7 md:py-0"
+		>
+			{{ request.title || __("Prayer request") }}
+		</RouterLink>
 		<p v-if="request.request" class="mt-1 line-clamp-4 text-p-lg text-ink-gray-8">
 			{{ request.request }}
 		</p>

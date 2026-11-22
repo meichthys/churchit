@@ -4,7 +4,15 @@
 			<SectionHead id="notices-head" :title="__('Notices')" />
 			<div class="space-y-6 border-t border-outline-gray-1 pt-4">
 				<article v-for="notice in home.notices" :key="notice.name">
-					<h3 class="t-subhead text-ink-gray-9">{{ notice.title }}</h3>
+					<h3 class="t-subhead text-ink-gray-9">
+						<a
+							v-if="!isPageHidden('bulletins')"
+							:href="`/bulletins?name=${encodeURIComponent(notice.name)}`"
+							class="inline-block py-2 underline decoration-outline-gray-3 underline-offset-4 hover:decoration-ink-gray-7 md:py-0"
+							>{{ notice.title }}</a
+						>
+						<template v-else>{{ notice.title }}</template>
+					</h3>
 					<p class="t-dateline text-ink-gray-6">{{ notice.date_display }}</p>
 					<!-- eslint-disable-next-line vue/no-v-html -->
 					<div
