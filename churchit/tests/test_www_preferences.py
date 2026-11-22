@@ -29,7 +29,7 @@ from churchit.church_communications.test_preferences import (
 	set_sms_gateway,
 )
 from churchit.patches.v1_0 import rename_newsletter_subscription_menu_item
-from churchit.tests.helpers import RollbackEachTest
+from churchit.tests.helpers import RollbackEachTest, serve_old_member_pages
 from churchit.www.preferences import get_context
 
 
@@ -40,6 +40,10 @@ def page_context():
 
 
 class TestPreferencesPage(PreferencesTestCase):
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
+
 	def serve(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		return get_html_for_route("preferences")

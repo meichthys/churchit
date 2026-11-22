@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import set_request
 from frappe.website.path_resolver import resolve_path
+from frappe.website.serve import get_response
 
 from churchit.church_scope import root_church
 from churchit.church_website.pages import sync_page_switches
@@ -46,6 +47,37 @@ class TestMemberPortalPage(RollbackEachTest):
 		for path in ("portal", "portal/household", "portal/groups/GRP-0001/edit"):
 			set_request(method="GET", path="/" + path)
 			self.assertEqual(resolve_path(path), "member_portal", path)
+
+	def test_the_old_member_routes_open_in_the_app(self):
+		self.addCleanup(frappe.cache.delete_value, "website_redirects")
+		expected = {
+			"/household": "/portal/household",
+			"/function-sign-up/new?function=FN-1": "/portal/function-sign-up/new?function=FN-1",
+			"/group-leader?group=GRP-1": "/portal/group-leader?group=GRP-1",
+			"/bulletins": "/portal/bulletins",
+		}
+		for path, target in expected.items():
+			route, _, query = path.partition("?")
+			set_request(method="GET", path=route, query_string=query)
+			response = get_response(route.strip("/"))
+			self.assertEqual(response.status_code, 302, path)
+			self.assertTrue(
+				response.headers["Location"].endswith(target), (path, response.headers["Location"])
+			)
+
+	def test_public_guest_and_printable_pages_are_not_redirected(self):
+		self.addCleanup(frappe.cache.delete_value, "website_redirects")
+		for path in (
+			"/bible",
+			"/register",
+			"/prayer-request-anonymous",
+			"/ministry-team-response",
+			"/bulletins?name=X",
+		):
+			route, _, query = path.partition("?")
+			set_request(method="GET", path=route, query_string=query)
+			location = get_response(route.strip("/")).headers.get("Location") or ""
+			self.assertNotIn("/portal", location, path)
 
 	def test_a_guest_goes_to_login_and_comes_back_to_the_same_path(self):
 		frappe.set_user("Guest")

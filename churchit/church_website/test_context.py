@@ -21,6 +21,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_branch,
 	make_person,
+	serve_old_member_pages,
 	set_multi_church,
 )
 
@@ -74,6 +75,10 @@ class TestPortalMenuLink(FrappeTestCase):
 
 
 class TestPortalSidebar(FrappeTestCase):
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()

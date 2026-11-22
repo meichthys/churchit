@@ -148,9 +148,50 @@ website_redirects = [
 	# and delivered by email. Keep the public Frappe newsletter web view off the site.
 	{"source": r"/newsletters.*", "target": "/home"},
 	# The preferences page replaced the newsletter subscription page.
-	{"source": "/newsletter-subscription", "target": "/preferences"},
+	{"source": "/newsletter-subscription", "target": "/portal/preferences"},
 	# The member app's page file; the app runs at /portal.
 	{"source": "/member_portal", "target": "/portal", "redirect_http_status": 302},
+	# The member app (frontend/) replaced the member pages and web forms. Their links (emails, bookmarks,
+	# the installed app's shortcuts) open the same page in the app, /<route>/<rest> as
+	# /portal/<route>/<rest> with the query string. 302 while the old pages remain: a browser keeps a 301.
+	*(
+		{
+			"source": rf"/{route}(/.*)?",
+			"target": rf"/portal/{route}\1",
+			"redirect_http_status": 302,
+			"forward_query_parameters": True,
+		}
+		for route in (
+			"household",
+			"personal-details",
+			"preferences",
+			"directory",
+			"attendance",
+			"function-sign-up",
+			"ministry-team",
+			"room-request",
+			"groups",
+			"group-files",
+			"group-leader",
+			"prayer-request",
+			"community-prayer-requests",
+			"care-request",
+			"alms-request",
+			"memorize",
+			"pledge",
+		)
+	),
+	# The digital bulletin and the printable statement (?name=) stay pages of their own; the lists move
+	# into the app, with any other query string (?church=, a mail tool's utm_ tags).
+	*(
+		{
+			"source": rf"/{route}(\?(?!(?:.*&)?name=).*)?",
+			"target": f"/portal/{route}",
+			"redirect_http_status": 302,
+			"match_with_query_string": True,
+		}
+		for route in ("bulletins", "statements")
+	),
 ]
 
 # One page per published sermon. A sermon name can hold a slash. The member app (frontend/) draws

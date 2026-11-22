@@ -37,6 +37,7 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_person,
+	serve_old_member_pages,
 	set_multi_church,
 )
 
@@ -317,6 +318,7 @@ class TestSwitchedOffPage(RollbackEachTest):
 		frappe.flags.force_website_cache = True
 		self.addCleanup(clear_website_cache)
 		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
+		serve_old_member_pages(self)
 
 	def switch(self, route, enabled):
 		features = frappe.get_single("Church Features")
@@ -646,6 +648,7 @@ class TestClosedWebsite(RollbackEachTest):
 		frappe.flags.force_website_cache = True
 		self.addCleanup(clear_website_cache)
 		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
+		serve_old_member_pages(self)
 
 	def set_closed(self, closed):
 		frappe.set_user("Administrator")

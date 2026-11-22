@@ -18,6 +18,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_primary_contact,
 	make_two_churches,
+	serve_old_member_pages,
 )
 from churchit.www.directory import get_context, get_vcard
 
@@ -109,6 +110,7 @@ class TestDirectoryPage(RollbackEachTest):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user(self.user)
+		serve_old_member_pages(self)
 
 	def serve(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))

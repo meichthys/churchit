@@ -13,6 +13,7 @@ an email or phone may be on one Person only.
 import csv
 import io
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -278,3 +279,14 @@ def pop_logs(doctype, filters, field="name"):
 	for row in rows:
 		frappe.delete_doc(doctype, row.name, ignore_permissions=True)
 	return [row[field] for row in rows]
+
+
+def serve_old_member_pages(case):
+	"""Serve the old member pages and web forms instead of redirecting them into the member app.
+
+	hooks.py sends /household and the other member routes to /portal/<route>. The tests of the old
+	pages, which go when the pages do, render them as before.
+	"""
+	patcher = patch("frappe.website.path_resolver.resolve_redirect")
+	patcher.start()
+	case.addCleanup(patcher.stop)

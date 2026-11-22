@@ -27,7 +27,13 @@ from churchit.church_communications.sending import send
 from churchit.church_communications.test_preferences import MEMBER_EMAIL, PreferencesTestCase
 from churchit.church_people.group_api import message_group
 from churchit.church_people.test_group_leader_page import GroupLeaderTestCase
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_user,
+	make_person,
+	make_two_churches,
+	serve_old_member_pages,
+)
 
 SENDING = "churchit.church_communications.sending"
 
@@ -182,6 +188,7 @@ class TestPushPreference(PreferencesTestCase):
 		super().setUp()
 		turn_push_on()
 		frappe.db.delete("Push Subscription", {"user": MEMBER_EMAIL})
+		serve_old_member_pages(self)
 
 	def test_push_shows_once_push_is_on_and_the_member_has_a_subscribed_browser(self):
 		self.assertEqual(get_member_preferences()["channels"], [EMAIL])

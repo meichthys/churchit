@@ -5,7 +5,7 @@ import frappe
 from frappe.exceptions import PermissionError, ValidationError
 from frappe.utils import get_html_for_route
 
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_translation
+from churchit.tests.helpers import RollbackEachTest, ensure_user, make_translation, serve_old_member_pages
 from churchit.www.memorize import index, session
 
 
@@ -33,6 +33,7 @@ class TestMemorizePages(RollbackEachTest):
 		super().setUp()
 		frappe.set_user(self.user)
 		frappe.local.form_dict = frappe._dict()
+		serve_old_member_pages(self)
 
 	def tearDown(self):
 		super().tearDown()

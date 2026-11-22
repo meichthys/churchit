@@ -18,6 +18,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_person,
 	make_two_churches,
+	serve_old_member_pages,
 )
 from churchit.tests.test_questions import make_question_set
 
@@ -54,6 +55,7 @@ class TestRoomRequest(RollbackEachTest):
 		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
 		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
 		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
+		serve_old_member_pages(self)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

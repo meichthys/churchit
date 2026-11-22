@@ -10,7 +10,13 @@ from frappe.utils import add_days, getdate, set_request
 from frappe.website.serve import get_response
 
 from churchit.church_ministries.member_attendance import change_own_attendance
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_function, make_person
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_user,
+	make_function,
+	make_person,
+	serve_old_member_pages,
+)
 from churchit.www.attendance import get_context
 
 
@@ -55,6 +61,10 @@ class AttendanceTestCase(RollbackEachTest):
 
 
 class TestAttendancePage(AttendanceTestCase):
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
+
 	def test_guests_are_sent_to_login(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.Redirect):
@@ -193,6 +203,10 @@ class TestAttendancePage(AttendanceTestCase):
 
 class TestChangingOwnAttendance(AttendanceTestCase):
 	"""Portal Settings lets members correct their own attendance, and nothing more."""
+
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
 
 	members_can_change_attendance = 1
 

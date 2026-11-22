@@ -18,6 +18,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_function,
 	make_two_churches,
+	serve_old_member_pages,
 )
 from churchit.www import household
 
@@ -87,6 +88,7 @@ class TestPreCheckIn(RollbackEachTest):
 		self.enterContext(patch.object(frappe.db, "commit"))
 		# The payload itself, so a test can scan it or change it.
 		self.enterContext(patch.object(pre_check_in, "get_qr_code", side_effect=lambda value: value))
+		serve_old_member_pages(self)
 
 	def at(self, time):
 		"""Run the rest of the test at *time* on DAY."""

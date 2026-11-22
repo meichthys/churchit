@@ -27,7 +27,14 @@ from churchit.church_people.group_meetings import (
 )
 from churchit.patches.after_install import create_unsynced_records
 from churchit.patches.v1_0 import add_group_leader_menu_item
-from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_function, make_person
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure,
+	ensure_user,
+	make_function,
+	make_person,
+	serve_old_member_pages,
+)
 from churchit.www.group_leader import get_context
 
 LEADER_ROLE = "_Test Page Leader"
@@ -112,6 +119,10 @@ class GroupLeaderTestCase(RollbackEachTest):
 
 
 class TestGroupLeaderPage(GroupLeaderTestCase):
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
+
 	def context(self, user=None, **form):
 		frappe.set_user(user or self.leader_user)
 		frappe.local.form_dict = frappe._dict(form)

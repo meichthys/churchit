@@ -31,6 +31,7 @@ from churchit.tests.helpers import (
 	make_person,
 	make_team_assignment,
 	make_team_position,
+	serve_old_member_pages,
 )
 
 ASSIGNMENT = "churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment"
@@ -97,6 +98,7 @@ class TestReplacementRequests(RollbackEachTest):
 		self.start(mock.patch(f"{MEMBER}.can_send_email", return_value=True))
 		self.mine = make_team_assignment(self.sunday.name, self.position.name, self.member.name)
 		self.theirs = make_team_assignment(self.sunday.name, self.position.name, self.other.name)
+		serve_old_member_pages(self)
 
 	def start(self, patcher):
 		self.addCleanup(patcher.stop)

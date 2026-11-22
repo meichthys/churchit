@@ -9,7 +9,14 @@ from frappe.utils import get_html_for_route
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
 from churchit.patches.v1_0 import add_household_and_directory_menu_items as menu_patch
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_address, make_person, make_two_churches
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_user,
+	make_address,
+	make_person,
+	make_two_churches,
+	serve_old_member_pages,
+)
 from churchit.www.household import get_context, get_members
 
 
@@ -21,6 +28,10 @@ def page_context():
 
 class TestHouseholdPage(RollbackEachTest):
 	"""The Smiths: John and Jane (Adults), Tim (Child, 10) and Gran (Other Adult). The Joneses live next door."""
+
+	def setUp(self):
+		super().setUp()
+		serve_old_member_pages(self)
 
 	@classmethod
 	def setUpClass(cls):
