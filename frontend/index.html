@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<!-- Frappe renders this page with Jinja (www/member_portal.py); Vite leaves these expressions alone. -->
+		<title>{{ ((boot.churchit.church.title if boot.churchit.church else "") or "Member Portal") | e }}</title>
+		{{ favicon_link or "" }}
+		{{ head_html or "" }}
+	</head>
+	<body>
+		<div id="app"></div>
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>

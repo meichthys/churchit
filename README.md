@@ -79,7 +79,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
+- A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups with the people in each group, group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
+- The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes the church's color from its website theme
 - Household adults add their children on My Household
 - Save contact on each Member Directory entry: a contact card with only the details the entry shows
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
@@ -105,7 +106,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Age and grade limits on a function, room capacity from its room bookings (warn or block), and a headcount for people in the room who are not checked in by name: the attendance total uses the larger count
 - Volunteer check-in from a Team tab that lists the function's accepted ministry team, with the position on the volunteer's name tag
 - Self check-in kiosk: a family types its phone number on a tablet at the door, picks who to check in, and takes its name tags. Only Function types that allow self check-in, and only from a set number of minutes before the start to the end
-- Pre check-in: a member picks who is coming to today's function on My Household and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
+- Pre check-in: a member opens Check-in in the member app, picks who is coming to today's function and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
 - Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag; a household keeps one code for the day. Each kind of check-in (Regular, Guest, Volunteer) can print its own tag. The label layouts are Print Formats a church can copy and customize
 - Recurring functions: every n days, weeks, months or years, on a day of the month or a weekday of the month (the second Sunday), created weeks ahead for the calendar, with skip dates and room bookings
 - Calendar view (Private & Public). The public calendar shows the rooms, a map, an online meeting link and a link to open each function, and it can include the functions of branch churches
@@ -165,7 +166,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund management with automatic balance updates on submission
 - Fund transfers between accounts
 - Expense tracking by category
-- Alms request system for financial assistance (with web form), with an email to the care team, an email to Finance when a request is approved, and Benevolence case notes that only the care team reads
+- Alms request system for financial assistance (asked from the member app), with an email to the care team, an email to Finance when a request is approved, and Benevolence case notes that only the care team reads
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover (needs the optional [Payments app](#online-payments-optional))
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
@@ -175,7 +176,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Non-cash gifts (donated property) recorded with a description and no value
 - Funds that are not tax deductible stay off giving statements
 - Email every giving statement with its PDF in one step
-- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received
+- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received. Members can give toward a pledge from the Pledges page
 - Import giving history from another system, a spreadsheet or a payment processor's export into draft collections
 - GL export: map funds, payment types, expense types and the church to accounts, and export a balanced GL Journal as CSV
 
@@ -298,6 +299,10 @@ pilot -b church setup production
 **To update:** `pilot -b church update`.
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
+
+The member portal at /portal is an app that the build makes (it needs Node and Yarn, as every Frappe app with a front end does). `get-app`, `update` and Frappe Cloud build it for you. If you pull Churchit by hand, run `bench build --app churchit` afterwards: until it runs, /portal and the old member page addresses, which open /portal, answer "Page not found".
+
+Frappe makes PDFs with wkhtmltopdf. On a server without it, the bulletin PDF uses Frappe's Chrome engine instead, which downloads Chromium into the bench the first time. To use a Chromium that is already installed, set `chromium_path` in `common_site_config.json`.
 
 Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
 

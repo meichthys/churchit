@@ -7,9 +7,9 @@ import frappe
 from frappe.modules.patch_handler import PatchType, get_patches_from_app
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_prayers.web_form.community_prayer_requests import community_prayer_requests
 from churchit.patches.v1_0 import set_prayer_request_visibility
-from churchit.tests.helpers import ensure, ensure_user
+from churchit.portal.care import get_community_requests
+from churchit.tests.helpers import ensure, ensure_user, make_person
 
 
 class TestPrayerAccess(FrappeTestCase):
@@ -29,6 +29,8 @@ class TestPrayerAccess(FrappeTestCase):
 			for visibility in ("Private", "Prayer Team", "Whole Church")
 		)
 		cls.member = ensure_user("_test_access_member@example.com", "_Test Member")
+		if not frappe.db.exists("Person", {"user": cls.member}):
+			make_person("_Test Access", "Member", user=cls.member)
 		cls.praying = ensure_user(
 			"_test_access_team@example.com", "_Test Team", roles=("Church User", "Church Prayer Team")
 		)
@@ -96,8 +98,7 @@ class TestPrayerAccess(FrappeTestCase):
 		}
 
 		frappe.set_user(self.member)
-		context = community_prayer_requests.get_list_context(frappe._dict())
-		listed = {row.name for row in context.get_list("Prayer Request", "", [], 0, 500)}
+		listed = {row["name"] for row in get_community_requests()["items"]}
 
 		self.assertIn(self.whole.name, listed)
 		self.assertFalse(hidden & listed)

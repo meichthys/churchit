@@ -17,6 +17,7 @@ from churchit.church_ministries.member_ministry_team import (
 	ask_for_replacement_by_key,
 	ask_replacement,
 	get_candidates,
+	get_own_assignments,
 	get_replacement_candidates,
 	get_replacement_candidates_by_key,
 )
@@ -107,6 +108,9 @@ class TestReplacementRequests(RollbackEachTest):
 		frappe.local.request_ip = frappe.generate_hash(length=12)
 		frappe.local.form_dict = frappe._dict(query)
 		return get_response(route).get_data(as_text=True)
+
+	def own_row(self, name):
+		return next(row for row in get_own_assignments(self.member.name) if row.name == name)
 
 	def get(self, assignment):
 		return frappe.get_doc("Ministry Team Assignment", assignment)
@@ -211,20 +215,18 @@ class TestReplacementRequests(RollbackEachTest):
 		frappe.set_user(self.user)
 		with self.assertRaisesRegex(frappe.ValidationError, "Your place went to _Test Replace Ruth"):
 			answer_own_assignment(self.mine.name, "Accepted")
-		html = self.render("ministry-team")
-		self.assertIn("Your place went to _Test Replace Ruth.", html)
-		self.assertNotIn(f'data-assignment="{self.mine.name}" data-status="Accepted"', html)
+		row = self.own_row(self.mine.name)
+		self.assertEqual(row.replaced_by, "_Test Replace Ruth")
 
 		frappe.set_user("Administrator")
 		self.assertEqual(self.get(self.mine.name).status, "Declined")
 
-	def test_the_ministry_team_page_shows_a_pending_request(self):
+	def test_a_pending_request_shows_on_the_own_assignment(self):
 		self.ask(self.ruth.name)
 
 		frappe.set_user(self.user)
-		html = self.render("ministry-team")
-		self.assertIn("You asked _Test Replace Ruth to take your place.", html)
-		self.assertNotIn(f'team-replace" data-assignment="{self.mine.name}"', html)
+		row = self.own_row(self.mine.name)
+		self.assertEqual(row.pending_replacement, "_Test Replace Ruth")
 
 	def test_if_the_replacement_declines_the_original_keeps_its_status(self):
 		frappe.set_user(self.user)
@@ -342,11 +344,11 @@ class TestReplacementRequests(RollbackEachTest):
 		[coordinator] = self.emailed("coordinator")
 		self.assertIn("The position is open again.", coordinator["message"])
 
-	def test_the_ministry_team_page_offers_a_replacement_on_own_assignments(self):
+	def test_a_replacement_is_offered_on_own_assignments_only(self):
 		frappe.set_user(self.user)
-		html = self.render("ministry-team")
-		self.assertIn(f'class="btn btn-sm btn-default team-replace" data-assignment="{self.mine.name}"', html)
-		self.assertNotIn(f'data-assignment="{self.theirs.name}"', html)
+		rows = {row.name: row for row in get_own_assignments(self.member.name)}
+		self.assertTrue(rows[self.mine.name].can_pass_on)
+		self.assertNotIn(self.theirs.name, rows)
 
 	def test_the_decline_patch_keeps_a_churchs_own_words(self):
 		set_decline_html("<p>Our own words</p>")

@@ -18,6 +18,7 @@ from churchit.church_ministries.check_in_limits import get_bound_problem, is_che
 from churchit.church_ministries.doctype.function_check_in.function_check_in import add_check_ins
 from churchit.church_ministries.page.check_in.check_in import group_by_family
 from churchit.church_people import household
+from churchit.church_people.directory import is_public
 from churchit.church_scope import (
 	allowed_churches,
 	church_filters,
@@ -26,7 +27,6 @@ from churchit.church_scope import (
 	root_church,
 )
 from churchit.contacts import phone_digits
-from churchit.www.directory import is_public
 
 KIOSK_ROLE = "Church Check-In Kiosk"
 # A whole phone number, so a kiosk cannot walk the directory a few digits at a time.

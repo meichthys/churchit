@@ -292,6 +292,7 @@ class Family(Document):
 			frappe.db.set_value("Person", member, "family", self.name, update_modified=False)
 
 	def on_update(self):
+		household.notify_household(self.name)
 		if self.has_value_changed("church"):
 			set_pickups_church(self.name, self.church)
 		before = self.get_doc_before_save()

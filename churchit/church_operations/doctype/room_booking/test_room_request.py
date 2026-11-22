@@ -1,16 +1,11 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
-
 import frappe
-from frappe.utils import add_to_date, now_datetime, set_request
-from frappe.website.doctype.web_form.web_form import accept
-from frappe.website.serve import get_response
-from frappe.www.list import get_list_data
+from frappe.utils import add_to_date, now_datetime
 
-from churchit.church_foundations.church_access import set_user_church
 from churchit.patches.v1_0 import add_room_request_to_portal
+from churchit.portal.serving import request_room
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -31,7 +26,7 @@ def make_room(room_name, church, **values):
 
 
 class TestRoomRequest(RollbackEachTest):
-	"""The members-only Room Request web form."""
+	"""The Room Booking rules for a member who asks for a room."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -44,15 +39,12 @@ class TestRoomRequest(RollbackEachTest):
 		cls.rooms = [cls.gated_a, cls.closed_a, cls.room_b, cls.shared_b]
 		cls.member = ensure_user("_test_room_request_member@example.com", "RoomMember")
 		cls.person = make_person("_Test Room", "Member", church=cls.branch_a, user=cls.member).name
-		cls.other_member = ensure_user("_test_room_request_other@example.com", "RoomOther")
-		cls.other_person = make_person("_Test Room", "Other", church=cls.branch_a, user=cls.other_member).name
 		cls.stranger = make_person("_Test Room", "Stranger", church=cls.branch_a).name
 		cls.addClassCleanup(frappe.clear_cache)
 
 	def setUp(self):
 		super().setUp()
 		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
 		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
 
 	def tearDown(self):
@@ -63,26 +55,18 @@ class TestRoomRequest(RollbackEachTest):
 
 	def request(self, room, hour=9, **values):
 		data = {
-			"doctype": "Room Booking",
 			"room": room,
 			"start_datetime": f"2036-04-04 {hour:02d}:00:00",
 			"end_datetime": f"2036-04-04 {hour + 1:02d}:00:00",
 			"purpose": "_Test A4 request",
 			**values,
 		}
-		return accept("room-request", frappe.as_json(data))
-
-	def room_options(self):
-		frappe.local.form_dict = frappe._dict(is_new=1)
-		frappe.local.path = "room-request/new"
-		context = frappe._dict()
-		frappe.get_doc("Web Form", "room-request").get_context(context)
-		field = next(f for f in context.web_form_doc.web_form_fields if f.fieldname == "room")
-		return {option["value"] for option in json.loads(field.options)}
+		result = request_room(**data)
+		return frappe.get_doc("Room Booking", result["name"])
 
 	def test_a_members_request_on_a_gated_room_waits_with_their_own_person(self):
 		frappe.set_user(self.member)
-		booking = self.request(self.gated_a, requester=self.stranger, status="Approved")
+		booking = self.request(self.gated_a)
 
 		self.assertEqual(booking.status, "Requested")
 		self.assertEqual(booking.requester, self.person)
@@ -106,7 +90,7 @@ class TestRoomRequest(RollbackEachTest):
 		frappe.set_user(self.member)
 		past = add_to_date(now_datetime(), hours=-3)
 		with self.assertRaisesRegex(frappe.ValidationError, "Pick a time that has not passed yet."):
-			self.request(self.gated_a, start_datetime=past, end_datetime=add_to_date(past, hours=1))
+			self.request(self.gated_a, start_datetime=str(past), end_datetime=str(add_to_date(past, hours=1)))
 		with self.assertRaisesRegex(frappe.ValidationError, "can last up to one day"):
 			self.request(self.gated_a, end_datetime="2037-04-04 21:00:00")
 
@@ -182,15 +166,7 @@ class TestRoomRequest(RollbackEachTest):
 		with self.assertRaisesRegex(frappe.PermissionError, "equipment"):
 			frappe.get_doc({**booking, "room": self.gated_a}).insert()
 
-	def test_the_form_offers_only_the_bookable_rooms_of_the_members_church(self):
-		frappe.set_user(self.member)
-		options = self.room_options()
-		self.assertIn(self.gated_a, options)
-		self.assertIn(self.shared_b, options)
-		self.assertNotIn(self.closed_a, options)
-		self.assertNotIn(self.room_b, options)
-
-	def test_a_room_with_a_required_question_is_not_offered_or_accepted(self):
+	def test_a_room_with_a_required_question_is_not_accepted(self):
 		required = [{"label": "Expected attendance", "question_type": "Int", "is_required": 1}]
 		optional = [{"label": "Catering", "question_type": "Data"}]
 		asks = make_question_set("_Test A4 Required", required, church=self.branch_a).name
@@ -199,112 +175,21 @@ class TestRoomRequest(RollbackEachTest):
 		frappe.db.set_value("Room", self.shared_b, "question_set", may_ask)
 
 		frappe.set_user(self.member)
-		options = self.room_options()
-		self.assertNotIn(self.gated_a, options)
-		self.assertIn(self.shared_b, options)
 		with self.assertRaises(frappe.PermissionError):
 			self.request(self.gated_a)
 		self.assertEqual(self.request(self.shared_b).status, "Approved")
 
-	def test_a_single_church_site_offers_every_bookable_room(self):
+	def test_a_single_church_site_accepts_every_bookable_room(self):
 		force_single_church()
 		frappe.set_user(self.member)
-		options = self.room_options()
-		self.assertTrue({self.gated_a, self.room_b, self.shared_b} <= options)
-		self.assertNotIn(self.closed_a, options)
 		self.assertEqual(self.request(self.room_b).requester, self.person)
-
-	def test_a_login_with_no_person_is_offered_no_room_and_cannot_ask(self):
-		frappe.set_user(ensure_user("_test_room_request_no_person@example.com", "RoomNoPerson"))
-		self.assertEqual(self.room_options(), set())
 		with self.assertRaises(frappe.ValidationError):
-			self.request(self.gated_a)
+			self.request(self.closed_a)
 
-	def test_the_list_shows_only_the_members_own_requests(self):
-		frappe.set_user(self.member)
-		mine = self.request(self.gated_a).name
-		frappe.set_user(self.other_member)
-		theirs = self.request(self.gated_a, hour=11).name
-
-		listed = {row.name for row in get_list_data("Room Booking", web_form_name="room-request")}
-		self.assertEqual(listed, {theirs})
-		frappe.set_user(self.member)
-		listed = {row.name for row in get_list_data("Room Booking", web_form_name="room-request")}
-		self.assertEqual(listed, {mine})
-
-	def book(self, hour, **values):
-		return frappe.get_doc(
-			{
-				"doctype": "Room Booking",
-				"room": self.gated_a,
-				"purpose": "_Test A4 desk booking",
-				"start_datetime": f"2036-04-07 {hour:02d}:00:00",
-				"end_datetime": f"2036-04-07 {hour + 1:02d}:00:00",
-				**values,
-			}
-		).insert(ignore_permissions=True)
-
-	def test_the_list_shows_a_manager_only_their_own_requests(self):
-		manager = ensure_user(
-			"_test_room_request_lister@example.com", "RoomLister", roles=("Church Manager",)
-		)
-		set_user_church(manager, self.branch_a)
-		own = make_person("_Test Room", "Lister", church=self.branch_a, user=manager).name
-		mine = self.book(9, requester=own).name
-		self.book(11, requester=self.stranger)
-
-		frappe.set_user(manager)
-		listed = {row.name for row in get_list_data("Room Booking", web_form_name="room-request")}
-		self.assertEqual(listed, {mine})
-
-	def test_a_staff_login_with_no_person_lists_no_blocked_time(self):
-		self.book(9, status="Blocked")
-		staff = ensure_user(
-			"_test_room_request_blocker@example.com", "RoomBlocker", roles=("Church Manager",)
-		)
-		set_user_church(staff, self.branch_a)
-
-		frappe.set_user(staff)
-		self.assertEqual(get_list_data("Room Booking", web_form_name="room-request"), [])
-
-	def test_a_manager_cannot_take_over_another_persons_booking_on_the_form(self):
-		staff = ensure_user(
-			"_test_room_request_manager@example.com", "RoomManager", roles=("Church Manager",)
-		)
-		set_user_church(staff, self.branch_a)
-		own = make_person("_Test Room", "Staff", church=self.branch_a, user=staff).name
-		desk_booking = frappe.get_doc(
-			{
-				"doctype": "Room Booking",
-				"room": self.gated_a,
-				"requester": self.stranger,
-				"purpose": "_Test A4 desk booking",
-				"start_datetime": "2036-04-06 09:00:00",
-				"end_datetime": "2036-04-06 10:00:00",
-			}
-		).insert(ignore_permissions=True)
-		frappe.set_user(staff)
-
-		self.assertEqual(self.request(self.gated_a).requester, own)
+	def test_a_login_with_no_person_cannot_ask(self):
+		frappe.set_user(ensure_user("_test_room_request_no_person@example.com", "RoomNoPerson"))
 		with self.assertRaises(frappe.PermissionError):
-			self.request(self.gated_a, hour=13, name=desk_booking.name)
-		self.assertEqual(frappe.db.get_value("Room Booking", desk_booking.name, "requester"), self.stranger)
-
-	def test_a_guest_is_sent_to_login(self):
-		"""Frappe sends a guest from the list to the new form, which it refuses with a Login button."""
-		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-		frappe.set_user("Guest")
-		path = "room-request"
-		for _hop in range(3):
-			frappe.local.form_dict = frappe._dict()
-			set_request(method="GET", path=path)
-			response = get_response(path)
-			if response.status_code not in (301, 302):
-				break
-			path = response.headers["Location"].lstrip("/")
-
-		self.assertEqual((path, response.status_code), ("room-request/new", 403))
-		self.assertIn("/login?redirect-to=%2Froom-request%2Fnew", response.get_data(as_text=True))
+			self.request(self.gated_a)
 
 	def test_the_patch_adds_book_a_room_to_the_portal_once(self):
 		route = add_room_request_to_portal.ROUTE

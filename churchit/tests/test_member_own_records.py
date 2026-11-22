@@ -4,12 +4,12 @@
 """Pledges and sign-ups that staff record for a member: the member reads their own and no one else's."""
 
 import frappe
-from frappe.www.list import get_list_data
 
 from churchit.church_finances.doctype.pledge.test_pledge import make_campaign, make_fund, make_pledge
 from churchit.church_foundations.church_access import set_user_church
-from churchit.church_ministries.web_form.function_sign_up.function_sign_up import get_sign_up_summary
+from churchit.church_ministries.member_sign_ups import get_sign_up_summary
 from churchit.church_people.test_merge import make_family
+from churchit.portal.events import get_sign_up, get_sign_ups
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -101,11 +101,6 @@ class TestMemberOwnRecords(RollbackEachTest):
 		frappe.set_user(self.neighbour)
 		self.assertFalse(frappe.has_permission(PLEDGE, "read", doc=household))
 
-	def test_the_pledge_page_lists_them(self):
-		mine = make_pledge(self.campaign_a, self.person).name
-		frappe.set_user(self.member)
-		self.assertEqual([row.name for row in get_list_data(PLEDGE, web_form_name="pledge")], [mine])
-
 	def test_a_member_cannot_change_a_pledge_staff_recorded(self):
 		mine = make_pledge(self.campaign_a, self.person).name
 		frappe.set_user(self.member)
@@ -114,25 +109,6 @@ class TestMemberOwnRecords(RollbackEachTest):
 		pledge.amount = 1
 		with self.assertRaises(frappe.PermissionError):
 			pledge.save()
-
-	def test_the_pledge_page_offers_edit_only_on_the_members_own_pledge(self):
-		recorded = make_pledge(self.campaign_a, self.person).name
-		frappe.set_user(self.member)
-		own = frappe.get_doc({"doctype": PLEDGE, "campaign": self.campaign_a, "amount": 5}).insert().name
-
-		self.assertEqual(self.web_form_page("pledge", recorded).allow_edit, 0)
-		self.assertEqual(self.web_form_page("pledge", own).allow_edit, 1)
-
-	def web_form_page(self, web_form, name):
-		"""The context of *web_form* showing the record *name*, built the way Frappe renders it."""
-		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		form = frappe.get_doc("Web Form", web_form)
-		frappe.local.form_dict = frappe._dict(name=name, is_read=1)
-		frappe.local.path = f"{form.route}/{name}"
-		context = frappe._dict(form.as_dict())
-		form.get_context(context)
-		return context
 
 	def test_a_member_reads_no_pledge_of_another_church(self):
 		elsewhere = make_pledge(self.campaign_b, self.person).name
@@ -148,21 +124,20 @@ class TestMemberOwnRecords(RollbackEachTest):
 		self.assertFalse(frappe.has_permission(SIGN_UP, "write", doc=mine))
 		self.assertFalse(frappe.has_permission(SIGN_UP, "delete", doc=mine))
 
-	def test_the_sign_up_page_lists_them(self):
+	def test_the_sign_ups_list_holds_only_their_own(self):
 		mine = self.sign_up(self.person).name
 		self.sign_up(self.neighbours_person)
 		frappe.set_user(self.member)
-		self.assertEqual(
-			[row.name for row in get_list_data(SIGN_UP, web_form_name="function-sign-up")], [mine]
-		)
+		self.assertEqual([row["name"] for row in get_sign_ups()["items"]], [mine])
 
-	def test_the_sign_up_list_shows_each_sign_up_with_its_status_and_who_comes(self):
+	def test_the_sign_ups_list_shows_each_sign_up_with_its_status_and_who_comes(self):
 		mine = self.sign_up(self.person).name
 		frappe.set_user(self.member)
 
-		(row,) = get_list_data(SIGN_UP, web_form_name="function-sign-up")
+		(row,) = get_sign_ups()["items"]
 		self.assertEqual(
-			(row.name, row.status, row.attendee_names), (mine, "Confirmed", "_Test Own Records Member")
+			(row["name"], row["status"], row["attendee_names"]),
+			(mine, "Confirmed", ["_Test Own Records Member"]),
 		)
 
 	def test_a_sign_up_page_sums_it_up_and_offers_cancel_only_on_the_members_own(self):
@@ -196,10 +171,10 @@ class TestMemberOwnRecords(RollbackEachTest):
 			(summary["status"], summary["amount_due"], summary["payment_status"]), ("Waitlisted", "", "")
 		)
 
-	def test_the_sign_up_page_hides_edit_on_a_sign_up_staff_recorded(self):
+	def test_the_app_offers_no_edit_on_a_sign_up_staff_recorded(self):
 		recorded = self.sign_up(self.person).name
 		frappe.set_user(self.member)
-		self.assertEqual(self.web_form_page("function-sign-up", recorded).allow_edit, 0)
+		self.assertFalse(get_sign_up(recorded)["can_edit"])
 
 	def test_a_member_still_reads_and_changes_what_they_made(self):
 		frappe.set_user(self.member)

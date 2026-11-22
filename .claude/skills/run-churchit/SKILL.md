@@ -86,7 +86,7 @@ Portal page as a member, on a phone, in dark mode:
 ```bash
 uv run .claude/skills/run-churchit/driver.py --device mobile --theme dark <<'EOF'
 login james.wilson@example.com
-nav /attendance
+nav /portal/attendance
 text main
 shot attendance-mobile-dark
 errors
@@ -113,10 +113,10 @@ curl -sg -b "$jar" 'http://churchit.localhost:8000/api/resource/Person?filters=[
 ## Test
 
 ```bash
-pilot -b dev frappe --site churchit.localhost run-tests --module churchit.tests.test_www_attendance
+pilot -b dev frappe --site churchit.localhost run-tests --module churchit.church_ministries.test_member_attendance
 ```
 
-This runs 11 tests in about 3 s. The exit code is non-zero on failure. Run modules one at a time. A
+This runs 12 tests in about 3 s. The exit code is non-zero on failure. Run modules one at a time. A
 full `run-tests --app churchit` run commits to the dev site: it re-creates the sample data and leaves
 multi-church switched off.
 

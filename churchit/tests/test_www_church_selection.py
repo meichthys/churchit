@@ -10,6 +10,7 @@ from frappe.utils import add_days, getdate, set_request
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_scope import church_filters, selected_church_filters
 from churchit.church_website.context import before_request, update_website_context
+from churchit.portal.faith import get_published_bulletins
 from churchit.tests.helpers import (
 	ensure,
 	ensure_root_church,
@@ -21,7 +22,6 @@ from churchit.tests.helpers import (
 	set_multi_church,
 )
 from churchit.www import locations
-from churchit.www.bulletins import get_published_bulletins
 from churchit.www.calendar import get_events
 
 

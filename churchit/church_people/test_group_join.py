@@ -284,15 +284,7 @@ class TestGroupJoin(RollbackEachTest):
 		self.assertEqual([row.name for row in requests[self.group.name]], [request])
 		self.assertEqual(requests[self.group.name][0].person_name, "Joiner _Test Join")
 		self.assertEqual(requests[quiet.name], [])
-
-		html = frappe.render_template(
-			"churchit/templates/includes/group_join_requests.html",
-			{"group": self.group.name, "join_requests": requests},
-		)
-		self.assertIn("Joiner _Test Join", html)
-		self.assertIn("I would like to come.", html)
-		self.assertIn(f'data-request="{request}"', html)
-		self.assertIn("decide_join_request", html)
+		self.assertEqual(requests[self.group.name][0].message, "I would like to come.")
 
 	def test_a_member_cannot_read_a_request_even_their_own(self):
 		request = self.request()

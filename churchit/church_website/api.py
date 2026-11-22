@@ -1,7 +1,5 @@
 import frappe
-from frappe import _
 
-from churchit.church_people.member_access import RECIPIENT_DOCTYPES, get_recipient_filters
 from churchit.church_website.menu import get_route
 from churchit.church_website.published_fields import published_field_map
 
@@ -16,12 +14,6 @@ def get_published_fields(doctype: str | None = None) -> dict:
 	frappe.only_for(["Church Manager", "System Manager"])
 	published = published_field_map(use_cache=True)
 	return published.get(doctype, {}) if doctype else published
-
-
-@frappe.whitelist(allow_guest=False, methods=["GET"])
-def get_recipient_doctypes() -> list[dict]:
-	"""The doctypes a prayer or alms request may name as its recipient. Reads only."""
-	return [{"name": doctype} for doctype in RECIPIENT_DOCTYPES]
 
 
 @frappe.whitelist(allow_guest=False, methods=["GET", "POST"])
@@ -48,23 +40,3 @@ def get_website_home_page() -> str:
 	A site without a home page sends a visitor to the login page, as Frappe does.
 	"""
 	return frappe.db.get_single_value("Website Settings", "home_page") or "login"
-
-
-@frappe.whitelist(allow_guest=False, methods=["GET"])
-def search_church_recipient(doctype: str, txt: str | None) -> list[dict]:
-	"""Names of the records a member may pray for or ask alms for, as ``[{name, label}]``. Reads only.
-
-	Runs past DocPerms on purpose: a member reads only their own Person, and a
-	name and a title are all this returns.
-	"""
-	filters = get_recipient_filters(doctype)
-	title_field = frappe.get_meta(doctype).title_field or "name"
-	or_filters = [["name", "like", f"%{txt}%"], [title_field, "like", f"%{txt}%"]] if txt else None
-	return frappe.get_all(
-		doctype,
-		filters=filters,
-		or_filters=or_filters,
-		fields=["name", f"{title_field} as label"],
-		order_by=f"{title_field} asc",
-		limit=20,
-	)

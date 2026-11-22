@@ -111,7 +111,6 @@ body {
 	// page puts its title in the shared .page-header block, so one rule covers
 	// them; the home page is a landing page and styles its own headline.
 	.page-header h1,
-	.portal-home h1,
 	.home-title-accent,
 	.portal-container .portal-section.head .title {
 		background: var(--ch-grad);

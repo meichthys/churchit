@@ -31,6 +31,8 @@ SHORTCUT_PAGES = ("calendar", "prayer-request", "give", "sermons")
 # --bg-color in public/scss/website.scss. The browser chrome and the splash
 # screen match the page behind the frosted navbar, not the brand accent.
 THEME_COLOR = {"light": "#eef1fb", "dark": "#0b1020"}
+# The member app's paper (--surface-base in frontend/src/style.css), for the app page's browser chrome.
+APP_THEME_COLOR = {"light": "#fcfaf5", "dark": "#191714"}
 
 ICONS = [
 	{"src": f"{ICON_DIR}/icon-192.png", "sizes": "192x192", "type": "image/png"},
@@ -73,13 +75,13 @@ def get_shortcuts():
 	]
 
 
-def head_tags():
+def head_tags(theme_color=THEME_COLOR):
 	"""The tags every website page needs for the browser to offer an install.
 
 	theme-color holds both palettes: theme_mode.js swaps content= with the
 	light/dark switch, which a media query can't follow. The desk keeps Frappe's own.
 	"""
-	light, dark = THEME_COLOR["light"], THEME_COLOR["dark"]
+	light, dark = theme_color["light"], theme_color["dark"]
 	return (
 		install_tags()
 		+ f'<meta name="theme-color" content="{light}" data-light="{light}" data-dark="{dark}">'

@@ -19,6 +19,7 @@ from churchit.church_scope import (
 	session_church,
 	session_person,
 )
+from churchit.portal.realtime import notify_person
 from churchit.questions import YES, get_fields, get_questions, set_answers
 
 # Roles that approve the bookings of a room with no Approvers list.
@@ -90,10 +91,12 @@ class RoomBooking(Document):
 			frappe.db.get_value("Church Asset", asset, "name", for_update=True)
 
 	def on_update(self):
+		notify_person(self.requester, "rooms", self.name)
 		self.update_approver_assignments()
 		self.deny_requests_a_block_overlaps()
 
 	def on_trash(self):
+		notify_person(self.requester, "rooms", self.name)
 		if self.status == "Blocked" and not self.flags.ignore_permissions and not self.is_approver():
 			frappe.throw(
 				_("Only an approver of this room can remove its blocked time."), frappe.PermissionError
@@ -322,7 +325,7 @@ class RoomBooking(Document):
 		self.requester = own_person
 
 	def refuse_a_room_outside_the_members_church(self):
-		"""Under the web form's ignore_permissions too, a member asks only for a room get_bookable_rooms offers."""
+		"""A member, in the member app or elsewhere, asks only for a room that get_bookable_rooms offers."""
 		if not (is_portal_member() or frappe.flags.in_web_form):
 			return
 		if self.room and self.has_value_changed("room") and self.room not in get_bookable_rooms():
@@ -613,7 +616,7 @@ def format_booking_end(start, end) -> str:
 def get_bookable_rooms() -> dict[str, str]:
 	"""{name: room_name} of the rooms the signed-in member may ask for: their church's bookable ones and shared ones.
 
-	The web form cannot ask a room's questions, so a room with a required question is booked by staff.
+	The member app cannot ask a room's questions, so a room with a required question is booked by staff.
 	"""
 	if not session_person():
 		return {}

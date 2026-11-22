@@ -4,10 +4,6 @@
 
 {% block head_include %}
 <style>
-	.statement-list { list-style: none; padding: 0; margin: 0; }
-	.statement-list li { display: flex; justify-content: space-between; align-items: baseline;
-		gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-color, #e5e7eb); }
-	.statement-list .amount { font-weight: 600; white-space: nowrap; }
 	.statement { margin-top: 8px; }
 	.statement-head { display: flex; justify-content: space-between; align-items: flex-start;
 		gap: 24px; border-bottom: 2px solid currentColor; padding-bottom: 10px; }
@@ -36,38 +32,12 @@
 {% block page_content %}
 <div class="my-account-container">
 
-	{% if statement %}
-		<div class="d-flex justify-content-between align-items-center mb-4 no-print">
-			<a href="/statements">&larr; {{ _("All statements") }}</a>
-			<button class="btn btn-primary btn-sm" onclick="window.print()">{{ _("Print") }}</button>
-		</div>
-		{% set doc = statement %}
-		{% include "churchit/templates/includes/giving_statement_body.html" %}
-
-	{% else %}
-		<h1 class="my-account-header mb-4">{{ _("Giving Statements") }}</h1>
-
-		{% if not person %}
-			<p class="text-muted">
-				{{ _("Your account is not linked to a member record yet. Please contact the church office.") }}
-			</p>
-		{% elif not statements %}
-			<p class="text-muted">{{ _("No statements have been issued for you yet.") }}</p>
-		{% else %}
-			<ul class="statement-list">
-				{% for row in statements %}
-				<li>
-					<a href="/statements?name={{ row.name | urlencode }}">
-						{{ frappe.format(row.from_date, {"fieldtype": "Date"}) }}
-						to
-						{{ frappe.format(row.to_date, {"fieldtype": "Date"}) }}
-					</a>
-					<span class="amount">{{ frappe.format(row.total_amount, {"fieldtype": "Currency"}) }}</span>
-				</li>
-				{% endfor %}
-			</ul>
-		{% endif %}
-	{% endif %}
+	<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+		<a href="/statements">&larr; {{ _("All statements") }}</a>
+		<button class="btn btn-primary btn-sm" onclick="window.print()">{{ _("Print") }}</button>
+	</div>
+	{% set doc = statement %}
+	{% include "churchit/templates/includes/giving_statement_body.html" %}
 
 </div>
 {% endblock %}
