@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 from unittest.mock import patch
+from urllib.parse import quote
 
 import frappe
 from frappe.utils import add_days, today
@@ -100,6 +101,60 @@ class TestMemberAppGiving(RollbackEachTest):
 		self.assertIn("120.00", row["given_display"])
 		self.assertIn("380.00", row["remaining_display"])
 		self.assertEqual(row["percent"], 24)
+
+	def make_give_pledge(self, **campaign_values):
+		"""A pledge by the member to a new campaign on a fund that takes gifts."""
+		frappe.set_user("Administrator")
+		fund = make_fund("_Test Portal Give Fund", self.branch_a, allow_giving=1).name
+		campaign = make_campaign("_Test Portal Give Campaign", fund, self.branch_a, **campaign_values).name
+		pledge = make_pledge(campaign, self.person, amount=500).name
+		frappe.set_user(self.member)
+		return fund, pledge
+
+	def test_a_pledge_to_a_running_campaign_links_to_the_give_page(self):
+		fund, _pledge = self.make_give_pledge()
+
+		row = giving.get_pledges()["items"][0]
+
+		self.assertEqual(row["give_path"], f"/give?church={quote(self.branch_a)}&fund={quote(fund)}")
+
+	def test_a_pledge_has_no_give_link_when_the_fund_takes_no_gifts(self):
+		fund, _pledge = self.make_give_pledge()
+		frappe.db.set_value("Fund", fund, "allow_giving", 0)
+
+		self.assertIsNone(giving.get_pledges()["items"][0]["give_path"])
+
+	def test_a_pledge_has_no_give_link_when_the_campaign_has_ended(self):
+		self.make_give_pledge(end_date=add_days(today(), -1))
+
+		self.assertIsNone(giving.get_pledges()["items"][0]["give_path"])
+
+	def test_a_pledge_has_no_give_link_before_the_campaign_starts(self):
+		self.make_give_pledge(start_date=add_days(today(), 1))
+
+		self.assertIsNone(giving.get_pledges()["items"][0]["give_path"])
+
+	def test_a_pledge_has_no_give_link_when_it_is_fully_given(self):
+		fund, _pledge = self.make_give_pledge()
+		frappe.set_user("Administrator")
+		payment_type = ensure("Payment Type", {"type": "Cash"})
+		frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": today(),
+				"church": self.branch_a,
+				"expected_total": 500,
+				"donations": [
+					{"payment_type": payment_type, "fund": fund, "person": self.person, "amount": 500}
+				],
+			}
+		).insert(ignore_permissions=True).submit()
+		frappe.set_user(self.member)
+
+		row = giving.get_pledges()["items"][0]
+
+		self.assertEqual(row["percent"], 100)
+		self.assertIsNone(row["give_path"])
 
 	def test_the_amounts_use_the_site_currency_not_the_online_gifts_currency(self):
 		"""Giving Settings names the currency that online gifts are charged in, which can differ."""

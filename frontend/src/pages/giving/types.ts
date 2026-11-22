@@ -10,6 +10,7 @@ export interface Pledge {
 	remaining_display: string;
 	percent: number;
 	can_edit: boolean;
+	give_path: string | null;
 }
 
 export interface Pledges {

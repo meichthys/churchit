@@ -150,14 +150,18 @@ def warn_of_negative_balance(fund: str, message: str, change: float = 0) -> None
 		)
 
 
+def get_give_path(fund: str, church: str | None) -> str:
+	"""The /give address that chooses *fund*; it names *church* only on a multi-church site."""
+	query = {"fund": fund}
+	if church and is_multi_church():
+		query = {"church": church, **query}
+
+	return f"/give?{urlencode(query)}"
+
+
 @frappe.whitelist(methods=["GET"])
 def get_give_link(fund: str) -> dict:
 	"""The /give address that chooses *fund*, and its QR code, for a printed card or an NFC tag. Reads only."""
 	frappe.has_permission("Fund", "read", fund, throw=True)
-	query = {"fund": fund}
-	church = frappe.db.get_value("Fund", fund, "church")
-	if church and is_multi_church():
-		query = {"church": church, **query}
-
-	url = get_url(f"/give?{urlencode(query)}")
+	url = get_url(get_give_path(fund, frappe.db.get_value("Fund", fund, "church")))
 	return {"url": url, "qr_code": get_qr_code(url)}

@@ -24,15 +24,26 @@
 			<span class="lucide-check size-4" aria-hidden="true" />
 			{{ __("Thank you.") }}
 		</p>
-		<Button
-			v-if="pledge.can_edit"
-			class="mt-4 min-h-11"
-			variant="outline"
-			size="lg"
-			icon-left="lucide-pencil"
-			:label="__('Change this pledge')"
-			@click="$emit('edit')"
-		/>
+		<div v-if="canGive || pledge.can_edit" class="mt-4 flex flex-wrap gap-3">
+			<Button
+				v-if="canGive"
+				class="min-h-11"
+				variant="solid"
+				size="lg"
+				icon-left="lucide-gift"
+				:label="__('Give toward this pledge')"
+				@click="giveToward"
+			/>
+			<Button
+				v-if="pledge.can_edit"
+				class="min-h-11"
+				variant="outline"
+				size="lg"
+				icon-left="lucide-pencil"
+				:label="__('Change this pledge')"
+				@click="$emit('edit')"
+			/>
+		</div>
 	</article>
 </template>
 
@@ -40,12 +51,21 @@
 import { Button, Progress } from "frappe-ui";
 import { computed } from "vue";
 
+import { boot } from "@/boot";
 import { __ } from "@/translate";
 
 import type { Pledge } from "./types";
 
 const props = defineProps<{ pledge: Pledge; fresh?: boolean }>();
 defineEmits<{ edit: [] }>();
+
+const canGive = computed(
+	() => !!props.pledge.give_path && boot.site_links.some((link) => link.page === "give")
+);
+
+function giveToward() {
+	window.location.assign(props.pledge.give_path as string);
+}
 
 const lines = computed(() => [
 	{ label: __("Pledged"), value: props.pledge.pledged_display, strong: false },
