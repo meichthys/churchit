@@ -79,7 +79,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
+- A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups and group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
+- The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes the church's color from its website theme
 - Household adults add their children on My Household
 - Save contact on each Member Directory entry: a contact card with only the details the entry shows
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
@@ -298,6 +299,8 @@ pilot -b church setup production
 **To update:** `pilot -b church update`.
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
+
+The member portal at /portal is an app that the build makes (it needs Node and Yarn, as every Frappe app with a front end does). `get-app`, `update` and Frappe Cloud build it for you. If you pull Churchit by hand, run `bench build --app churchit` afterwards: until it runs, /portal and the old member page addresses, which open /portal, answer "Page not found".
 
 Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
 

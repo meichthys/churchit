@@ -104,6 +104,16 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] A /register endpoint checks the function against `register.get_open_functions` ([Function sign-ups](../../../AGENTS.md#function-sign-ups)).
 - [ ] A web form script that uses Jinja tags is in the prettier and eslint `exclude` lists of `.pre-commit-config.yaml`.
 
+## Member app (/portal)
+
+[The member app](../../../AGENTS.md#the-member-app), `test_published_fields`, `test_house_style`, `test_http_method_hygiene`.
+
+- [ ] An endpoint for the app lives in `churchit/portal/<area>.py`, starts with `access.require_person()` and `access.require_page("<old route>")`, takes the member from the session, and returns explicit fields, never a whole document. The module never contains the text `frappe.qb` or `frappe.db.sql`.
+- [ ] A page uses the components in `frontend/src/components`, frappe-ui's semantic tokens only, and `__()` for every string, frappe-ui props included. It works at 390px wide with 44px tap targets, and reads through `useRead` (GET) and writes through `useAction` (POST).
+- [ ] `yarn build` in `frontend/` passes and the build output stays out of git. A new npm package was agreed with the maintainer.
+- [ ] A change the member should see at once sends `churchit.portal.realtime.notify` from where it happens, never through a doctype room.
+- [ ] An old member route keeps working: it redirects into the app (`hooks.py` `website_redirects`), and the app accepts its legacy sub-paths.
+
 ## Desk lists, forms, sidebars and workspaces
 
 [Desk lists and forms](../../../AGENTS.md#desk-lists-and-forms), [Desk navigation](../../../AGENTS.md#desk-navigation), `test_desk_ui_hygiene`, `test_navigation_hygiene`, `test_workspace_hygiene`.

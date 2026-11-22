@@ -747,12 +747,12 @@ render time. A link matches by lower case route, as a site path or a full URL to
 dynamic route matches from its fixed start (`members/<name>` hides `/members` and every link under
 it). An accent variant is not matched; the gate is still the renderer. Ticking or clearing Members
 Only clears the whole website cache
-(`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal?doctype=Web
-Page` lists nothing, because `www/portal.html` shadows Frappe's portal page and has no `portal.py`;
-do not add one. The template still draws Frappe's list for another app's list route (ERPNext's
-`/orders`), which runs Frappe's own `portal.py`. Its `no_cache` front matter keeps the landing out of
-the page cache, which those routes read under the `portal` key; do not remove it. A new way to read
-Web Pages without permission checks must apply the same rule.
+(`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal` is the member
+app (see "Member portal"), so `/portal?doctype=Web Page` lists nothing. `www/portal.html` stays as the
+template Frappe's list renderer draws another app's list route with (ERPNext's `/orders`, through
+Frappe's own `portal.py`); do not add a churchit `portal.py`, and keep its `no_cache` front matter,
+because those routes read the page cache under the `portal` key. Its landing part is no longer
+reached. A new way to read Web Pages without permission checks must apply the same rule.
 
 The Contact page posts to `church_website.contact.send_message`, not Frappe's
 `frappe.www.contact.send_message`: a rate-limited guest POST with a honeypot that takes the church
@@ -2177,6 +2177,63 @@ required question; staff book that room. A member books no equipment:
 `refuse_assets_that_cannot_be_booked` refuses an asset that a member, or anyone on a web form,
 adds (Church User has no permission on Church Asset).
 
+### The member app
+
+The portal is a Vue 3 and frappe-ui 1.2 app in `frontend/`. `bench build` runs the root `package.json`
+build script (declared in `pyproject.toml` `[tool.bench.assets]`), which writes `churchit/public/frontend`
+and `churchit/www/member_portal.html`; both are ignored by git, so a checkout with no build answers 404 at
+/portal and at every old member route, which redirects there. Test the page through
+`member_portal.get_context` and `resolve_path`, never by rendering it.
+`www/member_portal.py` serves /portal and every path under it (two `website_route_rules`, because
+`<path:>` needs a character). It sets `no_cache`, because the page holds the user's CSRF token and boot,
+and the page cache is keyed by path alone. Its guest check stays in the shape `published_fields`
+recognizes, so the page counts as members-only. The boot (`churchit/portal/boot.py`) must be plain JSON:
+the page writes each value with Jinja's `tojson`.
+
+The old member pages and member web forms redirect (302, query string kept) to `/portal/<old route>`;
+the list is in `hooks.py` `website_redirects`. The app's routes keep the old route names and legacy
+sub-paths (`/function-sign-up/<name>/edit`), so emails, bookmarks and the installed app's shortcuts
+keep working. `/bulletins?name=` and `/statements?name=` stay server pages, and `/bible`, `/register`
+and the guest and emailed-key pages are not redirected. The old pages, their web forms and tests stay
+until a later release removes them; the "personal-details" Web Form also stays because
+`refuse_member_edits_beyond_personal_details` reads its fields. Redirects run before every page
+renderer, so `SwitchedOffPage` also reads `/portal/<page>` as `<page>`.
+
+The app reads and writes only through `churchit/portal/<area>.py` and a few existing whitelisted
+functions (Frappe's web form accept for prayer, care, alms and group files). Every portal endpoint
+starts with `access.require_person()` and `access.require_page("<old route>")`, takes the member from
+the session, and returns explicit fields, never a whole document. `published_fields.portal_api_sources`
+reads each module as a members-only source (`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or
+`frappe.db.sql` must not appear in them. The menu is the Portal Settings rows the member may see, in the
+`portal_home.get_sections` sections, less `get_hidden_pages()` (`churchit/portal/nav.py`).
+
+A member guard keyed on `frappe.flags.in_web_form` or `is_portal_member()` would skip a staff user who
+uses the app with a Person, so the app sets the person or requester itself and the flag: Room Booking
+and Personal Details save under `in_web_form`, Pledge under `flags.from_member_app`.
+`save_personal_details` takes only the editable fields of the "personal-details" Web Form and refuses a
+stale `modified`. The app signs up only for functions that pass the web form's simple rule
+(`get_simple_sign_up_functions`); any other links to /register. `get_portal_groups` in the groups web
+form module is the one rule for a member's groups. The community prayer list sends no requester, owner,
+church or end date.
+
+Live updates are hints: `churchit.portal.realtime.notify(user, topic, name)` sends the event
+`churchit_portal` to the user's room after the commit, from the controller where the change happens
+(Family and Function Check-In through `household.py`, Function Sign-Up, `member_attendance`, Ministry Team
+Assignment, Room Booking, `group_api`, `group_meetings`, Group File, Prayer, Care Request, Alms Request,
+Bible Memory Item and Pledge). The app reads
+the data again through its GET, and also on a reconnect and when a tab comes back into view. Never use
+doctype rooms or `list_update` for members: they tell every reader of a doctype which record changed and
+who saved it. A test patches `churchit.portal.realtime.frappe.publish_realtime`.
+
+The look ("Order of Service") retunes frappe-ui's neutral tokens in one block of
+`frontend/src/style.css`; compare it with frappe-ui's tokens on each upgrade. The accent is the Website
+Theme's primary color made readable for each theme by `churchit/portal/accent.py`. Pages are built from
+the components in `frontend/src/components`. Every string goes through `__()`, including frappe-ui props,
+which default to English; `babel_extractors.csv` adds the `.ts` files to Frappe's extraction.
+`test_house_style` scans `.vue` and `.ts` and skips the build output. frappe-ui's `call()` and
+`createResource` send POST, which a GET-only endpoint refuses: use `useRead` and `useAction` from
+`frontend/src/api.ts`.
+
 ## Function sign-ups
 
 Function Sign-Up `status`, `hold_expires_on`, `approved_by`, `amount_paid` and `payment_status` are
@@ -2352,7 +2409,9 @@ Bible Memory Item `group` is set only by `assign_memory`, on the items it makes 
 members. `validate` refuses any other change of `group`, and deleting a Group clears it from the
 items (`clear_group`, Group `on_trash`). The Bible Memory report joins Person on `user` and scopes
 Person, so a limited reader sees only users whose Person is in their churches. Bible Memory Item
-stays in `GLOBAL_DOCTYPES`, so its list view is not church scoped.
+stays in `GLOBAL_DOCTYPES`, so its list view is not church scoped. A passage that `assign_memory` makes is
+owned by the manager, so Church User and Church Staff reach Bible Memory Items by their `user`, not by
+`if_owner`: `has_own_item_permission` and `own_items_query_conditions` (the Pledge pattern).
 
 ## Songs and worship planning
 
