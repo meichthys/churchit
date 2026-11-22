@@ -30,6 +30,7 @@ from churchit.church_website.pages import (
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import hide_sermons_on_the_home_page, tidy_shipped_website_pages
+from churchit.portal.nav import get_menu
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -338,13 +339,18 @@ class TestSwitchedOffPage(RollbackEachTest):
 		self.assertEqual(serve("bulletins", "Administrator").status_code, 200)
 
 	def test_the_portal_drops_its_link_and_gets_it_back(self):
-		self.assertIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertIn("bulletins", portal_menu_pages("Administrator"))
 
 		self.switch("bulletins", 0)
-		self.assertNotIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertNotIn("bulletins", portal_menu_pages("Administrator"))
 
 		self.switch("bulletins", 1)
-		self.assertIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertIn("bulletins", portal_menu_pages("Administrator"))
+
+	def test_the_app_page_of_a_switched_off_page_is_not_found(self):
+		self.switch("bulletins", 0)
+		self.assertEqual(serve("portal/bulletins", "Administrator").status_code, 404)
+		self.assertEqual(serve("portal/bulletins/anything", "Administrator").status_code, 404)
 
 	def test_navbar_and_footer_links_go_and_the_cached_rows_stay(self):
 		settings = frappe.get_doc("Website Settings")
@@ -587,7 +593,8 @@ class TestLinksThatDoNotApply(RollbackEachTest):
 	"""No link leads to a page that does not exist on this site, or that does nothing for this visitor."""
 
 	def test_the_sitemap_lists_locations_only_while_the_site_has_branches(self):
-		locations = f"<loc>{get_url('/locations')}</loc>"
+		# The path alone: get_url outside the sitemap's own request names another host.
+		locations = "/locations</loc>"
 		force_single_church()
 		self.assertNotIn(locations, serve("sitemap.xml", "Guest").get_data(as_text=True))
 
@@ -615,8 +622,14 @@ class TestLinksThatDoNotApply(RollbackEachTest):
 			frappe.set_user(user)
 			self.assertEqual("group-leader" not in get_hidden_pages(), is_shown, user)
 
-		self.assertIn('href="/group-leader"', serve("portal", leader).get_data(as_text=True))
-		self.assertNotIn('href="/group-leader"', serve("portal", member).get_data(as_text=True))
+		self.assertIn("group-leader", portal_menu_pages(leader))
+		self.assertNotIn("group-leader", portal_menu_pages(member))
+
+
+def portal_menu_pages(user):
+	"""The pages the member app's menu offers *user*."""
+	frappe.set_user(user)
+	return [link["page"] for section in get_menu()["navigation"] for link in section["links"]]
 
 
 def own_labels(items):
@@ -666,8 +679,10 @@ class TestClosedWebsite(RollbackEachTest):
 			"_Test Closed Members Page", route="_test-closed-members", members_only=1
 		)
 
-		for path in ("bulletins", "portal", members_page.route):
+		for path in ("bulletins", members_page.route):
 			self.assertEqual(serve(path, "Administrator").status_code, 200, path)
+		for path in ("portal", "portal/household"):
+			self.assertNotIsInstance(resolve(path), ClosedWebsitePage, path)
 		for path in ("beliefs", "about", own_page.route):
 			self.assertEqual(serve(path, "Administrator").status_code, 404, path)
 

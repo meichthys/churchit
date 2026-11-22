@@ -27,6 +27,20 @@ SCHEDULE_SOURCES = (
 	{"title": "Ministry Team", "route": "ministry-team", "access": MEMBERS},
 )
 
+# The member app's endpoints (churchit/portal), each module by the app page it serves at /portal/<route>.
+# A module not listed is badged at /portal itself.
+PORTAL_MODULE_PAGES = {
+	"household": "household",
+	"account": "personal-details",
+	"events": "function-sign-up",
+	"serving": "ministry-team",
+	"groups": "groups",
+	"directory": "directory",
+	"care": "community-prayer-requests",
+	"faith": "memorize",
+	"giving": "pledge",
+}
+
 # A page that sends every guest to the login screen is the portal, not the public site.
 # A redirect gated on anything else (giving allows anonymous gifts) still serves guests.
 GUEST_REDIRECT = re.compile(
@@ -124,6 +138,7 @@ def code_sources():
 	yield from web_page_sources()
 	yield from www_sources()
 	yield from guest_api_sources()
+	yield from portal_api_sources()
 	website_dir = Path(frappe.get_app_path("churchit")) / "church_website"
 	yield SITE_WIDE_SOURCE, "\n".join((website_dir / name).read_text() for name in SITE_WIDE_MODULES)
 
@@ -187,6 +202,24 @@ def guest_api_sources():
 				"access": PUBLIC,
 			}
 			yield source, match.group("body")
+
+
+def portal_api_sources():
+	"""Each module of the member app's API (churchit/portal): what the app shows to signed-in members.
+
+	The app reads records only through these endpoints, so they stand for its pages. They take no guest.
+	"""
+	portal_dir = Path(frappe.get_app_path("churchit")) / "portal"
+	for entry in sorted(portal_dir.glob("*.py")):
+		if entry.name.startswith(("test_", "__")):
+			continue
+		page = PORTAL_MODULE_PAGES.get(entry.stem)
+		source = {
+			"title": f"Member Portal: {frappe.unscrub(entry.stem)}",
+			"route": f"portal/{page}" if page else "portal",
+			"access": MEMBERS,
+		}
+		yield source, entry.read_text()
 
 
 def web_form_entries():

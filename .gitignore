@@ -9,3 +9,6 @@ __pycache__
 /.continue
 /.vscode
 /.vscodium
+# The member app (frontend/) builds these; bench build makes them on install and deploy.
+/churchit/public/frontend
+/churchit/www/member_portal.html

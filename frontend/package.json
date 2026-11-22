@@ -1,0 +1,28 @@
+{
+	"name": "churchit-portal",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"typecheck": "vue-tsc --noEmit"
+	},
+	"dependencies": {
+		"@fontsource-variable/newsreader": "^5.2.0",
+		"frappe-ui": "1.2.0",
+		"reka-ui": "^2.9.9",
+		"socket.io-client": "^4.8.1",
+		"vue": "^3.5.13",
+		"vue-router": "^4.6.5"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^6.0.7",
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.6",
+		"tailwindcss": "^3.4.19",
+		"typescript": "~5.9.3",
+		"vite": "^7.3.2",
+		"vue-tsc": "^3.2.7"
+	}
+}

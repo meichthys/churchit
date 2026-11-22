@@ -26,6 +26,8 @@ from churchit.church_website.pages import (
 from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
+# The www page that holds the member app at /portal and every path under it.
+MEMBER_APP_PAGE = "member_portal"
 # The pages that draw a Leaflet map.
 MAP_PAGES = ("missions", "find-a-group", "calendar")
 # Member pages that list the member's own church, whichever church the navbar brand shows.
@@ -41,6 +43,12 @@ def update_website_context(context):
 		# A file such as /sw.js has no menu, head or footer; the sitemap still drops hidden links.
 		if path == "sitemap.xml":
 			_hide_closed_links(context)
+		return
+	if path == MEMBER_APP_PAGE:
+		# The member app (frontend/) draws its own menu and has no footer: it needs only the head,
+		# with the browser chrome in the app's own paper colors.
+		context["head_html"] = (context.get("head_html") or "") + pwa.head_tags(pwa.APP_THEME_COLOR)
+		_add_theme_mode_script(context)
 		return
 
 	_add_portal_menu_item(context)

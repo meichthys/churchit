@@ -149,10 +149,17 @@ website_redirects = [
 	{"source": r"/newsletters.*", "target": "/home"},
 	# The preferences page replaced the newsletter subscription page.
 	{"source": "/newsletter-subscription", "target": "/preferences"},
+	# The member app's page file; the app runs at /portal.
+	{"source": "/member_portal", "target": "/portal", "redirect_http_status": 302},
 ]
 
-# One page per published sermon. A sermon name can hold a slash.
-website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
+# One page per published sermon. A sermon name can hold a slash. The member app (frontend/) draws
+# /portal and every path under it in one page; <path:> needs at least one character, hence two rules.
+website_route_rules = [
+	{"from_route": "/sermon/<path:name>", "to_route": "sermon"},
+	{"from_route": "/portal", "to_route": "member_portal"},
+	{"from_route": "/portal/<path:app_path>", "to_route": "member_portal"},
+]
 
 # /app-start, where the installed app opens. With the public website off, a guest gets the login
 # page. Shipped pages a church switched off answer 404 before Frappe's own renderers or its page

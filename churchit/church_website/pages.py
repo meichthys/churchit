@@ -129,8 +129,10 @@ class SwitchedOffPage(BaseRenderer):
 
 		# A route rule hands over its endpoint ("sermon"), not the path ("sermon/<name>"). Read the
 		# path from the request: only Frappe's own resolver sets frappe.local.path, Builder's does not.
+		# The member app draws a page at /portal/<its old route>, so that path follows the same switch.
 		request = getattr(frappe.local, "request", None)
-		if is_page_off(self.path, off_pages) or (request and is_page_off(request.path, off_pages)):
+		path = request.path.strip("/").removeprefix("portal/") if request else ""
+		if is_page_off(self.path, off_pages) or (path and is_page_off(path, off_pages)):
 			return True
 
 		# Frappe finds a Web Page by route with a case and accent insensitive lookup ("Sérmons").

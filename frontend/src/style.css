@@ -1,0 +1,393 @@
+@import "frappe-ui/style.css";
+
+/*
+  Order of Service: the portal is set like the weekly bulletin a member picks up at the door.
+
+  Paper and ink. These are frappe-ui's own neutral tokens, retuned: the same steps and roles, the same
+  lightness, with a warm chroma, so every frappe-ui component reads as ink on paper unchanged. Two steps
+  change on purpose: ink-gray-5 is darker (lighter in dark mode) so quiet text passes AA, and
+  outline-gray-1 is darker so hairline rules show. Keep the whole retune in this one block and compare it
+  with frappe-ui's tokens on every frappe-ui upgrade.
+*/
+:root {
+	--surface-base: oklch(0.985 0.007 85);
+	--surface-sidebar: oklch(0.966 0.009 85);
+	--surface-elevation-1: oklch(0.994 0.004 85);
+	--surface-elevation-2: oklch(0.994 0.004 85);
+	--surface-elevation-3: oklch(0.998 0.002 85);
+	--surface-gray-1: oklch(0.972 0.008 85);
+	--surface-gray-2: oklch(0.957 0.009 85);
+	--surface-gray-3: oklch(0.94 0.01 85);
+	--surface-gray-4: oklch(0.908 0.01 85);
+	--surface-gray-5: oklch(0.83 0.01 85);
+	--surface-gray-6: oklch(0.683 0.01 80);
+	--surface-gray-7: oklch(0.586 0.01 80);
+	--surface-gray-8: oklch(0.439 0.01 75);
+	--surface-gray-9: oklch(0.341 0.01 75);
+	--surface-gray-10: oklch(0.215 0.01 70);
+
+	--ink-base: oklch(0.985 0.007 85);
+	--ink-gray-1: oklch(0.94 0.008 85);
+	--ink-gray-2: oklch(0.908 0.008 85);
+	--ink-gray-3: oklch(0.83 0.008 85);
+	--ink-gray-4: oklch(0.66 0.01 80);
+	--ink-gray-5: oklch(0.535 0.01 80);
+	--ink-gray-6: oklch(0.439 0.01 75);
+	--ink-gray-7: oklch(0.341 0.01 75);
+	--ink-gray-8: oklch(0.215 0.01 70);
+	--ink-gray-9: oklch(0.175 0.01 70);
+
+	--outline-gray-1: oklch(0.915 0.01 85);
+	--outline-gray-2: oklch(0.88 0.01 85);
+	--outline-gray-3: oklch(0.83 0.01 85);
+	--outline-gray-4: oklch(0.683 0.01 80);
+	--outline-gray-5: oklch(0.586 0.01 80);
+	--outline-gray-6: oklch(0.439 0.01 75);
+	--outline-gray-7: oklch(0.341 0.01 75);
+	--outline-gray-8: oklch(0.215 0.01 70);
+	--outline-gray-9: oklch(0.175 0.01 70);
+	--outline-elevation-1: oklch(0.915 0.01 85);
+	--outline-elevation-2: oklch(0.915 0.01 85);
+
+	/* The one accent: "now" and "do this", never a status or a button. The boot sets both colors. */
+	--accent-light: #9b2f22;
+	--accent-dark: #f18a79;
+	--accent: var(--accent-light);
+	--accent-wash: color-mix(in srgb, var(--accent) 8%, transparent);
+	--accent-wash-strong: color-mix(in srgb, var(--accent) 20%, transparent);
+
+	--font-serif: "Newsreader Variable", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+	/* The QR code stays dark on light paper in both themes, so door scanners read it. */
+	--qr-paper: #fbfaf6;
+}
+
+[data-theme="dark"] {
+	--surface-base: oklch(0.205 0.006 70);
+	--surface-sidebar: oklch(0.185 0.006 70);
+	--surface-elevation-1: oklch(0.239 0.006 70);
+	--surface-elevation-2: oklch(0.26 0.006 70);
+	--surface-elevation-3: oklch(0.32 0.006 70);
+	--surface-gray-1: oklch(0.239 0.006 70);
+	--surface-gray-2: oklch(0.281 0.006 70);
+	--surface-gray-3: oklch(0.341 0.006 70);
+	--surface-gray-4: oklch(0.379 0.006 70);
+	--surface-gray-5: oklch(0.457 0.006 70);
+	--surface-gray-6: oklch(0.58 0.006 75);
+	--surface-gray-7: oklch(0.683 0.007 75);
+	--surface-gray-8: oklch(0.754 0.008 80);
+	--surface-gray-9: oklch(0.885 0.009 85);
+	--surface-gray-10: oklch(0.95 0.01 85);
+
+	--ink-base: oklch(0.205 0.006 70);
+	--ink-gray-1: oklch(0.26 0.006 70);
+	--ink-gray-2: oklch(0.341 0.006 70);
+	--ink-gray-3: oklch(0.42 0.006 70);
+	--ink-gray-4: oklch(0.58 0.007 75);
+	--ink-gray-5: oklch(0.645 0.008 75);
+	--ink-gray-6: oklch(0.72 0.008 80);
+	--ink-gray-7: oklch(0.79 0.009 80);
+	--ink-gray-8: oklch(0.885 0.01 85);
+	--ink-gray-9: oklch(0.95 0.01 85);
+
+	--outline-gray-1: oklch(0.3 0.006 70);
+	--outline-gray-2: oklch(0.36 0.006 70);
+	--outline-gray-3: oklch(0.4 0.006 70);
+	--outline-gray-4: oklch(0.457 0.006 70);
+	--outline-gray-5: oklch(0.58 0.007 75);
+	--outline-gray-6: oklch(0.683 0.008 80);
+	--outline-gray-7: oklch(0.94 0.01 85);
+	--outline-gray-8: oklch(0.96 0.01 85);
+	--outline-gray-9: oklch(0.975 0.01 85);
+	--outline-elevation-1: oklch(0.3 0.006 70);
+	--outline-elevation-2: oklch(0.36 0.006 70);
+
+	--accent: var(--accent-dark);
+	--accent-wash: color-mix(in srgb, var(--accent) 12%, transparent);
+	--accent-wash-strong: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+html,
+body,
+#app {
+	height: 100%;
+}
+
+body {
+	background-color: var(--surface-base);
+	color: var(--ink-gray-8);
+}
+
+/* ---------- Type: Newsreader for what would be printed, Inter for what you read to act on or tap ---------- */
+
+.t-label,
+.t-numeral,
+.t-title,
+.t-head,
+.t-subhead,
+.t-dateline,
+.t-scripture {
+	font-family: var(--font-serif);
+}
+
+/* frappe-ui sets font-variation-settings on every span, div and p; nested text keeps the serif's. */
+:is(.t-label, .t-numeral, .t-title, .t-head, .t-subhead, .t-dateline, .t-scripture) :is(span, div, p) {
+	font-variation-settings: inherit;
+}
+
+/* A small-capital label. The served font has no small caps, so these are spaced capitals. One to four words. */
+.t-label {
+	font-variation-settings: "opsz" 10;
+	font-weight: 600;
+	font-size: 0.8125rem;
+	line-height: 1.25;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.t-numeral {
+	font-variation-settings: "opsz" 72;
+	font-weight: 400;
+	line-height: 0.82;
+	letter-spacing: -0.02em;
+	font-variant-numeric: lining-nums proportional-nums;
+}
+
+.t-title {
+	font-variation-settings: "opsz" 72;
+	font-weight: 500;
+	font-size: 2.25rem;
+	line-height: 1.04;
+	letter-spacing: -0.015em;
+}
+
+.t-head {
+	font-variation-settings: "opsz" 36;
+	font-weight: 500;
+	font-size: 1.5rem;
+	line-height: 1.15;
+	letter-spacing: -0.006em;
+}
+
+.t-subhead {
+	font-variation-settings: "opsz" 24;
+	font-weight: 550;
+	font-size: 1.25rem;
+	line-height: 1.25;
+}
+
+/* Italic serif for datelines and empty-state lines only; instructions stay upright. */
+.t-dateline {
+	font-variation-settings: "opsz" 18;
+	font-style: italic;
+	font-weight: 400;
+	font-size: 1.0625rem;
+	line-height: 1.4;
+}
+
+.t-scripture {
+	font-variation-settings: "opsz" 20;
+	font-weight: 400;
+	font-size: 1.25rem;
+	line-height: 1.55;
+}
+
+.t-dateline.is-large {
+	font-size: 1.375rem;
+}
+
+.t-scripture.is-large {
+	font-size: 1.5rem;
+	line-height: 2.1;
+}
+
+@media (min-width: 768px) {
+	.t-title {
+		font-size: 3rem;
+	}
+	.t-head {
+		font-size: 1.625rem;
+	}
+	.t-dateline {
+		font-size: 1.1875rem;
+	}
+	.t-scripture {
+		font-size: 1.375rem;
+	}
+	.t-dateline.is-large {
+		font-size: 1.5rem;
+	}
+	.t-scripture.is-large {
+		font-size: 1.875rem;
+	}
+}
+
+/* Verse numbers: small, raised, in the accent, as in a printed Bible. */
+.verse-number {
+	font-family: var(--font-serif);
+	font-variation-settings: "opsz" 10;
+	font-weight: 600;
+	font-size: 0.5em;
+	vertical-align: 0.9em;
+	line-height: 0;
+	margin-inline-end: 0.3em;
+	color: var(--accent);
+}
+
+/* A word still to type in practice: a blank the width of the word, like sermon-notes fill-ins. */
+.word-blank {
+	color: transparent;
+	border-bottom: 1px solid var(--ink-gray-3);
+}
+.word-blank.is-current {
+	border-bottom: 2px solid var(--accent);
+}
+.word-slip {
+	text-decoration: underline dotted var(--accent);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.3em;
+}
+
+/* An instruction, with its action next to it. Upright, in the accent. */
+.rubric {
+	color: var(--accent);
+}
+
+/* ---------- Rules ---------- */
+
+/* Thick-thin rule under a masthead, as on a printed bulletin. */
+.rule-double {
+	height: 6px;
+	border-top: 2px solid var(--ink-gray-8);
+	border-bottom: 1px solid var(--ink-gray-8);
+}
+
+/* Dot leader between an item and who leads it, as in a printed programme. */
+.leader {
+	flex: 1 1 1.5rem;
+	min-width: 1.5rem;
+	height: 4px;
+	margin-inline: 0.75rem;
+	background-image: radial-gradient(circle at center, var(--ink-gray-4) 0.85px, transparent 1.25px);
+	background-size: 7px 4px;
+	background-repeat: repeat-x;
+	background-position: left bottom;
+}
+
+/* The tear line between a pass and its stub, with a notch at each edge. */
+.perforation {
+	position: relative;
+	margin-inline: 1.25rem;
+	border-top: 2px dashed var(--outline-gray-2);
+}
+.perforation::before,
+.perforation::after {
+	content: "";
+	position: absolute;
+	top: -12px;
+	width: 22px;
+	height: 22px;
+	border-radius: 9999px;
+	background: var(--surface-base);
+	border: 1px solid var(--outline-gray-2);
+}
+.perforation::before {
+	inset-inline-start: calc(-1.25rem - 12px);
+}
+.perforation::after {
+	inset-inline-end: calc(-1.25rem - 12px);
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes settle {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.settle > * {
+	animation: settle 0.26s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.settle > :nth-child(2) {
+	animation-delay: 40ms;
+}
+.settle > :nth-child(3) {
+	animation-delay: 80ms;
+}
+.settle > :nth-child(n + 4) {
+	animation-delay: 120ms;
+}
+
+/* Fresh ink: a line a live update just changed. useFreshInk() sets and clears the class. */
+@keyframes ink-wash {
+	from {
+		background-color: var(--accent-wash-strong);
+	}
+	to {
+		background-color: var(--accent-wash);
+	}
+}
+@keyframes ink-draw {
+	from {
+		transform: scaleY(0);
+	}
+	to {
+		transform: scaleY(1);
+	}
+}
+
+.is-fresh {
+	position: relative;
+	background-color: var(--accent-wash);
+	animation: ink-wash 1.4s ease-out both;
+}
+.is-fresh::before {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 0;
+	width: 2px;
+	background: var(--accent);
+	transform-origin: top;
+	animation: ink-draw 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.settle > *,
+	.is-fresh,
+	.is-fresh::before {
+		animation: none;
+	}
+}
+
+/* ---------- frappe-ui parts, adjusted for the paper and for older eyes ---------- */
+
+/* The current page's sidebar row is the page's own paper, with its icon inked in the accent. */
+[data-slot="sidebar-item"][data-state="active"] {
+	background-color: var(--surface-base);
+	box-shadow: inset 0 0 0 1px var(--outline-gray-1);
+}
+[data-slot="sidebar-item"][data-state="active"] [class*="lucide-"] {
+	color: var(--accent);
+}
+
+/* Phone tabs: 13px semibold labels, never paler than ink-gray-6. */
+[data-slot="mobile-nav-item"] .text-xs-medium {
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+[data-slot="mobile-nav-item"] .text-ink-gray-5 {
+	color: var(--ink-gray-6);
+}
+
+/* frappe-ui's toasts sit at a fixed spot; on phones they must clear the tab bar and the safe area. */
+@media (max-width: 767.98px) {
+	[data-sonner-toaster] {
+		--mobile-offset-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+	}
+}
