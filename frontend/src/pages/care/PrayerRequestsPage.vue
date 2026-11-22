@@ -15,7 +15,6 @@
 			:label="boot.church?.title"
 			:dateline="__('What you asked the church to pray for')"
 		/>
-		<PageIntro page="prayer-request" />
 
 		<div class="mt-6 md:hidden">
 			<Button
@@ -82,7 +81,7 @@
 							</div>
 							<RequestComments
 								v-if="openComments === item.name"
-								form="prayer-request"
+								page="prayer-request"
 								topic="prayer"
 								:name="item.name"
 							/>
@@ -138,13 +137,12 @@ import { Button, dialog, toast } from "frappe-ui";
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { useFrappeAction, useRead } from "@/api";
+import { useAction, useRead } from "@/api";
 import { boot } from "@/boot";
 import EmptyState from "@/components/EmptyState.vue";
 import IndexRow from "@/components/IndexRow.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import { useFreshInk } from "@/composables/useFreshInk";
@@ -153,13 +151,11 @@ import { useLiveRefresh } from "@/realtime";
 import RequestComments from "./RequestComments.vue";
 import PrayerRequestSheet from "./PrayerRequestSheet.vue";
 import { useRequestSheet } from "./useRequestSheet";
-import { WEB_FORMS, type DeleteParams, type PrayerForm, type PrayerRequest } from "./types";
+import type { PrayerForm, PrayerRequest } from "./types";
 
 const requests = useRead<{ items: PrayerRequest[] }>("care.get_my_prayer_requests");
 const form = useRead<PrayerForm>("care.get_prayer_form");
-const remove = useFrappeAction<unknown, DeleteParams>(
-	"frappe.website.doctype.web_form.web_form.delete"
-);
+const remove = useAction<null, { name: string }>("care.delete_prayer_request");
 const { mark, isFresh } = useFreshInk();
 
 const {
@@ -190,7 +186,7 @@ function confirmDelete(item: PrayerRequest) {
 		confirmLabel: __("Delete"),
 		cancelLabel: __("Keep it"),
 		onConfirm: async ({ close }) => {
-			await remove.submit({ web_form_name: WEB_FORMS.prayer, docname: item.name });
+			await remove.submit({ name: item.name });
 			close();
 			toast.success(__("Request deleted."));
 			requests.reload();

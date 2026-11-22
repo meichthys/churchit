@@ -9,9 +9,7 @@ from frappe.desk.form.save import savedocs
 from frappe.utils import add_days, getdate, nowdate
 
 from churchit.church_ministries.sign_up_amounts import get_amount_due, get_discount, is_freely_given
-from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
-	get_function_sign_up_items,
-)
+from churchit.portal.events import get_open_functions
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -237,4 +235,4 @@ class TestSignUpAmounts(RollbackEachTest):
 		self.assertFalse(frappe.has_permission("Function", "read", doc=self.function))
 		with self.assertRaises(frappe.PermissionError):
 			frappe.get_list("Function Sign-Up Discount", parent_doctype="Function", fields=["code"])
-		self.assertNotIn("FAMILY", json.dumps(get_function_sign_up_items(self.function)))
+		self.assertNotIn("FAMILY", json.dumps(get_open_functions()))

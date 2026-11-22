@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The /ministry-team portal page and the /ministry-team-response page a request email links to."""
+"""The /ministry-team-response page a request email links to, and a member's own serving data."""
 
 from datetime import UTC, datetime, time
 from zoneinfo import ZoneInfo
@@ -10,10 +10,14 @@ import frappe
 from frappe.utils import add_days, get_html_for_route, get_system_timezone, getdate
 
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_ministries.doctype.function.function import get_team_schedule
 from churchit.church_ministries.member_ministry_team import (
 	add_own_block,
 	answer_by_key,
 	answer_own_assignment,
+	get_calendar_links,
+	get_own_assignments,
+	get_own_blocks,
 	get_team_calendar,
 	make_own_calendar_key,
 	remove_own_block,
@@ -30,10 +34,10 @@ from churchit.tests.helpers import (
 	set_private_people,
 )
 from churchit.tests.test_ics import request_feed, unfold
-from churchit.www import ministry_team, ministry_team_response
+from churchit.www import ministry_team_response
 
 
-class TestMinistryTeamPages(RollbackEachTest):
+class TestMinistryTeamResponse(RollbackEachTest):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -57,14 +61,9 @@ class TestMinistryTeamPages(RollbackEachTest):
 	def status(self, assignment):
 		return frappe.db.get_value("Ministry Team Assignment", assignment.name, "status")
 
-	def test_guests_are_sent_to_login(self):
-		frappe.set_user("Guest")
-		with self.assertRaises(frappe.Redirect):
-			self.context(ministry_team)
-
 	def test_a_member_sees_only_their_own_assignments(self):
 		frappe.set_user(self.email)
-		listed = [row.name for row in self.context(ministry_team).assignments]
+		listed = [row.name for row in get_own_assignments(self.member.name)]
 		self.assertEqual(listed, [self.mine.name])
 
 	def test_a_function_stays_listed_until_it_ends(self):
@@ -79,7 +78,7 @@ class TestMinistryTeamPages(RollbackEachTest):
 		make_team_assignment(ended.name, self.position.name, self.member.name)
 
 		frappe.set_user(self.email)
-		listed = {row.name: row.has_started for row in self.context(ministry_team).assignments}
+		listed = {row.name: row.has_started for row in get_own_assignments(self.member.name)}
 		self.assertEqual(listed, {running.name: True, self.mine.name: False})
 
 	def test_a_member_sees_the_schedule_of_each_function_they_serve_at(self):
@@ -97,13 +96,13 @@ class TestMinistryTeamPages(RollbackEachTest):
 		)
 		make_team_assignment(function.name, self.position.name, self.member.name)
 
-		frappe.set_user(self.email)
-		schedules = self.context(ministry_team).schedules
+		schedule = get_team_schedule(frappe.get_doc("Function", function.name), self.member.name)
 		self.assertEqual(
-			[(row.time, row.title, row.detail) for row in schedules[function.name].rows],
+			[(row.time, row.title, row.detail) for row in schedule.rows],
 			[("10:00 AM", "Welcome", None), ("10:00 AM", "_Test Team Page Hymn", "Everyone stands")],
 		)
-		self.assertEqual(schedules[self.mine.function].rows, [])
+		empty = get_team_schedule(frappe.get_doc("Function", self.mine.function), self.member.name)
+		self.assertEqual(empty.rows, [])
 
 	def test_a_member_answers_their_own_assignment_and_no_one_elses(self):
 		frappe.set_user(self.email)
@@ -176,11 +175,11 @@ class TestMinistryTeamPages(RollbackEachTest):
 	def test_a_member_adds_and_removes_their_own_blocks(self):
 		frappe.set_user(self.email)
 		add_own_block(str(add_days(getdate(), 1)), str(add_days(getdate(), 3)), "Away", "1")
-		[block] = self.context(ministry_team).blocks
+		[block] = get_own_blocks(self.member.name)
 		self.assertEqual((block.reason, block.whole_household), ("Away", 1))
 
 		remove_own_block(block.name)
-		self.assertEqual(self.context(ministry_team).blocks, [])
+		self.assertEqual(get_own_blocks(self.member.name), [])
 
 	def calendar(self, key, etag=None):
 		frappe.set_user("Guest")
@@ -194,9 +193,9 @@ class TestMinistryTeamPages(RollbackEachTest):
 		make_team_assignment(accepted.name, self.position.name, self.member.name, status="Accepted")
 
 		frappe.set_user(self.email)
-		self.assertIsNone(self.context(ministry_team).calendar)
+		self.assertIsNone(get_calendar_links(self.member.name))
 		make_own_calendar_key()
-		calendar = self.context(ministry_team).calendar
+		calendar = get_calendar_links(self.member.name)
 		key = calendar.url.partition("key=")[2]
 		self.assertTrue(calendar.webcal.startswith("webcal://"))
 

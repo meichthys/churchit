@@ -9,10 +9,9 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import flt, formatdate
 
 from churchit.church_finances.doctype.fund.fund import format_amount
-from churchit.church_finances.doctype.pledge.pledge import get_open_campaigns, get_pledges_by_campaign
+from churchit.church_finances.doctype.pledge.pledge import get_open_campaigns
 from churchit.church_finances.report.pledge_progress.pledge_progress import get_received_for_pledge
 from churchit.portal.access import require_page, require_person
-from churchit.www.statements import get_own_statements
 
 
 @frappe.whitelist(methods=["GET"])
@@ -40,7 +39,8 @@ def get_pledges() -> dict:
 	return {
 		"items": [get_pledge_row(row, titles, open_campaigns) for row in rows],
 		"campaigns": [{"name": name, "title": title} for name, title in open_campaigns.items()],
-		"existing": {campaign: row["name"] for campaign, row in get_pledges_by_campaign().items()},
+		# reversed: rows run newest first, and the newest pledge to a campaign wins.
+		"existing": {row.campaign: row.name for row in reversed(rows)},
 		"frequencies": frappe.get_meta("Pledge").get_field("frequency").options.split("\n"),
 	}
 
@@ -106,3 +106,18 @@ def get_statements() -> dict:
 			for row in get_own_statements(own)
 		]
 	}
+
+
+def get_own_statements(person):
+	"""Statements addressed to *person*, plus their household's."""
+	or_filters = {"person": person.name}
+	if person.family:
+		or_filters["family"] = person.family
+
+	# church-scope: the signed-in member's own statements, by their person and family
+	return frappe.get_all(
+		"Giving Statement",
+		or_filters=or_filters,
+		fields=["name", "title", "from_date", "to_date", "total_amount"],
+		order_by="to_date desc",
+	)

@@ -43,8 +43,6 @@ export interface Boot {
 	push_public_key: string | null;
 	offer_app_install: boolean;
 	website_home: string | null;
-	/** The Introduction of each replaced member web form, by route, as sanitized HTML. */
-	intros: Record<string, string>;
 	navigation: NavSection[];
 	site_links: SiteLink[];
 	hidden_pages: string[];

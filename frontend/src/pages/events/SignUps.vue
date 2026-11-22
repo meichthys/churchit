@@ -6,7 +6,6 @@
 			:label="boot.church?.title"
 			:dateline="__('Your places at events and the ones open to you')"
 		/>
-		<PageIntro page="function-sign-up" />
 		<SignUpTabs :current="tab" />
 
 		<LoadState v-if="tab === 'upcoming'" :resource="signUps" v-slot="{ data }">
@@ -118,7 +117,6 @@ import EmptyState from "@/components/EmptyState.vue";
 import IndexRow from "@/components/IndexRow.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import SectionHead from "@/components/SectionHead.vue";

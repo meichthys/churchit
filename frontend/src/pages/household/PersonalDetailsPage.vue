@@ -9,7 +9,6 @@
 			:label="boot.church?.title"
 			:dateline="__('What the church keeps about you, and what other members see')"
 		/>
-		<PageIntro page="personal-details" />
 		<LoadState :resource="details" v-slot="{ data }">
 			<div
 				v-if="stale"
@@ -305,7 +304,6 @@ import { reportError, useAction, useRead } from "@/api";
 import { boot } from "@/boot";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import SectionHead from "@/components/SectionHead.vue";

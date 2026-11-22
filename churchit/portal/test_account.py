@@ -2,12 +2,16 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import frappe
+from frappe.client import set_value
 
+from churchit.ai.opt_outs import AI_OFF, AI_ON, MEMBER_AI_STATES
+from churchit.ai.switch import SETTINGS
 from churchit.church_foundations.church_access import set_user_church
+from churchit.church_people.derived import BIRTH
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
 from churchit.church_website.pages import sync_page_switches
 from churchit.portal import account
-from churchit.tests.helpers import RollbackEachTest, make_two_churches
+from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_two_churches
 
 
 def switch_page(route, enabled):
@@ -186,6 +190,95 @@ class TestAccountApi(RollbackEachTest):
 		self.assertEqual(
 			result["values"]["birthday"], str(frappe.db.get_value("Person", self.son, "birth_date"))
 		)
+
+	def test_a_member_gives_their_birthday_and_directory_choices(self):
+		ensure("Life Event Type", {"type": BIRTH})
+		frappe.set_user(self.father_user)
+
+		self.save(
+			self.father,
+			values={
+				"birthday": "1985-03-14",
+				"share_email": 1,
+				"share_phone": 0,
+				"share_address": 0,
+				"share_birthday": 1,
+			},
+		)
+
+		frappe.set_user("Administrator")
+		person = frappe.get_doc("Person", self.father)
+		self.assertEqual(
+			[(str(row.date), row.year_unknown) for row in person.life_events if row.event_type == BIRTH],
+			[("1985-03-14", 0)],
+		)
+		self.assertEqual(
+			(person.share_email, person.share_phone, person.share_address, person.share_birthday),
+			(1, 0, 0, 1),
+		)
+
+	def test_a_member_keeps_their_own_and_their_childs_details_out_of_ai_and_not_their_spouses(self):
+		"""A parent who may edit a child's details sets it for the child too, as for the rest of the page."""
+		frappe.set_user(self.father_user)
+
+		self.save(self.father, values={"exclude_from_ai": 1})
+		with self.assertRaises(frappe.PermissionError):
+			self.save(self.mother, values={"exclude_from_ai": 1})
+		self.save(self.son, values={"exclude_from_ai": 1})
+
+		frappe.set_user("Administrator")
+		self.assertEqual(
+			[
+				frappe.db.get_value("Person", person, "exclude_from_ai")
+				for person in (self.father, self.mother, self.son)
+			],
+			[1, 0, 1],
+		)
+
+	def test_only_the_person_a_parent_or_a_system_manager_clears_the_ai_choice(self):
+		"""Staff may tick it for a person who asks, and may not clear it."""
+		editor = ensure_user(
+			"_test_account_editor@example.com", "Details Editor", roles=("Church People Editor",)
+		)
+		set_user_church(editor, self.branch_a)
+		for person in (self.father, self.mother, self.son):
+			frappe.db.set_value("Person", person, "exclude_from_ai", 1)
+
+		frappe.set_user(editor)
+		with self.assertRaisesRegex(frappe.PermissionError, "Only the person, a parent of a child"):
+			set_value("Person", self.father, "exclude_from_ai", 0)
+
+		frappe.set_user(self.father_user)
+		self.save(self.father, values={"exclude_from_ai": 0})
+		self.save(self.son, values={"exclude_from_ai": 0})
+
+		frappe.set_user("Administrator")
+		set_value("Person", self.mother, "exclude_from_ai", 0)
+		self.assertEqual(
+			[
+				frappe.db.get_value("Person", person, "exclude_from_ai")
+				for person in (self.father, self.mother, self.son)
+			],
+			[0, 0, 0],
+		)
+
+	def test_the_notes_say_whether_the_church_uses_ai_and_has_a_member_directory(self):
+		frappe.set_user(self.father_user)
+		for enabled, state in ((0, AI_OFF), (1, AI_ON)):
+			frappe.db.set_single_value(SETTINGS, "enabled", enabled)
+			self.assertTrue(
+				account.get_personal_details()["notes"]["ai_state"].startswith(MEMBER_AI_STATES[state])
+			)
+		for enabled in (1, 0):
+			frappe.db.set_single_value("People Settings", "member_directory", enabled)
+			self.assertEqual(account.get_personal_details()["notes"]["directory_off"], not enabled)
+
+	def test_a_member_cannot_change_their_addresses_by_posting_them(self):
+		frappe.set_user(self.father_user)
+		modified = account.get_personal_details()["modified"]
+
+		with self.assertRaises(frappe.PermissionError):
+			account.save_personal_details(self.father, modified, {"addresses": []})
 
 	def test_the_preferences_name_the_purposes_and_the_push_key(self):
 		frappe.set_user(self.father_user)

@@ -13,7 +13,6 @@ from churchit.church_prayers.prayer_access import (
 	get_community_filters,
 	get_open_request_filters,
 )
-from churchit.utils import resolve_link_titles
 
 ANSWERED = "Answered"
 PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
@@ -57,8 +56,8 @@ class PrayerRequest(Document):
 		pin_to_members_own_person(self, "requestor")
 		validate_members_recipient(self)
 		# Resolve the display name for the dynamic recipient link using the linked
-		# doctype's title_field (e.g. full_name for Person). Stored so it can be
-		# shown in web form list views, which cannot resolve Dynamic Link titles.
+		# doctype's title_field (e.g. full_name for Person). Stored so that lists,
+		# which cannot resolve Dynamic Link titles, can show it.
 		# See: https://github.com/frappe/frappe/issues/27330
 		if self.recipient and self.recipient_type:
 			meta = frappe.get_meta(self.recipient_type)
@@ -100,21 +99,6 @@ class PrayerRequest(Document):
 		filters, or_filters = get_open_request_filters()
 		filters = {"name": self.name, **get_community_filters(), **filters}
 		return bool(frappe.get_all(PRAYER_REQUEST, filters=filters, or_filters=or_filters, limit=1))
-
-
-def get_list_context(context):
-	context.filters = {"owner": frappe.session.user}
-	context.order_by = "modified desc"
-
-	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
-		from frappe.www.list import get_list as default_get_list
-
-		rows = default_get_list(doctype, txt, filters, limit_start, limit_page_length, **kwargs)
-		resolve_link_titles(rows, doctype)
-		return rows
-
-	context.get_list = get_list
-	return context
 
 
 def create_new_prayer_request_notifications(names: tuple[str, ...] | None = None) -> None:

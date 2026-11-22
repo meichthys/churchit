@@ -268,7 +268,9 @@ class TestTeamSchedule(RollbackEachTest):
 			("Song Media", "file"),
 		):
 			sources = published.get(doctype, {}).get(fieldname, [])
-			self.assertIn(("ministry-team", "members"), [(row["route"], row["access"]) for row in sources])
+			self.assertIn(
+				("portal/ministry-team", "members"), [(row["route"], row["access"]) for row in sources]
+			)
 
 	def test_fill_from_template_copies_the_need_notes(self):
 		copied = apply_template(self.function.name, start_date=str(add_days(getdate(), 10)))

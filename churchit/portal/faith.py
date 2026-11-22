@@ -9,12 +9,12 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate
 
+from churchit.church_scope import church_query_filters
 from churchit.church_study.doctype.bible_memory_item.bible_memory_item import (
 	get_translation_choices,
 )
 from churchit.portal.access import require_page, require_person
 from churchit.scripture import get_passage_text, get_readable_translations, is_readable
-from churchit.www.bulletins import get_published_bulletins
 
 PREVIEW_LENGTH = 160
 PDF_METHOD = "/api/method/churchit.church_communications.doctype.bulletin.bulletin.download_pdf"
@@ -170,3 +170,16 @@ def get_bulletins() -> dict:
 			for bulletin in get_published_bulletins()
 		]
 	}
+
+
+def get_published_bulletins():
+	"""Published bulletins of the churches the member reads, newest function first.
+
+	The member's own scope decides, not ``?church=``, so another church's bulletins never list.
+	"""
+	return frappe.get_all(
+		"Bulletin",
+		filters={"publish": 1, **church_query_filters({})},
+		fields=["name", "function_name", "function_date"],
+		order_by="function_date desc",
+	)

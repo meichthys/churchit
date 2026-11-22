@@ -1,37 +1,21 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+"""The member directory: who it is for, and an entry for each household with only what each person shares."""
+
 import datetime
 
 import frappe
-from frappe import _
-from frappe.utils import cint, formatdate
+from frappe.utils import formatdate
 
 from churchit.church_foundations.doctype.church.church import address_line
 from churchit.church_people.household import join_names
 from churchit.church_people.membership import ACTIVE, CONTACT, VISITOR, living_people_filter
-from churchit.church_scope import church_filters, session_church, session_person
+from churchit.church_scope import church_filters
 from churchit.ics import calendar_text, fold
 
-no_cache = 1
 # A leap year, so that a birthday on 29 February has a date to format.
 BIRTHDAY_YEAR = 2000
-
-
-def get_context(context):
-	if frappe.session.user == "Guest":
-		frappe.local.flags.redirect_location = "/login?redirect-to=/directory"
-		raise frappe.Redirect
-
-	if not cint(frappe.db.get_single_value("People Settings", "member_directory")):
-		raise frappe.PageDoesNotExistError
-
-	context.no_cache = 1
-	context.show_sidebar = 1
-	context.title = _("Member Directory")
-	context.person = session_person()
-	context.is_directory_member = bool(context.person) and is_directory_member(context.person)
-	context.entries = get_entries(session_church()) if context.is_directory_member else []
 
 
 def directory_filters(**filters) -> dict:

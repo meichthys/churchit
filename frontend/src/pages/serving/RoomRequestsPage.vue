@@ -15,7 +15,6 @@
 			:label="boot.church?.title"
 			:dateline="__('Rooms you asked for and how each stands')"
 		/>
-		<PageIntro page="room-request" />
 
 		<LoadState :resource="requests" v-slot="{ data }">
 			<section class="mt-8">
@@ -79,7 +78,6 @@ import EmptyState from "@/components/EmptyState.vue";
 import IndexRow from "@/components/IndexRow.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import SectionHead from "@/components/SectionHead.vue";

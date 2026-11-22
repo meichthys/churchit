@@ -24,13 +24,13 @@ class GroupFile(Document):
 		refuse_another_churches_parent(
 			self, "group", _("{0} belongs to another church, so only that church can add files to it.")
 		)
-		# The group-files web form saves with ignore_permissions, so this runs for every member save.
+		# The member app saves with ignore_permissions, so this runs for every member save.
 		if is_portal_member():
 			require_leader(self.group)
 		if not self.attached_file:
 			return
 		if is_web_link(self.attached_file):
-			# A link to a file elsewhere, such as a shared document, as the group files form has always taken.
+			# A link to a file elsewhere, such as a shared document.
 			self.attached_file = validate_https_url(self.attached_file, "link")
 		elif not self.attached_file.startswith(PRIVATE_FILES):
 			frappe.throw(_("Upload the file as private, so that only the group's members can open it."))

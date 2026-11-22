@@ -16,7 +16,6 @@
 			:label="boot.church?.title"
 			:dateline="__('The groups you are in and the ones open to join')"
 		/>
-		<PageIntro page="groups" />
 		<LoadState :resource="groups" v-slot="{ data }">
 			<section class="mt-8" aria-labelledby="your-groups">
 				<SectionHead id="your-groups" :title="__('Your groups')">
@@ -93,7 +92,6 @@ import EmptyState from "@/components/EmptyState.vue";
 import IndexRow from "@/components/IndexRow.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import SectionHead from "@/components/SectionHead.vue";

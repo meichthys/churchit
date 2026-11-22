@@ -9,7 +9,7 @@ from frappe.utils import add_days, today
 from churchit.church_finances.doctype.pledge.test_pledge import make_campaign, make_fund, make_pledge
 from churchit.church_website.pages import sync_page_switches
 from churchit.portal import giving
-from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
+from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person, make_two_churches
 
 MEMBER = "portal-giving-member@example.com"
 OTHER = "portal-giving-other@example.com"
@@ -28,12 +28,12 @@ class TestMemberAppGiving(RollbackEachTest):
 		super().setUpClass()
 		_root, cls.branch_a, cls.branch_b = make_two_churches()
 		sync_page_switches()
-		fund_a = make_fund("_Test Portal Fund A", cls.branch_a).name
+		cls.fund_a = make_fund("_Test Portal Fund A", cls.branch_a).name
 		fund_b = make_fund("_Test Portal Fund B", cls.branch_b).name
-		cls.campaign_a = make_campaign("_Test Portal Campaign A", fund_a, cls.branch_a).name
+		cls.campaign_a = make_campaign("_Test Portal Campaign A", cls.fund_a, cls.branch_a).name
 		cls.campaign_b = make_campaign("_Test Portal Campaign B", fund_b, cls.branch_b).name
 		cls.ended_a = make_campaign(
-			"_Test Portal Ended A", fund_a, cls.branch_a, end_date=add_days(today(), -1)
+			"_Test Portal Ended A", cls.fund_a, cls.branch_a, end_date=add_days(today(), -1)
 		).name
 		cls.member = ensure_user(MEMBER, "PortalGiver")
 		cls.other = ensure_user(OTHER, "PortalOther")
@@ -77,6 +77,46 @@ class TestMemberAppGiving(RollbackEachTest):
 		self.assertIn("500.00", row["pledged_display"])
 		self.assertEqual(row["percent"], 0)
 		self.assertIn(mine, result["existing"].values())
+
+	def test_a_pledge_counts_the_members_gifts_toward_it(self):
+		self.as_staff(make_pledge, self.campaign_a, self.person, amount=500)
+		frappe.set_user("Administrator")
+		payment_type = ensure("Payment Type", {"type": "Cash"})
+		frappe.get_doc(
+			{
+				"doctype": "Collection",
+				"date": today(),
+				"church": self.branch_a,
+				"expected_total": 120,
+				"donations": [
+					{"payment_type": payment_type, "fund": self.fund_a, "person": self.person, "amount": 120}
+				],
+			}
+		).insert(ignore_permissions=True).submit()
+		frappe.set_user(self.member)
+
+		row = giving.get_pledges()["items"][0]
+
+		self.assertIn("120.00", row["given_display"])
+		self.assertIn("380.00", row["remaining_display"])
+		self.assertEqual(row["percent"], 24)
+
+	def test_the_amounts_use_the_site_currency_not_the_online_gifts_currency(self):
+		"""Giving Settings names the currency that online gifts are charged in, which can differ."""
+		self.as_staff(make_pledge, self.campaign_a, self.person, amount=500)
+		frappe.db.set_single_value("Giving Settings", "currency", "USD")
+		get_default = frappe.db.get_default
+
+		with patch.object(
+			frappe.db,
+			"get_default",
+			lambda key, *args, **kwargs: "EUR" if key == "currency" else get_default(key, *args, **kwargs),
+		):
+			row = giving.get_pledges()["items"][0]
+
+		for display in (row["pledged_display"], row["given_display"], row["remaining_display"]):
+			self.assertIn("€", display)
+			self.assertNotIn("$", display)
 
 	def test_only_the_open_campaigns_of_the_members_church_are_offered(self):
 		names = {row["name"] for row in giving.get_pledges()["campaigns"]}
@@ -133,6 +173,20 @@ class TestMemberAppGiving(RollbackEachTest):
 
 		self.assertEqual(frappe.db.get_value("Pledge", name, "person"), person)
 
+	def test_staff_cannot_take_over_another_persons_pledge(self):
+		staff = ensure_user(
+			"portal-giving-treasurer@example.com", "PortalTreasurer", roles=("Church Staff", "Church Finance")
+		)
+		self.as_staff(make_person, "_Test Portal", "Treasurer", user=staff, church=self.branch_a)
+		desk_pledge = self.as_staff(make_pledge, self.campaign_a, self.other_person, amount=500).name
+		frappe.set_user(staff)
+
+		with self.assertRaises(frappe.PermissionError):
+			giving.save_pledge(self.campaign_a, 600, "One Time", desk_pledge)
+
+		self.assertEqual(frappe.db.get_value("Pledge", desk_pledge, "person"), self.other_person)
+		self.assertEqual(frappe.db.get_value("Pledge", desk_pledge, "amount"), 500)
+
 	def test_a_login_with_no_person_is_refused(self):
 		frappe.set_user(ensure_user("portal-giving-nobody@example.com", "Nobody"))
 		for call in (giving.get_pledges, giving.get_statements):
@@ -164,3 +218,15 @@ class TestMemberAppGiving(RollbackEachTest):
 
 		self.assertEqual([row["name"] for row in items], [mine])
 		self.assertEqual(items[0]["to_date"], PERIOD[1])
+
+	def test_a_household_statement_is_listed_for_every_member(self):
+		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Portal Household"}).insert(
+			ignore_permissions=True
+		)
+		spouse = self.as_staff(
+			make_person, "_Test Portal", "Spouse", family=family.name, church=self.branch_a
+		).name
+		frappe.db.set_value("Person", self.person, "family", family.name)
+		household = self.make_statement(spouse, family=family.name).name
+
+		self.assertIn(household, [row["name"] for row in giving.get_statements()["items"]])

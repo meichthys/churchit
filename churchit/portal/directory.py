@@ -6,9 +6,9 @@
 import frappe
 from frappe.utils import cint
 
+from churchit.church_people import directory
 from churchit.church_scope import session_church
 from churchit.portal.access import require_page, require_person
-from churchit.www.directory import get_entries, is_directory_member
 
 
 @frappe.whitelist(methods=["GET"])
@@ -22,7 +22,7 @@ def get_directory() -> dict:
 	if not cint(frappe.db.get_single_value("People Settings", "member_directory")):
 		raise frappe.DoesNotExistError
 
-	if not is_directory_member(person):
+	if not directory.is_directory_member(person):
 		return {"status": "not_member", "entries": []}
 
 	entries = [
@@ -37,6 +37,6 @@ def get_directory() -> dict:
 			"vcard": entry.vcard,
 			"search": entry.search,
 		}
-		for index, entry in enumerate(get_entries(session_church()))
+		for index, entry in enumerate(directory.get_entries(session_church()))
 	]
 	return {"status": "ok", "entries": entries}

@@ -54,23 +54,23 @@ import { useLiveRefresh } from "@/realtime";
 import type { PrayerComment } from "./types";
 
 const props = defineProps<{
-	form: "prayer-request" | "alms-request";
+	page: "prayer-request" | "alms-request";
 	name: string;
 	topic: "prayer" | "alms";
 }>();
 
 type Thread = { comments: PrayerComment[] };
-type Params = { form: string; name: string };
+type Params = { page: string; name: string };
 
 const thread = useRead<Thread, Params>("care.get_request_comments", {
-	params: { form: props.form, name: props.name },
+	params: { page: props.page, name: props.name },
 });
 const commenting = useAction<Thread, Params & { comment: string }>("care.add_request_comment");
 const { mark, isFresh } = useFreshInk();
 const comment = ref("");
 
 async function post() {
-	await commenting.submit({ form: props.form, name: props.name, comment: comment.value }).then(
+	await commenting.submit({ page: props.page, name: props.name, comment: comment.value }).then(
 		() => {
 			comment.value = "";
 			toast.success(__("Comment added."));

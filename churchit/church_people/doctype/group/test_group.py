@@ -30,20 +30,6 @@ class TestGroup(RollbackEachTest):
 			group.append("members", {"person": person})
 		return group.insert(ignore_permissions=True)
 
-	def test_portal_access_requires_portal_flag_and_membership(self):
-		hidden = self._make_group("_Test Hidden", members=[self.member.name], show_in_portal=0)
-		visible = self._make_group("_Test Visible", members=[self.member.name], show_in_portal=1)
-
-		self.assertFalse(visible.has_webform_permission())  # Administrator has no Person
-		frappe.set_user(self.user)
-		self.assertTrue(visible.has_webform_permission())
-		self.assertFalse(hidden.has_webform_permission())
-
-	def test_guests_never_get_portal_access(self):
-		group = self._make_group("_Test Guest Group", members=[self.member.name], show_in_portal=1)
-		frappe.set_user("Guest")
-		self.assertFalse(group.has_webform_permission())
-
 	def test_add_people_adds_new_members_and_skips_existing_ones(self):
 		group = self._make_group("_Test Add People", members=[self.member.name])
 

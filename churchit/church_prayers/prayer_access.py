@@ -19,6 +19,19 @@ PRIVATE = "Private"
 PRAYER_TEAM = "Prayer Team"
 WHOLE_CHURCH = "Whole Church"
 CLOSED_STATUSES = ("Answered", "Archived", "Closed")
+# What the member app's prayer lists show of a request: nothing of who asked, their church or its end date.
+COMMUNITY_FIELDS = [
+	"name",
+	"title",
+	"type",
+	"status",
+	"urgent",
+	"visibility",
+	"recipient_name",
+	"request",
+	"prayer_count",
+	"modified",
+]
 
 
 def has_prayer_permission(doc, ptype=None, user=None) -> bool:

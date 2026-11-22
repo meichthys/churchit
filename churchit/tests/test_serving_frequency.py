@@ -1,14 +1,14 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""How often a member serves in each position: their own setting on /ministry-team and its limit."""
+"""How often a member serves in each position: their own setting and its limit."""
 
 import frappe
 from frappe.utils import add_days, getdate
 
 from churchit.church_ministries.availability import get_problems, is_available
 from churchit.church_ministries.doctype.function.function import get_time_window
-from churchit.church_ministries.member_ministry_team import set_own_frequency
+from churchit.church_ministries.member_ministry_team import get_own_positions, set_own_frequency
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -17,7 +17,6 @@ from churchit.tests.helpers import (
 	make_team_assignment,
 	make_team_position,
 )
-from churchit.www import ministry_team
 
 ROW = "Ministry Team Position Person"
 
@@ -48,10 +47,9 @@ class TestServingFrequency(RollbackEachTest):
 		frappe.set_user(self.email)
 		set_own_frequency(self.greeter.name, "2")
 
-		context = frappe._dict()
-		ministry_team.get_context(context)
+		positions = get_own_positions(self.member)
 		self.assertEqual(
-			[(row.position, row.max_times_per_month) for row in context.positions], [(self.greeter.name, 2)]
+			[(row.position, row.max_times_per_month) for row in positions], [(self.greeter.name, 2)]
 		)
 		frappe.set_user("Administrator")
 		self.assertEqual(self.limit_of(self.greeter, self.stranger), 0)

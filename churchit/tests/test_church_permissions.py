@@ -35,10 +35,8 @@ from churchit.church_people.group_api import joinable_public_groups
 from churchit.church_people.report.church_directory_report import church_directory_report as directory
 from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.report.active_prayer_list import active_prayer_list
-from churchit.church_prayers.web_form.community_prayer_requests import (
-	community_prayer_requests as prayer_form,
-)
 from churchit.church_scope import SHARED, extend_bootinfo, is_people_directory_private, scoped
+from churchit.portal.care import get_community_requests
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
@@ -432,8 +430,7 @@ class TestChurchPermissions(FrappeTestCase):
 
 	def test_portal_community_requests_stay_within_the_members_church(self):
 		frappe.set_user(self.manager_a)
-		context = prayer_form.get_list_context(frappe._dict())
-		names = [row.name for row in context.get_list("Prayer Request", "", [], 0, 500)]
+		names = [row["name"] for row in get_community_requests()["items"]]
 		self.assertIn(self.request_a.name, names)
 		self.assertNotIn(self.request_b.name, names)
 

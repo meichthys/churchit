@@ -11,36 +11,18 @@ def get_context(context):
 		frappe.local.flags.redirect_location = "/login?redirect-to=/statements"
 		raise frappe.Redirect
 
+	requested = frappe.form_dict.get("name")
+	if not requested:
+		raise frappe.PageDoesNotExistError
+
+	person = frappe.db.get_value("Person", {"user": frappe.session.user}, ["name", "family"], as_dict=True)
+	if not person:
+		raise frappe.PermissionError
+
 	context.no_cache = 1
 	context.show_sidebar = 1
 	context.title = "Giving Statements"
-
-	person = frappe.db.get_value("Person", {"user": frappe.session.user}, ["name", "family"], as_dict=True)
-	context.person = person
-	if not person:
-		context.statements = []
-		return
-
-	context.statements = get_own_statements(person)
-
-	requested = frappe.form_dict.get("name")
-	if requested:
-		context.statement = open_own_statement(requested, person)
-
-
-def get_own_statements(person):
-	"""Statements addressed to *person*, plus their household's."""
-	or_filters = {"person": person.name}
-	if person.family:
-		or_filters["family"] = person.family
-
-	# church-scope: the signed-in member's own statements, by their person and family
-	return frappe.get_all(
-		"Giving Statement",
-		or_filters=or_filters,
-		fields=["name", "title", "from_date", "to_date", "total_amount"],
-		order_by="to_date desc",
-	)
+	context.statement = open_own_statement(requested, person)
 
 
 def open_own_statement(name, person):

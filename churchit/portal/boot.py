@@ -10,8 +10,7 @@ import frappe
 from frappe import _
 from frappe.locale import get_date_format, get_first_day_of_the_week, get_time_format
 from frappe.translate import get_all_translations
-from frappe.utils import get_fullname, strip_html
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils import get_fullname
 from frappe.utils.jinja_globals import is_rtl
 
 from churchit.church_communications.push import get_public_key
@@ -53,7 +52,6 @@ def get_app_boot() -> dict:
 		"push_public_key": get_public_key(),
 		"offer_app_install": is_feature_enabled("offer_app_install"),
 		"website_home": get_website_home(),
-		"intros": get_web_form_intros(),
 		**menu,
 	}
 
@@ -108,36 +106,6 @@ def get_check_in(person: str | None, hidden: set[str]) -> dict:
 		and frappe.db.exists("Function Type", {"allow_self_check_in": 1})
 	)
 	return {"enabled": enabled, "open": enabled and bool(get_functions())}
-
-
-# The member web forms the app replaced, by route.
-WEB_FORM_PAGES = (
-	"function-sign-up",
-	"room-request",
-	"groups",
-	"group-files",
-	"personal-details",
-	"prayer-request",
-	"community-prayer-requests",
-	"care-request",
-	"alms-request",
-	"pledge",
-)
-
-
-def get_web_form_intros() -> dict[str, str]:
-	"""Each replaced web form's Introduction, by route: the church's own words above the page, which the
-	app shows in the same place (its page component PageIntro)."""
-	forms = frappe.get_all(
-		"Web Form",
-		filters={"published": 1, "route": ("in", WEB_FORM_PAGES)},
-		fields=["route", "introduction_text"],
-	)
-	return {
-		form.route: sanitize_html(form.introduction_text)
-		for form in forms
-		if strip_html(form.introduction_text or "").strip()
-	}
 
 
 def get_website_home() -> str | None:

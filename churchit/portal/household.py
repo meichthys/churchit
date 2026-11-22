@@ -7,13 +7,15 @@ import frappe
 from frappe import _
 from frappe.utils import cint, format_time, today
 
+from churchit.church_foundations.doctype.church.church import address_line
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
 from churchit.church_ministries.pre_check_in import get_functions, get_household_adults, get_pre_check_in_code
-from churchit.church_people.household import ADULT, members, role_of
+from churchit.church_people.household import ADULT, CHILD, get_ages, get_editable_children, members, role_of
+from churchit.church_people.member_access import is_portal_member
+from churchit.church_scope import is_multi_church, session_person
 from churchit.contacts import mailing_address
 from churchit.portal.access import require_page, require_person
 from churchit.www.calendar import get_rooms
-from churchit.www.household import get_address_line, get_members
 
 PAGE = "household"
 
@@ -83,8 +85,7 @@ def get_pre_check_in() -> dict:
 	require_page(PAGE)
 
 	_family, rows = get_member_rows(person)
-	adults = get_household_adults()
-	people = [row for row in rows if row.can_edit or row.name in adults]
+	people = get_check_in_people(rows)
 	functions = get_functions()
 	rooms = get_room_names([row.name for row in functions])
 	checked_in = get_checked_in_times([row.name for row in functions], [row.name for row in people])
@@ -112,6 +113,12 @@ def get_pre_check_in() -> dict:
 		"opens_minutes": get_opens_minutes(functions),
 		"has_pickup_codes": bool(frappe.db.get_single_value("Check-In Settings", "security_codes")),
 	}
+
+
+def get_check_in_people(rows: list[frappe._dict]) -> list[frappe._dict]:
+	"""The household *rows* the member may check in: those they may edit, and adults Check-In Settings allow."""
+	adults = get_household_adults()
+	return [row for row in rows if row.can_edit or row.name in adults]
 
 
 def get_opens_minutes(functions: list[dict]) -> int | None:
@@ -165,3 +172,56 @@ def get_check_in_code(function: str, persons: str) -> dict:
 	ends = get_time_window(frappe.db.get_value("Function", offered, fields, as_dict=True))[1]
 	result["ends"] = ends.strftime("%Y-%m-%d %H:%M:%S")
 	return result
+
+
+def get_members(people: list[str], roles: dict[str, str]) -> list[frappe._dict]:
+	"""Each of *people* in order, with their household role, a Child's known age and whether the reader may edit them."""
+	# church-scope: one household's own members, by name
+	names = dict(
+		frappe.get_all(
+			"Person", filters={"name": ("in", people)}, fields=["name", "display_name"], as_list=True
+		)
+	)
+	ages = get_ages([person for person in people if roles.get(person) == CHILD])
+	editable = get_editable_people()
+	return [
+		frappe._dict(
+			name=person,
+			display_name=names[person],
+			household_role=roles.get(person),
+			age=ages.get(person),
+			can_edit=(
+				person in editable
+				if editable is not None
+				else frappe.has_permission("Person", "write", doc=person)
+			),
+		)
+		for person in people
+	]
+
+
+def get_editable_people() -> set[str] | None:
+	"""The people a member may edit, worked out once, or None when only Frappe knows.
+
+	It is the answer of `member_access.refuse_other_people_to_members` for every member of the house. Frappe
+	decides for staff, for a member without write, and on a site with several churches, where
+	`church_scope.refuse_changing_another_churches_people` also refuses a Child of another church.
+	"""
+	if (
+		not is_portal_member()
+		or is_multi_church()
+		or not frappe.has_permission("Person", "write", ignore_share_permissions=True)
+	):
+		return None
+	return {session_person(), *get_editable_children(frappe.session.user)}
+
+
+def get_address_line(address: str | None) -> str | None:
+	"""The Address *address* on one line, or None without one."""
+	if not address:
+		return None
+	return address_line(
+		frappe.db.get_value(
+			"Address", address, ["address_line1", "address_line2", "city", "state", "pincode"], as_dict=True
+		)
+	)

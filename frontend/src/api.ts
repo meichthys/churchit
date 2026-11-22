@@ -22,8 +22,8 @@ export function useAction<T, P extends BasicParams = undefined>(path: string, op
 	return useCall<T, P>({ url: portalUrl(path), method: "POST", immediate: false, onError: reportError, ...options });
 }
 
-/** A POST to a whitelisted Frappe method by its dotted path, for the few changes the app makes through
- * Frappe's own tested endpoints, such as a web form's accept: frappe.website.doctype.web_form.web_form.accept. */
+/** A POST to a whitelisted method by its dotted path, for the few changes the app makes through an existing
+ * tested endpoint, such as churchit.church_communications.preferences.set_preference. */
 export function useFrappeAction<T, P extends BasicParams = undefined>(method: string, options: CallOptions<T, P> = {}) {
 	return useCall<T, P>({ url: `/api/v2/method/${method}`, method: "POST", immediate: false, onError: reportError, ...options });
 }

@@ -142,15 +142,13 @@ window.church = window.church || {};
 		const event = install_event;
 		install_event = null;
 		hide_card();
-		refresh_install_sections();
 		event.prompt();
 		event.userChoice.then((choice) => {
 			if (choice.outcome !== "accepted") snooze();
 		});
 	}
 
-	// Install App in the desk user menu, and any [data-install-app] section, such as the one on
-	// /preferences. They ignore "Not now", which is only for the card that comes by itself.
+	// Install App in the desk user menu. It ignores "Not now", which is only for the card that comes by itself.
 	church.can_install_app = function () {
 		return !is_installed() && Boolean(install_event || manual_steps());
 	};
@@ -160,30 +158,17 @@ window.church = window.church || {};
 		if (manual_steps()) show_card();
 	};
 
-	function refresh_install_sections() {
-		const can_install = church.can_install_app();
-		document.querySelectorAll("[data-install-app]").forEach((section) => {
-			section.classList.toggle("d-none", !can_install);
-		});
-	}
-
-	document.addEventListener("click", (event) => {
-		if (event.target.closest("[data-install-app-button]")) church.install_app();
-	});
-
 	// Only a signed-in user's prompt is ours: a guest keeps the browser's own install hint.
 	window.addEventListener("beforeinstallprompt", (event) => {
 		if (!is_signed_in()) return;
 		event.preventDefault();
 		install_event = event;
-		refresh_install_sections();
 		if (should_offer()) show_card();
 	});
 
 	window.addEventListener("appinstalled", () => {
 		install_event = null;
 		hide_card();
-		refresh_install_sections();
 	});
 
 	function when_ready(callback) {
@@ -195,7 +180,6 @@ window.church = window.church || {};
 	}
 
 	when_ready(() => {
-		refresh_install_sections();
 		if (manual_steps() && should_offer()) show_card();
 	});
 })();

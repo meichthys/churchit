@@ -63,19 +63,7 @@ export interface Recipient {
 	label: string;
 }
 
-/** The Web Form of each request; Frappe's accept and delete save through it. */
-export const WEB_FORMS = {
-	prayer: "prayer-request",
-	care: "care-request-form",
-	alms: "alms-request",
-} as const;
-
-export interface AcceptParams {
-	web_form: string;
-	data: string;
-}
-
-export interface DeleteParams {
-	web_form_name: string;
-	docname: string;
+/** What a save of a request returns. */
+export interface Saved {
+	name: string;
 }

@@ -483,7 +483,7 @@ def _ensure_single_flag(rows, flag, flagged_before, default_to_first):
 	flagged at the last save, so ticking a box takes effect wherever the row sits
 	in the grid. Picking by position instead would silently revert anyone who
 	ticked a row above the current one. The desk grid hides that, because its JS
-	unticks siblings on the spot, but the portal web form and data imports do not.
+	unticks siblings on the spot, but the member app and data imports do not.
 
 	When there is no previous state to compare against, such as a new record or
 	an import, the last flagged row wins, which at least stays deterministic.

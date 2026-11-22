@@ -60,7 +60,7 @@
 import { Button, ErrorMessage, FileUploader, FormControl, toast } from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 
-import { useFrappeAction } from "@/api";
+import { useAction } from "@/api";
 import FormSheet from "@/components/FormSheet.vue";
 import { __ } from "@/translate";
 
@@ -70,8 +70,8 @@ const open = defineModel<boolean>("open", { default: false });
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const form = reactive({ group: "", title: "", file_url: "" });
-const save = useFrappeAction<unknown, Record<string, unknown>>(
-	"frappe.website.doctype.web_form.web_form.accept"
+const save = useAction<{ name: string }, { group: string; title: string; attached_file: string }>(
+	"groups.add_group_file"
 );
 const canSave = computed(() => Boolean(form.group && form.title.trim() && form.file_url));
 
@@ -97,13 +97,8 @@ function attachFile(uploaded: { file_url: string }) {
 }
 
 async function submit() {
-	const data = {
-		doctype: "Group File",
-		group: form.group,
-		title: form.title.trim(),
-		attached_file: form.file_url,
-	};
-	await save.submit({ web_form: "group-files", data: JSON.stringify(data) }).then(
+	const params = { group: form.group, title: form.title.trim(), attached_file: form.file_url };
+	await save.submit(params).then(
 		() => {
 			toast.success(__("File added."));
 			open.value = false;

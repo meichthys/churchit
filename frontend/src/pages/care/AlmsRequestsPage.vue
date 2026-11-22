@@ -14,9 +14,12 @@
 		<Masthead
 			:title="__('Benevolence requests')"
 			:label="boot.church?.title"
-			:dateline="__('Ask the church for financial help, for you or for someone you know')"
+			:dateline="
+				__(
+					'Ask the church for financial help. The deacons read each request in confidence.'
+				)
+			"
 		/>
-		<PageIntro page="alms-request" />
 
 		<LoadState :resource="requests" v-slot="{ data }">
 			<div v-if="data.can_add" class="mt-6 md:hidden">
@@ -89,7 +92,7 @@
 							</p>
 							<RequestComments
 								v-if="openComments === item.name"
-								form="alms-request"
+								page="alms-request"
 								topic="alms"
 								:name="item.name"
 							/>
@@ -130,13 +133,12 @@ import { __ } from "@/translate";
 import { Button, dialog, toast } from "frappe-ui";
 import { computed, ref } from "vue";
 
-import { useFrappeAction, useRead } from "@/api";
+import { useAction, useRead } from "@/api";
 import { boot } from "@/boot";
 import EmptyState from "@/components/EmptyState.vue";
 import IndexRow from "@/components/IndexRow.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import { useFreshInk } from "@/composables/useFreshInk";
@@ -145,7 +147,7 @@ import { useLiveRefresh } from "@/realtime";
 
 import RequestComments from "./RequestComments.vue";
 import AlmsRequestSheet from "./AlmsRequestSheet.vue";
-import { WEB_FORMS, type DeleteParams, type AlmsRequest } from "./types";
+import type { AlmsRequest } from "./types";
 import { useRequestSheet } from "./useRequestSheet";
 
 const requests = useRead<{
@@ -153,9 +155,7 @@ const requests = useRead<{
 	can_add: boolean;
 	me: { name: string; full_name: string };
 }>("care.get_my_alms_requests");
-const remove = useFrappeAction<unknown, DeleteParams>(
-	"frappe.website.doctype.web_form.web_form.delete"
-);
+const remove = useAction<null, { name: string }>("care.delete_alms_request");
 const { mark, isFresh } = useFreshInk();
 const {
 	open: sheetOpen,
@@ -181,7 +181,7 @@ function confirmDelete(item: AlmsRequest) {
 		confirmLabel: __("Delete"),
 		cancelLabel: __("Keep it"),
 		onConfirm: async ({ close }) => {
-			await remove.submit({ web_form_name: WEB_FORMS.alms, docname: item.name });
+			await remove.submit({ name: item.name });
 			close();
 			toast.success(__("Request deleted."));
 			requests.reload();

@@ -33,7 +33,7 @@ def _session_person():
 	return session_person()
 
 
-@frappe.whitelist(methods=["GET", "POST"])
+@frappe.whitelist(methods=["GET"])
 def joinable_public_groups() -> list[dict]:
 	"""The public portal groups of the caller's church that they are not in and may join or ask to join. Reads only.
 

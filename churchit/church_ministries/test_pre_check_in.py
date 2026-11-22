@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.utils import formatdate, get_datetime, get_html_for_route
+from frappe.utils import formatdate, get_datetime
 from frappe.utils.verified_command import get_signed_params
 
 from churchit.church_foundations.church_access import set_user_church
@@ -18,9 +18,7 @@ from churchit.tests.helpers import (
 	force_single_church,
 	make_function,
 	make_two_churches,
-	serve_old_member_pages,
 )
-from churchit.www import household
 
 DAY = "2031-05-01"
 
@@ -88,7 +86,6 @@ class TestPreCheckIn(RollbackEachTest):
 		self.enterContext(patch.object(frappe.db, "commit"))
 		# The payload itself, so a test can scan it or change it.
 		self.enterContext(patch.object(pre_check_in, "get_qr_code", side_effect=lambda value: value))
-		serve_old_member_pages(self)
 
 	def at(self, time):
 		"""Run the rest of the test at *time* on DAY."""
@@ -266,44 +263,6 @@ class TestPreCheckIn(RollbackEachTest):
 		self.assertRaises(frappe.PermissionError, self.scan, payload, self.father_user)
 		self.assertRaises(frappe.PermissionError, self.scan_at_kiosk, payload, self.volunteer)
 		self.assertEqual(self.check_ins(), [])
-
-	def test_the_household_page_offers_the_open_functions_to_the_people_the_member_may_write(self):
-		other = self.make_class("_Test Pre Check-In Other", church=self.branch_b)
-		frappe.set_user(self.father_user)
-		context = frappe._dict()
-		household.get_context(context)
-
-		self.assertEqual([row.name for row in context.check_in_functions], [self.function])
-		self.assertNotIn(other, [row.name for row in context.check_in_functions])
-		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-		html = get_html_for_route("household")
-		self.assertIn('id="pre-check-in"', html)
-		self.assertIn("_Test Pre Check-In Class, 10:00 AM", html)
-		self.assertIn(f'value="{self.son}"', html)
-		self.assertNotIn(f'value="{self.mother}"', html)
-
-		self.at("08:59")
-		household.get_context(context)
-		self.assertEqual(context.check_in_functions, [])
-		self.assertIn("Check-in opens 60 minutes before a service starts.", get_html_for_route("household"))
-
-	def test_with_the_setting_the_household_page_offers_the_other_adults(self):
-		self.allow_adults()
-		frappe.set_user(self.father_user)
-		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-
-		html = get_html_for_route("household")
-
-		for person in (self.father, self.mother, self.grandmother, self.son):
-			self.assertIn(f'name="person" value="{person}"', html)
-
-	def test_the_household_page_says_nothing_of_pre_check_in_when_no_type_allows_self_check_in(self):
-		frappe.db.set_value("Function Type", {"allow_self_check_in": 1}, "allow_self_check_in", 0)
-		frappe.set_user(self.father_user)
-		context = frappe._dict()
-		household.get_context(context)
-
-		self.assertEqual((context.check_in_functions, context.check_in_opens_minutes), ([], None))
 
 	def test_single_church_mode_still_offers_and_scans(self):
 		force_single_church()

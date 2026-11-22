@@ -6,7 +6,6 @@
 from collections.abc import Callable
 
 import frappe
-from frappe import _
 from frappe.model import get_permitted_fields
 from frappe.utils import add_days, cint, format_time, formatdate, getdate, today
 from frappe.utils.html_utils import sanitize_html
@@ -18,7 +17,7 @@ from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_a
 )
 from churchit.church_ministries.member_attendance import get_upcoming_sign_ups
 from churchit.church_ministries.member_ministry_team import get_own_assignments
-from churchit.church_people.web_form.groups.groups import get_portal_groups
+from churchit.church_ministries.pre_check_in import get_functions
 from churchit.church_prayers.prayer_access import get_community_filters, get_open_request_filters
 from churchit.church_scope import church_filters, church_query_filters
 from churchit.church_website.pages import (
@@ -28,8 +27,9 @@ from churchit.church_website.pages import (
 	is_page_off,
 )
 from churchit.portal.access import require_page, require_person
+from churchit.portal.groups import get_portal_groups
+from churchit.portal.household import get_check_in_people, get_member_rows
 from churchit.utils import LONG_DATE_FORMAT
-from churchit.www.household import get_household, get_pre_check_in
 
 WEEK_DAYS = 7
 LOOK_AHEAD_DAYS = 60
@@ -185,19 +185,18 @@ def get_check_in(person: str) -> dict | None:
 	except frappe.PermissionError:
 		return None
 
-	household = get_household(person)
-	pre_check_in = get_pre_check_in(household["members"])
-	if not pre_check_in["check_in_functions"]:
+	functions = get_functions()
+	if not functions:
 		return None
 
+	_family, rows = get_member_rows(person)
 	return {
 		"functions": [
 			{"name": function.name, "title": function.function_name, "time": get_time(function.start_time)}
-			for function in pre_check_in["check_in_functions"]
+			for function in functions
 		],
 		"people": [
-			{"name": member.name, "display_name": member.display_name}
-			for member in pre_check_in["check_in_people"]
+			{"name": member.name, "display_name": member.display_name} for member in get_check_in_people(rows)
 		],
 	}
 

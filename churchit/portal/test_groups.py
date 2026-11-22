@@ -10,7 +10,7 @@ from frappe.utils import add_days, today
 
 from churchit.church_people.group_api import decide_join_request, join_group, leave_group
 from churchit.church_people.group_meetings import record_group_attendance
-from churchit.portal.groups import get_group, get_group_files, get_leader_view, get_my_groups
+from churchit.portal.groups import add_group_file, get_group, get_group_files, get_leader_view, get_my_groups
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -102,6 +102,13 @@ class TestPortalGroups(RollbackEachTest):
 		return frappe.get_doc(
 			{"doctype": "Group File", "group": group, "title": title, "attached_file": file.file_url}
 		).insert(ignore_permissions=True)
+
+	def upload(self, user, file_name="_test_portal_upload.txt"):
+		"""A private file *user* uploaded with no document yet, as the app's file picker leaves it."""
+		frappe.set_user(user)
+		return frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": file_name.encode(), "is_private": 1}
+		).insert()
 
 	def make_meeting(self, group, days, **values):
 		return make_function(
@@ -254,6 +261,35 @@ class TestPortalGroups(RollbackEachTest):
 		roster = {row["name"]: row for row in get_leader_view(self.group)["groups"][0]["roster"]}
 		self.assertIsNone(roster[self.member]["email"])
 
+	def test_the_leader_view_offers_only_the_ways_the_site_can_send(self):
+		frappe.set_user(self.leader_user)
+		for can_email, can_text in ((False, False), (True, False), (False, True)):
+			with (
+				mock.patch("churchit.portal.groups.can_send_email", return_value=can_email),
+				mock.patch("churchit.portal.groups.can_send_texts", return_value=can_text),
+			):
+				result = get_leader_view(self.group)
+			self.assertEqual((result["can_send_email"], result["can_send_texts"]), (can_email, can_text))
+
+	def test_a_group_with_no_recent_meeting_gives_its_next_date_or_its_schedule(self):
+		frappe.set_user(self.leader_user)
+		self.assertEqual(
+			get_leader_view(self.group)["groups"][0]["upcoming"],
+			{"next_date": None, "next_date_label": None, "has_schedule": False},
+		)
+
+		frappe.set_user("Administrator")
+		ahead = self.make_meeting(self.group, 10)
+		self.make_meeting(
+			self.group, 100, auto_repeat=1, repeat_frequency="Weekly", repeat_day_of_week="Tuesday"
+		)
+		frappe.set_user(self.leader_user)
+		upcoming = get_leader_view(self.group)["groups"][0]["upcoming"]
+
+		self.assertEqual(upcoming["next_date"], str(ahead.start_date))
+		self.assertTrue(upcoming["next_date_label"])
+		self.assertTrue(upcoming["has_schedule"])
+
 	def test_the_leader_view_narrows_to_one_group_and_ignores_a_group_not_led(self):
 		frappe.set_user(self.leader_user)
 		self.assertEqual(len(get_leader_view()["groups"]), 2)
@@ -338,3 +374,45 @@ class TestPortalGroups(RollbackEachTest):
 			set(hints(publish)),
 			{(user, "group-files") for user in (self.leader_user, self.co_leader_user, self.member_user)},
 		)
+
+	def test_a_leader_shares_a_file_that_the_members_of_the_group_can_open(self):
+		file = self.upload(self.leader_user)
+
+		with mock.patch(PUBLISH) as publish:
+			name = add_group_file(self.group, "_Test Portal Notes", file.file_url)["name"]
+
+		self.assertIn((self.member_user, "group-files"), hints(publish))
+		frappe.set_user("Administrator")
+		attached = frappe.get_doc("File", file.name)
+		self.assertEqual((attached.attached_to_doctype, attached.attached_to_name), ("Group File", name))
+		self.assertTrue(attached.is_private)
+		frappe.set_user(self.member_user)
+		self.assertTrue(attached.is_downloadable())
+
+	def test_only_a_leader_of_the_group_shares_a_file_with_it(self):
+		for user, group in ((self.member_user, self.group), (self.leader_user, self.foreign_group)):
+			file = self.upload(user)
+			with self.assertRaises(frappe.PermissionError):
+				add_group_file(group, "_Test Portal Refused", file.file_url)
+
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Group File", {"title": "_Test Portal Refused"}))
+
+	def test_a_leader_cannot_share_a_file_they_cannot_open_or_a_public_one(self):
+		staff_file = self.upload("Administrator", "_test_portal_staff_only.txt")
+		frappe.set_user(self.leader_user)
+
+		with self.assertRaises(frappe.PermissionError):
+			add_group_file(self.group, "_Test Portal Taken", staff_file.file_url)
+		with self.assertRaisesRegex(frappe.ValidationError, "private"):
+			add_group_file(self.group, "_Test Portal Public", "/files/_test_portal_public.txt")
+
+		frappe.set_user("Administrator")
+		self.assertIsNone(frappe.db.get_value("File", staff_file.name, "attached_to_name"))
+
+	def test_no_file_is_shared_while_group_files_is_switched_off(self):
+		file = self.upload(self.leader_user)
+
+		with mock.patch("churchit.church_website.pages.get_switched_off_pages", return_value={"group-files"}):
+			with self.assertRaises(frappe.PermissionError):
+				add_group_file(self.group, "_Test Portal Off", file.file_url)

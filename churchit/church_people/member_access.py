@@ -25,6 +25,27 @@ from churchit.church_people.membership import VISITOR
 from churchit.church_scope import church_filters, is_scoped, session_church, session_person
 
 PERSONAL_DETAILS = "personal-details"
+# The fields of a Person that a member changes on the My Details page, in page order.
+PERSONAL_DETAILS_EDITABLE = (
+	"first_name",
+	"last_name",
+	"gender",
+	"birthday",
+	"photo",
+	"alergies",
+	"emails",
+	"phones",
+	"marital_status",
+	"anniversary",
+	"hide_from_directory",
+	"share_email",
+	"share_address",
+	"share_phone",
+	"share_birthday",
+	"exclude_from_ai",
+)
+# Shown to the member, never changed by them. The office keeps the addresses.
+PERSONAL_DETAILS_READ_ONLY = ("addresses",)
 MEMBER_ROLE = "Church User"
 # What a member may name as the recipient of a prayer or alms request.
 RECIPIENT_DOCTYPES = ("Person", "Family", "Group", "Ministry", "Missionary")
@@ -59,11 +80,11 @@ def refuse_other_people_to_members(doc, ptype=None, user=None):
 
 
 def refuse_member_edits_beyond_personal_details(person):
-	"""A member edits a Person through the Personal Details form, so only its editable fields may change.
+	"""A member edits a Person on the My Details page, so only PERSONAL_DETAILS_EDITABLE may change.
 
-	The form sets nothing else, so anything more came straight through the API:
+	The page sets nothing else, so anything more came straight through the API:
 	a membership status, a family or a spouse set by the member. Nor may a member add
-	a person: Frappe's web form saves a new record without checking their rights.
+	a person that way.
 	"""
 	# A Person a member's own sign-in adds (accounts.link_portal_user), or a child an Adult adds
 	# (add_household_child), is not the member's edit.
@@ -71,9 +92,8 @@ def refuse_member_edits_beyond_personal_details(person):
 		return
 	if person.is_new():
 		frappe.throw(_("Ask the church office to add a person."), frappe.PermissionError)
-	# Frappe's accept also sets a read-only field, such as the addresses, from what the browser posts.
-	form = frappe.get_cached_doc("Web Form", PERSONAL_DETAILS)
-	refuse_changes_beyond(person, {field.fieldname for field in form.web_form_fields if not field.read_only})
+	# The page shows the addresses (PERSONAL_DETAILS_READ_ONLY), but only the office changes them.
+	refuse_changes_beyond(person, set(PERSONAL_DETAILS_EDITABLE))
 
 
 def refuse_member_edits_beyond_photo(family):
@@ -107,7 +127,7 @@ def refuse_changes_beyond(doc, allowed: set[str]) -> None:
 def add_household_child(first_name: str, last_name: str, birthday: str, gender: str) -> str:
 	"""Add a child under People Settings' adult age to the caller's own household, for an Adult of it. Changes data.
 
-	The /household page calls it. The child is a Visitor of the household's church who shares nothing in the directory. The people
+	The member app's My Household page calls it. The child is a Visitor of the household's church who shares nothing in the directory. The people
 	they may be are left to staff as possible duplicates. Returns the new Person.
 	"""
 	from churchit.church_people.accounts import PORTAL  # accounts imports this module
@@ -167,31 +187,6 @@ def mark_as_child(family_name: str, child) -> None:
 	row.household_role = CHILD
 	row.relationship_to_primary_contact = get_gendered_type("child", child.gender)
 	family.save(ignore_permissions=True)
-
-
-def personal_details_fields():
-	return {field.fieldname for field in frappe.get_cached_doc("Web Form", PERSONAL_DETAILS).web_form_fields}
-
-
-def open_own_personal_details():
-	"""Send a visitor to their own Personal Details record, or to the list when they have none."""
-	person = session_person()
-	frappe.local.flags.redirect_location = (
-		f"/{PERSONAL_DETAILS}/{person}/edit" if person else f"/{PERSONAL_DETAILS}/list"
-	)
-	raise frappe.Redirect
-
-
-def limit_to_personal_details(context):
-	"""Send the Personal Details page only the form's own fields.
-
-	Frappe hands a signed-in visitor the whole record, which would put the
-	medical notes and the office's summary fields in the page source.
-	"""
-	if not context.reference_doc:
-		return
-	allowed = {"name", "doctype", *personal_details_fields()}
-	context.reference_doc = {key: value for key, value in context.reference_doc.items() if key in allowed}
 
 
 def get_comparable(doc, df):
@@ -309,16 +304,6 @@ def is_member_only(doctype: str, user: str) -> bool:
 		if perm.read and not perm.if_owner and not perm.permlevel and perm.role != MEMBER_ROLE
 	}
 	return not readers & set(frappe.get_roles(user))
-
-
-def hide_edit_unless_writable(context, doctype: str) -> None:
-	"""Hide a web form's Edit button on a *doctype* record the user reads but may not change.
-
-	Staff record pledges and sign-ups for a member, who reads them but changes only their own.
-	"""
-	name = frappe.form_dict.name
-	if name and not frappe.has_permission(doctype, "write", doc=name):
-		context.allow_edit = 0
 
 
 def has_group_file_permission(doc, ptype=None, user=None) -> bool:

@@ -3,27 +3,28 @@
 
 """Groups in the member app: my groups, one group, the files of my groups, and the leader's page.
 
-Changes go through the existing endpoints: church_people.group_api (join, leave, decide, message),
-church_people.group_meetings.record_group_attendance and the group-files web form's accept.
+Changes go through add_group_file here and the existing endpoints: church_people.group_api (join, leave,
+decide, message) and church_people.group_meetings.record_group_attendance.
 """
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import formatdate, get_time, getdate, today
 
 from churchit.church_communications.sending import can_send_texts
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
 )
+from churchit.church_people.directory import get_primary_emails, get_primary_phones
 from churchit.church_people.doctype.group_file.group_file import PRIVATE_FILES, is_web_link
 from churchit.church_people.group_api import get_open_join_requests, joinable_public_groups
-from churchit.church_people.group_leaders import get_leaders, get_led_groups
-from churchit.church_people.group_meetings import get_group_meetings
-from churchit.church_people.web_form.groups.groups import get_portal_groups
+from churchit.church_people.group_leaders import get_leaders, get_led_groups, require_leader
+from churchit.church_people.group_meetings import get_group_meetings, get_meets, get_roster
+from churchit.church_people.membership import living_people_filter
 from churchit.church_website.pages import get_hidden_pages, is_page_off
 from churchit.portal.access import require_page, require_person
 from churchit.utils import LONG_DATE_FORMAT
-from churchit.www.group_leader import get_contact_roster, get_upcoming
 
 GROUP_FIELDS = ["name", "group_name", "description", "meets"]
 UPCOMING_MEETINGS = 6
@@ -79,6 +80,25 @@ def get_group_files() -> dict:
 	return {"items": get_files_of(None), "groups": groups, "can_add": bool(groups)}
 
 
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=60, user_based=True)
+def add_group_file(group: str, title: str, attached_file: str) -> dict:
+	"""Share a file with a group the member leads. Changes data.
+
+	*attached_file* is a private file the member uploaded or an https link; Group File refuses anything else.
+	"""
+	require_person()
+	require_page("group-files")
+	require_leader(group)
+
+	doc = frappe.get_doc(
+		{"doctype": "Group File", "group": group, "title": title, "attached_file": attached_file}
+	)
+	# A leader with a staff role may hold no create right on Group File in the desk.
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name}
+
+
 @frappe.whitelist(methods=["GET"])
 def get_leader_view(group: str | None = None) -> dict:
 	"""The roster, meetings, join requests and sending options of each group the member leads. Reads only.
@@ -104,6 +124,64 @@ def get_leader_view(group: str | None = None) -> dict:
 		"can_send_email": bool(can_send_email()),
 		"can_send_texts": bool(can_send_texts()),
 	}
+
+
+def get_portal_groups(
+	person: str | None,
+	fields: str | list[str] = "*",
+	filters: list | None = None,
+	limit_start: int = 0,
+	limit_page_length: int = 20,
+) -> list[frappe._dict]:
+	"""The groups *person* is in that are shown in the portal, plus the groups they lead, with their leaders' names."""
+	if not person:
+		return []
+
+	# church-scope: the groups of one person's own member rows
+	my_groups = frappe.get_all(
+		"Group Member", {"person": person, "parenttype": "Group"}, pluck="parent", distinct=True
+	)
+	led_groups = get_led_groups(person)
+	rows = frappe.get_list(
+		"Group",
+		fields=fields,
+		distinct=True,
+		filters=[*(filters or []), ["name", "in", my_groups or [""]]],
+		or_filters=[["show_in_portal", "=", 1], ["name", "in", led_groups or [""]]],
+		limit_start=limit_start,
+		limit_page_length=limit_page_length,
+		order_by="group_name",
+		ignore_permissions=True,
+	)
+	leaders = get_leader_names([row.name for row in rows]) if rows else {}
+	for row in rows:
+		row["leaders"] = leaders.get(row.name, "")
+	return rows
+
+
+def get_leader_names(groups: list[str]) -> dict[str, str]:
+	"""{group: its living leaders' names, comma separated}: a member sees who leads their own group."""
+	# church-scope: the leaders of groups the reader is a member of
+	rows = frappe.get_all(
+		"Group Member",
+		filters={"parenttype": "Group", "parent": ("in", groups), "group_role.is_leader": 1},
+		fields=["parent", "person"],
+	)
+	# church-scope: the leaders' names, a leader being known to their own group
+	names = dict(
+		frappe.get_all(
+			"Person",
+			filters=[{"name": ("in", [row.person for row in rows])}, living_people_filter()],
+			fields=["name", "full_name"],
+			order_by="full_name asc",
+			as_list=True,
+		)
+	)
+	leaders: dict[str, list[str]] = {}
+	for row in rows:
+		if row.person in names:
+			leaders.setdefault(row.parent, []).append(names[row.person])
+	return {group: ", ".join(sorted(people)) for group, people in leaders.items()}
 
 
 def get_group_row(person: str, row: frappe._dict) -> dict:
@@ -229,3 +307,26 @@ def get_upcoming_row(group: str) -> dict:
 		"next_date_label": upcoming.next_date and formatdate(upcoming.next_date, LONG_DATE_FORMAT),
 		"has_schedule": upcoming.has_schedule,
 	}
+
+
+def get_upcoming(group: str) -> frappe._dict:
+	"""The date of *group*'s next meeting after today, and whether a schedule of the group still runs."""
+	# church-scope: the meetings of one group, which the session user leads
+	next_date = frappe.db.get_value(
+		"Function",
+		{"group": group, "auto_repeat": 0, "start_date": (">", today())},
+		"start_date",
+		order_by="start_date asc",
+	)
+	return frappe._dict(next_date=next_date, has_schedule=bool(get_meets(group)))
+
+
+def get_contact_roster(group: str) -> list[frappe._dict]:
+	"""*group*'s living members, with the primary email and phone of each who shares them."""
+	roster = get_roster(group)
+	emails = get_primary_emails([person.name for person in roster if person.share_email])
+	phones = get_primary_phones([person.name for person in roster if person.share_phone])
+	for person in roster:
+		person.email = emails.get(person.name)
+		person.phone = phones.get(person.name)
+	return roster

@@ -18,9 +18,9 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	link_registrant,
 )
 from churchit.church_ministries.report.function_sign_up_items.function_sign_up_items import execute
-from churchit.church_ministries.web_form.function_sign_up.function_sign_up import get_context
 from churchit.church_people.membership import VISITOR
 from churchit.patches.v1_0 import confirm_existing_sign_ups
+from churchit.portal.events import get_open_functions, get_sign_up
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -291,26 +291,18 @@ class TestCancelRegistration(SignUpTestCase):
 		self.assertEqual(frappe.db.get_value(SIGN_UP, sign_up.name, "status"), CANCELLED)
 		self.assertEqual(self.sign_up(user=self.member_user).status, CONFIRMED)
 
-	def test_a_member_cannot_change_a_cancelled_sign_up_and_its_page_offers_no_edit(self):
+	def test_a_member_cannot_change_a_cancelled_sign_up_and_the_app_offers_no_edit(self):
 		sign_up = self.sign_up(user=self.member_user)
 		frappe.set_user(self.member_user)
-		self.assertNotEqual(self.page_of(sign_up.name).get("allow_edit"), 0)
+		self.assertTrue(get_sign_up(sign_up.name)["can_edit"])
 
 		sign_up.cancel_registration()
 
-		self.assertEqual(self.page_of(sign_up.name).allow_edit, 0)
+		self.assertFalse(get_sign_up(sign_up.name)["can_edit"])
 		cancelled = frappe.get_doc(SIGN_UP, sign_up.name)
 		cancelled.notes = "_Test changed my mind"
 		with self.assertRaisesRegex(frappe.ValidationError, "cancelled"):
 			cancelled.save()
-
-	def page_of(self, name: str) -> frappe._dict:
-		"""The context the Function Sign-Up web form adds for the saved sign-up *name*."""
-		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
-		frappe.local.form_dict = frappe._dict(name=name)
-		context = frappe._dict(reference_doc=frappe.get_doc(SIGN_UP, name).as_dict())
-		get_context(context)
-		return context
 
 	def test_a_member_cannot_cancel_someone_elses_sign_up(self):
 		sign_up = self.sign_up(person=make_person("_Test Signup", "Other").name)
@@ -353,47 +345,43 @@ class TestSignUpWindow(SignUpTestCase):
 			"Function", self.function, {"sign_ups_open_on": opens, "sign_ups_close_on": closes}
 		)
 
-	def offered_by_web_form(self):
+	def offered_in_the_app(self):
 		frappe.set_user(self.member_user)
-		web_form = frappe.get_doc("Web Form", "function-sign-up")
-		field = next(field for field in web_form.web_form_fields if field.fieldname == "function")
-		field.options = self.function
-		context = frappe._dict(web_form_doc=web_form)
-		get_context(context)
+		offered = {row["name"] for row in get_open_functions()["items"] if row["signs_up_in"] == "app"}
 		frappe.set_user("Administrator")
-		return self.function in field.options.split("\n")
+		return self.function in offered
 
 	def test_with_both_dates_blank_members_and_guests_sign_up_as_before(self):
 		self.set_window()
-		self.assertTrue(self.offered_by_web_form())
+		self.assertTrue(self.offered_in_the_app())
 		self.assertEqual(self.sign_up(user=self.member_user).status, CONFIRMED)
 		self.assertEqual(self.guest_sign_up().status, CONFIRMED)
 
-	def test_before_the_window_opens_members_and_guests_are_refused_and_the_form_offers_nothing(self):
+	def test_before_the_window_opens_members_and_guests_are_refused_and_the_app_offers_nothing(self):
 		self.set_window(opens=add_days(now_datetime(), 1))
 		self.assert_closed()
 
-	def test_after_the_window_closes_members_and_guests_are_refused_and_the_form_offers_nothing(self):
+	def test_after_the_window_closes_members_and_guests_are_refused_and_the_app_offers_nothing(self):
 		self.set_window(opens=add_days(now_datetime(), -5), closes=add_days(now_datetime(), -1))
 		self.assert_closed()
 
-	def test_the_form_leaves_out_a_function_with_selections_or_questions(self):
+	def test_the_app_leaves_out_a_function_with_selections_or_questions(self):
 		self.set_window()
 		function = frappe.get_doc("Function", self.function)
 		function.append("selections", {"selection": "Adult"})
 		function.save()
-		self.assertFalse(self.offered_by_web_form())
+		self.assertFalse(self.offered_in_the_app())
 
 		function.selections = []
 		function.save()
-		self.assertTrue(self.offered_by_web_form())
+		self.assertTrue(self.offered_in_the_app())
 
 		question_set = make_question_set("_Test Sign-Up Form Questions").name
 		frappe.db.set_value("Function", self.function, "question_set", question_set)
-		self.assertFalse(self.offered_by_web_form())
+		self.assertFalse(self.offered_in_the_app())
 
 	def assert_closed(self):
-		self.assertFalse(self.offered_by_web_form())
+		self.assertFalse(self.offered_in_the_app())
 		for user in (self.member_user, "Guest"):
 			frappe.set_user(user)
 			self.assertFalse(is_open_for_sign_up(self.function))

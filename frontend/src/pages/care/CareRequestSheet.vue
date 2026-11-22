@@ -4,7 +4,7 @@
 		:title="request ? __('Change your request') : __('Ask for care')"
 		:description="__('The care team reads every request. Say how we can help.')"
 	>
-		<form id="care-form" class="space-y-5" @submit.prevent="save">
+		<form id="care-form" class="space-y-5" @submit.prevent="submit">
 			<FormControl
 				v-model="form.category"
 				type="select"
@@ -46,7 +46,7 @@
 				size="lg"
 				type="submit"
 				form="care-form"
-				:loading="accept.loading"
+				:loading="save.loading"
 				:label="__('Send')"
 			/>
 			<Button size="lg" variant="outline" :label="__('Cancel')" @click="open = false" />
@@ -59,20 +59,18 @@ import { __ } from "@/translate";
 import { Button, FormControl } from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 
-import { useFrappeAction } from "@/api";
+import { useAction } from "@/api";
 import FormSheet from "@/components/FormSheet.vue";
 
-import { WEB_FORMS, type AcceptParams, type CareForm, type CareRequest } from "./types";
+import type { CareForm, CareRequest, Saved } from "./types";
 
 const props = defineProps<{ data: CareForm; request?: CareRequest | null }>();
 const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
-const accept = useFrappeAction<unknown, AcceptParams>(
-	"frappe.website.doctype.web_form.web_form.accept"
-);
 const errors = reactive({ category: "", description: "" });
 const form = reactive({ category: "", urgency: "", description: "", preferred_contact: "" });
+const save = useAction<Saved, typeof form & { name?: string }>("care.save_care_request");
 
 const categories = computed(() =>
 	props.data.categories.map((row) => ({ label: row.name, value: row.name }))
@@ -97,22 +95,17 @@ function reset() {
 
 watch(open, (isOpen) => isOpen && reset(), { immediate: true });
 
-async function save() {
+async function submit() {
 	errors.category = form.category ? "" : __("Choose a category.");
 	errors.description = form.description.trim() ? "" : __("Say how we can help.");
 	if (errors.category || errors.description) return;
 
-	await accept
-		.submit({
-			web_form: WEB_FORMS.care,
-			data: JSON.stringify({ ...form, name: props.request?.name }),
-		})
-		.then(
-			() => {
-				open.value = false;
-				emit("saved");
-			},
-			() => {}
-		);
+	await save.submit({ ...form, name: props.request?.name }).then(
+		() => {
+			open.value = false;
+			emit("saved");
+		},
+		() => {}
+	);
 }
 </script>

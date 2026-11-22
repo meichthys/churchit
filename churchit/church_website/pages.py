@@ -17,10 +17,10 @@ from werkzeug.routing import Rule
 
 from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
 from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_people.directory import is_directory_member
 from churchit.church_people.group_leaders import get_led_groups
 from churchit.church_scope import get_transaction_cached, is_multi_church, session_person
 from churchit.church_website.menu import get_route
-from churchit.www.directory import is_directory_member
 
 # Routes that serve a file, not a page: no menu, no members-only content and nothing per visitor
 # beyond what the file's own page module decides. A dot alone does not mark a file: a sermon or a

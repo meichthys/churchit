@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.utils import set_request
 
 from churchit.church_prayers.api import create_prayer
 from churchit.portal import care
@@ -57,6 +58,9 @@ class CareCase(RollbackEachTest):
 		features = frappe.get_single("Church Features")
 		features.get("website_pages", {"route": route})[0].enabled = 0
 		features.save()
+
+	def person_of(self, user):
+		return frappe.db.get_value("Person", {"user": user}, "name")
 
 
 class TestPrayerLists(CareCase):
@@ -123,6 +127,18 @@ class TestPrayerLists(CareCase):
 			with self.assertRaises(frappe.PermissionError):
 				care.get_community_request(request.name)
 
+	def test_the_prayer_list_puts_urgent_requests_first_and_says_who_may_see_each(self):
+		calm = make_prayer_request(self.neighbour, "_Test Calm")
+		urgent = make_prayer_request(self.neighbour, "_Test Urgent", urgent=1)
+
+		frappe.set_user(self.member)
+		rows = [
+			row for row in care.get_community_requests()["items"] if row["name"] in (calm.name, urgent.name)
+		]
+
+		self.assertEqual([row["name"] for row in rows], [urgent.name, calm.name])
+		self.assertEqual([row["visibility"] for row in rows], ["Whole Church", "Whole Church"])
+
 	def test_a_page_switched_off_is_refused(self):
 		self.switch_off("community-prayer-requests")
 		frappe.set_user(self.member)
@@ -187,6 +203,31 @@ class TestPraying(CareCase):
 		with self.assertRaises(frappe.ValidationError):
 			care.add_prayer_comment(request.name, "see https://example.com")
 
+	def test_an_empty_comment_or_an_email_address_is_refused(self):
+		request = make_prayer_request(self.neighbour, "_Test Address")
+		frappe.set_user(self.member)
+
+		for comment in ("   ", "someone@example.com"):
+			with self.assertRaises(frappe.ValidationError):
+				care.add_prayer_comment(request.name, comment)
+		self.assertEqual(care.get_community_request(request.name)["comments"], [])
+
+	def test_a_member_posts_only_a_few_comments_an_hour_on_every_request_together(self):
+		"""Frappe's limit on website comments: five an hour from one address."""
+		shared = make_prayer_request(self.neighbour, "_Test Many")
+		own = make_prayer_request(self.member, "_Test Own Many", visibility="Private")
+		saved_ip = frappe.local.request_ip
+		self.addCleanup(setattr, frappe.local, "request_ip", saved_ip)
+		self.addCleanup(setattr, frappe.local, "request", None)
+		set_request(method="POST", path="/api/method/churchit.portal.care.add_prayer_comment")
+		frappe.local.request_ip = f"_test-care-{frappe.generate_hash(length=8)}"
+		frappe.set_user(self.member)
+
+		for count in range(5):
+			care.add_prayer_comment(shared.name, f"Praying, day {count}")
+		with self.assertRaises(frappe.RateLimitExceededError):
+			care.add_request_comment("prayer-request", own.name, "Thank you all")
+
 	def test_a_comment_on_a_request_the_member_cannot_read_is_refused(self):
 		private = make_prayer_request(self.neighbour, "_Test Private", visibility="Private")
 		frappe.set_user(self.member)
@@ -236,7 +277,7 @@ class TestRequestComments(CareCase):
 		with self.assertRaises(frappe.PermissionError):
 			care.get_request_comments("prayer-request", request.name)
 
-	def test_only_the_comment_forms_are_accepted(self):
+	def test_only_the_comment_pages_are_accepted(self):
 		frappe.set_user(self.member)
 
 		with self.assertRaises(frappe.PermissionError):
@@ -298,56 +339,26 @@ class TestCareAndAlms(CareCase):
 		self.assertIn(mine.name, names)
 		self.assertNotIn(theirs.name, names)
 
-	def test_a_staff_web_form_save_keeps_the_status_it_has(self):
+	def test_staff_who_use_the_app_keep_the_status_the_care_team_set(self):
 		staff = add_member("_test_portal_care_staff@example.com", self.church, "Church Manager")
-		person = frappe.db.get_value("Person", {"user": staff}, "name")
-
-		def save_from_web_form(doc):
-			frappe.set_user(staff)
-			frappe.flags.in_web_form = True
-			try:
-				doc.status = ""
-				doc.save(ignore_permissions=True)
-			finally:
-				frappe.flags.in_web_form = False
-				frappe.set_user("Administrator")
-
-		request = self.make_care(staff)
-		frappe.db.set_value("Care Request", request.name, "status", "In Progress")
-		save_from_web_form(frappe.get_doc("Care Request", request.name))
-		self.assertEqual(frappe.db.get_value("Care Request", request.name, "status"), "In Progress")
-
-		alms = frappe.get_doc(
-			{
-				"doctype": "Alms Request",
-				"requestor": person,
-				"recipient_type": "Person",
-				"recipient": person,
-				"description": "Rent",
-				"amount": 5,
-			}
-		).insert(ignore_permissions=True)
-		frappe.db.set_value("Alms Request", alms.name, "status", "Approved")
-		save_from_web_form(frappe.get_doc("Alms Request", alms.name))
-		self.assertEqual(frappe.db.get_value("Alms Request", alms.name, "status"), "Approved")
-
+		person = self.person_of(staff)
 		frappe.set_user(staff)
-		frappe.flags.in_web_form = True
-		try:
-			new = frappe.get_doc(
-				{
-					"doctype": "Alms Request",
-					"recipient_type": "Person",
-					"recipient": person,
-					"description": "Rent",
-					"amount": 5,
-					"status": "",
-				}
-			).insert(ignore_permissions=True)
-		finally:
-			frappe.flags.in_web_form = False
-			frappe.set_user("Administrator")
-		self.assertEqual(new.status, "Pending")
+		need = {"category": self.category, "description": "_Test staff need"}
+		help_for_me = {"recipient_type": "Person", "recipient": person, "description": "Rent", "amount": 5}
+
+		request = care.save_care_request(**need)["name"]
+		alms = care.save_alms_request(**help_for_me)["name"]
+		self.assertEqual(
+			frappe.db.get_value("Alms Request", alms, ["status", "requestor"]), ("Pending", person)
+		)
+
+		frappe.db.set_value("Care Request", request, "status", "In Progress")
+		frappe.db.set_value("Alms Request", alms, "status", "Approved")
+		care.save_care_request(**need, name=request)
+		care.save_alms_request(**{**help_for_me, "amount": 6}, name=alms)
+
+		self.assertEqual(frappe.db.get_value("Care Request", request, "status"), "In Progress")
+		self.assertEqual(frappe.db.get_value("Alms Request", alms, ["status", "amount"]), ("Approved", 6))
 
 	def test_the_care_form_lists_the_types_and_choices(self):
 		frappe.set_user(self.member)
@@ -416,3 +427,188 @@ class TestCareAndAlms(CareCase):
 
 		self.assertIn("_Test Care _test_portal_care_b", labels)
 		self.assertNotIn("_Test Care _test_portal_care_c", labels)
+
+	def test_recipient_search_names_only_the_doctypes_a_request_may_name(self):
+		frappe.set_user(self.member)
+		for doctype in ("User", "Counseling Case"):
+			with self.assertRaises(frappe.PermissionError):
+				care.search_recipients(doctype, "admin")
+
+
+class TestSavingRequests(CareCase):
+	"""The member's own prayer, care and benevolence requests, saved through the app."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.prayer_type = ensure("Prayer Request Type", {"type": "Health"})
+		cls.category = ensure("Care Request Type", {"type": "_Test Meals"})
+		ensure("Prayer Request Status", {"status": "Answered"})
+
+	def save_prayer(self, user, **values):
+		frappe.set_user(user)
+		values = {"title": "_Test Saved", "type": self.prayer_type, "visibility": "Whole Church", **values}
+		return frappe.get_doc("Prayer Request", care.save_prayer_request(**values)["name"])
+
+	def help_for(self, user, **values):
+		"""The fields of a benevolence request *user* sends for themselves."""
+		person = self.person_of(user)
+		return {
+			"recipient_type": "Person",
+			"recipient": person,
+			"description": "Rent",
+			"amount": 50,
+			**values,
+		}
+
+	def test_a_prayer_request_names_the_member_and_keeps_the_chosen_recipient(self):
+		neighbour = self.person_of(self.neighbour)
+
+		request = self.save_prayer(self.member, recipient_type="Person", recipient=neighbour, urgent=1)
+
+		self.assertEqual(request.requestor, self.person_of(self.member))
+		self.assertEqual(request.recipient, neighbour)
+		self.assertEqual(request.recipient_name, "_Test Care _test_portal_care_b")
+		self.assertEqual((request.status, request.approved_for_list, request.urgent), ("Requested", 1, 1))
+
+	def test_a_save_takes_only_the_fields_of_the_form(self):
+		"""Frappe drops what a whitelisted function does not take, so a status or requester sent along does nothing."""
+		frappe.set_user(self.member)
+
+		saved = frappe.call(
+			"churchit.portal.care.save_prayer_request",
+			title="_Test Sent Along",
+			type=self.prayer_type,
+			visibility="Private",
+			status="Answered",
+			approved_for_list=0,
+			requestor=self.person_of(self.neighbour),
+		)
+
+		self.assertEqual(
+			frappe.db.get_value(
+				"Prayer Request", saved["name"], ["status", "approved_for_list", "requestor"]
+			),
+			("Requested", 1, self.person_of(self.member)),
+		)
+
+	def test_a_member_changes_their_own_prayer_request_and_no_one_elses(self):
+		request = self.save_prayer(self.member)
+		theirs = self.save_prayer(self.neighbour)
+
+		frappe.set_user(self.member)
+		care.save_prayer_request(
+			title="_Test Changed", type=self.prayer_type, visibility="Private", name=request.name
+		)
+		self.assertEqual(
+			frappe.db.get_value("Prayer Request", request.name, ["title", "visibility"]),
+			("_Test Changed", "Private"),
+		)
+
+		with self.assertRaises(frappe.PermissionError):
+			care.save_prayer_request(
+				title="_Test Taken", type=self.prayer_type, visibility="Private", name=theirs.name
+			)
+		with self.assertRaises(frappe.PermissionError):
+			care.delete_prayer_request(theirs.name)
+		self.assertEqual(frappe.db.get_value("Prayer Request", theirs.name, "title"), "_Test Saved")
+
+	def test_a_recipient_from_another_church_is_refused(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.save_prayer(self.member, recipient_type="Person", recipient=self.person_of(self.stranger))
+
+	def test_a_member_deletes_their_prayer_request_until_someone_prays_for_it(self):
+		request = self.save_prayer(self.member)
+		care.delete_prayer_request(request.name)
+		self.assertFalse(frappe.db.exists("Prayer Request", request.name))
+
+		prayed = self.save_prayer(self.member)
+		frappe.set_user(self.neighbour)
+		create_prayer(prayed.name)
+		frappe.set_user(self.member)
+		with self.assertRaises(frappe.LinkExistsError):
+			care.delete_prayer_request(prayed.name)
+
+	def test_a_care_request_is_for_the_member_and_its_status_stays_with_the_care_team(self):
+		frappe.set_user(self.member)
+
+		name = care.save_care_request(category=self.category, description="_Test meals", urgency="High")[
+			"name"
+		]
+		request = frappe.get_doc("Care Request", name)
+		self.assertEqual(
+			(request.person, request.status, request.urgency),
+			(self.person_of(self.member), "Requested", "High"),
+		)
+
+		frappe.db.set_value("Care Request", name, "status", "In Progress")
+		care.save_care_request(category=self.category, description="_Test meals for two", name=name)
+		self.assertEqual(
+			frappe.db.get_value("Care Request", name, ["description", "status"]),
+			("_Test meals for two", "In Progress"),
+		)
+
+	def test_a_member_changes_only_their_own_care_request(self):
+		frappe.set_user(self.neighbour)
+		theirs = care.save_care_request(category=self.category, description="_Test theirs")["name"]
+
+		frappe.set_user(self.member)
+		with self.assertRaises(frappe.PermissionError):
+			care.save_care_request(category=self.category, description="_Test taken", name=theirs)
+
+	def test_a_benevolence_request_names_the_member_and_changes_only_until_it_is_reviewed(self):
+		frappe.set_user(self.member)
+		pending = care.save_alms_request(**self.help_for(self.member))["name"]
+		reviewed = care.save_alms_request(**self.help_for(self.member, description="Food"))["name"]
+		self.assertEqual(
+			frappe.db.get_value("Alms Request", pending, ["requestor", "status"]),
+			(self.person_of(self.member), "Pending"),
+		)
+
+		frappe.db.set_value("Alms Request", reviewed, "status", "Approved")
+		with self.assertRaises(frappe.PermissionError):
+			care.save_alms_request(**self.help_for(self.member, amount=500), name=reviewed)
+		with self.assertRaises(frappe.PermissionError):
+			care.delete_alms_request(reviewed)
+
+		care.save_alms_request(**self.help_for(self.member, amount=60), name=pending)
+		self.assertEqual(frappe.db.get_value("Alms Request", pending, "amount"), 60)
+		care.delete_alms_request(pending)
+		self.assertFalse(frappe.db.exists("Alms Request", pending))
+
+	def test_a_member_cannot_change_or_delete_another_members_benevolence_request(self):
+		frappe.set_user(self.neighbour)
+		theirs = care.save_alms_request(**self.help_for(self.neighbour))["name"]
+
+		frappe.set_user(self.member)
+		with self.assertRaises(frappe.PermissionError):
+			care.save_alms_request(**self.help_for(self.member), name=theirs)
+		with self.assertRaises(frappe.PermissionError):
+			care.delete_alms_request(theirs)
+
+	def test_a_login_with_no_person_is_refused(self):
+		frappe.set_user(ensure_user("_test_portal_care_nobody@example.com", "Nobody"))
+
+		with self.assertRaises(frappe.PermissionError):
+			care.save_care_request(category=self.category, description="_Test nobody")
+		with self.assertRaises(frappe.PermissionError):
+			care.save_prayer_request(title="_Test Nobody", type=self.prayer_type, visibility="Private")
+
+	def test_a_switched_off_page_takes_no_save_or_delete(self):
+		request = self.save_prayer(self.member)
+		frappe.set_user(self.member)
+		alms = care.save_alms_request(**self.help_for(self.member))["name"]
+		frappe.set_user("Administrator")
+		for route in ("prayer-request", "care-request", "alms-request"):
+			self.switch_off(route)
+
+		frappe.set_user(self.member)
+		for save in (
+			lambda: care.save_prayer_request(title="_Test Off", type=self.prayer_type, visibility="Private"),
+			lambda: care.delete_prayer_request(request.name),
+			lambda: care.save_care_request(category=self.category, description="_Test off"),
+			lambda: care.save_alms_request(**self.help_for(self.member)),
+			lambda: care.delete_alms_request(alms),
+		):
+			with self.assertRaises(frappe.PermissionError):
+				save()

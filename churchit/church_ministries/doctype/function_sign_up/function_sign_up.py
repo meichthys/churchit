@@ -528,7 +528,8 @@ class FunctionSignUp(Document):
 	def sign_up_link(self) -> str:
 		"""The portal page where the registrant sees this sign-up, when their Person's login may read it.
 
-		The page offers Cancel only to a login that may change the sign-up (`get_sign_up_summary`).
+		The member app offers Cancel there only to a login that may change the sign-up
+		(`member_sign_ups.get_sign_up_summary`).
 		"""
 		user = self.person and frappe.db.get_value("Person", self.person, "user")
 		if not (user and frappe.has_permission(self.doctype, "read", doc=self, user=user)):

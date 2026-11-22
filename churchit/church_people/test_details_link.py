@@ -10,7 +10,7 @@ from frappe.utils import add_days, get_datetime, now_datetime
 from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_people.details_link import DETAILS_FORM, LINK_DAYS, send_details_link
-from churchit.church_people.member_access import personal_details_fields
+from churchit.church_people.member_access import PERSONAL_DETAILS_EDITABLE, PERSONAL_DETAILS_READ_ONLY
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_user,
@@ -230,7 +230,7 @@ class TestDetailsForm(DetailsLinkTestCase):
 			field.fieldname for field in form.web_form_fields if field.fieldtype not in no_value_fields
 		}
 		self.assertTrue(offered)
-		self.assertLessEqual(offered, personal_details_fields())
+		self.assertLessEqual(offered, set(PERSONAL_DETAILS_EDITABLE + PERSONAL_DETAILS_READ_ONLY))
 
 	def test_web_forms_save_through_frappes_own_accept(self):
 		"""The payments app's copy of accept ignores the key, so a link holder could not save."""

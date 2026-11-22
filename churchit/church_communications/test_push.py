@@ -348,6 +348,14 @@ class TestPushSettings(PushTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			generate_keys()
 
+	def test_only_the_public_key_is_offered_to_a_browser_and_only_while_push_is_on(self):
+		settings = frappe.get_single("Push Settings")
+		self.assertEqual(push.get_public_key(), settings.vapid_public_key)
+		self.assertNotEqual(push.get_public_key(), settings.get_password("vapid_private_key"))
+
+		frappe.db.set_single_value("Push Settings", "enabled", 0)
+		self.assertIsNone(push.get_public_key())
+
 	def test_push_turns_on_only_with_keys_and_a_mailto_address(self):
 		settings = frappe.get_single("Push Settings")
 		settings.vapid_subject = "office@example.org"
@@ -360,19 +368,3 @@ class TestPushSettings(PushTestCase):
 		settings.enabled = 1
 		with self.assertRaises(frappe.ValidationError):
 			settings.save()
-
-	def test_the_page_gets_the_public_key_and_never_the_private_key(self):
-		from churchit.www.preferences import get_context
-
-		frappe.set_user(MEMBER)
-		context = frappe._dict()
-		get_context(context)
-		frappe.set_user("Administrator")
-		settings = frappe.get_single("Push Settings")
-		self.assertEqual(context.push_public_key, settings.vapid_public_key)
-		self.assertNotIn(settings.get_password("vapid_private_key"), frappe.as_json(context))
-
-		frappe.db.set_single_value("Push Settings", "enabled", 0)
-		frappe.set_user(MEMBER)
-		get_context(context)
-		self.assertIsNone(context.push_public_key)

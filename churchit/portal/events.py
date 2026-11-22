@@ -4,7 +4,7 @@
 """Member app endpoints for attendance and function sign-ups.
 
 Writes go through the Function Sign-Up controller, so its rules (seats, waitlist, protected fields,
-cancelled sign-ups) apply as they do on the web form.
+cancelled sign-ups) apply to every save the app makes.
 """
 
 import html
@@ -28,7 +28,7 @@ from churchit.church_ministries.member_attendance import (
 	get_own_attendance,
 	get_upcoming_sign_ups,
 )
-from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
+from churchit.church_ministries.member_sign_ups import (
 	get_sign_up_summary,
 	get_signed_up_functions,
 	get_simple_sign_up_functions,

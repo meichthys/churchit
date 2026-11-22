@@ -9,15 +9,14 @@ import frappe.share
 from frappe.exceptions import ValidationError
 from frappe.handler import execute_cmd
 from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_finances.doctype.alms_request.alms_request import create_expense
-from churchit.church_finances.web_form.alms_request import alms_request as alms_form
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.note_category.note_category import BENEVOLENCE
 from churchit.church_people.privacy import ANONYMIZED, anonymize
 from churchit.church_people.test_merge import make_family
 from churchit.patches.v1_0 import distribute_paid_approved_alms_requests, retitle_alms_requests
+from churchit.portal.care import save_alms_request
 from churchit.tests.helpers import RollbackEachTest, ensure_user, make_person, make_two_churches
 
 
@@ -326,7 +325,7 @@ class TestReviewedAlmsRequests(RollbackEachTest):
 		)
 
 	def send(self, **values):
-		"""A request the member sends with their own right, as the portal form and REST save it."""
+		"""A request the member sends with their own right, as REST saves it."""
 		frappe.set_user(self.member)
 		alms = frappe.get_doc(
 			{
@@ -375,7 +374,7 @@ class TestReviewedAlmsRequests(RollbackEachTest):
 				alms.amount = 1500
 				with self.assertRaises(frappe.PermissionError):
 					alms.save()
-				# The web form deletes the member's own record with ignore_permissions.
+				# on_trash refuses it even for a delete that skips the permission check.
 				with self.assertRaises(frappe.PermissionError):
 					frappe.delete_doc("Alms Request", alms.name, ignore_permissions=True)
 
@@ -410,19 +409,6 @@ class TestReviewedAlmsRequests(RollbackEachTest):
 		frappe.get_doc("Expense", expense).cancel()
 		frappe.delete_doc("Alms Request", alms.name)
 		self.assertFalse(frappe.db.exists("Alms Request", alms.name))
-
-	def test_the_portal_offers_edit_and_delete_only_before_the_review(self):
-		pending, approved = self.send(), self.review(self.send())
-
-		frappe.set_user(self.member)
-		for alms, is_open in ((pending, True), (approved, False)):
-			with self.subTest(status=alms.status):
-				request = frappe.get_doc("Alms Request", alms.name).as_dict()
-				context = frappe._dict(allow_edit=1, has_delete_permission=True, reference_doc=request)
-				alms_form.get_context(context)
-				self.assertEqual(
-					(bool(context.allow_edit), context.has_delete_permission), (is_open, is_open)
-				)
 
 	def test_the_waiting_list_holds_the_requests_that_wait_for_someone(self):
 		pending, approved = self.send(), self.review(self.send())
@@ -514,7 +500,7 @@ class TestCaseNoteButtons(RollbackEachTest):
 
 
 class TestRequestorFromTheLogin(RollbackEachTest):
-	"""The web form does not show Requester, so the server fills it from the signed-in person."""
+	"""The member app does not send Requester, so the server fills it from the signed-in person."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -530,31 +516,29 @@ class TestRequestorFromTheLogin(RollbackEachTest):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.flags.in_web_form = False
 
-	def send_through_the_web_form(self, user):
+	def send_through_the_app(self, user):
 		frappe.set_user(user)
-		data = {
-			"recipient_type": "Person",
-			"recipient": self.member_person,
-			"description": "_Test web form request",
-			"amount": 40,
-			"status": "Pending",
-		}
-		return accept("alms-request", json.dumps(data))
+		saved = save_alms_request("Person", self.member_person, "_Test app request", 40)
+		return frappe.get_doc("Alms Request", saved["name"])
 
 	def test_a_member_is_named_as_the_requester(self):
-		request = self.send_through_the_web_form(self.member)
+		request = self.send_through_the_app(self.member)
 		self.assertEqual(request.requestor, self.member_person)
 
 	def test_staff_with_a_person_are_named_as_the_requester(self):
-		request = self.send_through_the_web_form(self.staff)
+		request = self.send_through_the_app(self.staff)
 		self.assertEqual(request.requestor, self.staff_person)
 
-	def test_a_login_with_no_person_is_told_so(self):
+	def test_a_member_with_no_person_is_told_so(self):
+		"""The app refuses a login with no Person first; REST reaches the rule here."""
+		frappe.set_user(self.unlinked)
+		values = {"recipient_type": "Person", "recipient": self.member_person, "description": "_Test REST"}
+		with self.assertRaisesRegex(ValidationError, "not linked to a person"):
+			frappe.get_doc({"doctype": "Alms Request", **values}).insert()
 		for user in (self.unlinked, self.unlinked_staff):
-			with self.subTest(user=user), self.assertRaisesRegex(ValidationError, "not linked to a person"):
-				self.send_through_the_web_form(user)
+			with self.subTest(user=user), self.assertRaises(frappe.PermissionError):
+				self.send_through_the_app(user)
 
 	def test_staff_in_the_desk_still_choose_the_requester(self):
 		frappe.set_user(self.unlinked_staff)
@@ -568,9 +552,3 @@ class TestRequestorFromTheLogin(RollbackEachTest):
 			}
 		).insert()
 		self.assertEqual(request.requestor, self.staff_person)
-
-	def test_the_web_form_offers_only_the_types_the_request_allows(self):
-		field = frappe.get_doc("Web Form", "alms-request").get(
-			"web_form_fields", {"fieldname": "recipient_type"}
-		)[0]
-		self.assertEqual(field.options.split("\n"), ["Person", "Family"])

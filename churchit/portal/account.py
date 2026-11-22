@@ -5,7 +5,6 @@
 
 import frappe
 from frappe import _
-from frappe.model import no_value_fields, table_fields
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 
@@ -13,7 +12,11 @@ from churchit.ai.opt_outs import get_member_ai_state
 from churchit.church_communications.preferences import get_member_preferences
 from churchit.church_communications.push import get_public_key
 from churchit.church_foundations.doctype.church.church import address_line
-from churchit.church_people.member_access import PERSONAL_DETAILS
+from churchit.church_people.member_access import (
+	PERSONAL_DETAILS,
+	PERSONAL_DETAILS_EDITABLE,
+	PERSONAL_DETAILS_READ_ONLY,
+)
 from churchit.church_scope import session_person
 from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, search_holders
 from churchit.portal.access import require_page, require_person
@@ -27,12 +30,10 @@ HOLDER_TABLES = {"email": EMAIL_DOCTYPE, "phone": PHONE_DOCTYPE}
 
 
 def get_form_fields() -> dict[str, bool]:
-	"""{fieldname: is_editable} for the plain fields of the Personal Details web form, the addresses table too."""
-	form = frappe.get_cached_doc("Web Form", PERSONAL_DETAILS)
+	"""{fieldname: is_editable} for the fields of the My Details page, the addresses table too."""
 	return {
-		field.fieldname: not field.read_only
-		for field in form.web_form_fields
-		if field.fieldtype in table_fields or field.fieldtype not in no_value_fields
+		**dict.fromkeys(PERSONAL_DETAILS_EDITABLE, True),
+		**dict.fromkeys(PERSONAL_DETAILS_READ_ONLY, False),
 	}
 
 
@@ -113,7 +114,7 @@ def get_address_rows(doc) -> list[dict]:
 
 
 def get_options() -> dict:
-	"""The choices for the Select and Link fields: every type, as the web form offers them."""
+	"""The choices for the Select and Link fields: every type."""
 	genders = frappe.get_meta("Person").get_field("gender").options.split("\n")
 	return {
 		"genders": [gender for gender in genders if gender],
@@ -160,7 +161,7 @@ def save_personal_details(
 		if rows is not None and fields.get(fieldname):
 			set_contact_rows(doc, fieldname, rows)
 
-	# Person.sync_anniversary_year reads this flag: a typed anniversary has a known year, as on the web form.
+	# Person.sync_anniversary_year reads this flag: an anniversary a member types has a known year.
 	frappe.flags.in_web_form = True
 	try:
 		doc.save()

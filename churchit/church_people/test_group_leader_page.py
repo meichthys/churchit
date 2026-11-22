@@ -1,14 +1,16 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The /group-leader page: a leader's roster, the attendance they record, and the reminder to record it."""
+"""What a group's leader works with: its meetings, the attendance they record, and the reminder to record it.
+
+The member app's leader page reads these through churchit.portal.groups (tested in portal/test_groups.py).
+"""
 
 from unittest import mock
 
 import frappe
 from frappe.handler import execute_cmd
-from frappe.utils import add_days, getdate, set_request
-from frappe.website.serve import get_response
+from frappe.utils import add_days, getdate
 
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
 	EMAIL,
@@ -27,15 +29,7 @@ from churchit.church_people.group_meetings import (
 )
 from churchit.patches.after_install import create_unsynced_records
 from churchit.patches.v1_0 import add_group_leader_menu_item
-from churchit.tests.helpers import (
-	RollbackEachTest,
-	ensure,
-	ensure_user,
-	make_function,
-	make_person,
-	serve_old_member_pages,
-)
-from churchit.www.group_leader import get_context
+from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_function, make_person
 
 LEADER_ROLE = "_Test Page Leader"
 MEMBER_ROLE = "_Test Page Member"
@@ -118,119 +112,18 @@ class GroupLeaderTestCase(RollbackEachTest):
 		)
 
 
-class TestGroupLeaderPage(GroupLeaderTestCase):
-	def setUp(self):
-		super().setUp()
-		serve_old_member_pages(self)
-
-	def context(self, user=None, **form):
-		frappe.set_user(user or self.leader_user)
-		frappe.local.form_dict = frappe._dict(form)
-		context = frappe._dict()
-		get_context(context)
-		return context
-
-	def test_a_guest_is_sent_to_login(self):
-		frappe.set_user("Guest")
-		with self.assertRaises(frappe.Redirect):
-			get_context(frappe._dict())
-		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=/group-leader")
-
-	def test_the_leader_sees_the_living_members_and_only_the_contact_details_they_share(self):
-		context = self.context()
-
-		self.assertEqual(context.groups, [self.group.name])
-		roster = {row.name: row for row in context.rosters[self.group.name]}
-		self.assertEqual(set(roster), {self.leader.name, self.sharer.name, self.private.name})
-		self.assertEqual(roster[self.sharer.name].group_role, MEMBER_ROLE)
-		self.assertEqual(roster[self.sharer.name].email, "_test_page_sharer@example.com")
-		self.assertEqual(roster[self.sharer.name].phone, "555 010 0151")
-		self.assertIsNone(roster[self.private.name].email)
-		self.assertIsNone(roster[self.private.name].phone)
-
-	def test_the_page_lists_the_meetings_of_the_last_eight_weeks(self):
+class TestLeaderMeetings(GroupLeaderTestCase):
+	def test_the_meetings_are_those_of_the_last_eight_weeks(self):
 		recent = self.meeting(-1)
 		old = self.meeting(-60)
 		upcoming = self.meeting(3)
+		frappe.set_user(self.leader_user)
 
-		listed = [meeting.name for meeting in self.context().meetings[self.group.name]]
+		listed = [meeting.name for meeting in get_group_meetings(self.group.name)]
 
 		self.assertIn(recent.name, listed)
 		self.assertNotIn(old.name, listed)
 		self.assertNotIn(upcoming.name, listed)
-
-	def test_a_member_who_leads_nothing_sees_no_group(self):
-		member_user = ensure_user("_test_page_member@example.com", "_Test Page Member")
-		frappe.db.set_value("Person", self.sharer.name, "user", member_user)
-
-		self.assertEqual(self.context(member_user).groups, [])
-
-	def test_the_group_in_the_link_narrows_the_page_to_that_group(self):
-		second = self.make_group("_Test Page Second Group", [(self.leader, LEADER_ROLE)])
-		self.assertEqual(set(self.context().groups), {self.group.name, second.name})
-
-		self.assertEqual(self.context(group=second.name).groups, [second.name])
-		self.assertEqual(len(self.context(group=self.other_group.name).groups), 2, "a group they do not lead")
-
-	def test_the_page_renders_the_roster_a_meeting_and_the_message_form(self):
-		meeting = self.meeting(attendance=[{"person": self.sharer.name, "attendance_type": "Confirmed"}])
-		frappe.set_user(self.leader_user)
-		set_request(method="GET", path="group-leader")
-
-		html = get_response("group-leader").get_data(as_text=True)
-
-		self.assertIn("_Test Page Group", html)
-		self.assertIn("_test_page_sharer@example.com", html)
-		self.assertNotIn("_test_page_private@example.com", html)
-		self.assertIn(f'data-function="{meeting.name}"', html)
-		self.assertRegex(html, rf'value="present" data-person="{self.sharer.name}"\s+checked>')
-		self.assertIn("message-form", html)
-
-	def leader_page(self, can_send_email=False, can_send_texts=False):
-		frappe.set_user(self.leader_user)
-		set_request(method="GET", path="group-leader")
-		self.addCleanup(setattr, frappe.local, "request", None)
-		with (
-			mock.patch("churchit.www.group_leader.can_send_email", return_value=can_send_email),
-			mock.patch("churchit.www.group_leader.can_send_texts", return_value=can_send_texts),
-		):
-			return get_response("group-leader").get_data(as_text=True)
-
-	def test_a_group_with_no_meetings_says_who_adds_them(self):
-		self.assertIn("Ask the church office to add the group's meeting time.", self.leader_page())
-
-	def test_a_group_with_only_a_meeting_ahead_gets_its_date_not_the_office(self):
-		upcoming = self.meeting(10)
-
-		html = self.leader_page()
-
-		next_date = frappe.format(upcoming.start_date, {"fieldtype": "Date"})
-		self.assertIn(
-			f"The group had no meetings in the last 8 weeks. The next meeting is on {next_date}.", html
-		)
-		self.assertNotIn("add the group's meeting time", html)
-
-	def test_a_group_whose_schedule_has_made_no_meeting_yet_is_not_sent_to_the_office(self):
-		self.meeting(100, auto_repeat=1, repeat_frequency="Weekly", repeat_day_of_week="Tuesday")
-
-		html = self.leader_page()
-
-		self.assertIn("The group had no meetings in the last 8 weeks.", html)
-		self.assertNotIn("The next meeting is on", html)
-		self.assertNotIn("add the group's meeting time", html)
-
-	def test_the_message_form_offers_only_the_ways_the_site_can_send(self):
-		html = self.leader_page()
-		self.assertNotIn('<form class="message-form"', html)
-		self.assertIn("This site cannot send email yet. Ask the church office.", html)
-
-		html = self.leader_page(can_send_texts=True)
-		self.assertIn('<form class="message-form"', html)
-		self.assertNotIn('<option value="Email">', html)
-
-		html = self.leader_page(can_send_email=True)
-		self.assertIn('<form class="message-form"', html)
-		self.assertNotIn('name="channel"', html)
 
 	def test_get_group_meetings_refuses_a_leader_of_another_group(self):
 		frappe.set_user(self.other_leader_user)

@@ -4,16 +4,15 @@
 """A site with no Email Account: staff and members who save a record see no message about it, and the
 team still gets its bell entries."""
 
-import json
 from unittest.mock import patch
 
 import frappe
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.doctype.notification.notification import Notification
-from frappe.website.doctype.web_form.web_form import accept
 
 from churchit.church_communications.outgoing_email import NO_ACCOUNT, EmailOnlyWithAnAccount, can_send_email
 from churchit.church_people.doctype.care_request.care_request import create_new_care_request_notification
+from churchit.portal.care import save_care_request
 from churchit.tests.helpers import RollbackEachTest, ensure, ensure_user, make_person
 
 CARE_USER = "_test_outgoing_care@example.com"
@@ -73,13 +72,11 @@ class TestWithoutAnEmailAccount(RollbackEachTest):
 		).insert()
 		self.assert_the_team_was_told(request.name)
 
-	def test_a_care_request_sent_from_the_portal_form(self):
-		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
+	def test_a_care_request_sent_from_the_member_app(self):
 		frappe.set_user(self.member)
-		data = {"category": self.category, "urgency": "Medium", "description": "_Test outgoing portal"}
-		request = accept("care-request-form", json.dumps(data))
+		request = save_care_request(self.category, "_Test outgoing portal", urgency="Medium")
 		frappe.set_user("Administrator")
-		self.assert_the_team_was_told(request.name)
+		self.assert_the_team_was_told(request["name"])
 
 	def test_the_email_of_a_bell_entry_leaves_no_message_and_keeps_the_others(self):
 		user = ensure_user("_test_outgoing_mention@example.com", "Outgoing Mention", roles=("Church Staff",))

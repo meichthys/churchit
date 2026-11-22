@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The member portal home page: the Portal Settings menu in sections, each link with an icon and a line.
+"""The member app's menu: the Portal Settings menu in sections, each link with an icon and a line.
 
 The site admin owns the menu (Desk > Portal Settings). A row this module does not know, such as one
 the admin added, goes to the last section, More, in menu order.
@@ -12,10 +12,9 @@ from frappe import _
 
 
 def get_sections() -> tuple[tuple[str, dict[str, tuple[str, str]]], ...]:
-	"""The home page sections in order, each a title and its links as route: (icon, line).
+	"""The menu sections in order, each a title and its links as route: (icon, line).
 
-	The member app (frontend/) draws its menu in the same sections; the week's church life comes first
-	and the member's own household last.
+	The week's church life comes first and the member's own household last.
 	"""
 	return (
 		(
@@ -67,7 +66,7 @@ def get_sections() -> tuple[tuple[str, dict[str, tuple[str, str]]], ...]:
 
 
 def get_portal_home_sections(items: list[dict]) -> list[frappe._dict]:
-	"""*items* of the portal menu grouped into the home page sections. Leaves out empty sections."""
+	"""*items* of the portal menu grouped into the menu sections. Leaves out empty sections."""
 	by_route = {(item.get("route") or "").strip("/"): item for item in items}
 	sections = []
 	for title, links in get_sections():

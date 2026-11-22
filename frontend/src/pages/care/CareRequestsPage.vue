@@ -14,10 +14,11 @@
 			:title="__('Care requests')"
 			:label="boot.church?.title"
 			:dateline="
-				__('Ask the care team for practical help, and see where your request stands')
+				__(
+					'Ask the care team for practical help. A deacon or pastor will follow up shortly.'
+				)
 			"
 		/>
-		<PageIntro page="care-request" />
 
 		<div class="mt-6 md:hidden">
 			<Button
@@ -102,7 +103,6 @@ import IndexRow from "@/components/IndexRow.vue";
 import StatusBadge from "@/components/StatusBadge.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import { useFreshInk } from "@/composables/useFreshInk";

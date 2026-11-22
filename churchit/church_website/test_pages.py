@@ -37,7 +37,6 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_person,
-	serve_old_member_pages,
 	set_multi_church,
 )
 
@@ -318,7 +317,6 @@ class TestSwitchedOffPage(RollbackEachTest):
 		frappe.flags.force_website_cache = True
 		self.addCleanup(clear_website_cache)
 		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
-		serve_old_member_pages(self)
 
 	def switch(self, route, enabled):
 		features = frappe.get_single("Church Features")
@@ -331,14 +329,14 @@ class TestSwitchedOffPage(RollbackEachTest):
 		features.save()
 
 	def test_a_page_switched_off_is_not_found_until_it_is_on_again(self):
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 200)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 200)
 
-		self.switch("bulletins", 0)
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 404)
-		self.assertEqual(serve("bulletins/anything", "Administrator").status_code, 404)
+		self.switch("announcements", 0)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 404)
+		self.assertEqual(serve("announcements/anything", "Administrator").status_code, 404)
 
-		self.switch("bulletins", 1)
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 200)
+		self.switch("announcements", 1)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 200)
 
 	def test_the_portal_drops_its_link_and_gets_it_back(self):
 		self.assertIn("bulletins", portal_menu_pages("Administrator"))
@@ -389,10 +387,11 @@ class TestSwitchedOffPage(RollbackEachTest):
 	def test_a_module_switched_off_takes_its_pages_with_it(self):
 		self.set_module("enable_study", 0)
 
-		for path in ("sermons", "sermon/_test-sermon", "podcast.xml", "memorize/session"):
+		for path in ("sermons", "sermon/_test-sermon", "podcast.xml"):
 			self.assertIsInstance(resolve(path), SwitchedOffPage, path)
 		self.assertEqual(serve("sermons", "Guest").status_code, 404)
-		for path in ("live", "bulletins", "about"):
+		self.assertEqual(serve("portal/memorize/_test-item", "Administrator").status_code, 404)
+		for path in ("live", "announcements", "about"):
 			self.assertNotIsInstance(resolve(path), SwitchedOffPage, path)
 
 	def test_a_sermon_page_links_back_only_to_a_sermons_page_that_is_on(self):
@@ -510,7 +509,7 @@ class TestSwitchedOffPage(RollbackEachTest):
 		self.assertIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))
 
 	def test_a_page_renders_when_a_path_resolver_sets_no_local_path(self):
-		self.switch("bulletins", 0)
+		self.switch("announcements", 0)
 		self.addCleanup(setattr, frappe.local, "path", None)
 		resolver = "churchit.church_website.test_pages.resolve_without_local_path"
 		with patch_hooks({"website_path_resolver": [resolver]}):
@@ -518,9 +517,9 @@ class TestSwitchedOffPage(RollbackEachTest):
 			self.assertEqual(serve("about", "Guest").status_code, 200)
 
 			# A value an earlier call left behind must not turn this page off.
-			frappe.local.path = "bulletins"
+			frappe.local.path = "announcements"
 			self.assertEqual(serve("about", "Guest").status_code, 200)
-			self.assertEqual(serve("bulletins", "Guest").status_code, 404)
+			self.assertEqual(serve("announcements", "Guest").status_code, 404)
 
 	def set_home_page(self, html):
 		frappe.db.set_value("Web Page", "home", "main_section_html", html)
@@ -648,7 +647,6 @@ class TestClosedWebsite(RollbackEachTest):
 		frappe.flags.force_website_cache = True
 		self.addCleanup(clear_website_cache)
 		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
-		serve_old_member_pages(self)
 
 	def set_closed(self, closed):
 		frappe.set_user("Administrator")
@@ -668,7 +666,7 @@ class TestClosedWebsite(RollbackEachTest):
 		self.assert_redirect("", "/login")
 		self.assert_redirect("beliefs", "/login")
 		self.assert_redirect("about", "/login")
-		self.assert_redirect("bulletins", "/login?redirect-to=/bulletins")
+		self.assert_redirect("calendar", "/login?redirect-to=/calendar")
 		self.assertEqual(serve("login", "Guest").status_code, 200)
 
 	def test_the_podcast_and_an_emailed_key_still_reach_a_guest(self):
@@ -682,7 +680,7 @@ class TestClosedWebsite(RollbackEachTest):
 			"_Test Closed Members Page", route="_test-closed-members", members_only=1
 		)
 
-		for path in ("bulletins", members_page.route):
+		for path in ("calendar", members_page.route):
 			self.assertEqual(serve(path, "Administrator").status_code, 200, path)
 		for path in ("portal", "portal/household"):
 			self.assertNotIsInstance(resolve(path), ClosedWebsitePage, path)

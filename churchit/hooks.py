@@ -96,10 +96,8 @@ app_include_js = [
 web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
-	"/assets/churchit/js/portal_groups.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
-	"/assets/churchit/js/web_form_lists.js",
 	"/assets/churchit/js/pwa.js",
 	"/assets/churchit/js/questions.js",
 ]
@@ -153,7 +151,7 @@ website_redirects = [
 	{"source": "/member_portal", "target": "/portal", "redirect_http_status": 302},
 	# The member app (frontend/) replaced the member pages and web forms. Their links (emails, bookmarks,
 	# the installed app's shortcuts) open the same page in the app, /<route>/<rest> as
-	# /portal/<route>/<rest> with the query string. 302 while the old pages remain: a browser keeps a 301.
+	# /portal/<route>/<rest> with the query string. 302, because a browser keeps a 301 for good.
 	*(
 		{
 			"source": rf"/{route}(/.*)?",
@@ -246,7 +244,6 @@ jinja = {
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
 		"churchit.church_website.pages.get_switched_off_pages",
-		"churchit.church_website.portal_home.get_portal_home_sections",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.

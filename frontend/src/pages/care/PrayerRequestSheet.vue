@@ -4,7 +4,7 @@
 		:title="request ? __('Change your request') : __('Share a prayer request')"
 		:description="__('Choose who can see it. You can change this later.')"
 	>
-		<form id="prayer-form" class="space-y-5" @submit.prevent="save">
+		<form id="prayer-form" class="space-y-5" @submit.prevent="submit">
 			<FormControl
 				v-model="form.title"
 				:label="__('Title')"
@@ -69,7 +69,7 @@
 				size="lg"
 				type="submit"
 				form="prayer-form"
-				:loading="accept.loading"
+				:loading="save.loading"
 				:label="__('Send')"
 			/>
 			<Button size="lg" variant="outline" :label="__('Cancel')" @click="open = false" />
@@ -82,19 +82,28 @@ import { __ } from "@/translate";
 import { Button, Checkbox, FormControl, Radio, RadioGroup } from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 
-import { useFrappeAction } from "@/api";
+import { useAction } from "@/api";
 import FormSheet from "@/components/FormSheet.vue";
 
 import RecipientPicker from "./RecipientPicker.vue";
-import { WEB_FORMS, type AcceptParams, type PrayerForm, type PrayerRequest } from "./types";
+import type { PrayerForm, PrayerRequest, Saved } from "./types";
 
 const props = defineProps<{ data: PrayerForm; request?: PrayerRequest | null }>();
 const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
-const accept = useFrappeAction<unknown, AcceptParams>(
-	"frappe.website.doctype.web_form.web_form.accept"
-);
+type SaveParams = {
+	title: string;
+	type: string;
+	visibility: string;
+	urgent: number;
+	recipient_type: string;
+	recipient: string;
+	request: string;
+	name?: string;
+};
+
+const save = useAction<Saved, SaveParams>("care.save_prayer_request");
 const errors = reactive({ title: "", type: "", request: "" });
 const form = reactive({
 	title: "",
@@ -134,20 +143,20 @@ function reset() {
 
 watch(open, (isOpen) => isOpen && reset(), { immediate: true });
 
-async function save() {
+async function submit() {
 	errors.title = form.title.trim() ? "" : __("Enter a title.");
 	errors.type = form.type ? "" : __("Choose a type.");
 	errors.request =
 		!isRequestRequired.value || form.request.trim() ? "" : __("Write the request.");
 	if (errors.title || errors.type || errors.request) return;
 
-	const data = {
+	const params: SaveParams = {
 		...form,
 		urgent: form.urgent ? 1 : 0,
 		recipient: form.recipient || "",
 		name: props.request?.name,
 	};
-	await accept.submit({ web_form: WEB_FORMS.prayer, data: JSON.stringify(data) }).then(
+	await save.submit(params).then(
 		() => {
 			open.value = false;
 			emit("saved");

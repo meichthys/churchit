@@ -10,6 +10,8 @@ from pathlib import Path
 
 import frappe
 
+from churchit.church_people.member_access import PERSONAL_DETAILS_EDITABLE, PERSONAL_DETAILS_READ_ONLY
+
 # Code that reads records on every page (navbar brand, footer, PWA manifest).
 # No route owns it, so it is scanned as one "every page" source.
 SITE_WIDE_MODULES = ("context.py", "footer.py", "pwa.py")
@@ -21,11 +23,28 @@ LINK_HOLDERS = "link holders"
 
 SITE_WIDE_SOURCE = {"title": "Every page (navbar, footer, app name)", "route": "", "access": PUBLIC}
 
-# Pages that show a Function's schedule, where a row shows the title of the record it links to.
+# Pages that show a Function's schedule, where a row shows the title of the record it links to: the
+# digital bulletin and the member app's Serving page.
 SCHEDULE_SOURCES = (
 	{"title": "Bulletins", "route": "bulletins", "access": MEMBERS},
-	{"title": "Ministry Team", "route": "ministry-team", "access": MEMBERS},
+	{"title": "Member Portal: Serving", "route": "portal/ministry-team", "access": MEMBERS},
 )
+
+# The member app's My Details page: portal.account reads the Person fields of PERSONAL_DETAILS_EDITABLE
+# and PERSONAL_DETAILS_READ_ONLY by names held in a variable, which the scan cannot see.
+PERSONAL_DETAILS_SOURCE = {
+	"title": "Member Portal: Account",
+	"route": "portal/personal-details",
+	"access": MEMBERS,
+}
+
+# The member app's Memorize page: portal.faith.get_practice sends word_mistakes through
+# Bible Memory Item.load_word_mistakes, which the scan cannot follow.
+MEMORIZE_SOURCE = {
+	"title": "Member Portal: Memorize",
+	"route": "portal/memorize",
+	"access": MEMBERS,
+}
 
 # The member app's endpoints (churchit/portal), each module by the app page it serves at /portal/<route>.
 # A module not listed is badged at /portal itself.
@@ -117,6 +136,9 @@ def scanned_entries():
 			for fieldname in fields_used_in(doctype, code, attributes):
 				yield source, doctype, fieldname
 	yield from web_form_entries()
+	for fieldname in (*PERSONAL_DETAILS_EDITABLE, *PERSONAL_DETAILS_READ_ONLY):
+		yield PERSONAL_DETAILS_SOURCE, "Person", fieldname
+	yield MEMORIZE_SOURCE, "Bible Memory Item", "word_mistakes"
 
 
 def schedule_item_entries(doctypes):
@@ -171,9 +193,9 @@ def www_sources():
 def www_routes(www_dir):
 	"""Route → the files that render it, for every page under *www_dir*.
 
-	Frappe serves ``www/memorize/session.py`` at /memorize/session, a folder's
+	Frappe serves ``www/<folder>/<page>.py`` at /<folder>/<page>, a folder's
 	``index`` at the folder itself, and reads underscores and dashes alike, so
-	``ministry_team.py`` and ``ministry-team.html`` are one page, not two.
+	``find_a_group.py`` and ``find-a-group.html`` are one page, not two.
 	"""
 	routes = defaultdict(list)
 	for entry in sorted(www_dir.rglob("*")):

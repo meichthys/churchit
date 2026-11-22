@@ -11,11 +11,13 @@ from churchit.church_ministries import pre_check_in
 from churchit.church_ministries.doctype.function_check_in.function_check_in import add_check_ins
 from churchit.church_people.test_household import link_user, make_household, set_adult_age
 from churchit.church_website.pages import sync_page_switches
-from churchit.portal import household
+from churchit.portal import home, household
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
+	ensure_user,
 	force_single_church,
+	make_address,
 	make_function,
 	make_person,
 	make_two_churches,
@@ -114,6 +116,76 @@ class TestHouseholdApi(RollbackEachTest):
 
 		self.assertNotIn(self.other_father, names)
 
+	def test_the_members_come_with_their_roles_primary_contact_first(self):
+		frappe.set_user(self.son_user)
+		rows = household.get_household()["members"]
+
+		self.assertEqual(
+			[(row["name"], row["household_role"]) for row in rows],
+			[
+				(self.father, "Adult"),
+				(self.mother, "Adult"),
+				(self.son, "Child"),
+				(self.grandmother, "Other Adult"),
+			],
+		)
+		self.assertEqual(rows[0]["display_name"], "John Smith")
+
+	def test_only_a_childs_known_age_shows(self):
+		frappe.set_user(self.son_user)
+		ages = {row["name"]: row["age"] for row in household.get_household()["members"]}
+
+		self.assertEqual(ages, {self.father: None, self.mother: None, self.son: 10, self.grandmother: None})
+
+	def test_someone_who_has_died_is_not_listed(self):
+		frappe.db.set_value("Person", self.grandmother, "is_deceased", 1)
+		frappe.set_user(self.son_user)
+
+		self.assertNotIn(self.grandmother, {row["name"] for row in household.get_household()["members"]})
+
+	def test_the_family_shows_its_mailing_address(self):
+		address = make_address("_Test Portal Household Home", address_line1="230 Walnut Street")
+		family = frappe.get_doc("Family", self.family)
+		family.append("addresses", {"address": address.name, "is_mailing_address": 1})
+		family.save(ignore_permissions=True)
+		frappe.set_user(self.son_user)
+
+		self.assertEqual(household.get_household()["family"]["address"], "230 Walnut Street, Springfield")
+
+	def test_the_edit_answer_matches_frappes_permission_for_every_member(self):
+		staff = ensure_user("_test_portal_household_staff@example.com", "Staff", roles=("Church Manager",))
+		grandmother_user = link_user(self.grandmother, "_test_portal_household_gran@example.com")
+		people = [self.father, self.mother, self.son, self.grandmother]
+		for user in (self.father_user, self.mother_user, self.son_user, grandmother_user, staff):
+			frappe.set_user(user)
+			expected = {name: frappe.has_permission("Person", "write", doc=name) for name in people}
+			found = {member.name: member.can_edit for member in household.get_members(people, {})}
+			self.assertEqual(found, expected, user)
+
+	def test_an_adult_may_not_edit_a_child_of_another_church(self):
+		frappe.db.set_value("Person", self.son, "church", self.branch_b)
+		frappe.set_user(self.father_user)
+		rows = household.get_household()["members"]
+
+		self.assertFalse(frappe.has_permission("Person", "write", doc=self.son))
+		self.assertEqual({row["name"] for row in rows if row["can_edit"]}, {self.father})
+
+	def test_a_member_without_the_member_role_may_edit_no_one(self):
+		user = ensure_user("_test_portal_household_no_role@example.com", "Jane", roles=())
+		frappe.db.set_value("Person", self.mother, "user", user)
+		frappe.set_user(user)
+
+		self.assertEqual([row for row in household.get_household()["members"] if row["can_edit"]], [])
+
+	def test_a_member_without_a_family_sees_only_themselves(self):
+		user = ensure_user("_test_portal_household_single@example.com", "Single")
+		person = make_person("_Test Portal Household", "Single", user=user, church=self.branch_a).name
+		frappe.set_user(user)
+		result = household.get_household()
+
+		self.assertIsNone(result["family"])
+		self.assertEqual([row["name"] for row in result["members"]], [person])
+
 	def test_a_login_with_no_person_is_refused(self):
 		frappe.set_user("Guest")
 
@@ -169,6 +241,25 @@ class TestHouseholdApi(RollbackEachTest):
 
 		self.assertEqual(result["functions"], [])
 		self.assertEqual(result["opens_minutes"], 60)
+
+	def test_the_home_page_offers_the_check_in_of_the_household_page(self):
+		frappe.set_user(self.father_user)
+		check_in = home.get_check_in(self.father)
+
+		self.assertEqual([row["name"] for row in check_in["functions"]], [self.function])
+		self.assertEqual(check_in["functions"][0]["time"], "10:00:00")
+		self.assertEqual({row["name"] for row in check_in["people"]}, {self.father, self.son})
+
+	def test_the_home_page_offers_no_check_in_while_no_function_is_open(self):
+		self.enterContext(
+			patch(
+				"churchit.church_ministries.check_in_limits.now_datetime",
+				return_value=get_datetime(f"{DAY} 06:00"),
+			)
+		)
+		frappe.set_user(self.father_user)
+
+		self.assertIsNone(home.get_check_in(self.father))
 
 	def test_the_code_checks_the_right_to_check_each_person_in(self):
 		frappe.set_user(self.father_user)

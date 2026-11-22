@@ -41,12 +41,12 @@ class CareRequest(Document):
 	"""A member's ask for practical help, due by its urgency and on its caregiver's To Do list."""
 
 	def before_insert(self):
-		# Frappe fetched the links before this runs, so the portal's person gets its name here too.
+		# Frappe fetched the links before this runs, so the member's own person gets its name here too.
 		if not self.person and frappe.session.user != "Guest":
 			person = frappe.db.get_value("Person", {"user": frappe.session.user}, ["name", "full_name"])
 			if person:
 				self.person, self.person_name = person
-		# The web form sends an empty urgency and status over the doctype's defaults.
+		# An empty urgency or status takes the doctype's default.
 		self.urgency = self.urgency or self.meta.get_field("urgency").default
 		self.status = self.status or self.meta.get_field("status").default
 
@@ -64,8 +64,8 @@ class CareRequest(Document):
 			"person",
 			_("{0} belongs to another church, so only that church can record care requests for them."),
 		)
-		if is_portal_member() or frappe.flags.in_web_form:
-			# A web form save never carries the status; only the desk changes it.
+		if is_portal_member() or self.flags.from_member_app:
+			# A member's save never carries the status; only the care team changes it in the desk.
 			before = self.get_doc_before_save()
 			self.status = before.status if before else self.meta.get_field("status").default
 

@@ -21,7 +21,6 @@
 			:label="boot.church?.title"
 			:dateline="__('Requests the church shares. Pray, then tap I prayed.')"
 		/>
-		<PageIntro page="community-prayer-requests" />
 
 		<LoadState :resource="requests" v-slot="{ data }">
 			<div class="mt-8 grid gap-10 md:grid-cols-12">
@@ -128,7 +127,6 @@ import EmptyState from "@/components/EmptyState.vue";
 import Facts from "@/components/Facts.vue";
 import LoadState from "@/components/LoadState.vue";
 import Masthead from "@/components/Masthead.vue";
-import PageIntro from "@/components/PageIntro.vue";
 import PageBody from "@/components/PageBody.vue";
 import PageHead from "@/components/PageHead.vue";
 import SectionHead from "@/components/SectionHead.vue";
