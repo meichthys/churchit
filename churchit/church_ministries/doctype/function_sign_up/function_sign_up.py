@@ -48,6 +48,7 @@ from churchit.church_scope import (
 )
 from churchit.contacts import get_primary_email
 from churchit.ics import make_calendar, make_event
+from churchit.portal.realtime import notify, notify_person
 from churchit.questions import get_questions, validate_answers
 from churchit.utils import resolve_link_titles
 from churchit.www.calendar import _format_address
@@ -455,6 +456,18 @@ class FunctionSignUp(Document):
 	def on_update(self):
 		self.send_confirmation()
 		self.send_payment_request()
+		self.notify_portal()
+
+	def notify_portal(self):
+		"""Tell the open member app tabs of the owner and each person on a new sign-up or a changed status."""
+		before = self.get_doc_before_save()
+		if before and before.status == self.status:
+			return
+
+		notify(self.owner, "sign-ups", self.name)
+		for person in {self.person, *self.get_attendee_people()}:
+			notify_person(person, "sign-ups", self.name)
+			notify_person(person, "attendance", self.function)
 
 	def send_registrant_email(
 		self, template: str, attachments: list | None = None, context: dict | None = None

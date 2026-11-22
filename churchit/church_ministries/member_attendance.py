@@ -14,6 +14,7 @@ from churchit.church_ministries.doctype.function_sign_up.function_sign_up import
 	WAITLISTED,
 )
 from churchit.church_scope import session_person
+from churchit.portal.realtime import notify
 
 CHECKED_IN = "Checked-In"
 # "I was there" and "I was not there". Both ship as fixtures, so they always exist.
@@ -47,9 +48,9 @@ def get_own_attendance(person):
 	return functions
 
 
-def get_upcoming_sign_ups(person):
-	"""Functions after today that *person* attends on a live Function Sign-Up, soonest first, each with the
-	sign-up's `status`: Confirmed, or Pending or Waitlisted while it waits.
+def get_upcoming_sign_ups(person, include_today=False):
+	"""Functions after today (from today with *include_today*) that *person* attends on a live Function
+	Sign-Up, soonest first, each with the sign-up's `status`: Confirmed, or Pending or Waitlisted while it waits.
 
 	Each also has `sign_up`, the sign-up the member may open: one they made or that names their Person,
 	the rule of `member_access.has_own_record_permission`. A sign-up that another household member made
@@ -74,7 +75,7 @@ def get_upcoming_sign_ups(person):
 	own = {row.function: row.name for row in sign_ups if row.owner == user or row.person == person}
 	functions = frappe.get_all(
 		"Function",
-		filters={"name": ("in", list(status)), "start_date": (">", getdate())},
+		filters={"name": ("in", list(status)), "start_date": (">=" if include_today else ">", getdate())},
 		fields=["name", "function_name", "start_date"],
 		order_by="start_date asc, start_time asc",
 	)
@@ -106,3 +107,4 @@ def change_own_attendance(function: str, attendance_type: str) -> None:
 
 	# Members cannot write a Function. The checks above confine this save to their own row.
 	record(person, function, attendance_type)
+	notify(frappe.session.user, "attendance", function)

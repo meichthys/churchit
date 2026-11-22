@@ -40,6 +40,27 @@ def get_signed_up_functions(person: str | None) -> set[str]:
 	)
 
 
+def get_simple_sign_up_functions(functions: list) -> set[str]:
+	"""The names of *functions* a member signs up for without /register: in the window, not over, no question set, no selections.
+
+	Each function needs its name, question_set, start_date and the window fields.
+	"""
+	# church-scope: the selections of the functions given
+	with_selections = frappe.get_all(
+		"Function Sign-Up Selection",
+		filters={"parenttype": "Function", "parent": ("in", [function.name for function in functions])},
+		pluck="parent",
+	)
+	return {
+		function.name
+		for function in functions
+		if is_in_sign_up_window(function)
+		and not is_over(function)
+		and not function.question_set
+		and function.name not in with_selections
+	}
+
+
 def get_context(context):
 	hide_edit_unless_writable(context, "Function Sign-Up")
 	if (context.get("reference_doc") or {}).get("status") == CANCELLED and is_portal_member():
@@ -60,21 +81,7 @@ def get_context(context):
 		filters=church_filters(session_church(), allow_sign_ups=1),
 		fields=["name", "question_set", "start_date", *WINDOW_FIELDS],
 	)
-	# This form has no selection or question inputs, so those functions sign up on /register.
-	# church-scope: the selections of the functions read above
-	with_selections = frappe.get_all(
-		"Function Sign-Up Selection",
-		filters={"parenttype": "Function", "parent": ("in", [function.name for function in functions])},
-		pluck="parent",
-	)
-	sign_up_functions = {
-		function.name
-		for function in functions
-		if is_in_sign_up_window(function)
-		and not is_over(function)
-		and not function.question_set
-		and function.name not in with_selections
-	}
+	sign_up_functions = get_simple_sign_up_functions(functions)
 	already_signed_up = set()
 	if is_portal_member():
 		# The record being edited keeps its own function in the list.
