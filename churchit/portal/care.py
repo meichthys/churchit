@@ -27,7 +27,7 @@ from churchit.church_prayers.prayer_access import (
 )
 from churchit.church_scope import session_person
 from churchit.portal.access import require_page, require_person
-from churchit.portal.realtime import notify
+from churchit.portal.realtime import notify, notify_person
 
 COMMENT_PAGES = {"prayer-request": ("Prayer Request", "prayer"), "alms-request": ("Alms Request", "alms")}
 # How many saves and deletes a member may make a minute: the limits Frappe sets on its web forms.
@@ -277,7 +277,7 @@ def add_prayer_comment(prayer_request: str, comment: str) -> dict:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	add_member_comment(request, comment)
-	notify(request.owner, "prayer", prayer_request)
+	notify_person(request.requestor, "prayer", prayer_request)
 	return {"comments": get_comments(prayer_request)}
 
 

@@ -171,6 +171,24 @@ class TestPraying(CareCase):
 		self.assertTrue(row["prayed_today"])
 		self.assertEqual(row["prayer_count"], 1)
 
+	def test_praying_and_a_comment_tell_the_person_who_asked_not_the_login_that_saved_it(self):
+		asker = frappe.db.get_value("Person", {"user": self.neighbour})
+		request = make_prayer_request(
+			"Administrator", "_Test Asked For", requestor=asker, church=self.church, approved_for_list=1
+		)
+
+		frappe.set_user(self.member)
+		for action in (
+			lambda: create_prayer(request.name, "Lord, help"),
+			lambda: care.add_prayer_comment(request.name, "Praying for you"),
+		):
+			with patch(PUBLISH) as publish:
+				action()
+
+			users = {call.kwargs.get("user") for call in publish.call_args_list}
+			self.assertIn(self.neighbour, users)
+			self.assertNotIn("Administrator", users)
+
 	def test_a_comment_is_listed_and_tells_the_owner(self):
 		request = make_prayer_request(self.neighbour, "_Test Comment")
 

@@ -264,19 +264,22 @@ function answered() {
 	home.reload();
 }
 
-useLiveRefresh(["sign-ups", "serving", "groups", "group-meetings", "check-in"], async () => {
-	if (!boot.person) return;
-	const before = new Set([
-		...entries.value.map((entry) => entry.key),
-		...(home.data?.ahead.map((entry) => entry.key) ?? []),
-		...(home.data?.needs_answer.map((request) => request.name) ?? []),
-	]);
-	await home.reload();
-	const keys = [
-		...entries.value.map((entry) => entry.key),
-		...(home.data?.ahead.map((entry) => entry.key) ?? []),
-		...(home.data?.needs_answer.map((request) => request.name) ?? []),
-	];
-	for (const key of keys) if (!before.has(key)) mark(key);
-});
+useLiveRefresh(
+	["sign-ups", "serving", "groups", "group-meetings", "check-in", "prayer"],
+	async () => {
+		if (!boot.person) return;
+		const before = new Set([
+			...entries.value.map((entry) => entry.key),
+			...(home.data?.ahead.map((entry) => entry.key) ?? []),
+			...(home.data?.needs_answer.map((request) => request.name) ?? []),
+		]);
+		await home.reload();
+		const keys = [
+			...entries.value.map((entry) => entry.key),
+			...(home.data?.ahead.map((entry) => entry.key) ?? []),
+			...(home.data?.needs_answer.map((request) => request.name) ?? []),
+		];
+		for (const key of keys) if (!before.has(key)) mark(key);
+	}
+);
 </script>

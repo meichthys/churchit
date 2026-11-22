@@ -2231,12 +2231,15 @@ sends no Person ID. The community prayer list sends no requester, owner, church 
 
 Live updates are hints: `churchit.portal.realtime.notify(user, topic, name)` sends the event
 `churchit_portal` to the user's room after the commit, from the controller where the change happens
-(Family and Function Check-In through `household.py`, Function Sign-Up, `member_attendance`, Ministry Team
-Assignment, Room Booking, `group_api`, `group_meetings`, Group File, Prayer, Care Request, Alms Request,
-Bible Memory Item and Pledge). The app reads
-the data again through its GET, and also on a reconnect and when a tab comes back into view. Never use
-doctype rooms or `list_update` for members: they tell every reader of a doctype which record changed and
-who saved it. A test patches `churchit.portal.realtime.frappe.publish_realtime`.
+(Family and Function Check-In through `household.py`, Function Sign-Up, `member_attendance`, Ministry
+Team Assignment, Room Booking, `group_api`, `group_meetings`, Group File, Prayer, Care Request, Alms
+Request, Bible Memory Item and Pledge). A hint goes only to the people the change is about, by their own
+login: a prayer or a comment on a request goes to its requester (`notify_person`), not to the login that
+saved the request. Other readers of a shared page, such as the prayer list, see the change when they
+reload or come back to the tab. The app reads the data again through its GET, and also on a reconnect
+and when a tab comes back into view. Never use doctype rooms or `list_update` for members: they tell
+every reader of a doctype which record changed and who saved it. A test patches
+`churchit.portal.realtime.frappe.publish_realtime`.
 
 The look ("Order of Service") retunes frappe-ui's neutral tokens in one block of
 `frontend/src/style.css`; compare it with frappe-ui's tokens on each upgrade. The accent is the Website
