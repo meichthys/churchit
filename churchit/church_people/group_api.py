@@ -19,6 +19,7 @@ from churchit.church_people.doctype.group_join_request.group_join_request import
 from churchit.church_people.group_leaders import get_leaders, require_leader
 from churchit.church_people.group_meetings import get_roster
 from churchit.church_scope import church_filters, session_church, session_person
+from churchit.portal.realtime import notify_person
 
 JOIN_REQUEST_TEMPLATE = "Group Join Request"
 JOIN_DECISION_TEMPLATE = "Group Join Decision"
@@ -126,6 +127,7 @@ def leave_group(group: str | None) -> dict:
 	for row in rows:
 		doc.remove(row)
 	doc.save(ignore_permissions=True)
+	notify_person(person, "groups", doc.name)
 	return {"left": True, "group_name": doc.group_name}
 
 
@@ -163,6 +165,8 @@ def request_to_join(group: Document, person: str, message: str | None) -> str:
 	request = frappe.get_doc(
 		{"doctype": "Group Join Request", "group": group.name, "person": person, "message": message}
 	).insert(ignore_permissions=True)
+	notify_person(person, "groups", group.name)
+	notify_leaders(group.name, "group-requests")
 	if not can_send_email():
 		return request.name
 
@@ -196,6 +200,14 @@ def add_member(group: Document, person: str) -> None:
 	member_role = frappe.db.get_value("Group Role", {"role": "Member"}, "name")
 	group.append("members", {"person": person, "group_role": member_role})
 	group.save(ignore_permissions=True)
+	notify_person(person, "groups", group.name)
+
+
+def notify_leaders(group: str, topic: str, except_person: str | None = None) -> None:
+	"""Tell each leader of *group*, but *except_person*, that *topic* changed."""
+	for leader in get_leaders(group):
+		if leader != except_person:
+			notify_person(leader, topic, group)
 
 
 def get_open_join_requests(groups: list[str]) -> dict[str, list[dict]]:
@@ -241,6 +253,8 @@ def decide_join_request(request: str, approve: bool | str) -> dict:
 	doc.status = APPROVED if approved else DENIED
 	doc.decided_by = frappe.session.user
 	doc.save(ignore_permissions=True)
+	notify_person(doc.person, "groups", group)
+	notify_leaders(group, "group-requests", except_person=session_person())
 	if not can_send_email():
 		return {"status": doc.status}
 

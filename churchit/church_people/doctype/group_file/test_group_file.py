@@ -66,7 +66,7 @@ class TestGroupFile(FrappeTestCase):
 		cls.file = frappe.db.get_value(
 			"File", {"attached_to_doctype": "Group File", "attached_to_name": cls.group_file}, "name"
 		)
-		cls.other_file = cls.make_group_file(cls.other_group, "https://example.com/_test_other.pdf")
+		cls.other_file = cls.make_group_file(cls.other_group, upload(cls, "_test_other.txt").file_url)
 
 	@staticmethod
 	def make_group_file(group, url):
@@ -172,6 +172,19 @@ class TestGroupFile(FrappeTestCase):
 				}
 			).insert(ignore_permissions=True)
 
+	def test_a_link_must_be_https_and_a_path_on_this_site_must_be_private(self):
+		def add(url):
+			return frappe.get_doc(
+				{"doctype": "Group File", "group": self.group, "title": "_Test Link", "attached_file": url}
+			).insert(ignore_permissions=True)
+
+		self.assertEqual(add(" https://example.com/x.pdf ").attached_file, "https://example.com/x.pdf")
+		for url in ("javascript:alert(1)", "http://example.com/x.pdf", "//evil.example/x"):
+			with self.assertRaisesRegex(frappe.ValidationError, "https"):
+				add(url)
+		with self.assertRaisesRegex(frappe.ValidationError, "private"):
+			add("/files/x.pdf")
+
 	def test_a_public_attachment_to_a_group_file_is_refused(self):
 		public = frappe.get_doc({"doctype": "File", "attached_to_doctype": "Group File", "is_private": 0})
 		with self.assertRaisesRegex(frappe.ValidationError, "private"):
@@ -222,8 +235,8 @@ class TestGroupFileChurches(FrappeTestCase):
 		make_person("_Test File A", "Manager", church=branch_a, user=cls.manager_a)
 		cls.group_a = make_group("_Test File Group A", church=branch_a)
 		cls.group_b = make_group("_Test File Group B", church=branch_b)
-		cls.file_a = TestGroupFile.make_group_file(cls.group_a, "https://example.com/_test_a.pdf")
-		cls.file_b = TestGroupFile.make_group_file(cls.group_b, "https://example.com/_test_b.pdf")
+		cls.file_a = TestGroupFile.make_group_file(cls.group_a, upload(cls, "_test_a.txt").file_url)
+		cls.file_b = TestGroupFile.make_group_file(cls.group_b, upload(cls, "_test_b.txt").file_url)
 		cls.addClassCleanup(frappe.clear_cache)
 
 	def tearDown(self):

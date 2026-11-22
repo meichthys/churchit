@@ -33,42 +33,47 @@ def get_context(context):
 	pass
 
 
+def get_portal_groups(
+	person: str | None,
+	fields: str | list[str] = "*",
+	filters: list | None = None,
+	limit_start: int = 0,
+	limit_page_length: int = 20,
+) -> list[frappe._dict]:
+	"""The groups *person* is in that are shown in the portal, plus the groups they lead, with their leaders' names."""
+	if not person:
+		return []
+
+	# church-scope: the groups of one person's own member rows
+	my_groups = frappe.get_all(
+		"Group Member", {"person": person, "parenttype": "Group"}, pluck="parent", distinct=True
+	)
+	led_groups = get_led_groups(person)
+	rows = frappe.get_list(
+		"Group",
+		fields=fields,
+		distinct=True,
+		filters=[*(filters or []), ["name", "in", my_groups or [""]]],
+		or_filters=[["show_in_portal", "=", 1], ["name", "in", led_groups or [""]]],
+		limit_start=limit_start,
+		limit_page_length=limit_page_length,
+		order_by="group_name",
+		ignore_permissions=True,
+	)
+	leaders = get_leader_names([row.name for row in rows]) if rows else {}
+	for row in rows:
+		row["leaders"] = leaders.get(row.name, "")
+	return rows
+
+
 def get_list_context(context):
 	"""Filter the /groups listing to groups the user is a member of
 	(restricted to ``show_in_portal``, except the groups the user leads)."""
 	user = frappe.session.user
 	person = frappe.db.get_value("Person", {"user": user}, "name") if user != "Guest" else None
 
-	my_groups = (
-		[
-			r.parent
-			for r in frappe.get_all("Group Member", {"person": person, "parenttype": "Group"}, ["parent"])
-		]
-		if person
-		else []
-	)
-
-	led_groups = get_led_groups(person) if person else []
-
 	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
-		filters = list(filters or [])
-		filters.append(["name", "in", my_groups or [""]])
-		or_filters = [["show_in_portal", "=", 1], ["name", "in", led_groups or [""]]]
-		rows = frappe.get_list(
-			doctype,
-			fields="*",
-			distinct=True,
-			filters=filters,
-			or_filters=or_filters,
-			limit_start=limit_start,
-			limit_page_length=limit_page_length,
-			order_by="group_name",
-			ignore_permissions=True,
-		)
-		leaders = get_leader_names([row.name for row in rows]) if rows else {}
-		for row in rows:
-			row["leaders"] = leaders.get(row.name, "")
-		return rows
+		return get_portal_groups(person, "*", filters, limit_start, limit_page_length)
 
 	context.get_list = get_list
 	context.order_by = "group_name"

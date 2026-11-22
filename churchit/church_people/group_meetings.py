@@ -32,6 +32,7 @@ from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_a
 )
 from churchit.church_people.group_leaders import get_leaders, require_leader
 from churchit.church_people.membership import living_people_filter
+from churchit.portal.realtime import notify_person
 
 REPEAT_UNITS = {"Daily": "days", "Weekly": "weeks", "Monthly": "months", "Yearly": "years"}
 # The leader page shows the meetings of this many weeks back.
@@ -198,6 +199,9 @@ def record_group_attendance(
 		record_many(function, {**dict.fromkeys(present, "Confirmed"), **dict.fromkeys(absent, "Absent")})
 
 	meeting.db_set({"did_not_meet": int(did_not_meet), "attendance_recorded_on": now_datetime()})
+	for co_leader in get_leaders(meeting.group):
+		if co_leader != leader:
+			notify_person(co_leader, "group-meetings", meeting.name)
 	leader_name = escape_html(frappe.db.get_value("Person", leader, "full_name"))
 	meeting.add_comment(
 		"Info",
