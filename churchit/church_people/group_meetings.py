@@ -108,11 +108,12 @@ def get_repeat_day(schedule) -> str | None:
 
 
 def get_roster(group: str) -> list[frappe._dict]:
-	"""The living members of *group* by name, with their Group Role and whether they share their email and phone.
+	"""The living members of *group* by name: photo, Group Role and whether they share their email and phone.
 
-	The caller checks that the reader may see them: the leader page and `message_group` ask `require_leader`.
+	The caller checks that the reader may see them: the leader page and `message_group` ask `require_leader`,
+	and the group page of the member app asks that the reader is in the group.
 	"""
-	# church-scope: the member rows of one group, which the caller leads
+	# church-scope: the member rows of one group, which the caller leads or is in
 	roles = dict(
 		frappe.get_all(
 			"Group Member",
@@ -125,7 +126,7 @@ def get_roster(group: str) -> list[frappe._dict]:
 	people = frappe.get_all(
 		"Person",
 		filters=[{"name": ("in", list(roles))}, living_people_filter()],
-		fields=["name", "full_name", "share_email", "share_phone"],
+		fields=["name", "full_name", "photo", "share_email", "share_phone"],
 		order_by="full_name asc",
 	)
 	for person in people:

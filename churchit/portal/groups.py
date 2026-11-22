@@ -10,13 +10,19 @@ decide, message) and church_people.group_meetings.record_group_attendance.
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import formatdate, get_time, getdate, today
+from frappe.utils import cint, formatdate, get_time, getdate, today
 
 from churchit.church_communications.sending import can_send_texts
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
 )
-from churchit.church_people.directory import get_primary_emails, get_primary_phones
+from churchit.church_people.directory import (
+	directory_filters,
+	get_primary_emails,
+	get_primary_phones,
+	is_directory_member,
+	is_public,
+)
 from churchit.church_people.doctype.group_file.group_file import PRIVATE_FILES, is_web_link
 from churchit.church_people.group_api import get_open_join_requests, joinable_public_groups
 from churchit.church_people.group_leaders import get_leaders, get_led_groups, require_leader
@@ -53,7 +59,7 @@ def get_my_groups() -> dict:
 
 @frappe.whitelist(methods=["GET"])
 def get_group(group: str) -> dict:
-	"""One of the member's groups: where and when it meets, its leaders, later meetings and files. Reads only."""
+	"""One of the member's groups: where and when it meets, its people, later meetings and files. Reads only."""
 	person = require_person()
 	require_page("groups")
 
@@ -67,6 +73,7 @@ def get_group(group: str) -> dict:
 	result["later_meetings"] = meetings[1:]
 	result["show_files"] = not is_page_off("group-files", get_hidden_pages())
 	result["files"] = get_files_of(group) if result["show_files"] else []
+	result["members"] = get_member_roster(group, person)
 	return result
 
 
@@ -330,3 +337,43 @@ def get_contact_roster(group: str) -> list[frappe._dict]:
 		person.email = emails.get(person.name)
 		person.phone = phones.get(person.name)
 	return roster
+
+
+def get_member_roster(group: str, viewer: str) -> list[dict]:
+	"""*group*'s living members for *viewer*, one of them: names, public photos and who leads, leaders first.
+
+	A photo or contact shows only for a person the directory lists. A contact shows only where its person
+	shares it, while the Member Directory is on, and only to a viewer the directory is for.
+	"""
+	roster = get_roster(group)
+	# church-scope: the members of that group, by name
+	listed = set(
+		frappe.get_all(
+			"Person",
+			filters=[
+				directory_filters(name=("in", [person.name for person in roster]), hide_from_directory=0),
+				living_people_filter(),
+			],
+			pluck="name",
+		)
+	)
+	shows_contacts = cint(frappe.db.get_single_value("People Settings", "member_directory")) and (
+		is_directory_member(viewer)
+	)
+	sharing = [person for person in roster if person.name in listed and shows_contacts]
+	emails = get_primary_emails([person.name for person in sharing if person.share_email])
+	phones = get_primary_phones([person.name for person in sharing if person.share_phone])
+	leaders = set(get_leaders(group))
+	roster.sort(key=lambda person: person.name not in leaders)
+	return [
+		{
+			# The row's place, not the Person ID, which a member has no need of.
+			"name": str(index),
+			"full_name": person.full_name,
+			"photo": person.photo if person.name in listed and is_public(person.photo) else None,
+			"is_leader": person.name in leaders,
+			"email": emails.get(person.name),
+			"phone": phones.get(person.name),
+		}
+		for index, person in enumerate(roster)
+	]

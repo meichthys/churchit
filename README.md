@@ -79,7 +79,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups and group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
+- A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups with the people in each group, group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
 - The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes the church's color from its website theme
 - Household adults add their children on My Household
 - Save contact on each Member Directory entry: a contact card with only the details the entry shows

@@ -39,11 +39,22 @@ export interface GroupFile {
 	added_on: string;
 }
 
+/** One living member on the group page; email and phone only where shared and the viewer may see them. */
+export interface GroupMember {
+	name: string;
+	full_name: string;
+	photo: string | null;
+	is_leader: boolean;
+	email: string | null;
+	phone: string | null;
+}
+
 export interface GroupDetail extends GroupRow {
 	next_meeting: Meeting | null;
 	later_meetings: Meeting[];
 	files: GroupFile[];
 	show_files: boolean;
+	members: GroupMember[];
 }
 
 export interface GroupFiles {

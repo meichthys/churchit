@@ -133,12 +133,59 @@
 				<aside
 					class="mt-10 md:col-span-4 md:mt-0 md:border-s md:border-outline-gray-1 md:ps-10"
 				>
-					<section class="md:mt-8" aria-labelledby="group-leaders">
-						<SectionHead id="group-leaders" :title="__('Led by')" />
+					<section class="md:mt-8" aria-labelledby="group-people">
+						<SectionHead id="group-people" :title="__('People')" />
+						<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+							<li
+								v-for="member in data.members"
+								:key="member.name"
+								class="flex gap-3 py-3"
+							>
+								<Avatar
+									:label="member.full_name"
+									:image="member.photo || undefined"
+									size="2xl"
+									class="mt-0.5 shrink-0"
+								/>
+								<div class="min-w-0 flex-1">
+									<p class="text-lg font-medium text-ink-gray-9">
+										{{ member.full_name }}
+									</p>
+									<p
+										v-if="member.is_leader"
+										class="text-lg text-ink-gray-6 md:text-md"
+									>
+										{{ __("Leader") }}
+									</p>
+									<ul
+										v-if="member.email || member.phone"
+										class="mt-1 text-lg md:text-md"
+									>
+										<li v-if="member.email">
+											<a
+												:href="`mailto:${member.email}`"
+												class="inline-flex min-h-11 items-center text-ink-gray-8 underline decoration-outline-gray-3 underline-offset-4 [overflow-wrap:anywhere] md:min-h-0"
+												>{{ atBreak(member.email)[0] }}<wbr />{{
+													atBreak(member.email)[1]
+												}}</a
+											>
+										</li>
+										<li v-if="member.phone">
+											<a
+												:href="`tel:${member.phone}`"
+												class="inline-flex min-h-11 items-center text-ink-gray-8 underline decoration-outline-gray-3 underline-offset-4 md:min-h-0"
+												><bdi>{{ member.phone }}</bdi></a
+											>
+										</li>
+									</ul>
+								</div>
+							</li>
+						</ul>
 						<p
-							class="border-t border-outline-gray-1 pt-4 text-lg font-medium text-ink-gray-9"
+							v-if="!data.members.some((member) => member.is_leader)"
+							class="t-dateline mt-3 text-ink-gray-6"
 						>
-							{{ data.leaders || __("This group has no leader yet.") }}
+							{{ __("This group has no leader yet.") }}
 						</p>
 						<Button
 							v-if="data.is_leader && !isPageHidden('group-leader')"
@@ -178,7 +225,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, dialog, toast } from "frappe-ui";
+import { Avatar, Button, dialog, toast } from "frappe-ui";
 import { useRoute, useRouter } from "vue-router";
 
 import { useFrappeAction, useRead } from "@/api";
@@ -209,6 +256,12 @@ const leave = useFrappeAction<unknown, Record<string, unknown>>(
 	"churchit.church_people.group_api.leave_group"
 );
 const { mark, isFresh } = useFreshInk();
+
+/** An email address in two parts, so that a narrow column breaks it after its @. */
+function atBreak(email: string): [string, string] {
+	const at = email.lastIndexOf("@") + 1;
+	return [email.slice(0, at), email.slice(at)];
+}
 
 function confirmLeave(data: GroupDetail) {
 	dialog.danger({

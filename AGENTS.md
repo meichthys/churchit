@@ -2223,7 +2223,11 @@ changes on My Details: `save_personal_details` takes only those and refuses a st
 for functions that pass the simple sign-up rule (`member_sign_ups.get_simple_sign_up_functions`); any
 other links to /register. `member_sign_ups.get_sign_up_summary` is not whitelisted: the app reads a
 sign-up through `portal.events`. `portal.groups.get_portal_groups` is the one rule for a member's
-groups. The community prayer list sends no requester, owner, church or end date.
+groups. A group's page (`groups.get_group`) shows its living members (`group_meetings.get_roster`) to
+the people in it: names, public photos and who leads, and an email or phone only where its person shares
+it, only to a viewer the directory is for, only while the Member Directory is on, and only for a person
+the directory lists (not hidden, not a Visitor or Contact); a photo follows the same listing rule. It
+sends no Person ID. The community prayer list sends no requester, owner, church or end date.
 
 Live updates are hints: `churchit.portal.realtime.notify(user, topic, name)` sends the event
 `churchit_portal` to the user's room after the commit, from the controller where the change happens

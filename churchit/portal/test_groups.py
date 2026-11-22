@@ -34,6 +34,9 @@ def hints(publish):
 
 LEADER_ROLE = "_Test Portal Group Leader"
 MEMBER_ROLE = "_Test Portal Group Member"
+LEADER = "Leader _Test Portal Group"
+CO_LEADER = "Coleader _Test Portal Group"
+MEMBER = "Member _Test Portal Group"
 
 
 class TestPortalGroups(RollbackEachTest):
@@ -47,14 +50,14 @@ class TestPortalGroups(RollbackEachTest):
 		ensure("Group Role", {"role": LEADER_ROLE}, {"role": LEADER_ROLE, "is_leader": 1})
 		ensure("Group Role", {"role": MEMBER_ROLE}, {"role": MEMBER_ROLE, "is_leader": 0})
 		ensure("Group Role", {"role": "Member"})
-		cls.leader, cls.leader_user = cls.make_member("Leader")
-		cls.co_leader, cls.co_leader_user = cls.make_member("Coleader")
-		cls.member, cls.member_user = cls.make_member("Member")
+		cls.leader, cls.leader_user = cls.make_member("Leader", phone="555 010 0161")
+		cls.co_leader, cls.co_leader_user = cls.make_member("Coleader", phone="555 010 0162")
+		cls.member, cls.member_user = cls.make_member("Member", phone="555 010 0163")
 		cls.outsider, cls.outsider_user = cls.make_member("Outsider")
 		cls.foreign_leader, _foreign_user = cls.make_member("Foreigner", church=cls.other_church)
 
 	@classmethod
-	def make_member(cls, first_name, church=None):
+	def make_member(cls, first_name, church=None, phone=None):
 		email = f"_test_portal_group_{first_name.lower()}@example.com"
 		user = ensure_user(email, f"_Test Portal {first_name}")
 		person = make_person(
@@ -63,12 +66,15 @@ class TestPortalGroups(RollbackEachTest):
 			church=church or cls.church,
 			user=user,
 			share_email=1,
+			share_phone=1,
 			emails=[{"email_address": email}],
+			phones=[{"phone_number": phone}] if phone else [],
 		)
 		return person.name, user
 
 	def setUp(self):
 		super().setUp()
+		frappe.db.set_single_value("People Settings", "member_directory", 1)
 		self.group = self.make_group("_Test Portal Open", show_in_portal=1, public=1)
 		self.hidden_group = self.make_group("_Test Portal Hidden", show_in_portal=0, public=0)
 		self.foreign_group = self.make_group(
@@ -109,6 +115,11 @@ class TestPortalGroups(RollbackEachTest):
 		return frappe.get_doc(
 			{"doctype": "File", "file_name": file_name, "content": file_name.encode(), "is_private": 1}
 		).insert()
+
+	def people(self, user, group=None):
+		"""{full name: row} of the people the group page shows *user*."""
+		frappe.set_user(user)
+		return {row["full_name"]: row for row in get_group(group or self.group)["members"]}
 
 	def make_meeting(self, group, days, **values):
 		return make_function(
@@ -374,6 +385,75 @@ class TestPortalGroups(RollbackEachTest):
 			set(hints(publish)),
 			{(user, "group-files") for user in (self.leader_user, self.co_leader_user, self.member_user)},
 		)
+
+	def test_the_group_page_shows_a_member_its_living_people_leaders_first(self):
+		departed = make_person("Dee", "_Test Portal Group", church=self.church).name
+		frappe.db.set_value("Person", departed, "is_deceased", 1)
+		group = frappe.get_doc("Group", self.group)
+		group.append("members", {"person": departed, "group_role": MEMBER_ROLE})
+		group.save(ignore_permissions=True)
+		frappe.db.set_value("Person", self.leader, "photo", "/files/_test_portal_leader.png")
+		frappe.db.set_value("Person", self.member, "photo", "/private/files/_test_portal_member.png")
+
+		people = self.people(self.member_user)
+
+		self.assertEqual(list(people), [CO_LEADER, LEADER, MEMBER])
+		self.assertEqual([row["is_leader"] for row in people.values()], [True, True, False])
+		self.assertEqual(people[LEADER]["photo"], "/files/_test_portal_leader.png")
+		self.assertIsNone(people[MEMBER]["photo"])
+		self.assertEqual(people[CO_LEADER]["email"], "_test_portal_group_coleader@example.com")
+		self.assertEqual(people[CO_LEADER]["phone"], "555 010 0162")
+		self.assertFalse(
+			{row["name"] for row in people.values()} & {self.leader, self.co_leader, self.member}
+		)
+
+		frappe.set_user(self.leader_user)
+		roster = get_leader_view(self.group)["groups"][0]["roster"]
+		self.assertNotIn(departed, [row["name"] for row in roster])
+
+	def test_a_person_who_shares_nothing_shows_no_contact_on_the_group_page(self):
+		frappe.db.set_value("Person", self.co_leader, {"share_email": 0, "share_phone": 0})
+
+		people = self.people(self.member_user)
+
+		self.assertEqual((people[CO_LEADER]["email"], people[CO_LEADER]["phone"]), (None, None))
+		self.assertEqual(people[LEADER]["email"], "_test_portal_group_leader@example.com")
+
+	def test_a_person_hidden_from_the_directory_shows_no_contact_or_photo(self):
+		frappe.db.set_value("Person", self.co_leader, "hide_from_directory", 1)
+		frappe.db.set_value("Person", self.co_leader, "photo", "/files/_test_portal_hidden.png")
+
+		people = self.people(self.member_user)
+
+		self.assertEqual(list(people), [CO_LEADER, LEADER, MEMBER])
+		self.assertEqual((people[CO_LEADER]["email"], people[CO_LEADER]["phone"]), (None, None))
+		self.assertIsNone(people[CO_LEADER]["photo"])
+
+	def test_a_person_the_directory_does_not_list_shows_no_contact(self):
+		ensure("Membership Type", {"type": "Visitor"})
+		frappe.db.set_value("Person", self.co_leader, "membership", "Visitor")
+
+		people = self.people(self.member_user)
+
+		self.assertEqual((people[CO_LEADER]["email"], people[CO_LEADER]["phone"]), (None, None))
+		self.assertEqual(people[LEADER]["email"], "_test_portal_group_leader@example.com")
+
+	def test_no_contact_shows_while_the_member_directory_is_off(self):
+		frappe.db.set_single_value("People Settings", "member_directory", 0)
+
+		people = self.people(self.member_user)
+
+		self.assertEqual(list(people), [CO_LEADER, LEADER, MEMBER])
+		self.assertEqual({(row["email"], row["phone"]) for row in people.values()}, {(None, None)})
+
+	def test_a_viewer_the_directory_is_not_for_sees_names_only(self):
+		ensure("Membership Type", {"type": "Visitor"})
+		frappe.db.set_value("Person", self.member, "membership", "Visitor")
+
+		people = self.people(self.member_user)
+
+		self.assertEqual(list(people), [CO_LEADER, LEADER, MEMBER])
+		self.assertEqual({(row["email"], row["phone"]) for row in people.values()}, {(None, None)})
 
 	def test_a_leader_shares_a_file_that_the_members_of_the_group_can_open(self):
 		file = self.upload(self.leader_user)
