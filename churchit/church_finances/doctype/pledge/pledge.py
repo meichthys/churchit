@@ -16,6 +16,7 @@ from churchit.church_scope import (
 	session_church,
 	session_person,
 )
+from churchit.portal.realtime import notify_person
 
 
 class Pledge(Document):
@@ -23,7 +24,7 @@ class Pledge(Document):
 		if not self.amount or self.amount < 0:
 			frappe.throw(_("Enter the amount you pledge."))
 
-		if is_portal_member() or frappe.flags.in_web_form:
+		if is_portal_member() or frappe.flags.in_web_form or self.flags.from_member_app:
 			self.take_members_own_pledge()
 		else:
 			# `person` and `family` are plain Links, which user permissions never measure against their church.
@@ -38,6 +39,9 @@ class Pledge(Document):
 
 		if self.has_value_changed("person"):
 			warn_if_after_death(self.person, today(), _("pledge"))
+
+	def on_update(self):
+		notify_person(self.person, "pledges", self.name)
 
 	def before_save(self):
 		person_name = frappe.db.get_value("Person", self.person, "full_name")
