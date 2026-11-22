@@ -53,6 +53,8 @@ GET_BY_DESIGN = {
 		"stands in for Frappe's own Data Import export, which takes GET; it writes only the Access Log "
 		"entry of the download, and the file goes to the browser that asked"
 	),
+	"churchit.portal.faith.get_memory_list": PUBLIC_BIBLE_TEXT,
+	"churchit.portal.faith.get_practice": PUBLIC_BIBLE_TEXT,
 	"churchit.scripture.get_books": PUBLIC_BIBLE_TEXT,
 	"churchit.scripture.get_chapter": PUBLIC_BIBLE_TEXT,
 	"churchit.scripture.get_passage": PUBLIC_BIBLE_TEXT,

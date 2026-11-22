@@ -316,6 +316,7 @@ has_permission = {
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Pledge": "churchit.church_people.member_access.has_own_record_permission",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.has_own_item_permission",
 	"Function Sign-Up": "churchit.church_people.member_access.has_own_record_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
 	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
@@ -339,6 +340,7 @@ permission_query_conditions = {
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Pledge": "churchit.church_people.member_access.own_records_query_conditions",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.own_items_query_conditions",
 	"Function Sign-Up": "churchit.church_people.member_access.own_records_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
