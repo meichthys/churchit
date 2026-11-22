@@ -200,6 +200,26 @@ body .grid-empty {
 .web-footer .footer-links:first-child {
   margin-top: 0;
 }
+/* The login page's help for a visitor with no login, above the footer's own rows. */
+.web-footer .footer-login-help {
+  max-width: 36rem;
+  margin: 0 auto 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  font-size: var(--text-base);
+  color: var(--text-color);
+}
+.web-footer .footer-login-help p {
+  margin-bottom: 0.5rem;
+}
+.web-footer .footer-login-help p:last-child {
+  margin-bottom: 0;
+}
+.web-footer .footer-login-help a {
+  font-weight: 500;
+  text-decoration: underline;
+}
 .web-footer .footer-top a,
 .web-footer .footer-link {
   color: var(--text-muted);

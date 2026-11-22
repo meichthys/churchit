@@ -5,6 +5,8 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import set_request
+from frappe.website.serve import get_response
 
 from churchit.church_foundations.doctype.church.church import (
 	address_line,
@@ -13,7 +15,8 @@ from churchit.church_foundations.doctype.church.church import (
 )
 from churchit.church_website.context import update_website_context
 from churchit.church_website.footer import get_footer_church, map_url
-from churchit.tests.helpers import make_address
+from churchit.church_website.pages import sync_page_switches
+from churchit.tests.helpers import RollbackEachTest, make_address
 
 
 def set_church_address(address):
@@ -151,3 +154,44 @@ class TestFooterContactDetails(FrappeTestCase):
 		self.assertEqual(details.phone, "555-0199")
 		self.assertEqual(details.email, "branch@example.com")
 		self.assertEqual(get_footer_church().phone, "555-0199")
+
+
+class TestLoginHelp(RollbackEachTest):
+	"""The login page tells a visitor how to get a login, as the portal's guest page did."""
+
+	def setUp(self):
+		super().setUp()
+		sync_page_switches()
+		frappe.db.set_single_value("Website Settings", "show_footer_on_login", 1)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def switch(self, route, enabled):
+		features = frappe.get_single("Church Features")
+		features.get("website_pages", {"route": route})[0].enabled = enabled
+		features.save()
+
+	def login_page(self, user="Guest"):
+		frappe.set_user(user)
+		set_request(method="GET", path="/login")
+		return get_response("login").get_data(as_text=True)
+
+	def test_a_visitor_learns_how_to_get_a_login_and_where_to_start(self):
+		html = self.login_page()
+
+		self.assertIn('Ask <a href="/contact">the church office</a> to invite you.', html)
+		self.assertIn('<a href="/connection-card/new">Fill in a Connection Card</a>', html)
+
+	def test_a_switched_off_page_is_not_offered(self):
+		self.switch("connection-card", 0)
+		self.switch("contact", 0)
+
+		html = self.login_page()
+
+		self.assertIn("Ask the church office to invite you.", html)
+		self.assertNotIn("/connection-card/new", html)
+		self.assertNotIn('href="/contact"', html)
+
+	def test_no_other_page_carries_it(self):
+		frappe.set_user("Guest")
+		set_request(method="GET", path="/about")
+		self.assertNotIn("footer-login-help", get_response("about").get_data(as_text=True))
