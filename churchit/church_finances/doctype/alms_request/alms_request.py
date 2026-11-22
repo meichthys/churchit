@@ -12,6 +12,7 @@ from churchit.church_people.member_access import (
 	validate_members_recipient,
 )
 from churchit.church_scope import refuse_another_churches_parent, session_person
+from churchit.portal.realtime import notify
 from churchit.utils import resolve_link_titles
 
 PENDING = "Pending"
@@ -71,6 +72,15 @@ class AlmsRequest(Document):
 				key, has_category and frappe.has_permission("Person Note", ptype, note, throw=False)
 			)
 
+	def on_update(self):
+		if self.has_value_changed("status") and not self.flags.in_insert:
+			notify(self.owner, "alms", self.name)
+
+	def before_validate(self):
+		# Runs before the mandatory check, which an empty status from a web form would fail.
+		if frappe.flags.in_web_form and self.is_new():
+			self.status = PENDING
+
 	def validate(self):
 		# Before the fill: `church` came from the requestor as sent, and the fill does not change it.
 		refuse_another_churches_parent(
@@ -115,9 +125,12 @@ class AlmsRequest(Document):
 		The web form and REST save a member's own request with their if_owner write right, and the
 		portal form sends the status it shows back, so the status is pinned here.
 		"""
-		if not is_member_only(self.doctype, frappe.session.user):
-			return
 		before = self.get_doc_before_save()
+		if not is_member_only(self.doctype, frappe.session.user):
+			if frappe.flags.in_web_form:
+				# A web form save never carries the status; only the desk changes it.
+				self.status = before.status if before else PENDING
+			return
 		if before and is_reviewed(before):
 			frappe.throw(
 				_(
@@ -171,6 +184,7 @@ def create_expense(alms_request_name: str) -> str:
 	if alms.status == "Approved":
 		values["status"] = "Distributed"
 	frappe.db.set_value("Alms Request", alms.name, values)
+	notify(alms.owner, "alms", alms.name)
 	return expense.name
 
 

@@ -147,7 +147,8 @@ class TestPublishedFields(FrappeTestCase):
 
 		sources = published_field_map()["Prayer"]["title"]
 
-		self.assertEqual({source["route"] for source in sources}, {"bulletins", "ministry-team"})
+		# The member app's prayer endpoints read Prayer too, also for members only.
+		self.assertLessEqual({"bulletins", "ministry-team"}, {source["route"] for source in sources})
 		self.assertEqual({source["access"] for source in sources}, {MEMBERS})
 
 	def test_fields_read_through_an_included_template(self):

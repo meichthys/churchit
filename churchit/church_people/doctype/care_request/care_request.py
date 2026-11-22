@@ -12,6 +12,7 @@ from churchit.church_people.doctype.note_category.note_category import PASTORAL_
 from churchit.church_people.member_access import is_portal_member
 from churchit.church_people.summaries.care import FINISHED
 from churchit.church_scope import has_church_access, refuse_another_churches_parent
+from churchit.portal.realtime import notify
 
 # Days from the request, or from a change of urgency, to its due date.
 URGENCY_DAYS = {"Urgent": 1, "High": 3, "Medium": 7, "Low": 14}
@@ -63,8 +64,8 @@ class CareRequest(Document):
 			"person",
 			_("{0} belongs to another church, so only that church can record care requests for them."),
 		)
-		if is_portal_member():
-			# The portal form shows the status and sends it back; only staff change it.
+		if is_portal_member() or frappe.flags.in_web_form:
+			# A web form save never carries the status; only the desk changes it.
 			before = self.get_doc_before_save()
 			self.status = before.status if before else self.meta.get_field("status").default
 
@@ -78,6 +79,9 @@ class CareRequest(Document):
 			self.refuse_a_caregiver_outside_the_church()
 
 	def on_update(self):
+		if self.has_value_changed("status") and not self.flags.in_insert:
+			notify(self.owner, "care", self.name)
+
 		if self.status in FINISHED:
 			if self.has_value_changed("status"):
 				assign_to.close_all_assignments(self.doctype, self.name, ignore_permissions=True)

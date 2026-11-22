@@ -11,6 +11,7 @@ from frappe.utils import getdate
 
 from churchit.church_prayers.prayer_access import PRAYER_REQUEST
 from churchit.church_scope import refuse_another_churches_parent
+from churchit.portal.realtime import notify
 from churchit.utils import get_dated_title
 
 
@@ -86,3 +87,4 @@ def recount_prayers(requests: set[str]) -> None:
 			.run()[0][0]
 		)
 		frappe.db.set_value(PRAYER_REQUEST, name, "prayer_count", count, update_modified=False)
+		notify(frappe.db.get_value(PRAYER_REQUEST, name, "owner"), "prayer", name)
