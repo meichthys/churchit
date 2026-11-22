@@ -11,6 +11,7 @@ import frappe
 
 from churchit.church_people.family_relations import ROLE_OF_TYPE
 from churchit.church_people.membership import living_people_filter
+from churchit.portal.realtime import notify
 
 ADULT = "Adult"
 OTHER_ADULT = "Other Adult"
@@ -149,3 +150,32 @@ def salutation(family: str) -> str:
 def join_names(names: list[str]) -> str:
 	"""*names* joined as A, as A & B, or as A, B & C."""
 	return " & ".join(filter(None, [", ".join(names[:-1]), names[-1]]))
+
+
+def get_adult_users(family: str) -> set[str]:
+	"""The logins of the Adults on *family*'s roster."""
+	adults = frappe.db.get_values(
+		"Family Members",
+		{"parenttype": "Family", "parent": family, "household_role": ADULT},
+		"member",
+		pluck=True,
+	)
+	# church-scope: one roster, by name
+	users = frappe.get_all("Person", filters={"name": ("in", adults), "user": ("is", "set")}, pluck="user")
+	return set(users)
+
+
+def notify_household(family: str) -> None:
+	"""Tell the open app tabs of *family*'s Adults that the household changed."""
+	for user in get_adult_users(family):
+		notify(user, "household", family)
+
+
+def notify_check_in(person: str, check_in: str) -> None:
+	"""Tell the open app tabs of *person* and their household's Adults that *person* checked in."""
+	values = frappe.db.get_value("Person", person, ["user", "family"], as_dict=True)
+	users = get_adult_users(values.family) if values and values.family else set()
+	if values and values.user:
+		users.add(values.user)
+	for user in users:
+		notify(user, "check-in", check_in)
