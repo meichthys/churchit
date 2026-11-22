@@ -19,6 +19,7 @@ from churchit.church_scope import (
 	session_church,
 	session_person,
 )
+from churchit.portal.realtime import notify_person
 from churchit.questions import YES, get_fields, get_questions, set_answers
 
 # Roles that approve the bookings of a room with no Approvers list.
@@ -90,10 +91,12 @@ class RoomBooking(Document):
 			frappe.db.get_value("Church Asset", asset, "name", for_update=True)
 
 	def on_update(self):
+		notify_person(self.requester, "rooms", self.name)
 		self.update_approver_assignments()
 		self.deny_requests_a_block_overlaps()
 
 	def on_trash(self):
+		notify_person(self.requester, "rooms", self.name)
 		if self.status == "Blocked" and not self.flags.ignore_permissions and not self.is_approver():
 			frappe.throw(
 				_("Only an approver of this room can remove its blocked time."), frappe.PermissionError
