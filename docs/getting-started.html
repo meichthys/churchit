@@ -119,6 +119,10 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
 
 <p>On a plain <code>bench</code> (without Pilot), the equivalent is <code>bench get-app https://github.com/meichthys/churchit</code>, <code>bench --site &lt;your-site&gt; install-app churchit</code>, and <code>bench update</code> to upgrade.</p>
 
+<p>The member portal at /portal is an app that the build makes (it needs Node and Yarn, as every Frappe app with a front end does). <code>get-app</code>, <code>update</code> and Frappe Cloud build it for you. If you pull Churchit by hand, run <code>bench build --app churchit</code> afterwards: until it runs, /portal and the old member page addresses, which open /portal, answer "Page not found".</p>
+
+<p>Frappe makes PDFs with wkhtmltopdf. On a server without it, the bulletin PDF uses Frappe's Chrome engine instead, which downloads Chromium into the bench the first time. To use a Chromium that is already installed, set <code>chromium_path</code> in <code>common_site_config.json</code>.</p>
+
 <p>Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.</p>
 
 <h4>Churchit and ERPNext on one site</h4>
