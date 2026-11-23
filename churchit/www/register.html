@@ -65,16 +65,22 @@
 		{%- if login_url %} {{ _("Some functions are open only to members who sign in.") }} <a class="alert-link" href="{{ login_url | e }}">{{ _("Sign in") }}</a>{% endif %}</div>
 	{% endif %}
 	{% if functions %}
-	<div class="list-group">
+	<ul class="ch-index">
 		{% for item in functions %}
-		<a class="list-group-item list-group-item-action" href="/register?function={{ item.name | urlencode }}">
-			<div class="font-weight-bold">{{ item.function_name | e }}</div>
-			<div class="small text-muted">{{ item.when }}</div>
-		</a>
+		<li>
+			<a class="ch-row" href="/register?function={{ item.name | urlencode }}">
+				<span class="ch-row-main">
+					<span class="ch-row-title">{{ item.function_name | e }}</span>
+					<span class="ch-facts"><span>{{ item.when }}</span></span>
+				</span>
+			</a>
+		</li>
 		{% endfor %}
-	</div>
+	</ul>
 	{% else %}
-	<p class="text-muted">{{ _("Nothing is open for registration right now. Please check back soon.") }}</p>
+	<div class="ch-empty">
+		<p class="t-dateline is-large">{{ _("Nothing is open for registration right now. Please check back soon.") }}</p>
+	</div>
 	{% endif %}
 	{% endif %}
 </div>

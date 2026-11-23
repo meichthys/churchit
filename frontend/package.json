@@ -9,7 +9,6 @@
 		"typecheck": "vue-tsc --noEmit"
 	},
 	"dependencies": {
-		"@fontsource-variable/newsreader": "^5.2.0",
 		"frappe-ui": "1.2.0",
 		"reka-ui": "^2.9.9",
 		"socket.io-client": "^4.8.1",

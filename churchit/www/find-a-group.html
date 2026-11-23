@@ -7,9 +7,10 @@
 <style>
 	.find-group-filters { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; }
 	.find-group-filters select { width: auto; }
-	#find-a-group-map { height: 320px; margin-bottom: 24px; border-radius: 8px; }
+	#find-a-group-map { height: 320px; margin-bottom: 24px; border-radius: 10px; border: 1px solid var(--outline-gray-1); }
 	.find-group-card { scroll-margin-top: 80px; }
-	.find-group-card.is-chosen { border-color: var(--primary, #2490ef); }
+	/* the group of the pin a visitor picked on the map */
+	.find-group-card.is-chosen { border-top: 2px solid var(--accent); }
 </style>
 {% endblock %}
 
@@ -60,9 +61,9 @@
 				{% elif group.join_state == "closed" %}
 				<span class="badge badge-secondary">{{ _("Closed") }}</span>
 				{% elif is_guest %}
-				<a class="btn btn-primary btn-sm" href="{{ group.login_link | e }}">{{ _("Sign in to join") }}</a>
+				<a class="btn btn-default btn-sm" href="{{ group.login_link | e }}">{{ _("Sign in to join") }}</a>
 				{% else %}
-				<button type="button" class="btn btn-primary btn-sm find-group-join">{{ _("Ask to Join") if group.requires_approval else _("Join") }}</button>
+				<button type="button" class="btn btn-default btn-sm find-group-join">{{ _("Ask to Join") if group.requires_approval else _("Join") }}</button>
 				{% endif %}
 			</div>
 		</div>

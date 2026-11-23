@@ -12,13 +12,14 @@ from frappe.website.serve import get_response
 from frappe.website.utils import get_portal_sidebar_items
 
 from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
-from churchit.church_website.context import PORTAL_URL, update_website_context
+from churchit.church_website.context import FONTS_LINK, MEMBER_APP_PAGE, PORTAL_URL, update_website_context
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure_root_church,
 	ensure_user,
 	force_single_church,
+	forget_website_settings,
 	make_branch,
 	set_multi_church,
 )
@@ -165,6 +166,32 @@ class TestThemeModeScript(FrappeTestCase):
 		context = frappe._dict({"head_html": '<meta name="x" content="y">'})
 		update_website_context(context)
 		self.assertTrue(context.head_html.startswith('<meta name="x" content="y"><link rel="manifest"'))
+
+
+class TestPalette(FrappeTestCase):
+	"""The website and the member app take their colors from the website's Website Theme."""
+
+	def setUp(self):
+		frappe.local.website_settings = frappe._dict(website_theme="Churchit")
+		self.addCleanup(forget_website_settings)
+
+	def test_a_page_carries_the_theme_s_palette(self):
+		context = frappe._dict({})
+		update_website_context(context)
+		self.assertIn('<style id="churchit-palette">', context.head_html)
+
+	def test_the_member_app_gets_the_palette_and_the_fonts(self):
+		context = frappe._dict({"path": MEMBER_APP_PAGE})
+		update_website_context(context)
+		self.assertIn('<style id="churchit-palette">', context.head_html)
+		self.assertIn(FONTS_LINK, context.head_html)
+
+	def test_the_standard_theme_adds_no_palette(self):
+		frappe.local.website_settings = frappe._dict(website_theme="Standard")
+		for path in (None, MEMBER_APP_PAGE):
+			context = frappe._dict({"path": path})
+			update_website_context(context)
+			self.assertNotIn("churchit-palette", context.head_html, path)
 
 
 class TestNavbarSwitch(FrappeTestCase):

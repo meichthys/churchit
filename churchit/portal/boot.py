@@ -18,7 +18,7 @@ from churchit.church_finances.doctype.giving_settings.giving_settings import get
 from churchit.church_ministries.pre_check_in import get_functions
 from churchit.church_scope import is_feature_enabled, root_church, session_church, session_person
 from churchit.church_website.pages import is_page_off, is_public_website_on
-from churchit.portal.accent import get_accent
+from churchit.church_website.palette import get_accent
 from churchit.portal.nav import get_menu
 
 
@@ -47,11 +47,12 @@ def get_app_boot() -> dict:
 		"time_format": get_time_format(),
 		"first_day_of_the_week": get_first_day_of_the_week(),
 		"currency": get_currency(),
-		"accent": get_accent(),
 		"check_in": get_check_in(person, set(menu["hidden_pages"])),
 		"push_public_key": get_public_key(),
 		"offer_app_install": is_feature_enabled("offer_app_install"),
 		"website_home": get_website_home(),
+		# Builds of the app before the shared palette read it; remove it one release (to 2027) after.
+		"accent": get_accent(),
 		**menu,
 	}
 

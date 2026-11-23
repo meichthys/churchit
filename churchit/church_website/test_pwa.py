@@ -14,8 +14,9 @@ from frappe.website.serve import get_response
 
 from churchit.church_website import pwa
 from churchit.church_website.context import update_website_context
+from churchit.church_website.palette import get_theme_color
 from churchit.patches.after_install import DEFAULT_CHURCH_NAME
-from churchit.tests.helpers import RollbackEachTest, ensure_user
+from churchit.tests.helpers import RollbackEachTest, ensure_user, forget_website_settings
 
 PUBLIC = Path(frappe.get_app_path("churchit", "public"))
 
@@ -77,15 +78,26 @@ class TestHeadTags(FrappeTestCase):
 		self.assertTrue(context.head_html.startswith(f'<link rel="manifest" href="{pwa.MANIFEST_URL}">'))
 		self.assertLess(context.head_html.index("apple-touch-icon"), context.head_html.index("<script>"))
 
-	def test_theme_color_carries_both_palettes_for_the_switch(self):
+	def test_theme_color_carries_both_modes_for_the_switch(self):
 		self.assertIn(
-			'<meta name="theme-color" content="#eef1fb" data-light="#eef1fb" data-dark="#0b1020">',
-			pwa.head_tags(),
+			'<meta name="theme-color" content="#fcfaf5" data-light="#fcfaf5" data-dark="#191714">',
+			pwa.head_tags(pwa.APP_THEME_COLOR),
 		)
+
+	def test_the_browser_takes_the_paper_of_the_website_theme(self):
+		frappe.local.website_settings = frappe._dict(website_theme="Standard")
+		self.addCleanup(forget_website_settings)
+		self.assertEqual(pwa.get_website_theme_color(), pwa.STANDARD_THEME_COLOR)
+		self.assertEqual(pwa.get_app_theme_color(), pwa.APP_THEME_COLOR)
+
+		frappe.local.website_settings = frappe._dict(website_theme="Harbor")
+		self.assertEqual(pwa.get_website_theme_color(), get_theme_color())
+		self.assertEqual(pwa.get_app_theme_color(), get_theme_color())
 
 	def test_ios_gets_the_short_name(self):
 		self.assertIn(
-			f'<meta name="apple-mobile-web-app-title" content="{DEFAULT_CHURCH_NAME}">', pwa.head_tags()
+			f'<meta name="apple-mobile-web-app-title" content="{DEFAULT_CHURCH_NAME}">',
+			pwa.head_tags(pwa.STANDARD_THEME_COLOR),
 		)
 
 

@@ -91,9 +91,14 @@ app_include_js = [
 ]
 
 # include js, css files in header of web template
-# Page layout shared by every website theme. The Churchit theme's own look is
-# public/scss/website.scss, which frappe compiles into each Website Theme.
-web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
+# The website's look for every Website Theme ("Order of Service", the member app's look); the theme's
+# palette colors it (church_website/palette.py).
+web_include_css = [
+	"/assets/churchit/css/fonts.css",
+	"/assets/churchit/css/order_of_service.css",
+	"/assets/churchit/css/website.css",
+	"/assets/churchit/css/pwa.css",
+]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
 	"/assets/churchit/js/missions_map.js",
@@ -537,6 +542,8 @@ doc_events = {
 		"on_update": "churchit.church_website.published_fields.clear_published_field_cache",
 		"on_trash": "churchit.church_website.published_fields.clear_published_field_cache",
 	},
+	# A changed color of the website's theme reaches pages that Frappe keeps in its page cache.
+	"Color": {"on_update": "churchit.church_website.palette.clear_pages_on_color_change"},
 }
 
 # Desk: whether multi-church is on and whether the user may include branches, and the tags

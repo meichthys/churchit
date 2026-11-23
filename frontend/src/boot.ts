@@ -36,8 +36,6 @@ export interface Boot {
 	time_format: string;
 	first_day_of_the_week: string;
 	currency: string;
-	/** The church's accent, already readable for each theme. */
-	accent: { light: string; dark: string };
 	/** enabled: the church uses self check-in (a steady rule); open: a Function is open for it now. */
 	check_in: { enabled: boolean; open: boolean };
 	push_public_key: string | null;

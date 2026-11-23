@@ -1,4 +1,6 @@
 @import "frappe-ui/style.css";
+/* The type, rules and motion the website shares (Order of Service). */
+@import "../../churchit/public/css/order_of_service.css";
 
 /*
   Order of Service: the portal is set like the weekly bulletin a member picks up at the door.
@@ -8,6 +10,9 @@
   change on purpose: ink-gray-5 is darker (lighter in dark mode) so quiet text passes AA, and
   outline-gray-1 is darker so hairline rules show. Keep the whole retune in this one block and compare it
   with frappe-ui's tokens on every frappe-ui upgrade.
+
+  These values are the fallback. The website's Website Theme puts its palette on the page with stronger
+  selectors (churchit/church_website/palette.py, which derives its steps from this block: keep them in step).
 */
 :root {
 	--surface-base: oklch(0.985 0.007 85);
@@ -49,14 +54,8 @@
 	--outline-elevation-1: oklch(0.915 0.01 85);
 	--outline-elevation-2: oklch(0.915 0.01 85);
 
-	/* The one accent: "now" and "do this", never a status or a button. The boot sets both colors. */
-	--accent-light: #9b2f22;
-	--accent-dark: #f18a79;
-	--accent: var(--accent-light);
-	--accent-wash: color-mix(in srgb, var(--accent) 8%, transparent);
-	--accent-wash-strong: color-mix(in srgb, var(--accent) 20%, transparent);
-
-	--font-serif: "Newsreader Variable", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+	/* The one accent: "now" and "do this", never a status or a button. */
+	--accent: #9b2f22;
 	/* The QR code stays dark on light paper in both themes, so door scanners read it. */
 	--qr-paper: #fbfaf6;
 }
@@ -101,9 +100,7 @@
 	--outline-elevation-1: oklch(0.3 0.006 70);
 	--outline-elevation-2: oklch(0.36 0.006 70);
 
-	--accent: var(--accent-dark);
-	--accent-wash: color-mix(in srgb, var(--accent) 12%, transparent);
-	--accent-wash-strong: color-mix(in srgb, var(--accent) 26%, transparent);
+	--accent: #f18a79;
 }
 
 html,
@@ -115,122 +112,6 @@ body,
 body {
 	background-color: var(--surface-base);
 	color: var(--ink-gray-8);
-}
-
-/* ---------- Type: Newsreader for what would be printed, Inter for what you read to act on or tap ---------- */
-
-.t-label,
-.t-numeral,
-.t-title,
-.t-head,
-.t-subhead,
-.t-dateline,
-.t-scripture {
-	font-family: var(--font-serif);
-}
-
-/* frappe-ui sets font-variation-settings on every span, div and p; nested text keeps the serif's. */
-:is(.t-label, .t-numeral, .t-title, .t-head, .t-subhead, .t-dateline, .t-scripture) :is(span, div, p) {
-	font-variation-settings: inherit;
-}
-
-/* A small-capital label. The served font has no small caps, so these are spaced capitals. One to four words. */
-.t-label {
-	font-variation-settings: "opsz" 10;
-	font-weight: 600;
-	font-size: 0.8125rem;
-	line-height: 1.25;
-	letter-spacing: 0.12em;
-	text-transform: uppercase;
-}
-
-.t-numeral {
-	font-variation-settings: "opsz" 72;
-	font-weight: 400;
-	line-height: 0.82;
-	letter-spacing: -0.02em;
-	font-variant-numeric: lining-nums proportional-nums;
-}
-
-.t-title {
-	font-variation-settings: "opsz" 72;
-	font-weight: 500;
-	font-size: 2.25rem;
-	line-height: 1.04;
-	letter-spacing: -0.015em;
-}
-
-.t-head {
-	font-variation-settings: "opsz" 36;
-	font-weight: 500;
-	font-size: 1.5rem;
-	line-height: 1.15;
-	letter-spacing: -0.006em;
-}
-
-.t-subhead {
-	font-variation-settings: "opsz" 24;
-	font-weight: 550;
-	font-size: 1.25rem;
-	line-height: 1.25;
-}
-
-/* Italic serif for datelines and empty-state lines only; instructions stay upright. */
-.t-dateline {
-	font-variation-settings: "opsz" 18;
-	font-style: italic;
-	font-weight: 400;
-	font-size: 1.0625rem;
-	line-height: 1.4;
-}
-
-.t-scripture {
-	font-variation-settings: "opsz" 20;
-	font-weight: 400;
-	font-size: 1.25rem;
-	line-height: 1.55;
-}
-
-.t-dateline.is-large {
-	font-size: 1.375rem;
-}
-
-.t-scripture.is-large {
-	font-size: 1.5rem;
-	line-height: 2.1;
-}
-
-@media (min-width: 768px) {
-	.t-title {
-		font-size: 3rem;
-	}
-	.t-head {
-		font-size: 1.625rem;
-	}
-	.t-dateline {
-		font-size: 1.1875rem;
-	}
-	.t-scripture {
-		font-size: 1.375rem;
-	}
-	.t-dateline.is-large {
-		font-size: 1.5rem;
-	}
-	.t-scripture.is-large {
-		font-size: 1.875rem;
-	}
-}
-
-/* Verse numbers: small, raised, in the accent, as in a printed Bible. */
-.verse-number {
-	font-family: var(--font-serif);
-	font-variation-settings: "opsz" 10;
-	font-weight: 600;
-	font-size: 0.5em;
-	vertical-align: 0.9em;
-	line-height: 0;
-	margin-inline-end: 0.3em;
-	color: var(--accent);
 }
 
 /* A word still to type in practice: a blank the width of the word, like sermon-notes fill-ins. */
@@ -247,31 +128,7 @@ body {
 	text-underline-offset: 0.3em;
 }
 
-/* An instruction, with its action next to it. Upright, in the accent. */
-.rubric {
-	color: var(--accent);
-}
-
 /* ---------- Rules ---------- */
-
-/* Thick-thin rule under a masthead, as on a printed bulletin. */
-.rule-double {
-	height: 6px;
-	border-top: 2px solid var(--ink-gray-8);
-	border-bottom: 1px solid var(--ink-gray-8);
-}
-
-/* Dot leader between an item and who leads it, as in a printed programme. */
-.leader {
-	flex: 1 1 1.5rem;
-	min-width: 1.5rem;
-	height: 4px;
-	margin-inline: 0.75rem;
-	background-image: radial-gradient(circle at center, var(--ink-gray-4) 0.85px, transparent 1.25px);
-	background-size: 7px 4px;
-	background-repeat: repeat-x;
-	background-position: left bottom;
-}
 
 /* The tear line between a pass and its stub, with a notch at each edge. */
 .perforation {
@@ -295,74 +152,6 @@ body {
 }
 .perforation::after {
 	inset-inline-end: calc(-1.25rem - 12px);
-}
-
-/* ---------- Motion ---------- */
-
-@keyframes settle {
-	from {
-		opacity: 0;
-		transform: translateY(6px);
-	}
-	to {
-		opacity: 1;
-		transform: none;
-	}
-}
-
-.settle > * {
-	animation: settle 0.26s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.settle > :nth-child(2) {
-	animation-delay: 40ms;
-}
-.settle > :nth-child(3) {
-	animation-delay: 80ms;
-}
-.settle > :nth-child(n + 4) {
-	animation-delay: 120ms;
-}
-
-/* Fresh ink: a line a live update just changed. useFreshInk() sets and clears the class. */
-@keyframes ink-wash {
-	from {
-		background-color: var(--accent-wash-strong);
-	}
-	to {
-		background-color: var(--accent-wash);
-	}
-}
-@keyframes ink-draw {
-	from {
-		transform: scaleY(0);
-	}
-	to {
-		transform: scaleY(1);
-	}
-}
-
-.is-fresh {
-	position: relative;
-	background-color: var(--accent-wash);
-	animation: ink-wash 1.4s ease-out both;
-}
-.is-fresh::before {
-	content: "";
-	position: absolute;
-	inset-block: 0;
-	inset-inline-start: 0;
-	width: 2px;
-	background: var(--accent);
-	transform-origin: top;
-	animation: ink-draw 0.35s ease-out both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.settle > *,
-	.is-fresh,
-	.is-fresh::before {
-		animation: none;
-	}
 }
 
 /* ---------- frappe-ui parts, adjusted for the paper and for older eyes ---------- */

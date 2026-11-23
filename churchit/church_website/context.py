@@ -23,6 +23,7 @@ from churchit.church_website.pages import (
 	is_link_off,
 	is_public_website_on,
 )
+from churchit.church_website.palette import get_palette_style
 from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
@@ -30,6 +31,7 @@ PORTAL_URL = "/portal"
 MEMBER_APP_PAGE = "member_portal"
 # The pages that draw a Leaflet map.
 MAP_PAGES = ("missions", "find-a-group", "calendar")
+FONTS_LINK = '<link rel="stylesheet" href="/assets/churchit/css/fonts.css">'
 THEME_MODE_SCRIPT = (
 	"<script>" + (Path(__file__).parents[1] / "public/js/theme_mode.js").read_text() + "</script>"
 )
@@ -43,9 +45,14 @@ def update_website_context(context):
 			_hide_closed_links(context)
 		return
 	if path == MEMBER_APP_PAGE:
-		# The member app (frontend/) draws its own menu and has no footer: it needs only the head,
-		# with the browser chrome in the app's own paper colors.
-		context["head_html"] = (context.get("head_html") or "") + pwa.head_tags(pwa.APP_THEME_COLOR)
+		# The member app (frontend/) draws its own menu and has no footer: it needs only the head, in
+		# the website theme's palette, with the fonts the app shares with the website.
+		context["head_html"] = (
+			(context.get("head_html") or "")
+			+ pwa.head_tags(pwa.get_app_theme_color())
+			+ get_palette_style()
+			+ FONTS_LINK
+		)
 		_add_theme_mode_script(context)
 		return
 
@@ -177,8 +184,11 @@ def _add_locations_menu(context):
 
 
 def _add_pwa_head_tags(context):
-	"""Make every page installable. Anything the church put in head_html stays in front."""
-	context["head_html"] = (context.get("head_html") or "") + pwa.head_tags()
+	"""Make every page installable and color it with the website theme's palette. Anything the church
+	put in head_html stays in front."""
+	context["head_html"] = (
+		(context.get("head_html") or "") + pwa.head_tags(pwa.get_website_theme_color()) + get_palette_style()
+	)
 
 
 def _add_theme_mode_script(context):

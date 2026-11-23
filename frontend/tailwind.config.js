@@ -5,7 +5,7 @@ export default {
 	content: [...content, "./index.html", "./src/**/*.{vue,js,ts}"],
 	theme: {
 		extend: {
-			// The church's accent, made readable for each theme on the server (churchit/portal/accent.py).
+			// The accent of the website theme's palette, which the page's head sets (churchit/church_website/palette.py).
 			colors: {
 				accent: "var(--accent)",
 				"accent-wash": "var(--accent-wash)",
