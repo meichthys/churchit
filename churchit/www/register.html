@@ -64,6 +64,7 @@
 	<div class="alert alert-info" role="alert">{{ _("This function is not open for registration.") }}
 		{%- if login_url %} {{ _("Some functions are open only to members who sign in.") }} <a class="alert-link" href="{{ login_url | e }}">{{ _("Sign in") }}</a>{% endif %}</div>
 	{% endif %}
+	<div id="register-open" data-live="Function">
 	{% if functions %}
 	<ul class="ch-index">
 		{% for item in functions %}
@@ -82,6 +83,7 @@
 		<p class="t-dateline is-large">{{ _("Nothing is open for registration right now. Please check back soon.") }}</p>
 	</div>
 	{% endif %}
+	</div>
 	{% endif %}
 </div>
 

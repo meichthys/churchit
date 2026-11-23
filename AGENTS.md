@@ -787,6 +787,19 @@ theme only to a user who may change Website Settings; the query string keeps it 
 `add_website_palettes` saves each theme compiled with the old `public/scss/website`, because migrate
 compiles only the theme in use.
 
+Live updates on the website are hints, like the member app's. `church_website/live.py` sends the event
+`churchit_website` with only a doctype to Frappe's website room after the commit, from the `doc_events`
+of the doctypes that pages show, when the record is on the website before or after the change
+(`live.is_shown`). A save of a Function's attendance (`attendance.save_attendance`, one per check-in and
+sign-up) sets `flags.attendance_only` and sends none. A part of a page that shows such records has an
+`id` and `data-live="<Doctype>,<Doctype>"`: `public/js/website_live.js` reads the page again, with a
+query string so that the page cache is not used, puts the visitor's `?church=` on its links
+(`churchit.carry_church`) and swaps each part that changed, but not a part in use (a recording plays or
+it holds the focus). A page drawn by a script calls `churchit.live.on(doctypes, read_again)`, as the
+calendar does. Every visitor is in the website room, guests too, so a hint never names a record or holds
+a field. A page with no live part never connects. `test_live` keeps the hooked doctypes and the ones
+pages listen for the same.
+
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
 module owns it). Every migrate adds its switch to Church Features (`sync_page_switches`). Do not add

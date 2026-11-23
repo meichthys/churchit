@@ -306,6 +306,10 @@
 		});
 		calendar.render();
 		openLinkedEvent();
+		// A Function published, changed or taken off the website shows without a reload.
+		churchit.live.on(['Function'], function () {
+			calendar.refetchEvents();
+		});
 
 		var branchToggle = document.getElementById('calendar-include-branches');
 		if (branchToggle) {

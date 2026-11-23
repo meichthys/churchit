@@ -101,6 +101,7 @@ web_include_css = [
 ]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
+	"/assets/churchit/js/website_live.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
 	"/assets/churchit/js/pwa.js",
@@ -416,8 +417,10 @@ churchit_people_events = {
 # anonymizes the member's Person, a church's record is never shared (or assigned,
 # which shares it) with a user outside that church, a bounce report that reaches
 # the inbox marks the address it names, MCP stays closed while AI is off, a new AI app
-# signs in only people with an AI role, and System Managers hear when a person first
-# connects an AI app.
+# signs in only people with an AI role, System Managers hear when a person first
+# connects an AI app, and open website pages hear when a record they show changes.
+# Frappe reads every public name in this module as a hook, so the shared path is private.
+_live_website_hook = "churchit.church_website.live.notify_change"
 doc_events = {
 	"*": {
 		# Only someone across every church changes a lookup that every church picks from (church_access.GLOBAL_LOOKUPS).
@@ -542,6 +545,11 @@ doc_events = {
 		"on_update": "churchit.church_website.published_fields.clear_published_field_cache",
 		"on_trash": "churchit.church_website.published_fields.clear_published_field_cache",
 	},
+	# Open website pages read themselves again when a record they show changes (church_website/live.py).
+	"Function": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon Series": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Bulletin": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
 	# A changed color of the website's theme reaches pages that Frappe keeps in its page cache.
 	"Color": {"on_update": "churchit.church_website.palette.clear_pages_on_color_change"},
 }

@@ -122,6 +122,8 @@ def save_attendance(function_doc: Document) -> None:
 	"""
 	editor = function_doc.modified_by
 	function_doc.flags.ignore_links = True
+	# Nothing a website page shows changed, so open pages are not told (church_website/live.py).
+	function_doc.flags.attendance_only = True
 	function_doc.save(ignore_permissions=True, ignore_version=True)
 	frappe.db.set_value("Function", function_doc.name, "modified_by", editor, update_modified=False)
 	function_doc.modified_by = editor

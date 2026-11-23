@@ -4,7 +4,7 @@
 {% block header %}<h1>{{ _("Announcements") }}</h1>{% endblock %}
 
 {% block page_content %}
-<div class="announcements">
+<div class="announcements" id="announcements" data-live="Bulletin">
 	{% for bulletin in bulletins %}
 	<section class="announcement">
 		<h2>{{ bulletin.function_name | e }}</h2>
