@@ -1,7 +1,8 @@
 // This source code is freely given for the sake of the gospel (Matthew 10:8)
 // and is licensed under MIT No Attribution (MIT-0).
 
-const STATEMENT_METHODS = "churchit.church_finances.doctype.giving_statement.giving_statement";
+const STATEMENT_METHODS =
+	"churchit.church_finances.doctype.giving_statement.giving_statement";
 
 function period_fields() {
 	const year = new Date().getFullYear() - 1;
@@ -28,7 +29,8 @@ frappe.listview_settings["Giving Statement"] = {
 	hide_name_filter: true,
 	add_fields: ["emailed_on", "email"],
 	get_indicator(doc) {
-		if (doc.emailed_on) return [__("Emailed"), "green", "emailed_on,is,set"];
+		if (doc.emailed_on)
+			return [__("Emailed"), "green", "emailed_on,is,set"];
 		if (!doc.email) return [__("No Email"), "red", "email,is,not set"];
 		return [__("Not Sent"), "orange", "emailed_on,is,not set|email,is,set"];
 	},
@@ -55,28 +57,37 @@ frappe.listview_settings["Giving Statement"] = {
 									__(
 										"No gifts with a named giver to a tax-deductible fund between {0} and {1}. Check the dates, or the Tax Deductible box on the funds.",
 										[
-											frappe.datetime.str_to_user(values.from_date),
-											frappe.datetime.str_to_user(values.to_date),
-										]
-									)
+											frappe.datetime.str_to_user(
+												values.from_date,
+											),
+											frappe.datetime.str_to_user(
+												values.to_date,
+											),
+										],
+									),
 								);
 							} else {
-								lines.push(__("{0} created, {1} rebuilt.", [created, updated]));
+								lines.push(
+									__("{0} created, {1} rebuilt.", [
+										created,
+										updated,
+									]),
+								);
 							}
 							if (removed) {
 								lines.push(
 									__(
 										"{0} statements that no giver needs any more were deleted.",
-										[removed]
-									)
+										[removed],
+									),
 								);
 							}
 							if (emailed_uncovered) {
 								lines.push(
 									__(
 										"{0} statements that no giver needs any more stay, because they were emailed.",
-										[emailed_uncovered]
-									)
+										[emailed_uncovered],
+									),
 								);
 							}
 							frappe.msgprint({
@@ -84,7 +95,8 @@ frappe.listview_settings["Giving Statement"] = {
 									created || updated
 										? __("Statements Ready")
 										: __("No Statements Made"),
-								indicator: created || updated ? "green" : "orange",
+								indicator:
+									created || updated ? "green" : "orange",
 								message: lines.join("<br>"),
 							});
 							listview.refresh();
@@ -92,7 +104,7 @@ frappe.listview_settings["Giving Statement"] = {
 					});
 				},
 				__("Generate Statements"),
-				__("Generate")
+				__("Generate"),
 			);
 		});
 
@@ -118,18 +130,20 @@ frappe.listview_settings["Giving Statement"] = {
 								already_emailed = 0,
 							} = r.message || {};
 							frappe.msgprint({
-								title: queued ? __("Emails Queued") : __("Nothing to Email"),
+								title: queued
+									? __("Emails Queued")
+									: __("Nothing to Email"),
 								indicator: queued ? "green" : "orange",
 								message: __(
 									"{0} will be emailed, {1} have no email address, {2} were already emailed.",
-									[queued, no_email, already_emailed]
+									[queued, no_email, already_emailed],
 								),
 							});
 						},
 					});
 				},
 				__("Email Statements"),
-				__("Email")
+				__("Email"),
 			);
 		});
 	},

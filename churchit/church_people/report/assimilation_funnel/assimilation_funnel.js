@@ -8,7 +8,10 @@ frappe.query_reports["Assimilation Funnel"] = {
 			fieldname: "from_date",
 			label: __("First Visit From"),
 			fieldtype: "Date",
-			default: frappe.datetime.add_months(frappe.datetime.get_today(), -3),
+			default: frappe.datetime.add_months(
+				frappe.datetime.get_today(),
+				-3,
+			),
 			reqd: 1,
 		},
 		{

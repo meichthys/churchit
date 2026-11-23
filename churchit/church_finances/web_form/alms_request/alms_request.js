@@ -6,7 +6,8 @@ frappe.ready(function () {
 	if (recipient_ctrl && type_ctrl && recipient_ctrl.$input) {
 		var $input = recipient_ctrl.$input;
 		var $wrap = recipient_ctrl.$wrapper;
-		var real_name = (frappe.web_form.doc && frappe.web_form.doc.recipient) || "";
+		var real_name =
+			(frappe.web_form.doc && frappe.web_form.doc.recipient) || "";
 
 		// Override get_value so the form submits the document name, not the display label
 		var original_get_value = recipient_ctrl.get_value.bind(recipient_ctrl);
@@ -18,7 +19,9 @@ frappe.ready(function () {
 		frappe.web_form.validate = function () {
 			if (real_name || !$input.val()) return true;
 			frappe.msgprint({
-				message: __("Choose who it is for from the list that shows as you type."),
+				message: __(
+					"Choose who it is for from the list that shows as you type.",
+				),
 				indicator: "orange",
 			});
 			return false;
@@ -86,11 +89,17 @@ frappe.ready(function () {
 			frappe.call({
 				method: "churchit.church_website.api.search_church_recipient",
 				type: "GET",
-				args: { doctype: frappe.web_form.doc.recipient_type, txt: real_name },
+				args: {
+					doctype: frappe.web_form.doc.recipient_type,
+					txt: real_name,
+				},
 				callback: function (r) {
 					var results = r.message || [];
 					for (var i = 0; i < results.length; i++) {
-						if (results[i].name === real_name || results[i].label === real_name) {
+						if (
+							results[i].name === real_name ||
+							results[i].label === real_name
+						) {
 							real_name = results[i].name;
 							$input.val(results[i].label);
 							break;
@@ -114,15 +123,18 @@ frappe.ready(function () {
 					var person_name = r.message.name;
 					var person_label = r.message.full_name || person_name;
 
-					var requestor_ctrl = frappe.web_form.fields_dict["requestor"];
+					var requestor_ctrl =
+						frappe.web_form.fields_dict["requestor"];
 					if (requestor_ctrl) requestor_ctrl.set_value(person_name);
 
 					// Setting recipient_type fires our change handler which clears state;
 					// assign real_name/input afterwards so they aren't clobbered.
-					Promise.resolve(type_ctrl.set_value("Person")).then(function () {
-						real_name = person_name;
-						$input.val(person_label);
-					});
+					Promise.resolve(type_ctrl.set_value("Person")).then(
+						function () {
+							real_name = person_name;
+							$input.val(person_label);
+						},
+					);
 				},
 			});
 		}

@@ -49,18 +49,22 @@ function render_card_draft(frm, draft) {
 		return;
 	}
 	const escape = frappe.utils.escape_html;
-	const rows = CARD_PHOTO_FIELDS.filter(([fieldname]) => draft[fieldname]).map(
+	const rows = CARD_PHOTO_FIELDS.filter(
+		([fieldname]) => draft[fieldname],
+	).map(
 		([fieldname, label]) =>
 			`<tr><th class="text-muted">${escape(label)}</th><td>${escape(
-				draft[fieldname]
-			)}</td></tr>`
+				draft[fieldname],
+			)}</td></tr>`,
 	);
-	const interests = (draft.interests || []).map((row) => escape(row.interest));
+	const interests = (draft.interests || []).map((row) =>
+		escape(row.interest),
+	);
 	if (interests.length) {
 		rows.push(
 			`<tr><th class="text-muted">${escape(__("I Would Like To"))}</th><td>${interests.join(
-				", "
-			)}</td></tr>`
+				", ",
+			)}</td></tr>`,
 		);
 	}
 	const members = (draft.household_members || []).map((row) =>
@@ -69,19 +73,21 @@ function render_card_draft(frm, draft) {
 				[row.relationship, row.birth_date]
 					.filter(Boolean)
 					.map((part) => ` (${part})`)
-					.join("")
-		)
+					.join(""),
+		),
 	);
 	if (members.length) {
 		rows.push(
 			`<tr><th class="text-muted">${escape(__("Who Is With You?"))}</th><td>${members.join(
-				"<br>"
-			)}</td></tr>`
+				"<br>",
+			)}</td></tr>`,
 		);
 	}
 	wrapper.html(`
 		<div class="form-message yellow"><div>${escape(
-			__("AI draft. Check each value against the photo before you create the card.")
+			__(
+				"AI draft. Check each value against the photo before you create the card.",
+			),
 		)}</div></div>
 		<table class="table table-sm">${rows.join("")}</table>`);
 }
@@ -89,20 +95,34 @@ function render_card_draft(frm, draft) {
 function card_photo_note(frm) {
 	const notes = {
 		Waiting: __("Waiting for AI to read the photo."),
-		Reading: __("AI is reading the photo. A local model can take several minutes."),
-		"Ready to Copy": __("AI does not read this photo. Click Copy by Hand to type the card."),
+		Reading: __(
+			"AI is reading the photo. A local model can take several minutes.",
+		),
+		"Ready to Copy": __(
+			"AI does not read this photo. Click Copy by Hand to type the card.",
+		),
 	};
 	const note = notes[frm.doc.status];
-	return note ? `<p class="text-muted">${frappe.utils.escape_html(note)}</p>` : "";
+	return note
+		? `<p class="text-muted">${frappe.utils.escape_html(note)}</p>`
+		: "";
 }
 
 function render_card_matches(frm, draft) {
 	const wrapper = frm.get_field("matches_html").$wrapper.empty();
-	if (!draft || frm.doc.status !== "Ready to Check" || !frappe.model.can_create("Person"))
+	if (
+		!draft ||
+		frm.doc.status !== "Ready to Check" ||
+		!frappe.model.can_create("Person")
+	)
 		return;
 
 	const people = [
-		{ ...draft, emails: [draft.email].filter(Boolean), phones: [draft.phone].filter(Boolean) },
+		{
+			...draft,
+			emails: [draft.email].filter(Boolean),
+			phones: [draft.phone].filter(Boolean),
+		},
 		...(draft.household_members || []),
 	];
 	Promise.all(
@@ -111,10 +131,10 @@ function render_card_matches(frm, draft) {
 				.xcall(
 					"churchit.church_people.matching.get_possible_matches",
 					{ candidate },
-					"GET"
+					"GET",
 				)
-				.catch(() => [])
-		)
+				.catch(() => []),
+		),
 	).then((found) => {
 		const lines = people
 			.map((person, index) => card_match_line(person, found[index]))
@@ -123,8 +143,8 @@ function render_card_matches(frm, draft) {
 		wrapper.html(`
 			<p class="text-muted small">${frappe.utils.escape_html(
 				__(
-					"Possible duplicates. Saving the card links or adds the people as any new card does."
-				)
+					"Possible duplicates. Saving the card links or adds the people as any new card does.",
+				),
 			)}</p>
 			<ul>${lines.join("")}</ul>`);
 	});
@@ -133,13 +153,15 @@ function render_card_matches(frm, draft) {
 function card_match_line(person, matches) {
 	if (!matches?.length) return "";
 	const escape = frappe.utils.escape_html;
-	const name = escape([person.first_name, person.last_name].filter(Boolean).join(" "));
+	const name = escape(
+		[person.first_name, person.last_name].filter(Boolean).join(" "),
+	);
 	const links = matches.map((match) => {
 		const link = frappe.utils.get_form_link(
 			"Person",
 			match.person,
 			true,
-			escape(match.full_name)
+			escape(match.full_name),
 		);
 		return `${link} (${match.reasons.map((reason) => escape(__(reason))).join(", ")})`;
 	});
@@ -151,7 +173,8 @@ function add_card_photo_buttons(frm) {
 
 	const is_ai_on = Boolean(frappe.boot.churchit?.ai?.on);
 	const can_create = frappe.model.can_create("Connection Card");
-	const has_draft = is_ai_on && frm.doc.status === "Ready to Check" && can_create;
+	const has_draft =
+		is_ai_on && frm.doc.status === "Ready to Check" && can_create;
 	if (frm.doc.status !== "Imported" && can_create) {
 		// A new card with the photo above the form; its save links and imports the photo. card_photo is
 		// No Copy, which route options skip, so it is set on the new document itself.
@@ -160,10 +183,13 @@ function add_card_photo_buttons(frm) {
 			() =>
 				frappe.model.with_doctype("Connection Card", () => {
 					const card = frappe.model.get_new_doc("Connection Card");
-					Object.assign(card, { card_photo: frm.doc.name, church: frm.doc.church });
+					Object.assign(card, {
+						card_photo: frm.doc.name,
+						church: frm.doc.church,
+					});
 					frappe.set_route("Form", "Connection Card", card.name);
 				}),
-			has_draft ? __("Actions") : undefined
+			has_draft ? __("Actions") : undefined,
 		);
 	}
 	if (!is_ai_on) return;
@@ -171,11 +197,13 @@ function add_card_photo_buttons(frm) {
 	if (has_draft) {
 		frm.add_custom_button(__("Create Connection Card"), () =>
 			frappe
-				.xcall("churchit.ai.card_capture.create_card", { photo: frm.doc.name })
+				.xcall("churchit.ai.card_capture.create_card", {
+					photo: frm.doc.name,
+				})
 				.then(({ url }) => {
 					const target = new URL(url, window.location.origin);
 					frappe.set_route(target.pathname + target.search);
-				})
+				}),
 		);
 	}
 	if (frm.doc.__onload?.is_readable_again && churchit.ai.can_run(true)) {
@@ -183,9 +211,11 @@ function add_card_photo_buttons(frm) {
 			__("Read Again"),
 			() =>
 				frappe
-					.xcall("churchit.ai.card_capture.read_again", { photo: frm.doc.name })
+					.xcall("churchit.ai.card_capture.read_again", {
+						photo: frm.doc.name,
+					})
 					.then(() => frm.reload_doc()),
-			__("Actions")
+			__("Actions"),
 		);
 	}
 }

@@ -27,7 +27,7 @@ async function show_give_link(frm) {
 	const link = await frappe.xcall(
 		"churchit.church_finances.doctype.fund.fund.get_give_link",
 		{ fund: frm.doc.name },
-		"GET"
+		"GET",
 	);
 	const safe_url = frappe.utils.escape_html(link.url);
 	const dialog = new frappe.ui.Dialog({
@@ -44,7 +44,7 @@ async function show_give_link(frm) {
 						<p class="small"><a href="${safe_url}" target="_blank">${safe_url}</a></p>
 						<p class="small text-muted">${__(
 							"Add {0} to the address to fill in an amount. Write the address on an NFC tag for tap to give.",
-							["<code>&amp;amount=25</code>"]
+							["<code>&amp;amount=25</code>"],
 						)}</p>
 					</div>
 				`,

@@ -13,7 +13,7 @@
 
 		// a menu toggle such as the account menu links to "#", which is this page
 		const links = document.querySelectorAll(
-			'.navbar-nav > .nav-item > .nav-link:not([href^="#"])'
+			'.navbar-nav > .nav-item > .nav-link:not([href^="#"])',
 		);
 		links.forEach(function (link) {
 			if (link.pathname && trimSlash(link.pathname) === section) {
@@ -21,22 +21,30 @@
 			}
 		});
 
-		document.querySelectorAll(".web-sidebar .sidebar-item a").forEach(function (link) {
-			const href = trimSlash(link.pathname);
-			link.classList.toggle("active", current === href || current.startsWith(href + "/"));
-		});
+		document
+			.querySelectorAll(".web-sidebar .sidebar-item a")
+			.forEach(function (link) {
+				const href = trimSlash(link.pathname);
+				link.classList.toggle(
+					"active",
+					current === href || current.startsWith(href + "/"),
+				);
+			});
 
 		// frappe's sidebar script centres the current page with scrollIntoView,
 		// which on a desktop scrolls the window past the page heading. Put the
 		// window back, unless frappe then scrolled to a #link, and centre the
 		// current page only in the row that scrolls sideways on a phone.
-		const active = document.querySelector(".web-sidebar .sidebar-item a.active");
+		const active = document.querySelector(
+			".web-sidebar .sidebar-item a.active",
+		);
 		const row = active && active.closest(".sidebar-items");
 		if (row) {
 			if (!window.location.hash) window.scrollTo(0, 0);
 			const rowBox = row.getBoundingClientRect();
 			const linkBox = active.getBoundingClientRect();
-			row.scrollLeft += linkBox.left - rowBox.left - (rowBox.width - linkBox.width) / 2;
+			row.scrollLeft +=
+				linkBox.left - rowBox.left - (rowBox.width - linkBox.width) / 2;
 		}
 	});
 

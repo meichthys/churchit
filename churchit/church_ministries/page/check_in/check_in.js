@@ -75,7 +75,7 @@ const STATION_HTML = `
 			</button>
 		</div>
 		<div class="station-hint">${__(
-			"Tap the people who have arrived, then Check In. Press Enter to check in a single match."
+			"Tap the people who have arrived, then Check In. Press Enter to check in a single match.",
 		)}</div>
 		<div class="station-results"></div>
 		<div class="station-actions">
@@ -115,7 +115,9 @@ class CheckInStation {
 			this.stop_polling();
 			frappe.app.sidebar?.unfold_after_leaving_page();
 		});
-		document.addEventListener("visibilitychange", () => this.start_polling());
+		document.addEventListener("visibilitychange", () =>
+			this.start_polling(),
+		);
 	}
 
 	make() {
@@ -129,17 +131,19 @@ class CheckInStation {
 		this.page.set_primary_action(
 			{ label: __("New Visitor"), short_label: __("Visitor") },
 			() => this.new_visitor(this.$search.val().trim()),
-			"add"
+			"add",
 		);
 		this.page.set_secondary_action(
 			{ label: __("Verify Pickup"), short_label: __("Pickup") },
-			() => this.verify_pickup()
+			() => this.verify_pickup(),
 		);
 		this.page.add_menu_item(__("Check-In Settings"), () =>
-			frappe.set_route("Form", "Check-In Settings")
+			frappe.set_route("Form", "Check-In Settings"),
 		);
 		this.page.add_menu_item(__("Function Check-Ins"), () =>
-			frappe.set_route("List", "Function Check-In", { function: this.function })
+			frappe.set_route("List", "Function Check-In", {
+				function: this.function,
+			}),
 		);
 
 		this.$body = $(STATION_HTML).appendTo(this.page.body);
@@ -195,35 +199,41 @@ class CheckInStation {
 			$(event.currentTarget)
 				.closest(".family-card")
 				.find(".member:not(.checked-in)")
-				.each((_, element) => this.selected.add($(element).data("person")));
+				.each((_, element) =>
+					this.selected.add($(element).data("person")),
+				);
 			this.render_results();
 		});
 		this.$check_in.on("click", () => this.check_in([...this.selected]));
 		this.$body.find(".btn-clear").on("click", () => this.clear());
 		this.$body.find(".btn-scan-card").on("click", () => this.scan_card());
 		this.$results.on("click", ".add-visitor", () =>
-			this.new_visitor(this.$search.val().trim())
+			this.new_visitor(this.$search.val().trim()),
 		);
 		this.$roster.on("click", ".btn-reprint", (event) => {
-			church.name_tags.print_for({ check_ins: [$(event.currentTarget).data("name")] });
+			church.name_tags.print_for({
+				check_ins: [$(event.currentTarget).data("name")],
+			});
 		});
 		this.$roster.on("click", ".btn-undo", (event) =>
-			this.undo($(event.currentTarget).data("name"))
+			this.undo($(event.currentTarget).data("name")),
 		);
 		this.$roster.on("click", ".btn-page", (event) =>
-			this.page_parents($(event.currentTarget).data("name"))
+			this.page_parents($(event.currentTarget).data("name")),
 		);
 		this.$roster.on("click", ".btn-check-out", (event) =>
-			this.check_out($(event.currentTarget).data("name"))
+			this.check_out($(event.currentTarget).data("name")),
 		);
 		this.$roster_filter.on("input", () => this.render_roster());
 	}
 
 	load_context() {
-		frappe.call({ method: `${API}.get_station_context`, type: "GET" }).then((r) => {
-			this.context = r.message;
-			this.apply_route_options();
-		});
+		frappe
+			.call({ method: `${API}.get_station_context`, type: "GET" })
+			.then((r) => {
+				this.context = r.message;
+				this.apply_route_options();
+			});
 	}
 
 	// A function named in the route wins; otherwise the first visit picks a default.
@@ -232,14 +242,19 @@ class CheckInStation {
 		const wanted = frappe.route_options && frappe.route_options.function;
 		frappe.route_options = null;
 		const choice = wanted || (!this.function && this.default_function());
-		if (choice && choice !== this.function) this.function_field.set_value(choice);
+		if (choice && choice !== this.function)
+			this.function_field.set_value(choice);
 	}
 
 	// The function last used on this computer when it is on today, else the next one on the calendar.
 	default_function() {
 		const { functions, today } = this.context;
 		const remembered = localStorage.getItem(LAST_FUNCTION_KEY);
-		if (functions.some((f) => f.name === remembered && f.start_date === today))
+		if (
+			functions.some(
+				(f) => f.name === remembered && f.start_date === today,
+			)
+		)
 			return remembered;
 		const next = functions.find((f) => f.start_date >= today);
 		return next && next.name;
@@ -250,21 +265,24 @@ class CheckInStation {
 		this.function_doc = null;
 		if (!name) return this.stop_polling();
 		localStorage.setItem(LAST_FUNCTION_KEY, name);
-		frappe.db.get_value("Function", name, ["function_name", "start_date"]).then((r) => {
-			const doc = r.message || {};
-			if (name === this.function) this.function_doc = doc;
-			this.$body
-				.find(".roster-function")
-				.attr("href", frappe.utils.get_form_link("Function", name))
-				.text(
-					[
-						doc.function_name,
-						doc.start_date && frappe.datetime.str_to_user(doc.start_date),
-					]
-						.filter(Boolean)
-						.join(" · ")
-				);
-		});
+		frappe.db
+			.get_value("Function", name, ["function_name", "start_date"])
+			.then((r) => {
+				const doc = r.message || {};
+				if (name === this.function) this.function_doc = doc;
+				this.$body
+					.find(".roster-function")
+					.attr("href", frappe.utils.get_form_link("Function", name))
+					.text(
+						[
+							doc.function_name,
+							doc.start_date &&
+								frappe.datetime.str_to_user(doc.start_date),
+						]
+							.filter(Boolean)
+							.join(" · "),
+					);
+			});
 		this.clear();
 		this.start_polling();
 		this.show_rooms();
@@ -275,7 +293,8 @@ class CheckInStation {
 	// People counted in the room, named or not. The attendance total takes the larger count.
 	show_headcount() {
 		if (!this.$headcount) {
-			this.$headcount = $(`<div class="headcount d-flex align-items-center mb-3">
+			this.$headcount =
+				$(`<div class="headcount d-flex align-items-center mb-3">
 				<label class="m-0 mr-2 text-muted" for="checkin-headcount">${__("Headcount")}</label>
 				<input class="form-control input-xs mr-2" type="number" min="0" style="width: 6em"
 					id="checkin-headcount">
@@ -294,7 +313,7 @@ class CheckInStation {
 						frappe.show_alert({
 							message: __("Attendance total: {0}", [r.message]),
 							indicator: "green",
-						})
+						}),
 					);
 			this.$headcount.find("button").on("click", save);
 			this.$headcount.find("input").on("keydown", (event) => {
@@ -302,16 +321,19 @@ class CheckInStation {
 			});
 		}
 		const name = this.function;
-		frappe.db.get_value("Function", name, ["start_date", "headcount"]).then((r) => {
-			const doc = r.message || {};
-			if (name !== this.function) return;
-			// The server refuses a headcount before the function starts. Bootstrap's d-flex is
-			// !important, so it goes too, or the box would never hide.
-			const started =
-				Boolean(doc.start_date) && doc.start_date <= frappe.datetime.get_today();
-			this.$headcount.toggleClass("d-flex", started).toggle(started);
-			this.$headcount.find("input").val(doc.headcount || "");
-		});
+		frappe.db
+			.get_value("Function", name, ["start_date", "headcount"])
+			.then((r) => {
+				const doc = r.message || {};
+				if (name !== this.function) return;
+				// The server refuses a headcount before the function starts. Bootstrap's d-flex is
+				// !important, so it goes too, or the box would never hide.
+				const started =
+					Boolean(doc.start_date) &&
+					doc.start_date <= frappe.datetime.get_today();
+				this.$headcount.toggleClass("d-flex", started).toggle(started);
+				this.$headcount.find("input").val(doc.headcount || "");
+			});
 	}
 
 	focus_search() {
@@ -363,17 +385,25 @@ class CheckInStation {
 			})
 			.then((r) => {
 				const result = r.message;
-				const function_name = frappe.utils.escape_html(result.function_name);
+				const function_name = frappe.utils.escape_html(
+					result.function_name,
+				);
 				frappe.show_alert({
 					message: result.new.length
-						? __("{0} checked in to {1}.", [result.new.length, function_name])
+						? __("{0} checked in to {1}.", [
+								result.new.length,
+								function_name,
+							])
 						: __("Already checked in to {0}.", [function_name]),
 					indicator: result.new.length ? "green" : "orange",
 				});
 				if (result.capacity_warning) {
 					frappe.show_alert(
-						{ message: result.capacity_warning, indicator: "orange" },
-						10
+						{
+							message: result.capacity_warning,
+							indicator: "orange",
+						},
+						10,
 					);
 				}
 				this.refresh_roster();
@@ -408,22 +438,26 @@ class CheckInStation {
 			this.$results.html(
 				query.length >= 2
 					? `<div class="empty">${__(
-							"No one found."
-					  )} <button type="button" class="btn btn-link p-0 add-visitor">${__(
-							"Add them as a new visitor."
-					  )}</button></div>`
-					: ""
+							"No one found.",
+						)} <button type="button" class="btn btn-link p-0 add-visitor">${__(
+							"Add them as a new visitor.",
+						)}</button></div>`
+					: "",
 			);
 			this.update_button();
 			return;
 		}
-		this.$results.html(this.groups.map((group) => this.family_card(group)).join(""));
+		this.$results.html(
+			this.groups.map((group) => this.family_card(group)).join(""),
+		);
 		this.update_button();
 	}
 
 	family_card(group) {
 		const title = frappe.utils.escape_html(group.family_name || "");
-		const members = group.members.map((member) => this.member_chip(member)).join("");
+		const members = group.members
+			.map((member) => this.member_chip(member))
+			.join("");
 		const select_all =
 			group.members.length > 1
 				? `<button class="btn btn-link btn-sm select-family">${__("Select all")}</button>`
@@ -447,7 +481,7 @@ class CheckInStation {
 		const allergies = member.alergies
 			? `<span class="indicator-pill red mt-1">${__("Allergies: {0}", [
 					frappe.utils.escape_html(member.alergies),
-			  ])}</span>`
+				])}</span>`
 			: "";
 		// The server sends these only to readers of Person permission level 1.
 		const has_care =
@@ -458,7 +492,7 @@ class CheckInStation {
 		const care = has_care
 			? `<button type="button" class="btn btn-default member-care" data-person="${
 					member.name
-			  }"
+				}"
 				title="${care_label}" aria-label="${care_label}">
 				${frappe.utils.icon("stethoscope", "md")}
 			</button>`
@@ -483,7 +517,10 @@ class CheckInStation {
 		const member = this.groups
 			.flatMap((group) => group.members)
 			.find((row) => row.name === person);
-		const contact = [member.emergency_contact_name, member.emergency_contact_phone]
+		const contact = [
+			member.emergency_contact_name,
+			member.emergency_contact_phone,
+		]
 			.filter(Boolean)
 			.join(", ");
 		const section = (label, text) =>
@@ -505,7 +542,9 @@ class CheckInStation {
 		if (this.selected.has(person)) this.selected.delete(person);
 		else this.selected.add(person);
 		this.render_results();
-		this.$results.find(`.member[data-person="${CSS.escape(person)}"]`).trigger("focus");
+		this.$results
+			.find(`.member[data-person="${CSS.escape(person)}"]`)
+			.trigger("focus");
 	}
 
 	update_button() {
@@ -520,7 +559,9 @@ class CheckInStation {
 		if (this.selected.size) return this.check_in([...this.selected]);
 		const matches = this.groups
 			.flatMap((group) => group.members)
-			.filter((member) => member.matched && !this.checked_in.has(member.name));
+			.filter(
+				(member) => member.matched && !this.checked_in.has(member.name),
+			);
 		if (matches.length === 1) this.check_in([matches[0].name]);
 	}
 
@@ -548,13 +589,17 @@ class CheckInStation {
 					});
 					if (r.message.capacity_warning) {
 						frappe.show_alert(
-							{ message: r.message.capacity_warning, indicator: "orange" },
-							10
+							{
+								message: r.message.capacity_warning,
+								indicator: "orange",
+							},
+							10,
 						);
 					}
 					this.clear();
 					this.refresh_roster();
-					if (r.message.print) return church.name_tags.print(r.message.print);
+					if (r.message.print)
+						return church.name_tags.print(r.message.print);
 				});
 		if (confirmed) return send();
 		const day = this.confirm_day();
@@ -565,7 +610,7 @@ class CheckInStation {
 					method: "churchit.church_ministries.check_in_limits.get_bound_problems",
 					type: "GET",
 					args: { function: this.function, persons },
-				})
+				}),
 			)
 			.then((r) => {
 				const problems = Object.values(r.message || {});
@@ -573,15 +618,15 @@ class CheckInStation {
 				const escape = frappe.utils.escape_html;
 				const lines = problems.map(
 					({ full_name, problem }) =>
-						`<li><b>${escape(full_name)}</b>: ${escape(problem)}</li>`
+						`<li><b>${escape(full_name)}</b>: ${escape(problem)}</li>`,
 				);
 				return new Promise((resolve) =>
 					frappe.confirm(
 						`<p>${__("Outside the age or grade limits of this function:")}</p>
 						<ul>${lines.join("")}</ul>
 						<p>${__("Check in anyway?")}</p>`,
-						() => resolve(send())
-					)
+						() => resolve(send()),
+					),
 				);
 			});
 	}
@@ -589,15 +634,16 @@ class CheckInStation {
 	// Resolves at once for a function on today, else only once the volunteer says Yes.
 	confirm_day() {
 		const { function_name, start_date } = this.function_doc || {};
-		if (!start_date || start_date === frappe.datetime.get_today()) return Promise.resolve();
+		if (!start_date || start_date === frappe.datetime.get_today())
+			return Promise.resolve();
 		return new Promise((resolve) =>
 			frappe.confirm(
 				__("{0} is on {1}, not today. Check in anyway?", [
 					frappe.utils.escape_html(function_name),
 					moment(start_date).format("dddd, LL"),
 				]),
-				resolve
-			)
+				resolve,
+			),
 		);
 	}
 
@@ -613,9 +659,17 @@ class CheckInStation {
 	// stations' check-ins and checkouts show; a hidden tab or another page sends nothing.
 	start_polling() {
 		this.stop_polling();
-		if (!this.function || document.hidden || frappe.get_route()[0] !== "check-in") return;
+		if (
+			!this.function ||
+			document.hidden ||
+			frappe.get_route()[0] !== "check-in"
+		)
+			return;
 		this.poll_roster();
-		this.poll = setInterval(() => this.poll_roster(), ROSTER_REFRESH_SECONDS * 1000);
+		this.poll = setInterval(
+			() => this.poll_roster(),
+			ROSTER_REFRESH_SECONDS * 1000,
+		);
 	}
 
 	stop_polling() {
@@ -632,8 +686,11 @@ class CheckInStation {
 				this.stop_polling();
 				this.poll_failures = (this.poll_failures || 0) + 1;
 				const minutes = Math.min(2 ** (this.poll_failures - 1), 8);
-				this.poll_retry = setTimeout(() => this.start_polling(), minutes * 60 * 1000);
-			}
+				this.poll_retry = setTimeout(
+					() => this.start_polling(),
+					minutes * 60 * 1000,
+				);
+			},
 		);
 	}
 
@@ -663,13 +720,17 @@ class CheckInStation {
 		const rows = this.roster_rows || [];
 		const query = this.$roster_filter.val().trim().toLowerCase();
 		const shown = rows.filter((row) =>
-			`${row.full_name} ${row.security_code || ""}`.toLowerCase().includes(query)
+			`${row.full_name} ${row.security_code || ""}`
+				.toLowerCase()
+				.includes(query),
 		);
-		const empty = rows.length ? __("No one matches.") : __("No one is checked in yet.");
+		const empty = rows.length
+			? __("No one matches.")
+			: __("No one is checked in yet.");
 		this.$roster.html(
 			shown.length
 				? shown.map((row) => this.roster_row(row)).join("")
-				: `<div class="empty">${empty}</div>`
+				: `<div class="empty">${empty}</div>`,
 		);
 	}
 
@@ -683,9 +744,11 @@ class CheckInStation {
 			? `<span class="indicator-pill green">${__("In")}</span>`
 			: `<span class="indicator-pill gray">${
 					row.collected_by_name
-						? __("Collected by {0}", [frappe.utils.escape_html(row.collected_by_name)])
+						? __("Collected by {0}", [
+								frappe.utils.escape_html(row.collected_by_name),
+							])
 						: __("Checked out")
-			  }</span>`;
+				}</span>`;
 		return `<div class="roster-row">
 			${frappe.get_avatar("avatar-small", row.full_name, row.photo)}
 			<span class="name">${frappe.utils.escape_html(row.full_name)}</span>
@@ -742,7 +805,9 @@ class CheckInStation {
 					freeze: true,
 				})
 				.then((r) => {
-					const reached = (r.message || []).map(frappe.utils.escape_html);
+					const reached = (r.message || []).map(
+						frappe.utils.escape_html,
+					);
 					if (reached.length) {
 						frappe.show_alert({
 							message: __("Paged {0}.", [reached.join(", ")]),
@@ -752,7 +817,9 @@ class CheckInStation {
 					}
 					frappe.msgprint({
 						title: __("No parent reached"),
-						message: __("No parent could get a text or an email. Send a runner."),
+						message: __(
+							"No parent could get a text or an email. Send a runner.",
+						),
 						indicator: "orange",
 					});
 				});
@@ -762,9 +829,10 @@ class CheckInStation {
 	// The Team tab lists who serves at the Function. They check in as Volunteers: no code, no pickup tag.
 	make_team_tab() {
 		const $people = this.$body.find(
-			".search-row, .station-hint, .station-results, .station-actions"
+			".search-row, .station-hint, .station-results, .station-actions",
 		);
-		const $tabs = $(`<ul class="nav nav-tabs station-tabs mb-3" role="tablist">
+		const $tabs =
+			$(`<ul class="nav nav-tabs station-tabs mb-3" role="tablist">
 			<li class="nav-item" role="presentation">
 				<button type="button" class="nav-link active" role="tab" aria-selected="true"
 					data-tab="people">${__("People")}</button>
@@ -779,15 +847,23 @@ class CheckInStation {
 			.insertAfter(this.$body.find(".station-actions"));
 		$tabs.on("click", ".nav-link", (event) => {
 			const is_team = event.currentTarget.dataset.tab === "team";
-			$tabs.find(".nav-link").removeClass("active").attr("aria-selected", "false");
-			$(event.currentTarget).addClass("active").attr("aria-selected", "true");
+			$tabs
+				.find(".nav-link")
+				.removeClass("active")
+				.attr("aria-selected", "false");
+			$(event.currentTarget)
+				.addClass("active")
+				.attr("aria-selected", "true");
 			$people.toggle(!is_team);
 			this.$team.toggle(is_team);
 			if (is_team) this.refresh_team();
 			else this.focus_search();
 		});
 		this.$team.on("click", ".btn-team-check-in", (event) => {
-			const check_in = this.check_in([event.currentTarget.dataset.person], "Volunteer");
+			const check_in = this.check_in(
+				[event.currentTarget.dataset.person],
+				"Volunteer",
+			);
 			if (check_in) check_in.then(() => this.refresh_team());
 		});
 	}
@@ -806,8 +882,8 @@ class CheckInStation {
 					team.length
 						? team.map((row) => this.team_row(row)).join("")
 						: `<div class="empty">${__(
-								"No one has accepted a Ministry Team position at this Function."
-						  )}</div>`
+								"No one has accepted a Ministry Team position at this Function.",
+							)}</div>`,
 				);
 			});
 	}
@@ -817,7 +893,7 @@ class CheckInStation {
 			? `<span class="text-muted">${__("Checked in")}</span>`
 			: `<button class="btn btn-default btn-sm btn-team-check-in" data-person="${
 					row.person
-			  }">${__("Check In")}</button>`;
+				}">${__("Check In")}</button>`;
 		return `<div class="roster-row">
 			${frappe.get_avatar("avatar-medium", row.person_name)}
 			<span class="name">
@@ -870,7 +946,11 @@ class CheckInStation {
 
 	show_pickup(dialog, code) {
 		return frappe
-			.call({ method: `${API}.get_pickup_families`, type: "GET", args: { code } })
+			.call({
+				method: `${API}.get_pickup_families`,
+				type: "GET",
+				args: { code },
+			})
 			.then((r) => {
 				this.render_pickup(dialog, code, r.message || []);
 				dialog.fields_dict.code.$input.trigger("select");
@@ -882,11 +962,13 @@ class CheckInStation {
 		$wrapper.html(
 			`<div class="pickup-families">${
 				families.length
-					? families.map((family) => this.pickup_family(family)).join("")
+					? families
+							.map((family) => this.pickup_family(family))
+							.join("")
 					: `<div class="empty">${__(
-							"No child is checked in with this code today."
-					  )}</div>`
-			}</div>`
+							"No child is checked in with this code today.",
+						)}</div>`
+			}</div>`,
 		);
 		$wrapper.find(".pickup-release").on("click", (event) => {
 			const $family = $(event.currentTarget).closest(".pickup-family");
@@ -895,7 +977,9 @@ class CheckInStation {
 				.map((index, input) => input.value)
 				.get();
 			if (!check_ins.length) {
-				frappe.msgprint(__("Tick the children this person is collecting."));
+				frappe.msgprint(
+					__("Tick the children this person is collecting."),
+				);
 				return;
 			}
 			const collector = event.currentTarget.dataset.collector;
@@ -906,15 +990,21 @@ class CheckInStation {
 						args: { code, check_ins, collector, override_reason },
 						freeze: true,
 					})
-					.then((r) => this.render_pickup(dialog, code, r.message || []));
+					.then((r) =>
+						this.render_pickup(dialog, code, r.message || []),
+					);
 			const family = families.find((row) =>
-				row.children.some((child) => check_ins.includes(child.check_in))
+				row.children.some((child) =>
+					check_ins.includes(child.check_in),
+				),
 			);
 			const ticked = family.children
 				.filter((child) => check_ins.includes(child.check_in))
 				.map((child) => child.person);
 			const is_restricted = family.restrictions.some(
-				(row) => row.restricted_person === collector && ticked.includes(row.child)
+				(row) =>
+					row.restricted_person === collector &&
+					ticked.includes(row.child),
 			);
 			// The server refuses everyone else; only a Church Manager may override, with a reason.
 			if (!is_restricted || !frappe.user.has_role("Church Manager")) {
@@ -927,33 +1017,37 @@ class CheckInStation {
 					fieldname: "reason",
 					label: __("Override Reason"),
 					description: __(
-						"A Pickup Restriction names this person. Say why you release the child to them."
+						"A Pickup Restriction names this person. Say why you release the child to them.",
 					),
 					reqd: 1,
 				},
 				({ reason }) => release(reason),
 				__("Override Pickup Restriction"),
-				__("Release")
+				__("Release"),
 			);
 		});
 	}
 
 	pickup_family(family) {
-		const children = family.children.map((child) => this.pickup_child(child));
+		const children = family.children.map((child) =>
+			this.pickup_child(child),
+		);
 		const release = family.children.some((child) => !child.collected_by);
 		const names = Object.fromEntries(
-			family.children.map((child) => [child.person, child.full_name])
+			family.children.map((child) => [child.person, child.full_name]),
 		);
 		const restricted_from = (person) =>
 			family.restrictions
 				.filter((row) => row.restricted_person === person)
-				.map((row) => __("Restricted from collecting {0}", [names[row.child]]));
+				.map((row) =>
+					__("Restricted from collecting {0}", [names[row.child]]),
+				);
 		const collector = (person, detail) =>
 			this.pickup_person(
 				person.full_name,
 				person.photo,
 				[detail, ...restricted_from(person.name)].join("\n"),
-				release && person.name
+				release && person.name,
 			);
 		const restrictions = family.restrictions.map((row) =>
 			this.pickup_person(
@@ -963,21 +1057,28 @@ class CheckInStation {
 					__("May not collect {0}", [names[row.child]]),
 					row.description,
 					row.valid_until &&
-						__("Until {0}", [frappe.datetime.str_to_user(row.valid_until)]),
+						__("Until {0}", [
+							frappe.datetime.str_to_user(row.valid_until),
+						]),
 				]
 					.filter(Boolean)
-					.join("\n")
-			)
+					.join("\n"),
+			),
 		);
 		const collectors = [
-			...family.adults.map((adult) => collector(adult, __("Adult of the household"))),
+			...family.adults.map((adult) =>
+				collector(adult, __("Adult of the household")),
+			),
 			...family.pickups.map((pickup) =>
 				collector(
 					pickup,
-					[pickup.relationship || __("Authorized pickup"), pickup.notes]
+					[
+						pickup.relationship || __("Authorized pickup"),
+						pickup.notes,
+					]
 						.filter(Boolean)
-						.join("\n")
-				)
+						.join("\n"),
+				),
 			),
 		];
 		const title = family.family_name || __("No family on file");
@@ -987,7 +1088,8 @@ class CheckInStation {
 			<div class="pickup-people">${children.join("")}</div>
 			<div class="pickup-heading">${__("May collect them")}</div>
 			<div class="pickup-people">${
-				collectors.join("") || __("No one is on file. Ask a member of staff.")
+				collectors.join("") ||
+				__("No one is on file. Ask a member of staff.")
 			}</div>
 			${
 				restrictions.length
@@ -1007,7 +1109,7 @@ class CheckInStation {
 				__("Collected by {0} at {1}", [
 					child.collected_by_name,
 					frappe.datetime.str_to_user(child.collected_at),
-				])
+				]),
 			);
 		}
 		return `<label class="pickup-child">
@@ -1034,7 +1136,9 @@ class CheckInStation {
 	// The search text seeds the dialog: words become the name, digits become the phone.
 	new_visitor(query = "") {
 		const is_phone = /^[\d\s()+.-]+$/.test(query);
-		const [first_name, ...rest] = is_phone ? [] : query.split(/\s+/).filter(Boolean);
+		const [first_name, ...rest] = is_phone
+			? []
+			: query.split(/\s+/).filter(Boolean);
 		// People on file who may be the visitor are offered once, before anyone new is added.
 		let matches_shown = false;
 		const dialog = new frappe.ui.Dialog({
@@ -1057,7 +1161,9 @@ class CheckInStation {
 					fieldtype: "Date",
 					fieldname: "birth_date",
 					label: __("Birth Date"),
-					description: __("Needed when the function has an age limit."),
+					description: __(
+						"Needed when the function has an age limit.",
+					),
 				},
 				{ fieldtype: "Column Break" },
 				{
@@ -1072,13 +1178,17 @@ class CheckInStation {
 					fieldname: "family",
 					label: __("Family"),
 					options: "Family",
-					description: __("Leave blank for a new visitor with no family record yet."),
+					description: __(
+						"Leave blank for a new visitor with no family record yet.",
+					),
 				},
 				{
 					fieldtype: "Section Break",
 					label: __("Emergency Contact"),
 					collapsible: 1,
-					description: __("For a visitor with no household adult in Churchit."),
+					description: __(
+						"For a visitor with no household adult in Churchit.",
+					),
 				},
 				{
 					fieldtype: "Data",
@@ -1119,7 +1229,9 @@ class CheckInStation {
 		const add = (values) =>
 			this.confirm_day()
 				.then(() => this.confirm_visitor_bounds(values))
-				.then(() => frappe.call({ method: `${API}.add_visitor`, args: values }))
+				.then(() =>
+					frappe.call({ method: `${API}.add_visitor`, args: values }),
+				)
 				.then((r) => {
 					dialog.hide();
 					this.check_in([r.message.name], "Guest", true);
@@ -1138,13 +1250,15 @@ class CheckInStation {
 			})
 			.then((r) => {
 				if (!r.message) return;
-				const name = frappe.utils.escape_html([first_name, last_name].join(" ").trim());
+				const name = frappe.utils.escape_html(
+					[first_name, last_name].join(" ").trim(),
+				);
 				return new Promise((resolve) =>
 					frappe.confirm(
 						`<p><b>${name}</b>: ${frappe.utils.escape_html(r.message)}</p>
 						<p>${__("Check in anyway?")}</p>`,
-						resolve
-					)
+						resolve,
+					),
 				);
 			});
 	}
@@ -1153,10 +1267,16 @@ class CheckInStation {
 		const matches = groups.flatMap((group) =>
 			group.members
 				.filter((member) => member.matched)
-				.map((member) => ({ ...member, family_name: group.family_name }))
+				.map((member) => ({
+					...member,
+					family_name: group.family_name,
+				})),
 		);
 		const rows = matches.map((member) => {
-			const detail = [member.family_name, member.age && __("Age {0}", [member.age])]
+			const detail = [
+				member.family_name,
+				member.age && __("Age {0}", [member.age]),
+			]
 				.filter(Boolean)
 				.join(" · ");
 			return `<div class="d-flex align-items-center mb-2">
@@ -1172,8 +1292,8 @@ class CheckInStation {
 		const $wrapper = dialog.fields_dict.matches.$wrapper;
 		$wrapper.html(
 			`<p class="text-muted">${__(
-				"They may already be on file. Check in the right person, or add them as a new visitor."
-			)}</p>${rows.join("")}`
+				"They may already be on file. Check in the right person, or add them as a new visitor.",
+			)}</p>${rows.join("")}`,
 		);
 		$wrapper.find(".visitor-match").on("click", (event) => {
 			dialog.hide();

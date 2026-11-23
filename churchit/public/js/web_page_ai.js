@@ -27,12 +27,12 @@
 	function render(frm, result) {
 		if (result.page !== frm.doc.name) throw new Error("another page");
 		const note = __(
-			"Open Draft shows the whole page, unsaved and unpublished. Ask someone fluent in the language to check it before you publish it."
+			"Open Draft shows the whole page, unsaved and unpublished. Ask someone fluent in the language to check it before you publish it.",
 		);
 		const dropped = result.dropped?.length
 			? `<p class="text-muted small">${escape(
-					__("Left out: {0}", [result.dropped.join(", ")])
-			  )}</p>`
+					__("Left out: {0}", [result.dropped.join(", ")]),
+				)}</p>`
 			: "";
 		return `<p><b>${escape(result.title)}</b></p>
 			${churchit.ai.paragraphs([result.meta_description])}${dropped}
@@ -56,7 +56,9 @@
 			primary_action({ language }) {
 				dialog.hide();
 				churchit.ai.run_action({
-					title: __("Translate: {0}", [frm.doc.title || frm.doc.name]),
+					title: __("Translate: {0}", [
+						frm.doc.title || frm.doc.name,
+					]),
 					method: METHOD,
 					args: { web_page: frm.doc.name, language },
 					render: (result) => render(frm, result),
@@ -71,7 +73,9 @@
 	frappe.ui.form.on("Web Page", {
 		refresh(frm) {
 			if (can_translate(frm))
-				frm.add_custom_button(__("Translate with AI"), () => translate(frm));
+				frm.add_custom_button(__("Translate with AI"), () =>
+					translate(frm),
+				);
 		},
 	});
 })();

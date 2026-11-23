@@ -23,7 +23,9 @@
 
 	// A request a leader has not decided yet shows under the header, not in the picker.
 	function show_waiting(groups) {
-		const names = groups.filter((g) => g.requested).map((g) => g.group_name);
+		const names = groups
+			.filter((g) => g.requested)
+			.map((g) => g.group_name);
 		const header = document.querySelector(".web-list-header");
 		let line = document.querySelector(".group-join-waiting");
 		if (!names.length || !header) {
@@ -45,13 +47,17 @@
 			if (!groups.length) {
 				frappe.msgprint({
 					title: __("Nothing to join"),
-					message: __("There are no public groups available to join right now."),
+					message: __(
+						"There are no public groups available to join right now.",
+					),
 				});
 				return;
 			}
 			// A group whose leaders decide says so.
 			const label = (g) =>
-				g.requires_approval ? __("{0} (a leader approves)", [g.group_name]) : g.group_name;
+				g.requires_approval
+					? __("{0} (a leader approves)", [g.group_name])
+					: g.group_name;
 			const labels = groups.map(label);
 			const dialog = new frappe.ui.Dialog({
 				title: __("Join a public group"),
@@ -67,7 +73,9 @@
 				],
 				primary_action_label: __("Join"),
 				primary_action(values) {
-					const chosen = groups.find((g) => label(g) === values.group);
+					const chosen = groups.find(
+						(g) => label(g) === values.group,
+					);
 					if (!chosen) return;
 					frappe
 						.call({
@@ -79,13 +87,19 @@
 							dialog.hide();
 							if (rr.message && rr.message.requested) {
 								frappe.show_alert(
-									{ message: __("Request sent"), indicator: "blue" },
-									5
+									{
+										message: __("Request sent"),
+										indicator: "blue",
+									},
+									5,
 								);
 								get_groups().then(show_waiting);
 								return;
 							}
-							frappe.show_alert({ message: __("Joined!"), indicator: "green" }, 3);
+							frappe.show_alert(
+								{ message: __("Joined!"), indicator: "green" },
+								3,
+							);
 							setTimeout(() => window.location.reload(), 700);
 						});
 				},
@@ -96,7 +110,8 @@
 
 	function place() {
 		const actions = document.querySelector(".web-list-actions");
-		if (!actions || actions.querySelector(".group-join-action")) return false;
+		if (!actions || actions.querySelector(".group-join-action"))
+			return false;
 		const btn = document.createElement("button");
 		btn.className = "btn btn-primary btn-sm group-join-action";
 		btn.textContent = __("+ Join a public group");

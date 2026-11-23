@@ -20,7 +20,9 @@ const CARD_VALUES = [
 frappe.ui.form.on("Contact Verification", {
 	refresh(frm) {
 		if (frm.is_new() || !frm.has_perm("write")) return;
-		frm.add_custom_button(__("Record Returned Card"), () => pick_returned_card(frm));
+		frm.add_custom_button(__("Record Returned Card"), () =>
+			pick_returned_card(frm),
+		);
 		frm.add_custom_button(__("Scan Card"), () => scan_contact_card(frm));
 		const person = frappe.route_options?.person;
 		if (person) {
@@ -60,7 +62,9 @@ function scan_contact_card(frm) {
 		on_scan(data) {
 			const { verification, person } = read_card_code(data.result.text);
 			if (!person) {
-				frappe.msgprint(__("This code is not from a contact verification card."));
+				frappe.msgprint(
+					__("This code is not from a contact verification card."),
+				);
 			} else if (verification && verification !== frm.doc.name) {
 				frappe.route_options = { person };
 				frappe.set_route("Form", "Contact Verification", verification);
@@ -75,8 +79,13 @@ function scan_contact_card(frm) {
 function read_card_code(text) {
 	try {
 		const url = new URL(text, window.location.origin);
-		const match = decodeURIComponent(url.pathname).match(/\/contact-verification\/([^/]+)$/);
-		return { verification: match?.[1], person: url.searchParams.get("person") };
+		const match = decodeURIComponent(url.pathname).match(
+			/\/contact-verification\/([^/]+)$/,
+		);
+		return {
+			verification: match?.[1],
+			person: url.searchParams.get("person"),
+		};
 	} catch (error) {
 		return {};
 	}
@@ -88,14 +97,20 @@ function open_returned_card(frm, person) {
 		return;
 	}
 	frappe
-		.xcall(`${CONTACT_CARDS}.get_returned_card`, { verification: frm.doc.name, person }, "GET")
+		.xcall(
+			`${CONTACT_CARDS}.get_returned_card`,
+			{ verification: frm.doc.name, person },
+			"GET",
+		)
 		.then((card) => show_returned_card(frm, card));
 }
 
 function show_returned_card(frm, card) {
 	const state = { frm, card_photo: card.card_photo };
 	const dialog = new frappe.ui.Dialog({
-		title: __("Returned Card: {0}", [frappe.utils.escape_html(card.full_name)]),
+		title: __("Returned Card: {0}", [
+			frappe.utils.escape_html(card.full_name),
+		]),
 		size: "extra-large",
 		fields: returned_card_fields(card, state),
 		primary_action_label: __("Save Card"),
@@ -106,9 +121,9 @@ function show_returned_card(frm, card) {
 	dialog.fields_dict.help.$wrapper.html(
 		`<p class="text-muted">${frappe.utils.escape_html(
 			__(
-				"Change what the person corrected or added on the card, then click Save Card. When the card says everything is right, just click Save Card."
-			)
-		)}</p>`
+				"Change what the person corrected or added on the card, then click Save Card. When the card says everything is right, just click Save Card.",
+			),
+		)}</p>`,
 	);
 	show_card_photo(dialog, state);
 	dialog.show();
@@ -123,7 +138,10 @@ function returned_card_fields(card, state) {
 		label,
 		in_place_edit: true,
 		data: (card[fieldname] || []).map((row) => as_grid_row(row)),
-		fields: [{ fieldtype: "Data", fieldname: "row", hidden: 1 }, ...columns],
+		fields: [
+			{ fieldtype: "Data", fieldname: "row", hidden: 1 },
+			...columns,
+		],
 	});
 	const column = (fieldtype, fieldname, label, columns, options) => ({
 		fieldtype,
@@ -141,7 +159,7 @@ function returned_card_fields(card, state) {
 				column("Data", "email_address", __("Email"), 7, "Email"),
 				column("Check", "is_primary", __("Main"), 1),
 				remove,
-			])
+			]),
 		);
 	if (shown.has("phones"))
 		fields.push(
@@ -150,13 +168,17 @@ function returned_card_fields(card, state) {
 				column("Link", "phone_type", __("Type"), 2, "Phone Type"),
 				column("Check", "is_primary", __("Main"), 1),
 				remove,
-			])
+			]),
 		);
 	if (shown.has("addresses"))
 		fields.push(
 			table("addresses", address_table_label(card), [
 				column("Data", "address_line1", __("Street"), 3),
-				{ fieldtype: "Data", fieldname: "address_line2", label: __("Address Line 2") },
+				{
+					fieldtype: "Data",
+					fieldname: "address_line2",
+					label: __("Address Line 2"),
+				},
 				column("Data", "city", __("City"), 2),
 				column("Data", "state", __("State"), 1),
 				column("Data", "pincode", __("ZIP Code"), 1),
@@ -170,7 +192,7 @@ function returned_card_fields(card, state) {
 				column("Check", "is_primary", __("Home"), 1),
 				column("Check", "is_mailing_address", __("Mailing"), 1),
 				remove,
-			])
+			]),
 		);
 	fields.push(...date_fields(card, shown));
 	fields.push(...emergency_contact_fields(card));
@@ -183,7 +205,9 @@ function as_grid_row(row) {
 }
 
 function address_table_label(card) {
-	return card.address_holder === "Family" ? __("Household Addresses") : __("Addresses");
+	return card.address_holder === "Family"
+		? __("Household Addresses")
+		: __("Addresses");
 }
 
 function date_fields(card, shown) {
@@ -201,7 +225,7 @@ function date_fields(card, shown) {
 				fieldname: "birthday_year_unknown",
 				label: __("No Year"),
 				default: card.birthday_year_unknown,
-			}
+			},
 		);
 	if (shown.has("anniversary"))
 		fields.push(
@@ -217,7 +241,7 @@ function date_fields(card, shown) {
 				fieldname: "anniversary_year_unknown",
 				label: __("No Year"),
 				default: card.anniversary_year_unknown,
-			}
+			},
 		);
 	return fields.length ? [{ fieldtype: "Section Break" }, ...fields] : [];
 }
@@ -245,7 +269,8 @@ function emergency_contact_fields(card) {
 
 function texting_fields(card, shown) {
 	if (!shown.has("texting")) return [];
-	const now = { Yes: __("Yes"), No: __("No") }[card.texting] || __("Not asked yet");
+	const now =
+		{ Yes: __("Yes"), No: __("No") }[card.texting] || __("Not asked yet");
 	return [
 		{
 			fieldtype: "Select",
@@ -272,7 +297,12 @@ function card_fields(card, state) {
 			default: card.returned_on || frappe.datetime.get_today(),
 		},
 		...texting_fields(card, new Set(card.shown)),
-		{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: card.note },
+		{
+			fieldtype: "Small Text",
+			fieldname: "note",
+			label: __("Note"),
+			default: card.note,
+		},
 		{ fieldtype: "Column Break" },
 		{ fieldtype: "HTML", fieldname: "photo" },
 		{
@@ -284,7 +314,11 @@ function card_fields(card, state) {
 	];
 	// The server never sends a card that shows the emergency contact to AI.
 	const is_readable = !card.shown.includes("emergency_contact");
-	if (is_readable && frappe.boot.churchit?.ai?.on && churchit.ai?.can_run?.()) {
+	if (
+		is_readable &&
+		frappe.boot.churchit?.ai?.on &&
+		churchit.ai?.can_run?.()
+	) {
 		fields.push({
 			fieldtype: "Button",
 			fieldname: "read_with_ai",
@@ -314,11 +348,11 @@ function show_card_photo(dialog, state) {
 	dialog.fields_dict.photo.$wrapper.html(
 		url
 			? `<a href="${encodeURI(url)}" target="_blank" rel="noopener"><img src="${encodeURI(
-					url
-			  )}"
+					url,
+				)}"
 				alt="${frappe.utils.escape_html(__("Card photo"))}"
 				style="max-width: 100%; max-height: 16rem; object-fit: contain;"></a>`
-			: ""
+			: "",
 	);
 	dialog.fields_dict.read_with_ai?.$wrapper.toggle(Boolean(url));
 }
@@ -335,7 +369,7 @@ function read_card_with_ai(card, state) {
 		render: (result) => describe_reading(result),
 		use_label: __("Fill In the Card"),
 		note: __(
-			"AI read this from the photo. Check each value against the card before you save."
+			"AI read this from the photo. Check each value against the card before you save.",
 		),
 		on_use: (result) => fill_from_reading(state.dialog, result),
 	});
@@ -351,14 +385,24 @@ function describe_reading(result) {
 		...result.lines.map((line) =>
 			line.mark === "right"
 				? __("{0}: right", [line.value])
-				: __("{0}: wrong, {1}", [line.value, text(line.correction) || __("remove it")])
+				: __("{0}: wrong, {1}", [
+						line.value,
+						text(line.correction) || __("remove it"),
+					]),
 		),
-		...result.new_emails.map((row) => __("New email: {0}", [row.email_address])),
-		...result.new_phones.map((row) => __("New phone: {0}", [row.phone_number])),
-		...result.new_addresses.map((row) => __("New address: {0}", [text(row)])),
+		...result.new_emails.map((row) =>
+			__("New email: {0}", [row.email_address]),
+		),
+		...result.new_phones.map((row) =>
+			__("New phone: {0}", [row.phone_number]),
+		),
+		...result.new_addresses.map((row) =>
+			__("New address: {0}", [text(row)]),
+		),
 	];
 	if (result.texting) items.push(__("Texts: {0}", [__(result.texting)]));
-	if (!items.length) return `<p>${escape(__("AI found no marks on the card."))}</p>`;
+	if (!items.length)
+		return `<p>${escape(__("AI found no marks on the card."))}</p>`;
 	return `<ul>${items.map((item) => `<li>${escape(item)}</li>`).join("")}</ul>`;
 }
 
@@ -367,11 +411,17 @@ function fill_from_reading(dialog, result) {
 	const value_fields = { emails: "email_address", phones: "phone_number" };
 	for (const line of result.lines) {
 		if (line.mark !== "wrong") continue;
-		const row = get_grid_rows(dialog, line.item).find((each) => each.row === line.row);
+		const row = get_grid_rows(dialog, line.item).find(
+			(each) => each.row === line.row,
+		);
 		if (row && !line.correction) row.remove = 1;
-		else if (row && line.item === "addresses") Object.assign(row, line.correction);
+		else if (row && line.item === "addresses")
+			Object.assign(row, line.correction);
 		else if (row) row[value_fields[line.item]] = line.correction;
-		else if (["birthday", "anniversary"].includes(line.item) && line.correction)
+		else if (
+			["birthday", "anniversary"].includes(line.item) &&
+			line.correction
+		)
 			dialog.set_values(line.correction);
 	}
 	add_grid_rows(dialog, "emails", result.new_emails);
@@ -380,7 +430,9 @@ function fill_from_reading(dialog, result) {
 	if (result.birthday) dialog.set_values(result.birthday);
 	if (result.anniversary) dialog.set_values(result.anniversary);
 	if (result.texting) dialog.set_value("texting", result.texting);
-	CARD_TABLES.forEach((fieldname) => dialog.fields_dict[fieldname]?.grid.refresh());
+	CARD_TABLES.forEach((fieldname) =>
+		dialog.fields_dict[fieldname]?.grid.refresh(),
+	);
 }
 
 function get_grid_rows(dialog, fieldname) {
@@ -403,11 +455,15 @@ function save_returned_card(frm, card, state, values, dialog) {
 	};
 	// get_values leaves out an emptied field, which the server must see to clear it.
 	for (const fieldname of CARD_VALUES) {
-		if (dialog.fields_dict[fieldname]) sent[fieldname] = values[fieldname] ?? "";
+		if (dialog.fields_dict[fieldname])
+			sent[fieldname] = values[fieldname] ?? "";
 	}
 	for (const fieldname of CARD_TABLES) {
 		if (!(fieldname in card)) continue;
-		sent[fieldname] = with_removed_rows(card[fieldname], get_grid_rows(dialog, fieldname));
+		sent[fieldname] = with_removed_rows(
+			card[fieldname],
+			get_grid_rows(dialog, fieldname),
+		);
 	}
 	frappe
 		.xcall(`${CONTACT_CARDS}.record_returned_card`, {

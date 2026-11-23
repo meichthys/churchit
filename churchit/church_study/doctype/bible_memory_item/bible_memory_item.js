@@ -7,10 +7,12 @@ frappe.ui.form.on("Bible Memory Item", {
 		frm.translation_choices = frappe.xcall(
 			"churchit.church_study.doctype.bible_memory_item.bible_memory_item.get_translation_choices",
 			{},
-			"GET"
+			"GET",
 		);
 		frm.translation_choices.then(({ names }) =>
-			frm.set_query("translation", () => ({ filters: { name: ["in", names] } }))
+			frm.set_query("translation", () => ({
+				filters: { name: ["in", names] },
+			})),
 		);
 	},
 	onload(frm) {

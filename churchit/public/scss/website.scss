@@ -17,14 +17,16 @@
 	font-style: normal;
 	font-weight: 100 900;
 	font-display: swap;
-	src: url("/assets/frappe/css/fonts/inter/InterVariable.woff2") format("woff2");
+	src: url("/assets/frappe/css/fonts/inter/InterVariable.woff2")
+		format("woff2");
 }
 @font-face {
 	font-family: InterVariable;
 	font-style: italic;
 	font-weight: 100 900;
 	font-display: swap;
-	src: url("/assets/frappe/css/fonts/inter/InterVariable-Italic.woff2") format("woff2");
+	src: url("/assets/frappe/css/fonts/inter/InterVariable-Italic.woff2")
+		format("woff2");
 }
 
 :root {
@@ -38,7 +40,12 @@
 		var(--ch-brand-3) 100%
 	);
 	// darker stops behind white text on buttons and badges: white on each passes AA (6.3, 5.7, 4.6 : 1)
-	--ch-grad-btn: linear-gradient(120deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+	--ch-grad-btn: linear-gradient(
+		120deg,
+		#4f46e5 0%,
+		#7c3aed 50%,
+		#db2777 100%
+	);
 
 	--ch-glass: rgba(255, 255, 255, 0.55);
 	--ch-glass-2: rgba(255, 255, 255, 0.72);
@@ -87,14 +94,27 @@ body {
 		inset: -20vmax;
 		z-index: -1;
 		pointer-events: none;
-		background: radial-gradient(
+		background:
+			radial-gradient(
 				38vmax 38vmax at 12% 8%,
 				rgba(99, 102, 241, 0.7),
 				transparent 60%
 			),
-			radial-gradient(36vmax 36vmax at 88% 4%, rgba(236, 72, 153, 0.55), transparent 60%),
-			radial-gradient(44vmax 44vmax at 78% 82%, rgba(139, 92, 246, 0.65), transparent 62%),
-			radial-gradient(40vmax 40vmax at 8% 92%, rgba(56, 189, 248, 0.55), transparent 60%);
+			radial-gradient(
+				36vmax 36vmax at 88% 4%,
+				rgba(236, 72, 153, 0.55),
+				transparent 60%
+			),
+			radial-gradient(
+				44vmax 44vmax at 78% 82%,
+				rgba(139, 92, 246, 0.65),
+				transparent 62%
+			),
+			radial-gradient(
+				40vmax 40vmax at 8% 92%,
+				rgba(56, 189, 248, 0.55),
+				transparent 60%
+			);
 		filter: saturate(1.3);
 	}
 
@@ -193,7 +213,11 @@ body {
 		}
 	}
 	.page_content .card-header {
-		background: linear-gradient(120deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
+		background: linear-gradient(
+			120deg,
+			rgba(99, 102, 241, 0.1),
+			rgba(236, 72, 153, 0.07)
+		);
 		border-bottom: 1px solid var(--border-color);
 		color: var(--primary-color);
 		font-size: 1.05rem;
@@ -235,7 +259,9 @@ body {
 		border-radius: 999px;
 		font-weight: 650;
 		box-shadow: 0 10px 30px -8px rgba(99, 102, 241, 0.6);
-		transition: transform 0.15s ease, box-shadow 0.2s ease;
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.2s ease;
 
 		&:hover {
 			transform: translateY(-2px);
@@ -301,7 +327,9 @@ body {
 	.web-sidebar .sidebar-item a {
 		padding: 0.45rem 0.75rem;
 		border-radius: 10px;
-		transition: background 0.15s ease, color 0.15s ease;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
 
 		&:hover {
 			background: rgba(99, 102, 241, 0.07);
@@ -345,7 +373,11 @@ body {
 		box-shadow: 0 14px 44px -16px rgba(0, 0, 0, 0.7);
 	}
 	.page_content .card-header {
-		background: linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.12));
+		background: linear-gradient(
+			120deg,
+			rgba(99, 102, 241, 0.2),
+			rgba(236, 72, 153, 0.12)
+		);
 	}
 	.page_content .card-footer {
 		background: rgba(139, 92, 246, 0.12);

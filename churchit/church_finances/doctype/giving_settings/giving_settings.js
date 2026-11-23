@@ -11,18 +11,23 @@ frappe.ui.form.on("Giving Settings", {
 			notes.push(
 				__(
 					"Online payments are off, because the Payments app is not installed on this site. Gifts on the Give page, sign-up payments and form payments need it. The {0} tells how to install it.",
-					[`<a href="/app/manual%3A-finances">${__("Finances manual")}</a>`]
-				)
+					[
+						`<a href="/app/manual%3A-finances">${__("Finances manual")}</a>`,
+					],
+				),
 			);
 		}
 		if (lock_shared_settings(frm)) {
 			notes.push(
 				__(
-					"These settings apply to every church. Only someone who works across every church can change them. Add or change the rows of your own church under Payment Gateways and Wording Per Church."
-				)
+					"These settings apply to every church. Only someone who works across every church can change them. Add or change the rows of your own church under Payment Gateways and Wording Per Church.",
+				),
 			);
 		}
-		frm.set_intro(notes.join("<br><br>"), is_payments_on ? "blue" : "orange");
+		frm.set_intro(
+			notes.join("<br><br>"),
+			is_payments_on ? "blue" : "orange",
+		);
 	},
 });
 

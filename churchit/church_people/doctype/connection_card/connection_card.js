@@ -24,10 +24,10 @@ function show_card_photo(frm) {
 				alt="${frappe.utils.escape_html(__("Card photo"))}"
 				style="max-width: 100%; max-height: 24rem; object-fit: contain;"></a>
 			<p class="text-muted small">${frappe.utils.escape_html(
-				__("Click the photo to open it at full size.")
+				__("Click the photo to open it at full size."),
 			)}</p>`,
 			__("Card Photo"),
-			"custom card-photo-section"
+			"custom card-photo-section",
 		);
 		frm.dashboard.show();
 	});

@@ -18,21 +18,40 @@ frappe.query_reports["Ministry Team Schedule"] = {
 			default: frappe.datetime.add_days(frappe.datetime.get_today(), 28),
 			reqd: 1,
 		},
-		{ fieldname: "ministry", label: __("Ministry"), fieldtype: "Link", options: "Ministry" },
-		{ fieldname: "function", label: __("Function"), fieldtype: "Link", options: "Function" },
-		{ fieldname: "only_open", label: __("Only Open Positions"), fieldtype: "Check" },
+		{
+			fieldname: "ministry",
+			label: __("Ministry"),
+			fieldtype: "Link",
+			options: "Ministry",
+		},
+		{
+			fieldname: "function",
+			label: __("Function"),
+			fieldtype: "Link",
+			options: "Function",
+		},
+		{
+			fieldname: "only_open",
+			label: __("Only Open Positions"),
+			fieldtype: "Check",
+		},
 	],
 
 	onload(report) {
 		if (!frappe.model.can_create("Ministry Team Assignment")) return;
-		report.page.add_inner_button(__("Fill Open Needs"), () => this.fill_open_needs(report));
+		report.page.add_inner_button(__("Fill Open Needs"), () =>
+			this.fill_open_needs(report),
+		);
 	},
 
 	// The Ministry Team Grid report has the same button.
 	fill_open_needs(report) {
 		const filters = report.get_filter_values();
 		const [method, args] = filters.function
-			? ["fill_open_needs", { function: filters.function, ministry: filters.ministry }]
+			? [
+					"fill_open_needs",
+					{ function: filters.function, ministry: filters.ministry },
+				]
 			: [
 					"fill_open_needs_between",
 					{
@@ -41,10 +60,10 @@ frappe.query_reports["Ministry Team Schedule"] = {
 						ministry: filters.ministry,
 						church: filters.church,
 					},
-			  ];
+				];
 		frappe.confirm(
 			__(
-				"Ask people from each position's roster to fill the open places? The daily job sends them the requests."
+				"Ask people from each position's roster to fill the open places? The daily job sends them the requests.",
 			),
 			() =>
 				frappe.call({
@@ -52,20 +71,23 @@ frappe.query_reports["Ministry Team Schedule"] = {
 					args: args,
 					freeze: true,
 					callback: ({ message }) => {
-						const open = message.unfilled.reduce((total, row) => total + row.open, 0);
+						const open = message.unfilled.reduce(
+							(total, row) => total + row.open,
+							0,
+						);
 						frappe.show_alert(
 							{
-								message: __("Asked {0} people to serve. Places still open: {1}.", [
-									message.assigned.length,
-									open,
-								]),
+								message: __(
+									"Asked {0} people to serve. Places still open: {1}.",
+									[message.assigned.length, open],
+								),
 								indicator: open ? "orange" : "green",
 							},
-							10
+							10,
 						);
 						report.refresh();
 					},
-				})
+				}),
 		);
 	},
 };

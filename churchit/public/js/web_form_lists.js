@@ -17,7 +17,7 @@
 		container.classList.add("web-list-without-delete");
 		if (web_form.allow_delete && !web_form.web_form_request_key) {
 			frappe.has_permission(web_form.doc_type, "", "delete", () =>
-				container.classList.remove("web-list-without-delete")
+				container.classList.remove("web-list-without-delete"),
 			);
 		}
 
@@ -25,7 +25,9 @@
 			const introduction = document.createElement("div");
 			introduction.className = "web-list-introduction";
 			introduction.innerHTML = __(web_form.introduction_text);
-			container.querySelector(".web-list-header").appendChild(introduction);
+			container
+				.querySelector(".web-list-header")
+				.appendChild(introduction);
 		}
 
 		// frappe draws the empty list after its permission call returns
@@ -43,12 +45,13 @@
 
 		formatters.Datetime = function (value) {
 			if (!value) return "";
-			const time_format = (frappe.boot.sysdefaults.time_format || "HH:mm:ss").replace(
-				/[:.]ss/,
-				""
-			);
+			const time_format = (
+				frappe.boot.sysdefaults.time_format || "HH:mm:ss"
+			).replace(/[:.]ss/, "");
 			return moment(frappe.datetime.convert_to_user_tz(value)).format(
-				frappe.boot.sysdefaults.date_format.toUpperCase() + " " + time_format
+				frappe.boot.sysdefaults.date_format.toUpperCase() +
+					" " +
+					time_format,
 			);
 		};
 	}

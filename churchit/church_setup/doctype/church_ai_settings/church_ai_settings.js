@@ -18,7 +18,7 @@ frappe.ui.form.on("Church AI Settings", {
 		const warnings = get_warnings(has_flow);
 		for (const [fieldname, html] of Object.entries(warnings)) {
 			frm.get_field(`${fieldname}_html`).$wrapper.html(
-				`<div style="max-width: 46rem">${html}</div>`
+				`<div style="max-width: 46rem">${html}</div>`,
 			);
 		}
 
@@ -30,34 +30,42 @@ frappe.ui.form.on("Church AI Settings", {
 				"use_recommended_private_list",
 				"check_models",
 			],
-			is_manager
+			is_manager,
 		);
 		if (is_manager) show_exposure(frm);
 	},
 
 	use_recommended_list(frm) {
-		use_recommended(frm, "churchit.ai.flow_switch.use_recommended_knowledge_doctypes");
+		use_recommended(
+			frm,
+			"churchit.ai.flow_switch.use_recommended_knowledge_doctypes",
+		);
 	},
 
 	use_recommended_private_list(frm) {
-		use_recommended(frm, "churchit.ai.private_doctypes.use_recommended_private_doctypes");
+		use_recommended(
+			frm,
+			"churchit.ai.private_doctypes.use_recommended_private_doctypes",
+		);
 	},
 
 	check_models() {
 		frappe.confirm(
 			escape(
 				__(
-					"Churchit's sample tasks, with made-up data, run one after another on the models of the Writer and Private Work agents. A hosted model bills each task, and a local model can take an hour, so keep the dialog open until the result shows. Each task leaves a chat in your Flow chat list. Start the check?"
-				)
+					"Churchit's sample tasks, with made-up data, run one after another on the models of the Writer and Private Work agents. A hosted model bills each task, and a local model can take an hour, so keep the dialog open until the result shows. Each task leaves a chat in your Flow chat list. Start the check?",
+				),
 			),
 			() =>
 				churchit.ai.run_action({
 					title: __("Check the Models"),
 					method: "churchit.ai.model_check.check_models",
 					render: model_check_html,
-					note: __("Sample tasks with made-up data. Nothing was stored."),
+					note: __(
+						"Sample tasks with made-up data. Nothing was stored.",
+					),
 					wait_minutes: DIALOG_MINUTES,
-				})
+				}),
 		);
 	},
 });
@@ -70,21 +78,24 @@ function model_check_html(result) {
 	const refused = refusals.filter((task) => task.passed).length;
 	return `${stopped}${(result.agents || []).map(agent_check_html).join("")}
 		<p class="mt-3"><b>${churchit.ai.escape(
-			__("Refused by Churchit's input checks, with no model")
+			__("Refused by Churchit's input checks, with no model"),
 		)}</b>:
 		${churchit.ai.escape(__("{0} of {1}", [refused, refusals.length]))}</p>
 		${tasks_html(refusals)}`;
 }
 
 function agent_check_html(agent) {
-	const model = __("{0}, labelled {1}", [agent.model || __("no model"), agent.label]);
+	const model = __("{0}, labelled {1}", [
+		agent.model || __("no model"),
+		agent.label,
+	]);
 	const passed = __("{0} of {1} tasks passed in {2}.", [
 		agent.passed,
 		agent.total,
 		duration(agent.seconds),
 	]);
 	return `<p class="mb-1"><b>${churchit.ai.escape(agent.agent)}</b>: ${churchit.ai.escape(
-		model
+		model,
 	)}</p>
 		<p>${churchit.ai.escape(passed)}</p>
 		${tasks_html(agent.cases)}`;
@@ -99,10 +110,12 @@ function tasks_html(tasks) {
 					task.passed ? "green" : "red"
 				}">${churchit.ai.escape(task.passed ? __("Passed") : __("Failed"))}</span></td>
 				<td class="text-nowrap">${
-					task.seconds === undefined ? "" : churchit.ai.escape(duration(task.seconds))
+					task.seconds === undefined
+						? ""
+						: churchit.ai.escape(duration(task.seconds))
 				}</td>
 				<td>${churchit.ai.escape(task.reason)}</td>
-			</tr>`
+			</tr>`,
 		)
 		.join("");
 	return `<table class="table table-bordered table-sm small"><tbody>${rows}</tbody></table>`;
@@ -116,7 +129,9 @@ function duration(seconds) {
 
 function use_recommended(frm, method) {
 	if (frm.is_dirty()) {
-		frappe.msgprint(__("Save the settings first, then use the recommended list."));
+		frappe.msgprint(
+			__("Save the settings first, then use the recommended list."),
+		);
 		return;
 	}
 	frappe.xcall(method, {}, "POST", { freeze: true }).then((added) => {
@@ -133,17 +148,17 @@ function use_recommended(frm, method) {
 function restricted_manager_note(has_flow) {
 	return has_flow
 		? __(
-				"Church AI Settings apply to every church. You can turn AI off, turn the suggestions off and block more DocTypes. Only a System Manager or a Church Manager with no church restriction can turn AI or the suggestions on, remove a DocType from a list or change the reviewers."
-		  )
+				"Church AI Settings apply to every church. You can turn AI off, turn the suggestions off and block more DocTypes. Only a System Manager or a Church Manager with no church restriction can turn AI or the suggestions on, remove a DocType from a list or change the reviewers.",
+			)
 		: __(
-				"Church AI Settings apply to every church. You can turn AI off. Only a System Manager or a Church Manager with no church restriction can turn it on."
-		  );
+				"Church AI Settings apply to every church. You can turn AI off. Only a System Manager or a Church Manager with no church restriction can turn it on.",
+			);
 }
 
 function intro_html() {
 	const summary = [
 		__(
-			"A connected AI app can see and change everything that its user can see and change. A hosted AI app sends everything it reads to the company that runs it."
+			"A connected AI app can see and change everything that its user can see and change. A hosted AI app sends everything it reads to the company that runs it.",
 		),
 		__("Read each warning below before you turn AI on."),
 	].join(" ");
@@ -157,93 +172,97 @@ function get_warnings(has_flow) {
 	return {
 		warning_app: paragraphs([
 			__(
-				"An AI app works as the person who connected it. It can see and change everything that person can see and change in the desk. If the person can read care notes, counseling, medical notes, giving or the details of children, the AI app can read them too."
+				"An AI app works as the person who connected it. It can see and change everything that person can see and change in the desk. If the person can read care notes, counseling, medical notes, giving or the details of children, the AI app can read them too.",
 			),
 			__(
-				"An AI app can change records as fast as it can read them, many records in the time a person changes one."
+				"An AI app can change records as fast as it can read them, many records in the time a person changes one.",
 			),
 		]),
 		warning_data: paragraphs([
 			__(
-				"A hosted AI app, such as Claude, ChatGPT or Gemini, sends everything it reads to the company that runs it. That company's terms then apply to your church's data."
+				"A hosted AI app, such as Claude, ChatGPT or Gemini, sends everything it reads to the company that runs it. That company's terms then apply to your church's data.",
 			),
 			__(
-				"A local AI model on your own computer, for example in Ollama or LM Studio, keeps the data on that computer."
+				"A local AI model on your own computer, for example in Ollama or LM Studio, keeps the data on that computer.",
 			),
 			...only_with_flow([
 				__(
-					"Churchit's own AI buttons and suggestions send the records that they name, and only to a model whose privacy label allows them: No training, Zero retention or Local, and for a DocType in Only for Local or Zero Retention Models, Zero retention or Local."
+					"Churchit's own AI buttons and suggestions send the records that they name, and only to a model whose privacy label allows them: No training, Zero retention or Local, and for a DocType in Only for Local or Zero Retention Models, Zero retention or Local.",
 				),
 			]),
 		]),
 		warning_text: paragraphs([
 			__(
-				"Guests and members write prayer requests, connection cards, forms and emails. This text can hold instructions meant for the AI. Keep the AI app's setting that asks you before every change turned on, and read each change before you approve it."
+				"Guests and members write prayer requests, connection cards, forms and emails. This text can hold instructions meant for the AI. Keep the AI app's setting that asks you before every change turned on, and read each change before you approve it.",
 			),
 		]),
 		warning_turning_on: paragraphs([
 			__(
-				"Turning AI on does not open MCP by itself. After that, a System Manager can turn on Frappe's MCP server in System Settings, on the AI Agents tab. MCP is how an AI app, such as Claude or ChatGPT, connects to this site."
+				"Turning AI on does not open MCP by itself. After that, a System Manager can turn on Frappe's MCP server in System Settings, on the AI Agents tab. MCP is how an AI app, such as Claude or ChatGPT, connects to this site.",
 			),
 			__(
-				"Only a Church Manager, a System Manager or a person with the Church AI User role can connect an AI app. A System Manager gives that role on the person's User record. Give it only to people you trust to send what they can read to an AI company."
+				"Only a Church Manager, a System Manager or a person with the Church AI User role can connect an AI app. A System Manager gives that role on the person's User record. Give it only to people you trust to send what they can read to an AI company.",
 			),
 			__(
-				"Removing the role stops the person's AI app from using MCP at once. An app that is already connected keeps working with the REST API until you delete the person's tokens."
+				"Removing the role stops the person's AI app from using MCP at once. An app that is already connected keeps working with the REST API until you delete the person's tokens.",
 			),
 		]),
 		warning_flow_agents: paragraphs([
 			__(
-				"On this site, turning AI on starts Flow, Frappe's AI agents, at once. People with the Flow User role, and System Managers, can chat with AI agents in the desk. A chat works with the person's own permissions and sends what it reads to the AI model that a System Manager added in Flow. Each Flow trigger that is on can start chats, and those chats approve their own changes."
+				"On this site, turning AI on starts Flow, Frappe's AI agents, at once. People with the Flow User role, and System Managers, can chat with AI agents in the desk. A chat works with the person's own permissions and sends what it reads to the AI model that a System Manager added in Flow. Each Flow trigger that is on can start chats, and those chats approve their own changes.",
 			),
 			__(
-				"Frappe's general assistant agent, frappe/Flow, can add, change and delete every record that the person can. To stop that, clear Enabled on it in the Flow Agent list right after you turn AI on. While AI is off, a System Manager cannot open an agent."
+				"Frappe's general assistant agent, frappe/Flow, can add, change and delete every record that the person can. To stop that, clear Enabled on it in the Flow Agent list right after you turn AI on. While AI is off, a System Manager cannot open an agent.",
 			),
 		]),
 		warning_turning_off:
 			paragraphs([
 				__(
-					"Turning AI off closes MCP. It does not sign out the AI apps that are already connected: their tokens still work with the REST API until you revoke them. It does not stop API keys either."
+					"Turning AI off closes MCP. It does not sign out the AI apps that are already connected: their tokens still work with the REST API until you revoke them. It does not stop API keys either.",
 				),
 				...only_with_flow([
 					__(
-						"Turning AI off also stops new Flow chats, Flow triggers and new knowledge sources, but not a reply that Flow is writing at that moment, and after that only Administrator can stop the reply. So to stop a reply that changes records, first clear Enabled on its agent in the Flow Agent list, because Flow checks it before the agent uses each tool. Then turn AI off. People can still read their earlier chats, and Administrator can still continue them."
+						"Turning AI off also stops new Flow chats, Flow triggers and new knowledge sources, but not a reply that Flow is writing at that moment, and after that only Administrator can stop the reply. So to stop a reply that changes records, first clear Enabled on its agent in the Flow Agent list, because Flow checks it before the agent uses each tool. Then turn AI off. People can still read their earlier chats, and Administrator can still continue them.",
 					),
 				]),
 			]) +
 			`<p><a href="/app/oauth-bearer-token" style="text-decoration: underline">${escape(
-				__("Revoke a connected app in the OAuth Bearer Token list")
+				__("Revoke a connected app in the OAuth Bearer Token list"),
 			)}</a></p>`,
 		warning_no_switch: bullets([
 			__(
-				"Calls to the REST API with an API key. A key gives a script or an AI tool its owner's access, so a System Manager makes keys only for people they trust."
+				"Calls to the REST API with an API key. A key gives a script or an AI tool its owner's access, so a System Manager makes keys only for people they trust.",
 			),
 			__(
-				"Staff who copy and paste church data into an AI tool. Only your church's policy stops this."
+				"Staff who copy and paste church data into an AI tool. Only your church's policy stops this.",
 			),
 			__(
-				"AI in other apps on this site, such as Frappe Builder, Frappe Assistant Core and Raven."
+				"AI in other apps on this site, such as Frappe Builder, Frappe Assistant Core and Raven.",
 			),
-			__("Webhooks and Server Scripts that send records to an AI service."),
-			__("Browser extensions and browser assistants that read the desk page."),
+			__(
+				"Webhooks and Server Scripts that send records to an AI service.",
+			),
+			__(
+				"Browser extensions and browser assistants that read the desk page.",
+			),
 			...only_with_flow([
 				__(
-					"The daily copy of a Flow knowledge source that already reads church records or a blocked DocType. The AI Access panel lists each one. Delete it, or untick its Auto Sync."
+					"The daily copy of a Flow knowledge source that already reads church records or a blocked DocType. The AI Access panel lists each one. Delete it, or untick its Auto Sync.",
 				),
 			]),
 		]),
 		warning_knowledge: paragraphs([
 			__(
-				"A Flow knowledge source with the Source Type DocType copies records into a knowledge base: each record of its Reference DocType that matches its Filters, with the fields in its Content Fields. Flow does not check who may read each record. It sends the copied text to the embedding model that is set in Flow, and copies the changed records again at each sync, each day when Auto Sync is on."
+				"A Flow knowledge source with the Source Type DocType copies records into a knowledge base: each record of its Reference DocType that matches its Filters, with the fields in its Content Fields. Flow does not check who may read each record. It sends the copied text to the embedding model that is set in Flow, and copies the changed records again at each sync, each day when Auto Sync is on.",
 			),
 			__(
-				"Everyone who chats with an agent that has the knowledge base can read the copied text, whatever their own permissions. A chat and an AI app work with the person's own permissions, but a knowledge base does not. So set Roles on each agent that has a knowledge base. An agent with no Roles is open to every Flow User, and System Managers can use every agent. A sub-agent works for everyone who can use the agent that has it, so set Roles on that agent too."
+				"Everyone who chats with an agent that has the knowledge base can read the copied text, whatever their own permissions. A chat and an AI app work with the person's own permissions, but a knowledge base does not. So set Roles on each agent that has a knowledge base. An agent with no Roles is open to every Flow User, and System Managers can use every agent. A sub-agent works for everyone who can use the agent that has it, so set Roles on that agent too.",
 			),
 			__(
-				"Churchit refuses a new knowledge source, or a change that makes one read, on a DocType in the Blocked from Flow Knowledge list below. A source that is already saved keeps its daily copy: the AI Access panel lists it."
+				"Churchit refuses a new knowledge source, or a change that makes one read, on a DocType in the Blocked from Flow Knowledge list below. A source that is already saved keeps its daily copy: the AI Access panel lists it.",
 			),
 			__(
-				"The list starts with the recommended DocTypes: the Churchit and Frappe records that hold data about people, and Flow's own records of chats and knowledge. You can remove a DocType or add one. A source on a Churchit or recommended DocType that is not in the list saves, with a warning. A source on any other DocType saves with no warning, so add each DocType that holds data about people, such as those of other apps. The Use the Recommended List button adds back each recommended DocType that is missing, and keeps the ones you added. Press it again after each update of Churchit or Frappe."
+				"The list starts with the recommended DocTypes: the Churchit and Frappe records that hold data about people, and Flow's own records of chats and knowledge. You can remove a DocType or add one. A source on a Churchit or recommended DocType that is not in the list saves, with a warning. A source on any other DocType saves with no warning, so add each DocType that holds data about people, such as those of other apps. The Use the Recommended List button adds back each recommended DocType that is missing, and keeps the ones you added. Press it again after each update of Churchit or Frappe.",
 			),
 		]),
 	};
@@ -259,17 +278,21 @@ function bullets(texts) {
 
 function show_exposure(frm) {
 	const wrapper = frm.get_field("exposure_html").$wrapper;
-	frappe.xcall("churchit.ai.exposure.get_exposure", {}, "GET").then((lines) => {
-		wrapper.html(exposure_html(lines));
-		wrapper
-			.find('[data-action="add_guide_pointer"]')
-			.on("click", () => add_guide_pointer(frm));
-	});
+	frappe
+		.xcall("churchit.ai.exposure.get_exposure", {}, "GET")
+		.then((lines) => {
+			wrapper.html(exposure_html(lines));
+			wrapper
+				.find('[data-action="add_guide_pointer"]')
+				.on("click", () => add_guide_pointer(frm));
+		});
 }
 
 function add_guide_pointer(frm) {
 	frappe
-		.xcall("churchit.ai.guide.add_guide_pointer", {}, "POST", { freeze: true })
+		.xcall("churchit.ai.guide.add_guide_pointer", {}, "POST", {
+			freeze: true,
+		})
 		.then((added) => {
 			frappe.show_alert({
 				message: added
@@ -297,15 +320,15 @@ function exposure_row(line) {
 	const owner = escape(__(line.owner));
 	return `<tr>
 		<td>${escape(line.surface)}<div class="text-muted small">${escape(line.note)}</div>${
-		line.action
-			? `<button class="btn btn-xs btn-default mt-2" data-action="${escape(
-					line.action
-			  )}">${escape(line.button)}</button>`
-			: ""
-	}</td>
+			line.action
+				? `<button class="btn btn-xs btn-default mt-2" data-action="${escape(
+						line.action,
+					)}">${escape(line.button)}</button>`
+				: ""
+		}</td>
 		<td class="text-nowrap"><span class="indicator-pill ${PILL_COLORS[line.open]}">${escape(
-		line.state
-	)}</span></td>
+			line.state,
+		)}</span></td>
 		<td>${line.link ? `<a href="${escape(line.link)}">${owner}</a>` : owner}</td>
 	</tr>`;
 }
