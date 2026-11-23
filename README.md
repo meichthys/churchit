@@ -93,6 +93,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
 - One look for the website and the member app, set like a printed bulletin, in a palette the church picks: **Churchit** (the default), **Harbor**, **Meadow**, **Indigo**, **Vesper** or **Slate**, or Frappe's plain **Standard** colors. Pick one in the theme picker under Website Settings → Website Theme, preview it first, or duplicate a theme and change its colors. Each has a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- A home page that welcomes visitors: when and where the church meets, what is coming up, recent sermons with the podcast, announcements, ministries, next steps and how to visit. It is built from blocks that a church moves, retitles or hides in the desk, as with Frappe's own page blocks
 - Website pages update by themselves when staff publish or change an event, a sermon or announcements: the home page, the Calendar, the Sermons, Announcements and Register pages
 
 ### Functions (Events) & Attendance

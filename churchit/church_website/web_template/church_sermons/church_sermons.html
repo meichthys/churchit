@@ -1,0 +1,50 @@
+{#- The newest sermons, the newest one first and in full, with the podcast beside them
+    (church_website/blocks.py get_church_sermons). -#}
+{%- set recent = get_church_sermons(values.count) -%}
+<div class="ch-block" id="church-sermons" data-live="Sermon,Sermon Series">
+	{%- if recent.sermons %}
+	{%- set latest = recent.sermons[0] %}
+	<div class="ch-block-head">
+		<h2 class="t-head">{{ (values.title or _("Recent sermons")) | e }}</h2>
+		<p class="ch-more">
+			<a href="{{ recent.sermons_url }}">{{ _("All sermons") }}</a>
+			{%- if recent.podcast_url %}
+			<a href="{{ recent.podcast_url | e }}" class="ch-podcast">{{ _("Subscribe to the podcast") }}</a>
+			{%- endif %}
+		</p>
+	</div>
+	<div class="ch-sermons">
+		<article class="ch-sermon-latest">
+			<p class="t-label">{{ latest.series | e if latest.series else _("Latest sermon") }}</p>
+			<h3 class="t-subhead">{% if latest.url %}<a href="{{ latest.url | e }}">{{ latest.title | e }}</a>{% else %}{{ latest.title | e }}{% endif %}</h3>
+			<p class="ch-facts">
+				{%- if latest.preacher %}<span>{{ latest.preacher | e }}</span>{% endif -%}
+				{%- if latest.date %}<span>{{ latest.date }}</span>{% endif -%}
+				{%- if latest.scripture %}<span>{{ latest.scripture | e }}</span>{% endif -%}
+			</p>
+			{%- if latest.summary %}
+			<p class="ch-row-text">{{ latest.summary | e }}</p>
+			{%- endif %}
+			{%- if latest.audio %}
+			<audio controls preload="none"><source src="{{ latest.audio | e }}"></audio>
+			{%- endif %}
+		</article>
+		{%- if recent.sermons[1:] %}
+		<ul class="ch-index">
+			{%- for sermon in recent.sermons[1:] %}
+			<li class="ch-row">
+				<div class="ch-row-main">
+					<p class="ch-row-title">{% if sermon.url %}<a href="{{ sermon.url | e }}">{{ sermon.title | e }}</a>{% else %}{{ sermon.title | e }}{% endif %}</p>
+					<p class="ch-facts">
+						{%- if sermon.preacher %}<span>{{ sermon.preacher | e }}</span>{% endif -%}
+						{%- if sermon.date %}<span>{{ sermon.date }}</span>{% endif -%}
+						{%- if sermon.series %}<span>{{ sermon.series | e }}</span>{% endif -%}
+					</p>
+				</div>
+			</li>
+			{%- endfor %}
+		</ul>
+		{%- endif %}
+	</div>
+	{%- endif %}
+</div>

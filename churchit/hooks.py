@@ -249,6 +249,14 @@ jinja = {
 		"churchit.church_people.household.salutation",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		# What the church's Web Template blocks show (church_website/web_template).
+		"churchit.church_website.blocks.get_church_announcements",
+		"churchit.church_website.blocks.get_church_events",
+		"churchit.church_website.blocks.get_church_ministries",
+		"churchit.church_website.blocks.get_church_next_steps",
+		"churchit.church_website.blocks.get_church_sermons",
+		"churchit.church_website.blocks.get_church_visit",
+		"churchit.church_website.blocks.get_church_welcome",
 		"churchit.church_website.pages.get_switched_off_pages",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
@@ -550,6 +558,7 @@ doc_events = {
 	"Sermon": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
 	"Sermon Series": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
 	"Bulletin": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Ministry": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
 	# A changed color of the website's theme reaches pages that Frappe keeps in its page cache.
 	"Color": {"on_update": "churchit.church_website.palette.clear_pages_on_color_change"},
 }

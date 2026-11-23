@@ -1,0 +1,19 @@
+{#- The announcements of the church's newest shared bulletins (church_website/blocks.py get_church_announcements).
+    The text is the bulletin's own, which Frappe cleans when it is saved. -#}
+{%- set news = get_church_announcements(values.count) -%}
+<div class="ch-block" id="church-announcements" data-live="Bulletin">
+	{%- if news.bulletins %}
+	<div class="ch-block-head">
+		<h2 class="t-head">{{ (values.title or _("Announcements")) | e }}</h2>
+		{%- if news.url %}
+		<p class="ch-more"><a href="{{ news.url }}">{{ _("All announcements") }}</a></p>
+		{%- endif %}
+	</div>
+	{%- for bulletin in news.bulletins %}
+	<section class="announcement">
+		<p class="t-dateline">{{ bulletin.function_name | e }}{% if bulletin.date %}, {{ bulletin.date }}{% endif %}</p>
+		<div class="ch-announcement-text">{{ bulletin.announcements }}</div>
+	</section>
+	{%- endfor %}
+	{%- endif %}
+</div>

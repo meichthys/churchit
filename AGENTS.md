@@ -787,6 +787,18 @@ theme only to a user who may change Website Settings; the query string keeps it 
 `add_website_palettes` saves each theme compiled with the old `public/scss/website`, because migrate
 compiles only the theme in use.
 
+The home page is a Page Builder Web Page built from the church's own Web Templates
+(`church_website/web_template`: Church Welcome, Events, Sermons, Announcements, Ministries, Next
+Steps and Visit), standard records that migrate updates, so a new look reaches every site without a
+patch. A church adds, moves, retitles or hides them as it does Frappe's own blocks, on any Web Page. A
+block's template only lays out what its function in `church_website/blocks.py` (a jinja method)
+returns; each function reads the selected church's public records with `church_filters`, sets
+`frappe.local.no_cache` because those records change without a save of the page, and checks
+`get_hidden_pages` before it links to a page. `published_fields.page_builder_sources` scans a page built
+from blocks, with the whole of `blocks.py` for one of the church's blocks. `templates/home.html` is the
+last HTML home page: older patches upgrade to it, `move_home_page_to_blocks` builds the blocks from it
+when nobody changed it, and the page keeps it, so the Content Type HTML shows it again.
+
 Live updates on the website are hints, like the member app's. `church_website/live.py` sends the event
 `churchit_website` with only a doctype to Frappe's website room after the commit, from the `doc_events`
 of the doctypes that pages show, when the record is on the website before or after the change

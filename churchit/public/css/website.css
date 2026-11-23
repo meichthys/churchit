@@ -1033,6 +1033,274 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   font-size: 0.95rem;
 }
 
+/* ---- The church's blocks ------------------------------------------------------
+   church_website/web_template: the blocks a Page Builder Web Page, such as the
+   home page, is built from. Frappe draws each in its own section and container;
+   these set what is inside in the Order of Service look, closer together than
+   Frappe's own sections. */
+section[data-section-template^="Church "].section-padding-top {
+  padding-top: 2.25rem;
+}
+section[data-section-template^="Church "].section-padding-bottom {
+  padding-bottom: 1rem;
+}
+@media (min-width: 768px) {
+  section[data-section-template^="Church "].section-padding-top {
+    padding-top: 3rem;
+  }
+}
+.ch-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 0.75rem;
+}
+.ch-block-head h2 {
+  margin: 0;
+}
+.ch-block-head .ch-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+}
+
+/* Welcome: the church's name as the masthead, when it meets as a printed programme. */
+.ch-welcome {
+  display: grid;
+  gap: 1.75rem 3rem;
+  padding-top: clamp(0.5rem, 3vw, 2rem);
+}
+.ch-welcome > .rule-double,
+.ch-welcome-join,
+.ch-welcome-verse {
+  grid-column: 1 / -1;
+}
+.ch-welcome .t-label {
+  margin: 0;
+  color: var(--ink-gray-6);
+}
+.ch-welcome-name {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+  line-height: 1;
+}
+.ch-welcome-introduction {
+  max-width: 40rem;
+  margin: 0.75rem 0 0;
+  color: var(--ink-gray-7);
+}
+.ch-welcome .ch-actions {
+  margin-top: 1.75rem;
+}
+.ch-welcome-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  align-self: center;
+  border-radius: var(--radius-5, 10px);
+}
+@media (min-width: 992px) {
+  .ch-welcome.has-image {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+.ch-welcome-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  font-weight: 500;
+  color: var(--ink-gray-9);
+  background: var(--accent-wash-strong);
+}
+.ch-welcome-live a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.ch-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ch-live 1.6s ease-in-out infinite;
+}
+@keyframes ch-live {
+  50% {
+    opacity: 0.3;
+  }
+}
+.ch-welcome-gatherings {
+  max-width: 44rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ch-welcome-gatherings li {
+  display: flex;
+  align-items: baseline;
+  padding: 0.375rem 0;
+}
+.ch-welcome-gatherings .t-subhead {
+  color: var(--ink-gray-9);
+}
+.ch-welcome-when {
+  color: var(--ink-gray-7);
+  text-align: end;
+}
+.ch-welcome-where {
+  margin: 0.75rem 0 0;
+  color: var(--ink-gray-7);
+}
+.ch-welcome-where a,
+.ch-visit a:not(.es-button) {
+  color: var(--ink-gray-9);
+  text-decoration: underline;
+  text-decoration-color: var(--outline-gray-4);
+  text-underline-offset: 0.2em;
+}
+.ch-welcome-verse {
+  max-width: 44rem;
+  margin: 0;
+}
+.ch-welcome-verse blockquote {
+  margin: 0 0 0.5rem;
+  color: var(--ink-gray-8);
+}
+.ch-welcome-verse figcaption {
+  color: var(--ink-gray-6);
+}
+@media (max-width: 575.98px) {
+  .ch-welcome-gatherings li {
+    flex-wrap: wrap;
+  }
+  .ch-welcome-gatherings .leader {
+    display: none;
+  }
+  .ch-welcome-when {
+    flex-basis: 100%;
+    text-align: start;
+  }
+}
+
+/* Sermons: the newest in full beside the ones before it. */
+.ch-sermons {
+  display: grid;
+  gap: 1rem 3rem;
+}
+@media (min-width: 992px) {
+  .ch-sermons:has(> .ch-index) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+.ch-sermon-latest {
+  padding-top: 1rem;
+  border-top: 1px solid var(--outline-gray-1);
+}
+.ch-sermon-latest .t-label {
+  margin: 0;
+  color: var(--accent);
+}
+.ch-sermon-latest .t-subhead {
+  margin: 0.375rem 0 0;
+}
+.ch-sermon-latest .t-subhead a {
+  color: var(--ink-gray-9);
+}
+.ch-sermon-latest audio {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Grids of entries: ministries and next steps. */
+.ch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ch-card {
+  display: block;
+  height: 100%;
+  padding: 1rem 0 1.25rem;
+  border-top: 1px solid var(--outline-gray-2);
+  color: var(--ink-gray-8);
+}
+.ch-card .t-subhead {
+  display: block;
+  margin: 0;
+  color: var(--ink-gray-9);
+}
+.ch-card .ch-row-text {
+  display: block;
+}
+a.ch-card {
+  text-decoration: none;
+}
+a.ch-card:hover {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-1);
+  box-shadow:
+    -0.75rem 0 0 var(--surface-gray-1),
+    0.75rem 0 0 var(--surface-gray-1);
+}
+a.ch-card .t-subhead::after {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-inline-start: 0.6rem;
+  vertical-align: 0.15em;
+  border-top: 1.5px solid var(--ink-gray-5);
+  border-right: 1.5px solid var(--ink-gray-5);
+  transform: rotate(45deg);
+}
+
+/* Visit: about the church beside how to reach it. */
+.ch-visit {
+  display: grid;
+  gap: 1.5rem 3rem;
+}
+@media (min-width: 992px) {
+  .ch-visit {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+}
+.ch-visit-about h2 {
+  margin: 0 0 0.75rem;
+}
+.ch-visit-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: var(--radius-5, 10px);
+  background: var(--surface-elevation-1);
+}
+.ch-visit-details dt {
+  margin: 0;
+  padding-top: 0.2rem;
+  color: var(--ink-gray-6);
+}
+.ch-visit-details dd {
+  margin: 0;
+  color: var(--ink-gray-8);
+}
+.ch-visit-details .ch-visit-action {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}
+
 /* ---- Home page as it shipped before -----------------------------------------
    A church that edited the home page keeps its page, and with it the markup
    of the earlier home page: a two-column hero, a stats strip, and card panels

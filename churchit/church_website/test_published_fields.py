@@ -195,6 +195,23 @@ class TestPublishedFields(FrappeTestCase):
 		for route in forms:
 			self.assertIn(route, scanned, route)
 
+	def test_a_page_built_from_the_church_s_blocks_shows_what_the_blocks_read(self):
+		page = frappe.get_doc(
+			{
+				"doctype": "Web Page",
+				"title": "_Test Blocks Page",
+				"route": "_test-blocks-page",
+				"published": 1,
+				"content_type": "Page Builder",
+				"page_blocks": [{"web_template": "Church Sermons", "web_template_values": "{}"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Web Page", page.name, force=True)
+
+		shown = published_field_map()
+		self.assertIn(page.route, routes(shown, "Sermon", "title"))
+		self.assertIn(page.route, routes(shown, "Function", "function_name"), "a block's helpers count too")
+
 	def test_a_page_that_sends_every_guest_to_login_is_members_only(self):
 		access = {source["route"]: source["access"] for source, _ in code_sources()}
 		self.assertEqual(access["statements"], MEMBERS)

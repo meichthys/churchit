@@ -158,6 +158,7 @@ def schedule_item_entries(doctypes):
 def code_sources():
 	"""Yield ``(source, code)`` for everything that renders on the public website."""
 	yield from web_page_sources()
+	yield from page_builder_sources()
 	yield from www_sources()
 	yield from guest_api_sources()
 	yield from portal_api_sources()
@@ -175,6 +176,39 @@ def web_page_sources():
 		access = MEMBERS if page.members_only else PUBLIC
 		source = {"title": page.title or page.name, "route": page.route or page.name, "access": access}
 		yield source, page.main_section_html or ""
+
+
+def page_builder_sources():
+	"""Each published Web Page built from blocks: the templates of its blocks.
+
+	The church's own blocks (church_website/web_template) call into church_website/blocks.py, whose
+	helpers call one another, so the whole module counts as read by a page with one of them."""
+	pages = frappe.get_all(
+		"Web Page",
+		filters={"published": 1, "content_type": "Page Builder"},
+		fields=["name", "title", "route", "members_only"],
+	)
+	templates = defaultdict(set)
+	for row in frappe.get_all(
+		"Web Page Block",
+		filters={"parenttype": "Web Page", "parent": ["in", [page.name for page in pages]]},
+		fields=["parent", "web_template"],
+	):
+		templates[row.parent].add(row.web_template)
+	own_modules = set(frappe.get_module_list("churchit"))
+	blocks_module = (Path(frappe.get_app_path("churchit")) / "church_website" / "blocks.py").read_text()
+	for page in pages:
+		code = []
+		for name in sorted(templates[page.name]):
+			template = frappe.get_cached_doc("Web Template", name)
+			code.append(template.get_template(template.standard) or "")
+			if template.module in own_modules and blocks_module not in code:
+				code.append(blocks_module)
+		access = MEMBERS if page.members_only else PUBLIC
+		yield (
+			{"title": page.title or page.name, "route": page.route or page.name, "access": access},
+			"\n".join(code),
+		)
 
 
 def www_sources():

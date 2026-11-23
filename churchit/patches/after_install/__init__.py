@@ -56,6 +56,7 @@ from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 )
 from churchit.church_summary.ai import create_note_type
 from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
+from churchit.church_website.blocks import set_home_blocks
 from churchit.church_website.pages import sync_page_switches
 from churchit.church_website.palette import COLOR_ROLES, PALETTES, THEME_COLOR_FIELDS
 
@@ -683,7 +684,9 @@ def _create_web_pages():
 	"""Create the default church website pages.
 
 	HTML content is stored in separate template files under templates/ so it
-	can be edited without touching this Python script.
+	can be edited without touching this Python script. The home page is built
+	from the church's Web Template blocks instead (church_website/blocks.py); it
+	keeps the last HTML home page, which the Content Type HTML shows again.
 	"""
 	pages = [
 		{
@@ -720,7 +723,7 @@ def _create_web_pages():
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
 			continue
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "Web Page",
 				"name": page["name"],
@@ -736,7 +739,10 @@ def _create_web_pages():
 				"css": ".page-header { text-align: center; }",
 				"main_section_html": read_template(page["template_file"]),
 			}
-		).insert(ignore_permissions=True)
+		)
+		if page["name"] == "home":
+			set_home_blocks(doc)
+		doc.insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

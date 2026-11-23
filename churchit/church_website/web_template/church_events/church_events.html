@@ -1,0 +1,36 @@
+{#- The next gatherings on the church's calendar (church_website/blocks.py get_church_events). -#}
+{%- set events = get_church_events(values.count) -%}
+<div class="ch-block" id="church-events" data-live="Function">
+	{%- if events.functions %}
+	<div class="ch-block-head">
+		<h2 class="t-head">{{ (values.title or _("Coming up")) | e }}</h2>
+		{%- if events.calendar_url %}
+		<p class="ch-more"><a href="{{ events.calendar_url }}">{{ _("See the calendar") }}</a></p>
+		{%- endif %}
+	</div>
+	<ul class="ch-index">
+		{%- for event in events.functions %}
+		<li class="ch-row">
+			<span class="ch-date{% if event.is_today %} is-today{% endif %}" aria-hidden="true">
+				<span class="t-numeral">{{ event.number }}</span>
+				<span class="t-label">{{ event.weekday }}</span>
+				<span class="t-label">{{ event.month }}</span>
+			</span>
+			<div class="ch-row-main">
+				<p class="ch-row-title">
+					{%- if event.url %}<a href="{{ event.url | e }}">{{ event.title | e }}</a>{% else %}{{ event.title | e }}{% endif -%}
+					<span class="sr-only">, {{ event.date }}</span>
+				</p>
+				<p class="ch-facts"><span>{{ event.time }}</span>{% if event.place %}<span>{{ event.place | e }}</span>{% endif %}</p>
+				{%- if event.description %}
+				<p class="ch-row-text">{{ event.description | e }}</p>
+				{%- endif %}
+			</div>
+			{%- if event.register_url %}
+			<a class="es-button ch-row-end" data-variant="subtle" data-size="md" href="{{ event.register_url | e }}">{{ _("Register") }}</a>
+			{%- endif %}
+		</li>
+		{%- endfor %}
+	</ul>
+	{%- endif %}
+</div>
