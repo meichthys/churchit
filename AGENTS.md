@@ -1770,7 +1770,9 @@ Every manual has the same shape, so a reader finds things in the same place in e
   selectors of that part, run `uv run docs/screenshots.py <manual>` on a site with only the sample
   data, and embed the pair as a `<picture>` with a dark `<source>` and an `<img>` with alt text
   (see `manual/people/person.md`). The pictures are in `churchit/public/manual`, which the desk
-  serves, and they keep their file names when taken again. Retake them when their screen changes.
+  serves, and they keep their file names when taken again. When a change touches the doctype, page
+  or report that a picture shows, the pre-commit hook and the manual-pictures check on the pull
+  request name the picture: look at it, and take it again if the screen changed.
 - A list of named things with a short meaning each, such as roles, statuses or notifications, is a
   table. A real flow, such as check-in and pickup, can have a Mermaid diagram in a `mermaid` code
   block. The desk cannot draw one and links to the online page instead, so keep diagrams few.

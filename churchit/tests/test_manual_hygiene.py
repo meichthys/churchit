@@ -14,6 +14,7 @@ import glob
 import json
 import os
 import re
+import sys
 
 from frappe.tests.utils import FrappeTestCase
 
@@ -37,6 +38,12 @@ from churchit.manual_sources import (
 
 CALLOUT_OPENER = re.compile(r"(note|tip|caution|danger)(\[[^\]]+\])?")
 PICTURES = os.path.join(PUBLIC, "manual")
+
+sys.path.insert(0, os.path.join(APP_ROOT, "docs"))
+from screenshots import MANUAL_SHOTS, get_stale_shots
+
+# Pictures of Frappe's own screens, which a Frappe update changes and no churchit file does.
+FRAPPE_SCREENS = {"website/website", "help/search", "help/keyboard-shortcuts"}
 
 
 def get_sources() -> list[str]:
@@ -157,6 +164,19 @@ class TestManualHygiene(FrappeTestCase):
 		}
 		files = set(glob.glob(os.path.join(PICTURES, "**", "*.webp"), recursive=True))
 		self.assertEqual(sorted(os.path.relpath(path, APP_ROOT) for path in files - used), [])
+
+	def test_a_change_to_a_screen_names_its_pictures(self):
+		"""The pre-commit hook and the manual-pictures workflow name them, so that someone looks again."""
+		changed = [
+			"churchit/church_people/doctype/family/family.json",
+			"churchit/church_people/doctype/family/family.py",
+		]
+
+		self.assertEqual([shot.name for shot in get_stale_shots(changed)], ["people/family"])
+
+	def test_every_picture_of_a_churchit_screen_knows_its_files(self):
+		"""A picture with no doctype, page or report folder is never named when its screen changes."""
+		self.assertEqual({shot.name for shot in MANUAL_SHOTS if not shot.screen_folders}, FRAPPE_SCREENS)
 
 	def test_a_picture_is_a_picture_element(self):
 		"""A Markdown image has no dark version, and the desk build does not draw one."""

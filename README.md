@@ -574,6 +574,8 @@ The [screenshots page](https://churchit.app/screenshots.html) and the manuals sh
 
    The script uses `http://churchit.localhost:8000`. Add `--url` to use a different site.
 3. Look at each new image in `docs/assets/screenshots/` and `churchit/public/manual/` before you commit it. Take it again if it shows test records. The pre-commit hook rebuilds the Manual workspaces, which name each picture with its version.
+
+When you change the JSON, script or template of a doctype, page or report, the pre-commit hook and the `manual-pictures` check on the pull request name the manual pictures of that screen. Look at each one, and take it again if the screen changed.
 4. If you added, removed or renamed a shot, run `../../env/bin/python docs/build_docs.py`. The `build-docs` workflow also does this after a push.
 
 To add a feature to the page, add a `Shot` to `SHOTS` and take its pictures. A shot can have a desktop picture, a phone picture, or both.

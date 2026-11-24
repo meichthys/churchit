@@ -15,24 +15,32 @@ from the app root:
     uv run docs/screenshots.py people                             # the pictures of one manual
     uv run docs/screenshots.py people/family                      # one picture
     uv run docs/screenshots.py --url https://demo.example.org     # another site
+    python docs/screenshots.py --stale <changed files>            # the pictures to look at again
 
 Every shot is taken in both themes, and the reader sees the one that matches theirs.
 Shots are written to docs/assets/screenshots/<slug>-<desktop|mobile>-<light|dark>.webp,
 and manual pictures to churchit/public/manual/<manual>/<picture>-<light|dark>.webp.
 A picture keeps its file name when it is taken again: the wiki and the desk both
-notice that its content changed.
+notice that its content changed. --stale names the pictures whose doctype, page or
+report a change touches: the pre-commit hook and the manual-pictures workflow run it.
 """
 
 import argparse
+import glob
 import io
 import itertools
 import json
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
+from urllib.parse import unquote
 
 DOCS = os.path.dirname(os.path.abspath(__file__))
-MANUAL_PICTURES = os.path.join(os.path.dirname(DOCS), "churchit", "public", "manual")
+APP_ROOT = os.path.dirname(DOCS)
+MANUAL_PICTURES = os.path.join(APP_ROOT, "churchit", "public", "manual")
+
+# The files of a doctype, page or report that change what its screen looks like.
+SCREEN_FILES = (".json", ".js", ".html", ".css")
 DEFAULT_URL = "http://churchit.localhost:8000"
 
 # Sample data logins. Each password is the account's own email address.
@@ -110,6 +118,22 @@ class ManualShot:
 
 	def get_image_path(self, theme):
 		return os.path.join(MANUAL_PICTURES, f"{self.name}-{theme}.webp")
+
+	@property
+	def screen_folders(self):
+		"""The folders of the doctype, page or report whose screen the picture shows, from the app root."""
+		route = [unquote(part) for part in self.path.split("?")[0].strip("/").split("/")]
+		if route[0] != "desk" or len(route) < 2:
+			return []
+		kinds, name = (
+			(("report",), route[2]) if route[1] == "query-report" else (("doctype", "page"), route[1])
+		)
+		folder = name.lower().replace(" ", "_").replace("-", "_")
+		return sorted(
+			os.path.relpath(path, APP_ROOT)
+			for kind in kinds
+			for path in glob.glob(os.path.join(APP_ROOT, "churchit", "*", kind, folder))
+		)
 
 
 def select_two_wilsons(page):
@@ -436,11 +460,44 @@ def set_theme(page, theme):
 	)
 
 
+def get_stale_shots(paths):
+	"""The manual pictures whose screen a change to *paths* (from the app root) may have changed."""
+	changed = [os.path.normpath(path) for path in paths if path.endswith(SCREEN_FILES)]
+	return [
+		shot
+		for shot in MANUAL_SHOTS
+		if any(path.startswith(folder + os.sep) for folder in shot.screen_folders for path in changed)
+	]
+
+
+def print_stale_shots(paths):
+	"""Name each picture to look at again. On GitHub, each one is a warning on the pull request."""
+	shots = get_stale_shots(paths)
+	if not shots:
+		return
+	names = " ".join(shot.name for shot in shots)
+	if os.environ.get("GITHUB_ACTIONS"):
+		for shot in shots:
+			print(
+				f"::warning title=Manual picture::{shot.name} may show an old screen. Look at it, and take it again if it changed."
+			)
+	print(f"These manual pictures show a screen that this change touches: {names}")
+	print(f"Look at each one, and take it again if the screen changed: uv run docs/screenshots.py {names}")
+
+
 def main():
 	parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 	parser.add_argument("names", nargs="*", help="shots, manuals or manual pictures to take (default: all)")
 	parser.add_argument("--url", default=DEFAULT_URL, help=f"site to photograph (default: {DEFAULT_URL})")
+	parser.add_argument(
+		"--stale",
+		action="store_true",
+		help="name the manual pictures that the changed files given may make old",
+	)
 	args = parser.parse_args()
+	if args.stale:
+		print_stale_shots(args.names)
+		return
 	names = set(args.names)
 	manual_names = {shot.name for shot in MANUAL_SHOTS} | {shot.name.split("/")[0] for shot in MANUAL_SHOTS}
 	unknown = names - {shot.slug for shot in SHOTS} - manual_names
