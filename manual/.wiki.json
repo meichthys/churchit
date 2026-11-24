@@ -1,0 +1,72 @@
+{
+	"sidebar": [
+		"README.md",
+		{
+			"label": "Getting Started",
+			"slug": "getting-started",
+			"autogenerate": {
+				"directory": "help"
+			}
+		},
+		{
+			"label": "Foundations",
+			"autogenerate": {
+				"directory": "foundations"
+			}
+		},
+		{
+			"label": "People",
+			"autogenerate": {
+				"directory": "people"
+			}
+		},
+		{
+			"label": "Finances",
+			"autogenerate": {
+				"directory": "finances"
+			}
+		},
+		{
+			"label": "Ministries",
+			"autogenerate": {
+				"directory": "ministries"
+			}
+		},
+		{
+			"label": "Missions",
+			"autogenerate": {
+				"directory": "missions"
+			}
+		},
+		{
+			"label": "Prayers",
+			"autogenerate": {
+				"directory": "prayers"
+			}
+		},
+		{
+			"label": "Study",
+			"autogenerate": {
+				"directory": "study"
+			}
+		},
+		{
+			"label": "Communications",
+			"autogenerate": {
+				"directory": "communications"
+			}
+		},
+		{
+			"label": "Operations",
+			"autogenerate": {
+				"directory": "operations"
+			}
+		},
+		{
+			"label": "Website",
+			"autogenerate": {
+				"directory": "website"
+			}
+		}
+	]
+}
