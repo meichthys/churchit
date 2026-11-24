@@ -12,7 +12,7 @@ Members and staff sign in with a login (a user). A member's login opens the memb
 
 Churchit makes a login with the Church User role, links it to the person, and emails them an invitation. If a login with that email already exists, Churchit links it instead, unless another person already has that login or it belongs to a church you cannot see. The button shows only to users who can change the person, and only while the person has an email and no login. It needs an outgoing email account.
 
-Churchit also links a login to a person by itself at the first sign-in, when one person has the same primary email and no login (see Portal accounts under Member Portal).
+Churchit also links a login to a person by itself at the first sign-in, when one person has the same primary email and no login (see [Portal accounts](member-portal.md#portal-accounts) under Member Portal).
 
 A visitor who is not signed in sees on the portal: "Part of the church but no login yet? Ask the church office to invite you."
 
@@ -28,7 +28,7 @@ Staff and volunteers who work in the desk need a user with a **Role Profile** th
 
 - **Church Treasurer**: also handles collections, expenses, funds, budgets and giving statements (the Church Finance role).
 
-- **Church Check-In Volunteer**: uses the [Check-In Station](/desk/check-in) only.
+- **Church Check-In Volunteer**: uses the [Check-In Station](../ministries/function-check-ins.md) only.
 
 - **Church Follow-up Team**: works on follow-up cards only.
 
@@ -36,18 +36,18 @@ Staff and volunteers who work in the desk need a user with a **Role Profile** th
 
 - **Church Manager**: everything, including settings.
 
-To give someone several jobs, add more than one Role Profile to their user. After they sign in, each person opens the page for their work: a check-in volunteer opens the Check-In Station, a follow-up volunteer opens Follow-up Cards, and other staff open Summary. Linking a staff login to a Person does not change which churches the staff member sees (see the Foundations manual).
+To give someone several jobs, add more than one Role Profile to their user. After they sign in, each person opens the page for their work: a check-in volunteer opens the Check-In Station, a follow-up volunteer opens Follow-up Cards, and other staff open Summary. Linking a staff login to a Person does not change which churches the staff member sees (see the [Foundations manual](../foundations/README.md)).
 
 ## Two-factor authentication
 
 Two-factor authentication asks for a code as well as the password at login, so a stolen password alone does not open the church's records. We recommend it for every staff login, because staff can see personal and medical details.
 
-1. Open [System Settings](/desk/system-settings) and go to the **Login** tab.
+1. Open **System Settings** and go to the **Login** tab.
 2. Under Two Factor Authentication, tick **Enable Two Factor Auth**.
 3. Choose the method: **OTP App** (a code from an app such as Google Authenticator), **SMS** (set up SMS Settings first) or **Email**.
 4. Save. Each user sets it up the next time they log in.
 
-This asks everyone for a code, members too. To ask only staff, open the [All](/desk/role/All) role and untick **Two Factor Authentication**, then tick it on the Church Staff, Church Manager, Church Check-In and Church Follow-up roles.
+This asks everyone for a code, members too. To ask only staff, open the All role and untick **Two Factor Authentication**, then tick it on the Church Staff, Church Manager, Church Check-In and Church Follow-up roles.
 
 ## Single sign-on
 
@@ -55,7 +55,7 @@ With single sign-on, people use one account for Churchit and other apps. A Syste
 
 **Sign in to Churchit with another account**, such as Google, Keycloak or Authentik:
 
-1. Open [Social Login Key](/desk/social-login-key/new) and choose the **Social Login Provider**: Google, Keycloak, or Custom for Authentik and other OpenID Connect providers.
+1. Open **Social Login Key** and choose the **Social Login Provider**: Google, Keycloak, or Custom for Authentik and other OpenID Connect providers.
 
 2. Type the **Client ID** and **Client Secret** that the other system gives you. For Keycloak, type the realm's address in **Base URL**. For Custom, type a one-word **Provider Name**, such as authentik, the **Authorize URL**, **Access Token URL** and **API Endpoint**, and set **Redirect URL** to /api/method/frappe.integrations.oauth2_logins.custom/authentik.
 
@@ -65,7 +65,7 @@ With single sign-on, people use one account for Churchit and other apps. A Syste
 
 **Use Churchit logins in another app**, such as a wiki or Nextcloud:
 
-1. Open [OAuth Client](/desk/oauth-client/new) and type the **App Name**.
+1. Open **OAuth Client** and type the **App Name**.
 
 2. Set **Scopes** to openid, and type the app's redirect address in **Redirect URIs** and **Default Redirect URI**.
 
@@ -75,4 +75,4 @@ With single sign-on, people use one account for Churchit and other apps. A Syste
 
 5. In the app, type the Client ID, the Client Secret and the address: your site address followed by /.well-known/openid-configuration.
 
-If no other app needs to add itself, untick **Enable Dynamic Client Registration** in [OAuth Settings](/desk/oauth-settings).
+If no other app needs to add itself, untick **Enable Dynamic Client Registration** in **OAuth Settings**.

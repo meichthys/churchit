@@ -3,9 +3,11 @@ title: Funds
 emoji: 📊
 sidebar_position: 6
 ---
-A [Fund](/desk/fund) is a pot of money for one purpose, such as General, Building or Missions. Every gift goes into a fund, and every expense comes out of one. Churchit keeps the **Balance** of each fund from these records, so you cannot type it.
+A Fund is a pot of money for one purpose, such as General, Building or Missions. Every gift goes into a fund, and every expense comes out of one. Churchit keeps the **Balance** of each fund from these records, so you cannot type it.
 
-**Example:** The church raises money for a new roof. You add a Building Fund with a Goal Amount of $40,000, tick Allow giving to this fund and print its QR code. Gifts in collections and online go into it, the Goal Progress shows how far you are, and the roofing invoice is an expense from the same fund.
+:::note[Example]
+The church raises money for a new roof. You add a Building Fund with a Goal Amount of $40,000, tick Allow giving to this fund and print its QR code. Gifts in collections and online go into it, the Goal Progress shows how far you are, and the roofing invoice is an expense from the same fund.
+:::
 
 - The **Ledger** tab lists every transaction of the fund: the gifts, the expenses and the fund transfers. A gift takes the date of its collection.
 
@@ -19,7 +21,7 @@ A [Fund](/desk/fund) is a pot of money for one purpose, such as General, Buildin
 
 ## Move money between funds
 
-To move money from one fund to another, add a [Fund Transfer](/desk/fund-transfer/new-church-fund-transfer) and submit it. Churchit adds a transaction to each fund, such as "Transfer to Building". When a transfer would take the From Fund below zero, Churchit warns you when you save it. To record money that is spent, add an Expense instead.
+To move money from one fund to another, add a Fund Transfer and submit it. Churchit adds a transaction to each fund, such as "Transfer to Building". When a transfer would take the From Fund below zero, Churchit warns you when you save it. To record money that is spent, add an Expense instead.
 
 ## Tax Deductible
 

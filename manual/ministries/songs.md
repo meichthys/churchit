@@ -3,15 +3,17 @@ title: Songs
 emoji: 🎵
 sidebar_position: 8
 ---
-The [Songs](/desk/song) list is your church's song library. Each song keeps its words as slides, its arrangements with chord charts, its rehearsal media and its copyright details. Add songs to the Schedule of a function to plan a service, show the words on a screen, and count the uses for your CCLI report.
+The Songs list is your church's song library. Each song keeps its words as slides, its arrangements with chord charts, its rehearsal media and its copyright details. Add songs to the Schedule of a function to plan a service, show the words on a screen, and count the uses for your CCLI report.
 
-**Example:** The worship leader imports Amazing Grace from a SongSelect file. Churchit makes the song with its slides. She adds an arrangement in G with a ChordPro chart, and an MP3 for rehearsal. On Sunday's Function, she adds the song to the schedule in the key of A.
+:::note[Example]
+The worship leader imports Amazing Grace from a SongSelect file. Churchit makes the song with its slides. She adds an arrangement in G with a ChordPro chart, and an MP3 for rehearsal. On Sunday's Function, she adds the song to the schedule in the key of A.
+:::
 
 The team sees the key A, the arrangement and the MP3 on the Serving page of the member portal, and the worship leader prints the chord chart in A from the desk. During the service, the song's slides show on the screen.
 
 ## Add a song
 
-1. Open [Songs](/desk/song) and click **Add Song**.
+1. Open **Songs** and click **Add Song**.
 
 2. Type the title, the **CCLI** number if you know it, and the **Authors** (the writers of the words and the music).
 
@@ -25,9 +27,9 @@ The team sees the key A, the arrangement and the MP3 on the Serving page of the 
 
 Add themes as tags in the sidebar of the form, such as Advent or Easter, then filter the Song list by tag. The **Connections** tab lists the functions whose schedule has the song.
 
-**Copyright on the screen.** The last slide of a song shows its copyright and its CCLI number, with your church's **CCLI License Number** from the [Church](/desk/church) record. Visitors who are not signed in see the words of a song only when Public Domain is ticked.
+**Copyright on the screen.** The last slide of a song shows its copyright and its CCLI number, with your church's **CCLI License Number** from the [Church](../foundations/churches.md) record. Visitors who are not signed in see the words of a song only when Public Domain is ticked.
 
-**Present a song.** Open the song and click **Present** to show its slides on a screen. To show a song inside a sermon presentation, add it as a slide to the sermon with no fields chosen (see the Study manual).
+**Present a song.** Open the song and click **Present** to show its slides on a screen. To show a song inside a sermon presentation, add it as a slide to the sermon with no fields chosen (see the [Study manual](../study/README.md)).
 
 ## Arrangements and chord charts
 
@@ -53,10 +55,10 @@ To export one song, open it and click **Actions**, then **Export**. To export mo
 
 ## Song Usage and CCLI
 
-The [Song Usage](/desk/query-report/Song Usage) report counts how many times each song was on the Schedule of a function in a date range (the last six months at first), with its CCLI number and the date it was last used. It also counts in how many uses the words were displayed or printed, and in how many the function was streamed or recorded.
+The Song Usage report counts how many times each song was on the Schedule of a function in a date range (the last six months at first), with its CCLI number and the date it was last used. It also counts in how many uses the words were displayed or printed, and in how many the function was streamed or recorded.
 
 Tick **Displayed** and **Printed** on the schedule row, and **Streamed** and **Recorded** on the function. CCLI has no public way to receive these numbers, so copy them into your CCLI report.
 
 ## Suggest Songs with AI
 
-When AI is turned on (see the Foundations manual), save a [Function](/desk/function), then click **Actions**, then **Suggest Songs**. The AI reads the title, Scripture and series of the sermon on the schedule, and the titles, tags, keys and last use of your songs. It never gets lyrics, charts or names of people. It suggests up to 8 of your own songs, each with a tick. Click **Add** to put the ticked songs on the schedule with their default key, then save the function.
+When AI is turned on (see the [Foundations manual](../foundations/README.md)), save a [Function](functions.md), then click **Actions**, then **Suggest Songs**. The AI reads the title, Scripture and series of the sermon on the schedule, and the titles, tags, keys and last use of your songs. It never gets lyrics, charts or names of people. It suggests up to 8 of your own songs, each with a tick. Click **Add** to put the ticked songs on the schedule with their default key, then save the function.

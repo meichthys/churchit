@@ -5,15 +5,17 @@ sidebar_position: 13
 ---
 Much of a church office's work starts with a list: the visitors of last month, the members not seen lately, the parents of the children's class. Churchit keeps figures on each person, ships ready-made lists, and lets you save your own lists. A saved list of people is a **smart list**: it stays up to date by itself, and you can email it, follow it up or use it in a pathway.
 
-**Example:** The pastor wants to call every member who has not come since Easter. The secretary opens the Person Report view, adds the filters Membership is Member and Last Attended is before Easter Sunday, and saves it as Not Seen Since Easter. The list updates itself each day. A week later she opens it again: two people who came back on Sunday are no longer on it.
+:::note[Example]
+The pastor wants to call every member who has not come since Easter. The secretary opens the Person Report view, adds the filters Membership is Member and Last Attended is before Easter Sunday, and saves it as Not Seen Since Easter. The list updates itself each day. A week later she opens it again: two people who came back on Sunday are no longer on it.
+:::
 
 ## Figures on each person
 
-The Connections tab of the [Person](/desk/person) form shows figures that Churchit keeps up to date from other records, so you can filter people on them:
+The Connections tab of the [Person](person.md) form shows figures that Churchit keeps up to date from other records, so you can filter people on them:
 
 - **Involvement**: First Attended, Last Attended and Times Attended (90 Days) count attendance that is Confirmed, Assumed or Checked-In. Last Served and Times Served (90 Days) count accepted serving assignments. Groups and Group Count show the active groups the person is in. Ministry Teams and Team Positions list the person's serving teams.
 
-- **Giving**: First Gift, Last Gift and Lapsed Giver (see the Finances manual). Only Church Finance, Church Manager and System Manager users see these.
+- **Giving**: First Gift, Last Gift and Lapsed Giver (see the [Finances manual](../finances/README.md)). Only Church Finance, Church Manager and System Manager users see these.
 
 - **Care**: Open Care Requests, Last Visited (the latest completed visit), and the most recent Background Check with its expiry. Only Church Pastoral Care, Church Manager and System Manager users see these.
 
@@ -25,25 +27,25 @@ The figures change soon after a record is saved, and again every night. They cou
 
 Churchit ships these lists. Open them from the folders of the People sidebar. No list shows people who have died. You cannot change a standard list: to keep your own version, change the filters or columns, then click **Save As**.
 
-- [Inactivity Candidates](/desk/person/view/report/Inactivity Candidates): active people who attended before but not in the last 90 days.
+- Inactivity Candidates: active people who attended before but not in the last 90 days.
 
-- [First-Time Visitors](/desk/person/view/report/First-Time Visitors): people who first attended in the last 30 days and are not Members.
+- First-Time Visitors: people who first attended in the last 30 days and are not Members.
 
-- [Not in a Group](/desk/person/view/report/Not in a Group): active adults in no group.
+- Not in a Group: active adults in no group.
 
-- [Children](/desk/person/view/report/Children): all children.
+- Children: all children.
 
-- [Background Checks Expiring](/desk/person/view/report/Background Checks Expiring): cleared checks that expire in the next 30 days.
+- Background Checks Expiring: cleared checks that expire in the next 30 days.
 
-- [Lapsed Givers](/desk/person/view/report/Lapsed Givers): people who gave in the last year but not in the last 90 days (finance staff and managers only).
+- Lapsed Givers: people who gave in the last year but not in the last 90 days (finance staff and managers only).
 
-- [People with Open Care Requests](/desk/person/view/report/People with Open Care Requests), [Members Not Seen Lately](/desk/person/view/report/Members Not Seen Lately) and [Members by Last Visit](/desk/person/view/report/Members by Last Visit): for pastoral care staff and managers.
+- People with Open Care Requests, Members Not Seen Lately and Members by Last Visit: for pastoral care staff and managers.
 
 The Inactivity Candidates and First-Time Visitors cards on the People workspace count the people on these lists in your church.
 
 ## Make your own list
 
-1. Open the [Person Report view](/desk/person/view/report). It opens on Status Active: clear that filter first if the list should include everyone.
+1. Open the Person Report view. It opens on Status Active: clear that filter first if the list should include everyone.
 2. Click **Filter** and add conditions, for example Status is Active and Times Attended (90 Days) is 0.
 3. To change the columns, click **...**, then **Pick Columns**.
 4. Click **...**, then **Save As**, and type a name.
@@ -61,17 +63,19 @@ Some filters that are useful:
 
 ## Attendance count lists
 
-The [Attendance Count](/desk/query-report/Attendance Count) report lists the people who attended at least a number of times since a date (1 time in the last 3 months at first). You can also set **Until** and a **Function Type**.
+The **Attendance Count** report lists the people who attended at least a number of times since a date (1 time in the last 3 months at first). You can also set **Until** and a **Function Type**.
 
 To use it as a smart list, open the menu at the top right, click **Save** and give it a name. The saved list counts again each time it is used. It counts only Confirmed, Assumed and Checked-In attendance at functions that have started, of the person's own church and shared functions.
 
-**Example:** To find the regulars who are not members yet, save an Attendance Count with Since three months ago and At Least 8 times. Use it as the Smart List of a Church Email that invites them to the next membership class.
+:::note[Example]
+To find the regulars who are not members yet, save an Attendance Count with Since three months ago and At Least 8 times. Use it as the Smart List of a Church Email that invites them to the next membership class.
+:::
 
 ## Act on a list
 
 Tick people in the Person list or a saved list, then open **Actions**:
 
-- **New Church Email** starts a Church Email to them (see the Communications manual).
+- **New Church Email** starts a Church Email to them (see the [Communications manual](../communications/README.md)).
 
 - **Email** opens your own mail app with their addresses in BCC. **Email Household Adults** writes to the Adults of their households, for example the parents of a list of children. Both leave out people who do not allow email, and tell you who.
 
@@ -81,7 +85,7 @@ Tick people in the Person list or a saved list, then open **Actions**:
 
 - **Open in Rolodex** shows only them in the Rolodex.
 
-In the [Family](/desk/family) list, **Actions**, then **Email**, writes to each household at its own email address.
+In the [Family](family.md) list, **Actions**, then **Email**, writes to each household at its own email address.
 
 ## Mailing labels
 
@@ -91,7 +95,7 @@ Each label prints on its own 3.5 x 1.125 inch page, for a roll label printer suc
 
 ## Lists with AI
 
-When AI is turned on (see the [Foundations manual](/desk/manual%3A-foundations)):
+When AI is turned on (see the [Foundations manual](../foundations/README.md)):
 
 - **Describe People**: in the Person list menu, choose **Describe People**, type who you want, such as "members who have not attended in 2 months and are not in a group", and click **Find**. Churchit shows how many people match and each filter in plain words. Read the filters: the AI can write filters that look right and are wrong. Click **Apply Filters**, then save the list as above. The AI gets your words and the names of your fields and choices, never a person.
 

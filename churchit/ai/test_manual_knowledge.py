@@ -93,12 +93,15 @@ class TestManualSections(FrappeTestCase):
 		self.assertEqual(len(missionaries), 1)
 		self.assertNotIn("Missionary Agencies", missionaries[0]["title"])
 
-	def test_the_text_keeps_no_comment_and_no_tag_like_text(self):
+	def test_the_text_keeps_no_comment_link_target_or_tag_like_text(self):
+		markdown = (
+			"<!-- A note for writers. -->\nOpen **Pathways** (see [Follow-up](follow-up.md)).\n\n"
+			":::note[Example]\nOpen https://<your site>/calendar.\n:::\n"
+		)
+
 		self.assertEqual(
-			to_text(
-				"<!-- A note for writers. -->\nOpen **Pathways**.\n\nOpen https://<your site>/calendar.\n"
-			),
-			"Open **Pathways**.\n\nOpen https://&lt;your site&gt;/calendar.",
+			to_text(markdown),
+			"Open **Pathways** (see Follow-up).\n\nExample: Open https://&lt;your site&gt;/calendar.",
 		)
 
 

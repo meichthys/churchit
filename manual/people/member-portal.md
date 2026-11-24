@@ -3,13 +3,13 @@ title: Member Portal
 emoji: 🏠
 sidebar_position: 4
 ---
-The member portal is the app where members see and correct their own records (see Member Portal in the Website manual for a tour of all its pages). This section explains the parts that staff manage: logins, households and the member directory.
+The member portal is the app where members see and correct their own records (see [Member Portal](../website/member-portal.md) in the Website manual for a tour of all its pages). This section explains the parts that staff manage: logins, households and the member directory.
 
 ## Portal accounts
 
 A member needs a login to use the member portal. There are two ways:
 
-- **Invite**: staff click **Actions**, then **Invite to Portal**, on the Person (see Logins).
+- **Invite**: staff click **Actions**, then **Invite to Portal**, on the Person (see [Logins](logins.md)).
 
 - **First sign-in**: when your church lets people sign up on the website, or a System Manager adds a Website User, Churchit connects the new login to a Person at its first sign-in. It looks in the church of the login for one living person with the same primary email (not a Shared From row) and no login.
 
@@ -43,11 +43,13 @@ To let a person correct their details without a login, open the Person and click
 
 The link works once, for 7 days. To send a new link, click Send Details Link again. The item shows only when you can change the person and they have a primary email. The person's timeline shows when you sent it. The site must have an outgoing email account.
 
-**Example:** Before printing the new directory, the office sends a details link to every family without a login. Each family checks its phone numbers and birthdays and clicks Save. The office does not retype anything.
+:::note[Example]
+Before printing the new directory, the office sends a details link to every family without a login. Each family checks its phone numbers and birthdays and clicks Save. The office does not retype anything.
+:::
 
 ## Member directory
 
-The **Directory** page of the member portal lists the people of the member's church, so members can find each other. To turn it on, tick **Member Directory** in [People Settings](/desk/people-settings).
+The **Directory** page of the member portal lists the people of the member's church, so members can find each other. To turn it on, tick **Member Directory** in **People Settings**.
 
 - It lists people whose Status is Active and whose Membership is filled in and is not Visitor or Contact, such as Members and Regular Attenders. It leaves out people who have died and people who hide from the directory.
 

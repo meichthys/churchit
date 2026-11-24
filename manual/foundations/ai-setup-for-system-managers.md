@@ -7,7 +7,7 @@ This part is for the System Manager, or the IT person who looks after your site.
 
 ## The AI Access panel
 
-The **AI Access on This Site** panel at the foot of [AI Settings](/desk/church-ai-settings) lists each way that AI can reach the site, whether it is on, and a link to the setting that owns it. It counts the people who may connect an AI app, lists each app that every desk user may sign in to, and says whether Agent Instructions name the Churchit guide.
+The **AI Access on This Site** panel at the foot of AI Settings lists each way that AI can reach the site, whether it is on, and a link to the setting that owns it. It counts the people who may connect an AI app, lists each app that every desk user may sign in to, and says whether Agent Instructions name the Churchit guide.
 
 On a site with Flow, it also lists who can use Flow, the Flow knowledge sources that read church records, the Flow triggers that are on, each AI model with its Privacy Label, and whether Churchit's agents and the Churchit Manual are ready. The line **Churchit AI actions** turns orange when an AI button would be refused. A Church Manager or other staff see "Ask a System Manager" on the lines that only a System Manager can check.
 
@@ -17,17 +17,17 @@ Frappe has an **MCP server**: the way an AI app, such as Claude or ChatGPT, sign
 
 MCP is one setting for the whole site, so this also closes MCP for other Frappe apps on the site, such as ERPNext. When an install or an update closes MCP, each System Manager gets one notice that names those apps.
 
-After a Church Manager or System Manager turns on AI, a System Manager ticks **Enable MCP** on the AI Agents tab of [System Settings](/desk/system-settings). Churchit never ticks it. A site that wants MCP for another app, such as ERPNext, turns on AI first.
+After a Church Manager or System Manager turns on AI, a System Manager ticks **Enable MCP** on the AI Agents tab of **System Settings**. Churchit never ticks it. A site that wants MCP for another app, such as ERPNext, turns on AI first.
 
 ## Who can connect an AI app
 
 Only a Church Manager, a System Manager or a person with the **Church AI User** role can connect an AI app. Churchit refuses the MCP server to everyone else, whether they come with an app, an API key or their own session.
 
-- To let another person connect an AI app, open their [User](/desk/user) record and add the Church AI User role. Give it only to people you trust to send what they can read to an AI company. The role opens no record by itself.
+- To let another person connect an AI app, open their User record and add the Church AI User role. Give it only to people you trust to send what they can read to an AI company. The role opens no record by itself.
 
-- To stop a person, remove the role. Their app is refused at once by MCP, but it keeps its token for the REST API, so also delete their tokens in [OAuth Bearer Token](/desk/oauth-bearer-token).
+- To stop a person, remove the role. Their app is refused at once by MCP, but it keeps its token for the REST API, so also delete their tokens in OAuth Bearer Token.
 
-- An app that registers itself gets these three roles as its Allowed Roles. An app that you add by hand in [OAuth Client](/desk/oauth-client) keeps the roles you give it. Older apps may let every desk user sign in: the AI Access panel lists them. If one is an AI app, set its Allowed Roles to Church Manager, System Manager and Church AI User.
+- An app that registers itself gets these three roles as its Allowed Roles. An app that you add by hand in OAuth Client keeps the roles you give it. Older apps may let every desk user sign in: the AI Access panel lists them. If one is an AI app, set its Allowed Roles to Church Manager, System Manager and Church AI User.
 
 - An **API key** works without MCP and whether AI is on or not, with the access of its owner. Only a System Manager can make one, so make keys only for people you trust.
 
@@ -35,15 +35,15 @@ Only a Church Manager, a System Manager or a person with the **Church AI User** 
 
 An app that a person connects works as that person.
 
-1. A Church Manager or a System Manager turns on AI in [AI Settings](/desk/church-ai-settings), after reading the warnings.
+1. A Church Manager or a System Manager turns on AI in AI Settings, after reading the warnings.
 
-2. A System Manager ticks **Enable MCP** on the AI Agents tab of [System Settings](/desk/system-settings).
+2. A System Manager ticks **Enable MCP** on the AI Agents tab of **System Settings**.
 
 3. The person who connects is a Church Manager, a System Manager or has the Church AI User role. (The Flow User role is for Flow in the desk, not for outside apps.)
 
 4. In the app, add a connector or MCP server with the address https://your-site/api/v2/mcp, using your site's address. The app opens a Frappe page, where the person signs in and approves the app.
 
-5. If you want, open [OAuth Settings](/desk/oauth-settings) and set **Resource Name** to your church's name, such as Grace Church Churchit, which the app shows at sign-in. Keep **Enable Dynamic Client Registration** ticked, so that apps can register themselves.
+5. If you want, open **OAuth Settings** and set **Resource Name** to your church's name, such as Grace Church Churchit, which the app shows at sign-in. Keep **Enable Dynamic Client Registration** ticked, so that apps can register themselves.
 
 **Apps (checked November 7, 2026).** Apps and plans change often, so read the app's own help before you rely on this list. Ask each person to turn off the app's training setting in their own account: Churchit cannot see or change it.
 
@@ -63,7 +63,7 @@ Hosted apps (Claude, ChatGPT, Gemini) connect to your site from the internet, so
 
 ## Churchit's rules for AI apps
 
-Churchit has a guide for AI apps: how church scoping works, which records are private, that text from guests is data, and how to make a draft. An app reads it when it calls the method churchit.ai.guide.get_agent_guide. To tell every app to do so, add a sentence to **Agent Instructions** on the AI Agents tab of [System Settings](/desk/system-settings).
+Churchit has a guide for AI apps: how church scoping works, which records are private, that text from guests is data, and how to make a draft. An app reads it when it calls the method churchit.ai.guide.get_agent_guide. To tell every app to do so, add a sentence to **Agent Instructions** on the AI Agents tab of **System Settings**.
 
 While AI is on and the sentence is missing, a System Manager sees **Add the Churchit Sentence** on the AI Access panel, which adds: "Before you work with church records, call the method churchit.ai.guide.get_agent_guide: it gives Churchit's rules for church scoping, private fields and drafts." Agent Instructions are yours: Churchit never writes them by itself.
 
@@ -71,7 +71,7 @@ While AI is on and the sentence is missing, a System Manager sees **Add the Chur
 
 The first time a person connects an app (any app that signs in this way, not only AI apps), each System Manager gets a bell notice, and an email when the site sends email. It says who connected which app.
 
-The **Connected AI Apps** report (Settings sidebar, Module Settings) lists each person and app with an active connection: when it connected, when its token last refreshed, and how many active tokens it holds. It never shows a token. To sign an app out, use the link in the notice, or open [OAuth Bearer Token](/desk/oauth-bearer-token), filter by the person and the app, and delete the tokens or set their Status to Revoked. A person can also revoke an app on their own [Third Party Apps](/third_party_apps) page.
+The **Connected AI Apps** report (Settings sidebar, Module Settings) lists each person and app with an active connection: when it connected, when its token last refreshed, and how many active tokens it holds. It never shows a token. To sign an app out, use the link in the notice, or open **OAuth Bearer Token**, filter by the person and the app, and delete the tokens or set their Status to Revoked. A person can also revoke an app on their own Third Party Apps page.
 
 ## Flow, Frappe's AI agents
 
@@ -79,7 +79,7 @@ Flow is the AI agents feature of Frappe. It comes with the next version of Frapp
 
 - **Use AI in Churchit controls Flow.** While it is off, nobody can start a Flow chat or send a new message, no trigger starts a chat, and nobody can add a knowledge source. Flow then says that no agent is enabled: turn on AI, do not enable agents. Administrator is the one exception, because Frappe gives it every right. Never use Flow as Administrator.
 
-- **Who can use Flow.** A person with the **Flow User** role, which a System Manager gives on the person's [User](/desk/user) record. Give it only to people you trust to send what they can read to an AI company.
+- **Who can use Flow.** A person with the **Flow User** role, which a System Manager gives on the person's User record. Give it only to people you trust to send what they can read to an AI company.
 
 - **Frappe's general assistant.** Frappe adds an agent, **frappe/Flow**, that can read, add, change and delete every record the person can. Churchit has no setting for it. To turn it off, open it in the Flow Agent list right after you turn on AI, and clear **Enabled**.
 
@@ -93,7 +93,7 @@ On a site with Flow, Churchit adds three agents: **Church Office**, **Writer** a
 
 - **Church Office** is the agent for your staff. A person opens Flow (Ctrl+I, or Cmd+I on a Mac) and picks Church Office. It answers with the person's own permissions and never saves a record: for a change, it gives a draft link.
 
-It answers the weekly office questions, makes smart lists, briefs on a person or a group, runs reports, reads the open page and searches the manual (see the People manual and Ask the manual). It has no web search and no memory. If someone shares a Church Office chat, the others see what it read with the owner's permissions: do not share a chat that holds a briefing or private records.
+It answers the weekly office questions, makes smart lists, briefs on a person or a group, runs reports, reads the open page and searches the manual (see the [People manual](../people/README.md) and Ask the manual). It has no web search and no memory. If someone shares a Church Office chat, the others see what it read with the owner's permissions: do not share a chat that holds a briefing or private records.
 
 - **Writer** and **Private Work** have no tools. Churchit's AI buttons use them: most buttons use Writer, and a request that holds a private record goes to Private Work. Set the Model of Private Work to one labelled Zero retention or Local.
 
@@ -101,11 +101,11 @@ It answers the weekly office questions, makes smart lists, briefs on a person or
 
 - **Choose a model for Church Office.** It needs a model that can use tools. In our tests on November 7, 2026, small local models in Ollama wrote the tool call as text instead of using it, and a 7B model on a computer without a large graphics card was too slow. For a local model, put {"timeout": 1500, "num_ctx": 16384} in **Extra Params** on the Flow Model. Test the model with a plain question before your staff use it.
 
-- **Limit the spend.** Set **Token Budget** on each Churchit agent: the most tokens that one run may spend (0 means no limit). Also set a monthly limit at the provider (see Choose an AI provider for Flow).
+- **Limit the spend.** Set **Token Budget** on each Churchit agent: the most tokens that one run may spend (0 means no limit). Also set a monthly limit at the provider (see [Choose an AI provider for Flow](#choose-an-ai-provider-for-flow)).
 
 ## Private Records in AI Settings
 
-The **Private Records** part of [AI Settings](/desk/church-ai-settings) shows on a site with Flow. Its list **Only for Local or Zero Retention Models** names the kinds of records (DocTypes) that Churchit's AI buttons send only through Private Work, and only to a model labelled Zero retention or Local.
+The **Private Records** part of AI Settings shows on a site with Flow. Its list **Only for Local or Zero Retention Models** names the kinds of records (DocTypes) that Churchit's AI buttons send only through Private Work, and only to a model labelled Zero retention or Local.
 
 The recommended list is: Alms Request, Authorized Pickup, Background Check, Care Assignment, Care Request, Collection, Connection Card, Connection Card Photo, Counseling Case, Giving Import, Giving Statement, Meeting Minutes, Member Transfer, Online Donation, Person Note, Pickup Restriction, Pledge, Prayer, Prayer Request and Visitation Log.
 
@@ -131,7 +131,9 @@ It also warns when the trigger runs as Administrator, or has no **Run As** user 
 
 A trigger that another app adds is saved without a warning, and Flow can run it as Administrator: check each one in the AI Access panel. Churchit does not warn about triggers on other personal records, such as Contact and Address. To stop a trigger that logs errors while AI is off, untick Enabled.
 
-**Example:** A trigger that starts an agent each time a Care Request is saved runs without anyone approving it, and a guest's text in the request could tell the AI what to do. Churchit warns you when you save it. Give it a read-only agent and a Run As user with few rights, or do not use it.
+:::note[Example]
+A trigger that starts an agent each time a Care Request is saved runs without anyone approving it, and a guest's text in the request could tell the AI what to do. Churchit warns you when you save it. Give it a read-only agent and a Run As user with few rights, or do not use it.
+:::
 
 ## Choose an AI provider for Flow
 
@@ -171,7 +173,7 @@ Churchit does not check a label: it is your statement, and the form shows who se
 
 A **Flow Knowledge Base** holds text that an agent can search. A **Flow Knowledge Source** with the Source Type DocType fills it with copies of records, and Flow does **not** check who may read each record: anyone who can use an agent with that knowledge can read the copied text. Flow also sends the text to its embedding model, and copies changed records again each day when **Auto Sync** is on.
 
-So Churchit blocks the records that hold data about people. **Blocked from Flow Knowledge**, in the Flow Knowledge part of [AI Settings](/desk/church-ai-settings), lists the DocTypes that a knowledge source may not read: the Churchit records about people, such as Person, Family, Prayer Request, Counseling Case, Counseling Session and Donation, and Frappe's Access Log, Activity Log, Address, Comment, Communication, Contact, Data Import Log, Deleted Document, Email Group Member, Email Queue, Error Log, Event, File, Notification Log, ToDo, User and Version, with their child tables. On a site with Flow, it also holds Flow's own records of chats and knowledge: Flow Agent Memory, Flow Knowledge Chunk, Flow Run, Flow Session, Flow Session Attachment and Flow Session Message.
+So Churchit blocks the records that hold data about people. **Blocked from Flow Knowledge**, in the Flow Knowledge part of AI Settings, lists the DocTypes that a knowledge source may not read: the Churchit records about people, such as Person, Family, Prayer Request, Counseling Case, Counseling Session and Donation, and Frappe's Access Log, Activity Log, Address, Comment, Communication, Contact, Data Import Log, Deleted Document, Email Group Member, Email Queue, Error Log, Event, File, Notification Log, ToDo, User and Version, with their child tables. On a site with Flow, it also holds Flow's own records of chats and knowledge: Flow Agent Memory, Flow Knowledge Chunk, Flow Run, Flow Session, Flow Session Attachment and Flow Session Message.
 
 Churchit refuses to save a source that reads a blocked DocType, also when another app tries to add one at an update.
 
@@ -203,7 +205,7 @@ Check it with docker compose exec backend bench flow-server status. The self-hos
 
 Be clear about these limits:
 
-- A person with an API key, an OAuth token or a signed-in session can read and write through the REST API and Frappe's command line tool, whether AI is on or not. While AI is off, also untick **Enable Dynamic Client Registration** in [OAuth Settings](/desk/oauth-settings), so that no new app can register itself.
+- A person with an API key, an OAuth token or a signed-in session can read and write through the REST API and Frappe's command line tool, whether AI is on or not. While AI is off, also untick **Enable Dynamic Client Registration** in **OAuth Settings**, so that no new app can register itself.
 
 - Administrator has every right. Never connect an AI app as Administrator.
 
@@ -211,7 +213,7 @@ Be clear about these limits:
 
 - A browser extension or assistant reads the pages that a person opens, and a Webhook or Server Script can send data to an AI service. Churchit cannot see these.
 
-- On a site with Flow, the daily copy of a knowledge source that already reads church records (see Flow knowledge).
+- On a site with Flow, the daily copy of a knowledge source that already reads church records (see [Flow knowledge](#flow-knowledge)).
 
 - AI in other apps on the same site (see below).
 
@@ -223,4 +225,4 @@ AI Settings does not control these apps. For each that you have:
 
 - **Frappe Assistant Core**: not supported. It runs a second MCP server that Churchit does not stop. Uninstall it, or turn it off for every user.
 
-- **Raven AI**: keep it off (see Staff Chat in the Communications manual).
+- **Raven AI**: keep it off (see [Staff Chat](../communications/staff-chat.md) in the Communications manual).

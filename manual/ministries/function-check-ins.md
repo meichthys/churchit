@@ -3,7 +3,7 @@ title: Function Check-Ins
 emoji: ✅
 sidebar_position: 7
 ---
-A [Function Check-In](/desk/function-check-in) records that a person arrived at a function. Check-ins keep children safe: each child gets a name tag with a security code, the adult who brings them gets a matching pickup tag, and a volunteer releases the child only to someone with the right code. Check-ins also fill in the attendance of the function.
+A Function Check-In records that a person arrived at a function. Check-ins keep children safe: each child gets a name tag with a security code, the adult who brings them gets a matching pickup tag, and a volunteer releases the child only to someone with the right code. Check-ins also fill in the attendance of the function.
 
 There are four ways to check in:
 
@@ -15,7 +15,9 @@ There are four ways to check in:
 
 - **By hand**: staff add a Function Check-In in the desk, or tick people in the Person list and click **Actions**, then **Check In**. These give no security code, so use the station for children who need a pickup tag.
 
-**Example:** The church has ticked **Print Security Codes** in Check-In Settings. On Sunday at 9:45, the Smith family arrives at the children's wing. The volunteer types "Smith" at the Check-In Station, taps the two children and clicks Check In.
+:::note[Example]
+The church has ticked **Print Security Codes** in Check-In Settings. On Sunday at 9:45, the Smith family arrives at the children's wing. The volunteer types "Smith" at the Check-In Station, taps the two children and clicks Check In.
+:::
 
 Two name tags print with the code K7M2, and a pickup tag with the same code prints for the father. After the service, the father shows his pickup tag. The volunteer clicks Verify Pickup, types K7M2, sees both children and the people allowed to collect them, and releases the children.
 
@@ -23,7 +25,7 @@ Each check-in has a **Kind**: **Regular**, **Guest** (a visitor added at the sta
 
 ## Check-In Station
 
-The [Check-In Station](/desk/check-in) is the quickest way to check people in as they arrive. Open it from the sidebar, or from **Actions**, then **Check-In Station**, on a Function. Church Check-In volunteers use it.
+The Check-In Station is the quickest way to check people in as they arrive. Open it from the sidebar, or from **Actions**, then **Check-In Station**, on a Function. Church Check-In volunteers use it.
 
 1. Choose the **Function** at the top. The station opens on the function last used on that computer when it is today, or else on the next function from today. When you check people in to a function on another day, the station asks you first.
 
@@ -35,7 +37,7 @@ Untick **Print name tags** to check people in without printing.
 
 Each person in the results shows their age, their grade and, in red, their allergies. A stethoscope icon means that the person has medical notes or an emergency contact: tap it to read them. Only Church Check-In, Church People Editor and Church Manager users see it.
 
-**Scan Card.** A person can show their Member QR Card (see the People manual) or a pre check-in pass instead of saying their name. Click **Scan Card** and hold it in front of the camera. The camera works only when your site uses https.
+**Scan Card.** A person can show their Member QR Card (see the [People manual](../people/README.md)) or a pre check-in pass instead of saying their name. Click **Scan Card** and hold it in front of the camera. The camera works only when your site uses https.
 
 ## New visitors
 
@@ -59,15 +61,19 @@ The list on the right shows everyone checked in to the function, newest first, w
 
 - **Page parents** (the bell): sends a short message to each Adult of the child's household. An Adult who said yes to texts for Child Safety gets a text, and the others get an email. An Adult that a Pickup Restriction names for the child gets nothing. The station shows the names of the parents it reached. If it shows **No parent reached**, send a runner to find them. You can page the parents of one child once every 2 minutes.
 
+:::caution
 After a person is checked out or collected, only the reprint button stays, and the check-in cannot be undone or deleted. Undoing or deleting a check-in removes the Checked-In row from the function's attendance.
+:::
 
-Paging by text needs a gateway in [SMS Settings](/desk/sms-settings) with the Church Check-In role in its Allowed Roles. Otherwise the station sends emails only.
+Paging by text needs a gateway in **SMS Settings** with the Church Check-In role in its Allowed Roles. Otherwise the station sends emails only.
 
 ## Headcount
 
 Some people in a room do not check in by name. To count them, type the number of people in the room in the **Headcount** box under Checked In and click **Save**. The attendance total of the function is the larger of the headcount and the number of people counted by name. The box shows only once the function has started.
 
-**Example:** The youth room has 23 teenagers, but only 15 checked in. The leader types 23 in Headcount. The function's attendance total is 23.
+:::note[Example]
+The youth room has 23 teenagers, but only 15 checked in. The leader types 23 in Headcount. The function's attendance total is 23.
+:::
 
 ## Team
 
@@ -83,7 +89,7 @@ A recurring function gives its limits to each occurrence. You cannot check in to
 
 ## Room capacity
 
-The capacity of a function is the total **Capacity** of the rooms in its approved room bookings. With no approved booking, or rooms with no capacity, there is no limit. The people in the room are those who are checked in and not collected or checked out. Volunteers are not counted. Set **Room Capacity** in [Check-In Settings](/desk/check-in-settings):
+The capacity of a function is the total **Capacity** of the rooms in its approved room bookings. With no approved booking, or rooms with no capacity, there is no limit. The people in the room are those who are checked in and not collected or checked out. Volunteers are not counted. Set **Room Capacity** in **Check-In Settings**:
 
 - **Off**: no capacity check.
 
@@ -93,7 +99,7 @@ The capacity of a function is the total **Capacity** of the rooms in its approve
 
 ## Verify Pickup
 
-Use Verify Pickup when an adult comes to collect a child. It works only when **Print Security Codes** is ticked in [Check-In Settings](/desk/check-in-settings). A household keeps one code for the whole day, also for a child checked in later or at another function. No two households have the same code on one day.
+Use Verify Pickup when an adult comes to collect a child. It works only when **Print Security Codes** is ticked in **Check-In Settings**. A household keeps one code for the whole day, also for a child checked in later or at another function. No two households have the same code on one day.
 
 1. Click **Verify Pickup** at the top of the Check-In Station.
 
@@ -113,15 +119,15 @@ Use Verify Pickup when an adult comes to collect a child. It works only when **P
 
 - In the Function Check-In list, pills show **Awaiting Pickup**, **Picked Up** and **Checked Out**. Add the Collected By and Collected At columns to see who collected each child and when.
 
-- Authorized Pickups and Pickup Restrictions are kept on the Family (see the People manual).
+- Authorized Pickups and Pickup Restrictions are kept on the Family (see the [People manual](../people/README.md)).
 
 - With more than one church, the station finds only the check-ins of your church's functions and of shared functions.
 
 ## Name tags
 
-A name tag prints for every check-in at the station. You can also print tags from a Function Check-In (**Print Name Tag**), from the Function Check-In list, or for any people from the [Person](/desk/person) list (**Actions**, then **Print Name Tags**).
+A name tag prints for every check-in at the station. You can also print tags from a Function Check-In (**Print Name Tag**), from the Function Check-In list, or for any people from the [Person](../people/person.md) list (**Actions**, then **Print Name Tags**).
 
-In [Check-In Settings](/desk/check-in-settings):
+In **Check-In Settings**:
 
 - **Print Security Codes**: for children's ministry. Everyone in one household gets the same code on their tag for the day, and an extra **Pickup** tag with their names and the code prints for the adult who collects them.
 
@@ -133,7 +139,7 @@ Name tags print the person's Nickname, or their first name when they have none. 
 
 ## Label printer setup
 
-Choose how tags reach the printer under **Name Tag Printing** in [Check-In Settings](/desk/check-in-settings), set the label size (4 × 2 in is the common Zebra name tag, 2.25 × 1.25 in the common Dymo one), and click **Print Test Tag**:
+Choose how tags reach the printer under **Name Tag Printing** in **Check-In Settings**, set the label size (4 × 2 in is the common Zebra name tag, 2.25 × 1.25 in the common Dymo one), and click **Print Test Tag**:
 
 - **Browser**: works with any printer that has a driver (Zebra, Dymo, Brother or an office printer). The print window opens for each batch. On a check-in computer, start Chrome with the --kiosk-printing option and make the label printer the default printer to skip the window.
 
@@ -147,15 +153,15 @@ With more than one church, add a row under **Printers Per Church** for each chur
 
 ## Self check-in kiosk
 
-A self check-in kiosk lets families check themselves in on a tablet or a computer at the door. It shows only today's functions whose [Function Type](/desk/function-type) has **Allow Self Check-In** ticked, from a time before the start (**Self Check-In Opens (Minutes Before Start)** in Check-In Settings, 60 at first) until the end.
+A self check-in kiosk lets families check themselves in on a tablet or a computer at the door. It shows only today's functions whose Function Type has **Allow Self Check-In** ticked, from a time before the start (**Self Check-In Opens (Minutes Before Start)** in Check-In Settings, 60 at first) until the end.
 
 To set up a kiosk:
 
-1. Add a [User](/desk/user/new) for the kiosk device, with the role **Church Check-In Kiosk** and no other role. With more than one church, give it exactly one Church User Permission, for the church it serves. In **Restrict IP**, type the address of your church network, so that the login works only at church.
+1. Add a User for the kiosk device, with the role **Church Check-In Kiosk** and no other role. With more than one church, give it exactly one Church User Permission, for the church it serves. In **Restrict IP**, type the address of your church network, so that the login works only at church.
 
 2. Tick **Allow Self Check-In** on each Function Type that families may check in to by themselves.
 
-3. On the kiosk device, open [/check-in-kiosk](/check-in-kiosk), sign in as the kiosk user and leave the page open.
+3. On the kiosk device, open `/check-in-kiosk`, sign in as the kiosk user and leave the page open.
 
 A family types its whole phone number: part of a number finds nobody. A person who is already checked in shows grey and cannot be ticked again. The kiosk shows the people of that household who may check in now, with their photo and grade.
 

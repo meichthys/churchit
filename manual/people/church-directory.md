@@ -5,7 +5,9 @@ sidebar_position: 6
 ---
 The Church Directory is a printed (or PDF) book of your church family: each household with its photo, names, phone numbers, emails and address, and extra pages such as birthdays, groups and missionaries. Church Staff and Church Managers make it.
 
-**Example:** Each fall, the church secretary prints a directory booklet for the members. She ticks Members Only, Photos and Hide Non Active People, adds the Birthday List and the Notes Page, and ticks Booklet and Page Numbers. She prints the PDF double-sided, folds the sheets in half and staples them.
+:::note[Example]
+Each fall, the church secretary prints a directory booklet for the members. She ticks Members Only, Photos and Hide Non Active People, adds the Birthday List and the Notes Page, and ticks Booklet and Page Numbers. She prints the PDF double-sided, folds the sheets in half and staples them.
+:::
 
 ## Make the directory
 
@@ -52,7 +54,7 @@ People with **Hide from Directory and Bulletin** ticked, and people who have die
 
 **Printing**
 
-- **Church Image on Cover**: the image of the [Church](/desk/church), such as a logo, at the bottom of the cover.
+- **Church Image on Cover**: the image of the [Church](../foundations/churches.md), such as a logo, at the bottom of the cover.
 
 - **Page Numbers**: numbers each page except the cover.
 
@@ -60,7 +62,7 @@ People with **Hide from Directory and Bulletin** ticked, and people who have die
 
 - **Blank Back Cover**: an empty last page.
 
-The cover shows the church's name, address, website, mission statement and Church Verse from the [Church](/desk/church) record. A branch with no website prints its parent church's website.
+The cover shows the church's name, address, website, mission statement and Church Verse from the Church record. A branch with no website prints its parent church's website.
 
 ## Other printed papers
 

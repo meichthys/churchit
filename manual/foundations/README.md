@@ -7,4 +7,4 @@ The Foundations module holds what your church is and believes: the Church record
 
 Church Managers change the Church record and the beliefs. Other staff can read them. Some parts of this manual, such as AI and webhooks, are for a System Manager.
 
-The Foundations sidebar lists **Churches**, **Beliefs** and the **Churches Report**. The workspace shows the number of churches and beliefs and a chart of the beliefs added each month. The [Settings](/desk/settings) sidebar starts with **Church** (the church name, address and image) and, for a System Manager, **System Settings** (time zone, currency and date format). The dock at the left hides a module when your roles give you no page in it.
+The Foundations sidebar lists **Churches**, **Beliefs** and the **Churches Report**. The workspace shows the number of churches and beliefs and a chart of the beliefs added each month. The **Settings** sidebar starts with **Church** (the church name, address and image) and, for a System Manager, **System Settings** (time zone, currency and date format). The dock at the left hides a module when your roles give you no page in it.

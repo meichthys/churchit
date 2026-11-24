@@ -7,7 +7,9 @@ When your church moves to Churchit, you can bring your people from another churc
 
 Each import goes through Frappe's **Data Import** tool, in the Data folder of the People sidebar. It reads the file, shows a preview and adds the people in the background.
 
-**Example:** Your church used Planning Center. You export the people as a CSV file, make a Data Import with the type Planning Center Import, and upload the file. The preview asks you to map the Name Prefix "Mr." to Mr. After the import, 350 people and 140 families are in Churchit, and Possible Duplicates lists 4 pairs to check.
+:::note[Example]
+Your church used Planning Center. You export the people as a CSV file, make a Data Import with the type Planning Center Import, and upload the file. The preview asks you to map the Name Prefix "Mr." to Mr. After the import, 350 people and 140 families are in Churchit, and Possible Duplicates lists 4 pairs to check.
+:::
 
 ## Import from Planning Center
 
@@ -78,10 +80,14 @@ When AI is turned on, **Suggest Mapping** at the top right of a Data Import matc
 
 To remove the people and families that one import added, for example after an import with wrong columns, do it soon, before people add attendance or gifts to the new records. You need the right to delete people and families, which a Church Manager has.
 
-1. Open the [People](/desk/person) list and filter on **Source** equals Import, **Imported From** equals the system, and **Created On** the day of the import. Make sure the list shows everyone (click 500 at the bottom).
+1. Open the [People](person.md) list and filter on **Source** equals Import, **Imported From** equals the system, and **Created On** the day of the import. Make sure the list shows everyone (click 500 at the bottom).
 2. Tick the box in the list header to select all, click **Actions**, then **Delete**, and confirm.
-3. Do the same in the [Families](/desk/family) list.
+3. Do the same in the [Families](family.md) list.
 
 Frappe does not delete a person that a later record names, such as someone who attended a function after the import, and it does not delete a family that still has a person. It lists what it did not delete.
 
-More than 10 records are deleted in the background, with a message when it is done. The addresses of deleted families stay in the Address list, where a System Manager can delete them. The undo does not change back the people that an update import changed.
+More than 10 records are deleted in the background, with a message when it is done. The addresses of deleted families stay in the Address list, where a System Manager can delete them.
+
+:::caution
+The undo does not change back the people that an update import changed.
+:::

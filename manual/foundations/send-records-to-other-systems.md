@@ -9,7 +9,7 @@ This part is for a System Manager. Churchit can send a record to another system 
 
 ## Send a record with a Webhook
 
-Open [Webhooks](/desk/webhook) and add one:
+Open **Webhooks** and add one:
 
 1. Set **DocType** to the record to send, such as Person or Connection Card, and **Doc Event** to when it goes, such as after_insert for a new record.
 
@@ -29,5 +29,5 @@ Frappe sends alerts to Slack, and Mattermost accepts the same alerts:
 
 1. In the chat app, make an incoming webhook and copy its address.
 2. Find **Slack Webhook URL** with the search bar, add one with a **Name**, and paste the address in **Webhook URL**.
-3. Open [Notifications](/desk/notification) and add one. Set **Channel** to Slack, choose the webhook in **Slack Channel**, and set **Document Type**, **Send Alert On** and **Message**.
+3. Open [Notifications](../communications/notifications.md) and add one. Set **Channel** to Slack, choose the webhook in **Slack Channel**, and set **Document Type**, **Send Alert On** and **Message**.
 4. With more than one church, type doc.church == "CHURCH-ID" in **Condition**.

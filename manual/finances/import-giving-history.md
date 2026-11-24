@@ -33,7 +33,7 @@ You must fill in **Gift ID**, **Date**, **Amount**, **Fund** and **Payment Type*
 
 4. Look at the preview. Correct the rows that cannot be imported, or click **Skip Row**.
 
-5. Click **Import**. Then open [Collections](/desk/collection), filter on **Import Batch**, check each draft collection and submit it.
+5. Click **Import**. Then open [Collections](collections.md), filter on **Import Batch**, check each draft collection and submit it.
 
 The preview stops a row when Churchit does not know its fund or payment type, when no person or more than one person has its Person ID or email, when its Gift ID is already in Churchit or earlier in the file, when its payment type is non-cash, or when an online gift with the same amount, date and email is already in Churchit. So a second import of the same file adds nothing.
 

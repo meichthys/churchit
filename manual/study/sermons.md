@@ -3,13 +3,15 @@ title: Sermons
 emoji: 📝
 sidebar_position: 4
 ---
-A [Sermon](/desk/sermon) keeps one sermon: its title, date, Scripture passage and preacher, the notes, the recording and the video, and the slides that you show while you preach. When you tick **Publish**, the sermon gets its own page on your website. If it has audio, it also goes into the podcast.
+A Sermon keeps one sermon: its title, date, Scripture passage and preacher, the notes, the recording and the video, and the slides that you show while you preach. When you tick **Publish**, the sermon gets its own page on your website. If it has audio, it also goes into the podcast.
 
-**Example:** On Sunday Pastor Tom preaches on Psalm 23. On Monday the office adds a Sermon with the title The Lord Is My Shepherd, the Sermon Date, the Scripture Psalm 23 and the notes. They attach the audio, paste the YouTube link and tick Publish. The sermon now shows on the website's Sermons page and in podcast apps.
+:::note[Example]
+On Sunday Pastor Tom preaches on Psalm 23. On Monday the office adds a Sermon with the title The Lord Is My Shepherd, the Sermon Date, the Scripture Psalm 23 and the notes. They attach the audio, paste the YouTube link and tick Publish. The sermon now shows on the website's Sermons page and in podcast apps.
+:::
 
 ## Add a sermon
 
-1. Open [Sermons](/desk/sermon) and click **Add Sermon**.
+1. Open **Sermons** and click **Add Sermon**.
 
 2. Type the **Title**. Two sermons cannot have the same title. To preach a sermon again, add the new date to its Presentation History, or add the year or the series to the new title.
 
@@ -17,9 +19,9 @@ A [Sermon](/desk/sermon) keeps one sermon: its title, date, Scripture passage an
 
 - **Sermon Date**: the date when the sermon was first preached. If you leave it empty, Churchit uses the earliest date in Presentation History.
 
-- **Series**: the [Sermon Series](/desk/sermon-series) that the sermon belongs to.
+- **Series**: the Sermon Series that the sermon belongs to.
 
-- **Prepared By**: the [Person](/desk/person) who prepared it.
+- **Prepared By**: the [Person](../people/person.md) who prepared it.
 
 - **Scripture**: the passage, such as John 3:16-21. Separate passages with a semicolon.
 
@@ -27,7 +29,7 @@ A [Sermon](/desk/sermon) keeps one sermon: its title, date, Scripture passage an
 
 - **Transcript**: the full text of the sermon, if you have it. It is never published.
 
-- **Audio Recording** and **Video Link** in the Recording section (see Sermons on the Website).
+- **Audio Recording** and **Video Link** in the Recording section (see [Sermons on the Website](sermons-on-the-website.md)).
 
 4. Save.
 
@@ -45,7 +47,9 @@ With no fields chosen, the slide shows the name of the record. A Song with no fi
 
 Each slide needs a passage or a record, or the sermon cannot be saved.
 
-**Example:** Slide 1 is Scripture, Romans 8:28-30. Slide 2 is the Song Amazing Grace with no fields chosen, so its verses and its copyright follow. Slide 3 is the Belief Salvation by Grace, with its title and summary.
+:::note[Example]
+Slide 1 is Scripture, Romans 8:28-30. Slide 2 is the Song Amazing Grace with no fields chosen, so its verses and its copyright follow. Slide 3 is the Belief Salvation by Grace, with its title and summary.
+:::
 
 ## Present a sermon
 
@@ -55,11 +59,11 @@ A published sermon also has a **Present** button on the website, so anyone can f
 
 ## Presentation History
 
-The **Presentation History** tab records each time the sermon was preached: the date, who presented it, where, notes and a recording. The website never shows these rows, but a published sermon makes their recordings public (see Sermon Podcast).
+The **Presentation History** tab records each time the sermon was preached: the date, who presented it, where, notes and a recording. The website never shows these rows, but a published sermon makes their recordings public (see [Sermon Podcast](sermon-podcast.md)).
 
 ## Study with AI
 
-When AI is turned on (see the [Foundations manual](/desk/manual%3A-foundations)), a saved sermon has the button **Study with AI**. It writes study helpers from the notes and the Transcript:
+When AI is turned on (see the [Foundations manual](../foundations/README.md)), a saved sermon has the button **Study with AI**. It writes study helpers from the notes and the Transcript:
 
 - **Discussion Questions**: questions for a small group, starting with an easy one.
 
@@ -67,10 +71,10 @@ When AI is turned on (see the [Foundations manual](/desk/manual%3A-foundations))
 
 - **Series Description**: a short description of the sermon's series. **Open Draft** opens the Sermon Series with the new description filled in and not saved.
 
-- **Handout Blanks**: picks key words of the notes. **Use** puts each one in [square brackets] in the sermon notes. Save the sermon, then click **Actions**, then **Create Handout** (see Sermon Handouts). If the sermon has a handout already, change the handout yourself.
+- **Handout Blanks**: picks key words of the notes. **Use** puts each one in [square brackets] in the sermon notes. Save the sermon, then click **Actions**, then **Create Handout** (see [Sermon Handouts](sermon-handouts.md)). If the sermon has a handout already, change the handout yourself.
 
 - **Devotional** and **Social Post**: for a published sermon only, from the notes.
 
 **Copy** puts an answer on the clipboard. The AI does not write a sermon or a prayer. Where Christian traditions differ, the questions show the main views fairly, and the AI adds no teaching that the sermon does not give. Verse text in an answer comes from your church's free default translation, never from the AI. Read each answer against your own teaching.
 
-The notes of a sermon that is not published, and every Transcript, are church records. To send them, the AI model must keep no copy of your data (see the Foundations manual). A person can use Study with AI 20 times an hour.
+The notes of a sermon that is not published, and every Transcript, are church records. To send them, the AI model must keep no copy of your data (see the [Foundations manual](../foundations/README.md)). A person can use Study with AI 20 times an hour.

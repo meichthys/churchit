@@ -3,13 +3,15 @@ title: Function Sign-Ups
 emoji: 📝
 sidebar_position: 4
 ---
-A [Function Sign-Up](/desk/function-sign-up) is a person's place at a function: who comes, what they bring, what they chose and what they owe. Use sign-ups when you need to know ahead of time who comes, such as for a dinner, a retreat, a class or a mission trip. Members sign up in the member portal, guests on the website's Register page, and staff in the desk.
+A Function Sign-Up is a person's place at a function: who comes, what they bring, what they chose and what they owe. Use sign-ups when you need to know ahead of time who comes, such as for a dinner, a retreat, a class or a mission trip. Members sign up in the member portal, guests on the website's Register page, and staff in the desk.
 
-**Example:** The women's retreat takes 40 people, costs $75, and needs 10 people to bring a dish. On the Function, you tick Allow Sign-Ups and Allow Guest Sign-Ups, set Capacity to 40, add a Selection called Adult with the price $75, and add a Sign-Up Item called Dish with Quantity Needed 10. Anna signs up on the Register page with her sister and one dish. She pays online, and the sign-up is Confirmed. When the 40 places are taken, new sign-ups go on the waitlist.
+:::note[Example]
+The women's retreat takes 40 people, costs $75, and needs 10 people to bring a dish. On the Function, you tick Allow Sign-Ups and Allow Guest Sign-Ups, set Capacity to 40, add a Selection called Adult with the price $75, and add a Sign-Up Item called Dish with Quantity Needed 10. Anna signs up on the Register page with her sister and one dish. She pays online, and the sign-up is Confirmed. When the 40 places are taken, new sign-ups go on the waitlist.
+:::
 
 ## Open a function for sign-ups
 
-On the **Registration** tab of the [Function](/desk/function):
+On the **Registration** tab of the [Function](functions.md):
 
 1. Tick **Allow Sign-Ups**. Signed-in members can then sign up.
 2. To let guests sign up on the website too, tick **Allow Guest Sign-Ups**, and tick **Publish** on the Details tab.
@@ -19,7 +21,7 @@ On the **Registration** tab of the [Function](/desk/function):
 
 ## Where people sign up
 
-- **The Register page**: a person who is not signed in signs up on the [Register](/register) page of the website. It shows the published functions that take guests and start today or later. The page is not in the website menu: put a link to /register on a web page, in an email or in a QR code, or add it to the menu (see the Website manual).
+- **The Register page**: a person who is not signed in signs up on the Register page of the website. It shows the published functions that take guests and start today or later. The page is not in the website menu: put a link to /register on a web page, in an email or in a QR code, or add it to the menu (see the [Website manual](../website/README.md)).
 
 A guest types a name and an email, and can add a phone number and notes. A guest never sees the name of anyone else.
 
@@ -29,7 +31,7 @@ A guest types a name and an email, and can add a phone number and notes. A guest
 
 **Bringing others.** On the Register page, a signed-in member can tick the people of their own household who come too, and anyone can click **Add a person** and type the name of someone else who comes. Each person takes a place. A registration can bring at most 20 other people.
 
-**Guests and their Person.** A guest's sign-up has no Person at first. A moment later, Churchit links it to the one person whose name and email or phone match. If nobody matches, Churchit adds the guest as a Visitor with the Source Sign-Up, and records possible duplicates for staff to check (see Clean Data in the People manual). If the matched person already has a sign-up for the function, the new sign-up stays without a Person, with a comment that names the other sign-up.
+**Guests and their Person.** A guest's sign-up has no Person at first. A moment later, Churchit links it to the one person whose name and email or phone match. If nobody matches, Churchit adds the guest as a Visitor with the Source Sign-Up, and records possible duplicates for staff to check (see [Clean Data](../people/clean-data.md) in the People manual). If the matched person already has a sign-up for the function, the new sign-up stays without a Person, with a comment that names the other sign-up.
 
 ## Who comes and what they bring
 
@@ -39,7 +41,7 @@ A guest types a name and an email, and can add a phone number and notes. A guest
 
 - While a sign-up is Confirmed, each attendee is on the function's attendance with the type Signed-Up. When the sign-up stops being Confirmed, Churchit removes that row only while it still says Signed-Up.
 
-- **Sign-Up Items** are things or jobs that the function needs, such as food or setting up chairs. Add them to the function's Sign-Up Items table with the **Quantity Needed**. People choose items and quantities on their sign-up, and **Quantity Signed Up** on the function adds them up. Tick **Limited** on an item to refuse sign-ups when its quantity is reached. A sign-up that only brings items, with Attending unticked, takes no place. Make the list of items under [Sign-Up Items](/desk/sign-up-item) in the Setup folder.
+- **Sign-Up Items** are things or jobs that the function needs, such as food or setting up chairs. Add them to the function's Sign-Up Items table with the **Quantity Needed**. People choose items and quantities on their sign-up, and **Quantity Signed Up** on the function adds them up. Tick **Limited** on an item to refuse sign-ups when its quantity is reached. A sign-up that only brings items, with Attending unticked, takes no place. Make the list of items under **Sign-Up Items** in the Setup folder.
 
 ## Status
 
@@ -60,7 +62,9 @@ When a capacity is full, a new sign-up is **Waitlisted**, and the whole party wa
 
 A party larger than a capacity cannot sign up. When places become free, Churchit gives them to the oldest waiting party that fits. Places become free when a sign-up is cancelled, declined or deleted, when a party removes an attendee, when a payment hold ends, or when you raise a capacity.
 
-**Example:** The dinner has 50 places, and all are taken. The Jones family of four signs up and is Waitlisted. Then a couple cancels: two places are free, but the Jones family needs four, so they keep waiting. Mr. Brown, who signed up alone after them, gets one of the places. Later a family of three cancels. Now four places are free, so the Jones family is Confirmed and gets an email.
+:::note[Example]
+The dinner has 50 places, and all are taken. The Jones family of four signs up and is Waitlisted. Then a couple cancels: two places are free, but the Jones family needs four, so they keep waiting. Mr. Brown, who signed up alone after them, gets one of the places. Later a family of three cancels. Now four places are free, so the Jones family is Confirmed and gets an email.
+:::
 
 ## Approval
 
@@ -88,7 +92,7 @@ Each discount takes its Amount off, or its Percent when Amount is empty. A Valid
 
 When a function has a price and is not freely given, choose a **Sign-Up Fund** on the Registration tab. The fund must belong to the church of the function, or be shared.
 
-- **With online giving** (a payment gateway in [Giving Settings](/desk/giving-settings)): a sign-up with an amount due is Pending and holds its places for 24 hours. The person gets an email with a **Pay now** link, and the Register page shows the link too. When the payment arrives, Churchit records it in a collection for the fund and confirms the sign-up.
+- **With online giving** (a payment gateway in **Giving Settings**): a sign-up with an amount due is Pending and holds its places for 24 hours. The person gets an email with a **Pay now** link, and the Register page shows the link too. When the payment arrives, Churchit records it in a collection for the fund and confirms the sign-up.
 
 The collection row has no person, so the payment is not on a giving statement. If the sign-up is not paid in 24 hours, Churchit cancels it and gives its places to the waitlist.
 
@@ -96,11 +100,11 @@ The collection row has no person, so the payment is not on a giving statement. I
 
 When a person pays in cash or by check, open the sign-up and click **Actions**, then **Record Offline Payment**, and put the money in the weekly collection. If a payment arrives after the hold ended, or a paid sign-up is cancelled or declined, the payment status becomes **Refund Due** and Church Finance gets an alert.
 
-Refund the payment at the payment processor, then click **Actions**, then **Record Refund** (see the Finances manual). Only Church Finance and Church Manager users record payments and refunds, and only a Church Manager can delete a paid sign-up. A paid sign-up cannot add anything that costs more, or move to another function: make a new sign-up instead.
+Refund the payment at the payment processor, then click **Actions**, then **Record Refund** (see the [Finances manual](../finances/README.md)). Only Church Finance and Church Manager users record payments and refunds, and only a Church Manager can delete a paid sign-up. A paid sign-up cannot add anything that costs more, or move to another function: make a new sign-up instead.
 
 ## Questions
 
-To ask questions when people register, such as a T-shirt size or allergies, make a [Question Set](/desk/question-set) (see Question Sets) and choose it in **Question Set** on the Registration tab. The Register page asks the questions for the person who signs up and for each person they bring.
+To ask questions when people register, such as a T-shirt size or allergies, make a [Question Set](question-sets.md) (see [Question Sets](question-sets.md)) and choose it in **Question Set** on the Registration tab. The Register page asks the questions for the person who signs up and for each person they bring.
 
 A required question must be answered for each person. You see the answers in the **Answers** section of each sign-up and in the Function Registrations report. Staff cannot type answers in the desk, so to add a sign-up for a function with required questions, use the Register page.
 
@@ -116,8 +120,8 @@ The emails have a **See your sign-up** link for a person with a portal login. Ch
 
 ## Reports
 
-- The [Function Registrations](/desk/query-report/Function Registrations) report shows one row for each person who comes, with the sign-up, their selection, the status and the payment. Choose a function to see a column for each of its questions, with each person's answer.
+- The Function Registrations report shows one row for each person who comes, with the sign-up, their selection, the status and the payment. Choose a function to see a column for each of its questions, with each person's answer.
 
-- The [Function Sign-Up Items](/desk/query-report/Function Sign-Up Items) report shows who brings what.
+- The Function Sign-Up Items report shows who brings what.
 
 With more than one church, a sign-up belongs to the church of its function. The sign-ups of a shared function are shared too.

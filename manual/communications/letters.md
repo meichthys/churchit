@@ -3,7 +3,7 @@ title: Letters
 emoji: 📝
 sidebar_position: 3
 ---
-Churches receive letters: prayer letters from missionaries, thank-you notes, letters from members. Keep each letter on the [Person](/desk/person) or [Missionary](/desk/missionary) who sent it, in the **Letters to the Church** table. Then you have a history, and you know which letters the church has heard.
+Churches receive letters: prayer letters from missionaries, thank-you notes, letters from members. Keep each letter on the [Person](../people/person.md) or [Missionary](../missions/missionaries.md) who sent it, in the **Letters to the Church** table. Then you have a history, and you know which letters the church has heard.
 
 1. Open the Person or the Missionary and add a row to **Letters to the Church**. The row starts with today's date.
 
@@ -15,4 +15,6 @@ Churches receive letters: prayer letters from missionaries, thank-you notes, let
 
 Share With Church publishes nothing. No web page shows letters. The box only puts the letter on the **Letters To Be Shared** report (in the sidebar and on the workspace), which lists the letters with Share With Church ticked and no Shared Date. When you fill in the Shared Date, the letter leaves the report. Private letters are never on it. Missionary Letters and Person Letters (in the Letters folder) list all letters.
 
-**Example:** Missionary Mike sends a prayer letter by email. The secretary attaches it on his Missionary record and ticks Share With Church. On Saturday the pastor opens Letters To Be Shared, sees Mike's letter and reads it in the service. On Monday the secretary fills in the Shared Date, and the letter leaves the list.
+:::note[Example]
+Missionary Mike sends a prayer letter by email. The secretary attaches it on his Missionary record and ticks Share With Church. On Saturday the pastor opens Letters To Be Shared, sees Mike's letter and reads it in the service. On Monday the secretary fills in the Shared Date, and the letter leaves the list.
+:::

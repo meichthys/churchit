@@ -21,6 +21,6 @@ sidebar_position: 1
 
 - **Draft, Submitted and Cancelled**: some records, such as collections and expenses, are final only after you **Submit** them. A Draft is saved but can still change. A Submitted record cannot change unless you cancel it first. A Cancelled record stays for your history.
 
-- **Role**: what a login may see and do, such as Church Staff or Church Finance. A **Role Profile** is a set of roles for one job (see Logins in the People manual).
+- **Role**: what a login may see and do, such as Church Staff or Church Finance. A **Role Profile** is a set of roles for one job (see [Logins](../people/logins.md) in the People manual).
 
 - **Member portal**: the app at /portal where members see their own household, sign-ups and giving.

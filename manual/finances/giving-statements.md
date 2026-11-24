@@ -3,11 +3,11 @@ title: Giving statements
 emoji: 🧾
 sidebar_position: 4
 ---
-A [Giving Statement](/desk/giving-statement) lists a giver's gifts for a period, usually a year, for their tax records.
+A Giving Statement lists a giver's gifts for a period, usually a year, for their tax records.
 
 ## Make the statements
 
-1. Open [Giving Statements](/desk/giving-statement) and click **Generate Statements**.
+1. Open **Giving Statements** and click **Generate Statements**.
 2. Check the **From Date** and **To Date**. They start as January 1 to December 31 of last year.
 
 Churchit makes the statements from the submitted collections in those dates. Run it again at any time: it rebuilds the statements with the latest gifts.
@@ -16,7 +16,7 @@ Churchit makes the statements from the submitted collections in those dates. Run
 
 - When no gift in those dates is linked to a person, Generate Statements makes no statement and says so.
 
-- A statement shows only gifts to funds that have **Tax Deductible** ticked (see Funds).
+- A statement shows only gifts to funds that have **Tax Deductible** ticked (see [Funds](funds.md)).
 
 - A non-cash gift shows its description in place of an amount, and the total counts only money.
 
@@ -39,8 +39,10 @@ Churchit sends each statement as a PDF to the giver's primary email, in the back
 
 - A statement is emailed only once. If a gift changes and you generate the statements again, the next Email Statements sends the new statement. To send all of them again, tick **Send again to statements already emailed**.
 
-- To change the text of the email, edit the [Email Template](/desk/email-template/Giving Statement) Giving Statement.
+- To change the text of the email, edit the Email Template Giving Statement.
 
-**Example:** In January, the treasurer generates the statements for last year and checks a few of them. She clicks Email Statements: 180 go by email and 25 have no email address. She prints those 25 and mails them.
+:::note[Example]
+In January, the treasurer generates the statements for last year and checks a few of them. She clicks Email Statements: 180 go by email and 25 have no email address. She prints those 25 and mails them.
+:::
 
 With more than one church, a statement is issued by the church that received the gifts. A giver who gave at two churches gets a statement from each.

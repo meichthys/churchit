@@ -3,7 +3,7 @@ title: Sermons on the Website
 emoji: 🌐
 sidebar_position: 6
 ---
-Each published sermon has its own page on the website, at /sermon/ followed by its name. Anyone with the link can open it. The [Sermons](/sermons) page lists the published sermons, the newest first, 12 at a time. Visitors can search by part of a title or a passage, such as John. The home page shows the newest sermons too.
+Each published sermon has its own page on the website, at /sermon/ followed by its name. Anyone with the link can open it. The Sermons page lists the published sermons, the newest first, 12 at a time. Visitors can search by part of a title or a passage, such as John. The home page shows the newest sermons too.
 
 The sermon page shows the date, the Scripture passage, the preacher, the series, the video, the audio and the notes. The Sermons page and the home page show only the start of the first paragraph of the notes.
 
@@ -26,7 +26,7 @@ When a sermon has a Handout, the sermon page shows the handout as **Sermon Notes
 
 ## Sermon Series
 
-A published [Sermon Series](/desk/sermon-series) shows on the Sermons page as one card that lists its sermons, with its description and its **Series Image**. A sermon in a series that is not published shows on its own card, and its page does not name the series. Attach the Series Image as a public file: untick **Private** in the upload window. A private image does not show on the website.
+A published [Sermon Series](sermons.md) shows on the Sermons page as one card that lists its sermons, with its description and its **Series Image**. A sermon in a series that is not published shows on its own card, and its page does not name the series. Attach the Series Image as a public file: untick **Private** in the upload window. A private image does not show on the website.
 
 ## When you rename a sermon
 

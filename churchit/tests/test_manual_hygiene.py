@@ -5,12 +5,14 @@
 
 A change to a Markdown file that nobody built never reaches the desk, and a hand edit of the
 workspace JSON is lost at the next build. Frappe Wiki syncs the same folder, so each page needs the
-front matter that both read.
+front matter that both read, a link must name another page of the manual, and a callout must be one
+that the wiki draws.
 """
 
 import glob
 import json
 import os
+import re
 
 from frappe.tests.utils import FrappeTestCase
 
@@ -19,11 +21,44 @@ from churchit.manual_sources import (
 	SOURCES,
 	build_all,
 	get_blocks,
+	get_chunks,
 	get_folders,
 	get_pages,
 	inline,
 	read_source,
+	to_blocks,
 )
+
+CALLOUT_OPENER = re.compile(r"(note|tip|caution|danger)(\[[^\]]+\])?")
+
+
+def get_sources() -> list[str]:
+	return sorted(glob.glob(os.path.join(SOURCES, "**", "*.md"), recursive=True))
+
+
+def read(path: str) -> str:
+	with open(path, encoding="utf-8") as file:
+		return file.read()
+
+
+def get_anchors(path: str) -> set[str]:
+	"""The ids that Frappe Wiki gives the headings of a page (slugify in wiki/wiki/markdown.py)."""
+	anchors = set()
+	for heading in re.findall(r"^#{2,6} (.+)$", read(path), re.M):
+		anchor = re.sub(r"[^\w\-]", "", re.sub(r"\s+", "-", heading.lower())).strip("-")
+		anchors.add(re.sub(r"-+", "-", anchor))
+	return anchors
+
+
+def is_link_broken(path: str, target: str) -> bool:
+	"""Whether *target*, linked from the page at *path*, is neither a website nor a page of the manual."""
+	if target.startswith(("https://", "mailto:")):
+		return False
+	page, _, anchor = target.partition("#")
+	page_path = os.path.normpath(os.path.join(os.path.dirname(path), page)) if page else path
+	if not page_path.endswith(".md") or not os.path.exists(page_path):
+		return True
+	return bool(anchor) and anchor not in get_anchors(page_path)
 
 
 class TestManualHygiene(FrappeTestCase):
@@ -60,6 +95,44 @@ class TestManualHygiene(FrappeTestCase):
 		listed = {entry["autogenerate"]["directory"] for entry in sidebar if isinstance(entry, dict)}
 
 		self.assertEqual({os.path.basename(folder) for folder in get_folders()}, listed)
+
+	def test_every_link_opens_a_page_of_the_manual_or_a_website(self):
+		"""A site path such as /desk/person opens nothing on the wiki, which is a site of its own."""
+		broken = [
+			(os.path.relpath(path, SOURCES), target)
+			for path in get_sources()
+			for target in re.findall(r"\]\(([^)\s]+)\)", read(path))
+			if is_link_broken(path, target)
+		]
+		self.assertEqual(broken, [])
+
+	def test_every_callout_is_closed_and_of_a_type_that_the_wiki_draws(self):
+		wrong = []
+		for path in get_sources():
+			fences = re.findall(r"^:::(.*)$", read(path), re.M)
+			openers, closers = fences[0::2], fences[1::2]
+			if (
+				len(fences) % 2
+				or any(closers)
+				or not all(CALLOUT_OPENER.fullmatch(fence) for fence in openers)
+			):
+				wrong.append(os.path.relpath(path, SOURCES))
+		self.assertEqual(wrong, [])
+
+	def test_a_callout_is_one_desk_block_led_by_its_title(self):
+		chunks = get_chunks(":::caution[Careful]\nYou cannot undo it.\n:::\n\nNext.", 1)
+
+		self.assertEqual(
+			[block["data"]["text"] for block in to_blocks(chunks, "people")],
+			[
+				'<span class="manual-callout manual-callout-caution">Careful</span><br>You cannot undo it.',
+				"Next.",
+			],
+		)
+
+	def test_a_link_within_a_manual_is_plain_text_in_the_desk(self):
+		"""The desk shows a whole manual on one page, so the link would open the page that is open."""
+		self.assertEqual(inline("See [Groups](group.md#lead-a-group).", "people"), "See Groups.")
 
 	def test_a_link_to_another_page_opens_its_manual_in_the_desk(self):
 		self.assertEqual(

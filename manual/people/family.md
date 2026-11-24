@@ -3,13 +3,15 @@ title: Family
 emoji: 👨‍👩‍👧‍👦
 sidebar_position: 3
 ---
-A [Family](/desk/family) is one household: the people who live together, such as parents and their children. The family holds the household's address, its photo, the role of each person in it, and who may collect its children after check-in. A person can be in one household only.
+A Family is one household: the people who live together, such as parents and their children. The family holds the household's address, its photo, the role of each person in it, and who may collect its children after check-in. A person can be in one household only.
 
-**Example:** The Smith family has John (the primary contact), his wife Mary, their two children, and John's mother Ruth, who lives with them. John and Mary are Adults, the children are Children, and Ruth is an Other Adult: she lives there but is not a parent. Mary's sister Anne may collect the children on Sundays, so she is an Authorized Pickup.
+:::note[Example]
+The Smith family has John (the primary contact), his wife Mary, their two children, and John's mother Ruth, who lives with them. John and Mary are Adults, the children are Children, and Ruth is an Other Adult: she lives there but is not a parent. Mary's sister Anne may collect the children on Sundays, so she is an Authorized Pickup.
+:::
 
 ## Add a family
 
-1. Open [Families](/desk/family) and click **Add Family**.
+1. Open **Families** and click **Add Family**.
 2. Add the people in **Family Members**, with each one's **Relationship to Primary Contact**, such as Wife or Son. You can also pick the Family on each Person form.
 3. Set the **Primary Contact**, the person the family is named after, such as Smith - John.
 4. Add the **Home Address**, and tick **Mailing** on the address that gets mail. Shared phone numbers and emails go in **Household Phone and Email**.
@@ -52,13 +54,13 @@ A kept family with no Primary Contact takes the one of the removed family, and e
 
 ## Authorized Pickups
 
-The Adults of a household may always collect its children after check-in. To let another person collect them, such as a grandparent, an aunt or a neighbor, open the family and click **+** next to **Authorized Pickup** in Connections (or open [Authorized Pickups](/desk/authorized-pickup) in the Care folder). Set the **Person**, the **Relationship** and any **Notes**, such as "Sundays only". The person must have a Person record. An Other Adult of the household can be one.
+The Adults of a household may always collect its children after check-in. To let another person collect them, such as a grandparent, an aunt or a neighbor, open the family and click **+** next to **Authorized Pickup** in Connections (or open **Authorized Pickups** in the Care folder). Set the **Person**, the **Relationship** and any **Notes**, such as "Sundays only". The person must have a Person record. An Other Adult of the household can be one.
 
-Adults already collect, so only an Other Adult or someone outside the household can be added, once for each family. Deleting a family deletes its Authorized Pickups. Verify Pickup at the Check-In Station shows these people with their photos (see the Ministries manual). Only Church Manager and Church People Editor users of the family's church can open Authorized Pickups. Do not write custody details in the notes: use a Pickup Restriction.
+Adults already collect, so only an Other Adult or someone outside the household can be added, once for each family. Deleting a family deletes its Authorized Pickups. Verify Pickup at the Check-In Station shows these people with their photos (see the [Ministries manual](../ministries/README.md)). Only Church Manager and Church People Editor users of the family's church can open Authorized Pickups. Do not write custody details in the notes: use a Pickup Restriction.
 
 ## Pickup Restrictions
 
-A [Pickup Restriction](/desk/pickup-restriction) names someone who may not collect a child, for example because of a court order. It applies also to an Adult of the child's household.
+A Pickup Restriction names someone who may not collect a child, for example because of a court order. It applies also to an Adult of the child's household.
 
 1. Pick the **Child**.
 2. Pick the **Restricted Person**, or type their name in **Restricted Name** when they have no Person record.
@@ -68,4 +70,6 @@ A [Pickup Restriction](/desk/pickup-restriction) names someone who may not colle
 
 Only Church Manager and Church People Editor users can open a Pickup Restriction. At Verify Pickup, the station shows the restricted person, the child, What the Volunteer Sees and the last day, but never the reason or the court order. It refuses to release the child to that person, and only a Church Manager can override it, with a reason that Churchit records. A page to the parents does not go to the restricted person. The list shows **Active** or **Ended** for each restriction.
 
-**Example:** A court order says that a child's father may not collect her. The office adds a Pickup Restriction with the father as Restricted Person and "Call Pastor Tom at once" in What the Volunteer Sees. If the father comes with the pickup tag, the station shows the warning in red and does not let the volunteer release the child.
+:::note[Example]
+A court order says that a child's father may not collect her. The office adds a Pickup Restriction with the father as Restricted Person and "Call Pastor Tom at once" in What the Volunteer Sees. If the father comes with the pickup tag, the station shows the warning in red and does not let the volunteer release the child.
+:::

@@ -3,13 +3,13 @@ title: Bulletins
 emoji: 📰
 sidebar_position: 2
 ---
-A [Bulletin](/desk/bulletin) is the printed handout for one service or event (a [Function](/desk/function)): a Letter sheet printed on both sides and folded in half. The front cover has the church name, the function name and date, a cover image and the verse of the week. The inside and the back hold the sections that you switch on. Members can also read it in the member portal.
+A Bulletin is the printed handout for one service or event (a [Function](../ministries/functions.md)): a Letter sheet printed on both sides and folded in half. The front cover has the church name, the function name and date, a cover image and the verse of the week. The inside and the back hold the sections that you switch on. Members can also read it in the member portal.
 
-Church Office users make and edit bulletins. Church Managers set the default sections in [Bulletin Settings](/desk/bulletin-settings).
+Church Office users make and edit bulletins. Church Managers set the default sections in **Bulletin Settings**.
 
 ## Make a bulletin
 
-1. Open the Function and click **Actions**, then **New Bulletin**. Or open [Bulletins](/desk/bulletin), click **Add Bulletin** and pick the Function.
+1. Open the Function and click **Actions**, then **New Bulletin**. Or open **Bulletins**, click **Add Bulletin** and pick the Function.
 
 2. Check what Churchit filled in (see below).
 
@@ -23,11 +23,13 @@ A new bulletin starts with:
 
 - the sections that are on in Bulletin Settings,
 
-- the **Missionary of the Week**, picked in turn from your current missionaries (see the Missions manual). Change it if you like.
+- the **Missionary of the Week**, picked in turn from your current missionaries (see the [Missions manual](../missions/README.md)). Change it if you like.
 
-- the open prayer requests that are shared with the Whole Church and approved for the list, urgent first (see the Prayers manual). Remove the rows that you do not want printed. Other requests cannot be added.
+- the open prayer requests that are shared with the Whole Church and approved for the list, urgent first (see the [Prayers manual](../prayers/README.md)). Remove the rows that you do not want printed. Other requests cannot be added.
 
+:::caution
 If you change the Function of a bulletin later, Churchit picks the Missionary of the Week and the prayer requests again, and your changes to those rows are lost.
+:::
 
 ## What the automatic sections print
 
@@ -45,13 +47,13 @@ If you change the Function of a bulletin later, Churchit picks the Missionary of
 
 - **Missionary of the Week**: the photo, country, agency and Mission Statement.
 
-- **Church Verse**: the verse of the [Church](/desk/church) record, at the foot of the back cover.
+- **Church Verse**: the verse of the [Church](../foundations/churches.md) record, at the foot of the back cover.
 
 - **Church Image**: the image of the Church, such as a logo, above the church name on the front cover.
 
-- **Contact Information**: the address, phone, email and website of the Church. A branch with no website prints its parent church's website. A missing phone or email comes from [Contact Us Settings](/desk/contact-us-settings).
+- **Contact Information**: the address, phone, email and website of the Church. A branch with no website prints its parent church's website. A missing phone or email comes from **Contact Us Settings**.
 
-- **Sermon Handout Insert**: when a sermon on the schedule has a [Sermon Handout](/desk/sermon-handout), a third sheet prints it twice, to cut into two half-page inserts (see the Study manual).
+- **Sermon Handout Insert**: when a sermon on the schedule has a [Sermon Handout](../study/sermon-handouts.md), a third sheet prints it twice, to cut into two half-page inserts (see the [Study manual](../study/README.md)).
 
 Verses print with their words in your church's Default Bible Translation once that translation has its text, and as the reference alone until then. A section with nothing to print is left out.
 
@@ -63,12 +65,14 @@ Click **Print Bulletin**. The bulletin opens in a new tab with the print window 
 
 Tick **Show in Portal** to share the bulletin with your members. Members who sign in see it on the **Bulletins** page of the member portal, and the newest one shows on their home page. They can read it in the browser or download the PDF. A member sees only the bulletins of their own church. A visitor who opens a bulletin link goes to the login page first.
 
-**Public announcements.** To show the announcements to everyone, tick **Show in Portal** and **Show Announcements on the Website**. The public [Announcements](/announcements) page shows the announcements of the five newest bulletins with both boxes ticked, and the member portal's home page shows the newest ones. Nothing else of the bulletin is public: no welcome, no prayer requests, no birthdays and no order of worship. To add Announcements to the website menu, see the Website manual.
+**Public announcements.** To show the announcements to everyone, tick **Show in Portal** and **Show Announcements on the Website**. The public Announcements page shows the announcements of the five newest bulletins with both boxes ticked, and the member portal's home page shows the newest ones. Nothing else of the bulletin is public: no welcome, no prayer requests, no birthdays and no order of worship. To add Announcements to the website menu, see the [Website manual](../website/README.md).
 
-**Images.** Each image that you add to a bulletin's text is a public file, so anyone with its link can open it. The church image on the cover shows to members only when it is a public file. When staff print, it always shows. To make it public, open the [File](/desk/file) list, open the image, clear **Is Private** and save.
+**Images.** Each image that you add to a bulletin's text is a public file, so anyone with its link can open it. The church image on the cover shows to members only when it is a public file. When staff print, it always shows. To make it public, open the File list, open the image, clear **Is Private** and save.
 
-**Example:** Each Thursday the secretary makes Sunday's bulletin from the Function, copies last week's welcome and edits it, adds the announcements and prints 150 copies. She ticks Show in Portal so members can read it at home, and Show Announcements on the Website so that visitors see the coming events.
+:::note[Example]
+Each Thursday the secretary makes Sunday's bulletin from the Function, copies last week's welcome and edits it, adds the announcements and prints 150 copies. She ticks Show in Portal so members can read it at home, and Show Announcements on the Website so that visitors see the coming events.
+:::
 
 ## More than one church
 
-To give a church its own set of sections, add a row for it under **Sections Per Church** in [Bulletin Settings](/desk/bulletin-settings). A row replaces the whole set for that church, so tick every section that it wants. Click a row to see its switches. The **Church Roles** list is shared by all churches, but each church's bulletin names its own people in those roles.
+To give a church its own set of sections, add a row for it under **Sections Per Church** in **Bulletin Settings**. A row replaces the whole set for that church, so tick every section that it wants. Click a row to see its switches. The **Church Roles** list is shared by all churches, but each church's bulletin names its own people in those roles.

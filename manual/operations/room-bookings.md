@@ -3,13 +3,13 @@ title: Room Bookings
 emoji: 📅
 sidebar_position: 2
 ---
-A [Room Booking](/desk/room-booking) reserves a room, equipment or both for a time. Churchit makes sure that two bookings never hold the same room or the same equipment at the same time.
+A Room Booking reserves a room, equipment or both for a time. Churchit makes sure that two bookings never hold the same room or the same equipment at the same time.
 
 Click **Room Bookings** in the sidebar to open the calendar of bookings by month, week or day. Click a booking to open it. The calendar does not show Denied and Cancelled bookings: remove the Status filter to see them. To see the bookings as a list, click **Calendar View** at the top and choose **List View**. To find a booking by its number, such as BK-0012 on a setup sheet, type it in the **ID** box of the list.
 
 ## Book a room
 
-1. Open [Room Bookings](/desk/room-booking) and click **Add Room Booking**. Your own name is filled in as the **Requester**. The Requester must be a person of the church that books the room.
+1. Open **Room Bookings** and click **Add Room Booking**. Your own name is filled in as the **Requester**. The Requester must be a person of the church that books the room.
 
 2. Fill in the **Purpose**, then choose the **Room**. Only bookable rooms are offered. Answer the room's questions if a dialog opens.
 
@@ -43,7 +43,9 @@ If you still need the room, tick **Request Anyway** in the **If the Room Is Take
 
 - **Deny** denies it.
 
-**Example:** The youth group's booking of the fellowship hall on Tuesday at 7 PM is Approved. The women's Bible study then needs the same hall at the same time, so its leader ticks Request Anyway. The pastor opens the Conflict booking. The hall is big enough for both groups, so the pastor clicks Share the Room: the Bible study's booking is approved, and both groups use the hall. If the youth booking were still Requested, the pastor would approve it too.
+:::note[Example]
+The youth group's booking of the fellowship hall on Tuesday at 7 PM is Approved. The women's Bible study then needs the same hall at the same time, so its leader ticks Request Anyway. The pastor opens the Conflict booking. The hall is big enough for both groups, so the pastor clicks Share the Room: the Bible study's booking is approved, and both groups use the hall. If the youth booking were still Requested, the pastor would approve it too.
+:::
 
 ## Block a room
 
@@ -54,11 +56,13 @@ To keep a room free, for example for repairs or a holiday, an approver of the ro
 - Nobody can book a blocked time, also not with Request Anyway.
 - Only an approver of the room (or a Church Manager when the room has no approvers) can change or remove a blocked time.
 
-**Example:** The sanctuary floor is refinished in the first week of March. The facilities manager blocks the sanctuary for that week. Two requests for that week are denied at once, and nobody can ask for it again until the block ends.
+:::note[Example]
+The sanctuary floor is refinished in the first week of March. The facilities manager blocks the sanctuary for that week. Two requests for that week are denied at once, and nobody can ask for it again until the block ends.
+:::
 
 ## Book equipment
 
-To book a [Church Asset](/desk/church-asset), such as a projector or the church van, first tick **Bookable** on the asset. Then choose it in **Equipment** on a Room Booking. Leave **Room** empty to book only equipment. A booking of equipment only is approved at once and belongs to your church.
+To book a [Church Asset](assets.md), such as a projector or the church van, first tick **Bookable** on the asset. Then choose it in **Equipment** on a Room Booking. Leave **Room** empty to book only equipment. A booking of equipment only is approved at once and belongs to your church.
 
 Equipment can be in only one booking at a time, and a Conflict booking holds its equipment too. If another booking has the equipment at that time, Churchit refuses the booking and names the other one.
 
@@ -72,13 +76,15 @@ Use a Room Booking with only equipment to lend something to a person.
 
 Only Church Manager and System Manager users can check equipment out or in, and nobody can type these times by hand. You cannot check out equipment that is still out on another booking: check in that booking first. A Completed booking does not hold its room or its equipment.
 
-The [Assets on Loan](/desk/query-report/Assets on Loan) report shows all equipment that is out and not returned. The booking with the oldest End is at the top, so late returns show first.
+The Assets on Loan report shows all equipment that is out and not returned. The booking with the oldest End is at the top, so late returns show first.
 
-**Example:** Deacon Smith borrows the projector for a weekend retreat. The office books the projector from Friday to Monday with no room and clicks Check Out when he picks it up. On Tuesday the projector is still not back, so it is at the top of Assets on Loan. When he returns it, the office clicks Check In.
+:::note[Example]
+Deacon Smith borrows the projector for a weekend retreat. The office books the projector from Friday to Monday with no room and clicks Check Out when he picks it up. On Tuesday the projector is still not back, so it is at the top of Assets on Loan. When he returns it, the office clicks Check In.
+:::
 
 ## Rooms for a Function
 
-To book rooms for a [Function](/desk/function), open the Function and click **Actions**, then **Book a Room**. Choose one or more rooms and any equipment, check the Requester and the times, and click **Book**. Each room gets its own booking, and the equipment goes with the first booking that saves.
+To book rooms for a [Function](../ministries/functions.md), open the Function and click **Actions**, then **Book a Room**. Choose one or more rooms and any equipment, check the Requester and the times, and click **Book**. Each room gets its own booking, and the equipment goes with the first booking that saves.
 
 - When a Function is deleted, its bookings are deleted too.
 
@@ -100,7 +106,7 @@ Members ask for a room on the **Book a Room** page of the member portal (it open
 
 - The page lists the member's own requests with the room, the time and the status. A booking that staff made for the member does not show there. A member can change a request that is still to come, unless it was denied, cancelled or completed. Only staff can cancel it.
 
-If your portal menu does not have **Book a Room**, open [Portal Settings](/desk/portal-settings) and add a row to **Menu** with the Title Book a Room, the Route room-request, the Reference Document Type Room Booking and the Role Church User.
+If your portal menu does not have **Book a Room**, open **Portal Settings** and add a row to **Menu** with the Title Book a Room, the Route room-request, the Reference Document Type Room Booking and the Role Church User.
 
 ## Setup sheets
 
@@ -108,7 +114,7 @@ To give the people who set up a room what they need, open the Room Booking, clic
 
 ## Reports
 
-- [Room Usage](/desk/query-report/Room Usage) (in the Reports folder) shows how your rooms and equipment are used: one row for each booking in the dates you choose, with the hours. It opens on the current month and lists every status, also Denied and Cancelled, until you choose a Status. You can also filter by Room. Church Managers and Church Staff can open it.
+- Room Usage (in the Reports folder) shows how your rooms and equipment are used: one row for each booking in the dates you choose, with the hours. It opens on the current month and lists every status, also Denied and Cancelled, until you choose a Status. You can also filter by Room. Church Managers and Church Staff can open it.
 
 - **Booking Requests** (the shortcut on the workspace) lists the Requested and Conflict bookings, the soonest first.
 

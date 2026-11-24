@@ -3,13 +3,15 @@ title: Alms
 emoji: 🫴
 sidebar_position: 9
 ---
-Alms are money that the church gives to someone in need, such as help with rent or groceries. An [Alms Request](/desk/alms-request) records the need, the decision and the payment. (For money given to the church, see Collections.)
+Alms are money that the church gives to someone in need, such as help with rent or groceries. An Alms Request records the need, the decision and the payment. (For money given to the church, see [Collections](collections.md).)
 
-**Example:** A member asks for help with an electric bill of $180. The care team adds an alms request for the family, and approves it after a visit. The treasurer gets an email, writes the check and clicks Create Expense. The money comes out of the benevolence fund, and the request shows Distributed.
+:::note[Example]
+A member asks for help with an electric bill of $180. The care team adds an alms request for the family, and approves it after a visit. The treasurer gets an email, writes the check and clicks Create Expense. The money comes out of the benevolence fund, and the request shows Distributed.
+:::
 
 ## Handle a request
 
-1. Add an [Alms Request](/desk/alms-request) with the **Recipient** (a person or a family), the **Amount** and the need. With more than one church, the **Requester** must be a person of your church.
+1. Add an Alms Request with the **Recipient** (a person or a family), the **Amount** and the need. With more than one church, the **Requester** must be a person of your church.
 
 2. The care team sets the **Status** to **Approved** or **Declined**.
 

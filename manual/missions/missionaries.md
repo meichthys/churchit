@@ -3,13 +3,15 @@ title: Missionaries
 emoji: 📣
 sidebar_position: 1
 ---
-A [Missionary](/desk/missionary) is one record for each missionary, family or ministry that your church supports. One record can stand for a single worker, a couple and their children, or an organization such as a Bible college. The record holds their contact details, the support that the church gives, their letters and the place where they serve.
+A Missionary is one record for each missionary, family or ministry that your church supports. One record can stand for a single worker, a couple and their children, or an organization such as a Bible college. The record holds their contact details, the support that the church gives, their letters and the place where they serve.
 
-**Example:** The Smith family serves in Kenya with a mission agency, and your church gives them $500 each month. You add one Missionary called The Smith Family, list John, Mary and their two children in the **People** table, pick their agency and set the support. Churchit then makes a draft Expense each month, shows the family on the website and its map, and features them in the bulletin as the Missionary of the Week in turn with your other missionaries.
+:::note[Example]
+The Smith family serves in Kenya with a mission agency, and your church gives them $500 each month. You add one Missionary called The Smith Family, list John, Mary and their two children in the **People** table, pick their agency and set the support. Churchit then makes a draft Expense each month, shows the family on the website and its map, and features them in the bulletin as the Missionary of the Week in turn with your other missionaries.
+:::
 
 ## Add a missionary
 
-1. Open [Missionaries](/desk/missionary) and click **Add Missionary**.
+1. Open **Missionaries** and click **Add Missionary**.
 2. Type the **Title**, the name that people know them by, such as The Smith Family. Two missionaries of one church cannot have the same Title.
 3. Pick the **Status**. A new missionary starts as Active.
 4. Fill in the tabs that you need (see below), then save.
@@ -28,7 +30,7 @@ The form has these tabs:
 
 ## Who the record is about
 
-List the [People](/desk/person) that the record is about in the **People** table on the Details tab. For a family, that is the parents and the children. For an organization, it is your contact person there. To add a whole household at one time, click **Add Family** under the table and pick the [Family](/desk/family). Everyone in the family who is not listed yet is added to the table. Save the form to keep them.
+List the [People](../people/person.md) that the record is about in the **People** table on the Details tab. For a family, that is the parents and the children. For an organization, it is your contact person there. To add a whole household at one time, click **Add Family** under the table and pick the [Family](../people/family.md). Everyone in the family who is not listed yet is added to the table. Save the form to keep them.
 
 Each of these people shows the missionary record on the Connections tab of their Person form. When the Church Directory includes missionaries, these people show under the missionary in the missionaries section. They are not shown again on their family pages.
 
@@ -40,7 +42,7 @@ Each of these people shows the missionary record on the Connections tab of their
 
 - **Inactive**: the church no longer supports this missionary. The record stays for your history, but it is left out of the Church Directory, the Missions page of the website and its map, and the bulletin's Missionary of the Week.
 
-You can add more statuses under [Missionary Statuses](/desk/missionary-status). Only the status called Inactive hides a missionary, so every status that you add counts as a current missionary. Do not rename or delete Inactive.
+You can add more statuses under **Missionary Statuses**. Only the status called Inactive hides a missionary, so every status that you add counts as a current missionary. Do not rename or delete Inactive.
 
 ## Show a missionary on the website, or keep them private
 
@@ -48,11 +50,13 @@ Two boxes on the Details tab control what the public sees:
 
 - **Publish**: tick it to show the missionary on the Missions page of your website. The page shows a card for each published missionary that is not Inactive, with the photo, the agency, the country and the website. It also shows a map with a pin for each of them.
 
-- **Sensitive**: tick it for a missionary who serves in a closed or dangerous country. A Sensitive missionary is never shown on the website, on the map or on sermon slides, even when Publish is ticked. The website map says how many missionaries it does not show for their safety, without names. The bulletin leaves them out unless **Include Sensitive Missionaries** is on in [Bulletin Settings](/desk/bulletin-settings). The Church Directory hides their country, email and website.
+- **Sensitive**: tick it for a missionary who serves in a closed or dangerous country. A Sensitive missionary is never shown on the website, on the map or on sermon slides, even when Publish is ticked. The website map says how many missionaries it does not show for their safety, without names. The bulletin leaves them out unless **Include Sensitive Missionaries** is on in **Bulletin Settings**. The Church Directory hides their country, email and website.
 
 The form shows a colored note at the top that says whether the missionary is published, sensitive or both.
 
-**Example:** A couple serves in a country where Christian work is not allowed. Tick Sensitive. Members can still find them by name in the Church Directory and pray for them, but no stranger can find their country or contact details on your website.
+:::note[Example]
+A couple serves in a country where Christian work is not allowed. Tick Sensitive. Members can still find them by name in the Church Directory and pray for them, but no stranger can find their country or contact details on your website.
+:::
 
 Add a photo when you can. The website shows it on the missionary's card and on their pin on the map.
 
@@ -60,15 +64,17 @@ Add a photo when you can. The website shows it on the missionary's card and on t
 
 The **Location** section on the Details tab holds the pin on the missions map. Click **Location** to open it. When you choose a **Country** and the pin is empty, Churchit places the pin in the middle of that country. Drag the pin to the exact city or town if you want. A missionary with no pin still has a card on the website, but no pin on the map.
 
-Churchit places the pin only while **Look Up Addresses for the Map** is on in [People Settings](/desk/people-settings). It is on unless your church turns it off. When it is off, place the pin by hand.
+Churchit places the pin only while **Look Up Addresses for the Map** is on in **People Settings**. It is on unless your church turns it off. When it is off, place the pin by hand.
 
 ## Support and automatic expenses
 
 On the Support tab, record the **Support Amount**, the **Support Frequency**, the **Support Start Date** and the **Support End Date**. The end date cannot be before the start date. After the Support End Date, the bulletin no longer picks the missionary as the Missionary of the Week. The website still shows them until you set the status to Inactive.
 
-Churchit can make the expense for each support payment for you. Tick **Auto-create Expenses** (it shows when the Support Amount is filled in) and choose an **Expense Type**. Churchit then makes a draft Expense for each support period, charged to that expense type and its fund. A Church Finance user checks each draft and submits it (see the Finances manual).
+Churchit can make the expense for each support payment for you. Tick **Auto-create Expenses** (it shows when the Support Amount is filled in) and choose an **Expense Type**. Churchit then makes a draft Expense for each support period, charged to that expense type and its fund. A Church Finance user checks each draft and submits it (see the [Finances manual](../finances/README.md)).
 
-**Example:** You support the Smith family with $500 Monthly from January 1. You turn on Auto-create Expenses on April 10. In the background after you save, Churchit makes four draft Expenses, for January 1, February 1, March 1 and April 1. On May 1, the next draft appears by itself.
+:::note[Example]
+You support the Smith family with $500 Monthly from January 1. You turn on Auto-create Expenses on April 10. In the background after you save, Churchit makes four draft Expenses, for January 1, February 1, March 1 and April 1. On May 1, the next draft appears by itself.
+:::
 
 **Good to know**
 
@@ -98,18 +104,20 @@ Share With Church does not publish the letter anywhere. Letters are for the chur
 
 - **Missionary Letters** (in the sidebar) lists every letter of every missionary.
 
-**Example:** A prayer letter from the Smiths arrives by email. You attach it and tick Share With Church. On Sunday the pastor reads it from the pulpit. On Monday you type Sunday's date in Shared Date, and the letter leaves the Letters Not Yet Read list.
+:::note[Example]
+A prayer letter from the Smiths arrives by email. You attach it and tick Share With Church. On Sunday the pastor reads it from the pulpit. On Monday you type Sunday's date in Shared Date, and the letter leaves the Letters Not Yet Read list.
+:::
 
-Use the **Related Documents** table for other records about the missionary, such as a [Person](/desk/person), a [Function](/desk/function) or a [Collection](/desk/collection).
+Use the **Related Documents** table for other records about the missionary, such as a Person, a [Function](../ministries/functions.md) or a [Collection](../finances/collections.md).
 
 ## Where missionaries show up
 
-- **Website**: the Missions page shows the published missionaries that are not Inactive or Sensitive. The page goes away when your church turns Missions off in [Church Features](/desk/church-features).
+- **Website**: the Missions page shows the published missionaries that are not Inactive or Sensitive. The page goes away when your church turns Missions off in **Church Features**.
 
 - **Bulletin**: the Missionary of the Week changes each week, in turn through the missionaries in title order. Churchit skips Inactive missionaries, missionaries whose Support End Date has passed and, unless Bulletin Settings allows it, Sensitive ones. You can choose another missionary on the bulletin. A Sensitive missionary chosen by hand cannot be saved unless Bulletin Settings allows it. The bulletin shows the photo, the country, the agency and the Mission Statement.
 
 - **Church Directory**: tick **Missionaries** in the Extra Pages of the Church Directory to add a missionaries section. It is off until you tick it. It lists the missionaries that are not Inactive, with their people, agency, country, Mission Statement and website.
 
-- **Sermon slides**: a sermon presentation can show a slide about a published missionary that is not Sensitive (see the Study manual).
+- **Sermon slides**: a sermon presentation can show a slide about a published missionary that is not Sensitive (see the [Study manual](../study/README.md)).
 
-- **Prayer requests**: a Prayer Request can be for a missionary (see the Prayers manual).
+- **Prayer requests**: a Prayer Request can be for a missionary (see the [Prayers manual](../prayers/README.md)).

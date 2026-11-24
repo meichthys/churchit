@@ -7,6 +7,6 @@ The Study module holds the Bible and your sermons. Staff and members read the Bi
 
 Church Managers add and change sermons, series, handouts and Bible translations. Church Staff can read them. Each member keeps their own Bible Memory list.
 
-The [Study workspace](/desk/study) has a shortcut to the Bible, a count of your sermons and a chart of sermons by month. The sidebar lists **Bible**, **Sermons**, **Sermon Series**, **Sermon Handouts**, **Bible Memory Items** and the **Bible Memory** report. **Bible Translations** is in the **Setup** folder.
+The Study workspace has a shortcut to the Bible, a count of your sermons and a chart of sermons by month. The sidebar lists **Bible**, **Sermons**, **Sermon Series**, **Sermon Handouts**, **Bible Memory Items** and the **Bible Memory** report. **Bible Translations** is in the **Setup** folder.
 
-To turn off the whole Study module, untick it in [Church Features](/desk/church-features). This also takes the sermon pages, the podcast, the Bible on the website and the Bible Memory page off the website and the member portal.
+To turn off the whole Study module, untick it in **Church Features**. This also takes the sermon pages, the podcast, the Bible on the website and the Bible Memory page off the website and the member portal.

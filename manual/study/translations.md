@@ -3,7 +3,7 @@ title: Translations
 emoji: 🈚
 sidebar_position: 2
 ---
-A [Bible Translation](/desk/bible-translation) holds the whole text of one translation of the Bible, such as the KJV. Every Bible reference in the app is read in a translation: in the Bible reader, on bulletins, on Scripture slides and in Bible Memory. Church Managers add and change translations.
+A Bible Translation holds the whole text of one translation of the Bible, such as the KJV. Every Bible reference in the app is read in a translation: in the Bible reader, on bulletins, on Scripture slides and in Bible Memory. Church Managers add and change translations.
 
 Churchit comes with common English translations:
 
@@ -17,7 +17,7 @@ A translation is ready to read when its **Status** is **Ready**. A translation t
 
 ## Add a free translation
 
-1. Open [Bible Translations](/desk/bible-translation) and click **Add Bible Translation**.
+1. Open **Bible Translations** and click **Add Bible Translation**.
 
 2. Type the **Abbreviation**, such as WEB. This short name shows everywhere in the app.
 
@@ -37,4 +37,6 @@ For a translation that is under copyright, such as the NIV, ESV or NLT, your chu
 
 An imported translation is shown only to people who are signed in, never to website visitors. On a public page, such as a published sermon, a passage in an imported translation shows only its reference.
 
-**Example:** Your church has a license for the ESV. You import it from a CSV file and set it as the Default Bible Translation. Members read the ESV in the member portal and on the bulletin. A visitor who opens your website's Bible reader sees a free translation instead.
+:::note[Example]
+Your church has a license for the ESV. You import it from a CSV file and set it as the Default Bible Translation. Members read the ESV in the member portal and on the bulletin. A visitor who opens your website's Bible reader sees a free translation instead.
+:::

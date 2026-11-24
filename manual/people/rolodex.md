@@ -3,7 +3,7 @@ title: Rolodex
 emoji: 📇
 sidebar_position: 7
 ---
-The [Rolodex](/desk/rolodex) is the quickest way to look someone up and get in touch, on a computer or a phone. Every person is a card, sorted by last name. People who have died get no card. Church Staff, Church People Editor and Church Manager users can open it from the sidebar, the workspace, or the **Rolodex** button on the People and Families lists.
+The Rolodex is the quickest way to look someone up and get in touch, on a computer or a phone. Every person is a card, sorted by last name. People who have died get no card. Church Staff, Church People Editor and Church Manager users can open it from the sidebar, the workspace, or the **Rolodex** button on the People and Families lists.
 
 - Type in the search box to find a name, family, phone number or email.
 
@@ -27,10 +27,12 @@ From the tray, **Email** writes to everyone saved (in BCC), **Print** prints the
 
 - **Edit** gives one field the same value for everyone, such as Membership. A person whose value cannot be saved, such as an envelope number that someone else has, keeps the old value, and a message says why. With 20 people or more, the change runs in the background: reload the page after a moment. To make people Inactive, use **Mark Inactive**, which asks for the reason.
 
-- **Check In** checks them in to a [Function](/desk/function). **Add to Group** adds them to a group. **Add Tags** tags them. **Assign To** gives a staff member a to-do for each person.
+- **Check In** checks them in to a [Function](../ministries/functions.md). **Add to Group** adds them to a group. **Add Tags** tags them. **Assign To** gives a staff member a to-do for each person.
 
-- **New Church Email**, **Email Household Adults**, **Verify Contact Info** and **Print Name Tags** work as in the People list (see Lists of People).
+- **New Church Email**, **Email Household Adults**, **Verify Contact Info** and **Print Name Tags** work as in the People list (see [Lists of People](lists-of-people.md)).
 
 - **Open in People List** opens the People list with only the saved people.
 
-**Example:** The pastor wants to call everyone in the hospital or homebound this week. He saves their cards in the Rolodex on his computer. At the hospital, he opens the Rolodex on his phone, finds the saved cards in the tray and taps Call on each.
+:::note[Example]
+The pastor wants to call everyone in the hospital or homebound this week. He saves their cards in the Rolodex on his computer. At the hospital, he opens the Rolodex on his phone, finds the saved cards in the tray and taps Call on each.
+:::

@@ -3,7 +3,7 @@ title: Online giving
 emoji: 💳
 sidebar_position: 3
 ---
-Members and guests can give online on your website's [Give page](/give), with a card or PayPal. Each gift goes straight into the fund that the giver chooses, and Churchit records it in a collection by itself.
+Members and guests can give online on your website's Give page, with a card or PayPal. Each gift goes straight into the fund that the giver chooses, and Churchit records it in a collection by itself.
 
 Online giving needs the **Payments** app, a separate free Frappe app that Churchit does not install. Until a System Manager installs it, online giving, sign-up payments and form payments are off, and Giving Settings shows a notice. The Churchit README tells how to install it on Frappe Cloud, with Docker or on your own server.
 
@@ -11,11 +11,11 @@ Online giving needs the **Payments** app, a separate free Frappe app that Church
 
 1. A System Manager installs the Payments app on the site.
 
-2. A System Manager enters the account keys in [Stripe Settings](/desk/stripe-settings) or [PayPal Settings](/desk/paypal-settings). Only a System Manager can see and change these keys.
+2. A System Manager enters the account keys in **Stripe Settings** or **PayPal Settings**. Only a System Manager can see and change these keys.
 
-3. Open [Giving Settings](/desk/giving-settings). On the **Online Giving** tab, add the gateway in **Payment Gateways**, mark one row as the default, and tick **Enable Online Giving**.
+3. Open **Giving Settings**. On the **Online Giving** tab, add the gateway in **Payment Gateways**, mark one row as the default, and tick **Enable Online Giving**.
 
-4. On each [Fund](/desk/fund) that people may give to, tick **Allow giving to this fund**.
+4. On each [Fund](funds.md) that people may give to, tick **Allow giving to this fund**.
 
 5. Check the **Currency** in Giving Settings. When it is empty, Churchit uses the site currency.
 
@@ -39,7 +39,7 @@ Other settings on the Online Giving and Messages tabs:
 
 ## How online gifts are recorded
 
-When the gateway confirms a payment, Churchit compares what the gateway charged with the [Online Donation](/desk/online-donation):
+When the gateway confirms a payment, Churchit compares what the gateway charged with the Online Donation:
 
 - When they agree, Churchit records the gift in a collection and sets the status to **Paid**.
 
@@ -49,7 +49,9 @@ When the gateway confirms a payment, Churchit compares what the gateway charged 
 
 - When the gateway charged a gift but the gift stays **Pending**, for example because the confirmation did not arrive, the Church Finance users get an alert each day. A Church Finance user opens the gift and clicks **Record Charged Gift**. Churchit checks the payment again and records the gift once.
 
+:::tip
 To find a gift from its payment record, type the reference in the **Transaction Reference** filter of the Online Donations list.
+:::
 
 ## Gifts from guests
 
@@ -57,19 +59,21 @@ A guest who gives without signing in has no person on the gift, so the gift is n
 
 ## Processing fees
 
-A giver can add the processing fee to their gift, so that the church gets the full amount. In the gateway row of [Giving Settings](/desk/giving-settings), tick **Offer Fee Cover** and type the card rate in **Fee Percent** and **Fixed Fee**, for example 2.9 and 0.30.
+A giver can add the processing fee to their gift, so that the church gets the full amount. In the gateway row of **Giving Settings**, tick **Offer Fee Cover** and type the card rate in **Fee Percent** and **Fixed Fee**, for example 2.9 and 0.30.
 
 The Give page then offers **Cover the processing fee** with the amount. Churchit works out the fee itself, so the giver cannot change it. The fee is part of the gift: the Online Donation shows it in **Covered Fee**, and the collection, the receipt and the statement show the full payment.
 
 ## Give links and QR codes
 
-Open a [Fund](/desk/fund) that takes online gifts and click **Give Link**. A window shows a QR code and the address of the Give page with this fund chosen.
+Open a Fund that takes online gifts and click **Give Link**. A window shows a QR code and the address of the Give page with this fund chosen.
 
 - **Download QR Code** gives the code as a picture for a bulletin, a poster or a giving card.
 - **Copy Link** copies the address. To fill in an amount, add &amount=25 to the end.
 - To make a tap-to-give tag, write the address on an NFC tag with a phone app.
 
-**Example:** For the building campaign, the treasurer opens the Building Fund, clicks Give Link and downloads the QR code. The bulletin prints it with "Scan to give to the new roof". Each scan opens the Give page with the Building Fund chosen.
+:::note[Example]
+For the building campaign, the treasurer opens the Building Fund, clicks Give Link and downloads the QR code. The bulletin prints it with "Scan to give to the new roof". Each scan opens the Give page with the Building Fund chosen.
+:::
 
 ## Text-to-give
 
@@ -83,11 +87,11 @@ With text-to-give, a person sends a text to a phone number and gets back a link 
 
 4. Send a text to the number from your own phone, and make sure that the link comes back and opens the Give page.
 
-Churchit does not log these texts. STOP replies work as for all texts (see Text replies and STOP in the Communications manual).
+Churchit does not log these texts. STOP replies work as for all texts (see [Text replies and STOP](../communications/church-emails.md#text-replies-and-stop) in the Communications manual).
 
 ## Other ways to give
 
-Write your bank transfer, standing order or mail details in **Other Ways to Give** on the Messages tab of [Giving Settings](/desk/giving-settings). The Give page shows this text below the form. When online giving is off, the page shows only this text, with a note that online giving is not available. Enter these gifts in a collection as usual.
+Write your bank transfer, standing order or mail details in **Other Ways to Give** on the Messages tab of **Giving Settings**. The Give page shows this text below the form. When online giving is off, the page shows only this text, with a note that online giving is not available. Enter these gifts in a collection as usual.
 
 ## Record a refund
 
@@ -99,7 +103,7 @@ Refund the gift at the payment processor first. Churchit does not send money bac
 
 ## Payments for sign-ups and forms
 
-A function sign-up or a form with a price takes an online payment through the same gateways (see the Ministries manual for prices). Each payment comes in as a submitted collection with one row for the fund of the function or the form, and no person, so it is not on a giving statement.
+A function sign-up or a form with a price takes an online payment through the same gateways (see the [Ministries manual](../ministries/README.md) for prices). Each payment comes in as a submitted collection with one row for the fund of the function or the form, and no person, so it is not on a giving statement.
 
 When the gateway charged a wrong amount, or charged a record that is already paid, Churchit records nothing and alerts the Church Finance users. Each day it also alerts them about payments that a gateway charged but that are not recorded.
 

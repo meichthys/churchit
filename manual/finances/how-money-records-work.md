@@ -9,7 +9,7 @@ Collections, expenses and fund transfers go through three states:
 
 - **Submitted**: you clicked **Submit**. It is final and counts in the funds, the reports and the giving statements. You cannot change it.
 
-- **Cancelled**: you clicked **Cancel** on a submitted record. It stays for your history but no longer counts. To correct it, click **Amend**: Churchit makes a new draft copy that you fix and submit. You cannot amend the collection of an online gift (see Record a refund).
+- **Cancelled**: you clicked **Cancel** on a submitted record. It stays for your history but no longer counts. To correct it, click **Amend**: Churchit makes a new draft copy that you fix and submit. You cannot amend the collection of an online gift (see [Record a refund](online-giving.md#record-a-refund)).
 
 So enter the gifts, check them, and submit only when the totals are right.
 

@@ -15,7 +15,16 @@ import frappe
 from frappe.utils import get_url_to_workspace
 
 from churchit.ai.switch import has_flow, is_ai_on
-from churchit.manual_sources import COMMENT, get_folders, get_pages, get_workspace_name, read_source
+from churchit.manual_sources import (
+	CALLOUT,
+	CALLOUT_TITLES,
+	COMMENT,
+	LINK,
+	get_folders,
+	get_pages,
+	get_workspace_name,
+	read_source,
+)
 
 KNOWLEDGE_BASE = "Churchit Manual"
 SYNC_JOB = "churchit.ai.flow.sync_manual_knowledge"
@@ -54,9 +63,15 @@ def get_manual_sections() -> list[dict]:
 
 
 def to_text(markdown: str) -> str:
-	"""A page's Markdown without its comments.
+	"""A page's Markdown for the model: no comments, each link as its text, and each callout as its
+	title and body.
 
 	"<" and ">" are escaped: Frappe's XSS filter strips tag-like text such as <your site> on save,
 	and the sync matches each source by its saved text.
 	"""
-	return COMMENT.sub("", markdown).strip().replace("<", "&lt;").replace(">", "&gt;")
+	text = COMMENT.sub("", markdown)
+	text = CALLOUT.sub(
+		lambda match: f"{match.group(2) or CALLOUT_TITLES[match.group(1)]}: {match.group(3)}", text
+	)
+	text = LINK.sub(r"\1", text)
+	return text.strip().replace("<", "&lt;").replace(">", "&gt;")

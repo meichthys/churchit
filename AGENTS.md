@@ -1726,9 +1726,8 @@ Write a manual in Markdown under `manual/`, never in the workspace JSON. Each fo
 pre-commit hook runs it) writes the `Manual: <Module>` workspace JSON through
 `churchit/manual_sources.py` and moves `modified` to now only when the text changed. Then migrate.
 `test_manual_hygiene` and the `build-docs` workflow fail when the JSON is out of date. Frappe Wiki's GitHub Sync reads the same
-folder for the online manual, with the sidebar in `manual/.wiki.json`, so use plain Markdown: a link
-to another page is a relative `.md` path (the desk build turns it into a link to that manual), and
-text with `<`, `>` or `&amp;` goes in backticks. The online manual is that wiki at
+folder for the online manual, with the sidebar in `manual/.wiki.json`, so use plain Markdown and the
+wiki's callouts, and put text with `<`, `>` or `&amp;` in backticks. The online manual is that wiki at
 `https://docs.churchit.app/manual`, where `manual/<folder>/<page>.md` is at `/manual/<folder>/<page>`.
 churchit.app does not hold the manual: its pages link to the wiki. `churchit/ai/manual_knowledge.py`
 gives the pages to Flow as the Churchit Manual knowledge.
@@ -1737,10 +1736,15 @@ Write the manuals for a church volunteer or secretary, not for a developer. Say 
 what happens, name the doctype the way its form does (a Function, not an "event record"), and keep
 one name for one thing across every manual. Explain a term the first time a manual uses it. Leave
 class names, hook names, field types and file paths out: they belong in this file or in a docstring.
-A link to the desk is a site path such as `/desk/person`, never `http://desk/person`;
-`test_workspace_hygiene` checks that each desk link in a manual opens. On the online manual, these
-links open the demo site's desk: docs.churchit.app is its own site, and a script in its Wiki
-Settings (`<head>` HTML) sends each `/desk/...` link to demo.churchit.app.
+Link a manual to itself like a wiki: the first mention of another feature on a page, and each "see
+...", links that feature's page with a relative path, such as `[Groups](../people/group.md)` or
+`[Send Details Link](member-portal.md#send-details-link)`. The anchor is the wiki's id of a `##`
+heading: lower case, spaces as hyphens, other punctuation dropped. Never link a site path such as
+`/desk/person` or `/calendar`: the wiki is a site of its own. Name the page in bold instead, and
+write a website address such as `/live` in backticks. The
+desk build turns a link to another manual into a link to that manual, and a link within the manual
+into plain text, because the desk shows a whole manual on one page. `test_manual_hygiene` checks
+that each link opens a page and a heading that exist.
 
 Every manual has the same shape, so a reader finds things in the same place in each module:
 
@@ -1748,8 +1752,8 @@ Every manual has the same shape, so a reader finds things in the same place in e
   what, and a paragraph on the workspace and the sidebar.
 - One file for each feature, in sidebar order, with related features kept together. Its title is
   the heading of the feature in the desk. It starts with what the feature is and why a church uses
-  it. A feature that can confuse a reader gets a short `**Example:**` paragraph with a realistic
-  church story.
+  it. A feature that can confuse a reader gets a short example with a realistic church story, in a
+  `:::note[Example]` callout.
 - `##` sub-headings (no emoji) for tasks and topics. They show as sub-headings in the desk. Steps
   are numbered, one action each. Rules and fields are `- ` items that start with the bold field
   name. A `**Good to know**` paragraph holds the rules that do not fit the steps.
@@ -1757,6 +1761,9 @@ Every manual has the same shape, so a reader finds things in the same place in e
   topic and stays under about 80 words. A list stays together only while it is short (each item
   about one line, the list under about 80 words). Otherwise put a blank line between the items, so
   that the desk puts space between them.
+- A callout makes one point stand out: `:::caution` for something that can go wrong,
+  `:::danger` for data that is lost for good, `:::tip` for a shorter way, each closed by `:::` on
+  its own line. Use few, so that each one is seen. The desk draws a callout as a colored box.
 - Button, field, tab, menu and page names are bold. Leave out what the screen shows at a glance,
   such as sort order and status colors. Keep the rules: what happens by itself, what is hidden
   where, who can see or change what, and what is refused.

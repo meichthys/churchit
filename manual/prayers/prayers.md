@@ -3,13 +3,13 @@ title: Prayers
 emoji: 🤲
 sidebar_position: 2
 ---
-A [Prayer](/desk/prayer) records that someone prayed, and what for. Most Prayers come from members who tap I prayed in the member portal: Churchit makes the Prayer for them, with their note. Church Manager and Church Pastoral Care users can also add a Prayer by hand, for example for a prayer written for a service. Other staff can read Prayers.
+A Prayer records that someone prayed, and what for. Most Prayers come from members who tap I prayed in the member portal: Churchit makes the Prayer for them, with their note. Church Manager and Church Pastoral Care users can also add a Prayer by hand, for example for a prayer written for a service. Other staff can read Prayers.
 
 To add a Prayer by hand:
 
-1. Open [Prayers](/desk/prayer) and click **Add Prayer**.
+1. Open **Prayers** and click **Add Prayer**.
 
-2. Pick the [Person](/desk/person) who prayed. With more than one church, the person must belong to your church.
+2. Pick the [Person](../people/person.md) who prayed. With more than one church, the person must belong to your church.
 
 3. Type the prayer, or attach a file for a written or recorded prayer.
 

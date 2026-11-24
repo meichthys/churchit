@@ -3,21 +3,21 @@ title: Church Emails
 emoji: ✉️
 sidebar_position: 1
 ---
-A [Church Email](/desk/church-email) sends one message to many people at once, by email or by text message. Each person gets their own copy, so no one sees the other addresses or numbers. Churchit leaves out the people who asked not to get this kind of message.
+A Church Email sends one message to many people at once, by email or by text message. Each person gets their own copy, so no one sees the other addresses or numbers. Churchit leaves out the people who asked not to get this kind of message.
 
-Before you can send, a System Manager must set up an outgoing [Email Account](/desk/email-account) for emails, or the [SMS Settings](/desk/sms-settings) for texts. Until then, the form says so at the top.
+Before you can send, a System Manager must set up an outgoing Email Account for emails, or the **SMS Settings** for texts. Until then, the form says so at the top.
 
 ## Send a Church Email
 
-1. Open [Church Emails](/desk/church-email) and click **Add Church Email**. You can also open a [Group](/desk/group) and click **Actions**, then **Send Church Email**, or tick people in the [Person](/desk/person) list and click **Actions**, then **New Church Email**.
+1. Open **Church Emails** and click **Add Church Email**. You can also open a [Group](../people/group.md) and click **Actions**, then **Send Church Email**, or tick people in the [Person](../people/person.md) list and click **Actions**, then **New Church Email**.
 
 2. In **Send As**, choose **Email** or **Text Message**.
 
-3. In **Purpose**, choose what the message is about, such as Church News or Pastoral Care. Only people who allow that purpose get it (see Consent). A new Church Email has Church News. A message started from a Group has Group Messages.
+3. In **Purpose**, choose what the message is about, such as Church News or Pastoral Care. Only people who allow that purpose get it (see [Consent](consent.md)). A new Church Email has Church News. A message started from a Group has Group Messages.
 
 4. In **Send To**, choose who gets it (see below).
 
-5. For an email, write the **Subject** and the **Message**. To start from an [Email Template](/desk/email-template), pick it in **Template** first, then change the text as you like. To send files, save the Church Email and attach them in the sidebar. For a text, write the **Text**. Up to 160 characters is one text.
+5. For an email, write the **Subject** and the **Message**. To start from an Email Template, pick it in **Template** first, then change the text as you like. To send files, save the Church Email and attach them in the sidebar. For a text, write the **Text**. Up to 160 characters is one text.
 
 6. Click **Actions**, then **Preview**, to see the message as one person gets it, and who does not get a copy and why.
 
@@ -27,7 +27,9 @@ Before you can send, a System Manager must set up an outgoing [Email Account](/d
 
 Church Office users can do steps 1 to 7. Then a Church Manager opens the email, checks it and clicks Send.
 
-**Example:** The secretary writes the Easter service email to Active Members, previews it and sends a test to herself. She tells the pastor it is ready. The pastor, who is a Church Manager, reads the preview and clicks Send.
+:::note[Example]
+The secretary writes the Easter service email to Active Members, previews it and sends a test to herself. She tells the pastor it is ready. The pastor, who is a Church Manager, reads the preview and clicks Send.
+:::
 
 ## Who gets it
 
@@ -39,13 +41,15 @@ In **Send To**, choose:
 
 - **Group**: the members of one Group, whatever their Status.
 
-- **Smart List**: the people on a saved list of people or a saved Attendance Count (see the People manual). Churchit reads the list when it sends the message.
+- **Smart List**: the people on a saved list of people or a saved Attendance Count (see the [People manual](../people/README.md)). Churchit reads the list when it sends the message.
 
 - **Chosen People**: only the people that you put in **People**.
 
 Tick **Include Their Households** to also send the message to the people in the Family of each person above. In **Household Members**, choose **Everyone**, **Adults**, or **Adults and Other Adults**. Each person gets one copy, also when they are in two households.
 
-**Example:** You send the women's retreat details to the Women's Ministry group and tick Include Their Households with Adults. The husbands get a copy too, but the children do not.
+:::note[Example]
+You send the women's retreat details to the Women's Ministry group and tick Include Their Households with Adults. The husbands get a copy too, but the children do not.
+:::
 
 Churchit works out who gets the message when it sends it, so people who joined or left since you wrote it are counted correctly. It leaves out:
 
@@ -68,7 +72,7 @@ To send the message later, set **Send At** before you click Send. It goes out wi
 
 - **Number Sent** shows how many people it went to, and the Church Email can no longer be changed.
 
-- Each copy shows on the timeline of the person's [Person](/desk/person) form, as they got it. The Church Email lists its copies in its own timeline.
+- Each copy shows on the timeline of the person's Person form, as they got it. The Church Email lists its copies in its own timeline.
 
 - If sending stops, the Church Email goes back to Draft and a comment on it says why. When you send it again, only the people who did not get it yet get it.
 
@@ -76,7 +80,7 @@ To send the message later, set **Send At** before you click Send. It goes out wi
 
 ## Text messages
 
-A text goes to each person's primary phone number, and only to people who said yes to texts (see Consent). To send texts, a user must be a System Manager or have a role in the **Allowed Roles** of the SMS Settings.
+A text goes to each person's primary phone number, and only to people who said yes to texts (see [Consent](consent.md)). To send texts, a user must be a System Manager or have a role in the **Allowed Roles** of the SMS Settings.
 
 Churchit checks each text after it sends it. If your text provider (for example, Twilio) refuses a text, Churchit marks that copy **Error** on the timelines. A copy that left is marked **Sent**, and **Number Sent** counts only those. Churchit does not send a refused text again.
 
@@ -88,11 +92,13 @@ Churchit does not receive replies to texts: your text provider gets them. Use a 
 
 In other countries, and with other providers, read the provider's rules. When a person replies STOP, the provider blocks every later text to that number. The person replies START to get texts again.
 
-Churchit does not know about a STOP reply, so it continues to send texts to that number, and each one shows Error. When a person asks to stop texts, record it: add a [Communication Consent](/desk/communication-consent) for the person with the channel SMS and the status Withdrawn.
+Churchit does not know about a STOP reply, so it continues to send texts to that number, and each one shows Error. When a person asks to stop texts, record it: add a [Communication Consent](consent.md) for the person with the channel SMS and the status Withdrawn.
 
 Leave Purpose blank to stop texts for all purposes. This applies to every text that Churchit sends: Church Emails, group messages, pages to parents at check-in, and serving requests and reminders. A message that also goes by email then reaches the person by email.
 
-**Example:** Mr. Smith replies STOP to a text about the picnic. His provider blocks the next text, and its copy shows Error. The office adds a Withdrawn SMS consent for him, and the next Church Email sent as text leaves him out.
+:::note[Example]
+Mr. Smith replies STOP to a text about the picnic. His provider blocks the next text, and its copy shows Error. The office adds a Withdrawn SMS consent for him, and the next Church Email sent as text leaves him out.
+:::
 
 ## Unsubscribe links
 
@@ -102,13 +108,17 @@ The Person form of someone who stopped all Church Emails shows **Unsubscribed fr
 
 ## Bounced Emails
 
-When an email cannot reach an address, the mail server sends a report back to the church. This report is a bounce. Churchit reads bounces only when the church's email account also receives mail: open the [Email Account](/desk/email-account) that sends the church's email and tick **Enable Incoming**. Churchit reads the bounces of Gmail, Microsoft 365 and Postfix mail servers. It can miss a bounce from another mail server.
+When an email cannot reach an address, the mail server sends a report back to the church. This report is a bounce. Churchit reads bounces only when the church's email account also receives mail: open the Email Account that sends the church's email and tick **Enable Incoming**. Churchit reads the bounces of Gmail, Microsoft 365 and Postfix mail servers. It can miss a bounce from another mail server.
 
 When a bounce says that delivery failed, Churchit ticks **Bounced** on that address on every record that has it, such as a Person or a Family. It does this only for an address that the church emailed in the last 7 days. A bounce for a full mailbox, a blocked message or a late delivery changes nothing. Church Emails skip a Bounced address, and the Person form shows an orange line: Email bounced.
 
-To find bounced addresses, open the [People Data Quality](/desk/query-report/People Data Quality) report and set **Problem** to Email Bounced. Ask the person for a new address. When you change the address, Churchit clears Bounced. If you know that the old address works again, untick Bounced on that row.
+:::tip
+To find bounced addresses, open the [People Data Quality](../people/clean-data.md) report and set **Problem** to Email Bounced. Ask the person for a new address. When you change the address, Churchit clears Bounced. If you know that the old address works again, untick Bounced on that row.
+:::
 
-**Example:** John's address has a typo, so the next Church Email bounces. Churchit ticks Bounced on his address, and later emails skip him. The office finds him on People Data Quality, calls him and corrects the address.
+:::note[Example]
+John's address has a typo, so the next Church Email bounces. Churchit ticks Bounced on his address, and later emails skip him. The office finds him on People Data Quality, calls him and corrects the address.
+:::
 
 ## Who opened an email
 
@@ -118,7 +128,7 @@ Some mail apps, such as Apple Mail, load every email when it arrives, so a copy 
 
 ## Email Templates
 
-An [Email Template](/desk/email-template) is a ready-made Subject and Message. A System Manager adds templates. The **Template** list on a Church Email shows only the templates that use person placeholders, such as Birthday Greeting, New Member Welcome and Visitor Follow-Up. The other templates belong to features such as sign-ups, ministry teams and giving, which fill in their own placeholders. Do not use them for Church Emails, and change their placeholders with care.
+An Email Template is a ready-made Subject and Message. A System Manager adds templates. The **Template** list on a Church Email shows only the templates that use person placeholders, such as Birthday Greeting, New Member Welcome and Visitor Follow-Up. The other templates belong to features such as sign-ups, ministry teams and giving, which fill in their own placeholders. Do not use them for Church Emails, and change their placeholders with care.
 
 ## Email from the Person list
 
@@ -126,14 +136,14 @@ The Person list also has **Email** and **Email Household Adults** in its actions
 
 ## Draft with AI
 
-When AI is turned on (see the [Foundations manual](/desk/manual%3A-foundations)), some text fields have a **Draft with AI** link beside their label. The AI writes, shortens, changes the tone of or translates the text of that field:
+When AI is turned on (see the [Foundations manual](../foundations/README.md)), some text fields have a **Draft with AI** link beside their label. The AI writes, shortens, changes the tone of or translates the text of that field:
 
-- [Church Email](/desk/church-email): Subject, Message and Text.
-- [Bulletin](/desk/bulletin): Welcome Message and Announcements.
-- [Email Template](/desk/email-template): Subject and Response.
-- [Function](/desk/function), [Group](/desk/group) and [Sermon Series](/desk/sermon-series): Description.
-- [Follow-up Workflow](/desk/follow-up-workflow): the Text Message of a row in Actions.
-- [Web Page](/desk/web-page): Description in Meta Tags, and the alt text of pictures (see the Website manual).
+- Church Email: Subject, Message and Text.
+- [Bulletin](bulletins.md): Welcome Message and Announcements.
+- Email Template: Subject and Response.
+- [Function](../ministries/functions.md), Group and [Sermon Series](../study/sermons.md): Description.
+- [Follow-up Workflow](../people/follow-up.md): the Text Message of a row in Actions.
+- Web Page: Description in Meta Tags, and the alt text of pictures (see the [Website manual](../website/README.md)).
 
 1. Click **Draft with AI** beside the field.
 2. In **Action**, choose **Write**, **Shorten**, **Change Tone** or **Translate**. In **Request**, say what you want, for example "warmer" for Change Tone or "Spanish" for Translate.
@@ -144,6 +154,6 @@ Use changes only the form. Nothing is saved or sent until you save, and a Church
 
 The AI gets your request, the text in the field, the name of your church and a few facts about the record, such as the name, date and place of a Function. It never gets a person, a prayer request or a gift.
 
-For a saved Function that is not published, the AI model needs a Privacy Label of No training or better (see the Foundations manual). An answer for a Church Email can use only the name placeholders. If an answer leaves out a placeholder that your text had, the window says so: put it back before you save.
+For a saved Function that is not published, the AI model needs a Privacy Label of No training or better (see the [Foundations manual](../foundations/README.md)). An answer for a Church Email can use only the name placeholders. If an answer leaves out a placeholder that your text had, the window says so: put it back before you save.
 
 The AI must not quote a Bible verse. It names a passage, and Churchit checks it: a sentence that names a passage that is not in the Bible is left out, and the window says so. Under **Bible passages**, the window shows the words from your church's default free translation. Check each passage in your Bible.

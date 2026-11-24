@@ -3,9 +3,11 @@ title: Consent
 emoji: ✅
 sidebar_position: 4
 ---
-People can choose how the church may contact them. A [Communication Consent](/desk/communication-consent) records one answer: the person, the channel (email, text message, push notification, phone or post), a purpose (or blank for every purpose), **Given** or **Withdrawn**, when they said it and how. A person's consents are on the Connections tab of their Person form.
+People can choose how the church may contact them. A Communication Consent records one answer: the person, the channel (email, text message, push notification, phone or post), a purpose (or blank for every purpose), **Given** or **Withdrawn**, when they said it and how. A person's consents are on the Connections tab of their Person form.
 
-**Example:** Mrs. Lee no longer wants the church newsletter, but she wants to hear from the care team. She has a Withdrawn consent for email with the purpose Church News. A Church News email leaves her out. An email with the purpose Pastoral Care still reaches her.
+:::note[Example]
+Mrs. Lee no longer wants the church newsletter, but she wants to hear from the care team. She has a Withdrawn consent for email with the purpose Church News. A Church News email leaves her out. An email with the purpose Pastoral Care still reaches her.
+:::
 
 ## Record an answer
 
@@ -13,7 +15,7 @@ Church People Editor, Church Pastoral Care and Church Manager users can add a co
 
 ## Purposes
 
-A [Communication Purpose](/desk/communication-purpose) is a reason the church contacts people, such as Church News or Pastoral Care. Churchit uses some of them itself, so you cannot delete them:
+A Communication Purpose is a reason the church contacts people, such as Church News or Pastoral Care. Churchit uses some of them itself, so you cannot delete them:
 
 - **Church News**: a new Church Email.
 
@@ -29,7 +31,7 @@ You can add your own purposes.
 
 ## Ask first, or contact until they say no
 
-In the UK, the EU and other places, the law says that people must agree before a church contacts them. In that case, tick **Contact People Only With Their Consent** on the Settings tab of the [Church](/desk/church). The church then contacts only people who said yes. When the box is not ticked, the church contacts people until they say no. The church never contacts a person who has died.
+In the UK, the EU and other places, the law says that people must agree before a church contacts them. In that case, tick **Contact People Only With Their Consent** on the Settings tab of the [Church](../foundations/churches.md). The church then contacts only people who said yes. When the box is not ticked, the church contacts people until they say no. The church never contacts a person who has died.
 
 **Texts and push notifications always need a yes first**, also when the box is not ticked. A person can say yes on the Preferences page of the member portal, on a Connection Card, or to you. To record a yes that a person tells you, add a Communication Consent with the channel SMS (or Push).
 
@@ -45,6 +47,6 @@ Automatic emails (Notifications) leave out an address only when no person who us
 
 ## Ask people to renew their consent
 
-A church that ticks Contact People Only With Their Consent can ask people every two years whether they still want its emails. A System Manager duplicates the **Consent Renewal** notification and turns the copy on (see Shipped notifications below). Two years after a person last said yes to email, the copy emails them a **Yes, keep in touch** link. The person needs no login.
+A church that ticks Contact People Only With Their Consent can ask people every two years whether they still want its emails. A System Manager duplicates the **Consent Renewal** notification and turns the copy on (see [Shipped notifications](notifications.md#shipped-notifications) below). Two years after a person last said yes to email, the copy emails them a **Yes, keep in touch** link. The person needs no login.
 
 The link records a new yes for each email purpose that the person allows, and the next reminder comes two years later. If the person does nothing, Churchit does not ask again until they next change their choices. To ask after a different time, change **Days Before or After** on your copy. People who said no last, and people who have died, get no reminder.

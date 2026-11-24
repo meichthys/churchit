@@ -3,13 +3,15 @@ title: Prayer Request
 emoji: 🙇
 sidebar_position: 1
 ---
-A [Prayer Request](/desk/prayer-request) is one need that someone asks the church to pray for. It holds the request text, the person or thing it is for, who may read it, and its status, from Requested to Answered.
+A Prayer Request is one need that someone asks the church to pray for. It holds the request text, the person or thing it is for, who may read it, and its status, from Requested to Answered.
 
-**Example:** Anna asks the church to pray for her mother's surgery. She opens My Prayer Requests in the member portal, writes the request, picks her mother in **Prayer For** and chooses **Prayer Team**. The pastors and the prayer team get an email, and the prayer team sees the request on the Prayer List in the member portal. Three weeks later the surgery went well, and the pastor sets the status to Answered.
+:::note[Example]
+Anna asks the church to pray for her mother's surgery. She opens My Prayer Requests in the member portal, writes the request, picks her mother in **Prayer For** and chooses **Prayer Team**. The pastors and the prayer team get an email, and the prayer team sees the request on the Prayer List in the member portal. Three weeks later the surgery went well, and the pastor sets the status to Answered.
+:::
 
 ## Where requests come from
 
-- **The desk**: staff open [Prayer Requests](/desk/prayer-request) and click **Add Prayer Request**.
+- **The desk**: staff open **Prayer Requests** and click **Add Prayer Request**.
 
 - **The member portal**: a member opens **My Prayer Requests** and shares a request. The page lists the member's own requests with their status, who can see them, who they are for and how many times people prayed for them.
 
@@ -19,7 +21,7 @@ A [Prayer Request](/desk/prayer-request) is one need that someone asks the churc
 
 - **Title**: a few words, such as Surgery for my mother.
 
-- **Type**: the kind of request. You can add types under [Request Types](/desk/prayer-request-type). The **Request** text is optional for the types Unspoken and Salvation and required for every other type.
+- **Type**: the kind of request. You can add types under **Request Types**. The **Request** text is optional for the types Unspoken and Salvation and required for every other type.
 
 - **Prayer For**: the person that the request is for. Leave it blank for a general request, such as peace in the church. To pray for another kind of record, such as a Missionary, a Family or a Group, change **Prayer For Type** first.
 
@@ -51,7 +53,9 @@ A request that staff or a member adds is approved at once. A request from a gues
 
 To approve many requests at one time, select them in the list, click **Edit**, set **Approved for List** and click **Update**. Only Church Manager, Church Pastoral Care and System Manager users can change this box.
 
-**Example:** On Monday morning the church secretary opens Awaiting Approval and finds four requests that guests sent over the weekend. Three are real needs, so she approves them. The fourth is an advertisement, so she deletes it.
+:::note[Example]
+On Monday morning the church secretary opens Awaiting Approval and finds four requests that guests sent over the weekend. Three are real needs, so she approves them. The fourth is an advertisement, so she deletes it.
+:::
 
 ## Status and End Date
 
@@ -59,19 +63,21 @@ A new request starts as **Requested**. The other statuses are **Being Prayed For
 
 When the status changes to Answered, Churchit fills in **Answered On** with that day. The Prayers Answered This Month card and the reports of answered prayers count by this date. If you move the request away from Answered, Answered On is cleared.
 
-You can add statuses under [Request Statuses](/desk/prayer-request-status). A request leaves the prayer lists when its status is Answered, or a status named exactly **Archived** or **Closed**. A status with any other name keeps the request open.
+You can add statuses under **Request Statuses**. A request leaves the prayer lists when its status is Answered, or a status named exactly **Archived** or **Closed**. A status with any other name keeps the request open.
 
 The End Date takes a request off the prayer lists without a change of status. After that time, the request no longer shows on the Prayer List or in new bulletins. It still shows in the desk lists until you set its status.
 
 After a request is Answered, Archived, Closed, not approved or past its End Date, members other than the person who asked cannot open it or pray for it, also from a link in an old email.
 
-**Example:** A student asks for prayer during exam week and sets the End Date to Friday at 11:59 PM. After that time the request leaves the Prayer List by itself. It still counts in the Active Prayer Requests list in the desk until the pastor sets it to Answered.
+:::note[Example]
+A student asks for prayer during exam week and sets the End Date to Friday at 11:59 PM. After that time the request leaves the Prayer List by itself. It still counts in the Active Prayer Requests list in the desk until the pastor sets it to Answered.
+:::
 
 This is why the **Active Prayer Requests** card on the Summary can show a smaller number than the Active Prayer Requests list. The card counts only the open requests whose End Date has not passed. The list also shows open requests whose End Date has passed, so that you can find them and set their status.
 
 ## Urgent requests
 
-An urgent request shows first on the Prayer List and in the bulletin, and its email subject starts with Urgent. It is listed under **Urgent Prayer Requests** until its status is Answered, Archived or Closed. An open urgent request also puts the person it is for (or the person who asked, for a general request) on the Pastoral Care Watch List (see the People manual).
+An urgent request shows first on the Prayer List and in the bulletin, and its email subject starts with Urgent. It is listed under **Urgent Prayer Requests** until its status is Answered, Archived or Closed. An open urgent request also puts the person it is for (or the person who asked, for a general request) on the Pastoral Care Watch List (see the [People manual](../people/README.md)).
 
 ## Who hears of a new request
 
@@ -83,7 +89,7 @@ When someone adds a prayer request, Churchit sends an email and a desk notificat
 
 - A Private request goes only to Church Pastoral Care and Church Managers, and the email does not show what the request says.
 
-Churchit sends the emails only when your site has an outgoing email account. Without one, people get only the desk notification. To change who gets these emails or what they say, a System Manager opens [Notification](/desk/notification) and edits **New Prayer Request for the Prayer Team**, **Approved Prayer Request for the Prayer Team** or **New Private Prayer Request**.
+Churchit sends the emails only when your site has an outgoing email account. Without one, people get only the desk notification. To change who gets these emails or what they say, a System Manager opens [Notification](../communications/notifications.md) and edits **New Prayer Request for the Prayer Team**, **Approved Prayer Request for the Prayer Team** or **New Private Prayer Request**.
 
 ## The prayer team
 
@@ -105,7 +111,7 @@ Each request shows how many times people prayed for it, in the **Prayed** field 
 
 ## Print a prayer list
 
-The [Active Prayer List](/desk/query-report/Active Prayer List) report shows the open requests with their text and who may see them, urgent first. It leaves out requests whose End Date has passed. Without a filter, it shows the Whole Church and Prayer Team requests. To see the Private requests, choose Private in the **Shared With** filter. Click **Print** to give a copy to the prayer team.
+The Active Prayer List report shows the open requests with their text and who may see them, urgent first. It leaves out requests whose End Date has passed. Without a filter, it shows the Whole Church and Prayer Team requests. To see the Private requests, choose Private in the **Shared With** filter. Click **Print** to give a copy to the prayer team.
 
 The Active Prayer List does not check Approved for List. Approve or leave out the requests in Awaiting Approval before you hand out a printed list.
 
@@ -124,12 +130,12 @@ A new Bulletin fills its prayer requests with the open, approved Whole Church re
 
 ## AI suggestions on new requests
 
-When AI is turned on (see the Foundations manual) and a Church Manager has turned on suggestions on new requests, Churchit asks an AI model about each new request that is not Private.
+When AI is turned on (see the [Foundations manual](../foundations/README.md)) and a Church Manager has turned on suggestions on new requests, Churchit asks an AI model about each new request that is not Private.
 
 Church Pastoral Care, Church Manager and System Manager users see the result in the **AI Suggestion** part at the top of the request: a suggested type, whether it seems urgent, flags such as Possible risk of harm or Health details, and a wording without names, health or contact details. In the **AI Suggestion** menu, **Use Type** and **Use Urgency** fill in the form without saving it, and **Copy Wording** copies the wording. Nothing changes until you save.
 
 When the AI sees a possible risk of harm, Churchit at once assigns the suggestion to the Church Pastoral Care users of the church, with a To Do that says "Read this prayer request now." The prayer team, other staff and the person who asked never see the suggestions or that assignment.
 
-A request gets no suggestion when the person who made it, or its church, keeps out of AI, or when the church has no reviewer in AI Settings (see the Foundations manual).
+A request gets no suggestion when the person who made it, or its church, keeps out of AI, or when the church has no reviewer in AI Settings (see the [Foundations manual](../foundations/README.md)).
 
 The AI never replies to a request, never approves it and never changes its status or visibility. It can miss a risk. Read every request yourself.

@@ -5,7 +5,8 @@
 
 Each folder of manual/ is one manual: a README.md with the intro, and one Markdown file for each
 feature. Frappe Wiki's GitHub Sync reads the same folder, so the files use plain Markdown with front
-matter. The README names the workspace JSON that the folder builds. docs/build_manuals.py writes the
+matter, the wiki's callouts (:::note to :::) and relative links between pages. The README names the
+workspace JSON that the folder builds. docs/build_manuals.py writes the
 JSON, and tests/test_manual_hygiene.py fails when it is out of date. churchit.ai.manual_knowledge gives
 the pages to Flow. Standard library only, so that docs/build_manuals.py runs without Frappe.
 """
@@ -28,6 +29,8 @@ LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 BOLD = re.compile(r"\*\*(.+?)\*\*")
 ITALIC = re.compile(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
+CALLOUT = re.compile(r"^:::(note|tip|caution|danger)(?:\[([^\]]*)\])?\n(.*?)\n:::$", re.M | re.S)
+CALLOUT_TITLES = {"note": "Note", "tip": "Tip", "caution": "Caution", "danger": "Danger"}
 
 
 def build_all(check: bool = False) -> list[str]:
@@ -92,9 +95,23 @@ def get_blocks(folder: str) -> list[dict]:
 
 
 def get_chunks(markdown: str, shift: int) -> list[tuple]:
+	"""Each block of *markdown*, with each callout as ("callout", type, title, lines) and kept whole."""
+	chunks: list[tuple] = []
+	text = COMMENT.sub("", markdown)
+	start = 0
+	for match in CALLOUT.finditer(text):
+		chunks += get_text_chunks(text[start : match.start()], shift)
+		callout, title, body = match.groups()
+		lines = [line.rstrip() for line in body.split("\n") if line.strip()]
+		chunks.append(("callout", callout, title or CALLOUT_TITLES[callout], lines))
+		start = match.end()
+	return chunks + get_text_chunks(text[start:], shift)
+
+
+def get_text_chunks(markdown: str, shift: int) -> list[tuple]:
 	"""Each block of *markdown* as ("heading", level, text) or ("text", lines), with headings moved down *shift* levels."""
 	chunks: list[tuple] = []
-	for chunk in re.split(r"\n\s*\n", COMMENT.sub("", markdown).strip()):
+	for chunk in re.split(r"\n\s*\n", markdown.strip()):
 		lines = [line.rstrip() for line in chunk.strip("\n").split("\n") if line.strip()]
 		heading = HEADING.match(lines[0]) if len(lines) == 1 else None
 		if heading:
@@ -105,12 +122,19 @@ def get_chunks(markdown: str, shift: int) -> list[tuple]:
 
 
 def to_blocks(chunks: list[tuple], manual: str) -> list[dict]:
-	"""Paragraph blocks with ids that stay the same while their text does."""
+	"""Paragraph blocks with ids that stay the same while their text does.
+
+	A callout is one block led by its title, which desk.css draws as a box.
+	"""
 	blocks: list[dict] = []
 	seen: dict[str, int] = {}
 	for kind, *parts in chunks:
 		if kind == "heading":
 			text = f'<span class="h{parts[0]}">{inline(parts[1], manual)}</span>'
+		elif kind == "callout":
+			callout, title, lines = parts
+			text = f'<span class="manual-callout manual-callout-{callout}">{inline(title, manual)}</span>'
+			text += "".join("<br>" + inline(line, manual) for line in lines)
 		else:
 			text = "<br>".join(inline(line, manual) for line in parts[0])
 		seen[text] = seen.get(text, 0) + 1
@@ -129,18 +153,22 @@ def inline(text: str, manual: str) -> str:
 		return f"\x00{len(codes) - 1}\x00"
 
 	text = html.escape(CODE.sub(keep_code, text), quote=False)
-	text = LINK.sub(lambda match: f'<a href="{get_href(match.group(2), manual)}">{match.group(1)}</a>', text)
+	text = LINK.sub(lambda match: get_link(match.group(1), match.group(2), manual), text)
 	text = ITALIC.sub(r"<i>\1</i>", BOLD.sub(r"<b>\1</b>", text))
 	return re.sub("\x00(\\d+)\x00", lambda match: codes[int(match.group(1))], text)
 
 
-def get_href(target: str, manual: str) -> str:
-	"""A link of the desk: a link to another Markdown file opens the manual that holds it."""
+def get_link(text: str, target: str, manual: str) -> str:
+	"""A link of the desk. A link to a page of another manual opens that manual. A link within the
+	manual is plain text, because the desk shows the whole manual on one page."""
 	path = target.split("#")[0]
 	if not path.endswith(".md"):
-		return target
+		return f'<a href="{target}">{text}</a>'
 	folder = os.path.normpath(os.path.join(SOURCES, manual, os.path.dirname(path)))
-	return "/desk/" + get_workspace_name(folder).lower().replace(" ", "-").replace(":", "%3A")
+	if os.path.basename(folder) == manual:
+		return text
+	route = get_workspace_name(folder).lower().replace(" ", "-").replace(":", "%3A")
+	return f'<a href="/desk/{route}">{text}</a>'
 
 
 def write_workspace(path: str, blocks: list[dict], check: bool) -> bool:

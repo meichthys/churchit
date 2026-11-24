@@ -7,11 +7,13 @@ Most church events repeat: the Sunday service every week, the women's Bible stud
 
 The function that you set up is the **template**. A template is a rule, not an event: it does not show on the calendar, nobody checks in to it, and no report counts it. Churchit makes the occurrences from it, each one a normal Function that copies the template's schedule, team needs, associations, sign-up settings, discounts and attendance roster. Requested and Approved room bookings move to the new date too.
 
-**Example:** The youth group meets every Wednesday at 7 PM in the fellowship hall. You make one Function, Youth Group, with Automatically Recreate ticked, Weekly on Wednesday, and a room booking. Churchit makes the next eight Wednesdays at once, each with its own booking of the hall. Before Christmas, you add the Wednesday of Christmas week to Skip Dates, so there is no meeting that week.
+:::note[Example]
+The youth group meets every Wednesday at 7 PM in the fellowship hall. You make one Function, Youth Group, with Automatically Recreate ticked, Weekly on Wednesday, and a room booking. Churchit makes the next eight Wednesdays at once, each with its own booking of the hall. Before Christmas, you add the Wednesday of Christmas week to Skip Dates, so there is no meeting that week.
+:::
 
 ## Make a function repeat
 
-1. On the [Function](/desk/function), open the **Recurrence** section and tick **Automatically Recreate**.
+1. On the [Function](functions.md), open the **Recurrence** section and tick **Automatically Recreate**.
 
 2. Choose a **Repeat Frequency**: Daily, Weekly, Monthly or Yearly. In **Repeat Every**, type 1 for every time, or 2 for every second day, week, month or year.
 
@@ -23,7 +25,7 @@ The function that you set up is the **template**. A template is a rule, not an e
 
 6. Save.
 
-You can also open a [Ministry](/desk/ministry) and click **Create Recurring Function** to start one that belongs to that ministry.
+You can also open a [Ministry](ministries.md) and click **Create Recurring Function** to start one that belongs to that ministry.
 
 ## How occurrences are made
 
@@ -43,10 +45,10 @@ You can also open a [Ministry](/desk/ministry) and click **Create Recurring Func
 
 ## Group meetings
 
-A Function can be a meeting of a [Group](/desk/group), such as a small group or a class. Choose the group in the **Group** field of the function, not in Associations. The group must belong to the church of the function, and a function with a group cannot be shared with all churches.
+A Function can be a meeting of a [Group](../people/group.md), such as a small group or a class. Choose the group in the **Group** field of the function, not in Associations. The group must belong to the church of the function, and a function with a group cannot be shared with all churches.
 
 To give a group a weekly or monthly meeting, open the group and click **Actions**, then **Set Up Meetings**. A new Function opens with the group, the type Group Meeting and Automatically Recreate ticked. Choose the day, the time and the address, and save. Record the attendance on each meeting, not on this schedule.
 
 **Attendance reminder.** The day after a group meeting with no attendance recorded, Churchit emails the group's leaders a link to record it in the member portal. It sends nothing when the site has no outgoing email account.
 
-**Did Not Meet.** When a group did not meet, tick **Did Not Meet** on the Attendance tab of that meeting. Churchit then sends the leaders no reminder, and the Group Attendance report does not count it. A leader can also do this in the member portal (see Lead a Group in the People manual). **Attendance Recorded On** shows when a leader last saved the attendance.
+**Did Not Meet.** When a group did not meet, tick **Did Not Meet** on the Attendance tab of that meeting. Churchit then sends the leaders no reminder, and the Group Attendance report does not count it. A leader can also do this in the member portal (see [Lead a Group](../people/group.md#lead-a-group) in the People manual). **Attendance Recorded On** shows when a leader last saved the attendance.

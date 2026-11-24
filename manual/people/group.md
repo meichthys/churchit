@@ -3,23 +3,25 @@ title: Group
 emoji: 👥
 sidebar_position: 5
 ---
-A [Group](/desk/group) is a set of people with a shared purpose: a small group, a Sunday School class, a choir, a committee. Groups have members with roles such as Leader, meet at regular times, and can let members join from the member portal or the website.
+A Group is a set of people with a shared purpose: a small group, a Sunday School class, a choir, a committee. Groups have members with roles such as Leader, meet at regular times, and can let members join from the member portal or the website.
 
-**Example:** The Tuesday Night Bible Study is a public small group of up to 12 people, led by Tom and Sarah. A visitor finds it on the website's Find a Group page and clicks Ask to Join. Tom gets an email and accepts the request on Lead a Group in the member portal. The day after each meeting, Tom gets a reminder if nobody has recorded who came.
+:::note[Example]
+The Tuesday Night Bible Study is a public small group of up to 12 people, led by Tom and Sarah. A visitor finds it on the website's Find a Group page and clicks Ask to Join. Tom gets an email and accepts the request on Lead a Group in the member portal. The day after each meeting, Tom gets a reminder if nobody has recorded who came.
+:::
 
 ## Add a group
 
-1. Open [Groups](/desk/group) and click **Add Group**.
+1. Open **Groups** and click **Add Group**.
 2. Type the **Name** (two groups of one church cannot share a name) and choose the **Group Type**. The type fills in its defaults on the Joining tab.
-3. Add the people in **Members**, each with a [Group Role](/desk/group-role), such as Leader or Member.
+3. Add the people in **Members**, each with a Group Role, such as Leader or Member.
 4. On the **Joining** tab, choose who can see and join the group (see below).
 5. Save.
 
-To give the group a regular meeting time, click **Actions**, then **Set Up Meetings** (see Group meetings in the Ministries manual). **Meets** then shows when and where the group meets, such as Weekly on Tuesday at 7:00 PM. The Connections tab shows the group's ministry, meetings, join requests and files. To email the group, use **Email Group** or **Email Selected** under the Members table, or **Actions**, then **Send Church Email**.
+To give the group a regular meeting time, click **Actions**, then **Set Up Meetings** (see [Group meetings](../ministries/recurring-functions.md#group-meetings) in the Ministries manual). **Meets** then shows when and where the group meets, such as Weekly on Tuesday at 7:00 PM. The Connections tab shows the group's ministry, meetings, join requests and files. To email the group, use **Email Group** or **Email Selected** under the Members table, or **Actions**, then **Send Church Email**.
 
 ## Group types and roles
 
-A [Group Type](/desk/group-type) is a kind of group, such as Small Group, Class or Youth Group. Its defaults for **Public**, **Show in Portal**, **Requires Approval** and **Capacity** fill in when you choose the type on a group. A later change to a type does not change existing groups. Every church uses the same types.
+A Group Type is a kind of group, such as Small Group, Class or Youth Group. Its defaults for **Public**, **Show in Portal**, **Requires Approval** and **Capacity** fill in when you choose the type on a group. A later change to a type does not change existing groups. Every church uses the same types.
 
 A person leads a group when their Group Role has **Leads the Group** ticked. Churchit ticks it on the Leader role. Tick it on other roles whose people lead, such as Teacher or Host. Leaders record attendance, message the group and decide join requests.
 
@@ -35,7 +37,7 @@ On the Joining tab:
 
 - **Close Enrollment On**: after this date, nobody can join or ask to join.
 
-- **Requires Approval**: a member who clicks **Join** sends a [Group Join Request](/desk/group-join-request), and each leader gets an email. A leader clicks **Approve** or **Decline** on Lead a Group, or staff open the request. Approval adds the person as a Member. The person gets an email with the answer.
+- **Requires Approval**: a member who clicks **Join** sends a Group Join Request, and each leader gets an email. A leader clicks **Approve** or **Decline** on Lead a Group, or staff open the request. Approval adds the person as a Member. The person gets an email with the answer.
 
 A member leaves a group with **Leave this group** in the member portal. The only leader of a group cannot leave: name another leader first.
 
@@ -49,11 +51,11 @@ When you add a person or change their role, Churchit checks them for today. With
 
 ## Group files
 
-A [Group File](/desk/group-file) is a file that only the members of a group can open, such as study notes. Staff add one in the desk: choose the group, type a title and upload the file with **Private** ticked. Leaders add one on the **Group Files** page of the member portal with **Add a file**. Members open the files of their groups on that page. Nobody outside the group can open a file, even with its link. Only staff can change or delete a file.
+A Group File is a file that only the members of a group can open, such as study notes. Staff add one in the desk: choose the group, type a title and upload the file with **Private** ticked. Leaders add one on the **Group Files** page of the member portal with **Add a file**. Members open the files of their groups on that page. Nobody outside the group can open a file, even with its link. Only staff can change or delete a file.
 
 ## Find a Group
 
-The [Find a Group](/find-a-group) page of the website lists the groups that visitors can join (active, Public and Show in Portal), with their type, description, meeting time and the city of the meeting place. Visitors filter by type and by day. A map shows each group near its meeting place, never at the exact address. A visitor signs in to join. Each group shows **Member**, **Ask to Join**, **Requested**, **Full** or **Closed** as it applies. Below the list is a link to the Connection Card.
+The Find a Group page of the website lists the groups that visitors can join (active, Public and Show in Portal), with their type, description, meeting time and the city of the meeting place. Visitors filter by type and by day. A map shows each group near its meeting place, never at the exact address. A visitor signs in to join. Each group shows **Member**, **Ask to Join**, **Requested**, **Full** or **Closed** as it applies. Below the list is a link to the Connection Card.
 
 ## Lead a Group
 
@@ -67,4 +69,4 @@ Leaders open **Lead a Group** in the member portal. It shows each group that the
 
 The Email Templates Group Attendance Reminder, Group Message, Group Join Request and Group Join Decision hold the text of these emails.
 
-The [Group Attendance](/desk/query-report/Group Attendance) report shows each group that met in the dates you choose (the last 12 weeks at first): the meetings held, the average attendance, the members and the attendance rate. Meetings marked Did Not Meet, future meetings and the group's schedule do not count, and only Confirmed, Assumed and Checked-In attendance counts.
+The Group Attendance report shows each group that met in the dates you choose (the last 12 weeks at first): the meetings held, the average attendance, the members and the attendance rate. Meetings marked Did Not Meet, future meetings and the group's schedule do not count, and only Confirmed, Assumed and Checked-In attendance counts.

@@ -3,7 +3,7 @@ title: Write and Translate Pages with AI
 emoji: 🪄
 sidebar_position: 12
 ---
-When AI is turned on (see the Foundations manual), a saved [Web Page](/desk/web-page) that is published and not Members Only gets AI helpers. The AI reads only text that the public can already read. Nothing is saved until you save the page.
+When AI is turned on (see the [Foundations manual](../foundations/README.md)), a saved Web Page that is published and not Members Only gets AI helpers. The AI reads only text that the public can already read. Nothing is saved until you save the page.
 
 - **Draft with AI** beside **Description** in the Meta Tags section writes the short text that search engines show.
 
