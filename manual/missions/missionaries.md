@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Missionary is one record for each missionary, family or ministry that your church supports. One record can stand for a single worker, a couple and their children, or an organization such as a Bible college. The record holds their contact details, the support that the church gives, their letters and the place where they serve.
 
+<picture>
+  <source srcset="../../churchit/public/manual/missions/missionaries-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/missions/missionaries-light.webp" alt="The Details tab of a Missionary: title, status, agency, country, mission statement and Publish">
+</picture>
+
 :::note[Example]
 The Smith family serves in Kenya with a mission agency, and your church gives them $500 each month. You add one Missionary called The Smith Family, list John, Mary and their two children in the **People** table, pick their agency and set the support. Churchit then makes a draft Expense each month, shows the family on the website and its map, and features them in the bulletin as the Missionary of the Week in turn with your other missionaries.
 :::

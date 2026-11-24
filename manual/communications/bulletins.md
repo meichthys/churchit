@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Bulletin is the printed handout for one service or event (a [Function](../ministries/functions.md)): a Letter sheet printed on both sides and folded in half. The front cover has the church name, the function name and date, a cover image and the verse of the week. The inside and the back hold the sections that you switch on. Members can also read it in the member portal.
 
+<picture>
+  <source srcset="../../churchit/public/manual/communications/bulletins-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/communications/bulletins-light.webp" alt="A Bulletin: its function, date, cover image, verse of the week and Show in Portal">
+</picture>
+
 Church Office users make and edit bulletins. Church Managers set the default sections in **Bulletin Settings**.
 
 ## Make a bulletin

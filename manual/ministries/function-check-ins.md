@@ -5,6 +5,11 @@ sidebar_position: 7
 ---
 A Function Check-In records that a person arrived at a function. Check-ins keep children safe: each child gets a name tag with a security code, the adult who brings them gets a matching pickup tag, and a volunteer releases the child only to someone with the right code. Check-ins also fill in the attendance of the function.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/function-check-ins-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/function-check-ins-light.webp" alt="The Check-In Station: a search for Wilson shows the family, with two people chosen and Check In (2)">
+</picture>
+
 There are four ways to check in:
 
 - **The Check-In Station**: a volunteer at the door finds families by name or phone and checks them in. This is the main way.

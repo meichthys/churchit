@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Prayer Request is one need that someone asks the church to pray for. It holds the request text, the person or thing it is for, who may read it, and its status, from Requested to Answered.
 
+<picture>
+  <source srcset="../../churchit/public/manual/prayers/prayer-request-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/prayers/prayer-request-light.webp" alt="A Prayer Request: title, who it is for, requester, status, type, visibility, Urgent and the number of prayers">
+</picture>
+
 :::note[Example]
 Anna asks the church to pray for her mother's surgery. She opens My Prayer Requests in the member portal, writes the request, picks her mother in **Prayer For** and chooses **Prayer Team**. The pastors and the prayer team get an email, and the prayer team sees the request on the Prayer List in the member portal. Three weeks later the surgery went well, and the pastor sets the status to Answered.
 :::

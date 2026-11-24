@@ -106,6 +106,7 @@ class ManualShot:
 	prepare: Callable | None = None
 	user: str = MANAGER
 	height: int = 900  # the window, which also cuts a part that runs further down
+	frame: str | None = PAGE_COLUMN  # the picture stays inside it; None for a dialog over the page
 
 	def get_image_path(self, theme):
 		return os.path.join(MANUAL_PICTURES, f"{self.name}-{theme}.webp")
@@ -130,6 +131,18 @@ def blur_psalm(page):
 	page.locator(".list-group-item").filter(has_text="Psalms 23").get_by_role("link", name="Blur").click()
 	for _ in range(3):
 		page.click("#blur-plus")
+
+
+def search_room_bookings(page):
+	page.keyboard.press("Control+k")
+	page.locator(".modal.show input").wait_for()
+	page.keyboard.type("room book")
+	page.wait_for_timeout(1000)
+
+
+def open_shortcuts(page):
+	page.keyboard.press("Shift+?")
+	page.wait_for_timeout(800)
 
 
 def hide_directory_cover(page):
@@ -228,6 +241,13 @@ SHOTS = [
 ]
 
 
+# The parts that most manual pictures show: a form's header and first section, a list, or a page.
+FORM_TOP = (".page-head", ".form-section:visible >> nth=0")
+FORM_TWO_SECTIONS = (*FORM_TOP, ".form-section:visible >> nth=1")
+LIST = (".page-head", ".frappe-list")
+PAGE = (".page-head", ".layout-main-section")
+DIALOG = ".modal.show .modal-dialog"
+
 MANUAL_SHOTS = [
 	ManualShot("people/person", "/desk/person/PRSN-0001", (".page-head", ".form-section:visible >> nth=0")),
 	ManualShot(
@@ -269,6 +289,50 @@ MANUAL_SHOTS = [
 		"/desk/connection-card/CONN-00001",
 		(".page-head", ".form-section:visible >> nth=0"),
 	),
+	ManualShot("foundations/churches", "/desk/church/CHR-01", FORM_TOP),
+	ManualShot("foundations/beliefs", "/desk/belief/god", FORM_TOP),
+	ManualShot("foundations/sample-data", "/desk/sample-data", PAGE, height=560),
+	ManualShot("foundations/weekly-metrics", "/desk/weekly-metrics/CHR-01-2026-11-01", FORM_TOP),
+	ManualShot("finances/collections", "/desk/collection/COLL-0001", FORM_TWO_SECTIONS),
+	ManualShot("finances/funds", "/desk/fund/FUND-0002", FORM_TOP),
+	ManualShot("finances/expenses", "/desk/expense/EXP-0001", FORM_TOP),
+	ManualShot("finances/budgets", "/desk/church-budget/BUDGET%202026-01-01%20to%202026-12-31", FORM_TOP),
+	ManualShot("finances/pledges", "/desk/pledge-campaign/PCMP-0001", FORM_TOP),
+	ManualShot("finances/vendors", "/desk/vendor", LIST, height=480),
+	ManualShot("finances/alms", "/desk/alms-request/ALMS-0001", FORM_TOP),
+	ManualShot("ministries/functions", "/desk/function/FUNC-0001", FORM_TOP),
+	ManualShot("ministries/function-check-ins", "/desk/check-in", (".check-in-station",), select_two_wilsons),
+	ManualShot("ministries/function-sign-ups", "/desk/function-sign-up/FSU-000001", FORM_TOP),
+	ManualShot("ministries/ministries", "/desk/ministry/MIN-002", FORM_TOP),
+	ManualShot("ministries/question-sets", "/desk/question-set/QSET-0001", FORM_TWO_SECTIONS),
+	ManualShot("ministries/songs", "/desk/song/SONG-0001", FORM_TOP),
+	ManualShot("ministries/counseling-cases", "/desk/counseling-case/CC-0001", FORM_TOP),
+	ManualShot("missions/missionaries", "/desk/missionary/MISS-001", FORM_TOP),
+	ManualShot("missions/missionary-agencies", "/desk/missionary-agency/MA-001", FORM_TOP),
+	ManualShot("prayers/prayer-request", "/desk/prayer-request/PREQ-0001", FORM_TOP),
+	ManualShot("prayers/prayers", "/desk/prayer/PRAY-0001", FORM_TOP),
+	ManualShot("study/sermons", "/desk/sermon/SRMN-0001", FORM_TOP),
+	ManualShot("study/sermon-handouts", "/desk/sermon-handout/HAND-0001", FORM_TOP),
+	ManualShot("study/bible-memory", "/desk/bible-memory-item/BMEM-000001", FORM_TOP),
+	ManualShot("study/bible-reader", "/desk/bible", PAGE, height=640),
+	ManualShot("study/translations", "/desk/bible-translation", LIST, height=480),
+	ManualShot("communications/church-emails", "/desk/church-email/EML-0001", FORM_TOP),
+	ManualShot("communications/bulletins", "/desk/bulletin/BUL-0001", FORM_TOP),
+	ManualShot("communications/consent", "/desk/communication-consent/CONS-00001", FORM_TOP),
+	ManualShot("operations/rooms", "/desk/room/ROOM-0001", FORM_TOP),
+	ManualShot("operations/room-bookings", "/desk/room-booking/BK-0001", FORM_TOP),
+	ManualShot("operations/assets", "/desk/church-asset/ASSET-0001", FORM_TOP),
+	ManualShot(
+		"operations/tasks",
+		"/desk/church-task/view/kanban/Church Tasks",
+		(".kanban-v2-container",),
+		height=430,
+	),
+	ManualShot("operations/meeting-minutes", "/desk/meeting-minutes/MM-0001", FORM_TOP),
+	ManualShot("operations/locations", "/desk/church-location/view/tree", PAGE, height=480),
+	ManualShot("website/website", "/desk/web-page", LIST, height=480),
+	ManualShot("help/search", "/desk/people", (DIALOG,), search_room_bookings, frame=DIALOG),
+	ManualShot("help/keyboard-shortcuts", "/desk/people", (DIALOG,), open_shortcuts, frame=DIALOG),
 ]
 
 
@@ -324,8 +388,11 @@ def get_clip(page, shot):
 	if not boxes:
 		raise SystemExit(f"{shot.name}: nothing on {shot.path} matches {shot.parts}")
 	viewport = page.viewport_size
-	column = page.locator(PAGE_COLUMN)
-	frame = (column.count() and column.first.bounding_box()) or {"x": 0, "width": viewport["width"]}
+	column = page.locator(shot.frame) if shot.frame else None
+	frame = (column and column.count() and column.first.bounding_box()) or {
+		"x": 0,
+		"width": viewport["width"],
+	}
 	left = max(min(box["x"] for box in boxes) - PADDING, frame["x"])
 	top = max(min(box["y"] for box in boxes) - PADDING, 0)
 	right = min(max(box["x"] + box["width"] for box in boxes) + PADDING, frame["x"] + frame["width"])

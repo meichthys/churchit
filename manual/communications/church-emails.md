@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Church Email sends one message to many people at once, by email or by text message. Each person gets their own copy, so no one sees the other addresses or numbers. Churchit leaves out the people who asked not to get this kind of message.
 
+<picture>
+  <source srcset="../../churchit/public/manual/communications/church-emails-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/communications/church-emails-light.webp" alt="A draft Church Email: Send As, Purpose, Status and Send At">
+</picture>
+
 Before you can send, a System Manager must set up an outgoing Email Account for emails, or the **SMS Settings** for texts. Until then, the form says so at the top.
 
 ## Send a Church Email

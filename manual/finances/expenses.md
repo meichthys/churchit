@@ -5,6 +5,11 @@ sidebar_position: 8
 ---
 An Expense records money that the church pays out, such as a utility bill, a missionary's support or a repair. Each expense has an **Expense Type**, and the expense type names the fund that pays it. When you submit the expense, the money comes out of that fund.
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/expenses-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/expenses-light.webp" alt="An Expense: title, date, amount, vendor, type and fund">
+</picture>
+
 ## Add an expense
 
 1. Open **Expenses** and click **Add Expense**.

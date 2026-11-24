@@ -5,6 +5,11 @@ sidebar_position: 4
 ---
 A Sermon keeps one sermon: its title, date, Scripture passage and preacher, the notes, the recording and the video, and the slides that you show while you preach. When you tick **Publish**, the sermon gets its own page on your website. If it has audio, it also goes into the podcast.
 
+<picture>
+  <source srcset="../../churchit/public/manual/study/sermons-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/study/sermons-light.webp" alt="The Details tab of a Sermon: title, date, series, preacher, Scripture, handout and Publish">
+</picture>
+
 :::note[Example]
 On Sunday Pastor Tom preaches on Psalm 23. On Monday the office adds a Sermon with the title The Lord Is My Shepherd, the Sermon Date, the Scripture Psalm 23 and the notes. They attach the audio, paste the YouTube link and tick Publish. The sermon now shows on the website's Sermons page and in podcast apps.
 :::

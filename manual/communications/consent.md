@@ -5,6 +5,11 @@ sidebar_position: 4
 ---
 People can choose how the church may contact them. A Communication Consent records one answer: the person, the channel (email, text message, push notification, phone or post), a purpose (or blank for every purpose), **Given** or **Withdrawn**, when they said it and how. A person's consents are on the Connections tab of their Person form.
 
+<picture>
+  <source srcset="../../churchit/public/manual/communications/consent-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/communications/consent-light.webp" alt="A Communication Consent: the person, the channel, the purpose and the status">
+</picture>
+
 :::note[Example]
 Mrs. Lee no longer wants the church newsletter, but she wants to hear from the care team. She has a Withdrawn consent for email with the purpose Church News. A Church News email leaves her out. An email with the purpose Pastoral Care still reaches her.
 :::

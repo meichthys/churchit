@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Room Booking reserves a room, equipment or both for a time. Churchit makes sure that two bookings never hold the same room or the same equipment at the same time.
 
+<picture>
+  <source srcset="../../churchit/public/manual/operations/room-bookings-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/operations/room-bookings-light.webp" alt="A Room Booking: purpose, room, start and end, requester and status">
+</picture>
+
 Click **Room Bookings** in the sidebar to open the calendar of bookings by month, week or day. Click a booking to open it. The calendar does not show Denied and Cancelled bookings: remove the Status filter to see them. To see the bookings as a list, click **Calendar View** at the top and choose **List View**. To find a booking by its number, such as BK-0012 on a setup sheet, type it in the **ID** box of the list.
 
 ## Book a room

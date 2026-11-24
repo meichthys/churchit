@@ -5,6 +5,11 @@ sidebar_position: 4
 ---
 A Function Sign-Up is a person's place at a function: who comes, what they bring, what they chose and what they owe. Use sign-ups when you need to know ahead of time who comes, such as for a dinner, a retreat, a class or a mission trip. Members sign up in the member portal, guests on the website's Register page, and staff in the desk.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/function-sign-ups-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/function-sign-ups-light.webp" alt="A Function Sign-Up: the function, the person, Attending, the status and the notes">
+</picture>
+
 :::note[Example]
 The women's retreat takes 40 people, costs $75, and needs 10 people to bring a dish. On the Function, you tick Allow Sign-Ups and Allow Guest Sign-Ups, set Capacity to 40, add a Selection called Adult with the price $75, and add a Sign-Up Item called Dish with Quantity Needed 10. Anna signs up on the Register page with her sister and one dish. She pays online, and the sign-up is Confirmed. When the 40 places are taken, new sign-ups go on the waitlist.
 :::

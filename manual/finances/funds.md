@@ -5,6 +5,11 @@ sidebar_position: 6
 ---
 A Fund is a pot of money for one purpose, such as General, Building or Missions. Every gift goes into a fund, and every expense comes out of one. Churchit keeps the **Balance** of each fund from these records, so you cannot type it.
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/funds-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/funds-light.webp" alt="A Fund: its name, description and balance, and whether it takes online gifts and is tax deductible">
+</picture>
+
 :::note[Example]
 The church raises money for a new roof. You add a Building Fund with a Goal Amount of $40,000, tick Allow giving to this fund and print its QR code. Gifts in collections and online go into it, the Goal Progress shows how far you are, and the roofing invoice is an expense from the same fund.
 :::

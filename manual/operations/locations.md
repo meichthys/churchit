@@ -5,6 +5,11 @@ sidebar_position: 6
 ---
 A Location is a place where rooms and assets are, such as a building, a floor or a storage shed. Locations can sit inside each other: the Main Building holds the Ground Floor, which holds the classrooms. Locations are in the **Setup** folder of the sidebar.
 
+<picture>
+  <source srcset="../../churchit/public/manual/operations/locations-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/operations/locations-light.webp" alt="The Church Location tree, with Main Campus under All Locations">
+</picture>
+
 The Locations list opens as a tree. It starts at All Locations. Click the arrow next to a location to see the places in it, and click a name to open it. To see a plain list, click **Tree View** at the top and choose **List View**.
 
 When you add a location:

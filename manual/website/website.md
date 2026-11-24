@@ -11,6 +11,11 @@ Your website starts with these pages: Home, Beliefs, Sermons, Missions, Ministri
 - **Ministries**: the published ministries whose status is Active.
 - **Calendar**: the published functions (see [Calendar](calendar.md) below).
 
+<picture>
+  <source srcset="../../churchit/public/manual/website/website-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/website/website-light.webp" alt="The Web Page list, with each page's status and route">
+</picture>
+
 :::note[Example]
 A visitor tells you that the youth ministry is missing from your website. Open the Ministry: Publish is not ticked. Tick it and save. The Ministries page and the home page show the youth ministry at once.
 :::

@@ -5,6 +5,11 @@ sidebar_position: 9
 ---
 A Counseling Case is a confidential file about pastoral counseling with one person: the person, the counselor, the case type, a summary, the status and a row for each meeting in the **Sessions** table. Only Church Pastoral Care and Church Manager users can open counseling cases.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/counseling-cases-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/counseling-cases-light.webp" alt="A Counseling Case: the person, the counselor, the case type, the dates and the status">
+</picture>
+
 :::note[Example]
 A couple asks the pastor for marriage counseling. The pastor opens a Counseling Case for the husband with the type Marriage and the status Intake. After the first meeting, the status changes to Active and the pastor adds a session with a short note. After six sessions, the pastor sets the status to Closed.
 :::

@@ -5,6 +5,11 @@ sidebar_position: 9
 ---
 Alms are money that the church gives to someone in need, such as help with rent or groceries. An Alms Request records the need, the decision and the payment. (For money given to the church, see [Collections](collections.md).)
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/alms-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/alms-light.webp" alt="An Alms Request: the recipient, the requester, the status and the amount">
+</picture>
+
 :::note[Example]
 A member asks for help with an electric bill of $180. The care team adds an alms request for the family, and approves it after a visit. The treasurer gets an email, writes the check and clicks Create Expense. The money comes out of the benevolence fund, and the request shows Distributed.
 :::

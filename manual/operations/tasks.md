@@ -5,6 +5,11 @@ sidebar_position: 4
 ---
 A Church Task is a job that someone must do, such as Order communion cups or Fix the leak in the kitchen. Give it a due date and a priority, assign it to a person, and Churchit reminds them before it is due.
 
+<picture>
+  <source srcset="../../churchit/public/manual/operations/tasks-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/operations/tasks-light.webp" alt="The task board, with cards in the Open, Assigned and In Progress columns">
+</picture>
+
 Church Managers add tasks. Church Staff can change tasks, for example to move them to In Progress or Completed, but cannot add them.
 
 ## Add and assign a task

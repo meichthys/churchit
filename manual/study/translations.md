@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Bible Translation holds the whole text of one translation of the Bible, such as the KJV. Every Bible reference in the app is read in a translation: in the Bible reader, on bulletins, on Scripture slides and in Bible Memory. Church Managers add and change translations.
 
+<picture>
+  <source srcset="../../churchit/public/manual/study/translations-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/study/translations-light.webp" alt="The Bible Translation list, with each translation's status, language and text source">
+</picture>
+
 Churchit comes with common English translations:
 
 - The **BSB** (Berean Standard Bible) downloads its text when Churchit is installed.

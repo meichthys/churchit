@@ -5,6 +5,11 @@ sidebar_position: 8
 ---
 Bible Memory helps members learn Scripture by heart, in the member portal. Each member keeps a list of passages. They practice each passage until they can type it without a mistake. Staff can give the same passage to a whole group, for example a weekly memory verse.
 
+<picture>
+  <source srcset="../../churchit/public/manual/study/bible-memory-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/study/bible-memory-light.webp" alt="A Bible Memory Item: the user, the reference, the translation, the progress and Memorized">
+</picture>
+
 Each passage on a member's list is a Bible Memory Item, and each finished practice is a Memory Session.
 
 ## Memorize a passage in the member portal

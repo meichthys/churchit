@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Prayer records that someone prayed, and what for. Most Prayers come from members who tap I prayed in the member portal: Churchit makes the Prayer for them, with their note. Church Manager and Church Pastoral Care users can also add a Prayer by hand, for example for a prayer written for a service. Other staff can read Prayers.
 
+<picture>
+  <source srcset="../../churchit/public/manual/prayers/prayers-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/prayers/prayers-light.webp" alt="A Prayer: the person, the date and the words of the prayer">
+</picture>
+
 To add a Prayer by hand:
 
 1. Open **Prayers** and click **Add Prayer**.

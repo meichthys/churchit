@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Room is a space that people can book, such as the sanctuary, a classroom or the fellowship hall. Each room has its own booking rules: who approves its bookings, how it can be set up and what to ask the person who books it.
 
+<picture>
+  <source srcset="../../churchit/public/manual/operations/rooms-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/operations/rooms-light.webp" alt="A Room: its name, location, capacity and Bookable">
+</picture>
+
 :::note[Example]
 The fellowship hall holds 120 people. It can be set up as Banquet (tables for 64) or Theatre (rows of chairs). Bookings need approval from the facilities manager, and each booking must say how many guests will come and whether they need the sound system.
 :::

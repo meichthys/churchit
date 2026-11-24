@@ -5,6 +5,11 @@ sidebar_position: 5
 ---
 A Question Set is a list of questions that your church asks people: on a sign-up, on a room booking, or as a form of its own on the website. The answers stay on the record that the person filled in.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/question-sets-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/question-sets-light.webp" alt="A Question Set: its title and description, and the Questions table with each answer type">
+</picture>
+
 :::note[Example]
 For the children's camp, you make a Question Set with Child's T-shirt size (a choice of S, M, L), Allergies (a paragraph) and "I agree to the camp rules" (a required tick). You choose it on the camp's Function. Each parent who registers answers the questions for each child, and the Function Registrations report shows every answer in one table.
 :::

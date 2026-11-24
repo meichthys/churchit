@@ -5,6 +5,11 @@ sidebar_position: 8
 ---
 The Songs list is your church's song library. Each song keeps its words as slides, its arrangements with chord charts, its rehearsal media and its copyright details. Add songs to the Schedule of a function to plan a service, show the words on a screen, and count the uses for your CCLI report.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/songs-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/songs-light.webp" alt="The Details tab of a Song: title, CCLI number, authors, default key, tempo and time signature">
+</picture>
+
 :::note[Example]
 The worship leader imports Amazing Grace from a SongSelect file. Churchit makes the song with its slides. She adds an arrangement in G with a ChordPro chart, and an MP3 for rehearsal. On Sunday's Function, she adds the song to the schedule in the key of A.
 :::

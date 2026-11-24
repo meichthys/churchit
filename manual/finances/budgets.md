@@ -5,6 +5,11 @@ sidebar_position: 10
 ---
 A Budget says how much the church plans to spend on each expense type in a period, usually a year. Churchit then compares the plan with what you actually spent.
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/budgets-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/budgets-light.webp" alt="A Church Budget: its start and end dates and the total budgeted">
+</picture>
+
 1. Add a Budget with the start and end dates.
 2. Add a row in **Expense Lines** for each expense type, with the budgeted amount and notes if you want. **Add All Expense Types** under the table adds a row for each type. The **Total Budgeted** adds itself up.
 3. Save.

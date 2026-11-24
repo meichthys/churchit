@@ -5,6 +5,11 @@ sidebar_position: 7
 ---
 A pledge is a promise to give a total amount to a campaign, such as $1,200 to the building campaign over a year. Churchit follows how much of each pledge has come in.
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/pledges-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/pledges-light.webp" alt="A Pledge Campaign: its title, fund, dates and goal amount">
+</picture>
+
 :::note[Example]
 The church starts a building campaign for one year, with the Building Fund. The Smith family pledges $1,200. Each month they give $100 to the Building Fund, in the collection or online. The Pledge Progress report shows their $1,200 pledged, the amount given so far and the amount still to give.
 :::

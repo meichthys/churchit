@@ -5,6 +5,11 @@ sidebar_position: 4
 ---
 Weekly Metrics keeps the numbers of each week, so you can see how the church is doing over time: attendance, first-time visitors, active members, people in groups, people who serve, and giving and givers. Churchit writes one record for each week (and for each church, with more than one) by itself every night. You find it in the Setup folder of the Summary sidebar.
 
+<picture>
+  <source srcset="../../churchit/public/manual/foundations/weekly-metrics-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/foundations/weekly-metrics-light.webp" alt="A Weekly Metrics row: attendance, first-time visitors, active members, people in groups and people serving">
+</picture>
+
 :::note[Example]
 The elders want to know whether Easter brought lasting growth. They open Weekly Metrics and compare the attendance and the first-time visitors of the ten weeks after Easter with the same weeks of last year.
 :::

@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Function is one service, meeting or event: Sunday Worship on November 15, the Tuesday Bible study, the church picnic. Everything about the event hangs on it: the order of service, the people who serve, the sign-ups, the room bookings, the bulletin, the collection and the attendance.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/functions-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/functions-light.webp" alt="The Details tab of a Function: type, name, date and time, ministry, group and address">
+</picture>
+
 :::note[Example]
 For Sunday Worship, the office adds a Function for Sunday at 10:00. On the Service Plan tab, the worship leader lists the songs and the sermon. The ministry team schedule asks three greeters and a sound technician to serve. On Sunday, volunteers check the children in at the Check-In Station, and the counters enter the offering in a Collection for this Function. On Monday, the Attendance Total shows who came.
 :::

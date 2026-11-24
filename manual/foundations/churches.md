@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 The Church record holds your church's details: its name and abbreviation, address, phone and email, about text, mission statement, verse, image, and settings such as the default Bible translation. Churchit uses them on the website, the bulletin, the Church Directory, giving statements and emails. A new site starts with one church called My Church: open it and fill in your own details first. To see what each field means, click **...**, then **Take the Tour**, on the Church form.
 
+<picture>
+  <source srcset="../../churchit/public/manual/foundations/churches-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/foundations/churches-light.webp" alt="The Details tab of the Church form: name, abbreviation, legal name, image and Publish">
+</picture>
+
 ## The Church form
 
 - **Details tab**: the **Church Name**, the **Abbreviation** (a short name, required and unique, used where the full name does not fit), the **Legal Name** (the registered name, for giving statements), the **Image** (a photo or logo), and the **Address**, **Phone** and **Email** in the Contact section. The **Live Stream Link** for the website's Watch Live page is there too (see the [Website manual](../website/README.md)).

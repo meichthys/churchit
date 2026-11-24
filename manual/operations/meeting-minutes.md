@@ -5,6 +5,11 @@ sidebar_position: 5
 ---
 Meeting Minutes keep the record of a board, elder or committee meeting: who was there, what was decided and, if you want, the recording.
 
+<picture>
+  <source srcset="../../churchit/public/manual/operations/meeting-minutes-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/operations/meeting-minutes-light.webp" alt="Meeting Minutes: title, meeting date, function, status, recorded by and approved on">
+</picture>
+
 1. Open **Meeting Minutes** and click **Add Meeting Minutes**. You are filled in as **Recorded By** when your user has a Person record.
 
 2. Type a **Title**, such as Elders meeting, and fill in the **Meeting Date**. If the meeting was a [Function](../ministries/functions.md), choose it: the people who attended the Function are added to **Attendees**.

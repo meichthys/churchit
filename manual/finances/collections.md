@@ -5,6 +5,11 @@ sidebar_position: 2
 ---
 A Collection is the money that the church received at one service or event (a [Function](../ministries/functions.md)), such as the Sunday offering. It holds one row for each gift: a donation. Each donation says who gave, how much, to which fund and how.
 
+<picture>
+  <source srcset="../../churchit/public/manual/finances/collections-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/finances/collections-light.webp" alt="A Collection: the date and the totals, and the Donations table with one row for each gift">
+</picture>
+
 :::note[Example]
 After the Sunday service, two counters open a new Collection for Sunday Worship. They type the expected total of the deposit, then enter each envelope: the giver, the amount, the fund and Cash or Check. When the donations add up to the expected total, the collection shows Ready to Submit. The treasurer checks it and clicks Submit. The gifts now count in the fund balances and on each giver's statement.
 :::

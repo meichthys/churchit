@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Ministry is an area of the church's work, such as Youth, Worship or Hospitality. Functions, serving positions and expenses can belong to a ministry, so you see each ministry's events, team and spending in one place.
 
+<picture>
+  <source srcset="../../churchit/public/manual/ministries/ministries-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/ministries/ministries-light.webp" alt="A Ministry: its name, group, team coordinator, status and total expenses">
+</picture>
+
 - **Name**, **Group** and **Team Coordinator** are at the top of the Details tab. Two ministries of one church cannot have the same name.
 
 - **Status** is Active or Inactive. A bulletin with the Ministries section prints the mission statement of each active ministry.
