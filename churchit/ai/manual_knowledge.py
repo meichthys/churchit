@@ -4,19 +4,18 @@
 """The churchit manuals as Flow knowledge, so the Church Office agent answers how-to questions.
 
 A long-queue job (churchit.ai.flow.sync_manual_knowledge) keeps the "Churchit Manual" knowledge base
-equal to the Manual: <Module> workspaces, with one Text source per section. It runs only while AI is
+equal to the manuals in manual/, with one Text source per page. It runs only while AI is
 on, on a Frappe with Flow, with an enabled embedding model: Flow sends each section to that model.
 The manuals hold no church records.
 """
 
-import html
-import re
+import os
 
 import frappe
 from frappe.utils import get_url_to_workspace
 
 from churchit.ai.switch import has_flow, is_ai_on
-from churchit.manuals import get_blocks, get_manuals, read_blocks, strip_tags
+from churchit.manual_sources import COMMENT, get_folders, get_pages, get_workspace_name, read_source
 
 KNOWLEDGE_BASE = "Churchit Manual"
 SYNC_JOB = "churchit.ai.flow.sync_manual_knowledge"
@@ -35,40 +34,29 @@ def has_embedding_model() -> bool:
 
 
 def get_manual_sections() -> list[dict]:
-	"""Each section of the Manual: <Module> workspaces as {"title", "content"} in plain text.
+	"""Each page of the manuals in manual/ as {"title", "content"}, the content in Markdown.
 
-	A section runs from one heading to the next; the text before the first heading is the manual's
-	own. The title names the manual, the heading and the manual's desk page, because a knowledge
-	search gives the model each passage with its title. A section with no text is left out.
+	A manual's README is the manual's own section. The title names the manual, the page and the
+	manual's desk page, because a knowledge search gives the model each passage with its title. A page
+	with no text is left out.
 	"""
 	sections = []
-	for manual in get_manuals():
-		link = get_url_to_workspace(manual["name"], is_public=True)
-		for heading, lines in split_sections(get_blocks(manual)):
-			title = f"{manual['name']} > {heading} ({link})" if heading else f"{manual['name']} ({link})"
-			if text := "\n".join(filter(None, lines)):
+	for folder in get_folders():
+		name = get_workspace_name(folder)
+		link = get_url_to_workspace(name, is_public=True)
+		pages = [(None, read_source(os.path.join(folder, "README.md"))[1])]
+		pages += [(page["title"], body) for page, body in get_pages(folder)]
+		for heading, body in pages:
+			title = f"{name} > {heading} ({link})" if heading else f"{name} ({link})"
+			if text := to_text(body):
 				sections.append({"title": title, "content": f"{title}\n\n{text}"})
 	return sections
 
 
-def split_sections(blocks: list[dict]) -> list[tuple[str | None, list[str]]]:
-	"""A manual's blocks as (heading, lines of plain text), split at each heading."""
-	sections: list[tuple[str | None, list[str]]] = [(None, [])]
-	for kind, *parts in read_blocks(blocks):
-		if kind == "heading":
-			sections.append((parts[1], []))
-		elif kind == "list":
-			sections[-1][1].extend(f"- {to_text(item)}" for item in parts[1])
-		else:
-			sections[-1][1].append(to_text(parts[0]))
-	return sections
+def to_text(markdown: str) -> str:
+	"""A page's Markdown without its comments.
 
-
-def to_text(markup: str) -> str:
-	"""The plain text of a block's HTML: a new line for each <br>, link text without the link.
-
-	"<" and ">" stay escaped: Frappe's XSS filter strips tag-like text such as <your site> on save,
+	"<" and ">" are escaped: Frappe's XSS filter strips tag-like text such as <your site> on save,
 	and the sync matches each source by its saved text.
 	"""
-	text = html.unescape(strip_tags(re.sub(r"<br\s*/?>", "\n", markup))).replace("\xa0", " ").strip()
-	return text.replace("<", "&lt;").replace(">", "&gt;")
+	return COMMENT.sub("", markdown).strip().replace("<", "&lt;").replace(">", "&gt;")
