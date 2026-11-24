@@ -1607,7 +1607,9 @@ that only a Table MultiSelect uses has no grid, so these rules skip it.
 
 These add to the rules in "Desk navigation".
 
-- A sidebar starts with 'Home', then 5 to 8 daily items, each with its own icon, then folders. A
+- A sidebar starts with 'Home'. A module with a manual puts 'Manual' right under it, so users find
+  the manual in the same place in every module (`test_the_manual_is_right_under_home`). Then come
+  the daily items, 5 to 8 rows after 'Home' in all, each with its own icon, then folders. A
   folder is a Section Break with `indent`, `collapsible`, `keep_closed` and an icon. Its items set
   `child` and have no icon
   (`test_sections_are_closed_folders_with_icons_and_their_items_are_children`). Reports go at the
