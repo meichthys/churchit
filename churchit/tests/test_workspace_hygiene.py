@@ -7,8 +7,7 @@ Both fail silently. A number card, chart, quick list or custom block names its w
 workspace's row, so a row relabelled without its block leaves an empty space. Frappe 16.50 drops
 the last condition of a list whose conditions carry a fifth part (frappe.utils.cleanup_filters
 in public/js/frappe/utils/utils.js), so a list filtered on one condition shows every record. The same
-four-part rule holds for shortcut counts and Web Form conditions. A manual link to a desk page that
-was renamed or deleted opens "Page not found".
+four-part rule holds for shortcut counts and Web Form conditions.
 
 A module workspace is a dashboard, not a menu: the sidebar is the one menu, so it carries no link cards
 and no quick lists, and it shows its blocks in one order so the work comes first on a phone. Those
@@ -21,14 +20,10 @@ import json
 import os
 import re
 from itertools import groupby
-from urllib.parse import unquote, urlsplit
 
 import frappe
-from frappe.desk.utils import slug
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_finances.doctype.giving_settings.giving_settings import SUPPORTED_GATEWAY_SETTINGS
-from churchit.church_finances.payments import is_payments_on
 from churchit.tests.test_desk_ui_hygiene import (
 	assert_list_ratchet,
 	doctype_files,
@@ -151,29 +146,6 @@ def has_five_parts(condition_json: str | None) -> bool:
 	return isinstance(conditions, list) and any(len(condition) != 4 for condition in conditions)
 
 
-def get_desk_link_problem(href: str, doctypes: dict, pages: set) -> str | None:
-	"""Why a manual's desk link does not open its page, or None. Links off the desk are not checked."""
-	if href.startswith(("http://app/", "https://app/", "http://desk/", "https://desk/")):
-		return "not a site path"
-	url = urlsplit(href)
-	if url.scheme or url.netloc or not url.path.startswith(("/app/", "/desk/")):
-		return None
-	if url.path.startswith("/app/"):
-		return "an old /app/ path: use /desk/"
-
-	route, *rest = [unquote(part) for part in url.path.split("/")[2:] if part]
-	if route == "query-report":
-		is_report = frappe.db.exists("Report", {"name": rest[0], "report_type": ["!=", "Report Builder"]})
-		return None if is_report else "no such report"
-	if route not in doctypes and route not in pages:
-		return "no such page"
-
-	if rest[:2] == ["view", "report"] and len(rest) > 2:
-		saved = {"name": rest[2], "report_type": "Report Builder", "ref_doctype": doctypes.get(route)}
-		return None if frappe.db.exists("Report", saved) else "no such saved report"
-	return None
-
-
 class TestWorkspaceHygiene(FrappeTestCase):
 	def test_every_block_finds_its_widget(self):
 		missing = []
@@ -203,24 +175,6 @@ class TestWorkspaceHygiene(FrappeTestCase):
 			form["name"] for form in shipped("web_form") if has_five_parts(form.get("condition_json"))
 		]
 		self.assertEqual(five_part, [])
-
-	def test_manual_links_open_a_desk_page(self):
-		doctypes = {slug(name): name for name in frappe.get_all("DocType", pluck="name")}
-		if not is_payments_on():
-			# The manual links the optional payments app's gateway settings.
-			doctypes.update({slug(name): name for name in SUPPORTED_GATEWAY_SETTINGS})
-		pages = set(frappe.get_all("Page", pluck="name")) | {
-			slug(name) for name in frappe.get_all("Workspace", pluck="name")
-		}
-		broken = []
-		for workspace in shipped_workspaces():
-			if not workspace["name"].startswith("Manual: "):
-				continue
-			for block in json.loads(workspace["content"]):
-				for href in re.findall(r'href="([^"]*)"', block["data"].get("text", "")):
-					if problem := get_desk_link_problem(href, doctypes, pages):
-						broken.append((workspace["name"], href, problem))
-		self.assertEqual(broken, [])
 
 	def test_conditions_with_javascript_dates_are_read(self):
 		week = (

@@ -8,7 +8,9 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] No em dash or en dash in any file, escaped forms included (`test_house_style`, [House style](../../../AGENTS.md#house-style)).
 - [ ] `pre-commit run --files <changed files>` passes. Ruff 0.8.1 formatted only the changed files.
 - [ ] New or changed behavior has a test, and the full suite ran on a test site. The pull request reports the result.
-- [ ] A user-facing change updates the matching `Manual: <Module>` workspace in the same pull request, with desk links as `/desk/...` site paths and `modified` set to now ([Documentation obligations](../../../AGENTS.md#documentation-obligations), `test_workspace_hygiene`, `test_json_hygiene`).
+- [ ] A user-facing change updates the matching manual in `manual/<module>/` (Markdown) in the same pull request, with links to other manual pages as relative `.md` paths (never `/desk/...`), and `python docs/build_manuals.py` rebuilt its workspace ([Documentation obligations](../../../AGENTS.md#documentation-obligations), `test_manual_hygiene`).
+- [ ] A manual change keeps the manual shape: each feature file starts with what it is and why, a confusing feature has an Example callout, tasks are numbered steps under `##` headings, blocks stay short, and UI names are bold ([Documentation obligations](../../../AGENTS.md#documentation-obligations)).
+- [ ] A change to a screen that a manual picture shows takes that picture again with `uv run docs/screenshots.py <picture>`, cropped to the part that the text talks about. The pre-commit hook and the `manual-pictures` check name these pictures (`test_manual_hygiene`).
 - [ ] A manual, field description or README line that names an AI feature says that it needs AI turned on ([Documentation obligations](../../../AGENTS.md#documentation-obligations)).
 - [ ] A new user-facing feature is in the README feature list.
 - [ ] User-facing text is in `_()` or `__()`.

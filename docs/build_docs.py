@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Generate the churchit.app pages that mirror content shipped in the repo.
 
-- documentation.html comes from the "Manual: *" workspaces in
-  `churchit/<module>/workspace/manual:_<name>/manual:_<name>.json`.
 - getting-started.html comes from README.md ("Installing Churchit") and the
   setup one-liner in deploy/README.md.
 - screenshots.html comes from SHOTS in docs/screenshots.py, which also takes
   the pictures.
 
-Page shells live in docs/_templates/ (Jekyll skips underscore folders, so
-GitHub Pages does not serve them). Needs markdown2, which the bench env has:
+The manual is not on churchit.app: Frappe Wiki on docs.churchit.app syncs it
+from manual/, and the pages link to it. Page shells live in docs/_templates/
+(Jekyll skips underscore folders, so GitHub Pages does not serve them). Needs
+markdown2, which the bench env has:
 
     ../../env/bin/python docs/build_docs.py     # from the app root
 """
@@ -25,11 +25,12 @@ import markdown2
 from screenshots import SHOTS, THEMES
 
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, APP_ROOT)  # churchit.manuals needs only the standard library
-from churchit.manuals import get_blocks, get_manuals, read_blocks
+sys.path.insert(0, APP_ROOT)  # churchit.manual_sources needs only the standard library
+from churchit.manual_sources import ONLINE_MANUAL as MANUAL_URL
 
 DOCS = os.path.join(APP_ROOT, "docs")
 TEMPLATES = os.path.join(DOCS, "_templates")
+MANUAL = os.path.join(APP_ROOT, "manual")
 README = os.path.join(APP_ROOT, "README.md")
 DEPLOY_README = os.path.join(APP_ROOT, "deploy", "README.md")
 
@@ -42,24 +43,6 @@ DEFAULT_PATH = "frappe-cloud"  # heading slug of the deployment tab shown first
 FENCE = re.compile(r"```\w*\n(.*?)```\n?", re.S)
 FENCE_TOKEN = re.compile("\x00(\\d+)\x00")
 
-# Base address of the churchit desk that /desk/ (and old /app/) links point at. The
-# public demo site, so the documentation's desk links resolve for website visitors.
-DESK_URL = "https://demo.churchit.app"
-
-# Display order + presentation metadata (slug is the on-page anchor id).
-MODULES = [
-	("Church Foundations", "foundations", "🏛️"),
-	("Church People", "people", "👥"),
-	("Church Finances", "finances", "💰"),
-	("Church Ministries", "ministries", "🤝"),
-	("Church Missions", "missions", "🌍"),
-	("Church Prayers", "prayers", "🙏"),
-	("Church Study", "study", "📖"),
-	("Church Communications", "communications", "✉️"),
-	("Church Operations", "operations", "🔧"),
-	("Church Website", "website", "🌐"),
-]
-
 # The colour of each module's icon in the desk, for the screenshots page.
 MODULE_COLORS = {
 	"Desk": "#6366f1",
@@ -68,70 +51,6 @@ MODULE_COLORS = {
 	"Study": "#f59e0b",
 	"Website": "#06b6d4",
 }
-
-
-def clean_inline(html):
-	"""Keep meaningful inline markup (links, breaks, emphasis); drop the
-	styling <span> wrappers and inline style attributes the desk editor adds."""
-	html = re.sub(r"</?span[^>]*>", "", html)  # unwrap styling spans
-	html = re.sub(r'\sstyle="[^"]*"', "", html)  # drop inline styles
-	html = re.sub(r'\sclass="[^"]*"', "", html)  # drop editor classes
-	# Normalise Frappe desk links to a single self-hosted address. The manuals use
-	# /desk/ paths; older text has /app/. The editor bakes in absolute dev URLs
-	# (http://development.localhost/desk/...), bare relative paths (/desk/...), and
-	# occasionally mangles "desk/x" into "http://desk/x". Collapse every variant to
-	# its /desk/ or /app/ path, then point it at the churchit desk.
-	html = re.sub(r'href="https?://(app|desk)/', r'href="/\1/', html)  # mangled host
-	html = re.sub(r'href="https?://[^"/]+/(app|desk)/', r'href="/\1/', html)  # absolute dev URL
-	html = re.sub(r'href="/(app|desk)/', rf'href="{DESK_URL}/\1/', html)  # -> self-hosted desk
-	return html.strip()
-
-
-def load_manual(module):
-	return next((get_blocks(manual) for manual in get_manuals() if manual.get("module") == module), [])
-
-
-def render_blocks(blocks, slug):
-	"""Convert workspace editor blocks -> clean documentation HTML. Headings get `<slug>-<heading>` ids."""
-	out = []
-	for kind, *parts in read_blocks(blocks):
-		if kind == "heading":
-			level, text = parts
-			out.append(heading(min(level + 1, 4), text, slug))
-		elif kind == "list":
-			is_ordered, items = parts
-			tag = "ol" if is_ordered else "ul"
-			rendered = "".join(f"<li>{clean_inline(item)}</li>" for item in items)
-			out.append(f"<{tag}>{rendered}</{tag}>")
-		elif text := clean_inline(parts[0]):
-			out.append(f"<p>{text}</p>")
-	return "\n          ".join(out)
-
-
-def heading(level, text, slug):
-	return f'<h{level} id="{slug}-{github_slug(text).strip("-")}">{text}</h{level}>'
-
-
-def build_documentation():
-	sidebar, sections = [], []
-	for module, slug, emoji in MODULES:
-		blocks = load_manual(module)
-		if not blocks:
-			continue
-		label = module.replace("Church ", "")
-		sidebar.append(f'<a href="#{slug}"><span aria-hidden="true">{emoji}</span> {label}</a>')
-		sections.append(
-			f"""<article class="glass doc-section reveal" id="{slug}">
-          <h2><span aria-hidden="true">{emoji}</span> {label} <span class="doc-badge">Manual</span></h2>
-          {render_blocks(blocks, slug)}
-        </article>"""
-		)
-	write_page(
-		"documentation.html",
-		sidebar="\n        ".join(sidebar),
-		sections="\n\n        ".join(sections),
-	)
-	print(f"Wrote documentation.html  ({len(sections)} modules)")
 
 
 def build_getting_started():
@@ -169,9 +88,7 @@ def render_shot(shot):
 	"""One feature: its text above the desktop picture, with the phone picture beside it."""
 	devices = " ".join(f"has-{device}" for device in shot.views)
 	frames = "".join(render_frame(shot, device) for device in shot.views)
-	manual = (
-		f'\n        <a href="documentation.html#{shot.manual}">Read the manual →</a>' if shot.manual else ""
-	)
+	manual = f'\n        <a href="{MANUAL_URL}/{shot.manual}">Read the manual →</a>' if shot.manual else ""
 	return f"""<section class="shot" id="{shot.slug}">
       <div class="shot-text">
         <p class="shot-module" style="--module: {MODULE_COLORS[shot.module]}">{html.escape(shot.module)}</p>
@@ -305,15 +222,19 @@ def command_block(code):
 	)
 
 
-def check_documentation_anchors():
-	"""Fail when a site page links to a documentation.html anchor that a manual no longer has."""
-	ids = set(re.findall(r'\sid="([^"]+)"', read(os.path.join(DOCS, "documentation.html"))))
+def check_manual_links():
+	"""Fail when a site page links to a page of the online manual that manual/ does not have."""
 	for page in sorted(glob.glob(os.path.join(DOCS, "*.html"))):
-		missing = set(re.findall(r'href="documentation\.html#([^"]+)"', read(page))) - ids
+		paths = re.findall(rf'href="{re.escape(MANUAL_URL)}/([^"#]+)', read(page))
+		missing = sorted({path for path in paths if not os.path.exists(get_manual_file(path))})
 		if missing:
-			raise SystemExit(
-				f"{os.path.basename(page)} links to missing manual anchors: {', '.join(sorted(missing))}"
-			)
+			raise SystemExit(f"{os.path.basename(page)} links to missing manual pages: {', '.join(missing)}")
+
+
+def get_manual_file(path):
+	"""The Markdown file of a page of the online manual: <folder> is its README, <folder>/<page> a page."""
+	folder, _, name = path.partition("/")
+	return os.path.join(MANUAL, folder, f"{name or 'README'}.md")
 
 
 def write_page(name, **slots):
@@ -330,7 +251,6 @@ def read(path):
 
 
 if __name__ == "__main__":
-	build_documentation()
 	build_getting_started()
 	build_screenshots()
-	check_documentation_anchors()
+	check_manual_links()

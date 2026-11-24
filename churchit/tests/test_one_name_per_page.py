@@ -59,7 +59,7 @@ class TestOneNamePerPage(FrappeTestCase):
 	def test_the_people_sidebar_leads_with_people_families_and_groups(self):
 		labels = [item.label for item in get_sidebar_items("People") if not item.child]
 
-		self.assertEqual(labels[:4], ["Home", "People", "Families", "Groups"])
+		self.assertEqual(labels[:5], ["Home", "Manual", "People", "Families", "Groups"])
 
 	def test_follow_up_cards_come_first_in_visitors_and_follow_up(self):
 		labels = [item.label for item in get_sidebar_items("People")]
