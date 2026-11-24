@@ -62,7 +62,7 @@ class Shot:
 	title: str
 	module: str
 	caption: str
-	manual: str = ""  # documentation.html anchor
+	manual: str = ""  # page of the online manual, as <folder>/<page>
 	desktop: View | None = None
 	mobile: View | None = None
 	user: str = MANAGER
@@ -123,7 +123,7 @@ SHOTS = [
 		module="People",
 		caption="Every person is a card, sorted by last name. Search by name, family, phone or email, call or "
 		"text from the card, and save cards to the tray to email or print them together.",
-		manual="people-rolodex",
+		manual="people/rolodex",
 		desktop=View("/desk/rolodex?view=people"),
 		mobile=View("/desk/rolodex?view=people"),
 	),
@@ -133,7 +133,7 @@ SHOTS = [
 		module="Ministries",
 		caption="Type part of a name or a phone number and the whole family comes up together. Tap the "
 		"people who have arrived, and a name tag prints for each of them.",
-		manual="ministries-function-check-ins",
+		manual="ministries/function-check-ins",
 		desktop=View("/desk/check-in", select_two_wilsons),
 		mobile=View("/desk/check-in", select_two_wilsons),
 	),
@@ -143,7 +143,7 @@ SHOTS = [
 		module="Study",
 		caption="A sermon is a list of slides: passages of Scripture, beliefs, songs, missionaries and people "
 		"to pray for. Click Present on the sermon and move through it with the arrow keys.",
-		manual="study-sermons",
+		manual="study/sermons",
 		desktop=View("/desk/sermon", present_sermon),
 	),
 	Shot(
@@ -152,7 +152,7 @@ SHOTS = [
 		module="Study",
 		caption="Members keep a list of passages to learn in the portal. Blur hides a few more words each "
 		"round, and Type checks the first letter of every word and records the progress.",
-		manual="study-bible-memory",
+		manual="study/bible-memory",
 		desktop=View("/memorize", blur_psalm),
 	),
 	Shot(
@@ -161,7 +161,7 @@ SHOTS = [
 		module="People",
 		caption="Choose what goes in, watch the preview change, and print a directory of your families with "
 		"photos, positions, phone numbers and email addresses.",
-		manual="people-church-directory",
+		manual="people/church-directory",
 		desktop=View(
 			"/desk/query-report/Church Directory Report?show_photos=1&show_roles=1", scroll_to_families
 		),
@@ -172,7 +172,7 @@ SHOTS = [
 		module="Study",
 		caption="Read one chapter at a time in the desk or on the church website. Every chapter has its own "
 		"address, so you can bookmark it or send it to someone.",
-		manual="study-bible-reader",
+		manual="study/bible-reader",
 		desktop=View("/desk/bible"),
 		mobile=View("/bible"),
 	),
@@ -182,7 +182,7 @@ SHOTS = [
 		module="Website",
 		caption="Members sign in on the church website to sign up for events, share prayer requests, download "
 		"giving statements and bulletins, and practise their memory verses.",
-		manual="website-user-portal",
+		manual="website/member-portal",
 		desktop=View("/portal"),
 		mobile=View("/portal"),
 		user=MEMBER,
