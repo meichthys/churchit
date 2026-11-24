@@ -1763,7 +1763,17 @@ Every manual has the same shape, so a reader finds things in the same place in e
   that the desk puts space between them.
 - A callout makes one point stand out: `:::caution` for something that can go wrong,
   `:::danger` for data that is lost for good, `:::tip` for a shorter way, each closed by `:::` on
-  its own line. Use few, so that each one is seen. The desk draws a callout as a colored box.
+  its own line. Give it a title that names the point, such as `:::caution[Merging two people]`.
+  Use few, so that each one is seen. The desk draws a callout as a colored box.
+- A main feature page shows one picture near the top, cropped to the part of the screen that the
+  text talks about, not the whole window. Add a `ManualShot` to `docs/screenshots.py` with the
+  selectors of that part, run `uv run docs/screenshots.py <manual>` on a site with only the sample
+  data, and embed the pair as a `<picture>` with a dark `<source>` and an `<img>` with alt text
+  (see `manual/people/person.md`). The pictures are in `churchit/public/manual`, which the desk
+  serves, and they keep their file names when taken again. Retake them when their screen changes.
+- A list of named things with a short meaning each, such as roles, statuses or notifications, is a
+  table. A real flow, such as check-in and pickup, can have a Mermaid diagram in a `mermaid` code
+  block. The desk cannot draw one and links to the online page instead, so keep diagrams few.
 - Button, field, tab, menu and page names are bold. Leave out what the screen shows at a glance,
   such as sort order and status colors. Keep the rules: what happens by itself, what is hidden
   where, who can see or change what, and what is refused.

@@ -560,19 +560,20 @@ churchit.patches.v2_0.remove_old_attendance_type
 
 ## Updating the website screenshots
 
-The [screenshots page](https://churchit.app/screenshots.html) shows real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). Take new pictures when a page in them changes.
+The [screenshots page](https://churchit.app/screenshots.html) and the manuals show real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). The manual pictures are in `MANUAL_SHOTS`, each cropped to the part of a page that the manual talks about. Take new pictures when a page in them changes.
 
 1. Use a site that has only the sample data. The script logs in as two sample users: `mary.johnson@example.com` for the desk and `james.wilson@example.com` for the portal. Each password is the email address.
 2. From this app directory, install the browser once, then take the pictures:
 
    ```bash
    uvx --from playwright==1.63.0 playwright install chromium
-   uv run docs/screenshots.py                     # every shot
+   uv run docs/screenshots.py                     # every shot and manual picture
    uv run docs/screenshots.py rolodex check-in    # only these shots
+   uv run docs/screenshots.py people              # the pictures of one manual
    ```
 
    The script uses `http://churchit.localhost:8000`. Add `--url` to use a different site.
-3. Look at each new image in `docs/assets/screenshots/` before you commit it. Take it again if it shows test records.
+3. Look at each new image in `docs/assets/screenshots/` and `churchit/public/manual/` before you commit it. Take it again if it shows test records. The pre-commit hook rebuilds the Manual workspaces, which name each picture with its version.
 4. If you added, removed or renamed a shot, run `../../env/bin/python docs/build_docs.py`. The `build-docs` workflow also does this after a push.
 
 To add a feature to the page, add a `Shot` to `SHOTS` and take its pictures. A shot can have a desktop picture, a phone picture, or both.

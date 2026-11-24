@@ -49,7 +49,7 @@ When the gateway confirms a payment, Churchit compares what the gateway charged 
 
 - When the gateway charged a gift but the gift stays **Pending**, for example because the confirmation did not arrive, the Church Finance users get an alert each day. A Church Finance user opens the gift and clicks **Record Charged Gift**. Churchit checks the payment again and records the gift once.
 
-:::tip
+:::tip[Find a gift from its payment]
 To find a gift from its payment record, type the reference in the **Transaction Reference** filter of the Online Donations list.
 :::
 

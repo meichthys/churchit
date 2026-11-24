@@ -5,8 +5,9 @@
 
 A change to a Markdown file that nobody built never reaches the desk, and a hand edit of the
 workspace JSON is lost at the next build. Frappe Wiki syncs the same folder, so each page needs the
-front matter that both read, a link must name another page of the manual, and a callout must be one
-that the wiki draws.
+front matter that both read, a link must name another page of the manual, a callout must be one
+that the wiki draws, and a picture needs its light and its dark image in churchit/public/manual,
+where docs/screenshots.py writes them.
 """
 
 import glob
@@ -18,6 +19,11 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.manual_sources import (
 	APP_ROOT,
+	ONLINE_MANUAL,
+	PICTURE,
+	PICTURE_DARK,
+	PICTURE_LIGHT,
+	PUBLIC,
 	SOURCES,
 	build_all,
 	get_blocks,
@@ -30,6 +36,7 @@ from churchit.manual_sources import (
 )
 
 CALLOUT_OPENER = re.compile(r"(note|tip|caution|danger)(\[[^\]]+\])?")
+PICTURES = os.path.join(PUBLIC, "manual")
 
 
 def get_sources() -> list[str]:
@@ -48,6 +55,20 @@ def get_anchors(path: str) -> set[str]:
 		anchor = re.sub(r"[^\w\-]", "", re.sub(r"\s+", "-", heading.lower())).strip("-")
 		anchors.add(re.sub(r"-+", "-", anchor))
 	return anchors
+
+
+def get_picture_problem(path: str, picture: str) -> str | None:
+	"""What is wrong with a <picture> on the page at *path*, or None."""
+	dark, light = PICTURE_DARK.search(picture), PICTURE_LIGHT.search(picture)
+	if not (dark and light and light.group(2)):
+		return "needs a dark <source srcset>, and an <img src> with alt text"
+	if not (dark.group(1).endswith("-dark.webp") and light.group(1).endswith("-light.webp")):
+		return "names its images <picture>-dark.webp and <picture>-light.webp"
+	for source in (dark.group(1), light.group(1)):
+		image = os.path.normpath(os.path.join(os.path.dirname(path), source))
+		if not image.startswith(PICTURES + os.sep) or not os.path.exists(image):
+			return f"{source} is not in churchit/public/manual: run uv run docs/screenshots.py"
+	return None
 
 
 def is_link_broken(path: str, target: str) -> bool:
@@ -118,6 +139,59 @@ class TestManualHygiene(FrappeTestCase):
 			):
 				wrong.append(os.path.relpath(path, SOURCES))
 		self.assertEqual(wrong, [])
+
+	def test_every_picture_has_a_light_and_a_dark_image_and_a_description(self):
+		problems = [
+			(os.path.relpath(path, SOURCES), problem)
+			for path in get_sources()
+			for picture in PICTURE.findall(read(path))
+			if (problem := get_picture_problem(path, picture))
+		]
+		self.assertEqual(problems, [])
+
+	def test_every_picture_file_is_on_a_page(self):
+		used = {
+			os.path.normpath(os.path.join(os.path.dirname(path), source))
+			for path in get_sources()
+			for source in re.findall(r'(?:src|srcset)="([^"]+)"', read(path))
+		}
+		files = set(glob.glob(os.path.join(PICTURES, "**", "*.webp"), recursive=True))
+		self.assertEqual(sorted(os.path.relpath(path, APP_ROOT) for path in files - used), [])
+
+	def test_a_picture_is_a_picture_element(self):
+		"""A Markdown image has no dark version, and the desk build does not draw one."""
+		self.assertEqual([os.path.relpath(path, SOURCES) for path in get_sources() if "![" in read(path)], [])
+
+	def test_a_picture_shows_the_image_of_the_desks_theme(self):
+		source = "../../churchit/public/manual/people/person"
+		chunks = get_chunks(
+			f'<picture>\n  <source srcset="{source}-dark.webp" media="(prefers-color-scheme: dark)">\n'
+			f'  <img src="{source}-light.webp" alt="A Person">\n</picture>',
+			1,
+		)
+		text = to_blocks(chunks, "people")[0]["data"]["text"]
+
+		self.assertRegex(
+			text,
+			r'^<img class="manual-image manual-image-light" src="/assets/churchit/manual/people/person-light\.webp\?v=\w{8}" alt="A Person">'
+			r'<img class="manual-image manual-image-dark" src="/assets/churchit/manual/people/person-dark\.webp\?v=\w{8}" alt="A Person">$',
+		)
+
+	def test_a_table_is_a_table_and_a_diagram_a_link_in_the_desk(self):
+		chunks = get_chunks(
+			"| Role | Meaning |\n| :--- | :--- |\n| **Adult** | A parent |\n\n```mermaid\nflowchart LR\n  A --> B\n```",
+			1,
+			"people/family",
+		)
+
+		self.assertEqual(
+			[block["data"]["text"] for block in to_blocks(chunks, "people")],
+			[
+				'<table class="manual-table"><tr><th>Role</th><th>Meaning</th></tr>'
+				"<tr><td><b>Adult</b></td><td>A parent</td></tr></table>",
+				f'<i><a href="{ONLINE_MANUAL}/people/family" target="_blank">See the diagram in the online manual</a></i>',
+			],
+		)
 
 	def test_a_callout_is_one_desk_block_led_by_its_title(self):
 		chunks = get_chunks(":::caution[Careful]\nYou cannot undo it.\n:::\n\nNext.", 1)

@@ -17,15 +17,13 @@ Church People Editor, Church Pastoral Care and Church Manager users can add a co
 
 A Communication Purpose is a reason the church contacts people, such as Church News or Pastoral Care. Churchit uses some of them itself, so you cannot delete them:
 
-- **Church News**: a new Church Email.
-
-- **Group Messages**: a Church Email sent from a Group.
-
-- **Child Safety**: a page to parents from the Check-In Station.
-
-- **Event Registrations**: reminders of a function sign-up.
-
-- **Serving**: ministry team requests and reminders. A person gets a ministry team text only with text consent for Serving, but the ministry team emails go to everyone asked to serve.
+| Purpose | Used for |
+| :--- | :--- |
+| **Church News** | A new Church Email. |
+| **Group Messages** | A Church Email sent from a Group. |
+| **Child Safety** | A page to parents from the Check-In Station. |
+| **Event Registrations** | Reminders of a function sign-up. |
+| **Serving** | Ministry team requests and reminders. A person gets a ministry team text only with text consent for Serving, but the ministry team emails go to everyone asked to serve. |
 
 You can add your own purposes.
 

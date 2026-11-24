@@ -17,25 +17,18 @@ The reminders for overdue follow-up cards, overdue care requests and planned vis
 
 Churchit also ships notifications that are off until a System Manager turns them on:
 
-- **Birthday Greeting**: emails an active person on their birthday.
-
-- **Anniversary Greeting**: emails the primary contact of a married, active couple on their anniversary.
-
-- **New Member Welcome**: emails a person when their Membership becomes Member and their Status is Active, with a link to the member portal.
-
-- **Visitor Follow-Up**: emails the Church Managers when someone is added as a Visitor (or with no Membership).
-
-- **Function Reminder 24h**: emails every user with the Church User role, which is every member with a portal login, the day before each published function that does not repeat. Turn it on only if you want all members to get these reminders.
-
-- **Meeting Minutes Published**: emails the minutes to the Church Managers when they are published.
-
-- **Position Term Ending**: emails the Church Managers 30 days before a position ends.
-
-- **Background Check Expiring**: emails the Church Pastoral Care users 30 days before a background check expires.
-
-- **Expense Pending Approval**: emails the Church Managers about a new expense.
-
-- **Consent Renewal**: see [Consent](consent.md) above.
+| Notification | What it does |
+| :--- | :--- |
+| **Birthday Greeting** | Emails an active person on their birthday. |
+| **Anniversary Greeting** | Emails the primary contact of a married, active couple on their anniversary. |
+| **New Member Welcome** | Emails a person when their Membership becomes Member and their Status is Active, with a link to the member portal. |
+| **Visitor Follow-Up** | Emails the Church Managers when someone is added as a Visitor (or with no Membership). |
+| **Function Reminder 24h** | Emails every user with the Church User role, which is every member with a portal login, the day before each published function that does not repeat. Turn it on only if you want all members to get these reminders. |
+| **Meeting Minutes Published** | Emails the minutes to the Church Managers when they are published. |
+| **Position Term Ending** | Emails the Church Managers 30 days before a position ends. |
+| **Background Check Expiring** | Emails the Church Pastoral Care users 30 days before a background check expires. |
+| **Expense Pending Approval** | Emails the Church Managers about a new expense. |
+| **Consent Renewal** | See [Consent](consent.md) above. |
 
 A shipped notification cannot be turned on itself. To use one:
 

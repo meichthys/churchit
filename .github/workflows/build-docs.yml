@@ -16,6 +16,7 @@ on:
       - manual/** # the site links to its pages, and the Manual workspaces are built from it
       - "churchit/*/workspace/manual:_*/*.json"
       - churchit/manual_sources.py # builds the Manual workspaces
+      - churchit/public/manual/** # the manual's pictures, versioned in the Manual workspaces
       - docs/build_docs.py
       - docs/screenshots.py
       - docs/assets/screenshots/**

@@ -112,7 +112,7 @@ When an email cannot reach an address, the mail server sends a report back to th
 
 When a bounce says that delivery failed, Churchit ticks **Bounced** on that address on every record that has it, such as a Person or a Family. It does this only for an address that the church emailed in the last 7 days. A bounce for a full mailbox, a blocked message or a late delivery changes nothing. Church Emails skip a Bounced address, and the Person form shows an orange line: Email bounced.
 
-:::tip
+:::tip[Find bounced addresses]
 To find bounced addresses, open the [People Data Quality](../people/clean-data.md) report and set **Problem** to Email Bounced. Ask the person for a new address. When you change the address, Churchit clears Bounced. If you know that the old address works again, untick Bounced on that row.
 :::
 

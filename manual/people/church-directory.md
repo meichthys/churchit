@@ -5,6 +5,11 @@ sidebar_position: 6
 ---
 The Church Directory is a printed (or PDF) book of your church family: each household with its photo, names, phone numbers, emails and address, and extra pages such as birthdays, groups and missionaries. Church Staff and Church Managers make it.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/church-directory-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/church-directory-light.webp" alt="The choices of the Church Directory, and the preview with each family's photo, membership, phone, email and address">
+</picture>
+
 :::note[Example]
 Each fall, the church secretary prints a directory booklet for the members. She ticks Members Only, Photos and Hide Non Active People, adds the Birthday List and the Notes Page, and ticks Booklet and Page Numbers. She prints the PDF double-sided, folds the sheets in half and staples them.
 :::

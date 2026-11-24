@@ -5,6 +5,11 @@ sidebar_position: 5
 ---
 A Group is a set of people with a shared purpose: a small group, a Sunday School class, a choir, a committee. Groups have members with roles such as Leader, meet at regular times, and can let members join from the member portal or the website.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/group-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/group-light.webp" alt="The Members table of a group, with one Leader and three Members">
+</picture>
+
 :::note[Example]
 The Tuesday Night Bible Study is a public small group of up to 12 people, led by Tom and Sarah. A visitor finds it on the website's Find a Group page and clicks Ask to Join. Tom gets an email and accepts the request on Lead a Group in the member portal. The day after each meeting, Tom gets a reminder if nobody has recorded who came.
 :::

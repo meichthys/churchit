@@ -5,6 +5,11 @@ sidebar_position: 1
 ---
 A Person is one record for each human being your church knows: members, regular attenders, visitors, children, and contacts such as a missionary's supporter. Everything else in Churchit links to the person: their family, their groups, their attendance, their giving and the care they received.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/person-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/person-light.webp" alt="The Details tab of a Person: name, membership, status, family, marital status and spouse">
+</picture>
+
 :::note[Example]
 Maria visits for the first time and fills in a Connection Card. Churchit adds her as a Person with the Membership Visitor. Over the next months she joins a small group, and the office adds her baptism as a life event. When she joins the church, the office adds a Membership life event, and her Membership changes to Member.
 :::
@@ -202,7 +207,7 @@ Churchit can email a greeting to each person on their birthday, and to each marr
 
 When one person has two records, merge them. Open the record that you do not want to keep, click **...**, then **Merge Into...**, choose the person to keep and click **Merge**. Only users who can delete people, such as a Church Manager, can merge.
 
-:::caution
+:::caution[Merging two people]
 You cannot undo a merge. The removed record is deleted for good.
 :::
 
@@ -222,7 +227,7 @@ Churchit refuses to merge two people who both have a portal login, who have diff
 
 When a person asks the church to forget them, a Church Manager or a System Manager opens the person and clicks **...**, then **Remove Personal Data**. The record stays, with the first name Anonymized and the last name, so that their giving and attendance still count in reports.
 
-:::danger
+:::danger[Removing personal data]
 You cannot undo Remove Personal Data.
 :::
 

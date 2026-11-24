@@ -5,8 +5,8 @@
 
 Each folder of manual/ is one manual: a README.md with the intro, and one Markdown file for each
 feature. Frappe Wiki's GitHub Sync reads the same folder, so the files use plain Markdown with front
-matter, the wiki's callouts (:::note to :::) and relative links between pages. The README names the
-workspace JSON that the folder builds. docs/build_manuals.py writes the
+matter, the wiki's callouts (:::note to :::), <picture> screenshots, tables, Mermaid diagrams and
+relative links between pages. The README names the workspace JSON that the folder builds. docs/build_manuals.py writes the
 JSON, and tests/test_manual_hygiene.py fails when it is out of date. churchit.ai.manual_knowledge gives
 the pages to Flow. Standard library only, so that docs/build_manuals.py runs without Frappe.
 """
@@ -31,6 +31,14 @@ ITALIC = re.compile(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 CALLOUT = re.compile(r"^:::(note|tip|caution|danger)(?:\[([^\]]*)\])?\n(.*?)\n:::$", re.M | re.S)
 CALLOUT_TITLES = {"note": "Note", "tip": "Tip", "caution": "Caution", "danger": "Danger"}
+DIAGRAM = re.compile(r"^```mermaid\n.*?\n```$", re.M | re.S)
+DIAGRAM_MARK = "\x00diagram\x00"
+PICTURE = re.compile(r"^<picture>.*?</picture>$", re.M | re.S)
+PICTURE_DARK = re.compile(r'<source srcset="([^"]+)"')
+PICTURE_LIGHT = re.compile(r'<img src="([^"]+)" alt="([^"]*)"')
+PUBLIC = os.path.join(APP_ROOT, "churchit", "public")
+# The Frappe Wiki space that syncs manual/: manual/<folder>/<page>.md is at <ONLINE_MANUAL>/<folder>/<page>.
+ONLINE_MANUAL = "https://docs.churchit.app/manual"
 
 
 def build_all(check: bool = False) -> list[str]:
@@ -74,9 +82,16 @@ def read_source(path: str) -> tuple[dict, str]:
 
 
 def get_pages(folder: str) -> list[tuple[dict, str]]:
-	"""The feature pages of a manual folder, in the order of their sidebar_position."""
-	pages = [read_source(path) for path in glob.glob(os.path.join(folder, "*.md"))]
-	pages = [page for page in pages if "sidebar_position" in page[0]]
+	"""The feature pages of a manual folder, in the order of their sidebar_position.
+
+	Each page's front matter also gets its "route" in the online manual, such as people/person.
+	"""
+	pages = []
+	for path in glob.glob(os.path.join(folder, "*.md")):
+		front, body = read_source(path)
+		if "sidebar_position" in front:
+			route = f"{os.path.basename(folder)}/{os.path.basename(path)[:-3]}"
+			pages.append(({**front, "route": route}, body))
 	return sorted(pages, key=lambda page: (int(page[0]["sidebar_position"]), page[0]["title"]))
 
 
@@ -86,62 +101,126 @@ def get_blocks(folder: str) -> list[dict]:
 	A page's own ## headings become level 3 headings, because its title is the level 2 heading.
 	"""
 	front, intro = read_source(os.path.join(folder, "README.md"))
+	manual = os.path.basename(folder)
 	chunks: list[tuple] = [("heading", 1, front["desk_title"])] if front.get("desk_title") else []
-	chunks += get_chunks(intro, 0)
+	chunks += get_chunks(intro, 0, manual)
 	for page, body in get_pages(folder):
 		chunks.append(("heading", 2, page.get("emoji", "") + page["title"]))
-		chunks += get_chunks(body, 1)
-	return to_blocks(chunks, os.path.basename(folder))
+		chunks += get_chunks(body, 1, page["route"])
+	return to_blocks(chunks, manual)
 
 
-def get_chunks(markdown: str, shift: int) -> list[tuple]:
-	"""Each block of *markdown*, with each callout as ("callout", type, title, lines) and kept whole."""
+def get_chunks(markdown: str, shift: int, route: str = "") -> list[tuple]:
+	"""Each block of *markdown* as (kind, *parts), with each callout kept whole.
+
+	*route* is the page in the online manual, where the desk sends a reader for a diagram.
+	"""
 	chunks: list[tuple] = []
-	text = COMMENT.sub("", markdown)
+	text = DIAGRAM.sub(f"\n\n{DIAGRAM_MARK}\n\n", COMMENT.sub("", markdown))
 	start = 0
 	for match in CALLOUT.finditer(text):
-		chunks += get_text_chunks(text[start : match.start()], shift)
+		chunks += get_text_chunks(text[start : match.start()], shift, route)
 		callout, title, body = match.groups()
 		lines = [line.rstrip() for line in body.split("\n") if line.strip()]
 		chunks.append(("callout", callout, title or CALLOUT_TITLES[callout], lines))
 		start = match.end()
-	return chunks + get_text_chunks(text[start:], shift)
+	return chunks + get_text_chunks(text[start:], shift, route)
 
 
-def get_text_chunks(markdown: str, shift: int) -> list[tuple]:
-	"""Each block of *markdown* as ("heading", level, text) or ("text", lines), with headings moved down *shift* levels."""
+def get_text_chunks(markdown: str, shift: int, route: str) -> list[tuple]:
+	"""Each block of *markdown* that is not a callout, with headings moved down *shift* levels."""
 	chunks: list[tuple] = []
 	for chunk in re.split(r"\n\s*\n", markdown.strip()):
 		lines = [line.rstrip() for line in chunk.strip("\n").split("\n") if line.strip()]
-		heading = HEADING.match(lines[0]) if len(lines) == 1 else None
-		if heading:
-			chunks.append(("heading", len(heading.group(1)) + shift, heading.group(2).strip()))
-		elif lines:
-			chunks.append(("text", lines))
+		if lines:
+			chunks.append(get_chunk(lines, shift, route))
 	return chunks
 
 
-def to_blocks(chunks: list[tuple], manual: str) -> list[dict]:
-	"""Paragraph blocks with ids that stay the same while their text does.
+def get_chunk(lines: list[str], shift: int, route: str) -> tuple:
+	"""One block: a heading, a picture, a table, a diagram or text."""
+	heading = HEADING.match(lines[0]) if len(lines) == 1 else None
+	if heading:
+		return ("heading", len(heading.group(1)) + shift, heading.group(2).strip())
+	if lines[0].startswith("<picture>"):
+		return ("picture", " ".join(lines))
+	if lines == [DIAGRAM_MARK]:
+		return ("diagram", route)
+	if all(line.startswith("|") for line in lines):
+		return ("table", lines)
+	return ("text", lines)
 
-	A callout is one block led by its title, which desk.css draws as a box.
-	"""
+
+def to_blocks(chunks: list[tuple], manual: str) -> list[dict]:
+	"""Paragraph blocks with ids that stay the same while their text does."""
 	blocks: list[dict] = []
 	seen: dict[str, int] = {}
 	for kind, *parts in chunks:
-		if kind == "heading":
-			text = f'<span class="h{parts[0]}">{inline(parts[1], manual)}</span>'
-		elif kind == "callout":
-			callout, title, lines = parts
-			text = f'<span class="manual-callout manual-callout-{callout}">{inline(title, manual)}</span>'
-			text += "".join("<br>" + inline(line, manual) for line in lines)
-		else:
-			text = "<br>".join(inline(line, manual) for line in parts[0])
+		text = RENDERERS[kind](*parts, manual=manual)
 		seen[text] = seen.get(text, 0) + 1
 		digest = hashlib.sha1(f"{manual}:{text}:{seen[text]}".encode()).digest()
 		block_id = base64.urlsafe_b64encode(digest).decode()[:10]
 		blocks.append({"id": block_id, "type": "paragraph", "data": {"text": text, "col": 12}})
 	return blocks
+
+
+def render_heading(level: int, text: str, manual: str) -> str:
+	return f'<span class="h{level}">{inline(text, manual)}</span>'
+
+
+def render_text(lines: list[str], manual: str) -> str:
+	return "<br>".join(inline(line, manual) for line in lines)
+
+
+def render_callout(callout: str, title: str, lines: list[str], manual: str) -> str:
+	"""The callout's title, then its lines. desk.css draws the block as a box."""
+	text = f'<span class="manual-callout manual-callout-{callout}">{inline(title, manual)}</span>'
+	return text + "".join("<br>" + inline(line, manual) for line in lines)
+
+
+def render_picture(picture: str, manual: str) -> str:
+	"""The light and the dark image of a <picture>. desk.css shows the one of the desk's theme."""
+	dark, light = PICTURE_DARK.search(picture), PICTURE_LIGHT.search(picture)
+	alt = light.group(2)
+	return get_image(light.group(1), alt, "light", manual) + get_image(dark.group(1), alt, "dark", manual)
+
+
+def get_image(source: str, alt: str, theme: str, manual: str) -> str:
+	"""An <img> of the desk for an image in churchit/public, versioned by its content so no cache keeps an old one."""
+	path = os.path.normpath(os.path.join(SOURCES, manual, source))
+	if not path.startswith(PUBLIC + os.sep):
+		raise ValueError(f"{source} in the {manual} manual is not in churchit/public, which the desk serves")
+	with open(path, "rb") as file:
+		version = hashlib.sha1(file.read()).hexdigest()[:8]
+	url = "/assets/churchit/" + os.path.relpath(path, PUBLIC).replace(os.sep, "/")
+	return f'<img class="manual-image manual-image-{theme}" src="{url}?v={version}" alt="{alt}">'
+
+
+def render_table(lines: list[str], manual: str) -> str:
+	"""A Markdown table as an HTML table. Its second line is the line under the header."""
+	rows = [[cell.strip() for cell in line.strip().strip("|").split("|")] for line in lines]
+	head = "".join(f"<th>{inline(cell, manual)}</th>" for cell in rows[0])
+	body = "".join(
+		"<tr>" + "".join(f"<td>{inline(cell, manual)}</td>" for cell in row) + "</tr>" for row in rows[2:]
+	)
+	return f'<table class="manual-table"><tr>{head}</tr>{body}</table>'
+
+
+def render_diagram(route: str, manual: str) -> str:
+	"""A link to the diagram in the online manual, because the desk cannot draw one."""
+	return (
+		f'<i><a href="{ONLINE_MANUAL}/{route}" target="_blank">See the diagram in the online manual</a></i>'
+	)
+
+
+RENDERERS = {
+	"heading": render_heading,
+	"text": render_text,
+	"callout": render_callout,
+	"picture": render_picture,
+	"table": render_table,
+	"diagram": render_diagram,
+}
 
 
 def inline(text: str, manual: str) -> str:

@@ -31,7 +31,7 @@ Each sample login, such as mary.johnson@example.com, has its email address as it
 
 Only a System Manager can create or delete the sample data. Click **Delete All Data** on the same page to remove it. The next new record of each kind starts at number 1 again, such as PRSN-0001. Remove the sample data before your church starts to use the site.
 
-:::danger
+:::danger[Delete All Data]
 Delete All Data deletes every record of those kinds, also the records that you made yourself, with their history, comments and attachments.
 :::
 

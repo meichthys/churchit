@@ -20,21 +20,16 @@ A visitor who is not signed in sees on the portal: "Part of the church but no lo
 
 Staff and volunteers who work in the desk need a user with a **Role Profile** that fits their job:
 
-- **Church Staff**: looks up people, events, groups and ministries, reads published meeting minutes, and keeps their own prayer requests, sign-ups and room bookings.
-
-- **Church Office**: also adds and changes people, families, groups and member transfers (the Church People Editor role).
-
-- **Church Care Team**: also handles care, counseling, visits, background checks, and prayer and alms requests (the Church Pastoral Care role).
-
-- **Church Treasurer**: also handles collections, expenses, funds, budgets and giving statements (the Church Finance role).
-
-- **Church Check-In Volunteer**: uses the [Check-In Station](../ministries/function-check-ins.md) only.
-
-- **Church Follow-up Team**: works on follow-up cards only.
-
-- **Church Branch Manager**: everything in one branch church, but not the website and the shared reports and dashboards.
-
-- **Church Manager**: everything, including settings.
+| Role Profile | What it gives |
+| :--- | :--- |
+| **Church Staff** | Looks up people, events, groups and ministries, reads published meeting minutes, and keeps their own prayer requests, sign-ups and room bookings. |
+| **Church Office** | Also adds and changes people, families, groups and member transfers (the Church People Editor role). |
+| **Church Care Team** | Also handles care, counseling, visits, background checks, and prayer and alms requests (the Church Pastoral Care role). |
+| **Church Treasurer** | Also handles collections, expenses, funds, budgets and giving statements (the Church Finance role). |
+| **Church Check-In Volunteer** | Uses the [Check-In Station](../ministries/function-check-ins.md) only. |
+| **Church Follow-up Team** | Works on follow-up cards only. |
+| **Church Branch Manager** | Everything in one branch church, but not the website and the shared reports and dashboards. |
+| **Church Manager** | Everything, including settings. |
 
 To give someone several jobs, add more than one Role Profile to their user. After they sign in, each person opens the page for their work: a check-in volunteer opens the Check-In Station, a follow-up volunteer opens Follow-up Cards, and other staff open Summary. Linking a staff login to a Person does not change which churches the staff member sees (see the [Foundations manual](../foundations/README.md)).
 

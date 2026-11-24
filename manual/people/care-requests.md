@@ -5,6 +5,11 @@ sidebar_position: 18
 ---
 A Care Request records that someone needs practical help: meals after a surgery, a hospital visit, a ride, help after a death. It tracks who takes care of it and when it must be done, so nobody falls through the cracks. Members can ask for care in the member portal, and staff add requests in the desk.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/care-requests-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/care-requests-light.webp" alt="The Care Board, with one request in each of Requested, Triaged and In Progress">
+</picture>
+
 Church Pastoral Care and Church Manager users handle care requests. Church Staff can add and read them.
 
 :::note[Example]

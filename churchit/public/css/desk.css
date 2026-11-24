@@ -116,3 +116,36 @@ body.churchit-one-church
 .manual-callout {
 	font-weight: 600;
 }
+
+/* A manual picture (<picture> in manual/) shows its light or its dark image, with the desk's theme. */
+.manual-image {
+	display: block;
+	max-width: 100%;
+	margin: 4px 0;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+}
+.manual-image-dark,
+[data-theme="dark"] .manual-image-light {
+	display: none;
+}
+[data-theme="dark"] .manual-image-dark {
+	display: block;
+}
+
+/* A manual table (a Markdown table in manual/). */
+.manual-table {
+	border-collapse: collapse;
+	margin: 4px 0;
+}
+.manual-table th,
+.manual-table td {
+	padding: 6px 10px;
+	border: 1px solid var(--border-color);
+	text-align: left;
+	vertical-align: top;
+}
+.manual-table th {
+	background-color: var(--subtle-fg);
+	font-weight: 600;
+}

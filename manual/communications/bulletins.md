@@ -27,7 +27,7 @@ A new bulletin starts with:
 
 - the open prayer requests that are shared with the Whole Church and approved for the list, urgent first (see the [Prayers manual](../prayers/README.md)). Remove the rows that you do not want printed. Other requests cannot be added.
 
-:::caution
+:::caution[Changing the Function]
 If you change the Function of a bulletin later, Churchit picks the Missionary of the Week and the prayer requests again, and your changes to those rows are lost.
 :::
 

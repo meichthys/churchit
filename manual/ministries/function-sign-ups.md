@@ -47,10 +47,12 @@ A guest types a name and an email, and can add a phone number and notes. A guest
 
 Each sign-up has a status that only Churchit sets:
 
-- **Confirmed**: the person has a place.
-- **Pending**: the sign-up waits for approval or for payment, and holds its places meanwhile.
-- **Waitlisted**: the function is full, and the sign-up waits for a free place.
-- **Cancelled**: the sign-up no longer counts. It keeps its record, and the person can sign up again.
+| Status | Meaning |
+| :--- | :--- |
+| **Confirmed** | The person has a place. |
+| **Pending** | The sign-up waits for approval or for payment, and holds its places meanwhile. |
+| **Waitlisted** | The function is full, and the sign-up waits for a free place. |
+| **Cancelled** | The sign-up no longer counts. It keeps its record, and the person can sign up again. |
 
 To cancel a sign-up, open it, click the **...** menu, then **Cancel Registration**. A member cancels their own sign-up on the Sign-Ups page of the member portal with **Cancel my sign-up**. A member can open a sign-up that staff added for them, but only the church office can change or cancel it.
 

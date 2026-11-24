@@ -61,7 +61,7 @@ The list on the right shows everyone checked in to the function, newest first, w
 
 - **Page parents** (the bell): sends a short message to each Adult of the child's household. An Adult who said yes to texts for Child Safety gets a text, and the others get an email. An Adult that a Pickup Restriction names for the child gets nothing. The station shows the names of the parents it reached. If it shows **No parent reached**, send a runner to find them. You can page the parents of one child once every 2 minutes.
 
-:::caution
+:::caution[After checkout or pickup]
 After a person is checked out or collected, only the reprint button stays, and the check-in cannot be undone or deleted. Undoing or deleting a check-in removes the Checked-In row from the function's attendance.
 :::
 
@@ -100,6 +100,17 @@ The capacity of a function is the total **Capacity** of the rooms in its approve
 ## Verify Pickup
 
 Use Verify Pickup when an adult comes to collect a child. It works only when **Print Security Codes** is ticked in **Check-In Settings**. A household keeps one code for the whole day, also for a child checked in later or at another function. No two households have the same code on one day.
+
+```mermaid
+flowchart TD
+    A["A family arrives"] --> B["The Check-In Station finds them by name or phone"]
+    B --> C["Tap who arrived and click Check In: a name tag prints for each, with the household's code"]
+    C --> D["The adult who will collect the children keeps the Pickup tag"]
+    D --> E["Verify Pickup: type or scan the code"]
+    E --> G{"Is the adult an Adult of the household or an Authorized Pickup?"}
+    G -- "Yes" --> H["Release: Churchit records who collected the child"]
+    G -- "No, or a Pickup Restriction" --> I["Do not release the child. Ask staff."]
+```
 
 1. Click **Verify Pickup** at the top of the Check-In Station.
 

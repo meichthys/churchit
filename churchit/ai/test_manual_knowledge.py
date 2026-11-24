@@ -93,10 +93,12 @@ class TestManualSections(FrappeTestCase):
 		self.assertEqual(len(missionaries), 1)
 		self.assertNotIn("Missionary Agencies", missionaries[0]["title"])
 
-	def test_the_text_keeps_no_comment_link_target_or_tag_like_text(self):
+	def test_the_text_is_what_a_reader_reads(self):
 		markdown = (
 			"<!-- A note for writers. -->\nOpen **Pathways** (see [Follow-up](follow-up.md)).\n\n"
-			":::note[Example]\nOpen https://<your site>/calendar.\n:::\n"
+			":::note[Example]\nOpen https://<your site>/calendar.\n:::\n\n"
+			'<picture>\n<img src="../../churchit/public/manual/people/a-light.webp" alt="A">\n</picture>\n\n'
+			"```mermaid\nflowchart LR\n  A --> B\n```\n"
 		)
 
 		self.assertEqual(

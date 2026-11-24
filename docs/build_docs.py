@@ -18,21 +18,21 @@ import glob
 import html
 import os
 import re
+import sys
 
 import markdown2
 
 from screenshots import SHOTS, THEMES
 
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, APP_ROOT)  # churchit.manual_sources needs only the standard library
+from churchit.manual_sources import ONLINE_MANUAL as MANUAL_URL
+
 DOCS = os.path.join(APP_ROOT, "docs")
 TEMPLATES = os.path.join(DOCS, "_templates")
 MANUAL = os.path.join(APP_ROOT, "manual")
 README = os.path.join(APP_ROOT, "README.md")
 DEPLOY_README = os.path.join(APP_ROOT, "deploy", "README.md")
-
-# The online manual: the Frappe Wiki space that syncs manual/. manual/<folder>/<page>.md is at
-# <MANUAL_URL>/<folder>/<page>, and a folder's README.md at <MANUAL_URL>/<folder>.
-MANUAL_URL = "https://docs.churchit.app/manual"
 
 # Relative README links are rewritten to the file on GitHub's default branch.
 REPO_BLOB_URL = "https://github.com/meichthys/churchit/blob/HEAD"

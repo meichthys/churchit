@@ -88,6 +88,6 @@ Frappe does not delete a person that a later record names, such as someone who a
 
 More than 10 records are deleted in the background, with a message when it is done. The addresses of deleted families stay in the Address list, where a System Manager can delete them.
 
-:::caution
+:::caution[Undoing an update import]
 The undo does not change back the people that an update import changed.
 :::

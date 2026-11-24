@@ -5,9 +5,25 @@ sidebar_position: 3
 ---
 A Family is one household: the people who live together, such as parents and their children. The family holds the household's address, its photo, the role of each person in it, and who may collect its children after check-in. A person can be in one household only.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/family-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/family-light.webp" alt="A Family: its name and primary contact, and the Family Members table with each household role">
+</picture>
+
 :::note[Example]
 The Smith family has John (the primary contact), his wife Mary, their two children, and John's mother Ruth, who lives with them. John and Mary are Adults, the children are Children, and Ruth is an Other Adult: she lives there but is not a parent. Mary's sister Anne may collect the children on Sundays, so she is an Authorized Pickup.
 :::
+
+```mermaid
+flowchart TD
+    F["Family: Smith - John"] --> J["John: Adult, primary contact"]
+    F --> M["Mary: Adult"]
+    F --> K["The two children: Child"]
+    F --> R["Ruth: Other Adult"]
+    J -. "always collect" .-> K
+    M -. "always collect" .-> K
+    A["Anne, Mary's sister: Authorized Pickup"] -. "may collect" .-> K
+```
 
 ## Add a family
 

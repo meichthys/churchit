@@ -9,6 +9,6 @@ The Sample Data page fills the app with a made-up church, so you can try each pa
 
 - **Delete All Data** removes the sample records and every record of those kinds that you added yourself.
 
-:::danger
+:::danger[Delete All Data]
 Delete All Data also deletes the records that you added yourself. Remove the sample data before the church starts to use the site. Do not use sample data on a site that people can reach from the internet, because each demo login has its email address as its password.
 :::

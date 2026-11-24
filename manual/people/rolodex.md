@@ -5,6 +5,11 @@ sidebar_position: 7
 ---
 The Rolodex is the quickest way to look someone up and get in touch, on a computer or a phone. Every person is a card, sorted by last name. People who have died get no card. Church Staff, Church People Editor and Church Manager users can open it from the sidebar, the workspace, or the **Rolodex** button on the People and Families lists.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/rolodex-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/rolodex-light.webp" alt="The Rolodex: the search bar, the filters and the first cards">
+</picture>
+
 - Type in the search box to find a name, family, phone number or email.
 
 - Tap a letter down the side to jump through the alphabet.

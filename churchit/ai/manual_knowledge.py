@@ -19,7 +19,9 @@ from churchit.manual_sources import (
 	CALLOUT,
 	CALLOUT_TITLES,
 	COMMENT,
+	DIAGRAM,
 	LINK,
+	PICTURE,
 	get_folders,
 	get_pages,
 	get_workspace_name,
@@ -63,13 +65,13 @@ def get_manual_sections() -> list[dict]:
 
 
 def to_text(markdown: str) -> str:
-	"""A page's Markdown for the model: no comments, each link as its text, and each callout as its
-	title and body.
+	"""A page's Markdown for the model: no comments, pictures or diagrams, each link as its text, and
+	each callout as its title and body.
 
 	"<" and ">" are escaped: Frappe's XSS filter strips tag-like text such as <your site> on save,
 	and the sync matches each source by its saved text.
 	"""
-	text = COMMENT.sub("", markdown)
+	text = DIAGRAM.sub("", PICTURE.sub("", COMMENT.sub("", markdown)))
 	text = CALLOUT.sub(
 		lambda match: f"{match.group(2) or CALLOUT_TITLES[match.group(1)]}: {match.group(3)}", text
 	)

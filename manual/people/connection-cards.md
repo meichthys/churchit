@@ -5,6 +5,11 @@ sidebar_position: 16
 ---
 A Connection Card is the welcome card that a guest fills in on their phone, at `/connection-card` on your website. They give their name, email and phone, say whether they are new, tick what they would like to do next, and add the people who came with them. Churchit then adds them to People and starts their follow-up, so that no guest is forgotten.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/connection-cards-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/connection-cards-light.webp" alt="A processed Connection Card: the guest's name, email and phone, and the Person it made">
+</picture>
+
 :::note[Example]
 On Sunday, the Lees scan the QR code in the bulletin and fill in a card: Daniel and Grace Lee, with their son Sam, age 7, and a tick on "Join a group". Churchit adds the three as Visitors in one Lee family, and starts a follow-up card on the Welcome workflow and on the Groups workflow. On Monday, the welcome volunteer sees the card on her board and calls them.
 :::

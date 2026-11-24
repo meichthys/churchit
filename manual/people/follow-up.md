@@ -5,6 +5,11 @@ sidebar_position: 17
 ---
 Follow-up makes sure that each person who needs a next step gets one: a first-time guest gets a welcome call, a new member gets a coffee invitation, a person who asked about baptism hears from the pastor. A **Follow-up Workflow** is the list of steps, and a **Follow-up Card** is one person moving through those steps, on a board like sticky notes on a wall.
 
+<picture>
+  <source srcset="../../churchit/public/manual/people/follow-up-dark.webp" media="(prefers-color-scheme: dark)">
+  <img src="../../churchit/public/manual/people/follow-up-light.webp" alt="A follow-up board, with cards in the Welcome Call and Coffee Invitation steps">
+</picture>
+
 :::note[Example]
 The Welcome workflow has three steps: Welcome Call (Sarah, 2 days), Coffee Invitation (the pastor, 7 days) and Connect to a Group (Tom, 14 days). When a guest's Connection Card arrives, a card opens at Welcome Call and Sarah gets a to-do and an email. After her call, she drags the card to Coffee Invitation, and the pastor gets the next to-do. When the guest has joined a group, Tom closes the card with the outcome "Joined Tuesday Bible Study".
 :::
@@ -24,6 +29,14 @@ When you save, Churchit makes a board with a column for each step. Click **Open 
 When AI is turned on (see the [Foundations manual](../foundations/README.md)), **Describe the Process** on a new workflow drafts the steps, triggers and actions from your words, such as "Call a first-time guest in 2 days, invite them for coffee after 5 days, and send a welcome email". Check the draft, pick Assign To for each step, and turn on Active when it is ready.
 
 ## Follow-up cards and the board
+
+```mermaid
+flowchart LR
+    T["A trigger, such as a guest's Connection Card"] --> C["A Follow-up Card opens at the first step"]
+    C --> S1["Welcome Call: Sarah gets a to-do"]
+    S1 -- "drag the card" --> S2["Coffee Invitation: the pastor gets a to-do"]
+    S2 -- "drag the card" --> S3["Connect to a Group: Tom gets a to-do"]
+```
 
 A Follow-up Card shows the person's phone and email, the step, and when it is due. A person can have only one open card on a workflow. When two records of one person are merged, only the older open card on each workflow stays open. To add a card by hand, open the person, go to Connections and click **+** next to Follow-up Card.
 
