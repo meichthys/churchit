@@ -137,6 +137,8 @@ def execute():
 	_setup_portal_settings()
 	# One switch per shipped page; migrate keeps them in step after this.
 	sync_page_switches()
+	# Most churches already have a website, so a new site starts with this one off (Church Features).
+	frappe.db.set_single_value("Church Features", "disable_public_website", 1)
 	# The directory starts off, so its menu item does too.
 	sync_directory_menu_item()
 	setup_bulletin_settings()

@@ -1,7 +1,8 @@
 import frappe
 
 from churchit.church_website.menu import get_route
-from churchit.church_website.published_fields import published_field_map
+from churchit.church_website.pages import is_public_website_on
+from churchit.church_website.published_fields import get_reachable_field_map
 
 
 @frappe.whitelist(allow_guest=False, methods=["GET", "POST"])
@@ -12,7 +13,7 @@ def get_published_fields(doctype: str | None = None) -> dict:
 	browser still running a cached copy of the badge script asks for.
 	"""
 	frappe.only_for(["Church Manager", "System Manager"])
-	published = published_field_map(use_cache=True)
+	published = get_reachable_field_map()
 	return published.get(doctype, {}) if doctype else published
 
 
@@ -33,10 +34,13 @@ def get_published_web_page(url: str | None) -> dict | None:
 
 
 @frappe.whitelist(allow_guest=False, methods=["GET"])
-def get_website_home_page() -> str:
-	"""The route a visitor lands on at the site root, for the desk's website preview. Reads only.
+def get_website_home_page() -> str | None:
+	"""The page a visitor lands on at /, or None while the public website is off. Reads only.
 
-	The route is public, but Website Settings is not readable by every desk user.
+	The desk's website preview shows it. The route is public, but Website Settings is not readable
+	by every desk user.
 	A site without a home page sends a visitor to the login page, as Frappe does.
 	"""
+	if not is_public_website_on():
+		return None
 	return frappe.db.get_single_value("Website Settings", "home_page") or "login"

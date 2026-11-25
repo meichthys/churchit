@@ -1,6 +1,7 @@
 # Regenerates the churchit.app pages that are built from repo content
 # (docs/build_docs.py) and commits the result, so the website never drifts
-# from README.md, deploy/README.md, the in-app manuals, or the screenshot list.
+# from README.md, deploy/README.md or the screenshot list. The manual itself is
+# on docs.churchit.app, and the build checks the site's links to it.
 #
 # Commits made with GITHUB_TOKEN do not trigger other workflows, so this
 # cannot loop or kick off an image build.
@@ -12,13 +13,15 @@ on:
     paths:
       - README.md
       - deploy/README.md
+      - manual/** # the site links to its pages, and the Manual workspaces are built from it
       - "churchit/*/workspace/manual:_*/*.json"
+      - churchit/manual_sources.py # builds the Manual workspaces
+      - churchit/public/manual/** # the manual's pictures, versioned in the Manual workspaces
       - docs/build_docs.py
-      - churchit/manuals.py # build_docs.py reads the manuals through it
       - docs/screenshots.py
       - docs/assets/screenshots/**
       - docs/_templates/**
-      - docs/index.html # its feature ribbons link to manual anchors the build checks
+      - docs/index.html # its feature ribbons link to manual pages the build checks
   workflow_dispatch:
 
 jobs:
@@ -35,11 +38,14 @@ jobs:
 
       - run: pip install markdown2
 
+      # Fails when a manual/ change was pushed without the workspaces built from it.
+      - run: python docs/build_manuals.py --check
+
       - run: python docs/build_docs.py
 
       - name: Commit regenerated pages
         run: |
-          git add docs/documentation.html docs/getting-started.html docs/screenshots.html
+          git add docs/getting-started.html docs/screenshots.html
           if git diff --cached --quiet; then
             echo "Docs already up to date."
             exit 0

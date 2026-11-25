@@ -27,6 +27,20 @@ repos:
         language: python
         types_or: [python, javascript]
 
+      - id: build-manuals
+        name: "Build the Manual workspaces from manual/"
+        entry: python docs/build_manuals.py
+        language: python
+        files: ^(manual/|churchit/public/manual/)
+        pass_filenames: false
+
+      - id: manual-pictures
+        name: "Name the manual pictures that a changed screen may make old"
+        entry: python docs/screenshots.py --stale
+        language: python
+        files: ^churchit/[^/]+/(doctype|page|report)/.+\.(json|js|html|css)$
+        verbose: true
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.1
     hooks:

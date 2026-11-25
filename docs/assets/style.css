@@ -1,6 +1,6 @@
 /* ==========================================================================
    churchit: glassy marketing site
-   A single design system shared by index / pricing / getting-started / documentation.
+   A single design system shared by index / pricing / getting-started / screenshots.
    Frappe-flavoured: Inter type, indigo→violet accent, frosted glass surfaces.
    ========================================================================== */
 
@@ -401,27 +401,6 @@ p code, li code, dd code { color: var(--brand-ink); background: rgba(99,102,241,
 .first-steps th, .first-steps td, .path-body th, .path-body td { padding: .5rem .7rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
 .first-steps th, .path-body th { color: var(--ink); font-weight: 700; border-bottom-color: rgba(15, 23, 42, .16); }
 .first-steps td code, .path-body td code { color: var(--brand-ink); background: rgba(99,102,241,.1); padding: .1em .4em; border-radius: 6px; white-space: nowrap; }
-
-/* ---- Documentation ------------------------------------------------------- */
-.doc-layout { display: grid; grid-template-columns: 250px 1fr; gap: 2.2rem; align-items: start; padding-top: 2.5rem; }
-@media (max-width: 900px) { .doc-layout { grid-template-columns: 1fr; } }
-.doc-side { position: sticky; top: 84px; padding: 1.2rem; }
-@media (max-width: 900px) { .doc-side { position: static; } }
-.doc-side .title { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; margin: 0 0 .8rem; padding-left: .6rem; }
-.doc-side nav { display: grid; gap: 2px; }
-.doc-side a { display: flex; align-items: center; gap: .6em; padding: .5em .6em; border-radius: 10px; color: var(--body); font-weight: 600; font-size: .93rem; }
-.doc-side a:hover { background: rgba(99,102,241,.08); text-decoration: none; color: var(--ink); }
-.doc-side a.active { background: rgba(99,102,241,.14); color: var(--brand-ink); }
-
-.doc-main { min-width: 0; }
-.doc-hero { padding: 2.2rem 2.4rem; margin-bottom: 1.6rem; }
-.doc-section { padding: 2rem 2.4rem; margin-bottom: 1.4rem; scroll-margin-top: 84px; }
-.doc-section > h2 { display: flex; align-items: center; gap: .5em; margin-top: 0; }
-.doc-section h3 { margin-top: 1.8rem; font-size: 1.15rem; }
-.doc-section p { color: var(--body); }
-.doc-section a { font-weight: 600; }
-.doc-section ul, .doc-section ol { padding-left: 1.3rem; }
-.doc-badge { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--brand-ink); background: rgba(99,102,241,.12); padding: .3em .7em; border-radius: 999px; }
 
 /* ---- Screenshots --------------------------------------------------------- */
 /* Quieter than the other pages: Frappe UI type sizes and a segmented control, so the pictures lead. */

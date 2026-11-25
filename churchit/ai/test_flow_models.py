@@ -70,17 +70,17 @@ class TestLabelFieldOnlyWhereFlowIs(FrappeTestCase):
 		self.assertIsNone(stamp_privacy_label(without_field))
 
 	def test_the_manual_explains_every_label(self):
-		text = " ".join(get_manual_blocks().values())
+		text = get_manual_text()
 
 		for label in PRIVACY_LABELS:
 			self.assertIn(f"<b>{label}</b>", text)
 
 	def test_the_manual_names_every_doctype_that_the_flow_hooks_check(self):
-		blocks = get_manual_blocks()
+		text = get_manual_text()
 
-		self.assertIn(join_names(GUEST_DOCTYPES, "or"), blocks["AiFlow000006"])
-		self.assertIn(join_names(PEOPLE_DOCTYPES, "and"), blocks["AiKnow0000001"])
-		self.assertIn(join_names(FLOW_DATA_DOCTYPES, "and"), blocks["AiKnow0000001"])
+		self.assertIn(join_names(GUEST_DOCTYPES, "or"), text)
+		self.assertIn(join_names(PEOPLE_DOCTYPES, "and"), text)
+		self.assertIn(join_names(FLOW_DATA_DOCTYPES, "and"), text)
 
 	def test_the_panel_lists_no_model_without_flow(self):
 		with patch("churchit.ai.exposure.has_flow", return_value=False):
@@ -302,10 +302,10 @@ class TestPanelLines(FlowModelTestCase):
 		self.assertNotIn("_Test Panel Hidden", frappe.as_json(lines))
 
 
-def get_manual_blocks() -> dict[str, str]:
-	"""The text of each block of Manual: Foundations, by block id."""
+def get_manual_text() -> str:
+	"""The HTML of every block of Manual: Foundations, joined."""
 	blocks = json.loads(json.loads(FOUNDATIONS_MANUAL.read_text())["content"])
-	return {block["id"]: block["data"]["text"] for block in blocks}
+	return " ".join(block["data"]["text"] for block in blocks)
 
 
 def join_names(names: tuple[str, ...], conjunction: str) -> str:

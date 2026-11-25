@@ -646,7 +646,8 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "churchit.install.before_tests"
+# A new site starts with the public website off; the website tests need it on.
+before_tests = "churchit.tests.helpers.open_public_website"
 
 # Overriding Methods
 # ------------------------------
