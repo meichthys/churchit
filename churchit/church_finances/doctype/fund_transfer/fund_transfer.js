@@ -9,9 +9,11 @@ frappe.ui.form.on("Fund Transfer", {
 		// makes the picker say "Filtered by: ." with nothing named.
 		frm.set_query("to_fund", () => {
 			const filters = [];
-			if (frm.doc.from_fund) filters.push(["name", "!=", frm.doc.from_fund]);
+			if (frm.doc.from_fund)
+				filters.push(["name", "!=", frm.doc.from_fund]);
 			const church_name =
-				church.is_multi_church() && (frm.doc.church || frappe.boot.churchit.church);
+				church.is_multi_church() &&
+				(frm.doc.church || frappe.boot.churchit.church);
 			if (church_name) filters.push(["church", "in", [church_name, ""]]);
 			return filters.length ? { filters } : {};
 		});

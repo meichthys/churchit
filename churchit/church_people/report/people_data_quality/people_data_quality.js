@@ -24,7 +24,9 @@ frappe.query_reports["People Data Quality"] = {
 
 	onload(report) {
 		if (!churchit.ai.can_run() || !frappe.model.can_write("Person")) return;
-		report.page.add_inner_button(__("Suggest Fixes"), () => suggest_quality_fixes(report));
+		report.page.add_inner_button(__("Suggest Fixes"), () =>
+			suggest_quality_fixes(report),
+		);
 	},
 };
 
@@ -51,10 +53,12 @@ function render_quality_fixes({ fixes }) {
 				<td>${escape(fix.problem)}</td>
 				<td>${escape(fix.old)}</td>
 				<td>${escape(fix.value)}</td>
-			</tr>`
+			</tr>`,
 		)
 		.join("");
-	const help = __("Tick each fix to save. Each person is saved as the form saves them.");
+	const help = __(
+		"Tick each fix to save. Each person is saved as the form saves them.",
+	);
 	return `<table class="table table-sm small"><thead><tr><th></th>
 			<th>${escape(__("Person"))}</th><th>${escape(__("Problem"))}</th>
 			<th>${escape(__("Now"))}</th><th>${escape(__("Suggested"))}</th>
@@ -79,6 +83,10 @@ async function save_ticked_fixes(report, { fixes }, dialog) {
 			// Frappe shows why the save was refused.
 		}
 	}
-	if (saved) frappe.show_alert({ message: __("{0} fixes saved.", [saved]), indicator: "green" });
+	if (saved)
+		frappe.show_alert({
+			message: __("{0} fixes saved.", [saved]),
+			indicator: "green",
+		});
 	report.refresh();
 }

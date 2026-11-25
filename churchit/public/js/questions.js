@@ -7,7 +7,10 @@
 	window.churchit = window.churchit || {};
 	churchit.questions = {
 		render(wrapper, fields) {
-			const group = new frappe.ui.FieldGroup({ parent: $(wrapper), fields: fields });
+			const group = new frappe.ui.FieldGroup({
+				parent: $(wrapper),
+				fields: fields,
+			});
 			group.make();
 			return group;
 		},

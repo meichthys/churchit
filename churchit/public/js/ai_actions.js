@@ -22,7 +22,11 @@ frappe.provide("churchit.ai");
 
 	// True when the boot allows this user churchit's AI actions; a private action needs Private Work too.
 	churchit.ai.can_run = (is_private = false) =>
-		Boolean(frappe.boot.churchit?.ai?.[is_private ? "private_actions" : "actions"]);
+		Boolean(
+			frappe.boot.churchit?.ai?.[
+				is_private ? "private_actions" : "actions"
+			],
+		);
 
 	churchit.ai.paragraphs = (texts) =>
 		texts
@@ -53,10 +57,10 @@ frappe.provide("churchit.ai");
 				() =>
 					finish({
 						error: __(
-							"The AI did not answer in time. Try again, or ask your administrator to check Flow."
+							"The AI did not answer in time. Try again, or ask your administrator to check Flow.",
 						),
 					}),
-				wait_ms
+				wait_ms,
 			);
 			const asking = setInterval(() => {
 				if (!dialog.display) return finish({});
@@ -87,15 +91,15 @@ frappe.provide("churchit.ai");
 		show_html(
 			dialog,
 			`<div class="form-message red"><div>${escape(
-				text || __("The AI answer could not be used.")
-			)}</div></div>`
+				text || __("The AI answer could not be used."),
+			)}</div></div>`,
 		);
 	}
 
 	function show_answer(dialog, html, on_use, use_label, note) {
 		show_html(
 			dialog,
-			`<div class="form-message yellow mb-3"><div>${escape(note)}</div></div>${html}`
+			`<div class="form-message yellow mb-3"><div>${escape(note)}</div></div>${html}`,
 		);
 		if (!on_use) return;
 		dialog.set_primary_action(use_label || __("Use"), () => {
@@ -130,7 +134,11 @@ frappe.provide("churchit.ai");
 		frappe
 			.xcall(method, args || {}, "POST")
 			.then(async (response) => {
-				const message = await wait_for(response.token, dialog, wait_minutes * 60 * 1000);
+				const message = await wait_for(
+					response.token,
+					dialog,
+					wait_minutes * 60 * 1000,
+				);
 				if (!dialog.display) return;
 				if (message.error || message.result === undefined) {
 					show_error(dialog, message.error);
@@ -150,7 +158,7 @@ frappe.provide("churchit.ai");
 					html,
 					on_use && (() => on_use(message.result, response)),
 					use_label,
-					note
+					note,
 				);
 			})
 			// Frappe shows the server's message, such as a refusal.
@@ -160,7 +168,9 @@ frappe.provide("churchit.ai");
 
 	function paragraphs_of(result) {
 		return churchit.ai.paragraphs(
-			typeof result === "string" ? [result] : [JSON.stringify(result, null, 2)]
+			typeof result === "string"
+				? [result]
+				: [JSON.stringify(result, null, 2)],
 		);
 	}
 
@@ -169,7 +179,11 @@ frappe.provide("churchit.ai");
 	// action]], note}. Each value shows as text in a form section; a Use button fills the form unsaved.
 	churchit.ai.show_suggestion = function (frm, describe) {
 		const doctype = "Church AI Suggestion";
-		if (frm.is_new() || !frappe.boot.churchit?.ai?.on || !frappe.model.can_read(doctype))
+		if (
+			frm.is_new() ||
+			!frappe.boot.churchit?.ai?.on ||
+			!frappe.model.can_read(doctype)
+		)
 			return;
 		const name = frm.doc.name;
 		const fields = [
@@ -180,20 +194,29 @@ frappe.provide("churchit.ai");
 			"public_wording",
 		];
 		frappe.db
-			.get_value(doctype, { reference_doctype: frm.doctype, reference_name: name }, fields)
+			.get_value(
+				doctype,
+				{ reference_doctype: frm.doctype, reference_name: name },
+				fields,
+			)
 			.then(({ message }) => {
-				if (!message || !Object.keys(message).length || frm.doc.name !== name) return;
+				if (
+					!message ||
+					!Object.keys(message).length ||
+					frm.doc.name !== name
+				)
+					return;
 				const { rows, uses, note } = describe(message);
 				const html = rows
 					.filter(([, text]) => text)
 					.map(
 						([label, text]) =>
-							`<p><strong>${escape(label)}:</strong> ${escape(text)}</p>`
+							`<p><strong>${escape(label)}:</strong> ${escape(text)}</p>`,
 					)
 					.join("");
 				frm.dashboard.add_section(
 					`${html}<p class="text-muted small">${escape(note)}</p>`,
-					__("AI Suggestion")
+					__("AI Suggestion"),
 				);
 				frm.dashboard.show();
 				if (!frm.has_perm("write")) return;
@@ -209,7 +232,8 @@ frappe.provide("churchit.ai");
 		const ai = frappe.boot.churchit?.ai || {};
 		return (
 			report_doc.report_type === "Script Report" &&
-			frappe.boot.module_app?.[frappe.scrub(report_doc.module || "")] === "churchit" &&
+			frappe.boot.module_app?.[frappe.scrub(report_doc.module || "")] ===
+				"churchit" &&
 			!(ai.no_explain || []).includes(report_doc.name)
 		);
 	}
@@ -218,14 +242,22 @@ frappe.provide("churchit.ai");
 	// it, so the item is added for a few seconds after each route change; adding it twice does nothing.
 	function add_explain_item(report_name, tries) {
 		const report = frappe.query_report;
-		if (frappe.get_route()[0] !== "query-report" || frappe.get_route()[1] !== report_name)
+		if (
+			frappe.get_route()[0] !== "query-report" ||
+			frappe.get_route()[1] !== report_name
+		)
 			return;
-		if (report?.report_doc?.name === report_name && report.report_settings && report.page) {
+		if (
+			report?.report_doc?.name === report_name &&
+			report.report_settings &&
+			report.page
+		) {
 			if (is_explainable(report.report_doc)) {
 				report.page.add_menu_item(__("Explain"), () => explain(report));
 			}
 		}
-		if (tries > 0) setTimeout(() => add_explain_item(report_name, tries - 1), 250);
+		if (tries > 0)
+			setTimeout(() => add_explain_item(report_name, tries - 1), 250);
 	}
 
 	function on_route() {
@@ -240,7 +272,10 @@ frappe.provide("churchit.ai");
 		churchit.ai.run_action({
 			title: __("Explain {0}", [__(report.report_name)]),
 			method: "churchit.ai.reports.explain_report",
-			args: { report_name: report.report_name, filters: report.get_filter_values() },
+			args: {
+				report_name: report.report_name,
+				filters: report.get_filter_values(),
+			},
 			render: render_explanation,
 		});
 	}
@@ -257,8 +292,10 @@ frappe.provide("churchit.ai");
 				: "",
 			missing.length
 				? `<p class="text-warning small">${escape(
-						__("These numbers are not in the rows: {0}", [missing.join(", ")])
-				  )}</p>`
+						__("These numbers are not in the rows: {0}", [
+							missing.join(", "),
+						]),
+					)}</p>`
 				: "",
 		].join("");
 		return `<div class="row">
@@ -268,11 +305,19 @@ frappe.provide("churchit.ai");
 	}
 
 	function rows_table({ columns, rows, total_rows }) {
-		const head = columns.map((label) => `<th>${escape(label)}</th>`).join("");
-		const body = rows
-			.map((row) => `<tr>${row.map((value) => `<td>${escape(value)}</td>`).join("")}</tr>`)
+		const head = columns
+			.map((label) => `<th>${escape(label)}</th>`)
 			.join("");
-		const shown = __("The AI got {0} of {1} rows.", [rows.length, total_rows]);
+		const body = rows
+			.map(
+				(row) =>
+					`<tr>${row.map((value) => `<td>${escape(value)}</td>`).join("")}</tr>`,
+			)
+			.join("");
+		const shown = __("The AI got {0} of {1} rows.", [
+			rows.length,
+			total_rows,
+		]);
 		return `<p class="text-muted small">${escape(shown)}</p>
 			<div style="max-height: 24rem; overflow: auto">
 				<table class="table table-bordered table-sm small"><thead><tr>${head}</tr></thead>
@@ -281,16 +326,18 @@ frappe.provide("churchit.ai");
 	}
 
 	function numbers_in(text) {
-		return (String(text ?? "").match(/\d[\d,]*(\.\d+)?/g) || []).map((number) =>
-			Number(number.replace(/,/g, ""))
+		return (String(text ?? "").match(/\d[\d,]*(\.\d+)?/g) || []).map(
+			(number) => Number(number.replace(/,/g, "")),
 		);
 	}
 
 	function get_missing_numbers(result, rows) {
 		const known = new Set(rows.flat().flatMap(numbers_in));
-		const said = [result.summary, result.trend, ...(result.questions || [])].flatMap(
-			numbers_in
-		);
+		const said = [
+			result.summary,
+			result.trend,
+			...(result.questions || []),
+		].flatMap(numbers_in);
 		return [...new Set(said)].filter((number) => !known.has(number));
 	}
 

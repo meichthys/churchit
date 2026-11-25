@@ -21,7 +21,8 @@ frappe.query_reports["Collection Bank Reconciliation"] = {
 				limit: 1,
 			})
 			.then((rows) => {
-				if (rows.length) report.set_filter_value("parent_filter", rows[0].name);
+				if (rows.length)
+					report.set_filter_value("parent_filter", rows[0].name);
 			});
 	},
 };

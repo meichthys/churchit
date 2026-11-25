@@ -20,10 +20,15 @@ frappe.ui.form.on("Bulletin", {
 
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro(__("Members can download this bulletin from the portal."), "blue");
+			frm.set_intro(
+				__("Members can download this bulletin from the portal."),
+				"blue",
+			);
 		}
 		if (frappe.model.can_write("Bulletin")) {
-			frm.add_custom_button(__("Copy from last week"), () => copy_from_last_week(frm));
+			frm.add_custom_button(__("Copy from last week"), () =>
+				copy_from_last_week(frm),
+			);
 		}
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Print Bulletin"), () => {
@@ -57,7 +62,10 @@ function fill_defaults(frm, { sections }) {
 		.then((r) => {
 			const defaults = r.message;
 			for (const [field, value] of Object.entries(defaults)) {
-				if (field === "prayer_requests" || (!sections && field.startsWith("show_")))
+				if (
+					field === "prayer_requests" ||
+					(!sections && field.startsWith("show_"))
+				)
 					continue;
 				frm.set_value(field, value);
 			}
@@ -65,7 +73,11 @@ function fill_defaults(frm, { sections }) {
 			frm.clear_table("prayer_requests");
 			defaults.prayer_requests.forEach((row) => {
 				// The grid shows the request by its title, which a new row has not loaded yet.
-				frappe.utils.add_link_title("Prayer Request", row.prayer_request, row.title);
+				frappe.utils.add_link_title(
+					"Prayer Request",
+					row.prayer_request,
+					row.title,
+				);
 				frm.add_child("prayer_requests", row);
 			});
 			frm.refresh_field("prayer_requests");
@@ -77,7 +89,10 @@ function copy_from_last_week(frm) {
 		.call({
 			method: "churchit.church_communications.doctype.bulletin.bulletin.get_last_week_text",
 			type: "GET",
-			args: { function: frm.doc.function, name: frm.is_new() ? null : frm.doc.name },
+			args: {
+				function: frm.doc.function,
+				name: frm.is_new() ? null : frm.doc.name,
+			},
 		})
 		.then((r) => {
 			const { welcome, announcements } = r.message;
@@ -91,16 +106,18 @@ function copy_from_last_week(frm) {
 			const copy = () => {
 				frm.set_value({ welcome, announcements });
 				frappe.show_alert({
-					message: __("Copied the welcome and announcements from the last bulletin."),
+					message: __(
+						"Copied the welcome and announcements from the last bulletin.",
+					),
 					indicator: "green",
 				});
 			};
 			if (frm.doc.welcome || frm.doc.announcements) {
 				frappe.confirm(
 					__(
-						"Replace this bulletin's welcome and announcements with the last bulletin's?"
+						"Replace this bulletin's welcome and announcements with the last bulletin's?",
 					),
-					copy
+					copy,
 				);
 			} else {
 				copy();

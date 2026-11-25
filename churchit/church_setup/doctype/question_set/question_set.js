@@ -6,7 +6,7 @@ frappe.ui.form.on("Question Set", {
 		if (!frm.is_new() && frm.doc.publish_as_form) {
 			frm.add_web_link(
 				`/form/new?question_set=${encodeURIComponent(frm.doc.name)}`,
-				__("Open Form")
+				__("Open Form"),
 			);
 		}
 	},

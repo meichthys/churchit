@@ -16,7 +16,9 @@ frappe.ui.form.on("Collection", {
 		// A focused link cell shows an Open Link arrow that hides again on blur, so a Tab onto the arrow
 		// dropped the focus out of the row. Keep the arrows out of the Tab order of this grid.
 		const table = frm.fields_dict.donations.$wrapper;
-		table.on("focusin", () => table.find(".link-btn a").attr("tabindex", -1));
+		table.on("focusin", () =>
+			table.find(".link-btn a").attr("tabindex", -1),
+		);
 	},
 
 	onload(frm) {
@@ -29,18 +31,25 @@ frappe.ui.form.on("Collection", {
 			const href = "/desk/giving-settings#messages_tab";
 			const link = `<a href="${href}">${__("Giving Settings")}</a>`;
 			frm.dashboard.add_comment(
-				__("Givers aren't emailed a receipt. Turn on Email Receipts in {0}.", [link]),
+				__(
+					"Givers aren't emailed a receipt. Turn on Email Receipts in {0}.",
+					[link],
+				),
 				"blue",
-				true
+				true,
 			);
 		}
 		frm.add_custom_button(
 			__("Bank Reconciliation Report"),
 			() =>
-				frappe.set_route("query-report", "Collection Bank Reconciliation", {
-					parent_filter: frm.doc.name,
-				}),
-			__("View")
+				frappe.set_route(
+					"query-report",
+					"Collection Bank Reconciliation",
+					{
+						parent_filter: frm.doc.name,
+					},
+				),
+			__("View"),
 		);
 	},
 
@@ -48,10 +57,16 @@ frappe.ui.form.on("Collection", {
 	function(frm) {
 		if (!frm.is_new() || !frm.doc.function) return;
 		frappe.db
-			.get_value("Function", frm.doc.function, ["start_date", "start_time"])
+			.get_value("Function", frm.doc.function, [
+				"start_date",
+				"start_time",
+			])
 			.then(({ message }) => {
 				if (!message || !message.start_date) return;
-				frm.set_value("date", `${message.start_date} ${message.start_time || "00:00:00"}`);
+				frm.set_value(
+					"date",
+					`${message.start_date} ${message.start_time || "00:00:00"}`,
+				);
 			});
 	},
 
@@ -64,7 +79,8 @@ frappe.ui.form.on("Collection", {
 // A collection takes gifts only into its own church's funds or shared ones (Collection.validate).
 function get_fund_filters(frm) {
 	const church_name =
-		church.is_multi_church() && (frm.doc.church || frappe.boot.churchit.church);
+		church.is_multi_church() &&
+		(frm.doc.church || frappe.boot.churchit.church);
 	return church_name ? { church: ["in", [church_name, ""]] } : {};
 }
 
@@ -74,14 +90,21 @@ function set_default_fund(frm) {
 		.get_single_value("Giving Settings", "default_fund")
 		.then((fund) =>
 			fund
-				? frappe.db.get_list("Fund", { filters: { name: fund, ...get_fund_filters(frm) } })
-				: []
+				? frappe.db.get_list("Fund", {
+						filters: { name: fund, ...get_fund_filters(frm) },
+					})
+				: [],
 		)
 		.then((funds) => {
 			frm.default_fund = funds.length ? funds[0].name : null;
 			(frm.doc.donations || []).forEach((row) => {
 				if (!row.fund && frm.default_fund)
-					frappe.model.set_value(row.doctype, row.name, "fund", frm.default_fund);
+					frappe.model.set_value(
+						row.doctype,
+						row.name,
+						"fund",
+						frm.default_fund,
+					);
 			});
 		});
 }
@@ -142,7 +165,8 @@ function update_collection_total(frm) {
 
 // Update imbalance as the difference between entered total and expected total
 function update_imbalance(frm, entered_total) {
-	var entered = entered_total !== undefined ? entered_total : frm.doc.total_amount || 0;
+	var entered =
+		entered_total !== undefined ? entered_total : frm.doc.total_amount || 0;
 	var expected = frm.doc.expected_total || 0;
 	frm.set_value("imbalance", entered - expected);
 }

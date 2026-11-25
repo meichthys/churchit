@@ -100,9 +100,9 @@ class TestCurrency(FrappeTestCase):
 			with patch.object(
 				frappe.db,
 				"get_default",
-				lambda key, *args, value=site_currency: value
-				if key == "currency"
-				else get_default(key, *args),
+				lambda key, *args, value=site_currency: (
+					value if key == "currency" else get_default(key, *args)
+				),
 			):
 				self.assertEqual(get_currency(), expected)
 
