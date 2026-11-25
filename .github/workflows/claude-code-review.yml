@@ -12,6 +12,8 @@ on:
 
 jobs:
   claude-review:
+    # A bot push, such as a pre-commit.ci autofix, makes the action refuse to run.
+    if: github.event.sender.type != 'Bot'
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
