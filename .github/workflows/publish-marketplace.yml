@@ -84,11 +84,10 @@ jobs:
           # Rebuilt from upstream main on every publish, so a force push is expected
           git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${FORK}.git" "HEAD:refs/heads/$branch"
 
-          number=$(gh pr list --repo "$UPSTREAM" --state open --head "$branch" \
-            --json number,headRepositoryOwner \
-            --jq "map(select(.headRepositoryOwner.login == \"$owner\")) | .[0].number // empty")
+          # REST: through GraphQL, gh needs scopes beyond public_repo for these
+          number=$(gh api "repos/$UPSTREAM/pulls?state=open&head=$owner:$branch" --jq '.[0].number // empty')
           if [ -n "$number" ]; then
-            gh pr edit "$number" --repo "$UPSTREAM" --title "$title" --body "$body"
+            gh api -X PATCH "repos/$UPSTREAM/pulls/$number" -f title="$title" -f body="$body" --silent
             echo "Updated $UPSTREAM#$number to $short."
           else
             gh pr create --repo "$UPSTREAM" --base main --head "$owner:$branch" --title "$title" --body "$body"
