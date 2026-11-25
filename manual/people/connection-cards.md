@@ -28,7 +28,7 @@ The list shows each card's status: **New** until Churchit finds or adds the pers
 
 ## What guests can tick
 
-The boxes under **I Would Like To** come from the Connection Card Interest list: Join a group, Serve on a team, Learn about baptism, Learn about membership and Talk with a pastor at first. You can rename, delete or add your own. To start a workflow when a guest ticks one, add a Connection Card trigger with that interest to the workflow.
+The boxes under **I Would Like To** come from the Connection Card Interest list: Join a group, Serve on a team, Learn about salvation, Learn about baptism, Learn about membership and Talk with a pastor at first. You can rename, delete or add your own. To start a workflow when a guest ticks one, add a Connection Card trigger with that interest to the workflow.
 
 The **Stay in Touch** boxes, **Email Me Church News and Events** and **Text Me Church News and Events**, record the guest's yes to Church News (see [Consent](../communications/consent.md) in the Communications manual).
 
