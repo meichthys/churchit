@@ -1,0 +1,19 @@
+{#- A visitor's next steps, each a page of the site that is on (church_website/blocks.py get_church_next_steps). -#}
+{%- set steps = get_church_next_steps() -%}
+{%- if steps %}
+<div class="ch-block">
+	<div class="ch-block-head">
+		<h2 class="t-head">{{ (values.title or _("Next steps")) | e }}</h2>
+	</div>
+	<ul class="ch-grid">
+		{%- for step in steps %}
+		<li>
+			<a class="ch-card is-link" href="{{ step.url }}">
+				<span class="t-subhead">{{ step.title }}</span>
+				<span class="ch-row-text">{{ step.text }}</span>
+			</a>
+		</li>
+		{%- endfor %}
+	</ul>
+</div>
+{%- endif %}

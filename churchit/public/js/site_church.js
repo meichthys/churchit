@@ -11,15 +11,19 @@
 	churchit.with_church = function (args) {
 		return church ? Object.assign({ church: church }, args) : args;
 	};
-	if (!church) return;
-
-	frappe.ready(function () {
-		document.querySelectorAll("a[href]").forEach(function (link) {
+	// Puts the choice on each plain link under root; website_live.js runs it on each part it reads again.
+	churchit.carry_church = function (root) {
+		if (!church) return;
+		root.querySelectorAll("a[href]").forEach(function (link) {
 			if (link.origin !== window.location.origin || link.search || link.hash) return;
 			if (!link.pathname || link.pathname.startsWith("/app")) return;
 			if (link.hasAttribute("download")) return;
 			link.search = "?church=" + encodeURIComponent(church);
 		});
+	};
+
+	frappe.ready(function () {
+		churchit.carry_church(document);
 		// A web form's own `church` field needs nothing here: Frappe fills fields from the query string.
 	});
 })();

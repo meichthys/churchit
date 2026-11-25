@@ -13,6 +13,7 @@ from frappe.website.page_renderers.base_renderer import BaseRenderer
 from churchit.church_foundations.doctype.church.church import get_church
 from churchit.church_scope import is_feature_enabled
 from churchit.church_website.pages import SHIPPED_PAGES, get_switched_off_pages
+from churchit.church_website.palette import get_theme_color
 
 MANIFEST_URL = "/manifest.json"
 START_URL = "/app-start"
@@ -28,10 +29,10 @@ SHORT_NAME_LENGTH = 12
 # Long-press (phone) or right-click (computer) menu of the app icon.
 SHORTCUT_PAGES = ("calendar", "prayer-request", "give", "sermons")
 
-# --bg-color in public/scss/website.scss. The browser chrome and the splash
-# screen match the page behind the frosted navbar, not the brand accent.
-THEME_COLOR = {"light": "#eef1fb", "dark": "#0b1020"}
-# The member app's paper (--surface-base in frontend/src/style.css), for the app page's browser chrome.
+# The browser chrome and the splash screen take the paper of the website theme's palette, not its
+# accent. Without a palette (the Standard theme), the website keeps Frappe's paper and the member app
+# its own (--surface-base in frontend/src/style.css).
+STANDARD_THEME_COLOR = {"light": "#ffffff", "dark": "#171717"}
 APP_THEME_COLOR = {"light": "#fcfaf5", "dark": "#191714"}
 
 ICONS = [
@@ -48,6 +49,7 @@ ICONS = [
 
 def get_manifest():
 	name, short_name = app_names()
+	paper = get_app_theme_color()["light"]
 	return {
 		"id": APP_ID,
 		"name": name,
@@ -58,8 +60,8 @@ def get_manifest():
 		"display": "standalone",
 		# A second launch brings the open window forward instead of opening another.
 		"launch_handler": {"client_mode": ["focus-existing", "auto"]},
-		"background_color": THEME_COLOR["light"],
-		"theme_color": THEME_COLOR["light"],
+		"background_color": paper,
+		"theme_color": paper,
 		"categories": ["lifestyle", "social"],
 		"icons": ICONS,
 		"shortcuts": get_shortcuts(),
@@ -75,7 +77,17 @@ def get_shortcuts():
 	]
 
 
-def head_tags(theme_color=THEME_COLOR):
+def get_website_theme_color() -> dict[str, str]:
+	"""The paper of the website's pages in each mode."""
+	return get_theme_color() or STANDARD_THEME_COLOR
+
+
+def get_app_theme_color() -> dict[str, str]:
+	"""The paper of the member app, where the installed app opens for a member, in each mode."""
+	return get_theme_color() or APP_THEME_COLOR
+
+
+def head_tags(theme_color: dict[str, str]) -> str:
 	"""The tags every website page needs for the browser to offer an install.
 
 	theme-color holds both palettes: theme_mode.js swaps content= with the

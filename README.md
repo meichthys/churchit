@@ -80,7 +80,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
 - A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups with the people in each group, group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
-- The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes the church's color from its website theme
+- The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes its colors from the website theme
 - Household adults add their children on My Household
 - Save contact on each Member Directory entry: a contact card with only the details the entry shows
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
@@ -92,7 +92,9 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Turn the whole public website off in Church Features when the church has its own website: visitors get the login page, and members keep the member portal. A new site starts with the public website off
 - A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
-- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- One look for the website and the member app, set like a printed bulletin, in a palette the church picks: **Churchit** (the default), **Harbor**, **Meadow**, **Indigo**, **Vesper** or **Slate**, or Frappe's plain **Standard** colors. Pick one in the theme picker under Website Settings → Website Theme, preview it first, or duplicate a theme and change its colors. Each has a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- A home page that welcomes visitors: when and where the church meets, what is coming up, recent sermons with the podcast, announcements, ministries, next steps and how to visit. It is built from blocks that a church moves, retitles or hides in the desk, as with Frappe's own page blocks
+- Website pages update by themselves when staff publish or change an event, a sermon or announcements: the home page, the Calendar, the Sermons, Announcements and Register pages
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking

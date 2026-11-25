@@ -43,4 +43,4 @@ The menu is the **Menu** table in **Portal Settings** (in the Setup folder of th
 
 - **Pledges** and **Giving Statements**: what the member promised to give and has given, and the yearly statements to print (see the [Finances manual](../finances/README.md)).
 
-An open page updates by itself when something changes for the member, for example when a place opens on a waitlist, a child is checked in, or a leader answers a join request. The app uses the logo of the Church, and its accent color is the Primary Color of the website's Website Theme.
+An open page updates by itself when something changes for the member, for example when a place opens on a waitlist, a child is checked in, or a leader answers a join request. The app uses the logo of the Church and takes its colors from the website's Website Theme (see [Colors and look](website.md#colors-and-look)): the paper, the ink and the accent. The app makes the accent dark enough to read in light mode and light enough to read in dark mode.

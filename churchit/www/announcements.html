@@ -4,15 +4,17 @@
 {% block header %}<h1>{{ _("Announcements") }}</h1>{% endblock %}
 
 {% block page_content %}
-<div class="announcements">
+<div class="announcements" id="announcements" data-live="Bulletin">
 	{% for bulletin in bulletins %}
-	<section class="mb-5">
-		<h3>{{ bulletin.function_name | e }}</h3>
-		<p class="text-muted">{{ frappe.utils.formatdate(bulletin.function_date, "EEEE, MMMM d, yyyy") }}</p>
+	<section class="announcement">
+		<h2>{{ bulletin.function_name | e }}</h2>
+		<p class="t-dateline">{{ frappe.utils.formatdate(bulletin.function_date, "EEEE, MMMM d, yyyy") }}</p>
 		<div>{{ bulletin.announcements }}</div>
 	</section>
 	{% else %}
-	<p class="text-muted">{{ _("There are no announcements right now.") }}</p>
+	<div class="ch-empty">
+		<p class="t-dateline is-large">{{ _("There are no announcements right now.") }}</p>
+	</div>
 	{% endfor %}
 </div>
 {% endblock %}

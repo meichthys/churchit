@@ -1,85 +1,74 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Swatch colors that sum up a Website Theme, read from its compiled stylesheet."""
-
-import re
+"""The theme picker of Website Settings: each Website Theme with the colors of its light and dark pages."""
 
 import frappe
+from frappe import _
 
-BRAND_TOKENS = {"--ch-brand": "Brand", "--ch-brand-2": "Accent", "--ch-brand-3": "Accent"}
-FALLBACK_BRAND_TOKENS = {"--primary": "Primary"}
-SURFACE_TOKENS = {"--bg-color": "Background", "--text-color": "Text"}
+from churchit.church_website.palette import PALETTES, STANDARD_THEME, get_theme_palette, make_tokens
 
-ROOT_BLOCK = re.compile(r":root(?:\s*,\s*\[data-theme=\"?light\"?\])?\s*\{([^}]*)\}")
-DECLARATION = re.compile(r"(--[\w-]+)\s*:\s*([^;]+)")
-VARIABLE = re.compile(r"var\((--[\w-]+)\)")
-DARK_MEDIA = re.compile(r"@media[^{]*prefers-color-scheme\s*:\s*dark[^{]*\{")
+# Frappe's own colors, which the Standard theme keeps (Espresso's tokens in each mode).
+STANDARD_PREVIEW = {
+	"light": {
+		"paper": "#ffffff",
+		"ink": "#0f0f0f",
+		"muted": "#525252",
+		"rule": "#e2e2e2",
+		"accent": "#0d8ef8",
+	},
+	"dark": {
+		"paper": "#171717",
+		"ink": "#f3f3f3",
+		"muted": "#afafaf",
+		"rule": "#383838",
+		"accent": "#61afef",
+	},
+}
+# The tokens a preview shows, by the name the picker gives each.
+PREVIEW_TOKENS = {
+	"paper": "surface-base",
+	"ink": "ink-gray-9",
+	"muted": "ink-gray-6",
+	"rule": "outline-gray-2",
+	"accent": "accent",
+}
 
 
-@frappe.whitelist(methods=["GET", "POST"])
-def get_website_theme_palette(theme: str) -> list[dict]:
-	"""The swatches shown beside a theme picker, as ``[{"label", "color"}, …]``. Reads only."""
+@frappe.whitelist(methods=["GET"])
+def get_website_theme_palettes() -> list[dict]:
+	"""Each Website Theme with its light and dark colors, shipped palettes first. Reads only."""
 	frappe.has_permission("Website Settings", throw=True)
-	tokens = get_root_tokens(read_stylesheet(theme))
-	swatches = {**BRAND_TOKENS} if "--ch-brand" in tokens else {**FALLBACK_BRAND_TOKENS}
-	swatches.update(SURFACE_TOKENS)
+	themes = frappe.get_all("Website Theme", pluck="name", order_by="name asc")
+	shipped = [theme for theme in PALETTES if theme in themes]
+	others = [theme for theme in themes if theme not in PALETTES and theme != STANDARD_THEME]
 	return [
-		{"label": label, "color": color}
-		for token, label in swatches.items()
-		if (color := resolve_color(tokens, token))
+		{"name": theme, **preview}
+		for theme in [*shipped, *others, STANDARD_THEME]
+		if (preview := get_preview(theme))
 	]
 
 
-def read_stylesheet(theme):
-	"""The stylesheet frappe links for *theme*: the Standard theme uses the
-	website bundle, every other theme its own compiled file under public files."""
-	if theme == "Standard":
-		url = frappe.utils.get_assets_json()["website.bundle.css"]
-	else:
-		url = frappe.get_cached_value("Website Theme", theme, "theme_url")
-	return frappe.read_file(stylesheet_path(url)) if url else ""
+# The swatch row of the Website Settings form called this before the picker. Kept for one release
+# (to 2027) for the copies of website_settings.js that browsers still hold; then remove it.
+@frappe.whitelist(methods=["GET", "POST"])
+def get_website_theme_palette(theme: str) -> list[dict]:
+	"""The swatches of *theme*, as [{"label", "color"}, …]. Reads only."""
+	frappe.has_permission("Website Settings", throw=True)
+	light = (get_preview(theme) or {}).get("light") or {}
+	labels = {"accent": _("Accent"), "paper": _("Background"), "ink": _("Text")}
+	return [{"label": label, "color": light[key]} for key, label in labels.items() if key in light]
 
 
-def stylesheet_path(url):
-	if url.startswith("/assets/"):
-		app, _, rest = url.removeprefix("/assets/").partition("/")
-		return frappe.get_app_path(app, "public", rest)
-	return frappe.get_site_path("public", url.removeprefix("/"))
-
-
-def get_root_tokens(css):
-	"""Custom properties declared on ``:root``, later blocks winning like in CSS."""
-	tokens = {}
-	for block in ROOT_BLOCK.finditer(without_dark_media(css)):
-		tokens.update(DECLARATION.findall(block.group(1)))
-	return tokens
-
-
-def without_dark_media(css):
-	"""Drop ``@media (prefers-color-scheme: dark)`` blocks; their ``:root``
-	tokens would otherwise shadow the light palette."""
-	while match := DARK_MEDIA.search(css):
-		css = css[: match.start()] + css[block_end(css, match.end()) :]
-	return css
-
-
-def block_end(css, start):
-	depth = 1
-	for index in range(start, len(css)):
-		depth += {"{": 1, "}": -1}.get(css[index], 0)
-		if depth == 0:
-			return index + 1
-	return len(css)
-
-
-def resolve_color(tokens, token, depth=0):
-	"""Follow ``var(--other)`` chains to a literal value; None when the token is
-	missing, or is something more than a plain color, such as a gradient."""
-	value = tokens.get(token, "").strip()
-	if not value or depth > 10:
+def get_preview(theme: str) -> dict | None:
+	"""The preview colors of *theme* in each mode, or None when there is no such theme."""
+	if theme == STANDARD_THEME:
+		return STANDARD_PREVIEW
+	colors = get_theme_palette(theme)
+	if not colors:
 		return None
-	reference = VARIABLE.fullmatch(value)
-	if reference:
-		return resolve_color(tokens, reference.group(1), depth + 1)
-	return None if "(" in value and not value.startswith(("rgb", "hsl")) else value
+	tokens = make_tokens(*colors)
+	return {
+		mode: {name: tokens[mode][token] for name, token in PREVIEW_TOKENS.items()}
+		for mode in ("light", "dark")
+	}

@@ -166,6 +166,12 @@ def make_address(title, **values):
 	).insert(ignore_permissions=True)
 
 
+def forget_website_settings():
+	"""Drop the Website Settings that frappe.get_website_settings keeps for the request, so it reads them again."""
+	if hasattr(frappe.local, "website_settings"):
+		del frappe.local.website_settings
+
+
 def ensure_root_church():
 	"""Return the root Church, inserting a test one when the site has none."""
 	from churchit.church_scope import root_church

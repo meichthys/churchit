@@ -767,6 +767,54 @@ through `selected_church_name()`, stores a received Communication on the Church 
 branch's email, else Contact Us Settings `forward_to_email`, else the main church's email. On a
 multi-church site the Locations dropdown sits beside the Home link (`context._add_locations_menu`), which also sets the body class `has-locations-menu`. The navbar shows its links from 1200px (`templates/includes/navbar/navbar.html` renders Frappe's navbar as `navbar-expand-xl`), and below that the menu button's list leaves out Home. website.css also takes Home off the bar below 1280px for a signed-in visitor with that body class. A navbar rule for the collapsed menu uses `max-width: 1199.98px`, not Bootstrap's lg breakpoint.
 
+The website and the member app share one look, "Order of Service": `public/css/order_of_service.css`
+(type, rules and motion), `public/css/website.css` (the website's pages, for every Website Theme) and
+`public/css/fonts.css` (Newsreader, shipped in `public/css/fonts/newsreader`, and Frappe's Inter). Colors
+come only from Espresso's tokens (`--surface-*`, `--ink-*`, `--outline-*`, the names frappe-ui shares) and
+`--accent`. The Website Theme is the palette: its Background, Text and Primary Color are the paper, ink
+and accent, and `church_website/palette.py` works out every token from them, for the light and the dark
+mode, at the lightness of the member app's own steps. `update_website_context` puts that `<style>` in the
+head of each website page and of the member app page, with selectors that outrank the token blocks of
+Espresso and frappe-ui. The Standard theme has no palette and keeps Frappe's colors. A page uses the
+shared classes (`t-title`, `t-label`, `t-dateline`, `rule-double`, and the `ch-index`, `ch-row`,
+`ch-date` and `ch-empty` of `website.css`) and Espresso's `es-button`, never a color of its own. No app
+SCSS goes into a compiled theme: a compiled theme stays stale until someone saves it again.
+
+Each shipped palette is a user-owned Website Theme with three Color records
+(`after_install.create_website_theme`, from `palette.PALETTES`). A test keeps every shipped palette
+readable, and `test_the_churchit_palette_is_the_member_app_look` keeps the Churchit palette and
+`frontend/src/style.css` in step. A changed Color of the website's theme clears the page cache
+(`palette.clear_pages_on_color_change`). A church picks a theme in the picker under the Website Theme
+field (`theme_palette.get_website_theme_palettes`). `?theme_preview=<theme>` shows a page in another
+theme only to a user who may change Website Settings; the query string keeps it out of the page cache.
+`add_website_palettes` saves each theme compiled with the old `public/scss/website`, because migrate
+compiles only the theme in use.
+
+The home page is a Page Builder Web Page built from the church's own Web Templates
+(`church_website/web_template`: Church Welcome, Events, Sermons, Announcements, Ministries, Next
+Steps and Visit), standard records that migrate updates, so a new look reaches every site without a
+patch. A church adds, moves, retitles or hides them as it does Frappe's own blocks, on any Web Page. A
+block's template only lays out what its function in `church_website/blocks.py` (a jinja method)
+returns; each function reads the selected church's public records with `church_filters`, sets
+`frappe.local.no_cache` because those records change without a save of the page, and checks
+`get_hidden_pages` before it links to a page. `published_fields.page_builder_sources` scans a page built
+from blocks, with the whole of `blocks.py` for one of the church's blocks. `templates/home.html` is the
+last HTML home page: older patches upgrade to it, `move_home_page_to_blocks` builds the blocks from it
+when nobody changed it, and the page keeps it, so the Content Type HTML shows it again.
+
+Live updates on the website are hints, like the member app's. `church_website/live.py` sends the event
+`churchit_website` with only a doctype to Frappe's website room after the commit, from the `doc_events`
+of the doctypes that pages show, when the record is on the website before or after the change
+(`live.is_shown`). A save of a Function's attendance (`attendance.save_attendance`, one per check-in and
+sign-up) sets `flags.attendance_only` and sends none. A part of a page that shows such records has an
+`id` and `data-live="<Doctype>,<Doctype>"`: `public/js/website_live.js` reads the page again, with a
+query string so that the page cache is not used, puts the visitor's `?church=` on its links
+(`churchit.carry_church`) and swaps each part that changed, but not a part in use (a recording plays or
+it holds the focus). A page drawn by a script calls `churchit.live.on(doctypes, read_again)`, as the
+calendar does. Every visitor is in the website room, guests too, so a hint never names a record or holds
+a field. A page with no live part never connects. `test_live` keeps the hooked doctypes and the ones
+pages listen for the same.
+
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
 module owns it). Every migrate adds its switch to Church Features (`sync_page_switches`). Do not add
@@ -2314,10 +2362,13 @@ every reader of a doctype which record changed and who saved it. A test patches
 `churchit.portal.realtime.frappe.publish_realtime`.
 
 The look ("Order of Service") retunes frappe-ui's neutral tokens in one block of
-`frontend/src/style.css`; compare it with frappe-ui's tokens on each upgrade. The accent is the Website
-Theme's primary color made readable for each theme by `churchit/portal/accent.py`. Pages are built from
-the components in `frontend/src/components`. Every string goes through `__()`, including frappe-ui props,
-which default to English; `babel_extractors.csv` adds the `.ts` files to Frappe's extraction.
+`frontend/src/style.css`; compare it with frappe-ui's tokens on each upgrade. That block is the fallback
+for the Standard theme: the website theme's palette (see "Public website and portal") overrides it on the
+page, accent included. The type, rules and motion are `churchit/public/css/order_of_service.css`, which
+the website shares, and the fonts come from `public/css/fonts.css`, linked in the page's head, not from
+npm. Pages are built from the components in `frontend/src/components`. Every string goes through
+`__()`, including frappe-ui props, which default to English; `babel_extractors.csv` adds the `.ts`
+files to Frappe's extraction.
 `test_house_style` scans `.vue` and `.ts` and skips the build output. frappe-ui's `call()` and
 `createResource` send POST, which a GET-only endpoint refuses: use `useRead` and `useAction` from
 `frontend/src/api.ts`.

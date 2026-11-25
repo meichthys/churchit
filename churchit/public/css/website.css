@@ -1,11 +1,115 @@
 /* ==========================================================================
-   churchit: page layout shared by every website theme
-   Structure for the pages this app renders (home landing page, portal,
-   sermon series, missions map) plus two fixes for frappe's web template.
-   Colours come only from frappe's tokens (--primary-color, --heading-color,
-   --text-muted, --border-color, ...), so a page follows whichever Website
-   Theme is active. The Churchit theme's look lives in scss/website.scss.
+   churchit: the website's look, the member app's "Order of Service", for every
+   Website Theme. A page is set like a printed bulletin: paper and ink, serif
+   titles over a thick-thin rule, hairlines between entries instead of cards,
+   quiet buttons, and one accent color for "now" and "do this".
+
+   Colors come only from Frappe's Espresso tokens (--surface-*, --ink-*,
+   --outline-*), which frappe-ui shares, and from --accent. The Website Theme's
+   palette sets them (church_website/palette.py); the Standard theme keeps
+   Frappe's own values. The shared type and rules are in order_of_service.css,
+   the fonts in fonts.css.
    ========================================================================== */
+
+/* ---- Frappe's older tokens ---------------------------------------------------
+   Frappe's website pages and its Bootstrap parts still read these. A Website
+   Theme with colors pins some of them to fixed values, which then stay light in
+   the dark mode, so each one follows the palette again here. A primary action is
+   ink, as in the member app; the accent never fills a button. */
+:root {
+  --bg-color: var(--surface-base);
+  --fg-color: var(--surface-base);
+  --card-bg: var(--surface-base);
+  --navbar-bg: var(--surface-base);
+  --control-bg: var(--surface-gray-2);
+  --subtle-fg: var(--surface-gray-2);
+  --subtle-accent: var(--surface-gray-1);
+  --heading-color: var(--ink-gray-9);
+  --text-color: var(--ink-gray-8);
+  --text-muted: var(--ink-gray-6);
+  --text-light: var(--ink-gray-5);
+  --border-color: var(--outline-gray-1);
+  --dark-border-color: var(--outline-gray-2);
+  --primary-color: var(--ink-gray-9);
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* the menu button and theme switch icons are stroked */
+  --icon-stroke: var(--ink-gray-8);
+}
+
+body {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-base);
+}
+
+/* ---- Headings ----------------------------------------------------------------
+   Newsreader for what would be printed. h4 and below stay in Inter: they label
+   what you act on. */
+h1,
+h2,
+h3,
+.h1,
+.h2,
+.h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--ink-gray-9);
+  letter-spacing: -0.01em;
+}
+h1,
+.h1 {
+  font-variation-settings: "opsz" 72;
+}
+h2,
+.h2 {
+  font-variation-settings: "opsz" 36;
+}
+h3,
+.h3 {
+  font-variation-settings: "opsz" 24;
+  font-weight: 550;
+}
+h4,
+h5,
+h6,
+.h4,
+.h5,
+.h6 {
+  color: var(--ink-gray-9);
+}
+.page_content h2 {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  margin: 2.5rem 0 0.75rem;
+}
+.page_content h3 {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  margin: 1.5rem 0 0.5rem;
+}
+@media (min-width: 768px) {
+  .page_content h2 {
+    font-size: 1.625rem;
+  }
+}
+
+/* ---- Links in running text ---------------------------------------------------
+   Ink with a quiet underline that darkens on hover, as in the member app. */
+.page_content :is(p, li, td, dd, blockquote, figcaption) a:not(.btn, .es-button, .ch-card, .fc a, .ch-row a),
+.web-form-introduction a,
+.web-footer .footer-login-help a {
+  color: var(--ink-gray-9);
+  text-decoration: underline;
+  text-decoration-color: var(--outline-gray-4);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.page_content :is(p, li, td, dd, blockquote, figcaption) a:not(.btn, .es-button, .ch-card, .fc a, .ch-row a):hover,
+.web-form-introduction a:hover,
+.web-footer .footer-login-help a:hover {
+  text-decoration-color: currentColor;
+}
 
 /* ---- Breadcrumbs ------------------------------------------------------------
    Keep frappe's breadcrumbs (the portal's way back: form -> list -> My
@@ -18,6 +122,497 @@
 
 .web-page-content audio {
   width: 100%;
+}
+
+/* ---- The masthead -------------------------------------------------------------
+   Every page puts its title in frappe's .page-header: a serif title, then the
+   thick-thin rule of a printed bulletin. A page may put a .t-label above the
+   title and a .t-dateline under it. A page without a title draws no rule. */
+.page-header-wrapper:has(> .page-header > *) {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 2.5rem;
+  padding-top: 2rem;
+}
+.page-header-wrapper:has(> .page-header > *)::after {
+  content: "";
+  flex: 0 0 100%;
+  height: 6px;
+  margin-top: 0.75rem;
+  border-top: 2px solid var(--ink-gray-8);
+  border-bottom: 1px solid var(--ink-gray-8);
+}
+.page-header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: var(--ink-gray-9);
+}
+.page-header .t-label {
+  display: block;
+  margin: 0 0 0.75rem;
+  color: var(--ink-gray-6);
+}
+.page-header .t-dateline {
+  margin: 0.5rem 0 0;
+  color: var(--ink-gray-6);
+}
+.page-header-wrapper + .page_content {
+  margin-top: 2rem;
+}
+@media (min-width: 768px) {
+  .page-header-wrapper:has(> .page-header > *) {
+    padding-top: 3.5rem;
+  }
+  .page-header-wrapper:has(> .page-header > *)::after {
+    margin-top: 1.25rem;
+  }
+  .page-header h1 {
+    font-size: 3rem;
+  }
+}
+
+/* ---- Index rows ------------------------------------------------------------
+   A list of entries divided by hairlines, the member app's index pages: a date
+   or a mark in front, the title in Inter, its facts under it, an action at the
+   end. <ul class="ch-index"> of <li class="ch-row">; a row that opens a page is
+   an <a class="ch-row">. */
+.ch-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--outline-gray-1);
+}
+.ch-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--outline-gray-1);
+  color: var(--ink-gray-8);
+  text-align: start;
+}
+a.ch-row {
+  text-decoration: none;
+}
+/* the hover wash reaches past the text, the hairlines stay on the column */
+a.ch-row:hover {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-1);
+  box-shadow:
+    -0.75rem 0 0 var(--surface-gray-1),
+    0.75rem 0 0 var(--surface-gray-1);
+}
+.ch-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ch-row-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--ink-gray-9);
+}
+.ch-row-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ch-row-title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--outline-gray-4);
+  text-underline-offset: 0.2em;
+}
+span.ch-row-title,
+span.ch-facts {
+  display: block;
+}
+.ch-row-text {
+  margin: 0.375rem 0 0;
+  color: var(--ink-gray-7);
+}
+.ch-row-end {
+  flex: 0 0 auto;
+}
+a.ch-row::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-top: 1.5px solid var(--ink-gray-5);
+  border-right: 1.5px solid var(--ink-gray-5);
+  transform: rotate(45deg);
+  margin-inline-end: 0.25rem;
+}
+[dir="rtl"] a.ch-row::after {
+  transform: rotate(-135deg);
+}
+
+/* Short facts: one per line on phones, joined with a dot on wider screens. */
+.ch-facts {
+  margin: 0.25rem 0 0;
+  color: var(--ink-gray-6);
+}
+.ch-facts > span {
+  display: block;
+}
+@media (min-width: 768px) {
+  .ch-facts > span {
+    display: inline;
+  }
+  .ch-facts > span + span::before {
+    content: "\00B7";
+    margin-inline: 0.5rem;
+    color: var(--ink-gray-4);
+  }
+}
+
+/* A date set like the margin of a diary: the numeral, then the weekday and
+   month in spaced capitals. .is-today inks the numeral in the accent. */
+.ch-date {
+  display: flex;
+  flex: 0 0 3.5rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ch-date .t-numeral {
+  font-size: 2.25rem;
+  color: var(--ink-gray-9);
+}
+.ch-date .t-label {
+  margin-top: 0.5rem;
+  color: var(--ink-gray-7);
+}
+.ch-date .t-label + .t-label {
+  margin-top: 0.125rem;
+  color: var(--ink-gray-6);
+}
+.ch-date.is-today .t-numeral {
+  color: var(--accent);
+}
+.ch-date.is-large {
+  flex-basis: 5rem;
+}
+.ch-date.is-large .t-numeral {
+  font-size: 3.5rem;
+}
+
+/* A blank space in the bulletin: a short rule, one quiet line, one plain sentence. */
+.ch-empty {
+  padding: 2.5rem 1rem;
+  border-top: 1px solid var(--outline-gray-1);
+  text-align: center;
+}
+.ch-empty::before {
+  content: "";
+  display: block;
+  width: 2rem;
+  margin: 0 auto 1.25rem;
+  border-top: 1px solid var(--ink-gray-3);
+}
+.ch-empty .t-dateline {
+  margin: 0;
+  color: var(--ink-gray-8);
+}
+.ch-empty p:not(.t-dateline) {
+  max-width: 30rem;
+  margin: 0.5rem auto 0;
+  color: var(--ink-gray-6);
+}
+
+/* The link that ends a section: "See the full calendar". */
+.ch-more {
+  margin: 1rem 0 0;
+}
+.ch-more a {
+  color: var(--ink-gray-9);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--outline-gray-4);
+  text-underline-offset: 0.2em;
+}
+.ch-more a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* A row of actions under a masthead or a section. */
+.ch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---- Announcements ---------------------------------------------------------- */
+.announcement + .announcement {
+  margin-top: 2.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--outline-gray-1);
+}
+.announcement > h2 {
+  margin-top: 1rem;
+}
+.announcement > .t-dateline {
+  color: var(--ink-gray-6);
+}
+
+/* ---- Cards: entries on the page, not boxes ------------------------------------
+   The shipped Web Pages, and many a church's own, lay entries out as Bootstrap
+   cards. Each becomes an entry under a hairline, like an item in a printed
+   programme; its image keeps a soft corner. */
+.page_content .card {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--outline-gray-2);
+  border-radius: 0;
+  box-shadow: none;
+}
+.page_content .card-header {
+  padding: 1rem 0 0.25rem;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 24;
+  font-size: 1.25rem;
+  font-weight: 550;
+  line-height: 1.25;
+  color: var(--ink-gray-9);
+}
+.page_content .card-header strong {
+  font-weight: inherit;
+}
+.page_content .card-header a,
+.page_content .card-title a {
+  color: inherit;
+}
+.page_content .card-title {
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 24;
+  font-size: 1.25rem;
+  font-weight: 550;
+  line-height: 1.25;
+  color: var(--ink-gray-9);
+}
+.page_content .card-body {
+  padding: 0.5rem 0 1rem;
+}
+.page_content .card-footer {
+  padding: 0 0 1rem;
+  background: transparent;
+  border: 0;
+}
+.page_content .card-img-top {
+  margin-top: 1rem;
+  border-radius: var(--radius-4, 8px);
+}
+
+/* ---- Lists and tables -------------------------------------------------------- */
+.page_content .list-group {
+  border-top: 1px solid var(--outline-gray-1);
+  border-radius: 0;
+}
+.page_content .list-group-item {
+  margin: 0;
+  padding: 1rem 0.75rem;
+  color: var(--ink-gray-8);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--outline-gray-1);
+  border-radius: 0;
+}
+.page_content .list-group-item-action:hover,
+.page_content .list-group-item-action:focus {
+  color: var(--ink-gray-9);
+  background-color: var(--surface-gray-1);
+}
+.table {
+  color: var(--ink-gray-8);
+}
+.table th,
+.table td {
+  border-color: var(--outline-gray-1);
+}
+.table thead th {
+  border-bottom: 1px solid var(--outline-gray-3);
+  font-weight: 600;
+  color: var(--ink-gray-7);
+}
+hr {
+  border-top-color: var(--outline-gray-1);
+}
+
+/* ---- Buttons ----------------------------------------------------------------
+   Bootstrap buttons look like frappe-ui's: ink for the one main action, quiet
+   gray for the rest. A Website Theme compiles bootstrap's buttons in its
+   Primary Color, which here is the accent, so each state is set again. */
+.btn {
+  border-radius: var(--radius-4, 8px);
+  font-weight: 500;
+  box-shadow: none;
+}
+.btn-lg {
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-5, 10px);
+  font-size: 1rem;
+}
+.btn.btn-primary,
+.btn.btn-primary:focus {
+  color: var(--ink-base);
+  background-color: var(--surface-gray-10);
+  border-color: transparent;
+}
+.btn.btn-primary:hover,
+.btn.btn-primary:not(:disabled):active {
+  color: var(--ink-base) !important;
+  background-color: var(--surface-gray-9) !important;
+  border-color: transparent;
+}
+.btn.btn-default,
+.btn.btn-secondary,
+.btn.btn-light,
+.btn.btn-outline-secondary {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-2);
+  border-color: transparent;
+}
+.btn.btn-default:hover,
+.btn.btn-secondary:hover,
+.btn.btn-light:hover,
+.btn.btn-outline-secondary:hover {
+  color: var(--ink-gray-9);
+  background-color: var(--surface-gray-3);
+}
+.btn:focus-visible,
+.es-button:focus-visible {
+  outline: 2px solid var(--outline-gray-4);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+a.es-button {
+  text-decoration: none;
+}
+
+/* ---- Badges and notes ---------------------------------------------------------- */
+.badge {
+  padding: 0.25em 0.6em;
+  border-radius: 999px;
+  font-weight: 500;
+  color: var(--ink-gray-7);
+  background-color: var(--surface-gray-2);
+}
+.badge-success {
+  color: var(--ink-green-7);
+  background-color: var(--surface-green-2);
+}
+.badge-warning {
+  color: var(--ink-amber-7);
+  background-color: var(--surface-amber-2);
+}
+.badge-danger {
+  color: var(--ink-red-7);
+  background-color: var(--surface-red-2);
+}
+.badge-primary,
+.badge-info {
+  color: var(--ink-blue-7);
+  background-color: var(--surface-blue-2);
+}
+.alert {
+  border: 0;
+  border-radius: var(--radius-5, 10px);
+}
+/* an information note is a quiet aside on the paper, not a blue box */
+.alert.alert-info {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-2);
+}
+.alert.alert-info .alert-link {
+  color: var(--ink-gray-9);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ---- Inputs ---------------------------------------------------------------- */
+.page_content .form-control,
+.page_content .custom-select {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-4, 8px);
+}
+.page_content .form-control:hover,
+.page_content .custom-select:hover {
+  background-color: var(--surface-gray-3);
+}
+.page_content .form-control:focus,
+.page_content .custom-select:focus {
+  color: var(--ink-gray-9);
+  background-color: var(--surface-elevation-1);
+  border-color: var(--outline-gray-4);
+  box-shadow: 0 0 0 2px var(--outline-gray-2);
+}
+.page_content .form-control::placeholder {
+  color: var(--ink-gray-4);
+}
+.page_content label,
+.page_content .control-label {
+  color: var(--ink-gray-7);
+}
+
+/* ---- Navbar --------------------------------------------------------------------
+   The running head of the site: the church's name set in the serif on the
+   sidebar paper of the member app, a hairline under it, and the page you are
+   on underlined in the accent. The footer is set on the same paper. */
+.navbar.navbar-light {
+  background: var(--surface-sidebar);
+  border-bottom: 1px solid var(--outline-gray-1);
+}
+.navbar-light .navbar-brand,
+.navbar-light .navbar-brand:hover,
+.navbar-light .navbar-brand:focus {
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 24;
+  font-size: 1.3125rem;
+  font-weight: 550;
+  letter-spacing: -0.005em;
+  color: var(--ink-gray-9);
+}
+.navbar-light .navbar-nav .nav-link {
+  color: var(--ink-gray-7);
+}
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link:focus,
+.navbar-light .navbar-nav .active > .nav-link,
+.navbar-light .navbar-nav .show > .nav-link {
+  color: var(--ink-gray-9);
+}
+.navbar .navbar-nav .nav-item.active {
+  border-bottom: 2px solid var(--accent);
+}
+.navbar-light .navbar-toggler {
+  color: var(--ink-gray-8);
+  border-color: transparent;
+}
+.dropdown-menu {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-elevation-2, var(--surface-base));
+  border: 1px solid var(--outline-gray-2);
+  border-radius: var(--radius-5, 10px);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.25);
+}
+.dropdown-item {
+  color: var(--ink-gray-8);
+}
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item.active {
+  color: var(--ink-gray-9);
+  background-color: var(--surface-gray-2);
 }
 
 /* ---- Navbar menu button -----------------------------------------------------
@@ -78,6 +673,13 @@
     .nav-item:has(> .nav-link:is([href="/home"], [href^="/home?"], [href="/"], [href^="/?"])) {
     display: none;
   }
+  /* the open menu lists the links down the page, so no underline marks the current one */
+  .navbar .navbar-nav .nav-item.active {
+    border-bottom: 0;
+  }
+  .navbar .navbar-nav .nav-item.active > .nav-link {
+    font-weight: 600;
+  }
 }
 @media (max-width: 1279.98px) {
   body.has-locations-menu[frappe-session-status="logged-in"]
@@ -131,17 +733,17 @@
   top: 1rem;
   z-index: 2000;
   padding: 0.5rem 1rem;
-  background: var(--card-bg);
+  background: var(--surface-elevation-1);
 }
 
 /* ---- Muted text -------------------------------------------------------------
    bootstrap's .text-muted and frappe's help text keep their own grays, which
-   fail AA contrast on the page and card grounds; both follow the theme token. */
+   fail AA contrast on the page; both follow the palette. */
 body .text-muted,
 body .text-extra-muted,
 body .help-box,
 body .grid-empty {
-  color: var(--text-muted) !important;
+  color: var(--ink-gray-6) !important;
 }
 
 /* ---- Space before the footer ------------------------------------------------
@@ -149,23 +751,25 @@ body .grid-empty {
    whatever margin the page's last element happened to have: none on the
    home page. Give every page the same one. */
 .page-content-wrapper > main {
-  padding-bottom: 3rem;
+  padding-bottom: 4rem;
 }
 
 /* ---- Footer ---------------------------------------------------------------
    templates/includes/footer/footer.html: church name and founding year on
    the left, copyright in the middle, phone and address on the right, then
-   the footer links centred underneath. Replaces frappe's stacked logo /
-   link / info blocks, which sit in 3rem of padding and a 140px minimum
-   height even when empty. That minimum was also what kept frappe's flex
-   body from squashing the footer under a tall page. */
+   the footer links centred underneath, all under a hairline on the paper.
+   Replaces frappe's stacked logo / link / info blocks, which sit in 3rem of
+   padding and a 140px minimum height even when empty. That minimum was also
+   what kept frappe's flex body from squashing the footer under a tall page. */
 .web-footer {
   padding: 2rem 0 1.5rem;
   min-height: 0;
   flex-shrink: 0;
   font-size: var(--text-sm);
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--ink-gray-6);
+  background: var(--surface-sidebar);
+  border-top: 1px solid var(--outline-gray-1);
 }
 .web-footer .footer-top {
   display: grid;
@@ -186,9 +790,21 @@ body .grid-empty {
   text-align: right;
 }
 .web-footer .footer-church-name {
-  font-size: var(--text-base);
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 24;
+  font-size: 1.125rem;
+  font-weight: 550;
+  line-height: 1.3;
+  color: var(--ink-gray-9);
+}
+.web-footer .footer-established {
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 10;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--heading-color);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-gray-6);
 }
 .web-footer .footer-links {
   display: flex;
@@ -205,10 +821,10 @@ body .grid-empty {
   max-width: 36rem;
   margin: 0 auto 1.75rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--outline-gray-1);
   text-align: center;
   font-size: var(--text-base);
-  color: var(--text-color);
+  color: var(--ink-gray-8);
 }
 .web-footer .footer-login-help p {
   margin-bottom: 0.5rem;
@@ -218,19 +834,19 @@ body .grid-empty {
 }
 .web-footer .footer-login-help a {
   font-weight: 500;
-  text-decoration: underline;
 }
 .web-footer .footer-top a,
 .web-footer .footer-link {
-  color: var(--text-muted);
+  color: var(--ink-gray-7);
 }
 .web-footer .footer-link {
   font-weight: 500;
 }
 .web-footer .footer-top a:hover,
 .web-footer .footer-link:hover {
-  color: var(--primary-color);
-  text-decoration: none;
+  color: var(--ink-gray-9);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 /* frappe's .container has no side padding from 576px to 991px, so the footer
    touched the edge of the screen at 768px. Up to 992px, use the gutter that
@@ -256,12 +872,10 @@ body .grid-empty {
     order: 1;
   }
 }
-/* ---- Light/dark switch and dark mode ----------------------------------------
-   theme_mode.js sets data-theme on <html>. frappe's website bundle flips only
-   its Espresso surface/ink tokens for that attribute and leaves bootstrap's
-   compiled colours alone, so this maps the tokens the layouts and frappe's own
-   pages read onto that dark palette and re-skins the bootstrap parts the site
-   uses. Moon means "go dark", sun means "go light". */
+
+/* ---- Light/dark switch --------------------------------------------------------
+   theme_mode.js sets data-theme on <html>, which flips the Espresso tokens the
+   whole page reads. Moon means "go dark", sun means "go light". */
 .theme-switch {
   display: inline-flex;
   align-items: center;
@@ -278,145 +892,31 @@ body .grid-empty {
   display: inline;
 }
 
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg-color: var(--surface-base);
-  --fg-color: var(--surface-elevation-1);
-  --card-bg: var(--surface-elevation-1);
-  --subtle-fg: var(--surface-gray-1);
-  --subtle-accent: var(--surface-gray-2);
-  --control-bg: var(--surface-gray-1);
-  --heading-color: var(--ink-gray-9);
-  --text-color: var(--ink-gray-8);
-  --text-muted: var(--ink-gray-7);
-  --text-light: var(--ink-gray-6);
-  --border-color: var(--outline-gray-2);
-  --dark-border-color: var(--outline-gray-3);
-  --bg-light-gray: var(--subtle-fg);
-  --primary-color: var(--ink-gray-9);
-  /* the menu button and theme switch icons are stroked; frappe leaves this at
-     its light-mode gray, invisible on the dark navbar */
-  --icon-stroke: var(--ink-gray-8);
-}
-[data-theme="dark"] body {
-  color: var(--text-color);
-  background-color: var(--bg-color);
-}
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] h4,
-[data-theme="dark"] h5,
-[data-theme="dark"] h6,
-[data-theme="dark"] .series-sermon-link,
-[data-theme="dark"] .series-back,
-/* map controls keep Leaflet's own colors on their white boxes */
-[data-theme="dark"] a:not(.leaflet-container a),
-[data-theme="dark"] a:not(.leaflet-container a):hover {
-  color: var(--heading-color);
-}
-[data-theme="dark"] hr {
-  border-top-color: var(--border-color);
-}
-
-/* navbar and footer */
-[data-theme="dark"] .navbar-light {
-  background: var(--bg-color);
-  border-bottom-color: var(--border-color);
-}
-[data-theme="dark"] .navbar-light .navbar-brand,
-[data-theme="dark"] .navbar-light .navbar-brand:hover,
-[data-theme="dark"] .navbar-light .navbar-nav .nav-link:hover,
-[data-theme="dark"] .navbar-light .navbar-nav .nav-link:focus,
-[data-theme="dark"] .navbar-light .navbar-nav .active > .nav-link {
-  color: var(--heading-color);
-}
-[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
-[data-theme="dark"] .navbar-light .navbar-toggler,
-[data-theme="dark"] .web-footer,
-[data-theme="dark"] .web-footer a {
-  color: var(--text-muted);
-}
-[data-theme="dark"] .web-footer {
-  border-top-color: var(--border-color);
-}
-
-/* surfaces, menus, controls */
-[data-theme="dark"] .card,
-[data-theme="dark"] .list-group-item,
+/* bootstrap's compiled colors that the dark page still needs to see */
 [data-theme="dark"] .modal-content,
-[data-theme="dark"] .dropdown-menu {
-  color: var(--text-color);
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-}
-[data-theme="dark"] .card-header,
-[data-theme="dark"] .card-footer {
-  background-color: var(--subtle-fg);
-  border-color: var(--border-color);
-}
-[data-theme="dark"] .dropdown-item {
-  color: var(--text-color);
-}
-[data-theme="dark"] .dropdown-item:hover,
-[data-theme="dark"] .dropdown-item:focus {
-  color: var(--heading-color);
-  background-color: var(--subtle-fg);
-}
-[data-theme="dark"] .form-control,
-[data-theme="dark"] .custom-select,
+[data-theme="dark"] .card-footer,
 [data-theme="dark"] .input-group-text {
-  color: var(--text-color);
-  background-color: var(--control-bg);
-  border-color: var(--border-color);
+  color: var(--ink-gray-8);
+  background-color: var(--surface-elevation-1);
+  border-color: var(--outline-gray-2);
 }
-[data-theme="dark"] .form-control:focus {
-  color: var(--heading-color);
-  background-color: var(--subtle-accent);
-  border-color: var(--border-color);
-}
-[data-theme="dark"] .btn-primary {
-  color: var(--surface-base);
-  background-color: var(--ink-gray-9);
-  border-color: var(--ink-gray-9);
-}
-[data-theme="dark"] .btn-secondary,
-[data-theme="dark"] .btn-default {
-  color: var(--text-color);
-  background-color: var(--surface-gray-3);
-  border-color: var(--surface-gray-3);
-}
-[data-theme="dark"] .table {
-  color: var(--text-color);
-}
-[data-theme="dark"] .table th,
-[data-theme="dark"] .table td {
-  border-color: var(--border-color);
-}
-[data-theme="dark"] .portal-row a {
-  color: var(--text-color);
-}
-[data-theme="dark"] .sidebar-item a.active {
-  color: var(--heading-color);
-  background-color: var(--subtle-accent);
+[data-theme="dark"] a:not(.leaflet-container a, .btn, .es-button):hover {
+  color: var(--ink-gray-9);
 }
 
 /* ---- Switches ---------------------------------------------------------------
    bootstrap fills an "on" switch with frappe's compiled near-black, which
-   disappears on a dark page. Fill it with the theme's primary colour; in dark
-   mode that is light, so the knob takes the page colour. */
+   disappears on a dark page. Fill it with ink; in dark mode that is light, so
+   the knob takes the page color. */
 .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: var(--ink-gray-9);
+  border-color: var(--ink-gray-9);
 }
 .custom-switch .custom-control-input:focus-visible ~ .custom-control-label::before {
-  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.45);
-}
-[data-theme="dark"] .custom-switch .custom-control-input:focus-visible ~ .custom-control-label::before {
-  box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.6);
+  box-shadow: 0 0 0 3px var(--outline-gray-3);
 }
 [data-theme="dark"] .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-  background-color: var(--bg-color);
+  background-color: var(--surface-base);
 }
 
 /* ---- Select arrows ----------------------------------------------------------
@@ -425,7 +925,7 @@ body .grid-empty {
    pickers on the www pages looked like plain text boxes. */
 .page_content select.form-control:not(.frappe-control select) {
   padding-right: 1.75rem;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M3 4.5l3 3 3-3'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%237c7c7c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M3 4.5l3 3 3-3'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 0.6rem center;
   background-size: 0.75rem;
@@ -443,7 +943,14 @@ body[data-path$="/new"] #not-saved-badge {
   padding: 0;
   margin-bottom: 0.75rem;
   font-size: var(--text-sm, 13px);
-  color: var(--text-muted);
+  color: var(--ink-gray-6);
+}
+.web-form-wrapper .section-head {
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 24;
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: var(--ink-gray-9);
 }
 
 /* ---- Headings on a phone ----------------------------------------------------
@@ -462,7 +969,7 @@ body[data-path$="/new"] #not-saved-badge {
    can move through the page by headings. Each keeps the look of the heading it
    was: .my-account-header that of an h3, .my-account-section that of an h4,
    and bootstrap's .h5 and .h6 their own, without the top margin and letter
-   spacing that frappe and the theme give the larger headings. */
+   spacing that frappe gives the larger headings. */
 h1.my-account-header,
 h2.my-account-section {
   font-size: 1.2rem;
@@ -497,6 +1004,8 @@ h2.h5,
 h3.h5,
 h2.h6 {
   margin-top: 0;
+  font-family: inherit;
+  font-variation-settings: normal;
   letter-spacing: inherit;
 }
 
@@ -520,16 +1029,284 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--primary-color);
+  background: var(--surface-gray-3);
   font-size: 0.95rem;
 }
 
-/* ---- Home landing page ------------------------------------------------------
-   The home Web Page is a landing page rather than a card grid: a two-column
-   hero, a stats strip, and panels for the latest sermon and what is coming
-   up. The panels reuse .card, so the active theme's card look applies. The
-   Web Page record sets text-align: Center on the article, so blocks that read
-   left declare it. */
+/* ---- The church's blocks ------------------------------------------------------
+   church_website/web_template: the blocks a Page Builder Web Page, such as the
+   home page, is built from. Frappe draws each in its own section and container;
+   these set what is inside in the Order of Service look, closer together than
+   Frappe's own sections. */
+section[data-section-template^="Church "].section-padding-top {
+  padding-top: 2.25rem;
+}
+section[data-section-template^="Church "].section-padding-bottom {
+  padding-bottom: 1rem;
+}
+@media (min-width: 768px) {
+  section[data-section-template^="Church "].section-padding-top {
+    padding-top: 3rem;
+  }
+}
+.ch-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 0.75rem;
+}
+.ch-block-head h2 {
+  margin: 0;
+}
+.ch-block-head .ch-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+}
+
+/* Welcome: the church's name as the masthead, when it meets as a printed programme. */
+.ch-welcome {
+  display: grid;
+  gap: 1.75rem 3rem;
+  padding-top: clamp(0.5rem, 3vw, 2rem);
+}
+.ch-welcome > .rule-double,
+.ch-welcome-join,
+.ch-welcome-verse {
+  grid-column: 1 / -1;
+}
+.ch-welcome .t-label {
+  margin: 0;
+  color: var(--ink-gray-6);
+}
+.ch-welcome-name {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+  line-height: 1;
+}
+.ch-welcome-introduction {
+  max-width: 40rem;
+  margin: 0.75rem 0 0;
+  color: var(--ink-gray-7);
+}
+.ch-welcome .ch-actions {
+  margin-top: 1.75rem;
+}
+.ch-welcome-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  align-self: center;
+  border-radius: var(--radius-5, 10px);
+}
+@media (min-width: 992px) {
+  .ch-welcome.has-image {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+.ch-welcome-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  font-weight: 500;
+  color: var(--ink-gray-9);
+  background: var(--accent-wash-strong);
+}
+.ch-welcome-live a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.ch-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ch-live 1.6s ease-in-out infinite;
+}
+@keyframes ch-live {
+  50% {
+    opacity: 0.3;
+  }
+}
+.ch-welcome-gatherings {
+  max-width: 44rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ch-welcome-gatherings li {
+  display: flex;
+  align-items: baseline;
+  padding: 0.375rem 0;
+}
+.ch-welcome-gatherings .t-subhead {
+  color: var(--ink-gray-9);
+}
+.ch-welcome-when {
+  color: var(--ink-gray-7);
+  text-align: end;
+}
+.ch-welcome-where {
+  margin: 0.75rem 0 0;
+  color: var(--ink-gray-7);
+}
+.ch-welcome-where a,
+.ch-visit a:not(.es-button) {
+  color: var(--ink-gray-9);
+  text-decoration: underline;
+  text-decoration-color: var(--outline-gray-4);
+  text-underline-offset: 0.2em;
+}
+.ch-welcome-verse {
+  max-width: 44rem;
+  margin: 0;
+}
+.ch-welcome-verse blockquote {
+  margin: 0 0 0.5rem;
+  color: var(--ink-gray-8);
+}
+.ch-welcome-verse figcaption {
+  color: var(--ink-gray-6);
+}
+@media (max-width: 575.98px) {
+  .ch-welcome-gatherings li {
+    flex-wrap: wrap;
+  }
+  .ch-welcome-gatherings .leader {
+    display: none;
+  }
+  .ch-welcome-when {
+    flex-basis: 100%;
+    text-align: start;
+  }
+}
+
+/* Sermons: the newest in full beside the ones before it. */
+.ch-sermons {
+  display: grid;
+  gap: 1rem 3rem;
+}
+@media (min-width: 992px) {
+  .ch-sermons:has(> .ch-index) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+.ch-sermon-latest {
+  padding-top: 1rem;
+  border-top: 1px solid var(--outline-gray-1);
+}
+.ch-sermon-latest .t-label {
+  margin: 0;
+  color: var(--accent);
+}
+.ch-sermon-latest .t-subhead {
+  margin: 0.375rem 0 0;
+}
+.ch-sermon-latest .t-subhead a {
+  color: var(--ink-gray-9);
+}
+.ch-sermon-latest audio {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Grids of entries: ministries and next steps. */
+.ch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ch-card {
+  display: block;
+  height: 100%;
+  padding: 1rem 0 1.25rem;
+  border-top: 1px solid var(--outline-gray-2);
+  color: var(--ink-gray-8);
+}
+.ch-card .t-subhead {
+  display: block;
+  margin: 0;
+  color: var(--ink-gray-9);
+}
+.ch-card .ch-row-text {
+  display: block;
+}
+a.ch-card {
+  text-decoration: none;
+}
+a.ch-card:hover {
+  color: var(--ink-gray-8);
+  background-color: var(--surface-gray-1);
+  box-shadow:
+    -0.75rem 0 0 var(--surface-gray-1),
+    0.75rem 0 0 var(--surface-gray-1);
+}
+a.ch-card .t-subhead::after {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-inline-start: 0.6rem;
+  vertical-align: 0.15em;
+  border-top: 1.5px solid var(--ink-gray-5);
+  border-right: 1.5px solid var(--ink-gray-5);
+  transform: rotate(45deg);
+}
+
+/* Visit: about the church beside how to reach it. */
+.ch-visit {
+  display: grid;
+  gap: 1.5rem 3rem;
+}
+@media (min-width: 992px) {
+  .ch-visit {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+}
+.ch-visit-about h2 {
+  margin: 0 0 0.75rem;
+}
+.ch-visit-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: var(--radius-5, 10px);
+  background: var(--surface-elevation-1);
+}
+.ch-visit-details dt {
+  margin: 0;
+  padding-top: 0.2rem;
+  color: var(--ink-gray-6);
+}
+.ch-visit-details dd {
+  margin: 0;
+  color: var(--ink-gray-8);
+}
+.ch-visit-details .ch-visit-action {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}
+
+/* ---- Home page as it shipped before -----------------------------------------
+   A church that edited the home page keeps its page, and with it the markup
+   of the earlier home page: a two-column hero, a stats strip, and card panels
+   for the latest sermon and what is coming up. These rules keep that page
+   laid out. The Web Page record sets text-align: Center on the article, so
+   blocks that read left declare it. */
 #home .home-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -750,13 +1527,24 @@ body[frappe-session-status="logged-in"] .btn-login-area {
    show_sidebar. frappe gives it a col-sm-2 column and hides it below the
    desktop breakpoint. Below that breakpoint it is a row of links that scrolls
    sideways, the one portal menu on a phone (see "Phone menu"); above it, a
-   fixed-width column. */
+   fixed-width column. The current page is the page's own paper with a hairline. */
+.web-sidebar .sidebar-item a {
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-4, 8px);
+  color: var(--ink-gray-7);
+}
 .web-sidebar .sidebar-item a:hover {
-  /* frappe's hover is a compiled near-black, unreadable in dark mode */
-  color: var(--heading-color);
+  color: var(--ink-gray-9);
+  background: var(--surface-gray-2);
+}
+.web-sidebar .sidebar-item a.active {
+  color: var(--ink-gray-9);
+  font-weight: 500;
+  background: var(--surface-base);
+  box-shadow: inset 0 0 0 1px var(--outline-gray-2);
 }
 .web-sidebar .sidebar-items > ul + ul {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--outline-gray-1);
   margin-top: 0.5rem;
   padding-top: 0.5rem;
 }
@@ -834,7 +1622,7 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   }
   .web-sidebar .sidebar-items > ul + ul {
     border-top: 0;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--outline-gray-1);
     margin: 0 0 0 0.25rem;
     padding: 0 0 0 0.25rem;
   }
@@ -853,19 +1641,24 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   }
 }
 
-/* ---- Sermon series cards (sermons template) ------------------------------- */
+/* ---- Sermon series (sermons template) ----------------------------------------- */
 .series-tag {
-  font-size: 0.7em;
-  font-weight: 700;
-  color: var(--bg-color);
-  background: var(--primary-color);
-  border-radius: 999px;
-  padding: 2px 10px;
+  font-family: var(--font-serif);
+  font-variation-settings: "opsz" 10;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   white-space: nowrap;
+  color: var(--accent);
 }
-.series-sermon-list li { border-bottom: 1px solid var(--border-color); }
-.series-sermon-list li:last-child { border-bottom: none; }
-/* buttons that open and close a sermon in a series card, drawn as links */
+.series-sermon-list li {
+  border-bottom: 1px solid var(--outline-gray-1);
+}
+.series-sermon-list li:last-child {
+  border-bottom: none;
+}
+/* buttons that open and close a sermon in a series, drawn as links */
 .series-sermon-link {
   display: block;
   width: 100%;
@@ -874,15 +1667,14 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   background: none;
   text-align: inherit;
   letter-spacing: inherit;
-  color: var(--primary-color);
-  font-weight: 600;
+  color: var(--ink-gray-9);
+  font-weight: 500;
   text-decoration: none;
-  border-radius: 8px;
-  transition: background 0.15s ease;
+  border-radius: var(--radius-4, 8px);
 }
 .series-sermon-link:hover {
-  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
-  color: var(--primary-color);
+  background: var(--surface-gray-1);
+  color: var(--ink-gray-9);
   text-decoration: none;
 }
 .series-back {
@@ -892,16 +1684,19 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   border: 0;
   background: none;
   letter-spacing: inherit;
-  color: var(--primary-color);
+  color: var(--ink-gray-7);
   text-decoration: none;
+}
+.series-back:hover {
+  color: var(--ink-gray-9);
 }
 
 /* ---- Missions map (missions.html) ----------------------------------------- */
 .missions-map-card {
   margin-bottom: 2rem;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-5, 10px);
   overflow: hidden;
-  box-shadow: var(--card-shadow);
+  border: 1px solid var(--outline-gray-1);
 }
 .missions-map {
   height: 420px;
@@ -927,11 +1722,11 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 .missions-map-popup-title {
   font-weight: 600;
-  color: var(--heading-color);
+  color: var(--ink-gray-9);
   margin-bottom: 2px;
 }
 .missions-map-popup-country {
-  color: var(--text-muted);
+  color: var(--ink-gray-6);
   font-size: 0.85em;
 }
 .missions-map-notice {
@@ -942,22 +1737,8 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   display: inline-block;
   padding: 4px 14px;
   border-radius: 999px;
-  background: var(--subtle-fg);
-  color: var(--text-muted);
+  background: var(--surface-gray-2);
+  color: var(--ink-gray-6);
   font-size: 0.8em;
   font-weight: 600;
-}
-
-/* ---- Reduced motion ---------------------------------------------------------
-   The Churchit theme lifts its buttons on hover. The theme's rules are more
-   specific, so these use !important. */
-@media (prefers-reduced-motion: reduce) {
-  .page_content .btn-primary,
-  #home .home-btn-ghost {
-    transition: none !important;
-  }
-  .page_content .btn-primary:hover,
-  #home .home-btn-ghost:hover {
-    transform: none !important;
-  }
 }

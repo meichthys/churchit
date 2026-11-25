@@ -91,11 +91,17 @@ app_include_js = [
 ]
 
 # include js, css files in header of web template
-# Page layout shared by every website theme. The Churchit theme's own look is
-# public/scss/website.scss, which frappe compiles into each Website Theme.
-web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
+# The website's look for every Website Theme ("Order of Service", the member app's look); the theme's
+# palette colors it (church_website/palette.py).
+web_include_css = [
+	"/assets/churchit/css/fonts.css",
+	"/assets/churchit/css/order_of_service.css",
+	"/assets/churchit/css/website.css",
+	"/assets/churchit/css/pwa.css",
+]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
+	"/assets/churchit/js/website_live.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
 	"/assets/churchit/js/pwa.js",
@@ -243,6 +249,14 @@ jinja = {
 		"churchit.church_people.household.salutation",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		# What the church's Web Template blocks show (church_website/web_template).
+		"churchit.church_website.blocks.get_church_announcements",
+		"churchit.church_website.blocks.get_church_events",
+		"churchit.church_website.blocks.get_church_ministries",
+		"churchit.church_website.blocks.get_church_next_steps",
+		"churchit.church_website.blocks.get_church_sermons",
+		"churchit.church_website.blocks.get_church_visit",
+		"churchit.church_website.blocks.get_church_welcome",
 		"churchit.church_website.pages.get_switched_off_pages",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
@@ -411,8 +425,10 @@ churchit_people_events = {
 # anonymizes the member's Person, a church's record is never shared (or assigned,
 # which shares it) with a user outside that church, a bounce report that reaches
 # the inbox marks the address it names, MCP stays closed while AI is off, a new AI app
-# signs in only people with an AI role, and System Managers hear when a person first
-# connects an AI app.
+# signs in only people with an AI role, System Managers hear when a person first
+# connects an AI app, and open website pages hear when a record they show changes.
+# Frappe reads every public name in this module as a hook, so the shared path is private.
+_live_website_hook = "churchit.church_website.live.notify_change"
 doc_events = {
 	"*": {
 		# Only someone across every church changes a lookup that every church picks from (church_access.GLOBAL_LOOKUPS).
@@ -537,6 +553,14 @@ doc_events = {
 		"on_update": "churchit.church_website.published_fields.clear_published_field_cache",
 		"on_trash": "churchit.church_website.published_fields.clear_published_field_cache",
 	},
+	# Open website pages read themselves again when a record they show changes (church_website/live.py).
+	"Function": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon Series": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Bulletin": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Ministry": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	# A changed color of the website's theme reaches pages that Frappe keeps in its page cache.
+	"Color": {"on_update": "churchit.church_website.palette.clear_pages_on_color_change"},
 }
 
 # Desk: whether multi-church is on and whether the user may include branches, and the tags

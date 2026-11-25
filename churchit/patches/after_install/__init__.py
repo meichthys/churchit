@@ -56,7 +56,9 @@ from churchit.church_prayers.doctype.prayer_request.prayer_request import (
 )
 from churchit.church_summary.ai import create_note_type
 from churchit.church_summary.home import add_return_to_framework_dock, land_desk_users_on_summary
+from churchit.church_website.blocks import set_home_blocks
 from churchit.church_website.pages import sync_page_switches
+from churchit.church_website.palette import COLOR_ROLES, PALETTES, THEME_COLOR_FIELDS
 
 # We define this here so we can import it from sample_data
 DEFAULT_CHURCH_NAME = "My Church"
@@ -684,7 +686,9 @@ def _create_web_pages():
 	"""Create the default church website pages.
 
 	HTML content is stored in separate template files under templates/ so it
-	can be edited without touching this Python script.
+	can be edited without touching this Python script. The home page is built
+	from the church's Web Template blocks instead (church_website/blocks.py); it
+	keeps the last HTML home page, which the Content Type HTML shows again.
 	"""
 	pages = [
 		{
@@ -721,7 +725,7 @@ def _create_web_pages():
 	for page in pages:
 		if frappe.db.exists("Web Page", page["name"]):
 			continue
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "Web Page",
 				"name": page["name"],
@@ -737,7 +741,10 @@ def _create_web_pages():
 				"css": ".page-header { text-align: center; }",
 				"main_section_html": read_template(page["template_file"]),
 			}
-		).insert(ignore_permissions=True)
+		)
+		if page["name"] == "home":
+			set_home_blocks(doc)
+		doc.insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -785,15 +792,39 @@ def _setup_contact_us_settings():
 
 
 def create_website_theme():
-	"""Create the Churchit Website Theme.
+	"""Create a Website Theme for each palette in church_website/palette.py, Churchit first.
 
-	The look itself is churchit/public/scss/website.scss, which frappe compiles
-	into every Website Theme that does not ignore this app. A user-owned record,
-	not a standard one: frappe refuses to save a standard theme outside developer
-	mode, so it could not compile during install-app, and a church may want to
-	customise it anyway.
+	A theme's Background, Text and Primary Color are the palette's paper, ink and accent, each a Color
+	record named after the theme. User-owned records, not standard ones: frappe refuses to save a
+	standard theme outside developer mode, so it could not compile during install-app, and a church may
+	want to change one. A theme a church already has keeps its colors, except that the Churchit theme
+	of an older site, made with no colors at all, gets its palette.
 	"""
-	_insert_if_missing("Website Theme", WEBSITE_THEME, theme=WEBSITE_THEME, module="Church Website")
+	for theme, colors in PALETTES.items():
+		exists = frappe.db.exists("Website Theme", theme)
+		if exists and (
+			theme != WEBSITE_THEME
+			or any(frappe.db.get_value("Website Theme", theme, list(THEME_COLOR_FIELDS)))
+		):
+			continue
+		names = [
+			make_color(f"{theme} {role}", value) for role, value in zip(COLOR_ROLES, colors, strict=True)
+		]
+		links = dict(zip(THEME_COLOR_FIELDS, names, strict=True))
+		if exists:
+			doc = frappe.get_doc("Website Theme", theme)
+			doc.update(links)
+			doc.save(ignore_permissions=True)
+		else:
+			frappe.get_doc(
+				{"doctype": "Website Theme", "theme": theme, "module": "Church Website", **links}
+			).insert(ignore_permissions=True)
+
+
+def make_color(name, value):
+	"""*name*, a Color made with *value* when it is missing."""
+	_insert_if_missing("Color", name, name=name, color=value)
+	return name
 
 
 def _setup_website_settings():

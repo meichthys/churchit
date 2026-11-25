@@ -1,0 +1,68 @@
+{#- The front of the church's home page: who the church is, when it meets and what a visitor does next.
+    The data is church_website/blocks.py get_church_welcome; empty values fall back to the Church record. -#}
+{%- set welcome = get_church_welcome() -%}
+{%- if welcome -%}
+<div class="ch-welcome{% if welcome.image %} has-image{% endif %}" id="church-welcome" data-live="Function">
+	<div class="ch-welcome-text">
+		<p class="t-label">{{ (values.label or _("Welcome")) | e }}</p>
+		<h1 class="t-title ch-welcome-name">{{ (values.heading or welcome.name) | e }}</h1>
+		{%- set introduction = values.introduction or welcome.mission -%}
+		{%- if introduction %}
+		<p class="t-dateline is-large ch-welcome-introduction">{{ introduction | e }}</p>
+		{%- endif %}
+		{%- if welcome.live %}
+		<p class="ch-welcome-live">
+			<span class="ch-live-dot" aria-hidden="true"></span>
+			{{ _("Live now") }}: <a href="{{ welcome.live.url | e }}">{{ welcome.live.title | e }}</a>
+		</p>
+		{%- endif %}
+		{%- if welcome.actions %}
+		<div class="ch-actions">
+			{%- for action in welcome.actions %}
+			<a class="es-button" data-variant="{{ 'solid' if loop.first else 'subtle' }}" data-size="lg" href="{{ action.url | e }}">{{ action.label | e }}</a>
+			{%- endfor %}
+		</div>
+		{%- endif %}
+	</div>
+	{%- if welcome.image %}
+	<img class="ch-welcome-image" src="{{ welcome.image | e }}" alt="{{ welcome.name | e }}">
+	{%- endif %}
+	<div class="rule-double"></div>
+	{%- if welcome.gatherings or welcome.address %}
+	<div class="ch-welcome-join">
+		<p class="t-label">{{ _("Join us") }}</p>
+		{%- if welcome.gatherings %}
+		<ul class="ch-welcome-gatherings">
+			{%- for gathering in welcome.gatherings %}
+			<li>
+				<span class="t-subhead">{{ gathering.name | e }}</span>
+				<span class="leader" aria-hidden="true"></span>
+				<span class="ch-welcome-when">{{ gathering.when | e }}</span>
+			</li>
+			{%- endfor %}
+		</ul>
+		{%- endif %}
+		{%- if welcome.address %}
+		<p class="ch-welcome-where">
+			{{ welcome.address | e }}
+			{%- if welcome.map_url %} <a href="{{ welcome.map_url | e }}" target="_blank" rel="noreferrer">{{ _("Directions") }}</a>{% endif %}
+		</p>
+		{%- endif %}
+	</div>
+	{%- endif %}
+	{%- if welcome.verse and not values.hide_verse %}
+	<figure class="ch-welcome-verse">
+		{%- if welcome.verse.text %}
+		<blockquote class="t-scripture">{{ welcome.verse.text | e }}</blockquote>
+		{%- endif %}
+		<figcaption class="t-label">{{ welcome.verse.reference | e }}</figcaption>
+	</figure>
+	{%- endif %}
+</div>
+{%- else -%}
+<div class="ch-empty">
+	<p class="t-dateline is-large">{{ _("This website is being set up") }}</p>
+	<p>{{ _("Please check back soon.") }}</p>
+	<p><a href="/login" class="es-button" data-variant="subtle">{{ _("Log In") }}</a></p>
+</div>
+{%- endif -%}

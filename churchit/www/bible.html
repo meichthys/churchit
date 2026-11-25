@@ -54,14 +54,15 @@
 	.bible-reader { max-width: 42rem; margin: 0 auto; }
 	.bible-picker { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
 	.bible-picker select { flex: 1 1 8rem; width: auto; }
-	.bible-title { font-size: 2rem; margin-bottom: 1rem; }
-	.bible-text { font-size: 1.125rem; line-height: 1.8; }
+	.bible-title { font-size: 2.25rem; margin-bottom: 1rem; }
+	/* set like a printed Bible, as the member app's reader: the serif, verse numbers raised in the accent */
+	.bible-text { font-family: var(--font-serif); font-variation-settings: "opsz" 20; font-size: 1.25rem; line-height: 1.7; }
 	.bible-text h2 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
 	.bible-text p { margin: 0 0 0.75rem; }
 	.bible-text p:empty { display: none; }
 	.bible-text .bible-subtitle { font-style: italic; }
 	.bible-text .bible-verse { white-space: pre-line; }
-	.bible-text sup { color: var(--text-muted); margin-right: 0.25em; }
+	.bible-text sup { color: var(--accent); font-size: 0.55em; font-weight: 600; margin-right: 0.3em; }
 	.bible-pager { display: flex; margin: 2rem 0 1rem; }
 </style>
 {% endblock %}

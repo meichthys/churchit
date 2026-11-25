@@ -1,0 +1,22 @@
+{#- The church's active ministries, each with a line about it (church_website/blocks.py get_church_ministries). -#}
+{%- set ministries = get_church_ministries(values.count) -%}
+<div class="ch-block" id="church-ministries" data-live="Ministry">
+	{%- if ministries.ministries %}
+	<div class="ch-block-head">
+		<h2 class="t-head">{{ (values.title or _("Ministries")) | e }}</h2>
+		{%- if ministries.url %}
+		<p class="ch-more"><a href="{{ ministries.url }}">{{ _("All ministries") }}</a></p>
+		{%- endif %}
+	</div>
+	<ul class="ch-grid">
+		{%- for ministry in ministries.ministries %}
+		<li class="ch-card">
+			<h3 class="t-subhead">{{ ministry.name | e }}</h3>
+			{%- if ministry.text %}
+			<p class="ch-row-text">{{ ministry.text | e }}</p>
+			{%- endif %}
+		</li>
+		{%- endfor %}
+	</ul>
+	{%- endif %}
+</div>

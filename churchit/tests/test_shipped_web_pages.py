@@ -13,6 +13,7 @@ from churchit.church_website.pages import is_link_off, sync_page_switches
 from churchit.patches import after_install
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import (
+	add_live_sermon_list,
 	add_website_footer_links,
 	fix_shipped_missions_and_home_pages,
 	fix_shipped_page_dates_and_sermon_pages,
@@ -450,6 +451,15 @@ class TestTidyShippedWebPagesPatch(RollbackEachTest):
 
 		for name in names:
 			self.assertEqual(self.page(name), read_template(f"{name}.html"), name)
+
+	def test_the_sermon_list_becomes_a_live_part_once(self):
+		current = read_template("sermons.html")
+		self.set_page("sermons", unfix(current, add_live_sermon_list.GROUPS["sermons"]))
+
+		add_live_sermon_list.execute()
+		add_live_sermon_list.execute()
+
+		self.assertEqual(self.page("sermons"), current)
 
 	def test_a_page_with_part_of_its_shipped_text_changes_only_the_groups_it_still_has(self):
 		current = read_template("sermons.html")
