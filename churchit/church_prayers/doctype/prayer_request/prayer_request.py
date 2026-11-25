@@ -16,6 +16,7 @@ from churchit.church_prayers.prayer_access import (
 from churchit.church_scope import session_person
 
 ANSWERED = "Answered"
+REQUESTED = "Requested"
 PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
 PRAYER_TEAM_SUBJECT = "{% if doc.urgent %}Urgent{% else %}New{% endif %} prayer request: {{ doc.title }}"
 PRAYER_TEAM_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A new prayer request was added{% if church_name(doc) %} at {{ church_name(doc) | e }}{% endif %}.</p>
@@ -47,7 +48,7 @@ PRIVATE_MESSAGE = """<p>{% if doc.urgent %}<strong>Urgent.</strong> {% endif %}A
 class PrayerRequest(Document):
 	def before_insert(self):
 		if not self.status:
-			self.status = frappe.db.get_value("Prayer Request Status", {"status": "Requested"}, "name")
+			self.status = frappe.db.get_value("Prayer Request Status", {"status": REQUESTED}, "name")
 		# The web form saves with ignore_permissions, so Frappe keeps the permlevel 1 default for a guest.
 		if frappe.session.user == "Guest":
 			self.approved_for_list = 0

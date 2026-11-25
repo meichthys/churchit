@@ -108,7 +108,7 @@ Members read the requests that they may see on the **Prayer List** page of the m
 
 - **Comments**: a member can write a comment on a request that they can read. Everyone who can read the request sees the comment at once. A comment cannot hold a link or an email address.
 
-The member who made a request can change it or delete it on My Prayer Requests. After someone has prayed for it, it can no longer be deleted: the member can make it Private to take it off the list. Members cannot change the status, the approval or the End Date.
+The member who made a request can change it or delete it on My Prayer Requests. After someone has prayed for it, it can no longer be deleted: the member can make it Private to take it off the list. When God answers it, the member clicks **Mark answered**: the status becomes Answered and the request leaves the prayer list. **Not answered yet** sets it back to Requested. Members cannot set any other status, the approval or the End Date.
 
 ## The prayed count
 
