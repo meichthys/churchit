@@ -522,7 +522,7 @@ class TestSwitchedOffPage(RollbackEachTest):
 			self.assertEqual(serve("announcements", "Guest").status_code, 404)
 
 	def set_home_page(self, html):
-		frappe.db.set_value("Web Page", "home", "main_section_html", html)
+		frappe.db.set_value("Web Page", "home", {"content_type": "HTML", "main_section_html": html})
 
 	def home_page(self):
 		return frappe.db.get_value("Web Page", "home", "main_section_html")
