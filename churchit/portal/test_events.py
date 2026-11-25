@@ -160,7 +160,7 @@ class TestOpenFunctions(EventsTestCase):
 
 	def test_another_churchs_function_is_not_listed_or_signed_up_for(self):
 		frappe.set_user("Administrator")
-		root, church_a, church_b = make_two_churches()
+		_root, church_a, church_b = make_two_churches()
 		frappe.set_user(self.email)
 		frappe.db.set_value("Person", self.person, "church", church_a)
 		mine = self.open_function("_Test Events Mine", church=church_a)
@@ -412,7 +412,7 @@ class TestFixes(EventsTestCase):
 
 	def test_another_churchs_sign_up_is_refused_in_the_app(self):
 		frappe.set_user("Administrator")
-		root, church_a, church_b = make_two_churches()
+		_root, church_a, church_b = make_two_churches()
 		frappe.db.set_value("Person", self.person, "church", church_a)
 		function = self.open_function("_Test Events Church B", church=church_b)
 		theirs = make_sign_up(function, self.other, self.other_email)

@@ -209,7 +209,7 @@ class TestStatementGeneration(FrappeTestCase):
 
 	def test_changing_to_household_grouping_removes_the_old_individual_statements(self):
 		frappe.db.set_single_value("Giving Settings", "statement_grouping", "Person")
-		family, head, spouse = self.make_household("_Test Regroup")
+		family, _head, spouse = self.make_household("_Test Regroup")
 		generate_statements(*PERIOD)
 		frappe.db.set_single_value("Giving Settings", "statement_grouping", "Household")
 
@@ -235,7 +235,7 @@ class TestStatementGeneration(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Giving Statement", name))
 
 	def test_a_household_statement_prints_the_familys_mailing_address(self):
-		family, head, _spouse = self.make_household("_Test Printed")
+		family, _head, _spouse = self.make_household("_Test Printed")
 		address = make_address("_Test Printed Home", address_line1="77 Household Lane")
 		family.append("addresses", {"address": address.name, "is_primary": 1})
 		family.save(ignore_permissions=True)

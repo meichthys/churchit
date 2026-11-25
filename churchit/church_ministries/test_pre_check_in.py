@@ -124,7 +124,7 @@ class TestPreCheckIn(RollbackEachTest):
 	def test_an_adult_gets_a_signed_code_for_themselves_and_their_child(self):
 		payload = self.get_code([self.father, self.son])
 
-		params, signature = payload.split("&_signature=")
+		params, _signature = payload.split("&_signature=")
 		self.assertEqual(get_signed_params(params), payload)
 		self.assertEqual(pre_check_in.read_payload(payload), (self.function, [self.father, self.son]))
 
