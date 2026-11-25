@@ -1,0 +1,34 @@
+{#- Where the church is and how to reach it (church_website/blocks.py get_church_visit). -#}
+{%- set visit = get_church_visit() -%}
+{%- if visit %}
+<div class="ch-block ch-visit" itemscope itemtype="https://schema.org/Church">
+	<div class="ch-visit-about">
+		<h2 class="t-head">{{ (values.title or _("Visit us")) | e }}</h2>
+		{%- if visit.about %}
+		<p class="ch-row-text">{{ visit.about | e }}</p>
+		{%- endif %}
+		{%- if visit.about_url %}
+		<p class="ch-more"><a href="{{ visit.about_url }}">{{ _("More about us") }}</a></p>
+		{%- endif %}
+	</div>
+	<dl class="ch-visit-details">
+		<dt class="t-label">{{ _("Church") }}</dt>
+		<dd class="t-subhead" itemprop="name">{{ visit.name | e }}</dd>
+		{%- if visit.address %}
+		<dt class="t-label">{{ _("Address") }}</dt>
+		<dd itemprop="address">{{ visit.address | e }}{% if visit.map_url %}<br><a href="{{ visit.map_url | e }}" target="_blank" rel="noreferrer">{{ _("Directions") }}</a>{% endif %}</dd>
+		{%- endif %}
+		{%- if visit.phone %}
+		<dt class="t-label">{{ _("Phone") }}</dt>
+		<dd><a href="tel:{{ visit.phone | replace(' ', '') | e }}" itemprop="telephone">{{ visit.phone | e }}</a></dd>
+		{%- endif %}
+		{%- if visit.email %}
+		<dt class="t-label">{{ _("Email") }}</dt>
+		<dd><a href="mailto:{{ visit.email | e }}" itemprop="email">{{ visit.email | e }}</a></dd>
+		{%- endif %}
+		{%- if visit.contact_url %}
+		<dd class="ch-visit-action"><a class="es-button" data-variant="solid" data-size="lg" href="{{ visit.contact_url }}">{{ _("Contact us") }}</a></dd>
+		{%- endif %}
+	</dl>
+</div>
+{%- endif %}

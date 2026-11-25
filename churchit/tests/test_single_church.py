@@ -16,11 +16,12 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.church_foundations.doctype.church.church import selected_church_name
 from churchit.church_scope import is_multi_church, scoped
+from churchit.portal.faith import get_published_bulletins
 from churchit.tests.helpers import ensure, ensure_root_church, force_single_church, make_function
 from churchit.tests.test_reports_execute import report_modules
 
 # Pages a signed-in staff user reaches. Guest-only redirects are covered per page.
-PUBLIC_PAGES = ("about", "attendance", "bulletins", "calendar", "contact", "give", "statements")
+PUBLIC_PAGES = ("about", "calendar", "contact", "give")
 
 
 class TestSingleChurch(FrappeTestCase):
@@ -93,3 +94,12 @@ class TestSingleChurch(FrappeTestCase):
 		self.assertFalse(bulletin.church)
 		self.assertEqual(bulletin.church_doc.name, self.root)
 		self.assertEqual(bulletin.contact_information.name, bulletin.church_doc.church_name)
+
+	def test_the_member_app_lists_a_bulletin_saved_without_a_church(self):
+		ensure("Function Type", {"type": "_Test Single Church Service"})
+		function = make_function("_Test Single Church Service")
+		bulletin = frappe.get_doc({"doctype": "Bulletin", "function": function.name, "publish": 1}).insert(
+			ignore_permissions=True
+		)
+
+		self.assertIn(bulletin.name, [row.name for row in get_published_bulletins()])

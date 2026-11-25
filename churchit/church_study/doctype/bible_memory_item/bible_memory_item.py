@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import escape_html, today
 
 from churchit.church_scope import has_church_access, is_multi_church
+from churchit.portal.realtime import notify
 from churchit.scripture import (
 	format_reference,
 	get_default_translation,
@@ -59,7 +60,8 @@ class BibleMemoryItem(Document):
 				),
 				frappe.PermissionError,
 			)
-		if self.user == frappe.session.user or not self.has_value_changed("user"):
+		# The stored owner counts: a caller can set `user` to themselves on another user's item.
+		if self.user == (before.user if before else frappe.session.user):
 			return
 		if not set(frappe.get_roles()) & ASSIGNING_ROLES:
 			frappe.throw(_("Not permitted."), frappe.PermissionError)
@@ -75,7 +77,7 @@ class BibleMemoryItem(Document):
 		Only the item's own user may. Returns the new progress and word mistakes.
 		"""
 		self._require_self()
-		mistakes = self._load_word_mistakes()
+		mistakes = self.load_word_mistakes()
 		key = str(int(word_index))
 		mistakes[key] = mistakes.get(key, 0) + 1
 		self.word_mistakes = json.dumps(mistakes)
@@ -104,7 +106,7 @@ class BibleMemoryItem(Document):
 			bonus = 0 if current >= 100 else 5
 			self.progress = min(99, current + bonus) if current < 100 else 100
 		else:
-			wm = self._load_word_mistakes()
+			wm = self.load_word_mistakes()
 			for idx in correct_word_indices:
 				k = str(int(idx))
 				if k in wm:
@@ -142,7 +144,7 @@ class BibleMemoryItem(Document):
 			"memorized": int(self.memorized or 0),
 			"memorized_on": str(self.memorized_on) if self.memorized_on else None,
 			"times_memorized": self.times_memorized or 0,
-			"word_mistakes": self._load_word_mistakes(),
+			"word_mistakes": self.load_word_mistakes(),
 			"bonus": bonus,
 		}
 
@@ -150,7 +152,7 @@ class BibleMemoryItem(Document):
 		if self.user != frappe.session.user:
 			frappe.throw(_("Not allowed"), frappe.PermissionError)
 
-	def _load_word_mistakes(self):
+	def load_word_mistakes(self):
 		if not self.word_mistakes:
 			return {}
 		if isinstance(self.word_mistakes, dict):
@@ -213,7 +215,7 @@ def assign_memory(
 			skipped += 1
 			continue
 		assigned_by = frappe.session.user if frappe.session.user != user else None
-		frappe.get_doc(
+		item = frappe.get_doc(
 			{
 				"doctype": "Bible Memory Item",
 				"user": user,
@@ -223,6 +225,7 @@ def assign_memory(
 				"group": group if user in group_users else None,
 			}
 		).insert(ignore_permissions=True)
+		notify(user, "memory", item.name)
 		created += 1
 	return {"created": created, "skipped": skipped, "missing_users": missing_users}
 
@@ -283,6 +286,25 @@ def as_list(value):
 	if isinstance(value, str):
 		return frappe.parse_json(value) if value.startswith("[") else [value]
 	return list(value or [])
+
+
+def has_own_item_permission(doc, ptype=None, user=None) -> bool:
+	"""has_permission hook: only a manager reaches another user's memory item, so a passage assigned to a member is theirs.
+
+	An assigned item is owned by the manager who made it, so `if_owner` would shut the member out.
+	"""
+	user = user or frappe.session.user
+	if set(frappe.get_roles(user)) & ASSIGNING_ROLES:
+		return True
+	return not doc.get("user") or doc.get("user") == user
+
+
+def own_items_query_conditions(user=None, doctype=None) -> str:
+	"""permission_query_conditions: anyone but a manager lists only their own memory items."""
+	user = user or frappe.session.user
+	if set(frappe.get_roles(user)) & ASSIGNING_ROLES:
+		return ""
+	return f"`tabBible Memory Item`.`user` = {frappe.db.escape(user)}"
 
 
 @frappe.whitelist(methods=["POST"])

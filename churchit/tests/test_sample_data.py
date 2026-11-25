@@ -281,7 +281,14 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		# A church's own record from before the load, which the delete takes with the rest of its doctype.
 		cls.own_person = make_person("_Test Own Person").name
 
+		frappe.clear_messages()
 		sample_data.create_sample_data()
+		cls.fund_warnings = [
+			message["message"]
+			for message in frappe.get_message_log()
+			if message.get("title") == "Negative Fund Balance"
+		]
+		cls.negative_funds = frappe.get_all("Fund", filters={"balance": ["<", 0]}, pluck="fund")
 		cls.jobs.run()
 		cls.queued_emails = frappe.db.count("Email Queue") - cls.before["rows"]["tabEmail Queue"]
 		cls.check_in_cards = frappe.db.count("Follow-up Card", {"source_type": "Function Check-In"})
@@ -408,6 +415,10 @@ class TestSampleDataRoundTrip(FrappeTestCase):
 		next_person = make_person("_Test After Delete").name
 		frappe.db.rollback(save_point="next_person")
 		self.assertEqual(next_person, self.own_person)
+
+	def test_no_sample_record_takes_a_fund_below_zero(self):
+		self.assertEqual(self.fund_warnings, [])
+		self.assertEqual(self.negative_funds, [])
 
 	def test_delete_removes_what_create_made(self):
 		# Ministry is the one step with a filter: the General ministry predates the
@@ -581,6 +592,14 @@ class TestSetupWizardHook(FrappeTestCase):
 		with patch.object(sample_data, "create_sample_data") as create:
 			sample_data.setup_wizard_complete({"create_sample_data": 1})
 		create.assert_called_once()
+
+	def test_the_wizard_shows_no_record_messages(self):
+		frappe.clear_messages()
+		with patch.object(
+			sample_data, "create_sample_data", side_effect=lambda: frappe.msgprint("Fund increased")
+		):
+			sample_data.setup_wizard_complete({"create_sample_data": 1})
+		self.assertEqual(frappe.get_message_log(), [])
 
 	def test_skips_when_not_opted_in(self):
 		with patch.object(sample_data, "create_sample_data") as create:

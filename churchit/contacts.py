@@ -18,7 +18,9 @@ and preview (`derived.sync_derived`).
 The type of a contact row ("Home", "Work", ...) is a link to a user-editable
 lookup doctype, so no code in this app may branch on a specific type name.
 Which row the church actually uses is carried by the ``is_primary`` flag. For
-addresses only, ``is_mailing_address`` says where paper mail goes.
+addresses only, ``is_mailing_address`` says where paper mail goes. For phones
+only, ``receives_texts`` says which numbers can get texts; a new row takes it
+from its Phone Type (:func:`set_receives_texts`).
 
 An email address or phone number identifies one person, so it may sit on one
 record of each doctype only. Anyone else using it, such as a spouse on a
@@ -30,7 +32,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import get_link_to_form
+from frappe.utils import cint, get_link_to_form
 from pypika import Order
 
 # Parent fieldname -> child doctype
@@ -64,6 +66,8 @@ UNIQUE_VALUE_FIELDS = {EMAIL_DOCTYPE: "email_address", PHONE_DOCTYPE: "phone_num
 DEFAULT_EMAIL_TYPES = ("Home", "Work", "Other")
 DEFAULT_PHONE_TYPES = ("Mobile", "Home", "Work", "Other")
 DEFAULT_ADDRESS_TYPES = ("Home", "Work", "Other")
+# Default phone types whose new numbers start unable to get texts
+NO_TEXT_PHONE_TYPES = ("Home",)
 
 # Types the field defaults point at. Kept in sync with the ``default`` on the
 # child doctypes, and used by the migration patch to classify existing data.
@@ -83,8 +87,12 @@ def create_default_contact_types():
 		if not frappe.db.exists("DocType", doctype):
 			continue
 		for type_name in defaults:
-			if not frappe.db.exists(doctype, type_name):
-				frappe.get_doc({"doctype": doctype, "type": type_name}).insert(ignore_permissions=True)
+			if frappe.db.exists(doctype, type_name):
+				continue
+			values = {"doctype": doctype, "type": type_name}
+			if doctype == "Phone Type":
+				values["receives_texts"] = type_name not in NO_TEXT_PHONE_TYPES
+			frappe.get_doc(values).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------
@@ -159,6 +167,36 @@ def get_primary_email(parenttype, parent):
 def get_primary_phone(parenttype, parent):
 	"""Primary phone number of *parent*, or ``None``."""
 	return _lookup(PHONE_DOCTYPE, "phone_number", parenttype, parent)
+
+
+def get_text_numbers(parenttype: str, parents: list[str], use_other_numbers: bool = False) -> dict[str, str]:
+	"""Map ``{parent: number}`` of where each of *parents* gets texts.
+
+	That is the primary phone when it receives texts. When it does not, it is the first phone that
+	does if *use_other_numbers*, else nothing.
+	"""
+	parents = [parent for parent in parents or [] if parent]
+	if not parents:
+		return {}
+	rows = frappe.get_all(
+		PHONE_DOCTYPE,
+		filters={"parenttype": parenttype, "parent": ("in", parents)},
+		fields=["parent", "phone_number", "receives_texts"],
+		order_by="is_primary desc, idx asc",
+	)
+	phones = {}
+	for row in rows:
+		phones.setdefault(row.parent, []).append(row)
+
+	numbers = {}
+	for parent, rows in phones.items():
+		candidates = rows if use_other_numbers else rows[:1]
+		number = next(
+			(row.phone_number for row in candidates if row.receives_texts and row.phone_number), None
+		)
+		if number:
+			numbers[parent] = number
+	return numbers
 
 
 def get_primary_address(parenttype, parent):
@@ -277,6 +315,19 @@ def validate_contact_tables(doc):
 	clear_bounced_on_change(emails, before)
 	for row in doc.get(PHONE_FIELD) or []:
 		row.digits = phone_digits(row.phone_number)
+		set_receives_texts(row)
+
+
+def set_receives_texts(row) -> None:
+	"""Set Texts (`receives_texts`) on a phone row from its Phone Type when the row is new or its type changed.
+
+	`texts_from_type` names the type that set it last, so a tick the user changes afterward stays.
+	"""
+	if row.texts_from_type == row.phone_type:
+		return
+	if row.phone_type:
+		row.receives_texts = cint(frappe.db.get_value("Phone Type", row.phone_type, "receives_texts"))
+	row.texts_from_type = row.phone_type
 
 
 def _flagged_before(before, fieldname, flag):
@@ -483,7 +534,7 @@ def _ensure_single_flag(rows, flag, flagged_before, default_to_first):
 	flagged at the last save, so ticking a box takes effect wherever the row sits
 	in the grid. Picking by position instead would silently revert anyone who
 	ticked a row above the current one. The desk grid hides that, because its JS
-	unticks siblings on the spot, but the portal web form and data imports do not.
+	unticks siblings on the spot, but the member app and data imports do not.
 
 	When there is no previous state to compare against, such as a new record or
 	an import, the last flagged row wins, which at least stays deterministic.

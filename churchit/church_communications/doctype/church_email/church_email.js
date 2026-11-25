@@ -145,7 +145,9 @@ function left_out_notes(frm, left_out = {}) {
 				),
 				note(
 					"no_address",
-					__("No phone number for {0}.", [who("no_address")]),
+					__("No phone number that gets texts for {0}.", [
+						who("no_address"),
+					]),
 				),
 				note(
 					"shared",

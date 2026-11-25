@@ -13,11 +13,13 @@ from churchit.church_website.pages import is_link_off, sync_page_switches
 from churchit.patches import after_install
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import (
+	add_live_sermon_list,
 	add_website_footer_links,
 	fix_shipped_missions_and_home_pages,
 	fix_shipped_page_dates_and_sermon_pages,
 	fix_shipped_page_queries_and_headings,
 	fix_shipped_sermon_excerpt_and_missions_map,
+	list_sermons_one_a_row,
 	show_footer_on_login_page,
 	tidy_shipped_website_pages,
 )
@@ -52,6 +54,13 @@ def count_queries(page):
 
 def missionary_card(html, title):
 	return html.partition(title)[2].partition('class="col-md-4')[0]
+
+
+def shipped_template(name):
+	"""*name*'s template as the patches before the sermon list left it."""
+	if name == "sermons":
+		return list_sermons_one_a_row.SHIPPED_SERMONS
+	return read_template(f"{name}.html")
 
 
 def unfix(html, *patches):
@@ -264,19 +273,27 @@ class TestShippedPages(RollbackEachTest):
 		self.assertIn("_Test Shipped Agency", card)
 		self.assertIn("flagcdn.com/w40/ke.png", card)
 
-	def test_a_sermon_in_a_series_opens_from_a_button_that_takes_focus_back(self):
+	def test_the_newest_sermon_of_a_series_opens_the_rest_of_it(self):
 		series = frappe.get_doc(
 			{"doctype": "Sermon Series", "series_name": "_Test Shipped Series", "publish": 1}
 		).insert(ignore_permissions=True)
-		make_sermon("_Test Shipped Series Sermon", series=series.name, sermon_date="2099-05-02")
+		for day in (1, 2, 3):
+			make_sermon(
+				f"_Test Shipped Series Sermon {day}", series=series.name, sermon_date=f"2099-05-0{day}"
+			)
+		make_sermon("_Test Shipped Single Sermon", sermon_date="2099-05-04")
 
-		frappe.local.form_dict = frappe._dict(q="_Test Shipped Series Sermon")
+		frappe.local.form_dict = frappe._dict(q="_Test Shipped S")
 		html = render("sermons")
 
-		self.assertIn('<button type="button" class="series-sermon-link" data-sermon-link="1">', html)
-		self.assertIn('<button type="button" class="series-back small" data-series-back>', html)
-		self.assertIn('<h2 class="h6 mt-2 mb-1" tabindex="-1" data-sermon-title>', html)
-		self.assertNotIn('href="#"', html)
+		rows = html.split('<li class="sermon-entry">')[1:]
+		self.assertEqual(len(rows), 2, "one row for the single sermon, one for the series")
+		self.assertIn("_Test Shipped Single Sermon", rows[0])
+		newest, _, rest = rows[1].partition("<details")
+		self.assertIn("_Test Shipped Series Sermon 3", newest)
+		self.assertIn("2 more sermons in _Test Shipped Series", rest)
+		self.assertIn("_Test Shipped Series Sermon 2", rest)
+		self.assertIn("_Test Shipped Series Sermon 1", rest)
 
 	def test_the_missions_page_leaves_out_an_inactive_missionary(self):
 		for title, status in (
@@ -374,7 +391,7 @@ class TestShippedPages(RollbackEachTest):
 		self.assertIn('href="/sermons?q=_Test+Last+Page"', html)
 		self.assertNotIn("No sermons have been published yet", html)
 
-	def test_a_series_card_counts_every_sermon_of_the_series(self):
+	def test_a_series_opens_every_sermon_of_the_series_from_any_page(self):
 		series = frappe.get_doc(
 			{"doctype": "Sermon Series", "series_name": "_Test Paged Series", "publish": 1}
 		).insert(ignore_permissions=True)
@@ -384,7 +401,7 @@ class TestShippedPages(RollbackEachTest):
 			)
 		frappe.local.form_dict = frappe._dict(q="_Test Paged Series Sermon")
 
-		self.assertIn("13 sermons in this series (12 on this page)", render("sermons"))
+		self.assertIn("12 more sermons in _Test Paged Series", render("sermons"))
 
 	def test_the_home_page_leaves_out_a_recurring_template(self):
 		template = make_function(
@@ -438,7 +455,7 @@ class TestTidyShippedWebPagesPatch(RollbackEachTest):
 		)
 		names = set(tidy_shipped_website_pages.FIXES) | set(fix_shipped_page_queries_and_headings.GROUPS)
 		for name in names:
-			shipped = unfix(read_template(f"{name}.html"), *(groups.get(name, ()) for groups in later))
+			shipped = unfix(shipped_template(name), *(groups.get(name, ()) for groups in later))
 			self.set_page(name, unfix(shipped, (tidy_shipped_website_pages.FIXES.get(name, ()),)))
 
 		for _run in range(2):
@@ -449,10 +466,19 @@ class TestTidyShippedWebPagesPatch(RollbackEachTest):
 			fix_shipped_page_dates_and_sermon_pages.execute()
 
 		for name in names:
-			self.assertEqual(self.page(name), read_template(f"{name}.html"), name)
+			self.assertEqual(self.page(name), shipped_template(name), name)
+
+	def test_the_sermon_list_becomes_a_live_part_once(self):
+		current = shipped_template("sermons")
+		self.set_page("sermons", unfix(current, add_live_sermon_list.GROUPS["sermons"]))
+
+		add_live_sermon_list.execute()
+		add_live_sermon_list.execute()
+
+		self.assertEqual(self.page("sermons"), current)
 
 	def test_a_page_with_part_of_its_shipped_text_changes_only_the_groups_it_still_has(self):
-		current = read_template("sermons.html")
+		current = shipped_template("sermons")
 		shipped = unfix(current, fix_shipped_page_queries_and_headings.GROUPS["sermons"])
 		edited = shipped.replace("&larr; Back to series", "&larr; All sermons in the series")
 		self.set_page("sermons", edited)
@@ -516,7 +542,7 @@ class TestTidyShippedWebPagesPatch(RollbackEachTest):
 
 	def test_an_edited_dated_or_paged_part_keeps_its_own_text(self):
 		groups = fix_shipped_page_dates_and_sermon_pages.GROUPS
-		sermons = unfix(read_template("sermons.html"), groups["sermons"])
+		sermons = unfix(shipped_template("sermons"), groups["sermons"])
 		home = unfix(read_template("home.html"), groups["home"])
 		self.set_page(
 			"sermons", sermons.replace('order_by="sermon_date desc, modified desc"', 'order_by="title"')
@@ -532,6 +558,36 @@ class TestTidyShippedWebPagesPatch(RollbackEachTest):
 		self.assertIn('format_date(event.start_date, "d MMM")', home)
 		self.assertIn('format_date(next_up.start_date, "EEEE, MMMM d, yyyy")', home)
 		self.assertIn("auto_repeat=0", home)
+
+
+class TestSermonListPatch(RollbackEachTest):
+	"""The patch turns the shipped sermon cards into the list, and keeps a page the church edited."""
+
+	def setUp(self):
+		super().setUp()
+		if not frappe.db.exists("Web Page", "sermons"):
+			self.skipTest("The site has no sermons Web Page.")
+
+	def page(self):
+		return frappe.db.get_value("Web Page", "sermons", "main_section_html")
+
+	def test_the_shipped_cards_become_the_list(self):
+		frappe.db.set_value(
+			"Web Page", "sermons", "main_section_html", "\n" + list_sermons_one_a_row.SHIPPED_SERMONS
+		)
+
+		list_sermons_one_a_row.execute()
+		list_sermons_one_a_row.execute()
+
+		self.assertEqual(self.page(), read_template("sermons.html"))
+
+	def test_an_edited_page_keeps_its_cards(self):
+		edited = list_sermons_one_a_row.SHIPPED_SERMONS.replace("Please check back soon.", "Soon!")
+		frappe.db.set_value("Web Page", "sermons", "main_section_html", edited)
+
+		list_sermons_one_a_row.execute()
+
+		self.assertEqual(self.page(), edited)
 
 
 class TestFooterLinks(RollbackEachTest):

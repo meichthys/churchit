@@ -1,9 +1,22 @@
 {#- Shadows frappe's footer (apps are searched in reverse install order).
     Top row: church name and founding year on the left, copyright in the
     middle, phone and address on the right. Bottom row, centred: the Website
-    Settings footer links. -#}
+    Settings footer links. On the login page (Show Footer on Login), a visitor
+    first reads how to get a login, which the portal's guest page used to say. -#}
 <footer class="web-footer">
 	<div class="container">
+		{% if path == "login" and frappe.session.user == "Guest" %}
+		{%- set off_pages = get_switched_off_pages() -%}
+		<div class="footer-login-help">
+			<p>{{ _("Sign in to sign up for events, share prayer requests, and stay connected with your church family.") }}</p>
+			{#- A member without a login gets one from the church office (Invite to Portal). -#}
+			{% set church_office = _("the church office") if "contact" in off_pages else '<a href="/contact">' ~ _("the church office") ~ '</a>' %}
+			<p>{{ _("Part of the church but no login yet? Ask {0} to invite you.").format(church_office) }}</p>
+			{% if "connection-card" not in off_pages %}
+			<p>{{ _("New here? {0}").format('<a href="/connection-card/new">' ~ _("Fill in a Connection Card") ~ '</a>') }}</p>
+			{% endif %}
+		</div>
+		{% endif %}
 		{% if footer_church or copyright %}
 		<div class="footer-top" itemscope itemtype="https://schema.org/Church">
 			{% if footer_church %}

@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 import frappe
 from frappe.utils import add_days, getdate
 
+from churchit.church_ministries.doctype.function.function import get_team_schedule
 from churchit.church_ministries.songs.media import get_team_song_file
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -17,7 +18,6 @@ from churchit.tests.helpers import (
 	make_team_assignment,
 	make_team_position,
 )
-from churchit.www import ministry_team
 
 
 def make_song_with_media(title):
@@ -138,9 +138,12 @@ class TestTeamSongFile(RollbackEachTest):
 		self.download(make_team_assignment(recent.name, self.position.name, self.member.name), media)
 		self.assert_refused(make_team_assignment(ended.name, self.position.name, self.member.name), media)
 
-	def test_the_ministry_team_page_lists_the_media_of_each_song(self):
+	def get_schedule_rows(self):
+		return get_team_schedule(frappe.get_doc("Function", self.function.name), self.member.name).rows
+
+	def test_the_team_schedule_lists_the_media_of_each_song(self):
 		frappe.set_user(self.email)
-		rows = ministry_team_context().schedules[self.function.name].rows
+		rows = self.get_schedule_rows()
 
 		links = [(media.label, parse_qs(urlparse(media.url).query)) for media in rows[0].media]
 		self.assertEqual(
@@ -158,16 +161,10 @@ class TestTeamSongFile(RollbackEachTest):
 		)
 		self.assertTrue(all(media.url.startswith("/api/method/") for media in rows[0].media))
 
-	def test_the_ministry_team_page_lists_no_media_for_a_declined_assignment(self):
+	def test_the_team_schedule_lists_no_media_for_a_declined_assignment(self):
 		frappe.db.set_value("Ministry Team Assignment", self.mine.name, "status", "Declined")
 
 		frappe.set_user(self.email)
-		rows = ministry_team_context().schedules[self.function.name].rows
+		rows = self.get_schedule_rows()
 
 		self.assertFalse(rows[0].media)
-
-
-def ministry_team_context():
-	context = frappe._dict()
-	ministry_team.get_context(context)
-	return context

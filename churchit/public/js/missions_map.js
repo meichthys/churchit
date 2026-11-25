@@ -1,6 +1,6 @@
 // Renders the missionary map on the public /missions page. A loaded-everywhere
-// script guarded by path, like portal_groups.js, since Web Page content has no
-// per-page script hook. Leaflet comes from church_website/context.py on this path.
+// script guarded by path, since Web Page content has no per-page script hook.
+// Leaflet comes from church_website/context.py on this path.
 (function () {
 	const path = window.location.pathname.replace(/\/$/, "");
 	if (path !== "/missions") return;

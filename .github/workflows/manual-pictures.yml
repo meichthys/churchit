@@ -1,0 +1,20 @@
+# Warns on a pull request that changes a doctype, page or report whose screen a manual picture
+# shows, so that someone looks at the picture and takes it again (docs/screenshots.py --stale).
+name: manual-pictures
+
+on:
+  pull_request:
+    paths:
+      - "churchit/*/doctype/**"
+      - "churchit/*/page/**"
+      - "churchit/*/report/**"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: python3 docs/screenshots.py --stale $(git diff --name-only "origin/${{ github.base_ref }}...HEAD")

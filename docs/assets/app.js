@@ -151,11 +151,9 @@
 		});
 	}
 
-	// Scrollspy: highlight the documentation sidebar or screenshots tab for the section in view
-	var sections = document.querySelectorAll(".doc-section[id], .shot[id]");
-	var navLinks = document.querySelectorAll(
-		".doc-side a[href^='#'], .shots-nav a[href^='#']",
-	);
+	// Scrollspy: highlight the screenshots tab for the section in view
+	var sections = document.querySelectorAll(".shot[id]");
+	var navLinks = document.querySelectorAll(".shots-nav a[href^='#']");
 	if (
 		sections.length &&
 		navLinks.length &&

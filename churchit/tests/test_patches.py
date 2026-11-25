@@ -14,9 +14,10 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import upsert_content
 from frappe.model.naming import NamingSeries
 from frappe.modules.patch_handler import update_patch_log
 from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.website_theme.website_theme import WebsiteTheme
+from frappe.website.doctype.website_theme.website_theme import WebsiteTheme, get_scss
 
 from churchit.church_scope import is_multi_church
+from churchit.church_website.palette import COLOR_ROLES, PALETTES, THEME_COLOR_FIELDS
 from churchit.patches import after_install
 from churchit.patches.v1_0 import (
 	add_attendance_to_portal,
@@ -29,6 +30,7 @@ from churchit.patches.v1_0 import (
 	add_personal_details_and_care_requests_to_portal,
 	add_pledges_to_portal,
 	add_unsynced_default_records,
+	add_website_palettes,
 	clear_unknown_person_sources,
 	land_administrator_on_summary,
 	list_missionary_people_in_a_table,
@@ -843,17 +845,56 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertEqual(frappe.db.get_single_value("Website Settings", "website_theme"), "Churchit")
 		self.assertEqual(frappe.db.count("Website Theme", {"theme": "Churchit"}), 1)
 
-	def test_website_theme_compiles_this_app_into_the_stylesheet(self):
+	def test_website_theme_compiles_its_palette_into_the_stylesheet(self):
 		folder = self._reset_website_theme()
 
 		add_churchit_website_theme.execute()
 
 		theme = frappe.get_doc("Website Theme", "Churchit")
 		self.assertTrue(theme.custom, "user-owned, so a church can edit it")
-		self.assertIn('@import "churchit/public/scss/website"', theme.theme_scss)
 		self.assertTrue(theme.theme_url.startswith("/files/website_theme/"))
-		stylesheet = os.path.join(folder, os.path.basename(theme.theme_url))
-		self.assertIn("--ch-grad", open(stylesheet).read())
+		stylesheet = open(os.path.join(folder, os.path.basename(theme.theme_url))).read()
+		paper, ink, _accent = PALETTES["Churchit"]
+		self.assertIn(f"--bg-color: {paper}", stylesheet)
+		self.assertIn(f"--text-color: {ink}", stylesheet)
+
+	def test_website_palettes_add_a_theme_for_each_palette_and_keep_a_church_s_colors(self):
+		self._skip_theme_compile()
+		add_website_palettes.execute()
+		own = frappe.get_doc({"doctype": "Color", "name": "_Test Own Accent", "color": "#123456"}).insert()
+		frappe.db.set_value("Website Theme", "Harbor", "primary_color", own.name)
+		# The Churchit theme of an older site has no colors.
+		frappe.db.set_value("Website Theme", "Churchit", dict.fromkeys(THEME_COLOR_FIELDS))
+
+		add_website_palettes.execute()
+		add_website_palettes.execute()
+
+		for theme in PALETTES:
+			self.assertTrue(frappe.db.exists("Website Theme", theme), theme)
+		self.assertEqual(
+			list(frappe.db.get_value("Website Theme", "Churchit", list(THEME_COLOR_FIELDS))),
+			[f"Churchit {role}" for role in COLOR_ROLES],
+		)
+		self.assertEqual(frappe.db.get_value("Website Theme", "Harbor", "primary_color"), own.name)
+
+	def test_website_palettes_compile_again_a_theme_that_holds_the_old_look(self):
+		self.enterContext(
+			mock.patch.object(
+				WebsiteTheme,
+				"generate_bootstrap_theme",
+				lambda theme: setattr(theme, "theme_scss", get_scss(theme)),
+			)
+		)
+		own = frappe.get_doc({"doctype": "Website Theme", "theme": "_Test Old Look Theme"}).insert()
+		frappe.db.set_value(
+			"Website Theme", own.name, "theme_scss", f'@import "{add_website_palettes.OLD_SCSS}";'
+		)
+
+		add_website_palettes.execute()
+
+		self.assertNotIn(
+			add_website_palettes.OLD_SCSS, frappe.db.get_value("Website Theme", own.name, "theme_scss")
+		)
 
 	def test_website_theme_leaves_a_church_that_picked_its_own_alone(self):
 		self._skip_theme_compile()

@@ -135,6 +135,8 @@ def setup_wizard_complete(args):
 	"""
 	if args and args.get("create_sample_data"):
 		create_sample_data()
+		# The wizard shows the response's messages, one for each fund change and spouse link.
+		frappe.clear_messages()
 
 
 def get_root_church() -> str:
@@ -1391,6 +1393,37 @@ def _create_collections(people, funds):
 	check = _resolve_link("Payment Type", "type", "Check")
 	cash = _resolve_link("Payment Type", "type", "Cash")
 	collections = [
+		# Pays for the year's General fund expenses, so no expense or transfer takes the fund below zero.
+		# Dated last week: a collection from an older week queues a recount that outlives a delete.
+		{
+			"date": _near_datetime(-7, "11:30:00"),
+			"notes": "Stewardship Sunday offering for the year's operating costs.",
+			"expected_total": 3000,
+			"submit": True,
+			"donations": [
+				{
+					"amount": 1500,
+					"payment_type": check,
+					"fund": funds["General"],
+					"person": people["Robert Johnson"],
+					"check_number": "1995",
+				},
+				{
+					"amount": 1000,
+					"payment_type": check,
+					"fund": funds["General"],
+					"person": people["James Wilson"],
+					"check_number": "995",
+				},
+				{
+					"amount": 500,
+					"payment_type": check,
+					"fund": funds["General"],
+					"person": people["David Thompson"],
+					"check_number": "3995",
+				},
+			],
+		},
 		{
 			"date": _near_datetime(-7, "10:30:00"),
 			"notes": "Regular Sunday morning offering.",

@@ -1,0 +1,182 @@
+@import "frappe-ui/style.css";
+/* The type, rules and motion the website shares (Order of Service). */
+@import "../../churchit/public/css/order_of_service.css";
+
+/*
+  Order of Service: the portal is set like the weekly bulletin a member picks up at the door.
+
+  Paper and ink. These are frappe-ui's own neutral tokens, retuned: the same steps and roles, the same
+  lightness, with a warm chroma, so every frappe-ui component reads as ink on paper unchanged. Two steps
+  change on purpose: ink-gray-5 is darker (lighter in dark mode) so quiet text passes AA, and
+  outline-gray-1 is darker so hairline rules show. Keep the whole retune in this one block and compare it
+  with frappe-ui's tokens on every frappe-ui upgrade.
+
+  These values are the fallback. The website's Website Theme puts its palette on the page with stronger
+  selectors (churchit/church_website/palette.py, which derives its steps from this block: keep them in step).
+*/
+:root {
+	--surface-base: oklch(0.985 0.007 85);
+	--surface-sidebar: oklch(0.966 0.009 85);
+	--surface-elevation-1: oklch(0.994 0.004 85);
+	--surface-elevation-2: oklch(0.994 0.004 85);
+	--surface-elevation-3: oklch(0.998 0.002 85);
+	--surface-gray-1: oklch(0.972 0.008 85);
+	--surface-gray-2: oklch(0.957 0.009 85);
+	--surface-gray-3: oklch(0.94 0.01 85);
+	--surface-gray-4: oklch(0.908 0.01 85);
+	--surface-gray-5: oklch(0.83 0.01 85);
+	--surface-gray-6: oklch(0.683 0.01 80);
+	--surface-gray-7: oklch(0.586 0.01 80);
+	--surface-gray-8: oklch(0.439 0.01 75);
+	--surface-gray-9: oklch(0.341 0.01 75);
+	--surface-gray-10: oklch(0.215 0.01 70);
+
+	--ink-base: oklch(0.985 0.007 85);
+	--ink-gray-1: oklch(0.94 0.008 85);
+	--ink-gray-2: oklch(0.908 0.008 85);
+	--ink-gray-3: oklch(0.83 0.008 85);
+	--ink-gray-4: oklch(0.66 0.01 80);
+	--ink-gray-5: oklch(0.535 0.01 80);
+	--ink-gray-6: oklch(0.439 0.01 75);
+	--ink-gray-7: oklch(0.341 0.01 75);
+	--ink-gray-8: oklch(0.215 0.01 70);
+	--ink-gray-9: oklch(0.175 0.01 70);
+
+	--outline-gray-1: oklch(0.915 0.01 85);
+	--outline-gray-2: oklch(0.88 0.01 85);
+	--outline-gray-3: oklch(0.83 0.01 85);
+	--outline-gray-4: oklch(0.683 0.01 80);
+	--outline-gray-5: oklch(0.586 0.01 80);
+	--outline-gray-6: oklch(0.439 0.01 75);
+	--outline-gray-7: oklch(0.341 0.01 75);
+	--outline-gray-8: oklch(0.215 0.01 70);
+	--outline-gray-9: oklch(0.175 0.01 70);
+	--outline-elevation-1: oklch(0.915 0.01 85);
+	--outline-elevation-2: oklch(0.915 0.01 85);
+
+	/* The one accent: "now" and "do this", never a status or a button. */
+	--accent: #9b2f22;
+	/* The QR code stays dark on light paper in both themes, so door scanners read it. */
+	--qr-paper: #fbfaf6;
+}
+
+[data-theme="dark"] {
+	--surface-base: oklch(0.205 0.006 70);
+	--surface-sidebar: oklch(0.185 0.006 70);
+	--surface-elevation-1: oklch(0.239 0.006 70);
+	--surface-elevation-2: oklch(0.26 0.006 70);
+	--surface-elevation-3: oklch(0.32 0.006 70);
+	--surface-gray-1: oklch(0.239 0.006 70);
+	--surface-gray-2: oklch(0.281 0.006 70);
+	--surface-gray-3: oklch(0.341 0.006 70);
+	--surface-gray-4: oklch(0.379 0.006 70);
+	--surface-gray-5: oklch(0.457 0.006 70);
+	--surface-gray-6: oklch(0.58 0.006 75);
+	--surface-gray-7: oklch(0.683 0.007 75);
+	--surface-gray-8: oklch(0.754 0.008 80);
+	--surface-gray-9: oklch(0.885 0.009 85);
+	--surface-gray-10: oklch(0.95 0.01 85);
+
+	--ink-base: oklch(0.205 0.006 70);
+	--ink-gray-1: oklch(0.26 0.006 70);
+	--ink-gray-2: oklch(0.341 0.006 70);
+	--ink-gray-3: oklch(0.42 0.006 70);
+	--ink-gray-4: oklch(0.58 0.007 75);
+	--ink-gray-5: oklch(0.645 0.008 75);
+	--ink-gray-6: oklch(0.72 0.008 80);
+	--ink-gray-7: oklch(0.79 0.009 80);
+	--ink-gray-8: oklch(0.885 0.01 85);
+	--ink-gray-9: oklch(0.95 0.01 85);
+
+	--outline-gray-1: oklch(0.3 0.006 70);
+	--outline-gray-2: oklch(0.36 0.006 70);
+	--outline-gray-3: oklch(0.4 0.006 70);
+	--outline-gray-4: oklch(0.457 0.006 70);
+	--outline-gray-5: oklch(0.58 0.007 75);
+	--outline-gray-6: oklch(0.683 0.008 80);
+	--outline-gray-7: oklch(0.94 0.01 85);
+	--outline-gray-8: oklch(0.96 0.01 85);
+	--outline-gray-9: oklch(0.975 0.01 85);
+	--outline-elevation-1: oklch(0.3 0.006 70);
+	--outline-elevation-2: oklch(0.36 0.006 70);
+
+	--accent: #f18a79;
+}
+
+html,
+body,
+#app {
+	height: 100%;
+}
+
+body {
+	background-color: var(--surface-base);
+	color: var(--ink-gray-8);
+}
+
+/* A word still to type in practice: a blank the width of the word, like sermon-notes fill-ins. */
+.word-blank {
+	color: transparent;
+	border-bottom: 1px solid var(--ink-gray-3);
+}
+.word-blank.is-current {
+	border-bottom: 2px solid var(--accent);
+}
+.word-slip {
+	text-decoration: underline dotted var(--accent);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.3em;
+}
+
+/* ---------- Rules ---------- */
+
+/* The tear line between a pass and its stub, with a notch at each edge. */
+.perforation {
+	position: relative;
+	margin-inline: 1.25rem;
+	border-top: 2px dashed var(--outline-gray-2);
+}
+.perforation::before,
+.perforation::after {
+	content: "";
+	position: absolute;
+	top: -12px;
+	width: 22px;
+	height: 22px;
+	border-radius: 9999px;
+	background: var(--surface-base);
+	border: 1px solid var(--outline-gray-2);
+}
+.perforation::before {
+	inset-inline-start: calc(-1.25rem - 12px);
+}
+.perforation::after {
+	inset-inline-end: calc(-1.25rem - 12px);
+}
+
+/* ---------- frappe-ui parts, adjusted for the paper and for older eyes ---------- */
+
+/* The current page's sidebar row is the page's own paper, with its icon inked in the accent. */
+[data-slot="sidebar-item"][data-state="active"] {
+	background-color: var(--surface-base);
+	box-shadow: inset 0 0 0 1px var(--outline-gray-1);
+}
+[data-slot="sidebar-item"][data-state="active"] [class*="lucide-"] {
+	color: var(--accent);
+}
+
+/* Phone tabs: 13px semibold labels, never paler than ink-gray-6. */
+[data-slot="mobile-nav-item"] .text-xs-medium {
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+[data-slot="mobile-nav-item"] .text-ink-gray-5 {
+	color: var(--ink-gray-6);
+}
+
+/* frappe-ui's toasts sit at a fixed spot; on phones they must clear the tab bar and the safe area. */
+@media (max-width: 767.98px) {
+	[data-sonner-toaster] {
+		--mobile-offset-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+	}
+}

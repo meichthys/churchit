@@ -45,9 +45,13 @@ frappe.ui.form.on("Church Features", {
 });
 
 function get_switches(frm) {
-	// The module, multi-church and privacy checks.
+	// The module, multi-church and privacy checks. The public website switch does not change the desk.
 	return frm.meta.fields
-		.filter((df) => df.fieldtype === "Check")
+		.filter(
+			(df) =>
+				df.fieldtype === "Check" &&
+				df.fieldname !== "disable_public_website",
+		)
 		.map((df) => cint(frm.doc[df.fieldname]))
 		.join();
 }

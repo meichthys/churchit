@@ -3,12 +3,9 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.web_form.web_form import accept, has_link_option
+from frappe.website.doctype.web_form.web_form import has_link_option
 
-from churchit.church_ministries.web_form.function_sign_up.function_sign_up import (
-	get_function_sign_up_items,
-)
-from churchit.church_website.api import search_church_recipient
+from churchit.portal.care import search_recipients
 from churchit.tests.helpers import (
 	ensure,
 	ensure_root_church,
@@ -70,51 +67,18 @@ class TestPortalMembers(FrappeTestCase):
 		person.apply_fieldlevel_read_permissions()
 		self.assertIsNone(person.get("medical_notes"))
 
-	def test_the_personal_details_page_sends_only_its_own_fields(self):
-		"""Frappe gives a signed-in visitor's page the whole record, the office's fields included."""
-		frappe.db.set_value(
-			"Person", self.own.name, {"legacy_id": "_Test Office ID", "medical_notes": "_Test Private"}
-		)
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		frappe.set_user(self.member)
-		frappe.local.form_dict = frappe._dict(name=self.own.name, is_edit=1)
-		frappe.local.path = f"personal-details/{self.own.name}/edit"
-
-		context = frappe._dict()
-		frappe.get_doc("Web Form", "personal-details").get_context(context)
-
-		self.assertEqual(context.reference_doc["name"], self.own.name)
-		self.assertIn("first_name", context.reference_doc)
-		self.assertNotIn("legacy_id", context.reference_doc)
-		self.assertNotIn("medical_notes", context.reference_doc)
-
 	def test_a_member_cannot_add_a_person(self):
-		"""Frappe's web form saves a new record without checking the member's rights."""
+		"""A save that the member's own sign-in or household page did not make adds no one."""
 		frappe.set_user(self.member)
 		before = frappe.db.count("Person")
 
 		with self.assertRaises(frappe.PermissionError):
-			accept(
-				"personal-details",
-				frappe.as_json({"doctype": "Person", "first_name": "_Test", "last_name": "Newcomer"}),
-			)
+			frappe.get_doc({"doctype": "Person", "first_name": "_Test", "last_name": "Newcomer"}).insert()
 		self.assertEqual(frappe.db.count("Person"), before)
-
-	def test_personal_details_opens_the_members_own_record_instead_of_a_new_one(self):
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		frappe.set_user(self.member)
-		frappe.local.form_dict = frappe._dict(is_new=1)
-		frappe.local.path = "personal-details/new"
-		web_form = frappe.get_doc("Web Form", "personal-details")
-
-		self.assertFalse(web_form.allow_multiple)
-		with self.assertRaises(frappe.Redirect):
-			web_form.get_context(frappe._dict())
-		self.assertEqual(frappe.local.flags.redirect_location, f"/personal-details/{self.own.name}/edit")
 
 	def test_the_recipient_search_offers_names_from_the_members_church(self):
 		frappe.set_user(self.member)
-		results = search_church_recipient("Person", "_Test Portal")
+		results = search_recipients("prayer-request", "Person", "_Test Portal")["items"]
 		self.assertEqual({row.name for row in results}, {self.own.name, self.neighbour})
 		self.assertEqual(set(results[0]), {"name", "label"})
 
@@ -142,33 +106,14 @@ class TestPortalMembers(FrappeTestCase):
 			}
 		).insert()
 
-	def test_sign_up_items_load_for_the_members_church_only(self):
-		mine = make_function("_Test Portal Service", church=self.branch_a, allow_sign_ups=1).name
+	def test_a_member_cannot_sign_up_for_another_churchs_function(self):
 		theirs = make_function("_Test Portal Elsewhere", church=self.branch_b, allow_sign_ups=1).name
 
 		frappe.set_user(self.member)
-		self.assertEqual(get_function_sign_up_items(mine), [])
-		with self.assertRaises(frappe.PermissionError):
-			get_function_sign_up_items(theirs)
 		with self.assertRaises(frappe.PermissionError):
 			frappe.get_doc(
 				{"doctype": "Function Sign-Up", "function": theirs, "person": self.own.name}
 			).insert()
-
-	def test_portal_dropdowns_offer_care_types(self):
-		ensure("Care Request Type", {"type": "_Test Portal Care"})
-		frappe.set_user(self.member)
-		self.assertIn("_Test Portal Care", self.rendered_options("care-request-form", "category"))
-
-	def rendered_options(self, web_form, fieldname):
-		"""The options a new web form renders into the page for one of its Link fields."""
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		form = frappe.get_doc("Web Form", web_form)
-		frappe.local.form_dict = frappe._dict(is_new=1)
-		frappe.local.path = f"{form.route}/new"
-		context = frappe._dict()
-		form.get_context(context)
-		return next(f for f in context.web_form_doc.web_form_fields if f.fieldname == fieldname).options
 
 	def test_no_member_form_links_to_person(self):
 		"""A web form renders every name of a linked doctype it may list, hidden fields included."""

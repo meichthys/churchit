@@ -12,7 +12,7 @@ from frappe import _
 from frappe.website.utils import get_portal_sidebar_items
 
 from churchit.church_foundations.doctype.church.church import get_church, selected_church_name
-from churchit.church_scope import is_multi_church, session_church
+from churchit.church_scope import is_multi_church
 from churchit.church_website import pwa
 from churchit.church_website.footer import get_footer_church
 from churchit.church_website.pages import (
@@ -21,14 +21,17 @@ from churchit.church_website.pages import (
 	get_switched_off_pages,
 	is_file_route,
 	is_link_off,
+	is_public_website_on,
 )
+from churchit.church_website.palette import get_palette_style
 from churchit.www.podcast import get_feed_url
 
 PORTAL_URL = "/portal"
+# The www page that holds the member app at /portal and every path under it.
+MEMBER_APP_PAGE = "member_portal"
 # The pages that draw a Leaflet map.
 MAP_PAGES = ("missions", "find-a-group", "calendar")
-# Member pages that list the member's own church, whichever church the navbar brand shows.
-MEMBER_PAGES = ("directory", "bulletins", "community-prayer-requests")
+FONTS_LINK = '<link rel="stylesheet" href="/assets/churchit/css/fonts.css">'
 THEME_MODE_SCRIPT = (
 	"<script>" + (Path(__file__).parents[1] / "public/js/theme_mode.js").read_text() + "</script>"
 )
@@ -41,12 +44,22 @@ def update_website_context(context):
 		if path == "sitemap.xml":
 			_hide_closed_links(context)
 		return
+	if path == MEMBER_APP_PAGE:
+		# The member app (frontend/) draws its own menu and has no footer: it needs only the head, in
+		# the website theme's palette, with the fonts the app shares with the website.
+		context["head_html"] = (
+			(context.get("head_html") or "")
+			+ pwa.head_tags(pwa.get_app_theme_color())
+			+ get_palette_style()
+			+ FONTS_LINK
+		)
+		_add_theme_mode_script(context)
+		return
 
 	_add_portal_menu_item(context)
 	_set_portal_sidebar(context)
 	_set_brand_html(context)
 	_add_locations_menu(context)
-	_add_member_church_to_title(context)
 	context["footer_church"] = get_footer_church()
 	_add_pwa_head_tags(context)
 	_add_theme_mode_script(context)
@@ -56,7 +69,8 @@ def update_website_context(context):
 
 
 def before_request():
-	"""Keep signed-in visitors off the shared page cache once branches or members-only pages exist.
+	"""Keep signed-in visitors off the shared page cache once branches or members-only pages exist,
+	or while the public website is off.
 
 	Frappe caches a rendered page by path alone. A member's pages show their
 	own church, and their menu links the members-only pages, so serving them the
@@ -67,7 +81,7 @@ def before_request():
 	path = frappe.request.path
 	if frappe.session.user == "Guest" or path.startswith("/api/") or is_file_route(path):
 		return
-	if is_multi_church() or get_members_only_routes():
+	if is_multi_church() or get_members_only_routes() or not is_public_website_on():
 		frappe.local.no_cache = 1
 
 
@@ -89,13 +103,13 @@ def _add_portal_menu_item(context):
 
 
 def _set_portal_sidebar(context):
-	"""Fill a shown sidebar with the member portal menu, led by the portal home, and make its links absolute.
+	"""Fill a shown sidebar with the member portal menu, led by the member app, and make its links absolute.
 
 	Frappe already falls back to the Portal Settings menu for www pages, but a
-	web form fills its sidebar from a Website Sidebar record alone, so the
-	portal's forms showed My Account and nothing else. Frappe also renders a
-	route as typed, and "bible" seen from /prayer-request/new is
-	/prayer-request/bible. A page with its own Website Sidebar keeps that menu as it is.
+	web form fills its sidebar from a Website Sidebar record alone, so a form
+	showed My Account and nothing else. Frappe also renders a route as typed,
+	and "bible" seen from a form's /<route>/new is /<route>/bible. A page with
+	its own Website Sidebar keeps that menu as it is.
 	"""
 	if not context.get("show_sidebar"):
 		return
@@ -169,25 +183,12 @@ def _add_locations_menu(context):
 	context["body_class"] = f"{context.get('body_class') or ''} has-locations-menu".strip()
 
 
-def _add_member_church_to_title(context):
-	"""Name the member's own church in a member page's title on a multi-church site.
-
-	The brand follows the ?church= selection, but these pages list the member's own church, so the
-	title says whose list it is.
-	"""
-	# A web form's context has no path yet when this runs, and its list is at <route>/list.
-	route = (getattr(frappe.local, "path", None) or "").split("/")[0]
-	if not (is_multi_church() and context.get("title") and route in MEMBER_PAGES):
-		return
-	church = session_church()
-	if church:
-		church_name = frappe.db.get_value("Church", church, "church_name")
-		context["title"] = _("{0}: {1}").format(context["title"], church_name)
-
-
 def _add_pwa_head_tags(context):
-	"""Make every page installable. Anything the church put in head_html stays in front."""
-	context["head_html"] = (context.get("head_html") or "") + pwa.head_tags()
+	"""Make every page installable and color it with the website theme's palette. Anything the church
+	put in head_html stays in front."""
+	context["head_html"] = (
+		(context.get("head_html") or "") + pwa.head_tags(pwa.get_website_theme_color()) + get_palette_style()
+	)
 
 
 def _add_theme_mode_script(context):

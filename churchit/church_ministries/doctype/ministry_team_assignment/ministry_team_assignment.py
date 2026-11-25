@@ -18,6 +18,7 @@ from churchit.church_ministries import availability
 from churchit.church_ministries.doctype.function.function import TIME_FORMAT, get_time_window
 from churchit.church_scope import refuse_another_churches_parent, refuse_another_churches_record, scoped
 from churchit.contacts import get_primary_email, get_primary_emails
+from churchit.portal.realtime import notify_person
 from churchit.utils import LONG_DATE_FORMAT
 
 PENDING = "Pending"
@@ -62,6 +63,7 @@ class MinistryTeamAssignment(Document):
 			self.responded_on = now_datetime()
 
 	def on_update(self):
+		notify_person(self.person, "serving", self.name)
 		before = self.get_doc_before_save()
 		if before and (before.replaces or None) != (self.replaces or None):
 			frappe.throw(_("An assignment cannot change the assignment it replaces."))
@@ -73,6 +75,9 @@ class MinistryTeamAssignment(Document):
 			self.answer_for(original)
 		elif self.status == DECLINED:
 			self.tell_the_coordinator()
+
+	def on_trash(self):
+		notify_person(self.person, "serving", self.name)
 
 	@property
 	def function_doc(self):
@@ -190,6 +195,7 @@ class MinistryTeamAssignment(Document):
 			original.flags.replaced_by = self.person_name
 			original.save(ignore_permissions=True)
 
+		notify_person(original.person, "serving", original.name)
 		email = get_primary_email("Person", original.person)
 		if email and can_send_email():
 			context = original.get_email_context()

@@ -82,6 +82,9 @@ class FunctionCheckIn(Document):
 		if not self.flags.attendance_by_caller:
 			record(self.person, self.function, CHECKED_IN)
 
+	def after_insert(self):
+		household.notify_check_in(self.person, self.name)
+
 	def on_trash(self):
 		# A checked-out check-in records who took the person. Only system code deletes it.
 		if self.collected_at and not self.flags.ignore_permissions:

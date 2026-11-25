@@ -1,21 +1,15 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-import json
-from unittest.mock import patch
-
 import frappe
 from frappe.utils import add_days, today
-from frappe.website.doctype.web_form.web_form import accept
-from frappe.www.list import get_list_data
 
-from churchit.church_finances.doctype.pledge.pledge import get_given_so_far, get_pledges_by_campaign
+from churchit.church_finances.doctype.pledge.pledge import get_open_campaigns
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_scope import SHARED
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
-	ensure,
 	ensure_user,
 	force_single_church,
 	make_person,
@@ -139,8 +133,8 @@ class TestPledge(RollbackEachTest):
 				).insert()
 
 
-class TestPledgeWebForm(RollbackEachTest):
-	"""The `pledge` web form: a member pledges for themselves, to an open campaign of their church."""
+class TestMemberPledge(RollbackEachTest):
+	"""A member pledges for themselves, to an open campaign of their church."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -165,139 +159,25 @@ class TestPledgeWebForm(RollbackEachTest):
 	def setUp(self):
 		super().setUp()
 		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
 
-	def new_form(self):
-		"""The rendered new pledge form: (campaign options, page script)."""
-		frappe.local.form_dict = frappe._dict(is_new=1)
-		frappe.local.path = "pledge/new"
-		context = frappe._dict()
-		frappe.get_doc("Web Form", "pledge").get_context(context)
-		field = next(f for f in context.web_form_doc.web_form_fields if f.fieldname == "campaign")
-		return {option["value"] for option in json.loads(field.options)}, context.script
-
-	def pledge_through_the_form(self, campaign, **values):
-		data = {"doctype": "Pledge", "campaign": campaign, "amount": 250, "frequency": "Monthly", **values}
-		return accept("pledge", frappe.as_json(data))
-
-	def test_the_form_lists_only_the_open_campaigns_of_the_members_church(self):
+	def test_a_member_is_offered_only_the_open_campaigns_of_their_church(self):
 		frappe.set_user(self.member)
-		options, script = self.new_form()
-		self.assertEqual(options, {self.open_a})
-		self.assertIn('const has_open_campaigns = "1";', script)
+		offered = set(get_open_campaigns())
 
-	def test_the_form_reminds_the_member_of_a_pledge_to_the_same_campaign(self):
-		pledge = make_pledge(self.open_a, self.person, amount=500)
-		frappe.set_user(self.member)
-
-		_options, script = self.new_form()
-
-		self.assertIn(pledge.name, script)
-		self.assertIn("You pledged", script)
-
-	def test_given_so_far_counts_the_members_gifts_and_is_for_the_pledge_reader_only(self):
-		pledge = make_pledge(self.open_a, self.person, amount=500)
-		payment_type = ensure("Payment Type", {"type": "Cash"})
-		frappe.get_doc(
-			{
-				"doctype": "Collection",
-				"date": today(),
-				"church": self.branch_a,
-				"expected_total": 120,
-				"donations": [
-					{"payment_type": payment_type, "fund": self.fund_a, "person": self.person, "amount": 120}
-				],
-			}
-		).insert(ignore_permissions=True).submit()
-
-		frappe.set_user(self.member)
-		sentence = get_given_so_far(pledge.name)
-		self.assertIn("120.00", sentence)
-		self.assertIn("500.00", sentence)
-
-		frappe.set_user(ensure_user("_test_pledge_other_member@example.com", "OtherMember"))
-		with self.assertRaises(frappe.PermissionError):
-			get_given_so_far(pledge.name)
-
-	def test_the_pledge_messages_use_the_site_currency_of_the_gifts(self):
-		"""Giving Settings names the currency that online gifts are charged in, which can differ."""
-		pledge = make_pledge(self.open_a, self.person, amount=500)
-		frappe.db.set_single_value("Giving Settings", "currency", "USD")
-		get_default = frappe.db.get_default
-
-		frappe.set_user(self.member)
-		with patch.object(
-			frappe.db,
-			"get_default",
-			lambda key, *args, **kwargs: "EUR" if key == "currency" else get_default(key, *args, **kwargs),
-		):
-			messages = [get_given_so_far(pledge.name), get_pledges_by_campaign()[self.open_a]["message"]]
-
-		for message in messages:
-			self.assertIn("€", message)
-			self.assertNotIn("$", message)
+		self.assertEqual(offered & {self.open_a, self.open_b, self.ended_a}, {self.open_a})
 
 	def test_a_login_with_no_person_is_offered_no_campaign(self):
 		frappe.set_user(ensure_user("_test_pledge_no_person@example.com", "NoPerson"))
-		options, script = self.new_form()
-		self.assertEqual(options, set())
-		self.assertIn('const has_open_campaigns = "0";', script)
 
-	def test_a_single_church_site_lists_every_open_campaign(self):
+		self.assertEqual(get_open_campaigns(), {})
+
+	def test_a_single_church_site_offers_every_open_campaign(self):
 		force_single_church()
 		frappe.set_user(self.member)
-		options, _script = self.new_form()
-		# The site may hold other open campaigns, such as the sample data's.
-		self.assertLessEqual({self.open_a, self.open_b}, options)
-		self.assertNotIn(self.ended_a, options)
+		offered = set(get_open_campaigns())
 
-	def test_a_member_pledges_for_themselves(self):
-		frappe.set_user(self.member)
-		pledge = self.pledge_through_the_form(self.open_a, person=self.stranger)
-
-		self.assertEqual(pledge.person, self.person)
-		self.assertEqual(pledge.church, self.branch_a)
-		self.assertEqual(pledge.amount, 250)
-
-	def test_a_desk_user_pledges_for_themselves_on_the_form(self):
-		staff = ensure_user("_test_pledge_staff@example.com", "PledgeStaff", roles=("Church Finance",))
-		set_user_church(staff, self.branch_a)
-		own = make_person("_Test Pledge", "Staff", church=self.branch_a, user=staff).name
-		frappe.set_user(staff)
-
-		pledge = self.pledge_through_the_form(self.open_a, person=self.stranger)
-		self.assertEqual(pledge.person, own)
-		with self.assertRaises(frappe.PermissionError):
-			self.pledge_through_the_form(self.open_b)
-
-	def test_staff_cannot_take_over_another_persons_pledge_on_the_form(self):
-		staff = ensure_user(
-			"_test_pledge_treasurer@example.com", "PledgeTreasurer", roles=("Church Staff", "Church Finance")
-		)
-		set_user_church(staff, self.branch_a)
-		own = make_person("_Test Pledge", "Treasurer", church=self.branch_a, user=staff).name
-		frappe.set_user(staff)
-		desk_pledge = frappe.get_doc(
-			{"doctype": "Pledge", "campaign": self.open_a, "person": self.stranger, "amount": 500}
-		).insert()
-		own_pledge = self.pledge_through_the_form(self.open_a)
-
-		listed = {row.name for row in get_list_data("Pledge", web_form_name="pledge")}
-		self.assertEqual(listed, {own_pledge.name})
-
-		with self.assertRaises(frappe.PermissionError):
-			self.pledge_through_the_form(self.open_a, name=desk_pledge.name, amount=600)
-		self.assertEqual(frappe.db.get_value("Pledge", desk_pledge.name, "person"), self.stranger)
-
-		edited = self.pledge_through_the_form(self.open_a, name=own_pledge.name, amount=600)
-		self.assertEqual((edited.person, edited.amount), (own, 600))
-
-	def test_a_member_cannot_pledge_to_another_church_or_an_ended_campaign(self):
-		frappe.set_user(self.member)
-		for campaign in (self.open_b, self.ended_a):
-			with self.subTest(campaign), self.assertRaises(frappe.PermissionError):
-				self.pledge_through_the_form(campaign)
+		self.assertLessEqual({self.open_a, self.open_b}, offered)
+		self.assertNotIn(self.ended_a, offered)
 
 	def test_a_member_cannot_pledge_for_another_household(self):
 		family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Other Household"}).insert(
@@ -314,7 +194,3 @@ class TestPledgeWebForm(RollbackEachTest):
 					"amount": 10,
 				}
 			).insert()
-
-	def test_the_form_has_no_person_field(self):
-		fields = {field.fieldname for field in frappe.get_doc("Web Form", "pledge").web_form_fields}
-		self.assertEqual(fields, {"campaign", "amount", "frequency"})

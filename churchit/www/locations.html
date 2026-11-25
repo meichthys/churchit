@@ -10,10 +10,10 @@
 	<div class="col-md-4 mb-4">
 		<div class="card h-100">
 			{% if church.image %}
-			<img class="card-img-top" src="{{ church.image }}" alt="{{ church.church_name }}">
+			<img class="card-img-top" src="{{ church.image }}" alt="{{ church.church_name | e }}">
 			{% endif %}
 			<div class="card-header">
-				<strong>{{ church.church_name }}</strong>
+				<strong>{{ church.church_name | e }}</strong>
 				{% if church.founding_date %}
 				<div class="small text-muted">{{ _("Established {0}").format(church.founding_date.year) }}</div>
 				{% endif %}

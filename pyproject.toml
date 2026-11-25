@@ -17,6 +17,12 @@ dependencies = [
 [tool.bench.frappe-dependencies]
 frappe = ">=16.0.0,<17.0.0"
 
+# The member app at /portal: bench build runs package.json "build", which writes these.
+[tool.bench.assets]
+build_dir = "./frontend"
+out_dir = "./churchit/public/frontend"
+index_html_path = "./churchit/www/member_portal.html"
+
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"

@@ -1,7 +1,7 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""Page renderers that turn shipped pages off and keep members-only Web Pages from guests."""
+"""Page renderers that close the website to guests, turn shipped pages off and guard members-only Web Pages."""
 
 from urllib.parse import urlencode, urlsplit
 
@@ -17,10 +17,10 @@ from werkzeug.routing import Rule
 
 from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
 from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_people.directory import is_directory_member
 from churchit.church_people.group_leaders import get_led_groups
 from churchit.church_scope import get_transaction_cached, is_multi_church, session_person
 from churchit.church_website.menu import get_route
-from churchit.www.directory import is_directory_member
 
 # Routes that serve a file, not a page: no menu, no members-only content and nothing per visitor
 # beyond what the file's own page module decides. A dot alone does not mark a file: a sermon or a
@@ -73,6 +73,55 @@ SHIPPED_PAGES: dict[str, tuple[str, str | None]] = {
 	"pledge": ("Pledge", "enable_finances"),
 	"alms-request": ("Alms Request", "enable_finances"),
 }
+# The pages that tell a visitor about the church. With the public website off they are off for members
+# too, with every published Web Page that is not members-only.
+VISITOR_PAGES = frozenset(
+	{"about", "contact", "locations", "live", "find-a-group", "connection-card", "prayer-request-anonymous"}
+)
+# A key in an email opens these pages, so a visitor still reaches them with the public website off.
+EMAILED_KEY_PAGES = frozenset({"ministry-team-response", "update-your-details"})
+
+
+class ClosedWebsitePage(BaseRenderer):
+	"""The login page for a Guest on a church website page while the public website is off."""
+
+	def can_render(self):
+		if frappe.session.user != "Guest" or is_public_website_on():
+			return False
+		return sends_guests_to_login(self.path)
+
+	def render(self):
+		# The site root, and a page that is off for members too, have nothing to come back to after login.
+		path = frappe.request.path
+		off_pages = get_switched_off_pages()
+		location = "/login"
+		if not (is_page_off(self.path, off_pages) or is_page_off(path, off_pages)):
+			location += "?" + urlencode({"redirect-to": path}, safe="/")
+		frappe.flags.redirect_location = location
+		# Not a permanent redirect: a browser would keep it after the website is on again.
+		raise frappe.Redirect(302)
+
+
+def is_public_website_on() -> bool:
+	"""Whether a visitor who is not signed in sees the website (Church Features)."""
+	return not cint(frappe.get_cached_doc("Church Features").get("disable_public_website"))
+
+
+def sends_guests_to_login(path: str) -> bool:
+	"""Whether *path* sends a guest to the login page while the public website is off."""
+	return not is_file_route(path) and is_website_page(path)
+
+
+def is_website_page(path: str) -> bool:
+	"""Whether *path* is a shipped page, a published Web Page or a published Web Form."""
+	route = path.strip("/")
+	first = route.split("/")[0].lower()
+	if first in SHIPPED_PAGES:
+		return first not in EMAILED_KEY_PAGES
+	return bool(
+		frappe.db.exists("Web Page", {"route": route, "published": 1})
+		or frappe.db.exists("Web Form", {"route": first, "published": 1})
+	)
 
 
 class SwitchedOffPage(BaseRenderer):
@@ -85,8 +134,10 @@ class SwitchedOffPage(BaseRenderer):
 
 		# A route rule hands over its endpoint ("sermon"), not the path ("sermon/<name>"). Read the
 		# path from the request: only Frappe's own resolver sets frappe.local.path, Builder's does not.
+		# The member app draws a page at /portal/<its old route>, so that path follows the same switch.
 		request = getattr(frappe.local, "request", None)
-		if is_page_off(self.path, off_pages) or (request and is_page_off(request.path, off_pages)):
+		path = request.path.strip("/").removeprefix("portal/") if request else ""
+		if is_page_off(self.path, off_pages) or (path and is_page_off(path, off_pages)):
 			return True
 
 		# Frappe finds a Web Page by route with a case and accent insensitive lookup ("Sérmons").
@@ -98,15 +149,29 @@ class SwitchedOffPage(BaseRenderer):
 
 
 def get_switched_off_pages() -> set[str]:
-	"""The shipped pages that are off, by their own switch or because their module is off."""
+	"""The pages that are off: a shipped page by its own switch or its module, and with the public
+	website off, the visitor pages and the Web Pages that are not members-only."""
 	features = frappe.get_cached_doc("Church Features")
 	# Before migrate adds the table, no page has its own switch.
 	switched_off = {row.route for row in features.get("website_pages") or [] if not cint(row.enabled)}
-	return {
+	off_pages = {
 		route
 		for route, (_label, module_field) in SHIPPED_PAGES.items()
 		if route in switched_off or (module_field and not cint(features.get(module_field)))
 	}
+	if not is_public_website_on():
+		off_pages |= VISITOR_PAGES | get_public_web_page_routes()
+	return off_pages
+
+
+def get_public_web_page_routes() -> set[str]:
+	"""The routes of the published Web Pages that are not members-only, in lower case."""
+	routes = get_transaction_cached(
+		"Web Page",
+		("public_pages",),
+		lambda: frappe.get_all("Web Page", filters={"published": 1, "members_only": 0}, pluck="route"),
+	)
+	return {route.split("<")[0].strip("/").lower() for route in routes if route} - {""}
 
 
 def is_page_off(route: str | None, off_pages: set[str]) -> bool:
@@ -232,11 +297,13 @@ def get_members_only_routes() -> set[str]:
 def get_hidden_pages() -> set[str]:
 	"""The pages whose links this visitor must not see.
 
-	Those are the switched-off pages, the members-only pages they cannot open, /locations while the
-	site has one church (the page then does not exist), /give while it takes no gift online, and
-	/group-leader for anyone who leads no group.
+	Those are the switched-off pages, every shipped page for a guest while the public website is off,
+	the members-only pages they cannot open, /locations while the site has one church (the page then
+	does not exist), /give while it takes no gift online, and /group-leader for anyone who leads no group.
 	"""
 	hidden = get_switched_off_pages()
+	if frappe.session.user == "Guest" and not is_public_website_on():
+		hidden |= set(SHIPPED_PAGES) - EMAILED_KEY_PAGES
 	members_only = get_members_only_routes()
 	if members_only and not can_open_members_only_pages():
 		hidden |= members_only

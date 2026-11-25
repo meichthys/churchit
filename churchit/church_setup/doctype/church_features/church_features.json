@@ -23,6 +23,7 @@
   "enable_website",
   "enable_setup",
   "section_website_pages",
+  "disable_public_website",
   "website_pages",
   "section_app",
   "offer_app_install",
@@ -116,7 +117,7 @@
   },
   {
    "default": "1",
-   "description": "Desk tools for the public website. Does not take the public site offline.",
+   "description": "Desk tools for the website. Turn Off the Public Website takes it offline.",
    "fieldname": "enable_website",
    "fieldtype": "Check",
    "label": "Web Site"
@@ -130,11 +131,19 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:(doc.website_pages || []).some((row) => !row.enabled)",
+   "collapsible_depends_on": "eval:doc.disable_public_website || (doc.website_pages || []).some((row) => !row.enabled)",
    "description": "Untick a page to take it off the website. Its menu, footer and portal links go too. Nothing is deleted.",
    "fieldname": "section_website_pages",
    "fieldtype": "Section Break",
    "label": "Website Pages"
+  },
+  {
+   "default": "0",
+   "description": "A new site starts with this ticked, for a church that has its own website. Visitors who are not signed in then get only the login page. The pages about the church, and your own Web Pages that are not Members Only, go for members too. Members keep the member portal. Clear it to open the website.",
+   "fieldname": "disable_public_website",
+   "fieldtype": "Check",
+   "label": "Turn Off the Public Website",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "website_pages",
@@ -195,7 +204,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-15 11:46:52.691533",
+ "modified": "2026-11-21 09:40:00.000000",
  "modified_by": "Administrator",
  "module": "Church Setup",
  "name": "Church Features",

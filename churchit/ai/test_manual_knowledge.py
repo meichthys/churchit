@@ -19,10 +19,10 @@ from churchit.ai.manual_knowledge import (
 	SYNC_JOB,
 	get_manual_sections,
 	queue_sync,
-	split_sections,
+	to_text,
 )
 from churchit.ai.switch import SETTINGS, has_flow
-from churchit.manuals import get_manuals
+from churchit.manual_sources import get_folders, get_workspace_name
 from churchit.tests.helpers import RollbackEachTest, ensure_user
 
 CHURCH_MANAGER = "_test_manual_knowledge_manager@example.com"
@@ -59,13 +59,13 @@ class TestManualSections(FrappeTestCase):
 		cls.sections = get_manual_sections()
 
 	def test_every_manual_gives_sections(self):
-		manuals = {manual["name"] for manual in get_manuals()}
+		manuals = {get_workspace_name(folder) for folder in get_folders()}
 
 		self.assertEqual(
 			{section["title"].split(" > ")[0].split(" (")[0] for section in self.sections}, manuals
 		)
 
-	def test_each_section_is_plain_text(self):
+	def test_no_section_has_html(self):
 		for section in self.sections:
 			self.assertFalse(has_html_tags(section["content"]), section["title"])
 			self.assertNotIn("&nbsp;", section["content"], section["title"])
@@ -85,30 +85,25 @@ class TestManualSections(FrappeTestCase):
 		for title in people:
 			self.assertTrue(title.endswith("(/desk/manual:-people)"), title)
 
-	def test_a_section_runs_from_its_heading_to_the_next(self):
-		blocks = [
-			{"type": "paragraph", "data": {"text": '<span class="h1">Test Manual</span>'}},
-			{"type": "paragraph", "data": {"text": "The intro."}},
-			{"type": "paragraph", "data": {"text": '<span class="h2">🧭Pathways</span>'}},
-			{
-				"type": "paragraph",
-				"data": {
-					"text": 'Open <a href="/app/pathway">Pathways</a>.<br>Then&nbsp;add one &amp; save.'
-				},
-			},
-			{"type": "list", "data": {"style": "unordered", "items": ["<b>One</b>", "Two"]}},
-			{"type": "card", "data": {"card_name": "Not text"}},
-			{"type": "header", "data": {"text": "<b>Next</b>", "level": 3}},
-			{"type": "paragraph", "data": {"text": "Open https://&lt;your site&gt;/calendar."}},
+	def test_a_page_is_one_section(self):
+		missionaries = [
+			section for section in self.sections if "Manual: Missions > Missionaries (" in section["title"]
 		]
 
+		self.assertEqual(len(missionaries), 1)
+		self.assertNotIn("Missionary Agencies", missionaries[0]["title"])
+
+	def test_the_text_is_what_a_reader_reads(self):
+		markdown = (
+			"<!-- A note for writers. -->\nOpen **Pathways** (see [Follow-up](follow-up.md)).\n\n"
+			":::note[Example]\nOpen https://<your site>/calendar.\n:::\n\n"
+			'<picture>\n<img src="../../churchit/public/manual/people/a-light.webp" alt="A">\n</picture>\n\n'
+			"```mermaid\nflowchart LR\n  A --> B\n```\n"
+		)
+
 		self.assertEqual(
-			split_sections(blocks),
-			[
-				(None, ["The intro."]),
-				("🧭Pathways", ["Open Pathways.\nThen add one & save.", "- One", "- Two"]),
-				("Next", ["Open https://&lt;your site&gt;/calendar."]),
-			],
+			to_text(markdown),
+			"Open **Pathways** (see Follow-up).\n\nExample: Open https://&lt;your site&gt;/calendar.",
 		)
 
 

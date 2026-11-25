@@ -25,9 +25,9 @@ from churchit.church_communications.newsletter import (
 	set_subscribed,
 )
 from churchit.church_communications.push import SUBSCRIPTION, is_push_on
-from churchit.church_communications.sending import can_send_texts
+from churchit.church_communications.sending import can_send_texts, can_text_another_number
 from churchit.church_scope import session_church, session_person
-from churchit.contacts import get_primary_email, get_primary_phone
+from churchit.contacts import get_primary_email, get_text_numbers
 
 
 def get_member_preferences() -> dict:
@@ -38,7 +38,7 @@ def get_member_preferences() -> dict:
 		return {"person": None, "church_name": church_name}
 
 	email = get_primary_email("Person", person)
-	phone = get_primary_phone("Person", person)
+	phone = get_text_number(person)
 	channels = get_channels(email, phone)
 	purposes = frappe.get_all(
 		"Communication Purpose", fields=["purpose", "description"], order_by="creation asc"
@@ -57,6 +57,11 @@ def get_member_preferences() -> dict:
 		"is_globally_unsubscribed": bool(email) and is_globally_unsubscribed(email),
 		"has_stopped_church_emails": has_stopped_church_emails(email),
 	}
+
+
+def get_text_number(person: str) -> str | None:
+	"""Where *person* gets texts from the session's church, or None."""
+	return get_text_numbers("Person", [person], can_text_another_number(session_church())).get(person)
 
 
 def get_channels(email: str | None, phone: str | None) -> list[str]:
@@ -96,7 +101,7 @@ def set_preference(channel: str, purpose: str, allow: bool) -> dict:
 			frappe.PermissionError,
 		)
 	email = get_primary_email("Person", person)
-	if channel not in get_channels(email, get_primary_phone("Person", person)):
+	if channel not in get_channels(email, get_text_number(person)):
 		frappe.throw(_("You cannot choose {0} here.").format(channel))
 	if not frappe.db.exists("Communication Purpose", purpose):
 		frappe.throw(_("{0} is not a Communication Purpose.").format(purpose), frappe.DoesNotExistError)

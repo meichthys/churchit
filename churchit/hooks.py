@@ -91,15 +91,19 @@ app_include_js = [
 ]
 
 # include js, css files in header of web template
-# Page layout shared by every website theme. The Churchit theme's own look is
-# public/scss/website.scss, which frappe compiles into each Website Theme.
-web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
+# The website's look for every Website Theme ("Order of Service", the member app's look); the theme's
+# palette colors it (church_website/palette.py).
+web_include_css = [
+	"/assets/churchit/css/fonts.css",
+	"/assets/churchit/css/order_of_service.css",
+	"/assets/churchit/css/website.css",
+	"/assets/churchit/css/pwa.css",
+]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
-	"/assets/churchit/js/portal_groups.js",
+	"/assets/churchit/js/website_live.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
-	"/assets/churchit/js/web_form_lists.js",
 	"/assets/churchit/js/pwa.js",
 	"/assets/churchit/js/questions.js",
 ]
@@ -148,17 +152,66 @@ website_redirects = [
 	# and delivered by email. Keep the public Frappe newsletter web view off the site.
 	{"source": r"/newsletters.*", "target": "/home"},
 	# The preferences page replaced the newsletter subscription page.
-	{"source": "/newsletter-subscription", "target": "/preferences"},
+	{"source": "/newsletter-subscription", "target": "/portal/preferences"},
+	# The member app's page file; the app runs at /portal.
+	{"source": "/member_portal", "target": "/portal", "redirect_http_status": 302},
+	# The member app (frontend/) replaced the member pages and web forms. Their links (emails, bookmarks,
+	# the installed app's shortcuts) open the same page in the app, /<route>/<rest> as
+	# /portal/<route>/<rest> with the query string. 302, because a browser keeps a 301 for good.
+	*(
+		{
+			"source": rf"/{route}(/.*)?",
+			"target": rf"/portal/{route}\1",
+			"redirect_http_status": 302,
+			"forward_query_parameters": True,
+		}
+		for route in (
+			"household",
+			"personal-details",
+			"preferences",
+			"directory",
+			"attendance",
+			"function-sign-up",
+			"ministry-team",
+			"room-request",
+			"groups",
+			"group-files",
+			"group-leader",
+			"prayer-request",
+			"community-prayer-requests",
+			"care-request",
+			"alms-request",
+			"memorize",
+			"pledge",
+		)
+	),
+	# The digital bulletin and the printable statement (?name=) stay pages of their own; the lists move
+	# into the app, with any other query string (?church=, a mail tool's utm_ tags).
+	*(
+		{
+			"source": rf"/{route}(\?(?!(?:.*&)?name=).*)?",
+			"target": f"/portal/{route}",
+			"redirect_http_status": 302,
+			"match_with_query_string": True,
+		}
+		for route in ("bulletins", "statements")
+	),
 ]
 
-# One page per published sermon. A sermon name can hold a slash.
-website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
+# One page per published sermon. A sermon name can hold a slash. The member app (frontend/) draws
+# /portal and every path under it in one page; <path:> needs at least one character, hence two rules.
+website_route_rules = [
+	{"from_route": "/sermon/<path:name>", "to_route": "sermon"},
+	{"from_route": "/portal", "to_route": "member_portal"},
+	{"from_route": "/portal/<path:app_path>", "to_route": "member_portal"},
+]
 
-# /app-start, where the installed app opens. Shipped pages a church switched off answer 404
-# before Frappe's own renderers or its page cache run, and members-only Web Pages send guests
-# to the login page.
+# /app-start, where the installed app opens. With the public website off, a guest gets the login
+# page. Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
+# cache run, and members-only Web Pages send guests to the login page.
 page_renderer = [
 	"churchit.church_website.pwa.AppStartPage",
+	"churchit.church_website.pages.ClosedWebsitePage",
 	"churchit.church_website.pages.SwitchedOffPage",
 	"churchit.church_website.pages.MembersOnlyPage",
 ]
@@ -196,8 +249,15 @@ jinja = {
 		"churchit.church_people.household.salutation",
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
+		# What the church's Web Template blocks show (church_website/web_template).
+		"churchit.church_website.blocks.get_church_announcements",
+		"churchit.church_website.blocks.get_church_events",
+		"churchit.church_website.blocks.get_church_ministries",
+		"churchit.church_website.blocks.get_church_next_steps",
+		"churchit.church_website.blocks.get_church_sermons",
+		"churchit.church_website.blocks.get_church_visit",
+		"churchit.church_website.blocks.get_church_welcome",
 		"churchit.church_website.pages.get_switched_off_pages",
-		"churchit.church_website.portal_home.get_portal_home_sections",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.
@@ -308,6 +368,7 @@ has_permission = {
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Pledge": "churchit.church_people.member_access.has_own_record_permission",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.has_own_item_permission",
 	"Function Sign-Up": "churchit.church_people.member_access.has_own_record_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
 	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
@@ -331,6 +392,7 @@ permission_query_conditions = {
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Pledge": "churchit.church_people.member_access.own_records_query_conditions",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.own_items_query_conditions",
 	"Function Sign-Up": "churchit.church_people.member_access.own_records_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
@@ -363,8 +425,10 @@ churchit_people_events = {
 # anonymizes the member's Person, a church's record is never shared (or assigned,
 # which shares it) with a user outside that church, a bounce report that reaches
 # the inbox marks the address it names, MCP stays closed while AI is off, a new AI app
-# signs in only people with an AI role, and System Managers hear when a person first
-# connects an AI app.
+# signs in only people with an AI role, System Managers hear when a person first
+# connects an AI app, and open website pages hear when a record they show changes.
+# Frappe reads every public name in this module as a hook, so the shared path is private.
+_live_website_hook = "churchit.church_website.live.notify_change"
 doc_events = {
 	"*": {
 		# Only someone across every church changes a lookup that every church picks from (church_access.GLOBAL_LOOKUPS).
@@ -489,6 +553,14 @@ doc_events = {
 		"on_update": "churchit.church_website.published_fields.clear_published_field_cache",
 		"on_trash": "churchit.church_website.published_fields.clear_published_field_cache",
 	},
+	# Open website pages read themselves again when a record they show changes (church_website/live.py).
+	"Function": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Sermon Series": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Bulletin": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	"Ministry": {"on_update": _live_website_hook, "on_trash": _live_website_hook},
+	# A changed color of the website's theme reaches pages that Frappe keeps in its page cache.
+	"Color": {"on_update": "churchit.church_website.palette.clear_pages_on_color_change"},
 }
 
 # Desk: whether multi-church is on and whether the user may include branches, and the tags
@@ -504,8 +576,17 @@ extend_bootinfo = [
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed. Install App shows while
-# this browser can install the app (public/js/pwa.js).
+# this browser can install the app (public/js/pwa.js). Member Portal shows to a
+# desk user with a Person; migrate adds a new item to existing sites.
 standard_navbar_items = [
+	{
+		"item_label": "Member Portal",
+		"item_type": "Route",
+		"route": "/portal",
+		"icon": "users",
+		"condition": "frappe.boot.churchit && frappe.boot.churchit.has_person",
+		"is_standard": 1,
+	},
 	{
 		"item_label": "Include Branch Churches",
 		"item_type": "Action",
@@ -565,7 +646,8 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "churchit.install.before_tests"
+# A new site starts with the public website off; the website tests need it on.
+before_tests = "churchit.tests.helpers.open_public_website"
 
 # Overriding Methods
 # ------------------------------

@@ -27,6 +27,12 @@ class RollbackEachTest(FrappeTestCase):
 	and runs them after its rollback, so records made in setUpClass stay safe to share.
 	"""
 
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# Frappe runs before_tests only ahead of classes that subclass FrappeTestCase directly.
+		open_public_website()
+
 	def setUp(self):
 		frappe.db.savepoint("rollback_each_test")
 		self.class_after_rollback = frappe.db.after_rollback
@@ -38,6 +44,13 @@ class RollbackEachTest(FrappeTestCase):
 		test_after_rollback = frappe.db.after_rollback
 		frappe.db.after_rollback = self.class_after_rollback
 		test_after_rollback.run()
+
+
+def open_public_website():
+	"""Turn the public website on, which a new site starts with off. Writes only when it is off."""
+	if frappe.db.get_single_value("Church Features", "disable_public_website"):
+		frappe.db.set_single_value("Church Features", "disable_public_website", 0)
+		frappe.db.commit()
 
 
 def ensure(doctype, filters, values=None):
@@ -158,6 +171,12 @@ def make_address(title, **values):
 			**values,
 		}
 	).insert(ignore_permissions=True)
+
+
+def forget_website_settings():
+	"""Drop the Website Settings that frappe.get_website_settings keeps for the request, so it reads them again."""
+	if hasattr(frappe.local, "website_settings"):
+		del frappe.local.website_settings
 
 
 def ensure_root_church():

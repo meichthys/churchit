@@ -469,16 +469,16 @@ it opens. Reports and workspaces carry the same roles.
 
 A portal member reaches their own records through `if_owner` DocPerms, and their own Person
 through `church_people/member_access.py`. That module also limits their Person edits to the
-Personal Details form's fields that are not read-only (Frappe's accept sets read-only fields from
-the post too), and a prayer or alms recipient to their own church. A member form
+fields a member changes on My Details (`PERSONAL_DETAILS_EDITABLE`), and a prayer or alms recipient
+to their own church. A member form
 must not link to Person (see the web form bullet in "Frappe behaviours worth knowing");
 `tests/test_portal_members.py` checks this.
 
 Staff also record Pledges and Function Sign-Ups for a member, so Church User also reads both
 without `if_owner`. `member_access.has_own_record_permission` and
 `own_records_query_conditions` keep a user who reads them only through Church User to the records
-that name their Person or that they made. A change still needs `if_owner`, and the web forms hide
-Edit on the other records (`hide_edit_unless_writable`).
+that name their Person or that they made. A change still needs `if_owner`, and the member app
+offers Change only on a record the member may write.
 
 Rights on a Frappe doctype, such as Church Manager on Data Import or Role Profile, live in that
 doctype's `church_customizations/custom/<doctype>.json` under `custom_perms`. A Custom DocPerm
@@ -591,12 +591,14 @@ replacing it.
 
 Some portal surfaces read past document permissions by design and apply the member's church by
 hand: the community prayer request list (`get_community_filters`), the Join a public group picker
-(`group_api.joinable_public_groups`), `/directory`, the Function Sign-Up form's function options and
-the recipient search (`search_church_recipient`). A new one must do the same.
+(`group_api.joinable_public_groups`), the member directory (`portal.directory`), the functions the
+member app offers for sign-up (`portal.events.get_open_function_rows`) and the recipient search
+(`portal.care.search_recipients`). A new one must do the same.
 
 The group leader surfaces read past permissions too, but gate on leadership, not on the church: a
-portal leader holds no DocPerm on Group or Function. `/group-leader`,
-`group_meetings.get_group_meetings`, `record_group_attendance` and `group_api.message_group` call
+portal leader holds no DocPerm on Group or Function. Groups I Lead (`portal.groups.get_leader_view`)
+reads only the groups that `get_led_groups` returns; `group_meetings.get_group_meetings`,
+`record_group_attendance`, `group_api.message_group` and `portal.groups.add_group_file` call
 `group_leaders.require_leader(group)`, and `decide_join_request` calls it unless the user may write
 the Group. `group_meetings.get_roster` is the one answer to who a leader sees and messages: the
 group's living members. `/find-a-group` lists the selected church's open groups and shows only the
@@ -654,13 +656,18 @@ published Web Page, Web Form or guest endpoint is picked up, and so are the help
 and included templates it calls. The scan finds a read by the doctype it names as a string, so pass
 doctypes to `frappe.get_all` and similar calls as literals. A Function's schedule row shows the
 title of whatever record it links to, so `schedule_item_entries` badges the title field of each
-doctype that a schedule row names, as members-only. It also counts an import path such as
-`churchit.church_people.membership` as a read of the field `membership`, so a badge can name a
-field the page does not show.
+doctype that a schedule row names, as members-only. The member app's My Details page reads the Person
+fields of `member_access.PERSONAL_DETAILS_EDITABLE` by names held in a variable, which the scan cannot
+see, so `PERSONAL_DETAILS_SOURCE` badges them, as members-only. `MEMORIZE_SOURCE` does the same for `Bible Memory Item.word_mistakes`. The scan also counts an import path
+such as `churchit.church_people.membership` as a read of the field `membership`, so a badge can name
+a field the page does not show.
 
-The scan is cached in `frappe.cache` (`published_field_map(use_cache=True)`, which the badges read).
+The scan is cached in `frappe.cache` (`published_field_map(use_cache=True)`).
 A Web Page or Web Form save or delete and every migrate clear it (`clear_published_field_cache`);
-Function schedule entries are read on each call.
+Function schedule entries are read on each call. The badges read `get_reachable_field_map`, which
+applies the page switches on each call: a page that is off badges no field, and while the public
+website is off, a page that sends guests to the login page (`pages.sends_guests_to_login`) counts
+as members-only.
 
 Each source is public, members-only or for link holders (`PUBLIC`, `MEMBERS`, `LINK_HOLDERS`). A
 web form with `login_required`, or a page that sends every guest to the login screen, is
@@ -733,7 +740,7 @@ and pasted images are public files that members see on the digital bulletin with
 `Bulletin.validate_shared_announcements` refuses a link to a private file in shared announcements.
 
 A Web Page with Members Only is served only to a signed-in active member (`is_directory_member`, the
-`/directory` rule) or a user who can edit Web Pages, dynamic routes included. A guest goes to the
+member directory's rule) or a user who can edit Web Pages, dynamic routes included. A guest goes to the
 login page and anyone else gets 403. The check is the `MembersOnlyPage` renderer in
 `church_website/pages.py`, which runs before Frappe's page cache. It matches an exact route in the
 database, because Frappe finds a Web Page by route case and accent insensitively; never compare a
@@ -747,18 +754,66 @@ render time. A link matches by lower case route, as a site path or a full URL to
 dynamic route matches from its fixed start (`members/<name>` hides `/members` and every link under
 it). An accent variant is not matched; the gate is still the renderer. Ticking or clearing Members
 Only clears the whole website cache
-(`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal?doctype=Web
-Page` lists nothing, because `www/portal.html` shadows Frappe's portal page and has no `portal.py`;
-do not add one. The template still draws Frappe's list for another app's list route (ERPNext's
-`/orders`), which runs Frappe's own `portal.py`. Its `no_cache` front matter keeps the landing out of
-the page cache, which those routes read under the `portal` key; do not remove it. A new way to read
-Web Pages without permission checks must apply the same rule.
+(`MembersOnlyWebPage.on_update`), because every cached page holds the menu. `/portal` is the member
+app (see "Member portal"), so `/portal?doctype=Web Page` lists nothing. `www/portal.html` stays as the
+template Frappe's list renderer draws another app's list route with (ERPNext's `/orders`, through
+Frappe's own `portal.py`); do not add a churchit `portal.py`, and keep its `no_cache` front matter,
+because those routes read the page cache under the `portal` key. A new way to read Web Pages without
+permission checks must apply the same rule.
 
 The Contact page posts to `church_website.contact.send_message`, not Frappe's
 `frappe.www.contact.send_message`: a rate-limited guest POST with a honeypot that takes the church
 through `selected_church_name()`, stores a received Communication on the Church and mails the
 branch's email, else Contact Us Settings `forward_to_email`, else the main church's email. On a
-multi-church site the Locations dropdown sits beside the Home link (`context._add_locations_menu`), which also sets the body class `has-locations-menu`. The navbar shows its links from 1200px (`templates/includes/navbar/navbar.html` renders Frappe's navbar as `navbar-expand-xl`), and below that the menu button's list leaves out Home. website.css also takes Home off the bar below 1280px for a signed-in visitor with that body class. A navbar rule for the collapsed menu uses `max-width: 1199.98px`, not Bootstrap's lg breakpoint. Also, the member pages in `context.MEMBER_PAGES` add the member's church to their title.
+multi-church site the Locations dropdown sits beside the Home link (`context._add_locations_menu`), which also sets the body class `has-locations-menu`. The navbar shows its links from 1200px (`templates/includes/navbar/navbar.html` renders Frappe's navbar as `navbar-expand-xl`), and below that the menu button's list leaves out Home. website.css also takes Home off the bar below 1280px for a signed-in visitor with that body class. A navbar rule for the collapsed menu uses `max-width: 1199.98px`, not Bootstrap's lg breakpoint.
+
+The website and the member app share one look, "Order of Service": `public/css/order_of_service.css`
+(type, rules and motion), `public/css/website.css` (the website's pages, for every Website Theme) and
+`public/css/fonts.css` (Newsreader, shipped in `public/css/fonts/newsreader`, and Frappe's Inter). Colors
+come only from Espresso's tokens (`--surface-*`, `--ink-*`, `--outline-*`, the names frappe-ui shares) and
+`--accent`. The Website Theme is the palette: its Background, Text and Primary Color are the paper, ink
+and accent, and `church_website/palette.py` works out every token from them, for the light and the dark
+mode, at the lightness of the member app's own steps. `update_website_context` puts that `<style>` in the
+head of each website page and of the member app page, with selectors that outrank the token blocks of
+Espresso and frappe-ui. The Standard theme has no palette and keeps Frappe's colors. A page uses the
+shared classes (`t-title`, `t-label`, `t-dateline`, `rule-double`, and the `ch-index`, `ch-row`,
+`ch-date` and `ch-empty` of `website.css`) and Espresso's `es-button`, never a color of its own. No app
+SCSS goes into a compiled theme: a compiled theme stays stale until someone saves it again.
+
+Each shipped palette is a user-owned Website Theme with three Color records
+(`after_install.create_website_theme`, from `palette.PALETTES`). A test keeps every shipped palette
+readable, and `test_the_churchit_palette_is_the_member_app_look` keeps the Churchit palette and
+`frontend/src/style.css` in step. A changed Color of the website's theme clears the page cache
+(`palette.clear_pages_on_color_change`). A church picks a theme in the picker under the Website Theme
+field (`theme_palette.get_website_theme_palettes`). `?theme_preview=<theme>` shows a page in another
+theme only to a user who may change Website Settings; the query string keeps it out of the page cache.
+`add_website_palettes` saves each theme compiled with the old `public/scss/website`, because migrate
+compiles only the theme in use.
+
+The home page is a Page Builder Web Page built from the church's own Web Templates
+(`church_website/web_template`: Church Welcome, Events, Sermons, Announcements, Ministries, Next
+Steps and Visit), standard records that migrate updates, so a new look reaches every site without a
+patch. A church adds, moves, retitles or hides them as it does Frappe's own blocks, on any Web Page. A
+block's template only lays out what its function in `church_website/blocks.py` (a jinja method)
+returns; each function reads the selected church's public records with `church_filters`, sets
+`frappe.local.no_cache` because those records change without a save of the page, and checks
+`get_hidden_pages` before it links to a page. `published_fields.page_builder_sources` scans a page built
+from blocks, with the whole of `blocks.py` for one of the church's blocks. `templates/home.html` is the
+last HTML home page: older patches upgrade to it, `move_home_page_to_blocks` builds the blocks from it
+when nobody changed it, and the page keeps it, so the Content Type HTML shows it again.
+
+Live updates on the website are hints, like the member app's. `church_website/live.py` sends the event
+`churchit_website` with only a doctype to Frappe's website room after the commit, from the `doc_events`
+of the doctypes that pages show, when the record is on the website before or after the change
+(`live.is_shown`). A save of a Function's attendance (`attendance.save_attendance`, one per check-in and
+sign-up) sets `flags.attendance_only` and sends none. A part of a page that shows such records has an
+`id` and `data-live="<Doctype>,<Doctype>"`: `public/js/website_live.js` reads the page again, with a
+query string so that the page cache is not used, puts the visitor's `?church=` on its links
+(`churchit.carry_church`) and swaps each part that changed, but not a part in use (a recording plays or
+it holds the focus). A page drawn by a script calls `churchit.live.on(doctypes, read_again)`, as the
+calendar does. Every visitor is in the website room, guests too, so a hint never names a record or holds
+a field. A page with no live part never connects. `test_live` keeps the hooked doctypes and the ones
+pages listen for the same.
 
 A new shipped public page (a www page, a shipped Web Page or a web form) gets a `SHIPPED_PAGES`
 entry in `church_website/pages.py`, with its label and its owning `enable_*` field (None when no
@@ -771,6 +826,17 @@ answers 404 from the `SwitchedOffPage` renderer, its web form refuses Frappe's w
 Frappe's own resolver sets (Frappe Builder's does not). Never change the cached Website Settings
 rows: build new lists. A template that links to another shipped page asks `get_switched_off_pages()`
 first, as `sermons.html` and `home.html` do.
+
+**Turn Off the Public Website** (`disable_public_website` in Church Features) is for a church that
+has its own website. The `ClosedWebsitePage` renderer, before `SwitchedOffPage`, sends a guest from
+`/` and from every shipped page, Web Page and web form to the login page with a 302, so no browser
+keeps the redirect. `get_switched_off_pages` then adds `VISITOR_PAGES` and every published Web Page
+that is not members-only, so those pages go for members too, and `get_hidden_pages` hides every
+shipped page from a guest. A new shipped page that tells visitors about the church goes in
+`VISITOR_PAGES`. A page that a key in an email opens for someone with no login goes in
+`EMAILED_KEY_PAGES`. File routes, such as the podcast feed, stay open. A new site starts with the
+box ticked (`after_install`), and the `before_tests` hook (`tests.helpers.open_public_website`)
+clears it, so a test that serves a page to a guest needs no setup.
 
 ## Settings a church can differ on
 
@@ -899,8 +965,8 @@ statement, sends to the person's primary email at that time and commits after ea
 Pledge Campaign owns its fund, dates and goal and is never shared; a Pledge takes its church from
 its campaign. Pledge Progress counts only the Donation rows of the campaign church's submitted
 Collections to the campaign fund, to the end of the last day. Never derive it from `Fund.balance`
-or `Fund.goal_progress`, which an Expense changes. On the `pledge` web form every login pledges
-only for its own Person (`Pledge.take_members_own_pledge`).
+or `Fund.goal_progress`, which an Expense changes. In the member app every login pledges only for
+its own Person (`Pledge.take_members_own_pledge`).
 
 GL Account Mapping maps a Fund, Payment Type, Expense Type or Church to an account, once for each
 church and record. The GL Journal takes each line's mapping from the source document's church,
@@ -1000,7 +1066,7 @@ An AI app that connects over Frappe's MCP server runs as its user, with that use
 - **Agent guide:** `ai/guide.py` `get_agent_guide(topic=None)` (GET) gives `skills/churchit/SKILL.md`, or `reference/<stem>.md` for the stem of an existing file, read with `frappe.get_app_source_path`. MCP's `search_methods("church rules")` finds it first by its first docstring line: keep that line, and keep other whitelisted methods from sorting before it with both words (`test_guide` checks it). System Settings Agent Instructions belong to the site admin: `add_guide_pointer()` (POST, System Manager) is the only writer. It appends `POINTER` once, when the text does not name `get_agent_guide`, through `get_single("System Settings").save()`. No install, migrate or patch writes the field (`test_guide.TestNoUpdateWritesAgentInstructions`). The AI Access panel line `exposure.get_guide_pointer_line` shows the button to a System Manager while AI is on and the sentence is missing.
 - **Office reads:** `church_people/ai.py`, `church_ministries/ai.py` and `church_summary/ai.py` hold the reads for AI apps and the Church Office agent. Each is GET, calls `require_ai` first, refuses a Website User (`frappe.only_for(SYSTEM_USER_ROLE, message=True)`), narrows a list or count of people to the reader's churches (`in_readers_churches`, `dashboard.count_people`), runs a report through `frappe.desk.query_report.run` (`get_report_rows`, so the report roles, the `report` permission on its doctype, the Link filter checks and User Permissions apply as in the desk) and gives a page of 50 with the total (`get_page`). A read gives what the reader could read in the desk and refuses nothing by doctype or age: a record goes through `apply_fieldlevel_read_permissions` and drops masked keys, rows through `get_list`. `validate_person_filters` is the one check of a smart-list filter (Person and its child tables, 10 filters, 20 columns, Frappe's own `get_filter`); `get_filter_items` drops the fifth element that lists saved by an older Frappe keep on each filter. The People report view keeps a standard filter (Membership Status) from the user's last visit beside the link's filters, so `explanation` tells the person to remove it. A read that sends the details of a record writes one Access Log row with method "AI: <feature>" and the record as reference (`make_access_log`; the briefings use "AI: Person briefing" and "AI: Group briefing"). Use that convention for every later AI feature. `church_people/ai.py` is about 640 lines: the briefings stay there because `test_ai_hygiene` scans only `churchit/ai/*.py` and `churchit/<module>/ai.py`.
 - **Church Office:** `churchit.ai.flow.agents()` (`flow_agents`) declares churchit/Church Office, churchit/Writer and churchit/Private Work, none while no enabled chat Flow Model exists. Church Office reads and drafts. Its tools are the `@tool` wrappers in `flow.py` (`OFFICE_TOOLS`) over the AI reads and `drafts.make_draft` (with the chat's Flow Model as the source), plus Flow's `find_doctypes`, `describe`, `read_records`, `run_report` and `read_screen`. It never gets a write, web, memory or `execute` tool, and none of its tools asks for approval, because none changes data. The `propose` tool calls `make_draft`, so the limit of 30 drafts an hour on `propose` does not apply in Flow. A wrapper only calls the module function, which checks `require_ai`, the desk user and the permissions, and takes its description from that function's docstring: a docstring change reaches Flow at the next agent sync. A new AI read that the agent should use gets a wrapper in `OFFICE_TOOLS` with the same parameters. Writer and Private Work have no tools, and churchit's own AI actions use them (see "AI actions in the desk"). Flow writes the agents after each migrate. Churchit also syncs them when an enabled chat Flow Model is saved (`flow_models.sync_agents_on_model`), in a job when AI is turned on (`flow_models.queue_agent_sync`) and when the manual sync makes its knowledge base. Flow keeps an agent's Model and the Roles that a System Manager sets. The desk boot asks `flow_models.is_flow_ready()`, which reads the Flow Model and Flow Agent tables by the names in `flow_models` (`OFFICE`, `WRITER`, `PRIVATE_WORK`) and loads no Flow code, so a Flow API move cannot stop the desk from booting (`test_switch.test_boot_loads_no_flow_code`). Flow lets the owner share a chat with a person (`share_session`) or open it to every Flow User (`set_general_access`), and each of them then reads the tool results, briefings included, that the owner's permissions gave: the Foundations manual, the People manual and the AI Access panel tell people not to share a chat that holds a briefing.
-- **Manual knowledge:** `manual_knowledge.queue_sync` (`after_migrate`, and Church AI Settings `on_update` when AI turns on) queues `churchit.ai.flow.sync_manual_knowledge` only with AI on, Flow and an enabled embedding model in Flow Knowledge Settings. The job (long queue, deduplicated) runs as Administrator and keeps the "Churchit Manual" Flow Knowledge Base equal to the manuals, one Text source per section, matched by title: an unchanged section adds nothing, and a changed or gone one loses its source. A section runs from one h2 heading to the next, so a new h2 in a manual needs a title that is unique across the manuals (`test_manual_knowledge`). `to_text` keeps `<` and `>` escaped, because Frappe's XSS filter strips tag-like text from the source content and the sync compares the saved text. Setting the embedding model while AI is on queues nothing: the manuals arrive at the next migrate. `churchit/manuals.py` is the one reader of the manual workspace blocks, for this job and for `docs/build_docs.py`, and uses only the standard library.
+- **Manual knowledge:** `manual_knowledge.queue_sync` (`after_migrate`, and Church AI Settings `on_update` when AI turns on) queues `churchit.ai.flow.sync_manual_knowledge` only with AI on, Flow and an enabled embedding model in Flow Knowledge Settings. The job (long queue, deduplicated) runs as Administrator and keeps the "Churchit Manual" Flow Knowledge Base equal to the Markdown in `manual/` (Getting Started included), one Text source per page, matched by title: an unchanged page adds nothing, and a changed or gone one loses its source. Each README is its manual's own section. The title names the manual and the page, so a page title must be unique within its manual (`test_manual_hygiene`). `to_text` escapes `<` and `>`, because Frappe's XSS filter strips tag-like text from the source content and the sync compares the saved text. Setting the embedding model while AI is on queues nothing: the manuals arrive at the next migrate. The job reads the Markdown through `churchit/manual_sources.py`, which also builds the Manual workspaces.
 - **AI actions in the desk:** `ai/runner.py` is the one way churchit's own AI actions run a model: Flow's run API, as the caller, with the answer sent to the caller's browser. An action is a POST endpoint that checks the caller and the records it reads, builds a prompt and calls `runner.start(feature, prompt, *, sends=(), reference_doctype=None, reference_name=None, check=None, deliver=None, attachments=())`, which returns `{"token"}`. `start` calls `require_ai`, refuses a non-desk user, needs `has_flow()` and `flow_models.is_flow_ready()`, picks the agent (Private Work when `sends` holds a doctype of `get_private_doctypes()`, else Writer), calls `check_label`, starts a chat titled with the feature (`FlowAgent.new_session(title=_(feature))`) and runs the prompt in it with `session.chat(prompt, ..., on_complete="churchit.ai.runner.complete")` as the caller. `attachments` (File names that the caller reads) go to `session.chat` only when given: Flow checks that the caller reads each File and sends an image to a model that sees images, so the runner stages and copies nothing. The title matters: Flow titles an untitled chat from its first message with the Helper Model of Flow Settings, whose label `check_label` does not read. Writer and Private Work have no tools, so Flow's tool review, which also uses the Helper Model, never runs. It keeps `{token, feature, user, check}` in `frappe.cache` under `churchit:ai_run:<Flow Run name>` for 3600 s, outside Frappe's `user:` prefix; `persistent_cache_keys` in `hooks.py` keeps that prefix through a full `clear_cache`, or a migrate would lose the caller of a running action. Flow calls `complete(run)` as the session owner when the run ends. `complete` publishes nothing when the key is gone (a run that churchit did not start, or one already completed), when the user is not the caller or when AI is off. Otherwise it reads the output as JSON (`parse_answer` drops `<think>` and takes a fenced block), calls `check` and publishes `{token, result}` or `{token, error}` with `frappe.publish_realtime("churchit_ai_result", ..., user=caller, after_commit=True)`. It also keeps that message for 600 s under `churchit:ai_run:answer:<token>`, and `get_answer(token)` (GET) gives it to the caller only while AI is on, because a realtime message sent while the browser's socket reconnects is lost. `send_answer(user, message)` does both, and the model check sends its summary with it. `check` is the dotted path of a function that takes the parsed answer and returns the result to show. It runs as the caller and keeps only what the caller could choose in the desk, so a value outside the caller's choices is dropped. It raises `frappe.ValidationError` with a plain sentence to show it; any other error shows `UNUSABLE` and is logged without the answer text. A check gets only the answer, not the record: make a draft in the check with `drafts.make_draft` (as `church_setup/ai.py` does) or let the browser call `drafts.propose`. The answer is never saved: it fills a dialog, a field or a form, unsaved. Flow keeps each run as a chat in the caller's own chat list, and that chat holds the prompt. `flow_switch.has_session_permission` refuses `write` and `share` on every chat of Writer and Private Work (`ACTION_AGENTS`), so nobody sends it a new message, switches its model or shares it, and Flow shows it read-only; its owner still reads and deletes it. Nobody chats with Writer or Private Work in Flow either, because Flow checks `write` on the first message too. The runner needs neither right, because `new_session` and `chat` check only the agent. The runner reads Flow's doctypes and loads no Flow code. `start(..., deliver="dotted.path")` is for a run that has no browser (suggestions on new requests): it passes `on_complete=deliver` to `session.chat` and keeps no cache key, so Flow keeps the callback on the Flow Run however long the run waits, and `start` returns `{}`. Flow calls `deliver(run)` as the session owner; it checks AI, the owner and its own gates again and reads the answer with `get_result(run, None)`, where a `ValidationError` means the answer is unusable. `get_agent(sends)` is the one rule that picks Writer or Private Work.
 - **The desk client:** `public/js/ai_actions.js` has `churchit.ai.run_action({title, method, args, render, on_use, use_label, note, wait_minutes})`: a `frappe.ui.Dialog` that shows "Working... A local model can take several minutes.", calls the endpoint with POST, waits up to `wait_minutes` minutes (default 30; the model check passes 65) for the realtime event of its token (a local model can take that long; the runner keeps the caller for an hour), asks `runner.get_answer` every 20 s in case the event was lost, stops when the dialog closes, and shows the result under `note` (default "Suggestion. Check it before you use it.") with a Use button. `title` is text that `run_action` escapes. `render(result, response)` returns HTML built with `churchit.ai.escape` and `churchit.ai.paragraphs`, so an answer with `<img src=...>` shows as text. When the endpoint refuses, Frappe shows the server's message and the dialog closes, after its fade-in, because Bootstrap ignores an earlier `hide()`. A failure shows a fixed sentence ("The AI did not answer in time. Try again, or ask your administrator to check Flow.", "The AI did not finish its answer. ...", "The AI answer could not be used."). `churchit.ai.can_run(is_private)` reads `frappe.boot.churchit.ai.actions` (`private_actions` for an action that needs Private Work). `ai_people.js` holds the Person, Group, Meeting Minutes and Data Import buttons and `churchit.ai.add_describe_people(listview)`, which `person_list.js` calls; `ai_writing.js` holds the field links (`frappe.boot.churchit.ai_writing`), the Sermon study menu and the Describe buttons of Question Set and Follow-up Workflow; `ai_actions.js` also adds Explain to churchit's script reports. Frappe has no hook for a menu item on every report, so it adds the item for 10 s after each route change (a second `add_menu_item` does nothing). All three scripts are in `app_include_js`, which browsers cache 12 hours at a plain URL: never rename a whitelisted method they call.
 - **Rules for a new AI feature:** keep each of these, because none shows in a diff.
@@ -1020,8 +1086,8 @@ An AI app that connects over Frappe's MCP server runs as its user, with that use
   14. A check on model HTML or links reads a URL as a browser does (`church_website/ai.get_risks`): it drops tabs, line breaks and spaces, reads a backslash as a slash and counts `http:host` as outside. Never test a URL with a plain regex.
   15. Model text that lands in a field, a title or a Notification Log goes through `escape_html`, and a title keeps no `<` or `>`: `db_set` skips Frappe's sanitize, and the Link formatter shows a title unescaped to a user who cannot read the linked record.
 - **Private records (D10):** `Church AI Settings.private_model_doctypes` (Table MultiSelect of `Church AI Blocked DocType`, label "Only for Local or Zero Retention Models", in the Private Records section, shown with Flow) lists the doctypes whose records churchit's own AI features send only to a Flow Model labelled Zero retention or Local. It is separate from Blocked from Flow Knowledge, which is a different risk, and it limits only churchit's own features: chats and MCP apps work with the user's permissions (D5). `ai/private_doctypes.py` has `RECOMMENDED` (care, counseling, private notes, prayer, giving, background checks, pickup restrictions, authorized pickups, alms, member transfers and meeting minutes, and connection cards with their photos because a family card holds children's names, never Person or Church Email; each name must be a churchit doctype that is neither a child table nor a Single, which `test_private_doctypes` checks), `get_private_doctypes()` (what the runner reads), `fill_private_doctypes()` (`after_install` and a `v1_0` patch: it fills an empty list and leaves a list with rows) and `use_recommended_private_doctypes` (POST, System Manager or Church Manager, also while AI is off, which `EXEMPT` in `test_ai_hygiene` says), which adds each missing doctype and keeps every row. Removing a recommended doctype saves with an orange warning (`check_removed_private_doctypes`), and on a multi-church site only a Church Manager with no Church restriction, or a System Manager, removes a row (`refuse_for_some_churches`, as for turning AI on). A doctype that a release adds to `RECOMMENDED` reaches an existing site from the button or a versioned patch (`add_connection_cards_to_private_doctypes` appends only Connection Card and Connection Card Photo to a list that lacks them and leaves an emptied list empty).
-- **Opt-outs (D12e, D12f):** `Church.keep_away_from_ai` (multi-church only, edited by whoever writes the Church) and `Person.exclude_from_ai` (a member sets it on /personal-details, which the published fields scanner marks; anyone who writes the Person may tick it, and only the person, a parent through `household.can_edit` or a System Manager may clear it, `Person.refuse_clearing_another_ai_opt_out`) keep records away from churchit's own AI features, never from Flow chats, the Church Office agent or MCP apps (D5). `ai/opt_outs.py` decides: `is_kept_away(doctype, name)` is true for a record of a church that keeps away (its `church`, else `shared_by_church`, else the only church on a single-church site), a Person who ticked it or whose church keeps away, and a record about such a person (the field that `privacy.PERSONAL_DOCTYPES` or `RECORDS_ABOUT_THE_PERSON` names, or a Dynamic Link that holds Person). It reads the flags with `frappe.db`, not as the caller, and never raises. A new AI feature calls `opt_outs.refuse_kept_away(doctype, name)` on the record it works on, after the permission check, and drops kept-away people and records from every list it sends (`get_kept_away_records`). Explain drops each row that names one, refuses filters that name one and refuses a caller whose churches all keep away. It also refuses a report whose rows can come from a church that keeps away (`reports.refuse_kept_away_churches`): the churches that its Church filter picks, for a report whose script has `church.report_filters()`, or else every church the caller reads. A total names no record but counts that church's records. `switch.extend_bootinfo` sets `actions` and `private_actions` false for a user whose churches all keep away (`is_user_kept_away`). The refusal and the field descriptions say what the opt-out does not cover: Flow chats, Church Office, MCP apps and text that only mentions a person. People can opt out before AI is on, so each opt-out also says whether AI is in use: `get_ai_state(church)` is Off, On or Kept Away, `Person.onload` and `Church.onload` set `ai_state` from `STAFF_AI_STATES` for their `ai_status` HTML field, and the Personal Details web form starts its AI Features section with `MEMBER_AI_STATES` (`personal_details.show_ai_state`).
-- **Suggestions on new requests (D12, `ai/triage.py`):** `Church AI Settings.suggest_request_triage` and the Reviewers table (`Church AI Reviewer`: church, user) turn on a suggestion for a new Prayer Request, Care Request and Follow-up Card (only from a Connection Card or a Form Response). `dispatch` (doc_events `after_insert`) only checks the gates and enqueues `run_triage` (long queue, `enqueue_after_commit`, `job_id` `ai-triage:<doctype>:<name>`, `deduplicate`), because it often runs inside a guest's request: it sends nothing and calls `frappe.clear_last_message` after a refusal. It returns for `frappe.flags.in_import`. The job runs `set_user(reviewer)`, checks every gate again, rebuilds the prompt from the saved record (text that guests and members write only inside `runner.wrap_data`), writes the Access Log row (`AI: Prayer request suggestions`, `AI: Care request suggestions`, `AI: Follow-up suggestions`; a card from a Connection Card also writes one for the Connection Card) and calls `runner.start(..., deliver=STORE)`. `store(run)` runs as the session owner and stores only when that owner is still `reviewer_for(church)`, AI and the switch are on, the request is not Private, nobody opted out and the owner reads it (`can_store`); an unusable answer counts as None. The gates, in `dispatch` and in the job: `is_ai_on`, `suggest_request_triage`, Flow ready, never a Private prayer request, a reviewer row for the record's church (`reviewer_for`: on a multi-church site only the row that names the church, on one church the first row; an empty church means the only church), `opt_outs.is_kept_away`, the reviewer reads the record and the Flow Agent, and the runner's label check (Prayer Request, Care Request and Connection Card are in the private list, so a prayer request, a care request and a card from a Connection Card run on Private Work with a Zero retention or Local model, and a card from a form runs on Writer). Church AI Settings `validate` reuses `refuse_for_some_churches` when the switch turns on or the rows change, and checks each new row (church, one reviewer for each church, an enabled desk user who reads the three doctypes and Church AI Suggestion of that church and may select each of `triage.CHOICE_DOCTYPES`, with a refusal that names the doctype); a disabled reviewer gives an orange note on save. A suggestion never changes the request's own fields, status, visibility or `approved_for_list`, never replies, sends, or calls `followup.queue_actions`. On a Prayer Request and a Care Request it lives in its own doctype, `Church AI Suggestion` (`reference_doctype`, `reference_name`, `church` from the request, `suggested_type`, `suggested_urgent`, `suggested_urgency`, `suggested_flags`, `public_wording`; never a field named `flags`, which is `Document.flags`), written by `church_ai_suggestion.set_suggestion` with `ignore_permissions` and read only by Church Pastoral Care, Church Manager and System Manager through its DocPerms and the church's User Permissions. Never put a suggestion on the request itself: Frappe's web forms (`get_form_data`, the page context) and the timeline give a reader every field of the record, permlevel or not. `delete_with_request` (doc_events `on_trash`) and `privacy.forget_ai_chats` delete it with `frappe.delete_doc`, so its assignments, notices and timeline go too, and `follow_request_church` (doc_events `on_update`) moves its `church` with the request. The form scripts show it with `churchit.ai.show_suggestion` (`public/js/ai_actions.js`) as a dashboard section with a Use button for each value. On a Follow-up Card the suggestion is a Comment with the subject `triage.SUGGESTION`, built with `escape_html` and with links to other sites removed; `draft_email` reads only the latest one that the church's reviewer wrote. The one assignment is the prayer `risk` flag: `assign_to.add` on the Church AI Suggestion, never on the request, for each Church Pastoral Care desk user who reads both, with `RISK_ASSIGNMENT`, a description that gives no reason. Only a risk flag makes it, so an assignment on the request would tell each reader of the request (the prayer team, its owner, the member who wrote it) the flag through the timeline, `_assign` and the Assigned To group-by. The suggestion form has Open Request. An answer that is unclear, or part of one, adds the flag `unclear` ("Needs a person"), which assigns nobody. The `Use` buttons copy a value into the form and do not save; the suggested wording is only copied to the clipboard, so the request keeps its own text. `draft_email(card)` (POST, a desk button) makes the Church Email draft at click time with `drafts.make_draft`. `community_prayer_requests.py` asks `get_list` for `get_permitted_fields` only.
+- **Opt-outs (D12e, D12f):** `Church.keep_away_from_ai` (multi-church only, edited by whoever writes the Church) and `Person.exclude_from_ai` (a member sets it on My Details in the member app, which the published fields scanner marks; anyone who writes the Person may tick it, and only the person, a parent through `household.can_edit` or a System Manager may clear it, `Person.refuse_clearing_another_ai_opt_out`) keep records away from churchit's own AI features, never from Flow chats, the Church Office agent or MCP apps (D5). `ai/opt_outs.py` decides: `is_kept_away(doctype, name)` is true for a record of a church that keeps away (its `church`, else `shared_by_church`, else the only church on a single-church site), a Person who ticked it or whose church keeps away, and a record about such a person (the field that `privacy.PERSONAL_DOCTYPES` or `RECORDS_ABOUT_THE_PERSON` names, or a Dynamic Link that holds Person). It reads the flags with `frappe.db`, not as the caller, and never raises. A new AI feature calls `opt_outs.refuse_kept_away(doctype, name)` on the record it works on, after the permission check, and drops kept-away people and records from every list it sends (`get_kept_away_records`). Explain drops each row that names one, refuses filters that name one and refuses a caller whose churches all keep away. It also refuses a report whose rows can come from a church that keeps away (`reports.refuse_kept_away_churches`): the churches that its Church filter picks, for a report whose script has `church.report_filters()`, or else every church the caller reads. A total names no record but counts that church's records. `switch.extend_bootinfo` sets `actions` and `private_actions` false for a user whose churches all keep away (`is_user_kept_away`). The refusal and the field descriptions say what the opt-out does not cover: Flow chats, Church Office, MCP apps and text that only mentions a person. People can opt out before AI is on, so each opt-out also says whether AI is in use: `get_ai_state(church)` is Off, On or Kept Away, `Person.onload` and `Church.onload` set `ai_state` from `STAFF_AI_STATES` for their `ai_status` HTML field, and My Details in the member app starts its AI Features part with `MEMBER_AI_STATES` (`opt_outs.get_member_ai_state`, sent by `portal.account.get_personal_details`).
+- **Suggestions on new requests (D12, `ai/triage.py`):** `Church AI Settings.suggest_request_triage` and the Reviewers table (`Church AI Reviewer`: church, user) turn on a suggestion for a new Prayer Request, Care Request and Follow-up Card (only from a Connection Card or a Form Response). `dispatch` (doc_events `after_insert`) only checks the gates and enqueues `run_triage` (long queue, `enqueue_after_commit`, `job_id` `ai-triage:<doctype>:<name>`, `deduplicate`), because it often runs inside a guest's request: it sends nothing and calls `frappe.clear_last_message` after a refusal. It returns for `frappe.flags.in_import`. The job runs `set_user(reviewer)`, checks every gate again, rebuilds the prompt from the saved record (text that guests and members write only inside `runner.wrap_data`), writes the Access Log row (`AI: Prayer request suggestions`, `AI: Care request suggestions`, `AI: Follow-up suggestions`; a card from a Connection Card also writes one for the Connection Card) and calls `runner.start(..., deliver=STORE)`. `store(run)` runs as the session owner and stores only when that owner is still `reviewer_for(church)`, AI and the switch are on, the request is not Private, nobody opted out and the owner reads it (`can_store`); an unusable answer counts as None. The gates, in `dispatch` and in the job: `is_ai_on`, `suggest_request_triage`, Flow ready, never a Private prayer request, a reviewer row for the record's church (`reviewer_for`: on a multi-church site only the row that names the church, on one church the first row; an empty church means the only church), `opt_outs.is_kept_away`, the reviewer reads the record and the Flow Agent, and the runner's label check (Prayer Request, Care Request and Connection Card are in the private list, so a prayer request, a care request and a card from a Connection Card run on Private Work with a Zero retention or Local model, and a card from a form runs on Writer). Church AI Settings `validate` reuses `refuse_for_some_churches` when the switch turns on or the rows change, and checks each new row (church, one reviewer for each church, an enabled desk user who reads the three doctypes and Church AI Suggestion of that church and may select each of `triage.CHOICE_DOCTYPES`, with a refusal that names the doctype); a disabled reviewer gives an orange note on save. A suggestion never changes the request's own fields, status, visibility or `approved_for_list`, never replies, sends, or calls `followup.queue_actions`. On a Prayer Request and a Care Request it lives in its own doctype, `Church AI Suggestion` (`reference_doctype`, `reference_name`, `church` from the request, `suggested_type`, `suggested_urgent`, `suggested_urgency`, `suggested_flags`, `public_wording`; never a field named `flags`, which is `Document.flags`), written by `church_ai_suggestion.set_suggestion` with `ignore_permissions` and read only by Church Pastoral Care, Church Manager and System Manager through its DocPerms and the church's User Permissions. Never put a suggestion on the request itself: Frappe's web forms (`get_form_data`, the page context) and the timeline give a reader every field of the record, permlevel or not. `delete_with_request` (doc_events `on_trash`) and `privacy.forget_ai_chats` delete it with `frappe.delete_doc`, so its assignments, notices and timeline go too, and `follow_request_church` (doc_events `on_update`) moves its `church` with the request. The form scripts show it with `churchit.ai.show_suggestion` (`public/js/ai_actions.js`) as a dashboard section with a Use button for each value. On a Follow-up Card the suggestion is a Comment with the subject `triage.SUGGESTION`, built with `escape_html` and with links to other sites removed; `draft_email` reads only the latest one that the church's reviewer wrote. The one assignment is the prayer `risk` flag: `assign_to.add` on the Church AI Suggestion, never on the request, for each Church Pastoral Care desk user who reads both, with `RISK_ASSIGNMENT`, a description that gives no reason. Only a risk flag makes it, so an assignment on the request would tell each reader of the request (the prayer team, its owner, the member who wrote it) the flag through the timeline, `_assign` and the Assigned To group-by. The suggestion form has Open Request. An answer that is unclear, or part of one, adds the flag `unclear` ("Needs a person"), which assigns nobody. The `Use` buttons copy a value into the form and do not save; the suggested wording is only copied to the clipboard, so the request keeps its own text. `draft_email(card)` (POST, a desk button) makes the Church Email draft at click time with `drafts.make_draft`. The member app's prayer list reads only `prayer_access.COMMUNITY_FIELDS`.
 - **Card capture (A7.1, `ai/card_capture.py`):** a Connection Card Photo (Church People; `church` Link; Church Manager and Church People Editor) holds a private photo (`validate` refuses a public one), `status`, `draft` (JSON, hidden; the form renders it escaped beside the photo and the likely duplicates from `matching.py`), `error` and `connection_card`. `dispatch` (doc_events `after_insert`) leaves the photo Ready to Copy, with no error, when `is_left_to_copy` (AI is off, the church keeps away or Flow is not ready); a label refusal or more than `RUNS_AN_HOUR` photos an hour for the uploader sets Failed with one sentence. It never uses `db_set` on the new record, because on Frappe 17 that leaves the photo's File unattached, and it queues `read_photo` (long, `enqueue_after_commit`, `job_id` `ai-card:<name>`, `deduplicate`) with the uploader. The job runs `set_user`, checks write and every gate again and the attached private File, writes the Access Log row `AI: Card reading` and calls `runner.start(..., sends=("Connection Card Photo",), attachments=[file], deliver=STORE)`. The prompt holds only instructions and option names, because the card is the attachment and the instruction says its text is never an instruction. `store` keeps only `CARD_FIELDS` (never the consent ticks, `website`, `church`, `person` or `status`), option, interest and relation names that the owner may select, a valid email and phone, birth dates not in the future and `MEMBER_FIELDS` in at most 12 rows, and it keeps no `<` or `>` in the title. `create_card` (POST) opens the draft through `drafts.make_draft` with `card_photo`. The link back is a plain field: `Connection Card.card_photo` (set once) is checked in the card's `validate` (the photo has no card yet and the user writes it, read `for_update` so two saves cannot both link it) and `after_insert` marks the photo Imported with `connection_card`, so `ConnectionCard.process` runs only from the person's save. Copy by Hand on the photo form works with AI on or off, on any photo without a card: it makes the new card with `frappe.model.get_new_doc` and sets `card_photo` on it, because route options skip a No Copy field, and `connection_card.js` shows the photo above the card form for both roads. The job and `store` also leave a photo Ready to Copy when AI is turned off or its church keeps away while it waits. `read_again` (POST) queues a Failed, Ready to Check or Ready to Copy photo again, and a Waiting or Reading one that has not changed for `STUCK_SECONDS` (a lost job, a Data Import, a run that Flow dropped); the form shows the button from `__onload.is_readable_again`. A Flow error at the start goes to the Error Log and the photo gets `NOT_STARTED`; the runner's label refusal is found before the job, in `get_refusal`. `Connection Card Photo` is in the recommended Blocked from Flow Knowledge list, and the patch `block_connection_card_photos_from_knowledge` adds it to a list that has rows. Deleting a card deletes its photo, and deleting a photo deletes its Flow chats and clears `card_photo`. The 90 percent target on 20 real cards is not measured.
 - **Contact card reading (`ai/contact_card_reading.py`):** `read_card(verification, person, card_photo)` (POST) needs write on the Contact Verification and the person, refuses a card that shows the emergency contact (`show_emergency_contact`, a health field) and a kept-away church or person, and takes only a private File attached to the Contact Verification. The prompt holds the lines the card printed (`CARD_PARTS`, cut at `contact_cards.MOST_ON_A_CARD`), and `sends` names Contact Verification, Person and, for an address line, Address and the Person or Family that holds it. `check_card` reads both records again as the caller and keeps a Wrong line only with no correction (remove it) or a usable one, so a misread value never reads as a removal. The answer fills the Returned Card dialog; Save Card is the person's own save.
 - **Weekly AI note (A7.2, `church_summary/ai.py`):** the user default `churchit_weekly_ai_note` (`frappe.defaults`, so it survives a cache clear) is set only by its user (`set_weekly_note`, POST) from the Weekly AI Note box of the Summary workspace (Custom HTML Block `WeeklyAINote`, a fixture). The cron `queue_weekly_notes` (Monday 06:00) queues `run_weekly_note` (long, `job_id` `ai-weekly-note:<user>`, `deduplicate`) for each opted-in enabled desk user. The job runs `set_user`, checks every gate again (AI on, the user's own default, `opt_outs.is_user_kept_away`, Flow ready, Writer usable) and sends numbers only, read as that user with `get_list` and cached for nobody: `NOTE_METRICS` of Weekly Metrics (never giving), the user's own open follow-up to-dos and the Requested prayer requests that the user reads (never Private), without the churches that keep away. It uses `sends=()`, so any label. `deliver_weekly_note` writes one Notification Log of type Weekly AI Note (`NOTE_TYPE`) for that user with the sentences through `remove_outside_links` and `escape_html` and links that churchit builds. Frappe emails it too, as it never emails an Alert: `create_note_type` (after install and the `add_weekly_ai_note_type` patch) adds the Notification Type once and puts it in the email types of every user who has notification settings, as Frappe does for a new user. A user stops the email in their Notification Settings, and the church turns the type off there for everyone. The model check has a `weekly_note` case, built with `get_note_prompt` and graded on five sentences with no link.
@@ -1170,8 +1236,7 @@ does not know.
 - **A dialog on a portal page shows each field's name.** Every control carries a `.tooltip-content`
   span with its fieldname, and the website CSS hides it only inside a web form body. A
   `frappe.ui.Dialog` sits outside it, so a portal page that opens one adds the
-  `.modal .tooltip-content` rule, as `portal_groups.js` and the Community Prayer Requests web form
-  do.
+  `.modal .tooltip-content` rule.
 - **Email open tracking is added at send time.** Email Queue `message` holds only
   `<!--email_open_check-->`; `SendMailContext.build_message` puts in the image when the Email Account
   has Track Email Status and the queue has a `communication`. A test builds the message the same way
@@ -1300,7 +1365,11 @@ Summary's roles gets it, so an ERPNext accountant on a shared site does not land
 cannot open. A desk user with no Default
 Workspace opens Summary too, because each staff role's home page is `/desk/summary`
 (`fixtures/role.json`). Church Check-In and Church Follow-up cannot open Summary, so their home pages are
-`/desk/check-in` and `/desk/follow-up-card`. The Churchit tile on the Apps screen is only for desk users
+`/desk/check-in` and `/desk/follow-up-card`. No role's home page may take a desk user out of the desk,
+where Frappe runs the setup wizard (Frappe turns `/me` into the desk for them): Administrator and the
+setup wizard's first user hold every role, and Frappe opens the home page of whichever role it reads
+first. So Church Check-In Kiosk has no home page, and the kiosk device opens `/check-in-kiosk` itself
+(`test_home`). The Churchit tile on the Apps screen is only for desk users
 (`has_permission` is `frappe.permissions.is_system_user`): Frappe sends a Website User who signs in to the
 route of their only app tile before their role's home page, so a member would land on Summary and get
 "Not Permitted". The `ModuleShortcuts` block at the top of Summary draws a tile for each
@@ -1591,7 +1660,9 @@ that only a Table MultiSelect uses has no grid, so these rules skip it.
 
 These add to the rules in "Desk navigation".
 
-- A sidebar starts with 'Home', then 5 to 8 daily items, each with its own icon, then folders. A
+- A sidebar starts with 'Home'. A module with a manual puts 'Manual' right under it, so users find
+  the manual in the same place in every module (`test_the_manual_is_right_under_home`). Then come
+  the daily items, 5 to 8 rows after 'Home' in all, each with its own icon, then folders. A
   folder is a Section Break with `indent`, `collapsible`, `keep_closed` and an icon. Its items set
   `child` and have no icon
   (`test_sections_are_closed_folders_with_icons_and_their_items_are_children`). Reports go at the
@@ -1697,17 +1768,75 @@ JSON file you edit by hand, and gets before and after screenshots:
 
 ## Documentation obligations
 
-The `Manual: <Module>` workspaces are the in-app user documentation, not developer notes. Update the
-matching manual in the same change as any user-facing behaviour, and bump its `modified` timestamp
-(see "Frappe behaviours worth knowing"). `Manual: Foundations` holds the multi-church explanation.
-`docs/build_docs.py` renders these manuals into the documentation pages of the churchit.app website. It reads them through `churchit/manuals.py`, which also gives them to Flow as the Churchit Manual knowledge.
+The manuals are the in-app user documentation, not developer notes. Update the matching manual in
+the same change as any user-facing behaviour. `Manual: Foundations` holds the multi-church
+explanation.
+
+Write a manual in Markdown under `manual/`, never in the workspace JSON. Each folder is one manual:
+`README.md` holds the intro, with front matter that names the `workspace` JSON it builds and the
+`desk_title`, and each other file is one feature, with the front matter `title`, `emoji` and
+`sidebar_position`. `manual/help/` builds the Help workspace. `python docs/build_manuals.py` (the
+pre-commit hook runs it) writes the `Manual: <Module>` workspace JSON through
+`churchit/manual_sources.py` and moves `modified` to now only when the text changed. Then migrate.
+`test_manual_hygiene` and the `build-docs` workflow fail when the JSON is out of date. Frappe Wiki's GitHub Sync reads the same
+folder for the online manual, with the sidebar in `manual/.wiki.json`, so use plain Markdown and the
+wiki's callouts, and put text with `<`, `>` or `&amp;` in backticks. The online manual is that wiki at
+`https://docs.churchit.app/manual`, where `manual/<folder>/<page>.md` is at `/manual/<folder>/<page>`.
+churchit.app does not hold the manual: its pages link to the wiki. `churchit/ai/manual_knowledge.py`
+gives the pages to Flow as the Churchit Manual knowledge.
 
 Write the manuals for a church volunteer or secretary, not for a developer. Say what to click and
 what happens, name the doctype the way its form does (a Function, not an "event record"), and keep
 one name for one thing across every manual. Explain a term the first time a manual uses it. Leave
 class names, hook names, field types and file paths out: they belong in this file or in a docstring.
-A link in a manual is a site path such as `/desk/person`, never `http://desk/person`;
-`test_workspace_hygiene` checks that each desk link in a manual opens.
+Link a manual to itself like a wiki: the first mention of another feature on a page, and each "see
+...", links that feature's page with a relative path, such as `[Groups](../people/group.md)` or
+`[Send Details Link](member-portal.md#send-details-link)`. The anchor is the wiki's id of a `##`
+heading: lower case, spaces as hyphens, other punctuation dropped. Never link a site path such as
+`/desk/person` or `/calendar`: the wiki is a site of its own. Name the page in bold instead, and
+write a website address such as `/live` in backticks. The
+desk build turns a link to another manual into a link to that manual, and a link within the manual
+into plain text, because the desk shows a whole manual on one page. `test_manual_hygiene` checks
+that each link opens a page and a heading that exist.
+
+Every manual has the same shape, so a reader finds things in the same place in each module:
+
+- The README: what the module is for in church words, a paragraph on which roles add and change
+  what, and a paragraph on the workspace and the sidebar.
+- One file for each feature, in sidebar order, with related features kept together. Its title is
+  the heading of the feature in the desk. It starts with what the feature is and why a church uses
+  it. A feature that can confuse a reader gets a short example with a realistic church story, in a
+  `:::note[Example]` callout.
+- `##` sub-headings (no emoji) for tasks and topics. They show as sub-headings in the desk. Steps
+  are numbered, one action each. Rules and fields are `- ` items that start with the bold field
+  name. A `**Good to know**` paragraph holds the rules that do not fit the steps.
+- Keep each block short, because a long block looks daunting in the desk. A paragraph holds one
+  topic and stays under about 80 words. A list stays together only while it is short (each item
+  about one line, the list under about 80 words). Otherwise put a blank line between the items, so
+  that the desk puts space between them.
+- A callout makes one point stand out: `:::caution` for something that can go wrong,
+  `:::danger` for data that is lost for good, `:::tip` for a shorter way, each closed by `:::` on
+  its own line. Give it a title that names the point, such as `:::caution[Merging two people]`.
+  Use few, so that each one is seen. The desk draws a callout as a colored box.
+- A main feature page shows one picture near the top, cropped to the part of the screen that the
+  text talks about, not the whole window. Add a `ManualShot` to `docs/screenshots.py` with the
+  selectors of that part, run `uv run docs/screenshots.py <manual>` on a site with only the sample
+  data, and embed the pair as a `<picture>` with a dark `<source>` and an `<img>` with alt text
+  (see `manual/people/person.md`). The pictures are in `churchit/public/manual`, which the desk
+  serves, and they keep their file names when taken again. When a change touches the doctype, page
+  or report that a picture shows, the pre-commit hook and the manual-pictures check on the pull
+  request name the picture: look at it, and take it again if the screen changed.
+- A list of named things with a short meaning each, such as roles, statuses or notifications, is a
+  table. A real flow, such as check-in and pickup, can have a Mermaid diagram in a `mermaid` code
+  block. The desk cannot draw one and links to the online page instead, so keep diagrams few.
+- Button, field, tab, menu and page names are bold. Leave out what the screen shows at a glance,
+  such as sort order and status colors. Keep the rules: what happens by itself, what is hidden
+  where, who can see or change what, and what is refused.
+
+The Flow knowledge splits a manual into one section for each feature, so keep the titles unique
+within a manual (`test_manual_hygiene`). A page's file name is its address on docs.churchit.app.
+Keep the file names that `docs/index.html` and `docs/screenshots.py` link to, or change those links
+in the same change: `docs/build_docs.py` fails on a link to a page that `manual/` does not have.
 
 AI is off until a church turns it on. A manual, a field description or the README may name an AI
 feature only with words that say it needs AI turned on, such as "When AI is turned on (see the
@@ -2054,9 +2183,10 @@ their household who are under People Settings' adult age or of unknown age
 lists only their own Family, only its Adults write it, and `refuse_member_edits_beyond_photo` (first
 in `Family.validate`) limits them to the photo. It steps aside for `ignore_permissions` saves, which
 is how a Person keeps the roster, so never save a Family with `ignore_permissions` on values a member
-sent. `/household` offers pre check-in to the people the member may edit.
+sent. The member app's Check-in offers pre check-in to the people the member may edit
+(`portal.household.get_check_in_people`).
 
-An Adult adds a child on `/household` through `member_access.add_household_child`, the one way a
+An Adult adds a child on My Household through `member_access.add_household_child`, the one way a
 member adds a Person. It takes a first and last name, a birthday under People Settings' adult age
 and a gender, and nothing else. The child joins the Adult's Family and church as a Visitor with
 source Portal who shares nothing, `mark_as_child` makes the roster row Child and Son or Daughter,
@@ -2075,10 +2205,11 @@ as empty, not as its default: re-add `store_new_people_settings_defaults` to pat
 comment) when you add one. People added for someone who never saw the choice (a card guest, the
 people with them, a walk-in at the Check-In Station, a portal sign-in) set all four to 0.
 
-`/directory` lists only active people whose Membership is not Visitor or Contact
-(`directory_filters`), and shows the list only to a viewer who passes the same rule, hidden or not;
-anyone else sees a note. It shows only public photos. The Member Directory portal menu row's
-`enabled` follows `member_directory` (`sync_directory_menu_item`); do not set it by hand.
+The member directory (`portal.directory.get_directory`) lists only active people whose Membership is
+not Visitor or Contact (`church_people.directory.directory_filters`), and sends the list only to a
+viewer who passes the same rule (`is_directory_member`), hidden or not; anyone else gets the status
+`not_member`. It sends only public photos. The Member Directory portal menu row's `enabled` follows
+`member_directory` (`sync_directory_menu_item`); do not set it by hand.
 
 `accounts.link_portal_user` (on_session_creation) sets `Person.user` with `db_set` and then calls
 `sync_church_permission`, because the member guard refuses a member's change to Portal User. A
@@ -2099,25 +2230,25 @@ Never put a request key in a Communication or Comment: anyone who reads the Pers
 
 A member reads the Pledges and Function Sign-Ups that name their Person or that they made
 (`member_access.has_own_record_permission`, `own_records_query_conditions`; see
-"Roles"). `/pledge` lists by person, and `/function-sign-up` lists what these hooks open for a member
-(`member_access.is_member_only`). Both web forms call `hide_edit_unless_writable`, so a record that
-staff made opens without Edit. A Cancelled Function Sign-Up also opens without Edit for a member, and
-`FunctionSignUp.refuse_changing_cancelled` refuses a member's save of it. `/attendance` lists the
-functions up to today under Past, and under Upcoming the functions after today where the member is an
-attendee on a Confirmed, Pending or Waitlisted Function Sign-Up, with its status
-(`member_attendance.get_upcoming_sign_ups`). The function name links to the sign-up only when
+"Roles"). The member app lists them with `get_list` (`portal.giving`, `portal.events`) and offers a
+change only on a record the member may write, so a record that staff made opens without Change. A
+Cancelled Function Sign-Up has no Change for a member either, and
+`FunctionSignUp.refuse_changing_cancelled` refuses a member's save of it. The Attendance page lists
+the functions up to today under Past, and under Upcoming the functions after today where the member
+is an attendee on a Confirmed, Pending or Waitlisted Function Sign-Up, with its status
+(`member_attendance.get_upcoming_sign_ups`). A row links to the sign-up only when
 `member_access.has_own_record_permission` lets the member open it.
 
-A portal page title is `<h1 class="my-account-header">` and its sections are h2 (h3 below them). To
-keep the smaller look, give a section the class `my-account-section` (h4 size) or Bootstrap's `h5` or
-`h6`. The rules in `website.css` keep the old size, so a screen reader can move by headings and the
-page looks the same.
+A website page of the portal, such as a portal list, takes `<h1 class="my-account-header">` as its
+title and h2 for its sections (h3 below them). To keep the smaller look, give a section the class
+`my-account-section` (h4 size) or Bootstrap's `h5` or `h6`. The rules in `website.css` keep the old
+size, so a screen reader can move by headings and the page looks the same.
 
 A member changes or deletes their Alms Request only until it is reviewed (`alms_request.is_reviewed`:
 not Pending, or it has an expense). `AlmsRequest.validate` sets a member's status to Pending and
-refuses a change after the review, `on_trash` refuses the delete, and the web form hides Edit and
-Delete. The care request web form shows Status, so `CareRequest.validate` keeps the stored status
-for a portal member.
+refuses a change after the review, `on_trash` refuses the delete, and the app offers Change and
+Delete only while `can_change` is true. `CareRequest.validate` keeps the stored status for a portal
+member and for a save from the member app.
 
 `Person.team_calendar_key` is at permlevel 4 (System Manager only). Code reads and writes it with
 `frappe.db`; do not read it through a document a user sees.
@@ -2141,28 +2272,106 @@ them. Members have no read on Group Join Request; a leader sees requests through
 
 Group File is the member-only file store of a group. A portal member reads and lists only the files
 of their own groups (`member_access.has_group_file_permission`, `group_file_query_conditions`), and
-only a leader of the group adds one (`GroupFile.validate`, which runs under the web form's
-`ignore_permissions` too). Its file must be private and one the user can open. File's
-`before_insert` has written the content before a `doc_events` hook runs, so
-`make_group_files_private` refuses a public file instead of flipping the flag, and
-`GroupFile.validate` refuses a public URL, or a private file the user cannot open, that the web form
-attached with `set_value`. The Attach field is `attached_file`, not `file`: Frappe's web form
-uploads again for a saved result with a `file` key.
+only a leader of the group adds one (`portal.groups.add_group_file` asks `require_leader`, and
+`GroupFile.validate` refuses a portal member who does not lead it, also under the app's
+`ignore_permissions`). Its file must be private and one the user can open. File's `before_insert` has
+written the content before a `doc_events` hook runs, so `make_group_files_private` refuses a public
+file instead of flipping the flag, and `GroupFile.validate` refuses a public URL, or a private file
+the user cannot open, that a save names. The Attach field is `attached_file`.
 
-The Room Request web form (`/room-request`, `church_operations/web_form/room_request/`, Book a Room
-in the portal menu) is members-only. `RoomBooking.set_portal_requester` sets the requester to
-`session_person()` for a portal member or anyone on a web form, under the form's
-`ignore_permissions` too, and refuses a login with no Person and a form edit of another person's
-booking. `refuse_a_room_outside_the_members_church` refuses a room that `get_bookable_rooms()` does
-not offer: the bookable rooms of the member's church and the shared ones, less each room whose
-Question Set has a required question, the same read that fills the form's room options
-(`allow_read_on_all_link_options` is 0). The form has no status or requester
-field, because Frappe's `accept` sets every web form field from the browser. Its list reads with
-`get_list` (Church User has `if_owner` read), and `get_list_context` filters on the requester and
-leaves out Blocked times. The form asks no room questions, so it does not offer a room with a
-required question; staff book that room. A member books no equipment:
-`refuse_assets_that_cannot_be_booked` refuses an asset that a member, or anyone on a web form,
+Room requests (`portal.serving`, Book a Room in the portal menu) are members-only. The app saves a
+request under `in_web_form` (`portal.serving.member_rules`). `RoomBooking.set_portal_requester` sets
+the requester to `session_person()` for a portal member or a save under that flag, under
+`ignore_permissions` too, and refuses a login with no Person and an edit of another person's booking.
+`refuse_a_room_outside_the_members_church` refuses a room that `get_bookable_rooms()` does not offer:
+the bookable rooms of the member's church and the shared ones, less each room whose Question Set has a
+required question, the same read that fills the app's room choices (`portal.serving.get_rooms`). The
+app sends no status or requester. Its list reads with `get_list` (Church User has `if_owner` read),
+filters on the requester and leaves out Blocked times. The app asks no room questions, so it does not
+offer a room with a required question; staff book that room. A member books no equipment:
+`refuse_assets_that_cannot_be_booked` refuses an asset that a member, or a save under `in_web_form`,
 adds (Church User has no permission on Church Asset).
+
+### The member app
+
+The portal is a Vue 3 and frappe-ui 1.2 app in `frontend/`. `bench build` runs the root `package.json`
+build script (declared in `pyproject.toml` `[tool.bench.assets]`), which writes `churchit/public/frontend`
+and `churchit/www/member_portal.html`; both are ignored by git, so a checkout with no build answers 404 at
+/portal and at every old member route, which redirects there. Test the page through
+`member_portal.get_context` and `resolve_path`, never by rendering it.
+`www/member_portal.py` serves /portal and every path under it (two `website_route_rules`, because
+`<path:>` needs a character). It sets `no_cache`, because the page holds the user's CSRF token and boot,
+and the page cache is keyed by path alone. Its guest check stays in the shape `published_fields`
+recognizes, so the page counts as members-only. The boot (`churchit/portal/boot.py`) must be plain JSON:
+the page writes each value with Jinja's `tojson`.
+
+The old member pages and member web forms are gone (`patches/v1_0/remove_member_web_forms.py` deletes
+the Web Form records on existing sites). Only their routes stay: they redirect (302, query string kept)
+to `/portal/<old route>`, and the list is in `hooks.py` `website_redirects`. The app's routes keep the
+old route names and legacy sub-paths (`/function-sign-up/<name>/edit`), so emails, bookmarks and the
+installed app's shortcuts keep working. `/bulletins?name=` and `/statements?name=` stay server pages,
+and `/bible`, `/register` and the guest and emailed-key pages are not redirected. Redirects run before
+every page renderer, so `SwitchedOffPage` also reads `/portal/<page>` as `<page>`.
+
+The app reads and writes only through `churchit/portal/<area>.py` and a few existing whitelisted
+functions. Prayer, care and benevolence requests save through `care.save_prayer_request`,
+`save_care_request` and `save_alms_request` (deletes through `delete_prayer_request` and
+`delete_alms_request`), and a group file through `groups.add_group_file`. Each takes only the fields its
+form shows, keeps the rate limits of the web form it replaced, changes only a member's own record, and
+leaves the member rules to the controller. Comments go through `care.add_member_comment`, which keeps
+Frappe's website comment rules: no link, no email address, and its hourly limit (the
+`comment_rate_limit` hook, 5 by default). Every portal endpoint starts with `access.require_person()`
+and `access.require_page("<old route>")`, takes the member from the session, and returns explicit
+fields, never a whole document. Home (`home.get_home`) is the one endpoint without `require_page`,
+because Home is always on: it leaves out the sections of the pages that are off. `care.search_recipients`
+takes the page of its request (`prayer-request` or `alms-request`), refuses any other page, and calls
+`require_page` for it. `published_fields.portal_api_sources` reads each module as a members-only source
+(`PORTAL_MODULE_PAGES`), so the text `frappe.qb` or `frappe.db.sql` must not appear in them. The menu is
+the Portal Settings rows the member may see, in the `portal_home.get_sections` sections, less
+`get_hidden_pages()` (`churchit/portal/nav.py`). A desk user with a Person opens the app from Member
+Portal in the desk menu that Navbar Settings fills (`standard_navbar_items`, shown while
+`frappe.boot.churchit.has_person`); migrate adds the item to an existing site.
+
+A member guard keyed on `frappe.flags.in_web_form` or `is_portal_member()` would skip a staff user who
+uses the app with a Person, so the app sets the person or requester itself and the flag: Room Booking
+and Personal Details save under `in_web_form`; Pledge, Care Request, Alms Request and Prayer Request
+under `flags.from_member_app`. `member_access.PERSONAL_DETAILS_EDITABLE` lists the Person fields a
+member changes on My Details: `save_personal_details` takes only those and refuses a stale `modified`, and
+`refuse_member_edits_beyond_personal_details` refuses a change to any other field. The app signs up only
+for functions that pass the simple sign-up rule (`member_sign_ups.get_simple_sign_up_functions`); any
+other links to /register. `member_sign_ups.get_sign_up_summary` is not whitelisted: the app reads a
+sign-up through `portal.events`. `portal.groups.get_portal_groups` is the one rule for a member's
+groups. Group Files (`groups.get_group_files`) lists only the files of those groups, because the Group
+File permission hooks limit a portal member but not staff with a Person. A group's page
+(`groups.get_group`) shows its living members (`group_meetings.get_roster`) to the people in it: names,
+public photos and who leads, and an email or phone only where its person shares it, only to a viewer the
+directory is for, only while the Member Directory is on, and only for a person the directory lists (not
+hidden, not a Visitor or Contact); a photo follows the same listing rule. It sends no Person ID. The
+community prayer list sends no requester, owner, church or end date.
+
+Live updates are hints: `churchit.portal.realtime.notify(user, topic, name)` sends the event
+`churchit_portal` to the user's room after the commit, from the controller where the change happens
+(Family and Function Check-In through `household.py`, Function Sign-Up, `member_attendance`, Ministry
+Team Assignment, Room Booking, `group_api`, `group_meetings`, Group File, Prayer, Care Request, Alms
+Request, Bible Memory Item and Pledge). A hint goes only to the people the change is about, by their own
+login: a prayer or a comment on a request goes to its requester (`notify_person`), not to the login that
+saved the request. Other readers of a shared page, such as the prayer list, see the change when they
+reload or come back to the tab. The app reads the data again through its GET, and also on a reconnect
+and when a tab comes back into view. Never use doctype rooms or `list_update` for members: they tell
+every reader of a doctype which record changed and who saved it. A test patches
+`churchit.portal.realtime.frappe.publish_realtime`.
+
+The look ("Order of Service") retunes frappe-ui's neutral tokens in one block of
+`frontend/src/style.css`; compare it with frappe-ui's tokens on each upgrade. That block is the fallback
+for the Standard theme: the website theme's palette (see "Public website and portal") overrides it on the
+page, accent included. The type, rules and motion are `churchit/public/css/order_of_service.css`, which
+the website shares, and the fonts come from `public/css/fonts.css`, linked in the page's head, not from
+npm. Pages are built from the components in `frontend/src/components`. Every string goes through
+`__()`, including frappe-ui props, which default to English; `babel_extractors.csv` adds the `.ts`
+files to Frappe's extraction.
+`test_house_style` scans `.vue` and `.ts` and skips the build output. frappe-ui's `call()` and
+`createResource` send POST, which a GET-only endpoint refuses: use `useRead` and `useAction` from
+`frontend/src/api.ts`.
 
 ## Function sign-ups
 
@@ -2210,8 +2419,8 @@ Response) to Administrator, so that staff never see Guest as its maker.
 /register lists, for a signed-in portal member, the allow_sign_ups functions of their church in the
 sign-up window (`register.get_open_functions`, the rule `is_open_for_sign_up` applies on save). For
 anyone else, it lists the selected church's published functions with guest sign-ups. Every register
-endpoint checks the function against that list. The Function Sign-Up web form links to /register
-for the functions it leaves out.
+endpoint checks the function against that list. The member app links to /register for the
+functions it does not sign members up for itself (`portal.events.get_app_functions`).
 
 Emails that answer the registrant's own request (the Sign-Up Confirmation with its `.ics` and the
 Sign-Up Payment Due) go through `FunctionSignUp.send_registrant_email`: to the Person's primary
@@ -2281,7 +2490,7 @@ Take a new lock for a booking save only in `lock_room_and_assets`, and run the r
 you change a clash read or one of these indexes.
 
 On the desk form the clash message also says to tick Request Anyway on the Room Booking form. It
-does not on the Room Request web form, for a portal member, on a save with `ignore_permissions`
+does not in the member app, for a portal member, on a save with `ignore_permissions`
 (decisions and recurrence copies) or for a clash with a Blocked time, where Request Anyway cannot
 help. The Function form's Book a Room dialog gets the message too and has no such box.
 
@@ -2339,7 +2548,9 @@ Bible Memory Item `group` is set only by `assign_memory`, on the items it makes 
 members. `validate` refuses any other change of `group`, and deleting a Group clears it from the
 items (`clear_group`, Group `on_trash`). The Bible Memory report joins Person on `user` and scopes
 Person, so a limited reader sees only users whose Person is in their churches. Bible Memory Item
-stays in `GLOBAL_DOCTYPES`, so its list view is not church scoped.
+stays in `GLOBAL_DOCTYPES`, so its list view is not church scoped. A passage that `assign_memory` makes is
+owned by the manager, so Church User and Church Staff reach Bible Memory Items by their `user`, not by
+`if_owner`: `has_own_item_permission` and `own_items_query_conditions` (the Pledge pattern).
 
 ## Songs and worship planning
 
@@ -2497,8 +2708,8 @@ permlevel 1; do not send those rows to the kiosk as they are. The self check-in 
 church, checks in only the (person, Function) pairs that its phone lookup offered, and never prints
 a security code that an earlier check-in holds. A pre check-in code
 (`church_ministries/pre_check_in.py`) is `get_signed_params` of the Function, the people and an
-expiry, made on `/household` for people the member may write and an open self check-in Function of
-their church. `read_payload` accepts only the keys `f`, `p`, `u` in that order, because other signed
+expiry, made by the member app's Check-in (`portal.household`) for people the member may write and an
+open self check-in Function of their church. `read_payload` accepts only the keys `f`, `p`, `u` in that order, because other signed
 links share the secret. The station (Scan Card) and the kiosk check the Function with their own gate
 and print only new check-ins, so a second scan prints nothing.
 
@@ -2527,8 +2738,7 @@ gates on Function read.
 DocPerm reads every request; the hooks take back other people's Private requests from a user whose
 only role that reads every request is Church Prayer Team. Code that reads past permissions applies
 Visibility itself: `get_community_filters` for the community page, `has_webform_permission` and
-`create_prayer`, and `WHOLE_CHURCH` only for bulletins (`bulletin.py`). A web form's
-`condition_json` reaches the community `get_list` as `{field: [operator, value]}`. A request shows
+`create_prayer`, and `WHOLE_CHURCH` only for bulletins (`bulletin.py`). A request shows
 on the community list and in bulletins only while it is open, approved for the list and not past its
 end date (`prayer_access.get_open_request_filters`). A guest request starts with Approved for List
 off.

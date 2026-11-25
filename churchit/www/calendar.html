@@ -6,17 +6,54 @@
 {% block head_include %}
 {# FullCalendar 6 injects its own styles, so there is no stylesheet to pull in #}
 <style>
+	/* FullCalendar in the website's palette: ink events on the paper, today washed in the accent,
+	   frappe-ui's quiet buttons with the chosen view in ink. */
 	#church-calendar {
-		max-width: 1100px;
-		margin: 1.5rem auto;
-		--fc-border-color: var(--border-color);
-		--fc-page-bg-color: var(--bg-color);
-		--fc-neutral-bg-color: var(--subtle-fg);
-		--fc-today-bg-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
-		--fc-list-event-hover-bg-color: var(--subtle-fg);
-		--fc-event-bg-color: #4338ca;
-		--fc-event-border-color: #4338ca;
+		margin: 1.5rem 0;
+		--fc-border-color: var(--outline-gray-1);
+		--fc-page-bg-color: var(--surface-base);
+		--fc-neutral-bg-color: var(--surface-gray-1);
+		--fc-today-bg-color: var(--accent-wash);
+		--fc-list-event-hover-bg-color: var(--surface-gray-1);
+		--fc-event-bg-color: var(--surface-gray-10);
+		--fc-event-border-color: var(--surface-gray-10);
+		--fc-event-text-color: var(--ink-base);
+		--fc-button-text-color: var(--ink-gray-8);
+		--fc-button-bg-color: var(--surface-gray-2);
+		--fc-button-border-color: transparent;
+		--fc-button-hover-bg-color: var(--surface-gray-3);
+		--fc-button-hover-border-color: transparent;
+		--fc-button-active-bg-color: var(--surface-gray-10);
+		--fc-button-active-border-color: transparent;
+		--fc-now-indicator-color: var(--accent);
 	}
+	#church-calendar .fc-button { border-radius: var(--radius-4, 8px); box-shadow: none; text-transform: capitalize; }
+	#church-calendar .fc-button-active { color: var(--ink-base); }
+	/* a button group is one tray with a gap between its buttons, as frappe-ui's tab buttons */
+	#church-calendar .fc-button-group { gap: 2px; padding: 2px; border-radius: var(--radius-5, 10px); background: var(--surface-gray-2); }
+	#church-calendar .fc-button-group > .fc-button { margin: 0; border-radius: var(--radius-4, 8px); }
+	#church-calendar .fc-button-group > .fc-button:not(.fc-button-active, :hover) { background: transparent; }
+	/* in dark mode the accent wash turns the day muddy behind light text, so today keeps only its accent number */
+	[data-theme="dark"] #church-calendar { --fc-today-bg-color: var(--surface-gray-1); }
+	#church-calendar .fc-button:focus-visible { outline: 2px solid var(--outline-gray-4); outline-offset: 2px; box-shadow: none; }
+	#church-calendar .fc-toolbar-title {
+		font-family: var(--font-serif);
+		font-variation-settings: "opsz" 36;
+		font-weight: 500;
+		color: var(--ink-gray-9);
+	}
+	#church-calendar .fc-col-header-cell-cushion {
+		font-family: var(--font-serif);
+		font-variation-settings: "opsz" 10;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--ink-gray-7);
+	}
+	#church-calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { color: var(--accent); font-weight: 600; }
+	#church-calendar .fc-daygrid-dot-event .fc-daygrid-event-dot { border-color: var(--accent); }
+	#church-calendar .fc-list-event-dot { border-color: var(--accent); }
 	#church-calendar .fc-event { cursor: pointer; }
 	/* the view buttons wrap on a phone instead of widening the page */
 	#church-calendar .fc-header-toolbar { flex-wrap: wrap; gap: 8px; }
@@ -275,6 +312,10 @@
 		});
 		calendar.render();
 		openLinkedEvent();
+		// A Function published, changed or taken off the website shows without a reload.
+		churchit.live.on(['Function'], function () {
+			calendar.refetchEvents();
+		});
 
 		var branchToggle = document.getElementById('calendar-include-branches');
 		if (branchToggle) {

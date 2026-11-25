@@ -617,4 +617,6 @@ def extend_bootinfo(bootinfo):
 		# with them from one they shared. None means unrestricted.
 		"churches": allowed,
 		"expand_church_filters": church_filter_includes_branches(),
+		# The user menu offers the member portal, which needs a Person.
+		"has_person": bool(session_person()),
 	}

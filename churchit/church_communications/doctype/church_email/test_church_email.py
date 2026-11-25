@@ -643,7 +643,7 @@ class TestChurchEmailPlaceholders(ChurchEmailTestCase):
 			subject="Hi {{ first_name }}",
 			message="<p>{{ last_name }}</p>",
 		)
-		first, second = sorted([self.member.name, self.inactive.name])
+		first, _second = sorted([self.member.name, self.inactive.name])
 
 		preview = email.get_preview()
 		self.assertEqual((preview["person"], preview["count"]), (first, 2))

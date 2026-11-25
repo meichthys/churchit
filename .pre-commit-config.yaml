@@ -27,6 +27,20 @@ repos:
         language: python
         types_or: [python, javascript]
 
+      - id: build-manuals
+        name: "Build the Manual workspaces from manual/"
+        entry: python docs/build_manuals.py
+        language: python
+        files: ^(manual/|churchit/public/manual/)
+        pass_filenames: false
+
+      - id: manual-pictures
+        name: "Name the manual pictures that a changed screen may make old"
+        entry: python docs/screenshots.py --stale
+        language: python
+        files: ^churchit/[^/]+/(doctype|page|report)/.+\.(json|js|html|css)$
+        verbose: true
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.6
     hooks:
@@ -53,9 +67,7 @@ repos:
                 .*node_modules.*|
                 .*boilerplate.*|
                 churchit/templates/includes/.*|
-                churchit/public/js/lib/.*|
-                churchit/church_finances/web_form/pledge/pledge\.js|
-                churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
+                churchit/public/js/lib/.*
             )$
 
 
@@ -74,9 +86,7 @@ repos:
                 .*node_modules.*|
                 .*boilerplate.*|
                 churchit/templates/includes/.*|
-                churchit/public/js/lib/.*|
-                churchit/church_finances/web_form/pledge/pledge\.js|
-                churchit/church_ministries/web_form/function_sign_up/function_sign_up\.js
+                churchit/public/js/lib/.*
             )$
 
 ci:

@@ -8,7 +8,9 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] No em dash or en dash in any file, escaped forms included (`test_house_style`, [House style](../../../AGENTS.md#house-style)).
 - [ ] `pre-commit run --files <changed files>` passes. Ruff 0.8.1 formatted only the changed files.
 - [ ] New or changed behavior has a test, and the full suite ran on a test site. The pull request reports the result.
-- [ ] A user-facing change updates the matching `Manual: <Module>` workspace in the same pull request, with desk links as `/desk/...` site paths and `modified` set to now ([Documentation obligations](../../../AGENTS.md#documentation-obligations), `test_workspace_hygiene`, `test_json_hygiene`).
+- [ ] A user-facing change updates the matching manual in `manual/<module>/` (Markdown) in the same pull request, with links to other manual pages as relative `.md` paths (never `/desk/...`), and `python docs/build_manuals.py` rebuilt its workspace ([Documentation obligations](../../../AGENTS.md#documentation-obligations), `test_manual_hygiene`).
+- [ ] A manual change keeps the manual shape: each feature file starts with what it is and why, a confusing feature has an Example callout, tasks are numbered steps under `##` headings, blocks stay short, and UI names are bold ([Documentation obligations](../../../AGENTS.md#documentation-obligations)).
+- [ ] A change to a screen that a manual picture shows takes that picture again with `uv run docs/screenshots.py <picture>`, cropped to the part that the text talks about. The pre-commit hook and the `manual-pictures` check name these pictures (`test_manual_hygiene`).
 - [ ] A manual, field description or README line that names an AI feature says that it needs AI turned on ([Documentation obligations](../../../AGENTS.md#documentation-obligations)).
 - [ ] A new user-facing feature is in the README feature list.
 - [ ] User-facing text is in `_()` or `__()`.
@@ -100,8 +102,20 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] Page data is scoped with `selected_church_filters(...)` in Jinja, or with `church_filters(selected_church_name(), ...)` in Python.
 - [ ] A page reads no doctype data with `frappe.qb` or SQL. `test_published_fields` fails on one, and it must pass, because it badges each field that the website shows.
 - [ ] Guest input is checked on the server, and a guest form or API has a rate limit.
+- [ ] A new shipped page that tells visitors about the church is in `VISITOR_PAGES`, and a page that an emailed key opens for someone with no login is in `EMAILED_KEY_PAGES` ([Public website and portal](../../../AGENTS.md#public-website-and-portal)).
 - [ ] A /register endpoint checks the function against `register.get_open_functions` ([Function sign-ups](../../../AGENTS.md#function-sign-ups)).
 - [ ] A web form script that uses Jinja tags is in the prettier and eslint `exclude` lists of `.pre-commit-config.yaml`.
+
+## Member app (/portal)
+
+[The member app](../../../AGENTS.md#the-member-app), `test_published_fields`, `test_house_style`, `test_http_method_hygiene`.
+
+- [ ] An endpoint for the app lives in `churchit/portal/<area>.py`, starts with `access.require_person()` and `access.require_page("<old route>")`, takes the member from the session, and returns explicit fields, never a whole document. The module never contains the text `frappe.qb` or `frappe.db.sql`.
+- [ ] A member's change goes through a POST endpoint there with a rate limit. It takes only the fields that its page shows and changes only the member's own record. A member page is never a web form.
+- [ ] A page uses the components in `frontend/src/components`, frappe-ui's semantic tokens only, and `__()` for every string, frappe-ui props included. It works at 390px wide with 44px tap targets, and reads through `useRead` (GET) and writes through `useAction` (POST).
+- [ ] `yarn build` in `frontend/` passes and the build output stays out of git. A new npm package was agreed with the maintainer.
+- [ ] A change the member should see at once sends `churchit.portal.realtime.notify` from where it happens, never through a doctype room.
+- [ ] An old member route keeps working: it redirects into the app (`hooks.py` `website_redirects`), and the app accepts its legacy sub-paths.
 
 ## Desk lists, forms, sidebars and workspaces
 
@@ -109,6 +123,7 @@ Work through "Every change" and each section that the change touches. Each item 
 
 - [ ] A Frappe setting does the job before a form script or a hook does. A script or hook gives its reason in the change.
 - [ ] A list of 6 desktop columns or more sets a `width` on its title field, so it scrolls sideways instead of cutting the titles (`test_desk_ui_hygiene`).
+- [ ] A role's home page is a desk page, because Administrator holds every role and could land outside the setup wizard (`test_home`, [Desk navigation](../../../AGENTS.md#desk-navigation)).
 - [ ] Form tour steps follow the order of the fields on the form.
 - [ ] A table refuses a repeated person with `churchit/church_people/repeated_rows.py`, and a pair of dates or limits is refused only when one of its fields changes in the save ([Forms](../../../AGENTS.md#forms)).
 - [ ] A form tour with Save on Complete has a step on each field the user must type, and onboarding step, tour step and doctype descriptions have no backticks (`test_onboarding_hygiene`).

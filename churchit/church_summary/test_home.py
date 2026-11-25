@@ -1,6 +1,8 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
+from unittest.mock import patch
+
 import frappe
 from frappe.apps import get_apps, get_default_path
 from frappe.auth import CookieManager, LoginManager
@@ -71,6 +73,24 @@ class TestLandOnSummary(RollbackEachTest):
 			self.assertEqual(get_home_page(), "desk/summary")
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_no_role_sends_a_desk_user_out_of_the_desk(self):
+		"""Administrator and the setup wizard's first user hold every role, and Frappe opens the home page of
+		the first role it reads. A website page there would skip the setup wizard."""
+		user = ensure_user("_test_home_every_role@example.com", "_Test Home", roles=("Church Staff",))
+		frappe.db.set_value("User", user, "default_workspace", None)
+		roles = frappe.get_all(
+			"Role", filters={"name": ["like", "Church%"], "home_page": ["is", "set"]}, pluck="name"
+		)
+
+		frappe.set_user(user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		# A desk session carries this; Frappe sends a desk user's "/me" to the desk by it.
+		frappe.session.data.user_type = "System User"
+		for role in roles:
+			frappe.cache.hdel("home_page", user)
+			with self.subTest(role=role), patch("frappe.get_roles", return_value=[role]):
+				self.assertTrue(get_home_page().startswith("desk"))
 
 
 class TestLoginLanding(FrappeTestCase):

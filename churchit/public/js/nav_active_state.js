@@ -1,8 +1,8 @@
 // Marks the current page's link in the top navbar and the portal sidebar.
 // Frappe marks only a navbar link to the exact path, which the home page ("/")
 // and a sermon (/sermon/<name>) never match. Its sidebar matches the whole
-// URL, so a query string (/bible?book=JHN) or a web form's own page
-// (/prayer-request/new) lost the mark. It also adds the Skip to content link.
+// URL, so a query string (/bible?book=JHN) or a page under a menu link lost
+// the mark. It also adds the Skip to content link.
 (function () {
 	// frappe's own page-change handler runs first: it calls the frappe.ready
 	// scripts, the sidebar's among them, then make_navbar_active, which clears

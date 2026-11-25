@@ -32,7 +32,7 @@
         <a href="index.html#features">Features</a>
         <a href="screenshots.html">Screenshots</a>
         <a href="pricing.html">(Un)Pricing</a>
-        <a href="documentation.html">Documentation</a>
+        <a href="https://docs.churchit.app/manual">Documentation</a>
         <a href="https://github.com/meichthys/churchit" target="_blank" rel="noopener">GitHub</a>
         <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -119,6 +119,10 @@ pilot -b church setup production</code><button class="btn cmd-copy" type="button
 
 <p>On a plain <code>bench</code> (without Pilot), the equivalent is <code>bench get-app https://github.com/meichthys/churchit</code>, <code>bench --site &lt;your-site&gt; install-app churchit</code>, and <code>bench update</code> to upgrade.</p>
 
+<p>The member portal at /portal is an app that the build makes (it needs Node and Yarn, as every Frappe app with a front end does). <code>get-app</code>, <code>update</code> and Frappe Cloud build it for you. If you pull Churchit by hand, run <code>bench build --app churchit</code> afterwards: until it runs, /portal and the old member page addresses, which open /portal, answer "Page not found".</p>
+
+<p>Frappe makes PDFs with wkhtmltopdf. On a server without it, the bulletin PDF uses Frappe's Chrome engine instead, which downloads Chromium into the bench the first time. To use a Chromium that is already installed, set <code>chromium_path</code> in <code>common_site_config.json</code>.</p>
+
 <p>Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.</p>
 
 <h4>Churchit and ERPNext on one site</h4>
@@ -143,7 +147,7 @@ pilot -b church install-app church.example.org erpnext</code><button class="btn 
 </tr>
 <tr>
   <td>Website</td>
-  <td>Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up.</td>
+  <td>Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. It also turns off the public website, so visitors who are not signed in get the login page in place of your Web Pages and Web Forms. To open it, see <a href="#first-steps-after-installing">First steps after installing</a>.</td>
 </tr>
 <tr>
   <td>Letterhead</td>
@@ -243,6 +247,7 @@ pilot -b church install-app church.example.org erpnext</code><button class="btn 
 
 <p>Combine profiles when one person has several jobs. Open the <code>Role Permissions Manager</code> to see exactly what each role can do.</p></li>
 <li>Members do not need a desk login. Use <strong>Invite to Portal</strong> on their Person. It gives them the <code>Church User</code> role, which reaches the portal and their own records only.</li>
+<li>The public website starts off, because most churches already have a website. Visitors who are not signed in get only the login page, and members keep the member portal. To open the website, type <code>Church Features</code> in the search bar, clear <strong>Turn Off the Public Website</strong> in the <strong>Website Pages</strong> section and save.</li>
 </ol>
 
       </div>
@@ -292,7 +297,7 @@ pilot -b church install-app church.example.org erpnext</code><button class="btn 
         <p class="lead" style="margin-inline:auto">Poke around a fully loaded church. No sign-up, no sales call, no personal information.</p>
         <div class="cta-row" style="justify-content:center; margin-top:1.6rem">
           <a class="btn btn-primary btn-lg" href="https://demo.churchit.app/login" target="_blank" rel="noopener">Try the demo →</a>
-          <a class="btn btn-ghost btn-lg" href="documentation.html">Read the manual</a>
+          <a class="btn btn-ghost btn-lg" href="https://docs.churchit.app/manual">Read the manual</a>
         </div>
         <p style="margin:1rem 0 0; font-size:.9rem">👤 <strong>demo@demo.com</strong> &nbsp; 🔑 <strong>Matthew10:8b</strong></p>
       </div>
@@ -307,7 +312,7 @@ pilot -b church install-app church.example.org erpnext</code><button class="btn 
         <a href="screenshots.html">Screenshots</a>
         <a href="pricing.html">(Un)Pricing</a>
         <a href="getting-started.html">Getting started</a>
-        <a href="documentation.html">Documentation</a>
+        <a href="https://docs.churchit.app/manual">Documentation</a>
         <a href="https://frappeframework.com" target="_blank" rel="noopener">Built on Frappe</a>
       </nav>
     </div>

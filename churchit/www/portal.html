@@ -18,42 +18,5 @@ no_cache: 1
     {% if list_footer %}
         {{ list_footer }}
     {% endif %}
-{% else %}
-<div class="portal-home">
-    <h1>{{ _("Member Portal") }}</h1>
-    {% if frappe.session.user == "Guest" %}
-        <p class="lead">{{ _("Sign in to sign up for events, share prayer requests, and stay connected with your church family.") }}</p>
-        <a class="btn btn-primary" href="/login?redirect-to=/portal">{{ _("Log In") }}</a>
-        {#- A member without a login gets one from the church office (Invite to Portal). -#}
-        {% set church_office = _("the church office") if "contact" in get_switched_off_pages() else '<a href="/contact">' ~ _("the church office") ~ '</a>' %}
-        <p class="mt-3">{{ _("Part of the church but no login yet? Ask {0} to invite you.").format(church_office) }}
-            {%- if footer_church and footer_church.phone %} {{ _("Phone: {0}").format(footer_church.phone | e) }}{% endif %}</p>
-        {% if "connection-card" not in get_switched_off_pages() %}
-        <p class="mt-3">{{ _("New here? {0}").format('<a href="/connection-card/new">' ~ _("Fill in a Connection Card") ~ '</a>') }}</p>
-        {% endif %}
-    {% else %}
-        <p class="lead">{{ _("Welcome, {0}. Everything for your church family in one place.").format(frappe.get_fullname(frappe.session.user)) }}</p>
-    {% endif %}
-
-    {% if sidebar_items %}
-    <div class="portal-home-grid">
-        {% for section in get_portal_home_sections(sidebar_items) %}
-        <section class="card portal-home-section">
-            <h2 class="portal-home-section-title">{{ section.title }}</h2>
-            {% for item in section.links %}
-            <a class="portal-home-link" href="{{ item.route if item.route.startswith('/') else '/' + item.route }}">
-                <svg class="icon icon-md portal-link-icon" aria-hidden="true"><use href="#icon-{{ item.icon }}"></use></svg>
-                <span class="portal-link-text">
-                    <span class="portal-card-title">{{ _(item.title) }}</span>
-                    {% if item.description %}<span class="portal-link-description">{{ item.description }}</span>{% endif %}
-                </span>
-                <span class="portal-card-arrow" aria-hidden="true">&rarr;</span>
-            </a>
-            {% endfor %}
-        </section>
-        {% endfor %}
-    </div>
-    {% endif %}
-</div>
 {% endif %}
 {% endblock %}

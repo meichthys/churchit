@@ -79,7 +79,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 
 ### Portal & Website
 - Portal invitations "Invite to Portal" auto-creates a user account and sends a welcome email
-- Portal pages for personal details, my household, a member directory with per-person sharing, communication preferences, prayer requests, alms requests, function sign-ups, attendance history, giving statements, pledges, room requests, and bulletin PDFs
+- A member app at /portal, built with Frappe UI, for phones and computers: the member's week (sign-ups, serving, group meetings and notices), a check-in pass that shows each person as they are checked in, personal details, a member directory with per-person sharing, communication preferences, prayer, care and benevolence requests, function sign-ups and attendance, serving, groups with the people in each group, group leading, room requests, Bible memory practice, a Bible reader, bulletins, pledges and giving statements
+- The member app updates by itself when something changes (a waitlist place, a check-in, a join request), and takes its colors from the website theme
 - Household adults add their children on My Household
 - Save contact on each Member Directory entry: a contact card with only the details the entry shows
 - Forms: publish a Question Set as a web form for anyone or only members, with an optional price, and follow up each response
@@ -88,9 +89,12 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Publishable beliefs/statement of faith
 - Members-only web pages: tick Members Only on a Web Page, and visitors go to the login page
 - Turn each shipped website page off in Church Features: the page answers "Page not found" and its menu, footer and portal links go
+- Turn the whole public website off in Church Features when the church has its own website: visitors get the login page, and members keep the member portal. A new site starts with the public website off
 - A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
-- Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- One look for the website and the member app, set like a printed bulletin, in a palette the church picks: **Churchit** (the default), **Harbor**, **Meadow**, **Indigo**, **Vesper** or **Slate**, or Frappe's plain **Standard** colors. Pick one in the theme picker under Website Settings → Website Theme, preview it first, or duplicate a theme and change its colors. Each has a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
+- A home page that welcomes visitors: when and where the church meets, what is coming up, recent sermons with the podcast, announcements, ministries, next steps and how to visit. It is built from blocks that a church moves, retitles or hides in the desk, as with Frappe's own page blocks
+- Website pages update by themselves when staff publish or change an event, a sermon or announcements: the home page, the Calendar, the Sermons, Announcements and Register pages
 
 ### Functions (Events) & Attendance
 - Function (event) tracking with types, scheduling, person & item sign-ups, check-ins, and attendance tracking
@@ -104,7 +108,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Age and grade limits on a function, room capacity from its room bookings (warn or block), and a headcount for people in the room who are not checked in by name: the attendance total uses the larger count
 - Volunteer check-in from a Team tab that lists the function's accepted ministry team, with the position on the volunteer's name tag
 - Self check-in kiosk: a family types its phone number on a tablet at the door, picks who to check in, and takes its name tags. Only Function types that allow self check-in, and only from a set number of minutes before the start to the end
-- Pre check-in: a member picks who is coming to today's function on My Household and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
+- Pre check-in: a member opens Check-in in the member app, picks who is coming to today's function and shows a QR code at the Check-In Station or the kiosk. The code works only until the function ends
 - Name tags: printed per check-in through the browser's print dialog (any printer), or silently in ZPL to Zebra label printers such as the ZD421 via Zebra Browser Print, QZ Tray, or straight over the network. Optional pickup codes for children's ministry print on each tag and on a parent pickup tag; a household keeps one code for the day. Each kind of check-in (Regular, Guest, Volunteer) can print its own tag. The label layouts are Print Formats a church can copy and customize
 - Recurring functions: every n days, weeks, months or years, on a day of the month or a weekday of the month (the second Sunday), created weeks ahead for the calendar, with skip dates and room bookings
 - Calendar view (Private & Public). The public calendar shows the rooms, a map, an online meeting link and a link to open each function, and it can include the functions of branch churches
@@ -164,7 +168,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Fund management with automatic balance updates on submission
 - Fund transfers between accounts
 - Expense tracking by category
-- Alms request system for financial assistance (with web form), with an email to the care team, an email to Finance when a request is approved, and Benevolence case notes that only the care team reads
+- Alms request system for financial assistance (asked from the member app), with an email to the care team, an email to Finance when a request is approved, and Benevolence case notes that only the care team reads
 - Online giving on /give through Stripe or PayPal, with an optional processing fee that the giver can cover (needs the optional [Payments app](#online-payments-optional))
 - Give links and QR codes for a fund, which open /give with the fund and an amount filled in
 - Text-to-give: the Finances manual shows how to make your text provider reply to a text with the /give link
@@ -174,7 +178,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Non-cash gifts (donated property) recorded with a description and no value
 - Funds that are not tax deductible stay off giving statements
 - Email every giving statement with its PDF in one step
-- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received
+- Pledge campaigns: members pledge on the portal, and the Pledge Progress report compares each pledge and each campaign goal with the gifts received. Members can give toward a pledge from the Pledges page
 - Import giving history from another system, a spreadsheet or a payment processor's export into draft collections
 - GL export: map funds, payment types, expense types and the church to accounts, and export a balanced GL Journal as CSV
 
@@ -228,8 +232,8 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - A people directory shared by every church: any church can look up a person or family, only their own church can change them, and a Church Features option keeps each church's people private instead
 - Songs, sermons, vendors, rooms, assets, funds and ministries can be shared with every church, so branches reuse the main church's library and give to joint funds, while each gift and expense keeps the church that gave or spent it
 - AI is off by default. A Church Manager or System Manager turns it on in AI Settings, and until then Frappe's MCP server stays closed for every app on the site. When AI is on and a System Manager opens MCP, a Church Manager, a System Manager or a person with the Church AI User role can connect an AI app, such as Claude or ChatGPT. The app can see and change everything its user can see and change, and a hosted app sends what it reads to the company that runs it. AI Settings says this before anyone turns AI on. System Managers hear when a person connects an AI app, and the Connected AI Apps report lists the connections. See "AI and your church's data" in Manual: Foundations, and the unpublished starter page "How We Use AI". The [`skills/churchit`](skills/churchit) folder teaches an AI app how to work with Churchit.
-- A connected AI app can answer the weekly office questions (first-time guests with no follow-up, people not seen, birthdays and anniversaries, groups that need attention, open team positions and what needs your attention this week), make a smart list from a sentence, brief you on a person or a group, and draft a record or a change. A draft is a link that opens the form filled in and not saved. You check it and save, and the timeline then says that AI helped. Churchit never saves a record for an AI app. A button on the AI Access panel lets a System Manager add one sentence to System Settings Agent Instructions, so that each app reads Churchit's guide first. "Connect your AI app" in Manual: Foundations has a dated table of apps (Claude, ChatGPT, Gemini, LM Studio, Open WebUI, Claude Code and frappectl) with the plan, the training setting to turn off and where the data goes.
-- On a Frappe with Flow, Frappe's AI agents (in the development version of Frappe), the same switch stops new Flow chats, Flow triggers and new Flow knowledge sources, and a new Flow chat asks before each change. Churchit refuses a Flow knowledge source on a DocType in the Blocked from Flow Knowledge list of AI Settings, which starts with the records that hold data about people, and warns about a source on other church records. It warns about a Flow trigger that runs as Administrator or watches text that guests or members write, on the trigger and on the AI Access panel. Each Flow Model gets a Privacy Label, your note on what its provider does with the data, and the AI Access panel warns about a model that is Unknown or may train. "AI and your church's data" in Manual: Foundations has a dated guide to AI providers and says how to set a spend limit. The Docker setup can start the Flow server that Flow needs ([Flow server for AI](deploy/README.md#flow-server-for-ai-optional)).
+- A connected AI app can answer the weekly office questions (first-time guests with no follow-up, people not seen, birthdays and anniversaries, groups that need attention, open team positions and what needs your attention this week), make a smart list from a sentence, brief you on a person or a group, and draft a record or a change. A draft is a link that opens the form filled in and not saved. You check it and save, and the timeline then says that AI helped. Churchit never saves a record for an AI app. A button on the AI Access panel lets a System Manager add one sentence to System Settings Agent Instructions, so that each app reads Churchit's guide first. "Connect an AI app" in Manual: Foundations has a dated list of apps (Claude, ChatGPT, Gemini, LM Studio, Open WebUI, Claude Code and frappectl) with the plan, the training setting to turn off and where the data goes.
+- On a Frappe with Flow, Frappe's AI agents (in the development version of Frappe), the same switch stops new Flow chats, Flow triggers and new Flow knowledge sources, and a new Flow chat asks before each change. Churchit refuses a Flow knowledge source on a DocType in the Blocked from Flow Knowledge list of AI Settings, which starts with the records that hold data about people, and warns about a source on other church records. It warns about a Flow trigger that runs as Administrator or watches text that guests or members write, on the trigger and on the AI Access panel. Each Flow Model gets a Privacy Label, your note on what its provider does with the data, and the AI Access panel warns about a model that is Unknown or may train. "AI Setup for System Managers" in Manual: Foundations has a dated guide to AI providers and says how to set a spend limit. The Docker setup can start the Flow server that Flow needs ([Flow server for AI](deploy/README.md#flow-server-for-ai-optional)).
 - On a Frappe with Flow, Churchit adds three agents once a System Manager saves a chat model: Church Office, Writer and Private Work. Church Office is for your staff. It reads with your own permissions, answers the same office questions and gives draft links, and it has no web, memory or write tool. Writer and Private Work have no tools. When AI is on and Flow Knowledge Settings has an enabled embedding model, Churchit adds its manuals to Flow, so that Church Office answers how-to questions from them. Flow sends the manual text, and no church records, to that model.
 - On a Frappe with Flow and with AI turned on, Churchit's own AI buttons in the desk ask a model for a suggestion, and a person checks it and saves it. They are Describe People (a People list from a sentence), Brief Me (on a person or a group), Draft Note With AI (a Person Note or a Visitation Log from rough notes), Suggest Mapping (the headings of an import file), Find Action Items (Church Tasks from Meeting Minutes), Draft with AI (write, shorten, change the tone of or translate a text field, and alt text for a web page), Study with AI (discussion questions, a summary, handout blanks, a devotional and a post from a sermon), Describe the Form and Describe the Process (a Question Set or a Follow-up Workflow from a sentence), Explain (a report), Suggest Songs (up to 8 songs of your own list for a function), Suggest Type (an expense type from the notes and a vendor ticked Is a Business), Explain Match (why two possible duplicates may be one person), Suggest Fixes (a corrected email address or phone number for the People Data Quality report), Read Card with AI (a photo of a returned Contact Verification card) and Translate with AI (a draft translation of a public web page, which someone fluent must check). Nothing saves or sends by itself, and each run is a chat in the person's own Flow chat list, which nobody can continue or share. A request goes to the Writer agent, or to Private Work when it holds a record of a DocType in the Only for Local or Zero Retention Models list of AI Settings (care, counseling, notes, prayer, giving, background checks, meeting minutes and connection cards, by default). Churchit refuses a request when the Privacy Label of the agent's model is too weak. The AI never writes a sermon or a prayer.
 - On a Frappe with Flow and with AI turned on, AI can read a photo of a paper connection card into a draft that a person checks beside the photo. Otherwise, or whenever staff prefer, Copy by Hand opens a new Connection Card with the photo at the top for a person to type. The photo is a private file. It goes only to a model labelled Zero retention or Local while Connection Card Photo is in the Only for Local or Zero Retention Models list, as it is by default. The draft becomes a Connection Card only when a person saves it. How well a model reads real handwriting is not measured yet; the target is 90 percent of the fields right on 20 cards.
@@ -298,6 +302,10 @@ pilot -b church setup production
 
 On a plain `bench` (without Pilot), the equivalent is `bench get-app https://github.com/meichthys/churchit`, `bench --site <your-site> install-app churchit`, and `bench update` to upgrade.
 
+The member portal at /portal is an app that the build makes (it needs Node and Yarn, as every Frappe app with a front end does). `get-app`, `update` and Frappe Cloud build it for you. If you pull Churchit by hand, run `bench build --app churchit` afterwards: until it runs, /portal and the old member page addresses, which open /portal, answer "Page not found".
+
+Frappe makes PDFs with wkhtmltopdf. On a server without it, the bulletin PDF uses Frappe's Chrome engine instead, which downloads Chromium into the bench the first time. To use a Chromium that is already installed, set `chromium_path` in `common_site_config.json`.
+
 Churchit cannot share a site with an app that ships a doctype, report or other standard record of the same name. Today this includes Frappe Learning (Function) and Frappe Suite (Email Address, Slide). Installing Churchit on such a site, or installing such an app on a Churchit site, stops with an error that names the shared records.
 
 #### Churchit and ERPNext on one site
@@ -316,7 +324,7 @@ When both apps are on one site:
 | Area | What happens |
 |---|---|
 | Setup wizard | After you add ERPNext to a Churchit site, desk users go to ERPNext's setup wizard until a System Manager completes it. |
-| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. |
+| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. It also turns off the public website, so visitors who are not signed in get the login page in place of your Web Pages and Web Forms. To open it, see [First steps after installing](#first-steps-after-installing). |
 | Letterhead | The church's default letterhead, such as **Church Letter Head**, stays the default, so ERPNext documents also print with it. To print them with an ERPNext letterhead, set it in **Company > Default Letter Head**. |
 | Email | Churchit turns off the standard email footer, so church emails do not end with "Sent via ERPNext". You can turn it on again in **System Settings**. |
 | Address Template | ERPNext's setup wizard replaces the default Address Template for your country, and its template has no phone and email lines. Giving statements print the church address with that template, so check **Address Template** after the wizard. |
@@ -365,6 +373,7 @@ Until the Payments app is installed, **Giving Settings** shows a notice, and Chu
 
    Combine profiles when one person has several jobs. Open the `Role Permissions Manager` to see exactly what each role can do.
 4. Members do not need a desk login. Use **Invite to Portal** on their Person. It gives them the `Church User` role, which reaches the portal and their own records only.
+5. The public website starts off, because most churches already have a website. Visitors who are not signed in get only the login page, and members keep the member portal. To open the website, type `Church Features` in the search bar, clear **Turn Off the Public Website** in the **Website Pages** section and save.
 
 ### Setting up a public domain
 
@@ -455,7 +464,7 @@ If you work with Claude Code, the `churchit-contributing` skill (`.claude/skills
   - If the records belong to one church, add a `church` Link to `Church` (`hidden: 1`, `in_standard_filter: 0`; `fetch_from` the parent link with `read_only: 1` when the record hangs off another church-scoped record). `Church Features` reveals it in multi-church mode and `churchit.church_scope.ensure_church` fills it. Reports over the doctype must go through `churchit.church_scope` and spread `church.report_filters()` into their filters.
   - Read church-scoped records with `frappe.get_list`, which applies the reader's church for you. `frappe.qb`, `frappe.get_all` and `frappe.db.count` carry no permission filter, so scope those yourself with `churchit.church_scope` (`scoped()` for query builder, `church_query_filters()` for the reader's churches, `church_filters()` for one known church). `tests/test_church_scope_hygiene.py` fails on an unscoped one until it is scoped or the function holding it carries a `# church-scope:` comment with the reason it is safe. See "Reading data" in `AGENTS.md`.
   - Add the doctype to the relevant workspace and to its module's sidebar in `churchit/<module>/sidebar/`. (not necessary for child tables)
-  - Document the doctype in the module's `Manual: <Module>` workspace. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. Bump the workspace JSON's `modified` timestamp or `bench migrate` skips it.
+  - Document the doctype in the module's manual, in Markdown under `manual/<module>/`. The manuals are the in-app documentation, so update them whenever user-facing behavior changes. `python docs/build_manuals.py` (the pre-commit hook runs it) builds the `Manual: <Module>` workspace from the Markdown. Then run `bench migrate`.
   - Set the doctype's `Documentation Link` (Settings tab) to that manual, e.g. `/app/manual%3A-people`. The form's help icon opens it, and `churchit/tests/test_doctype_documentation.py` fails if it is missing.
   - Add an onboarding step and form tour if the doctype needs setting up or has fields that need
     explaining, and list the step in the module's `Module Onboarding`. `AGENTS.md` covers the four
@@ -554,19 +563,22 @@ churchit.patches.v2_0.remove_old_attendance_type
 
 ## Updating the website screenshots
 
-The [screenshots page](https://churchit.app/screenshots.html) shows real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). Take new pictures when a page in them changes.
+The [screenshots page](https://churchit.app/screenshots.html) and the manuals show real pictures of the app. `docs/screenshots.py` takes the pictures, and `docs/build_docs.py` builds the page from the same list of shots (`SHOTS`). The manual pictures are in `MANUAL_SHOTS`, each cropped to the part of a page that the manual talks about. Take new pictures when a page in them changes.
 
 1. Use a site that has only the sample data. The script logs in as two sample users: `mary.johnson@example.com` for the desk and `james.wilson@example.com` for the portal. Each password is the email address.
 2. From this app directory, install the browser once, then take the pictures:
 
    ```bash
    uvx --from playwright==1.63.0 playwright install chromium
-   uv run docs/screenshots.py                     # every shot
+   uv run docs/screenshots.py                     # every shot and manual picture
    uv run docs/screenshots.py rolodex check-in    # only these shots
+   uv run docs/screenshots.py people              # the pictures of one manual
    ```
 
    The script uses `http://churchit.localhost:8000`. Add `--url` to use a different site.
-3. Look at each new image in `docs/assets/screenshots/` before you commit it. Take it again if it shows test records.
+3. Look at each new image in `docs/assets/screenshots/` and `churchit/public/manual/` before you commit it. Take it again if it shows test records. The pre-commit hook rebuilds the Manual workspaces, which name each picture with its version.
+
+When you change the JSON, script or template of a doctype, page or report, the pre-commit hook and the `manual-pictures` check on the pull request name the manual pictures of that screen. Look at each one, and take it again if the screen changed.
 4. If you added, removed or renamed a shot, run `../../env/bin/python docs/build_docs.py`. The `build-docs` workflow also does this after a push.
 
 To add a feature to the page, add a `Shot` to `SHOTS` and take its pictures. A shot can have a desktop picture, a phone picture, or both.

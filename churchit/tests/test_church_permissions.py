@@ -35,10 +35,9 @@ from churchit.church_people.group_api import joinable_public_groups
 from churchit.church_people.report.church_directory_report import church_directory_report as directory
 from churchit.church_prayers.doctype.prayer_request import prayer_request
 from churchit.church_prayers.report.active_prayer_list import active_prayer_list
-from churchit.church_prayers.web_form.community_prayer_requests import (
-	community_prayer_requests as prayer_form,
-)
 from churchit.church_scope import SHARED, extend_bootinfo, is_people_directory_private, scoped
+from churchit.portal.care import get_community_requests
+from churchit.portal.home import get_home
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
@@ -432,8 +431,7 @@ class TestChurchPermissions(FrappeTestCase):
 
 	def test_portal_community_requests_stay_within_the_members_church(self):
 		frappe.set_user(self.manager_a)
-		context = prayer_form.get_list_context(frappe._dict())
-		names = [row.name for row in context.get_list("Prayer Request", "", [], 0, 500)]
+		names = [row["name"] for row in get_community_requests()["items"]]
 		self.assertIn(self.request_a.name, names)
 		self.assertNotIn(self.request_b.name, names)
 
@@ -452,6 +450,41 @@ class TestChurchPermissions(FrappeTestCase):
 		names = [row.name for row in joinable_public_groups()]
 		self.assertIn(group_a, names)
 		self.assertNotIn(group_b, names)
+
+	def make_bulletin(self, church, date):
+		"""A published bulletin of *church* that shares its announcements, deleted after the test."""
+		function = make_function(f"_Test Home Service {church}", church=church, start_date=date)
+		bulletin = frappe.get_doc(
+			{
+				"doctype": "Bulletin",
+				"function": function.name,
+				"publish": 1,
+				"share_announcements": 1,
+				"announcements": "<p>_Test notice</p>",
+			}
+		).insert(ignore_permissions=True)
+		# One transaction spans the class, so leave the functions and bulletins as they were.
+		self.addCleanup(frappe.delete_doc, "Function", function.name, ignore_permissions=True, force=True)
+		self.addCleanup(frappe.delete_doc, "Bulletin", bulletin.name, ignore_permissions=True, force=True)
+		return bulletin.name
+
+	def test_portal_home_stays_within_the_members_church(self):
+		"""Staff with a Person use the member app too, so Home reads only their own church."""
+		mine, theirs = (
+			self.make_bulletin(church, date)
+			for church, date in ((self.branch_a, "2040-02-01"), (self.branch_b, "2040-02-08"))
+		)
+
+		frappe.set_user(self.manager_a)
+		result = get_home()
+
+		notices = [notice["name"] for notice in result["notices"]]
+		self.assertIn(mine, notices)
+		self.assertNotIn(theirs, notices)
+		self.assertEqual(result["bulletin"]["name"], mine)
+		requests = [request["name"] for request in result["prayer_requests"]]
+		self.assertIn(self.request_a.name, requests)
+		self.assertNotIn(self.request_b.name, requests)
 
 	def test_a_family_follows_its_primary_contact(self):
 		family = frappe.get_doc(
@@ -1341,6 +1374,25 @@ class TestSingleChurchDesk(FrappeTestCase):
 		set_multi_church(True)
 
 		self.assertFalse(self.boot()["single_church"])
+
+
+class TestDeskMemberPortalLink(RollbackEachTest):
+	"""The desk user menu offers the member portal, which needs a Person."""
+
+	def boot_of(self, user):
+		frappe.set_user(user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		bootinfo = frappe._dict()
+		extend_bootinfo(bootinfo)
+		return bootinfo.churchit
+
+	def test_the_member_portal_link_is_only_for_a_desk_user_with_a_person(self):
+		staff = ensure_user("_test_desk_portal_staff@example.com", "Desk Staff", roles=("Church Staff",))
+		member = ensure_user("_test_desk_portal_member@example.com", "Desk Member", roles=("Church Staff",))
+		make_person("_Test Desk", "Portal Member", user=member)
+
+		self.assertFalse(self.boot_of(staff)["has_person"])
+		self.assertTrue(self.boot_of(member)["has_person"])
 
 
 class TestMultiChurchTransition(FrappeTestCase):
