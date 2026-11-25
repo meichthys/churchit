@@ -171,12 +171,10 @@ function setWord(index: number, element: unknown) {
 
 async function showCurrent() {
 	await nextTick();
-	wordElements
-		.get(position.value)
-		?.scrollIntoView({
-			behavior: reducedMotion.matches ? "auto" : "smooth",
-			block: "center",
-		});
+	wordElements.get(position.value)?.scrollIntoView({
+		behavior: reducedMotion.matches ? "auto" : "smooth",
+		block: "center",
+	});
 }
 
 function focusInput() {
