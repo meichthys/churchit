@@ -60,7 +60,7 @@ Churchit works out who gets the message when it sends it, so people who joined o
 
 - people who have died,
 - people who do not allow the Purpose, or who stopped all emails from the church,
-- people with no email address (or no phone number for a text), and addresses marked Bounced,
+- people with no email address (or no phone number that gets texts, for a text), and addresses marked Bounced,
 - for a text, people who have not said yes to texts.
 
 A household that shares one email address or phone number gets one copy. With more than one church, a Church Email goes only to the people of its own church.
@@ -85,7 +85,7 @@ To send the message later, set **Send At** before you click Send. It goes out wi
 
 ## Text messages
 
-A text goes to each person's primary phone number, and only to people who said yes to texts (see [Consent](consent.md)). To send texts, a user must be a System Manager or have a role in the **Allowed Roles** of the SMS Settings.
+A text goes to each person's primary phone number, and only to people who said yes to texts (see [Consent](consent.md)). When **Texts** is not ticked on the primary number, for example on a landline, the person gets no text. To text their first number that gets texts instead, tick **Text Another Number When the Primary Cannot Get Texts** on the Settings tab of the Church. To send texts, a user must be a System Manager or have a role in the **Allowed Roles** of the SMS Settings.
 
 Churchit checks each text after it sends it. If your text provider (for example, Twilio) refuses a text, Churchit marks that copy **Error** on the timelines. A copy that left is marked **Sent**, and **Number Sent** counts only those. Churchit does not send a refused text again.
 

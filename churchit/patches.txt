@@ -186,3 +186,4 @@ churchit.patches.v1_0.remove_member_web_forms
 churchit.patches.v1_0.add_website_palettes
 churchit.patches.v1_0.add_live_sermon_list
 churchit.patches.v1_0.move_home_page_to_blocks
+churchit.patches.v1_0.set_phone_numbers_receive_texts

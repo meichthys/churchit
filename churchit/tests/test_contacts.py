@@ -13,6 +13,7 @@ from churchit.contacts import (
 	get_primary_email,
 	get_primary_emails,
 	get_primary_phone,
+	get_text_numbers,
 	mailing_address,
 	pick,
 	primary_address,
@@ -387,3 +388,73 @@ class TestPhoneDigits(RollbackEachTest):
 		fill_phone_digits.execute()
 
 		self.assertEqual(frappe.db.get_value("Phone Number", row, "digits"), "2175550212")
+
+
+class TestReceivesTexts(RollbackEachTest):
+	"""Which phone numbers get texts."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_value("Phone Type", "Home", "receives_texts", 0)
+		frappe.db.set_value("Phone Type", "Mobile", "receives_texts", 1)
+		frappe.db.set_value("Phone Type", "Work", "receives_texts", 1)
+
+	def _person(self, *phones):
+		return make_person("_Test Texts", "Person", phones=list(phones))
+
+	def test_a_new_number_takes_its_types_default(self):
+		person = self._person(
+			{"phone_number": "555 010 0301", "phone_type": "Mobile"},
+			{"phone_number": "555 010 0302", "phone_type": "Home"},
+		)
+		self.assertEqual([row.receives_texts for row in person.phones], [1, 0])
+
+	def test_a_changed_tick_stays_until_the_type_changes(self):
+		person = self._person({"phone_number": "555 010 0303", "phone_type": "Mobile"})
+		person.phones[0].receives_texts = 0
+		person.save()
+		self.assertEqual(person.phones[0].receives_texts, 0)
+
+		person.phones[0].phone_type = "Work"
+		person.save()
+		self.assertEqual(person.phones[0].receives_texts, 1)
+
+	def test_a_tick_set_with_its_type_is_kept_on_a_new_number(self):
+		person = self._person(
+			{
+				"phone_number": "555 010 0304",
+				"phone_type": "Mobile",
+				"receives_texts": 0,
+				"texts_from_type": "Mobile",
+			}
+		)
+		self.assertEqual(person.phones[0].receives_texts, 0)
+
+	def test_texts_go_to_another_number_only_when_asked(self):
+		person = self._person(
+			{"phone_number": "555 010 0305", "phone_type": "Home", "is_primary": 1},
+			{"phone_number": "555 010 0306", "phone_type": "Mobile"},
+		)
+		self.assertEqual(get_text_numbers("Person", [person.name]), {})
+		self.assertEqual(
+			get_text_numbers("Person", [person.name], use_other_numbers=True), {person.name: "555 010 0306"}
+		)
+
+		person.phones[0].receives_texts = 1
+		person.save()
+		self.assertEqual(get_text_numbers("Person", [person.name]), {person.name: "555 010 0305"})
+
+	def test_the_patch_sets_each_number_from_its_type(self):
+		from churchit.patches.v1_0 import set_phone_numbers_receive_texts
+
+		person = self._person({"phone_number": "555 010 0307", "phone_type": "Home"})
+		row = person.phones[0].name
+		frappe.db.set_value("Phone Type", "Home", "receives_texts", 1)
+		frappe.db.set_value("Phone Number", row, {"receives_texts": 1, "texts_from_type": None})
+
+		set_phone_numbers_receive_texts.execute()
+
+		self.assertEqual(frappe.db.get_value("Phone Type", "Home", "receives_texts"), 0)
+		self.assertEqual(
+			frappe.db.get_value("Phone Number", row, ["receives_texts", "texts_from_type"]), (0, "Home")
+		)

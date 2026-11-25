@@ -124,7 +124,10 @@ function left_out_notes(frm, left_out = {}) {
 						who("not_allowed"),
 					])
 				),
-				note("no_address", __("No phone number for {0}.", [who("no_address")])),
+				note(
+					"no_address",
+					__("No phone number that gets texts for {0}.", [who("no_address")])
+				),
 				note(
 					"shared",
 					__("One text to a shared phone number also reaches {0}.", [who("shared")])

@@ -42,6 +42,30 @@
 		locals[cdt][cdn].shared_from_type = frm.doctype;
 	}
 
+	// A number starts with Texts ticked as its type says. texts_from_type tells the server the
+	// type was applied already, so it keeps a tick the user changes before the save.
+	async function get_receives_texts(phone_type) {
+		if (!phone_type) return 1;
+		const { message } = await frappe.db.get_value("Phone Type", phone_type, "receives_texts");
+		return message.receives_texts;
+	}
+
+	async function add_phone(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		set_shared_from_type(frm, cdt, cdn);
+		row.receives_texts = await get_receives_texts(row.phone_type);
+		row.texts_from_type = row.phone_type;
+		frm.refresh_field(row.parentfield);
+	}
+
+	async function set_receives_texts(frm, cdt, cdn) {
+		const phone_type = locals[cdt][cdn].phone_type;
+		frappe.model.set_value(cdt, cdn, {
+			receives_texts: await get_receives_texts(phone_type),
+			texts_from_type: phone_type,
+		});
+	}
+
 	// Shared From offers only the other records that already hold the row's value.
 	const SHARED_TABLES = [
 		[
@@ -98,7 +122,8 @@
 	});
 
 	frappe.ui.form.on("Phone Number", {
-		phones_add: set_shared_from_type,
+		phones_add: add_phone,
+		phone_type: set_receives_texts,
 		is_primary(frm, cdt, cdn) {
 			clear_flag_on_siblings(frm, cdt, cdn, "is_primary");
 		},

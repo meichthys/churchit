@@ -16,7 +16,7 @@ The Church record holds your church's details: its name and abbreviation, addres
 
 - **About tab**: the **About** text for the website's About Us page, the **Mission Statement**, and the **Church Verse** (a Bible reference, such as John 3:16).
 
-- **Settings tab**: the **Tax ID** for giving statements, the **CCLI License Number** for song slides, the **Default Bible Translation**, and **Contact People Only With Their Consent** (see [Consent](../communications/consent.md) in the Communications manual).
+- **Settings tab**: the **Tax ID** for giving statements, the **CCLI License Number** for song slides, the **Default Bible Translation**, **Contact People Only With Their Consent** (see [Consent](../communications/consent.md) in the Communications manual), and **Text Another Number When the Primary Cannot Get Texts** (see [Church Emails](../communications/church-emails.md)).
 
 Where these details show:
 
