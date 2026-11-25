@@ -228,6 +228,9 @@ def get_sign_ups() -> dict:
 	items = []
 	for row in rows:
 		function = facts.get(row.function)
+		can_cancel = row.status != CANCELLED and not has_started(function)
+		if can_cancel:
+			can_cancel = frappe.has_permission("Function Sign-Up", "write", doc=row.name)
 		items.append(
 			{
 				"name": row.name,
@@ -235,9 +238,7 @@ def get_sign_ups() -> dict:
 				"function_name": function.function_name if function else row.function,
 				"status": row.status,
 				"attendee_names": names.get(row.name, []),
-				"can_cancel": row.status != CANCELLED
-				and not has_started(function)
-				and frappe.has_permission("Function Sign-Up", "write", doc=row.name),
+				"can_cancel": can_cancel,
 				**describe_date(function.start_date if function else None),
 			}
 		)
