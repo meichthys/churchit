@@ -78,6 +78,8 @@ A person can have several emails, phone numbers and addresses, each in its own t
 
 - **Primary**: the first row is the primary one, and only one row in each table can be primary. Church Emails, the directory, the Rolodex, greetings and portal invitations use the primary email and phone. Ticking a new primary row unticks the old one.
 
+- **Texts** on a phone number: untick it on a number that cannot get texts, such as a landline. A new number takes it from its Phone Type: each Phone Type has **New Numbers Receive Texts**, which is ticked for every type except Home. Changing a number's type sets it again from the new type.
+
 - **Mailing**: tick it on the address that gets mail from the church. **Returned** shows that mail sent there came back.
 
 - **Bounced** on an email shows that email to this address came back. Church Emails skip it, and the form shows an orange line when the primary email has bounced (see the [Communications manual](../communications/README.md)). Churchit clears it when you change the address.

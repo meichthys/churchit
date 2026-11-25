@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.utils import set_request
+from frappe.utils import getdate, set_request
 
 from churchit.church_prayers.api import create_prayer
 from churchit.portal import care
@@ -540,6 +540,27 @@ class TestSavingRequests(CareCase):
 		with self.assertRaises(frappe.PermissionError):
 			care.delete_prayer_request(theirs.name)
 		self.assertEqual(frappe.db.get_value("Prayer Request", theirs.name, "title"), "_Test Saved")
+
+	def test_a_member_marks_only_their_own_prayer_request_answered(self):
+		request = self.save_prayer(self.member)
+		theirs = self.save_prayer(self.neighbour)
+
+		frappe.set_user(self.member)
+		care.set_prayer_request_answered(request.name, answered="true")
+		self.assertEqual(
+			frappe.db.get_value("Prayer Request", request.name, ["status", "answered_on"]),
+			("Answered", getdate()),
+		)
+
+		care.set_prayer_request_answered(request.name, answered="false")
+		self.assertEqual(
+			frappe.db.get_value("Prayer Request", request.name, ["status", "answered_on"]),
+			("Requested", None),
+		)
+
+		with self.assertRaises(frappe.PermissionError):
+			care.set_prayer_request_answered(theirs.name, answered="true")
+		self.assertEqual(frappe.db.get_value("Prayer Request", theirs.name, "status"), "Requested")
 
 	def test_a_recipient_from_another_church_is_refused(self):
 		with self.assertRaises(frappe.PermissionError):

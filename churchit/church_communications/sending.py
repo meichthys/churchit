@@ -45,8 +45,7 @@ from churchit.contacts import (
 	PHONE_DOCTYPE,
 	contact_key,
 	get_primary_emails,
-	get_primary_phone,
-	get_primary_values,
+	get_text_numbers,
 )
 
 PERSON_PLACEHOLDERS = ("first_name", "last_name", "display_name", "full_name")
@@ -244,7 +243,7 @@ class Delivery(Sender):
 		)
 		copy = self.email.get_copy(values)
 		if self.email.is_text_message:
-			number = get_own_number(person)
+			number = get_own_number(person, self.church)
 			send_sms([number], copy.text, success_msg=False)
 			return number
 		address = frappe.db.get_value("User", frappe.session.user, "email")
@@ -419,10 +418,10 @@ class ChurchNameInEmailTemplates:
 		return super().get_formatted_email(values, sender)
 
 
-def get_own_number(person: str | None) -> str:
-	"""The reader's mobile number, else their Person's primary phone, for a test text."""
+def get_own_number(person: str | None, church: str | None) -> str:
+	"""The reader's mobile number, else where their Person gets texts in *church*, for a test text."""
 	number = frappe.db.get_value("User", frappe.session.user, "mobile_no") or (
-		person and get_primary_phone("Person", person)
+		person and get_text_numbers("Person", [person], can_text_another_number(church)).get(person)
 	)
 	if not number:
 		frappe.throw(_("Add a mobile number to your user, or a phone to your Person, to get a test text."))
@@ -436,7 +435,7 @@ def get_recipients(people: list[str], channel: str, purpose: str | None, church:
 	"""
 	allowed = sorted(allowed_people(people, channel, purpose))
 	if channel == SMS:
-		return get_text_recipients(allowed)
+		return get_text_recipients(allowed, church)
 	if channel == PUSH:
 		return get_push_recipients(allowed)
 	return get_email_recipients(allowed, email_church(church), purpose)
@@ -486,7 +485,7 @@ def get_left_out(
 	reached = {recipient.person for recipient in recipients}
 	allowed = allowed_people(people, channel, purpose)
 	if channel == SMS:
-		numbers = get_primary_values(PHONE_DOCTYPE, "phone_number", "Person", list(allowed))
+		numbers = get_text_numbers("Person", list(allowed), can_text_another_number(church))
 		refused = {person: NO_ADDRESS for person in allowed if not numbers.get(person)}
 	else:
 		_usable, refused = get_usable_emails(list(allowed), email_church(church), purpose)
@@ -499,9 +498,9 @@ def get_left_out(
 	return left_out
 
 
-def get_text_recipients(people: list[str]) -> list[Recipient]:
-	"""Each of *people* at their primary phone, each number once."""
-	numbers = get_primary_values(PHONE_DOCTYPE, "phone_number", "Person", people)
+def get_text_recipients(people: list[str], church: str | None) -> list[Recipient]:
+	"""Each of *people* at the number where they get texts in *church*, each number once."""
+	numbers = get_text_numbers("Person", people, can_text_another_number(church))
 	return get_unique_recipients(people, numbers, PHONE_DOCTYPE)
 
 
@@ -594,3 +593,8 @@ def get_people_sent(
 def can_send_texts() -> bool:
 	"""True when the site can send texts: SMS Settings has a gateway, or an app sends them."""
 	return bool(frappe.get_hooks("send_sms") or frappe.db.get_single_value("SMS Settings", "sms_gateway_url"))
+
+
+def can_text_another_number(church: str | None) -> bool:
+	"""True when *church* texts a person's first number that gets texts when their primary one does not."""
+	return bool(frappe.db.get_value("Church", email_church(church), "text_another_number"))

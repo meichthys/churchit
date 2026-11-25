@@ -26,14 +26,17 @@ from churchit.church_people.doctype.connection_card.connection_card import (
 	PROCESSED,
 	SPAM,
 )
-from churchit.church_people.doctype.connection_card_interest.connection_card_interest import STARTER_INTERESTS
+from churchit.church_people.doctype.connection_card_interest.connection_card_interest import (
+	SALVATION,
+	STARTER_INTERESTS,
+)
 from churchit.church_people.doctype.people_settings.people_settings import SHARE_DEFAULTS
 from churchit.church_people.matching import is_paired
 from churchit.church_people.membership import VISITOR
 from churchit.church_people.privacy import anonymize
 from churchit.church_people.test_accounts import share_in_the_directory_by_default
 from churchit.connections import get_open_count
-from churchit.patches.v1_0 import add_connection_card_interests
+from churchit.patches.v1_0 import add_connection_card_interests, add_salvation_interest
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	assert_scoped,
@@ -582,3 +585,15 @@ class TestConnectionCardInterests(RollbackEachTest):
 
 		names = [interest for interest, _description in STARTER_INTERESTS]
 		self.assertEqual(frappe.db.count("Connection Card Interest", {"name": ("in", names)}), len(names))
+
+	def test_the_salvation_patch_adds_only_salvation(self):
+		frappe.delete_doc("Connection Card Interest", SALVATION, force=True, ignore_missing=True)
+		frappe.delete_doc("Connection Card Interest", "Join a group", force=True, ignore_missing=True)
+
+		add_salvation_interest.execute()
+		add_salvation_interest.execute()
+
+		self.assertTrue(frappe.db.exists("Connection Card Interest", SALVATION))
+		self.assertFalse(
+			frappe.db.exists("Connection Card Interest", "Join a group"), "a deleted interest stays deleted"
+		)

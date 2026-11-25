@@ -181,7 +181,26 @@ class TestRecipients(RollbackEachTest):
 			"_Test Sending",
 			phones=[{"phone_number": "555 0101"}, {"phone_number": "555 0102", "is_primary": 1}],
 		)
-		self.assertEqual(get_text_recipients([person.name]), [Recipient(person.name, "555 0102")])
+		self.assertEqual(
+			get_text_recipients([person.name], self.church), [Recipient(person.name, "555 0102")]
+		)
+
+	def test_texts_go_to_another_number_only_when_the_church_allows_it(self):
+		frappe.db.set_value("Phone Type", "Home", "receives_texts", 0)
+		person = make_person(
+			"Landline",
+			"_Test Sending",
+			phones=[
+				{"phone_number": "555 0103", "phone_type": "Home", "is_primary": 1},
+				{"phone_number": "555 0104", "phone_type": "Mobile"},
+			],
+		)
+		self.assertEqual(get_text_recipients([person.name], self.church), [])
+
+		frappe.db.set_value("Church", self.church, "text_another_number", 1)
+		self.assertEqual(
+			get_text_recipients([person.name], self.church), [Recipient(person.name, "555 0104")]
+		)
 
 
 class TestTextsSetUp(FrappeTestCase):

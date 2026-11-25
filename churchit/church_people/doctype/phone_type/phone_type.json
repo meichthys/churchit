@@ -7,14 +7,15 @@
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
- "field_order": ["type", "description"],
+ "field_order": ["type", "receives_texts", "description"],
  "fields": [
   {"fieldname": "type", "fieldtype": "Data", "label": "Type", "reqd": 1, "unique": 1, "in_list_view": 1},
+  {"default": "1", "description": "Ticks Texts on a new number of this type, or on a number changed to it. Untick it for a type such as a landline.", "fieldname": "receives_texts", "fieldtype": "Check", "label": "New Numbers Receive Texts", "in_list_view": 1, "show_description_on_click": 1},
   {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"}
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-10-31 13:11:11.000000",
+ "modified": "2026-11-24 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Phone Type",

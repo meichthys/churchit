@@ -29,6 +29,12 @@
 	}
 	#church-calendar .fc-button { border-radius: var(--radius-4, 8px); box-shadow: none; text-transform: capitalize; }
 	#church-calendar .fc-button-active { color: var(--ink-base); }
+	/* a button group is one tray with a gap between its buttons, as frappe-ui's tab buttons */
+	#church-calendar .fc-button-group { gap: 2px; padding: 2px; border-radius: var(--radius-5, 10px); background: var(--surface-gray-2); }
+	#church-calendar .fc-button-group > .fc-button { margin: 0; border-radius: var(--radius-4, 8px); }
+	#church-calendar .fc-button-group > .fc-button:not(.fc-button-active, :hover) { background: transparent; }
+	/* in dark mode the accent wash turns the day muddy behind light text, so today keeps only its accent number */
+	[data-theme="dark"] #church-calendar { --fc-today-bg-color: var(--surface-gray-1); }
 	#church-calendar .fc-button:focus-visible { outline: 2px solid var(--outline-gray-4); outline-offset: 2px; box-shadow: none; }
 	#church-calendar .fc-toolbar-title {
 		font-family: var(--font-serif);

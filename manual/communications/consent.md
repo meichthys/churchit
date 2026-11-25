@@ -42,7 +42,7 @@ In the UK, the EU and other places, the law says that people must agree before a
 
 - **Unsubscribe links**: when someone unsubscribes from a Church News email, or turns off Church News email on the Preferences page, everyone at your church who uses that email address is recorded as having said no to Church News. The link in an email with another purpose records a no to that purpose only. A resubscribe from the Person form records a yes for that person only.
 
-- **The Preferences page**: signed-in members see their primary email address and phone number, and one row for each purpose with an **Email** switch. A **Text** switch shows when texts are set up and the member has a phone number. A **Push** switch shows when the member allowed notifications on a device. A switch saves at once. A member with no email address sees a note to contact the church office.
+- **The Preferences page**: signed-in members see their primary email address and phone number, and one row for each purpose with an **Email** switch. A **Text** switch shows when texts are set up and the member has a phone number that gets texts. A **Push** switch shows when the member allowed notifications on a device. A switch saves at once. A member with no email address sees a note to contact the church office.
 
 - **Connection Cards**: the Stay in Touch section has **Email Me Church News and Events** and **Text Me Church News and Events**. When Churchit processes the card, each ticked box records a yes to Church News. It records nothing when the card has no email or phone for it, when the card is Spam, or when the card is linked to a person who does not have that email or phone yet. A ticked box does not replace an earlier no.
 

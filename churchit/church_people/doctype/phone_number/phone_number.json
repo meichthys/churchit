@@ -11,6 +11,8 @@
   "digits",
   "phone_type",
   "is_primary",
+  "receives_texts",
+  "texts_from_type",
   "shared_from",
   "shared_from_type"
  ],
@@ -53,6 +55,25 @@
    "label": "Primary"
   },
   {
+   "columns": 1,
+   "default": "1",
+   "description": "Ticked when this number can get texts. Untick it for a landline. A new number takes this from its Phone Type.",
+   "fieldname": "receives_texts",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Texts",
+   "show_description_on_click": 1
+  },
+  {
+   "description": "The Phone Type that last set Texts. A change of type sets it again.",
+   "fieldname": "texts_from_type",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Texts From Type",
+   "options": "Phone Type",
+   "print_hide": 1
+  },
+  {
    "columns": 2,
    "description": "The record this number belongs to, when someone else on file uses it too, such as a child using a parent's phone. Leave blank on the owner's own row. Only records that already have this number are offered.",
    "fieldname": "shared_from",
@@ -76,7 +97,7 @@
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2026-10-31 01:35:33.000000",
+ "modified": "2026-11-24 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Phone Number",

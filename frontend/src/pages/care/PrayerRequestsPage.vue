@@ -70,6 +70,21 @@
 									@click="openEdit(item)"
 								/>
 								<Button
+									class="min-h-11 md:min-h-0"
+									size="lg"
+									variant="outline"
+									:icon-left="
+										isAnswered(item) ? 'lucide-rotate-ccw' : 'lucide-check'
+									"
+									:label="
+										isAnswered(item)
+											? __('Not answered yet')
+											: __('Mark answered')
+									"
+									:loading="answering === item.name"
+									@click="toggleAnswered(item)"
+								/>
+								<Button
 									v-if="!item.prayer_count"
 									class="min-h-11 md:min-h-0"
 									size="lg"
@@ -156,6 +171,9 @@ import type { PrayerForm, PrayerRequest } from "./types";
 const requests = useRead<{ items: PrayerRequest[] }>("care.get_my_prayer_requests");
 const form = useRead<PrayerForm>("care.get_prayer_form");
 const remove = useAction<null, { name: string }>("care.delete_prayer_request");
+const setAnswered = useAction<{ status: string }, { name: string; answered: boolean }>(
+	"care.set_prayer_request_answered"
+);
 const { mark, isFresh } = useFreshInk();
 
 const {
@@ -177,6 +195,28 @@ function toggleComments(name: string) {
 function tally(item: PrayerRequest): string | null {
 	if (!item.prayer_count) return null;
 	return item.prayer_count === 1 ? __("1 prayer") : __("{0} prayers", [item.prayer_count]);
+}
+
+const answering = ref<string | null>(null);
+
+function isAnswered(item: PrayerRequest): boolean {
+	return item.status === "Answered";
+}
+
+async function toggleAnswered(item: PrayerRequest) {
+	const answered = !isAnswered(item);
+	answering.value = item.name;
+	try {
+		await setAnswered.submit({ name: item.name, answered });
+		toast.success(
+			answered
+				? __("Marked answered. It is off the prayer list.")
+				: __("Marked not answered yet.")
+		);
+		await requests.reload();
+	} finally {
+		answering.value = null;
+	}
 }
 
 function confirmDelete(item: PrayerRequest) {

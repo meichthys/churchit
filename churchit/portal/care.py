@@ -13,11 +13,12 @@ import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.templates.includes.comments.comments import EMAIL_PATTERN, URLS_COMMENT_PATTERN, get_limit
-from frappe.utils import cint, formatdate, getdate, now_datetime, strip_html
+from frappe.utils import cint, formatdate, getdate, now_datetime, sbool, strip_html
 from frappe.utils.html_utils import clean_html
 
 from churchit.church_finances.doctype.alms_request.alms_request import is_reviewed
 from churchit.church_people.member_access import RECIPIENT_DOCTYPES, get_recipient_filters
+from churchit.church_prayers.doctype.prayer_request.prayer_request import ANSWERED, REQUESTED
 from churchit.church_prayers.prayer_access import (
 	COMMUNITY_FIELDS,
 	PRAYER_TEAM,
@@ -135,6 +136,26 @@ def save_prayer_request(
 		"request": request,
 	}
 	return save_request(doc, values)
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=SAVES_A_MINUTE, seconds=60, user_based=True)
+def set_prayer_request_answered(name: str, answered: bool) -> dict:
+	"""Mark one of the member's own prayer requests answered, or not answered after all. Changes data.
+
+	A member moves their own request only between Answered and Requested; every other status stays with
+	the care team. An answered request leaves the prayer list.
+	"""
+	require_person()
+	require_page("prayer-request")
+	doc = get_own("Prayer Request", name, "write")
+	status = ANSWERED if sbool(answered) else REQUESTED
+	doc.status = frappe.db.get_value("Prayer Request Status", {"status": status}, "name")
+	if not doc.status:
+		frappe.throw(_("Ask the church office to add the prayer request status {0}.").format(status))
+	# Status is permlevel 1, which a member does not write: get_own checked the request is theirs.
+	doc.save(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}
 
 
 @frappe.whitelist(methods=["POST"])
