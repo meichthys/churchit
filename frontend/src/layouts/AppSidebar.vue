@@ -17,16 +17,28 @@
 
 			<template v-for="section in sections" :key="section.label">
 				<SidebarLabel class="mt-5">
-					<span class="t-label text-ink-gray-6">{{ section.label }}</span>
+					<span class="t-label text-ink-gray-6">{{
+						section.label
+					}}</span>
 				</SidebarLabel>
-				<NavItem v-for="item in section.items" :key="item.key" :item="item" />
+				<NavItem
+					v-for="item in section.items"
+					:key="item.key"
+					:item="item"
+				/>
 			</template>
 
 			<template v-if="elsewhere.length">
 				<SidebarLabel class="mt-5">
-					<span class="t-label text-ink-gray-6">{{ __("Elsewhere") }}</span>
+					<span class="t-label text-ink-gray-6">{{
+						__("Elsewhere")
+					}}</span>
 				</SidebarLabel>
-				<NavItem v-for="item in elsewhere" :key="item.key" :item="item" />
+				<NavItem
+					v-for="item in elsewhere"
+					:key="item.key"
+					:item="item"
+				/>
 			</template>
 		</div>
 
@@ -39,7 +51,9 @@
 						size="sm"
 					/>
 				</template>
-				<span class="truncate text-base">{{ boot.user.full_name }}</span>
+				<span class="truncate text-base">{{
+					boot.user.full_name
+				}}</span>
 				<template #suffix>
 					<button
 						type="button"
@@ -48,7 +62,10 @@
 						:title="__('Sign out')"
 						@click="signOut"
 					>
-						<span class="lucide-log-out size-4 rtl:-scale-x-100" aria-hidden="true" />
+						<span
+							class="lucide-log-out size-4 rtl:-scale-x-100"
+							aria-hidden="true"
+						/>
 					</button>
 				</template>
 			</SidebarItem>
@@ -57,7 +74,13 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Sidebar, SidebarHeader, SidebarItem, SidebarLabel } from "frappe-ui";
+import {
+	Avatar,
+	Sidebar,
+	SidebarHeader,
+	SidebarItem,
+	SidebarLabel,
+} from "frappe-ui";
 
 import { signOut } from "@/api";
 import { boot } from "@/boot";

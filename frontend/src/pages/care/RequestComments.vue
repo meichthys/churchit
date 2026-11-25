@@ -1,7 +1,10 @@
 <template>
 	<div class="mt-4 border-t border-outline-gray-1 pt-4">
 		<LoadState :resource="thread" v-slot="{ data }">
-			<ul v-if="data.comments.length" class="divide-y divide-outline-gray-1">
+			<ul
+				v-if="data.comments.length"
+				class="divide-y divide-outline-gray-1"
+			>
 				<li
 					v-for="item in data.comments"
 					:key="item.name"
@@ -10,14 +13,20 @@
 				>
 					<p class="text-lg-medium text-ink-gray-9 md:text-md-medium">
 						{{ item.comment_by }}
-						<span class="text-ink-gray-6">{{ item.date_display }}</span>
+						<span class="text-ink-gray-6">{{
+							item.date_display
+						}}</span>
 					</p>
-					<p class="mt-1 whitespace-pre-line text-p-lg text-ink-gray-8">
+					<p
+						class="mt-1 whitespace-pre-line text-p-lg text-ink-gray-8"
+					>
 						{{ item.content }}
 					</p>
 				</li>
 			</ul>
-			<p v-else class="t-dateline text-ink-gray-6">{{ __("No comments yet.") }}</p>
+			<p v-else class="t-dateline text-ink-gray-6">
+				{{ __("No comments yet.") }}
+			</p>
 			<form class="mt-4" @submit.prevent="post">
 				<FormControl
 					v-model="comment"
@@ -65,19 +74,23 @@ type Params = { page: string; name: string };
 const thread = useRead<Thread, Params>("care.get_request_comments", {
 	params: { page: props.page, name: props.name },
 });
-const commenting = useAction<Thread, Params & { comment: string }>("care.add_request_comment");
+const commenting = useAction<Thread, Params & { comment: string }>(
+	"care.add_request_comment",
+);
 const { mark, isFresh } = useFreshInk();
 const comment = ref("");
 
 async function post() {
-	await commenting.submit({ page: props.page, name: props.name, comment: comment.value }).then(
-		() => {
-			comment.value = "";
-			toast.success(__("Comment added."));
-			thread.reload();
-		},
-		() => {}
-	);
+	await commenting
+		.submit({ page: props.page, name: props.name, comment: comment.value })
+		.then(
+			() => {
+				comment.value = "";
+				toast.success(__("Comment added."));
+				thread.reload();
+			},
+			() => {},
+		);
 }
 
 useLiveRefresh([props.topic], async (hint) => {

@@ -16,7 +16,10 @@
 					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
 				>
 					<li v-for="item in data.items" :key="item.name">
-						<IndexRow :title="item.title" :facts="[item.date_display]">
+						<IndexRow
+							:title="item.title"
+							:facts="[item.date_display]"
+						>
 							<template #prefix
 								><DateStack v-if="item.date" :date="item.date"
 							/></template>
@@ -36,9 +39,10 @@
 										'border border-outline-gray-2 text-ink-gray-8 hover:bg-surface-gray-2',
 									]"
 								>
-									<span class="lucide-file-down size-4" aria-hidden="true" />{{
-										__("PDF")
-									}}
+									<span
+										class="lucide-file-down size-4"
+										aria-hidden="true"
+									/>{{ __("PDF") }}
 								</a>
 							</div>
 						</IndexRow>
@@ -47,7 +51,11 @@
 				<EmptyState
 					v-else
 					:title="__('No bulletins yet')"
-					:body="__('The church shares a bulletin here after each service.')"
+					:body="
+						__(
+							'The church shares a bulletin here after each service.',
+						)
+					"
 				/>
 			</section>
 		</LoadState>

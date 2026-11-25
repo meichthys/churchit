@@ -14,7 +14,9 @@
 		<Masthead
 			:title="__('Pledges')"
 			:label="boot.church?.title"
-			:dateline="__('What you plan to give, and what you have given so far')"
+			:dateline="
+				__('What you plan to give, and what you have given so far')
+			"
 		/>
 		<LoadState :resource="pledges" v-slot="{ data }">
 			<section class="mt-8">
@@ -36,12 +38,15 @@
 					:body="
 						data.campaigns.length
 							? __(
-									'Pledge to a campaign of the church, and your gifts toward it are counted here.'
-							  )
+									'Pledge to a campaign of the church, and your gifts toward it are counted here.',
+								)
 							: __('No campaign is open for pledges now.')
 					"
 				/>
-				<div v-if="data.items.length || data.campaigns.length" class="mt-6 md:hidden">
+				<div
+					v-if="data.items.length || data.campaigns.length"
+					class="mt-6 md:hidden"
+				>
 					<Button
 						v-if="data.campaigns.length"
 						class="min-h-11 w-full"
@@ -111,17 +116,18 @@ function startEditByName(name: string) {
 // The old web form's paths still work: /pledge/new, and /pledge/<name>/edit.
 function openFromPath() {
 	const [first, second] = ([] as string[]).concat(
-		(route.params.rest as string[] | undefined) ?? []
+		(route.params.rest as string[] | undefined) ?? [],
 	);
 	if (first === "new" && canPledge.value) startNew();
-	else if (first && first !== "list" && second === "edit") startEditByName(first);
+	else if (first && first !== "list" && second === "edit")
+		startEditByName(first);
 }
 
 watch(
 	() => pledges.data,
 	(data, before) => {
 		if (data && !before) openFromPath();
-	}
+	},
 );
 
 watch(sheetOpen, (isOpen) => {
@@ -133,11 +139,14 @@ useLiveRefresh(["pledges"], async () => {
 		pledges.data?.items.map((pledge) => [
 			pledge.name,
 			pledge.amount + pledge.frequency + pledge.given_display,
-		])
+		]),
 	);
 	await pledges.reload();
 	for (const pledge of pledges.data?.items ?? []) {
-		if (before.get(pledge.name) !== pledge.amount + pledge.frequency + pledge.given_display)
+		if (
+			before.get(pledge.name) !==
+			pledge.amount + pledge.frequency + pledge.given_display
+		)
 			mark(pledge.name);
 	}
 });

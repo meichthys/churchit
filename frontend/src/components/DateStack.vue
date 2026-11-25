@@ -23,9 +23,12 @@ import { computed } from "vue";
 
 import { boot } from "@/boot";
 
-const props = withDefaults(defineProps<{ date: string; size?: "md" | "lg"; accent?: boolean }>(), {
-	size: "md",
-});
+const props = withDefaults(
+	defineProps<{ date: string; size?: "md" | "lg"; accent?: boolean }>(),
+	{
+		size: "md",
+	},
+);
 
 const parts = computed(() => {
 	const [year, month, day] = props.date.slice(0, 10).split("-").map(Number);

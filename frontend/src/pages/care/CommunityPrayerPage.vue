@@ -19,7 +19,9 @@
 		<Masthead
 			:title="__('Prayer list')"
 			:label="boot.church?.title"
-			:dateline="__('Requests the church shares. Pray, then tap I prayed.')"
+			:dateline="
+				__('Requests the church shares. Pray, then tap I prayed.')
+			"
 		/>
 
 		<LoadState :resource="requests" v-slot="{ data }">
@@ -36,12 +38,17 @@
 							:class="isFresh(item.name) && 'is-fresh'"
 						>
 							<p
-								v-if="item.urgent || item.visibility === 'Prayer Team'"
+								v-if="
+									item.urgent ||
+									item.visibility === 'Prayer Team'
+								"
 								class="t-label mb-2 flex flex-wrap gap-x-4"
 							>
-								<span v-if="item.urgent" class="text-ink-red-8">{{
-									__("Urgent")
-								}}</span>
+								<span
+									v-if="item.urgent"
+									class="text-ink-red-8"
+									>{{ __("Urgent") }}</span
+								>
 								<span
 									v-if="item.visibility === 'Prayer Team'"
 									class="text-ink-gray-7"
@@ -52,7 +59,9 @@
 								:to="`/community-prayer-requests/${item.name}`"
 								class="block"
 							>
-								<h2 class="t-subhead text-ink-gray-9">{{ item.title }}</h2>
+								<h2 class="t-subhead text-ink-gray-9">
+									{{ item.title }}
+								</h2>
 							</RouterLink>
 							<Facts
 								:facts="[
@@ -73,7 +82,10 @@
 							<div
 								class="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2"
 							>
-								<PrayButton :request="item" @prayed="requests.reload()" />
+								<PrayButton
+									:request="item"
+									@prayed="requests.reload()"
+								/>
 								<RouterLink
 									:to="`/community-prayer-requests/${item.name}`"
 									class="min-h-11 content-center text-p-lg text-ink-gray-7 underline underline-offset-2 md:text-p-base"
@@ -86,7 +98,11 @@
 					<EmptyState
 						v-else
 						:title="__('No requests to pray for right now')"
-						:body="__('A request shared with the whole church shows here.')"
+						:body="
+							__(
+								'A request shared with the whole church shows here.',
+							)
+						"
 					>
 						<Button
 							variant="solid"
@@ -97,11 +113,15 @@
 						/>
 					</EmptyState>
 				</section>
-				<aside class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10">
+				<aside
+					class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10"
+				>
 					<SectionHead :title="__('Your own')" />
 					<p class="mt-3 text-p-lg text-ink-gray-7 md:text-p-base">
 						{{
-							__("Ask the church to pray for you, your family or someone you know.")
+							__(
+								"Ask the church to pray for you, your family or someone you know.",
+							)
 						}}
 					</p>
 					<Button
@@ -136,7 +156,9 @@ import { useLiveRefresh } from "@/realtime";
 import PrayButton from "./PrayButton.vue";
 import type { PrayerRequest } from "./types";
 
-const requests = useRead<{ items: PrayerRequest[] }>("care.get_community_requests");
+const requests = useRead<{ items: PrayerRequest[] }>(
+	"care.get_community_requests",
+);
 const { mark, isFresh } = useFreshInk();
 
 useLiveRefresh(["prayer"], async (hint) => {

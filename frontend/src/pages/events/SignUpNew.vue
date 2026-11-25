@@ -1,6 +1,9 @@
 <template>
 	<PageHead
-		:crumbs="[{ label: __('Sign-Ups'), route: '/function-sign-up' }, { label: __('Sign up') }]"
+		:crumbs="[
+			{ label: __('Sign-Ups'), route: '/function-sign-up' },
+			{ label: __('Sign up') },
+		]"
 		back="/function-sign-up/list?tab=open"
 	/>
 	<PageBody>
@@ -51,7 +54,9 @@
 				/>
 				<EmptyState
 					:title="__('This event is not open for you')"
-					:body="__('Events that take sign-ups are listed under Open.')"
+					:body="
+						__('Events that take sign-ups are listed under Open.')
+					"
 				>
 					<Button
 						size="lg"
@@ -95,29 +100,52 @@ const functionName = computed(() => String(route.query.function || ""));
 
 const open = useRead<{ items: OpenFunction[] }>("events.get_open_functions");
 const signUp = useAction<
-	{ name: string; status: string; waits_for: string; amount_due: string; pay_url: string },
+	{
+		name: string;
+		status: string;
+		waits_for: string;
+		amount_due: string;
+		pay_url: string;
+	},
 	SaveParams
 >("events.sign_up");
 
 const chosen = (items: OpenFunction[]) =>
-	items.find((row) => row.name === functionName.value && row.signs_up_in === "app");
+	items.find(
+		(row) => row.name === functionName.value && row.signs_up_in === "app",
+	);
 const onRegister = (items: OpenFunction[]) =>
-	items.find((row) => row.name === functionName.value && row.signs_up_in === "register");
+	items.find(
+		(row) =>
+			row.name === functionName.value && row.signs_up_in === "register",
+	);
 
 if (!functionName.value) router.replace("/function-sign-up/list?tab=open");
 
 async function save(
 	row: OpenFunction,
-	value: { attending: boolean; notes: string; items: { item: string; my_quantity: number }[] }
+	value: {
+		attending: boolean;
+		notes: string;
+		items: { item: string; my_quantity: number }[];
+	},
 ) {
-	const result = await signUp.submit({ function: row.name, ...value }).catch(() => null);
+	const result = await signUp
+		.submit({ function: row.name, ...value })
+		.catch(() => null);
 	if (!result) return;
 	if (result.status === "Waitlisted")
-		toast.success(__("You are on the waitlist for {0}.", [row.function_name]));
+		toast.success(
+			__("You are on the waitlist for {0}.", [row.function_name]),
+		);
 	else if (result.status === "Pending" && result.waits_for === "payment")
-		toast.success(__("Pay to keep your place at {0}.", [row.function_name]));
+		toast.success(
+			__("Pay to keep your place at {0}.", [row.function_name]),
+		);
 	else if (result.status === "Pending")
-		toast.success(__("Your sign-up for {0} waits for approval.", [row.function_name]));
+		toast.success(
+			__("Your sign-up for {0} waits for approval.", [row.function_name]),
+		);
 	else toast.success(__("You are signed up for {0}.", [row.function_name]));
 	router.replace(`/function-sign-up/${result.name}`);
 }

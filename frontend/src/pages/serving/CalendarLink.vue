@@ -3,7 +3,7 @@
 		<p class="text-lg text-ink-gray-6 md:text-md">
 			{{
 				__(
-					"See the functions you accepted in the calendar on your phone or computer. It keeps itself up to date."
+					"See the functions you accepted in the calendar on your phone or computer. It keeps itself up to date.",
 				)
 			}}
 		</p>
@@ -35,7 +35,7 @@
 			<p class="mt-3 text-lg text-ink-gray-6 md:text-md">
 				{{
 					__(
-						"In Google Calendar, add the copied link under Other calendars, From URL. Anyone with the link can see where you serve."
+						"In Google Calendar, add the copied link under Other calendars, From URL. Anyone with the link can see where you serve.",
 					)
 				}}
 			</p>
@@ -71,20 +71,22 @@ const emit = defineEmits<{ changed: [] }>();
 
 const copied = ref(false);
 const makeKey = useFrappeAction(
-	"churchit.church_ministries.member_ministry_team.make_own_calendar_key"
+	"churchit.church_ministries.member_ministry_team.make_own_calendar_key",
 );
 
 async function makeNewKey() {
 	await makeKey.submit().then(
 		() => emit("changed"),
-		() => {}
+		() => {},
 	);
 }
 
 function confirmNewKey() {
 	dialog.confirm({
 		title: __("Make a new calendar link"),
-		message: __("The old link stops working. Add the new link to your calendar again."),
+		message: __(
+			"The old link stops working. Add the new link to your calendar again.",
+		),
 		confirmLabel: __("Make a new link"),
 		cancelLabel: __("Cancel"),
 		onConfirm: async ({ close }) => {

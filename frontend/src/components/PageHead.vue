@@ -1,9 +1,14 @@
 <template>
 	<!-- The running head: like the top line of a printed page, it says where you are and stays put. -->
 	<PageHeader v-if="!isMobile">
-		<nav :aria-label="__('You are here')" class="flex min-w-0 items-center gap-2.5">
+		<nav
+			:aria-label="__('You are here')"
+			class="flex min-w-0 items-center gap-2.5"
+		>
 			<template v-for="(crumb, index) in crumbs" :key="crumb.label">
-				<span v-if="index" class="text-ink-gray-4" aria-hidden="true">/</span>
+				<span v-if="index" class="text-ink-gray-4" aria-hidden="true"
+					>/</span
+				>
 				<RouterLink
 					v-if="crumb.route"
 					:to="crumb.route"
@@ -11,9 +16,12 @@
 				>
 					{{ crumb.label }}
 				</RouterLink>
-				<span v-else class="t-label truncate text-ink-gray-8" aria-current="page">{{
-					crumb.label
-				}}</span>
+				<span
+					v-else
+					class="t-label truncate text-ink-gray-8"
+					aria-current="page"
+					>{{ crumb.label }}</span
+				>
 			</template>
 		</nav>
 		<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
@@ -33,7 +41,11 @@
 			/>
 		</template>
 		<template v-else-if="boot.church?.logo" #prefix>
-			<img :src="boot.church.logo" alt="" class="ms-2 size-8 rounded-4 object-contain" />
+			<img
+				:src="boot.church.logo"
+				alt=""
+				class="ms-2 size-8 rounded-4 object-contain"
+			/>
 		</template>
 		<!-- The masthead below carries the title, so the bar names the church until the masthead scrolls away. -->
 		<PageHeaderMobileTitle>

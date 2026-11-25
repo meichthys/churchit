@@ -48,18 +48,23 @@ const props = defineProps<{ request: JoinRequest; fresh?: boolean }>();
 const emit = defineEmits<{ decided: [] }>();
 
 const decide = useFrappeAction<{ status: string }, Record<string, unknown>>(
-	"churchit.church_people.group_api.decide_join_request"
+	"churchit.church_people.group_api.decide_join_request",
 );
 const approving = ref(false);
 const status = ref<string | null>(null);
 
 async function answer(approve: boolean) {
 	approving.value = approve;
-	const result = await decide.submit({ request: props.request.name, approve }).catch(() => null);
+	const result = await decide
+		.submit({ request: props.request.name, approve })
+		.catch(() => null);
 	if (!result) return;
 
 	status.value = result.status;
-	if (approve) toast.success(__("{0} is now in the group.", [props.request.person_name]));
+	if (approve)
+		toast.success(
+			__("{0} is now in the group.", [props.request.person_name]),
+		);
 	else toast.success(__("You declined {0}.", [props.request.person_name]));
 	emit("decided");
 }

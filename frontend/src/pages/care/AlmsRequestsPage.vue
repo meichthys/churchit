@@ -1,5 +1,7 @@
 <template>
-	<PageHead :crumbs="[{ label: __('Care') }, { label: __('Benevolence requests') }]">
+	<PageHead
+		:crumbs="[{ label: __('Care') }, { label: __('Benevolence requests') }]"
+	>
 		<template #actions>
 			<Button
 				v-if="requests.data?.can_add"
@@ -16,7 +18,7 @@
 			:label="boot.church?.title"
 			:dateline="
 				__(
-					'Ask the church for financial help. The deacons read each request in confidence.'
+					'Ask the church for financial help. The deacons read each request in confidence.',
 				)
 			"
 		/>
@@ -86,7 +88,7 @@
 							>
 								{{
 									__(
-										"The church has reviewed this request. To change it, contact the church office."
+										"The church has reviewed this request. To change it, contact the church office.",
 									)
 								}}
 							</p>
@@ -103,7 +105,9 @@
 					v-else
 					:title="__('No requests yet')"
 					:body="
-						__('When you ask for help, your request and its status are listed here.')
+						__(
+							'When you ask for help, your request and its status are listed here.',
+						)
 					"
 				>
 					<Button
@@ -165,7 +169,7 @@ const {
 } = useRequestSheet<AlmsRequest>(
 	"/alms-request",
 	computed(() => requests.data?.items),
-	(item) => item.can_change
+	(item) => item.can_change,
 );
 
 const openComments = ref<string | null>(null);
@@ -177,7 +181,9 @@ function toggleComments(name: string) {
 function confirmDelete(item: AlmsRequest) {
 	dialog.danger({
 		title: __("Delete this request?"),
-		message: __("The request for {0} will be removed.", [item.recipient_name]),
+		message: __("The request for {0} will be removed.", [
+			item.recipient_name,
+		]),
 		confirmLabel: __("Delete"),
 		cancelLabel: __("Keep it"),
 		onConfirm: async ({ close }) => {

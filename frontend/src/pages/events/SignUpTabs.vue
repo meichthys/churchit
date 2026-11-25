@@ -1,6 +1,11 @@
 <template>
 	<!-- The three views of what a member does at events: their sign-ups, what is open, and what they attended. -->
-	<Tabs v-if="tabs.length > 1" :model-value="current" class="mt-6" @update:model-value="open">
+	<Tabs
+		v-if="tabs.length > 1"
+		:model-value="current"
+		class="mt-6"
+		@update:model-value="open"
+	>
 		<TabList variant="underline">
 			<TabTrigger
 				v-for="tab in tabs"
@@ -31,8 +36,10 @@ const tabs = computed(() => [
 		: [
 				{ value: "upcoming", label: __("Upcoming") },
 				{ value: "open", label: __("Open") },
-		  ]),
-	...(isPageHidden("attendance") ? [] : [{ value: "attended", label: __("Attended") }]),
+			]),
+	...(isPageHidden("attendance")
+		? []
+		: [{ value: "attended", label: __("Attended") }]),
 ]);
 
 function open(tab: string | number) {

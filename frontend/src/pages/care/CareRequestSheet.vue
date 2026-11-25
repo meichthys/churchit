@@ -2,7 +2,9 @@
 	<FormSheet
 		v-model:open="open"
 		:title="request ? __('Change your request') : __('Ask for care')"
-		:description="__('The care team reads every request. Say how we can help.')"
+		:description="
+			__('The care team reads every request. Say how we can help.')
+		"
 	>
 		<form id="care-form" class="space-y-5" @submit.prevent="submit">
 			<FormControl
@@ -49,7 +51,12 @@
 				:loading="save.loading"
 				:label="__('Send')"
 			/>
-			<Button size="lg" variant="outline" :label="__('Cancel')" @click="open = false" />
+			<Button
+				size="lg"
+				variant="outline"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -69,17 +76,27 @@ const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
 const errors = reactive({ category: "", description: "" });
-const form = reactive({ category: "", urgency: "", description: "", preferred_contact: "" });
-const save = useAction<Saved, typeof form & { name?: string }>("care.save_care_request");
+const form = reactive({
+	category: "",
+	urgency: "",
+	description: "",
+	preferred_contact: "",
+});
+const save = useAction<Saved, typeof form & { name?: string }>(
+	"care.save_care_request",
+);
 
 const categories = computed(() =>
-	props.data.categories.map((row) => ({ label: row.name, value: row.name }))
+	props.data.categories.map((row) => ({ label: row.name, value: row.name })),
 );
 const urgencies = computed(() =>
-	props.data.urgencies.map((name) => ({ label: __(name), value: name }))
+	props.data.urgencies.map((name) => ({ label: __(name), value: name })),
 );
 const contacts = computed(() =>
-	props.data.preferred_contacts.map((name) => ({ label: __(name), value: name }))
+	props.data.preferred_contacts.map((name) => ({
+		label: __(name),
+		value: name,
+	})),
 );
 
 function reset() {
@@ -97,7 +114,9 @@ watch(open, (isOpen) => isOpen && reset(), { immediate: true });
 
 async function submit() {
 	errors.category = form.category ? "" : __("Choose a category.");
-	errors.description = form.description.trim() ? "" : __("Say how we can help.");
+	errors.description = form.description.trim()
+		? ""
+		: __("Say how we can help.");
 	if (errors.category || errors.description) return;
 
 	await save.submit({ ...form, name: props.request?.name }).then(
@@ -105,7 +124,7 @@ async function submit() {
 			open.value = false;
 			emit("saved");
 		},
-		() => {}
+		() => {},
 	);
 }
 </script>

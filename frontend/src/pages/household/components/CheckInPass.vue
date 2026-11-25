@@ -8,7 +8,9 @@
 		<header class="flex items-start justify-between gap-4 px-6 pt-5">
 			<div class="min-w-0">
 				<p class="t-label text-ink-gray-7">{{ churchName }}</p>
-				<p class="mt-2 text-xl-semibold text-ink-gray-9">{{ functionName }}</p>
+				<p class="mt-2 text-xl-semibold text-ink-gray-9">
+					{{ functionName }}
+				</p>
 				<p v-if="time" class="mt-0.5 text-lg text-ink-gray-7">
 					<TimeText :value="time" />
 				</p>
@@ -21,9 +23,16 @@
 				v-if="isDone"
 				class="flex min-h-[13rem] flex-col items-center justify-center gap-3 rounded-5 border border-outline-gray-1 px-4 py-8 text-center"
 			>
-				<span class="lucide-check-circle size-10 text-ink-green-8" aria-hidden="true" />
+				<span
+					class="lucide-check-circle size-10 text-ink-green-8"
+					aria-hidden="true"
+				/>
 				<p class="text-lg-medium text-ink-gray-9">
-					{{ __("Everyone is checked in. You will not need the code again today.") }}
+					{{
+						__(
+							"Everyone is checked in. You will not need the code again today.",
+						)
+					}}
 				</p>
 			</div>
 			<template v-else>
@@ -39,7 +48,9 @@
 				</div>
 				<p class="t-label mt-3 text-center text-ink-gray-7">
 					{{ __("Valid until") }}
-					<span class="t-numeral text-lg text-ink-gray-9">{{ validUntil }}</span>
+					<span class="t-numeral text-lg text-ink-gray-9">{{
+						validUntil
+					}}</span>
 				</p>
 			</template>
 			<p
@@ -54,7 +65,9 @@
 		<div class="perforation my-3" aria-hidden="true" />
 
 		<dl class="px-6 pb-6">
-			<div class="t-label grid grid-cols-[1fr_auto_auto] gap-x-5 pb-2 text-ink-gray-7">
+			<div
+				class="t-label grid grid-cols-[1fr_auto_auto] gap-x-5 pb-2 text-ink-gray-7"
+			>
 				<dt>{{ __("Who") }}</dt>
 				<dt>{{ __("Room") }}</dt>
 				<dt class="min-w-[5.5rem] text-end">{{ __("Time") }}</dt>
@@ -64,8 +77,12 @@
 				:key="person.name"
 				class="grid min-h-12 grid-cols-[1fr_auto_auto] items-center gap-x-5 border-t border-outline-gray-1 py-2"
 			>
-				<dd class="min-w-0 text-lg text-ink-gray-9">{{ person.display_name }}</dd>
-				<dd class="t-numeral text-[28px] text-ink-gray-9">{{ rooms || "-" }}</dd>
+				<dd class="min-w-0 text-lg text-ink-gray-9">
+					{{ person.display_name }}
+				</dd>
+				<dd class="t-numeral text-[28px] text-ink-gray-9">
+					{{ rooms || "-" }}
+				</dd>
 				<dd
 					class="min-w-[5.5rem] text-end text-md-medium"
 					:class="person.at ? 'text-ink-green-8' : 'text-ink-gray-7'"

@@ -4,11 +4,17 @@
 		<Masthead
 			:title="__('Sign-Ups')"
 			:label="boot.church?.title"
-			:dateline="__('Events you signed up for and ones you can still join')"
+			:dateline="
+				__('Events you signed up for and ones you can still join')
+			"
 		/>
 		<SignUpTabs :current="tab" />
 
-		<LoadState v-if="tab === 'upcoming'" :resource="signUps" v-slot="{ data }">
+		<LoadState
+			v-if="tab === 'upcoming'"
+			:resource="signUps"
+			v-slot="{ data }"
+		>
 			<section class="mt-8">
 				<SectionHead :title="__('Your sign-ups')" />
 				<ul
@@ -32,7 +38,11 @@
 				<EmptyState
 					v-else
 					:title="__('No sign-ups yet')"
-					:body="__('When you sign up for an event, it is listed here with its status.')"
+					:body="
+						__(
+							'When you sign up for an event, it is listed here with its status.',
+						)
+					"
 				>
 					<Button
 						variant="solid"
@@ -46,7 +56,9 @@
 
 			<section v-if="earlier(data.items).length" class="mt-10">
 				<SectionHead :title="__('Earlier and cancelled')" />
-				<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+				<ul
+					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+				>
 					<li v-for="row in earlier(data.items)" :key="row.name">
 						<IndexRow
 							:title="row.function_name"
@@ -74,14 +86,14 @@
 								row.signs_up_in === 'app'
 									? {
 											route: `/function-sign-up/new?function=${encodeURIComponent(
-												row.name
+												row.name,
 											)}`,
-									  }
+										}
 									: {
 											href: `/register?function=${encodeURIComponent(
-												row.name
+												row.name,
 											)}`,
-									  }
+										}
 							"
 							:facts="openFacts(row)"
 						>
@@ -94,7 +106,9 @@
 				<EmptyState
 					v-else
 					:title="__('Nothing is open right now')"
-					:body="__('When an event takes sign-ups, it is listed here.')"
+					:body="
+						__('When an event takes sign-ups, it is listed here.')
+					"
 				/>
 			</section>
 		</LoadState>
@@ -133,16 +147,28 @@ const open = useRead<{ items: OpenFunction[] }>("events.get_open_functions");
 const today = new Date().toLocaleDateString("en-CA");
 
 function isCurrent(row: SignUpRow): boolean {
-	return row.status !== "Cancelled" && (!row.start_date || row.start_date >= today);
+	return (
+		row.status !== "Cancelled" &&
+		(!row.start_date || row.start_date >= today)
+	);
 }
 const current = (items: SignUpRow[]) =>
-	items.filter(isCurrent).sort((a, b) => (a.start_date || "").localeCompare(b.start_date || ""));
+	items
+		.filter(isCurrent)
+		.sort((a, b) => (a.start_date || "").localeCompare(b.start_date || ""));
 const earlier = (items: SignUpRow[]) => items.filter((row) => !isCurrent(row));
 
 function openFacts(row: OpenFunction): string[] {
-	const facts = [row.all_day ? __("All day") : row.start_time ? formatTime(row.start_time) : ""];
+	const facts = [
+		row.all_day
+			? __("All day")
+			: row.start_time
+				? formatTime(row.start_time)
+				: "",
+	];
 	if (row.closes) facts.push(__("Sign-ups close {0}", [row.closes]));
-	if (row.signs_up_in === "register") facts.push(__("Opens the sign-up page"));
+	if (row.signs_up_in === "register")
+		facts.push(__("Opens the sign-up page"));
 	return facts;
 }
 
@@ -154,7 +180,8 @@ const { isFresh } = useLiveList(
 	"sign-ups",
 	() => Promise.all([signUps.reload(), open.reload()]),
 	(name) =>
-		tab.value === "upcoming" && Boolean(signUps.data?.items.some((row) => row.name === name)),
-	() => __("Your sign-ups changed.")
+		tab.value === "upcoming" &&
+		Boolean(signUps.data?.items.some((row) => row.name === name)),
+	() => __("Your sign-ups changed."),
 );
 </script>

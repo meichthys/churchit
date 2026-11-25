@@ -36,7 +36,11 @@
 						<IndexRow
 							:title="item.purpose || item.room_name || item.name"
 							:route="`/room-request/${item.name}`"
-							:facts="[item.room_name, item.date_label, timeRange(item)]"
+							:facts="[
+								item.room_name,
+								item.date_label,
+								timeRange(item),
+							]"
 							:status="item.status"
 							:fresh="isFresh(item.name)"
 						>
@@ -49,7 +53,11 @@
 				<EmptyState
 					v-else
 					:title="__('No requests yet')"
-					:body="__('Ask for a room and the request shows here with its answer.')"
+					:body="
+						__(
+							'Ask for a room and the request shows here with its answer.',
+						)
+					"
 				>
 					<Button
 						variant="solid"
@@ -63,7 +71,11 @@
 		</LoadState>
 	</PageBody>
 
-	<RoomRequestForm v-model:open="asking" :rooms="roomOptions" @saved="saved" />
+	<RoomRequestForm
+		v-model:open="asking"
+		:rooms="roomOptions"
+		@saved="saved"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -92,9 +104,14 @@ const route = useRoute();
 const router = useRouter();
 
 const requests = useRead<{ items: Booking[] }>("serving.get_room_requests");
-const rooms = useRead<{ rooms: { name: string; room_name: string }[] }>("serving.get_rooms");
+const rooms = useRead<{ rooms: { name: string; room_name: string }[] }>(
+	"serving.get_rooms",
+);
 const roomOptions = computed(() =>
-	(rooms.data?.rooms || []).map((room) => ({ label: room.room_name, value: room.name }))
+	(rooms.data?.rooms || []).map((room) => ({
+		label: room.room_name,
+		value: room.name,
+	})),
 );
 const { mark, isFresh } = useFreshInk();
 
@@ -111,9 +128,12 @@ function saved(name: string) {
 }
 
 useLiveRefresh(["rooms"], async (hint) => {
-	const before = new Map((requests.data?.items || []).map((item) => [item.name, item.status]));
+	const before = new Map(
+		(requests.data?.items || []).map((item) => [item.name, item.status]),
+	);
 	await requests.reload();
 	const item = requests.data?.items.find((row) => row.name === hint?.name);
-	if (item && before.has(item.name) && before.get(item.name) !== item.status) mark(item.name);
+	if (item && before.has(item.name) && before.get(item.name) !== item.status)
+		mark(item.name);
 });
 </script>

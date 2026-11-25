@@ -1,7 +1,9 @@
 <template>
 	<FormSheet
 		v-model:open="open"
-		:title="request ? __('Change your request') : __('Share a prayer request')"
+		:title="
+			request ? __('Change your request') : __('Share a prayer request')
+		"
 		:description="__('Choose who can see it. You can change this later.')"
 	>
 		<form id="prayer-form" class="space-y-5" @submit.prevent="submit">
@@ -22,7 +24,12 @@
 				:placeholder="__('Choose a type')"
 				:error="errors.type"
 			/>
-			<RadioGroup v-model="form.visibility" :label="__('Who can see it')" size="md" padded>
+			<RadioGroup
+				v-model="form.visibility"
+				:label="__('Who can see it')"
+				size="md"
+				padded
+			>
 				<Radio
 					v-for="choice in data.visibilities"
 					:key="choice.name"
@@ -73,7 +80,12 @@
 				:loading="save.loading"
 				:label="__('Send')"
 			/>
-			<Button size="lg" variant="outline" :label="__('Cancel')" @click="open = false" />
+			<Button
+				size="lg"
+				variant="outline"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -89,7 +101,10 @@ import FormSheet from "@/components/FormSheet.vue";
 import RecipientPicker from "./RecipientPicker.vue";
 import type { PrayerForm, PrayerRequest, Saved } from "./types";
 
-const props = defineProps<{ data: PrayerForm; request?: PrayerRequest | null }>();
+const props = defineProps<{
+	data: PrayerForm;
+	request?: PrayerRequest | null;
+}>();
 const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
@@ -117,12 +132,17 @@ const form = reactive({
 });
 
 const types = computed(() =>
-	props.data.types.map((type) => ({ label: type.name, value: type.name }))
+	props.data.types.map((type) => ({ label: type.name, value: type.name })),
 );
 const recipientTypes = computed(() =>
-	props.data.recipient_doctypes.map((name) => ({ label: __(name), value: name }))
+	props.data.recipient_doctypes.map((name) => ({
+		label: __(name),
+		value: name,
+	})),
 );
-const isRequestRequired = computed(() => !["Unspoken", "Salvation"].includes(form.type));
+const isRequestRequired = computed(
+	() => !["Unspoken", "Salvation"].includes(form.type),
+);
 const initialRecipientLabel = computed(() => {
 	if (props.request) return props.request.recipient_name || undefined;
 	return props.data.me.full_name;
@@ -148,7 +168,9 @@ async function submit() {
 	errors.title = form.title.trim() ? "" : __("Enter a title.");
 	errors.type = form.type ? "" : __("Choose a type.");
 	errors.request =
-		!isRequestRequired.value || form.request.trim() ? "" : __("Write the request.");
+		!isRequestRequired.value || form.request.trim()
+			? ""
+			: __("Write the request.");
 	if (errors.title || errors.type || errors.request) return;
 
 	const params: SaveParams = {
@@ -162,7 +184,7 @@ async function submit() {
 			open.value = false;
 			emit("saved");
 		},
-		() => {}
+		() => {},
 	);
 }
 </script>

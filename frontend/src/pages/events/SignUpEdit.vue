@@ -26,7 +26,11 @@
 			<EmptyState
 				v-else
 				:title="__('This sign-up cannot be changed here')"
-				:body="__('It may be cancelled, closed, or made for you by the church office.')"
+				:body="
+					__(
+						'It may be cancelled, closed, or made for you by the church office.',
+					)
+				"
 			>
 				<Button
 					size="lg"
@@ -77,7 +81,9 @@ async function save(value: {
 	notes: string;
 	items: { item: string; my_quantity: number }[];
 }) {
-	const result = await update.submit({ name: name.value, ...value }).catch(() => null);
+	const result = await update
+		.submit({ name: name.value, ...value })
+		.catch(() => null);
 	if (!result) return;
 	toast.success(__("Your changes are saved."));
 	router.replace(`/function-sign-up/${name.value}`);

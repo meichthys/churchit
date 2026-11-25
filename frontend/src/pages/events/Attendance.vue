@@ -3,7 +3,9 @@
 		:crumbs="[
 			{
 				label: __('Sign-Ups'),
-				...(isPageHidden('function-sign-up') ? {} : { route: '/function-sign-up' }),
+				...(isPageHidden('function-sign-up')
+					? {}
+					: { route: '/function-sign-up' }),
 			},
 			{ label: __('Attendance') },
 		]"
@@ -12,7 +14,9 @@
 		<Masthead
 			:title="__('Attendance')"
 			:label="boot.church?.title"
-			:dateline="__('Events you are signed up for and the ones you attended')"
+			:dateline="
+				__('Events you are signed up for and the ones you attended')
+			"
 		/>
 		<SignUpTabs current="attended" />
 
@@ -42,9 +46,14 @@
 				<EmptyState
 					v-else
 					:title="__('No attendance yet')"
-					:body="__('Events you attend are listed here after the day.')"
+					:body="
+						__('Events you attend are listed here after the day.')
+					"
 				/>
-				<div v-if="data.past.length > limit" class="mt-4 flex justify-center">
+				<div
+					v-if="data.past.length > limit"
+					class="mt-4 flex justify-center"
+				>
 					<Button
 						size="lg"
 						class="min-h-11"
@@ -67,7 +76,9 @@
 							:fresh="isFresh(row.function)"
 							v-bind="
 								row.sign_up && !isPageHidden('function-sign-up')
-									? { route: `/function-sign-up/${row.sign_up}` }
+									? {
+											route: `/function-sign-up/${row.sign_up}`,
+										}
 									: {}
 							"
 						>
@@ -80,7 +91,11 @@
 				<EmptyState
 					v-else
 					:title="__('Nothing coming up')"
-					:body="__('Events you sign up for are listed here until the day they happen.')"
+					:body="
+						__(
+							'Events you sign up for are listed here until the day they happen.',
+						)
+					"
 				>
 					<Button
 						v-if="!isPageHidden('function-sign-up')"
@@ -128,8 +143,10 @@ const { isFresh } = useLiveList(
 	(name) =>
 		Boolean(
 			attendance.data?.upcoming.some((row) => row.function === name) ||
-				attendance.data?.past.slice(0, limit.value).some((row) => row.function === name)
+			attendance.data?.past
+				.slice(0, limit.value)
+				.some((row) => row.function === name),
 		),
-	() => __("Your attendance changed.")
+	() => __("Your attendance changed."),
 );
 </script>

@@ -3,7 +3,9 @@
 		v-model:open="open"
 		:title="__('Add dates you cannot serve')"
 		:description="
-			__('Team leaders see these dates, and the schedule skips you when it fills places.')
+			__(
+				'Team leaders see these dates, and the schedule skips you when it fills places.',
+			)
 		"
 	>
 		<div
@@ -64,7 +66,12 @@
 				:loading="add.loading"
 				@click="save"
 			/>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -84,7 +91,10 @@ const repeatOptions = [
 	{ label: __("Does not repeat"), value: "" },
 	{ label: __("Weekly"), value: "Weekly" },
 	{ label: __("Every Other Week"), value: "Every Other Week" },
-	{ label: __("Monthly on the Same Weekday"), value: "Monthly on the Same Weekday" },
+	{
+		label: __("Monthly on the Same Weekday"),
+		value: "Monthly on the Same Weekday",
+	},
 ];
 
 const empty = () => ({
@@ -99,7 +109,7 @@ const form = reactive(empty());
 watch(open, (value) => value && Object.assign(form, empty()));
 
 const add = useFrappeAction<void, Record<string, string | number>>(
-	"churchit.church_ministries.member_ministry_team.add_own_block"
+	"churchit.church_ministries.member_ministry_team.add_own_block",
 );
 
 async function save() {
@@ -117,7 +127,7 @@ async function save() {
 				open.value = false;
 				emit("saved");
 			},
-			() => {}
+			() => {},
 		);
 }
 </script>

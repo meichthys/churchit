@@ -1,13 +1,18 @@
 <template>
 	<PageHead
-		:crumbs="[{ label: __('Groups'), route: '/groups' }, { label: __('Groups I lead') }]"
+		:crumbs="[
+			{ label: __('Groups'), route: '/groups' },
+			{ label: __('Groups I lead') },
+		]"
 		back="/groups"
 	/>
 	<PageBody>
 		<Masthead
 			:title="__('Groups I lead')"
 			:label="boot.church?.title"
-			:dateline="__('Your people, your meetings and the ones asking to join')"
+			:dateline="
+				__('Your people, your meetings and the ones asking to join')
+			"
 		/>
 		<LoadState :resource="view" v-slot="{ data }">
 			<EmptyState
@@ -54,21 +59,24 @@ import type { LeaderView } from "./types";
 
 const route = useRoute();
 const view = useRead<LeaderView, { group?: string }>("groups.get_leader_view", {
-	params: () => (route.query.group ? { group: String(route.query.group) } : {}),
+	params: () =>
+		route.query.group ? { group: String(route.query.group) } : {},
 	refetch: true,
 });
 const { mark, isFresh } = useFreshInk();
 
 useLiveRefresh(["group-requests", "group-meetings", "groups"], async (hint) => {
 	const requests = new Set(
-		view.data?.groups.flatMap((group) => group.join_requests.map((request) => request.name))
+		view.data?.groups.flatMap((group) =>
+			group.join_requests.map((request) => request.name),
+		),
 	);
 	await view.reload();
 
 	view.data?.groups.forEach((group) =>
 		group.join_requests
 			.filter((request) => !requests.has(request.name))
-			.forEach((request) => mark(request.name))
+			.forEach((request) => mark(request.name)),
 	);
 	if (hint?.topic === "group-meetings" && hint.name) mark(hint.name);
 });

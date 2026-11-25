@@ -11,18 +11,25 @@
 		<div ref="stage" class="mt-6 cursor-text" @click="focusInput">
 			<p
 				class="t-scripture is-large text-ink-gray-9"
-				:aria-label="__('The passage, with the words you have not typed hidden')"
+				:aria-label="
+					__('The passage, with the words you have not typed hidden')
+				"
 			>
 				<template v-for="(token, index) in tokens" :key="index">
-					<span v-if="token.kind === 'verse'" class="verse-number">{{ token.raw }}</span>
-					<span v-else-if="token.kind === 'other'">{{ token.raw }}{{ " " }}</span>
+					<span v-if="token.kind === 'verse'" class="verse-number">{{
+						token.raw
+					}}</span>
+					<span v-else-if="token.kind === 'other'"
+						>{{ token.raw }}{{ " " }}</span
+					>
 					<template v-else>
 						<span
-							:ref="(element) => setWord(token.wordIndex, element)"
+							:ref="
+								(element) => setWord(token.wordIndex, element)
+							"
 							:class="wordClass(token.wordIndex)"
 							:style="wordStyle(token.wordIndex)"
-							>{{ token.raw }}</span
-						>{{ " " }}
+							>{{ token.raw }}</span>{{ " " }}
 					</template>
 				</template>
 			</p>
@@ -50,7 +57,7 @@
 				{{ isTouch ? __("Tap the passage to open the keyboard.") : "" }}
 				{{
 					__(
-						"Each wrong letter takes 2% off your progress. Finish with no mistakes to add 50%, or with 1 or 2 mistakes to add 10%."
+						"Each wrong letter takes 2% off your progress. Finish with no mistakes to add 50%, or with 1 or 2 mistakes to add 10%.",
 					)
 				}}
 			</p>
@@ -59,14 +66,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import {
+	computed,
+	nextTick,
+	onBeforeUnmount,
+	onMounted,
+	reactive,
+	ref,
+} from "vue";
 
 import { useFrappeAction } from "@/api";
 import { __ } from "@/translate";
 
 import { baseLetter, tokenize } from "./tokenize";
 
-const MODULE = "churchit.church_study.doctype.bible_memory_item.bible_memory_item";
+const MODULE =
+	"churchit.church_study.doctype.bible_memory_item.bible_memory_item";
 
 const props = defineProps<{
 	name: string;
@@ -87,8 +102,11 @@ const finished = ref(false);
 const correct = new Set<number>();
 const slips = reactive<Record<number, number>>(
 	Object.fromEntries(
-		Object.entries(props.wordMistakes).map(([index, count]) => [Number(index), count])
-	)
+		Object.entries(props.wordMistakes).map(([index, count]) => [
+			Number(index),
+			count,
+		]),
+	),
 );
 const currentProgress = ref(props.progress);
 const flashing = ref<number | null>(null);
@@ -99,12 +117,18 @@ const stage = ref<HTMLElement>();
 const composing = ref(false);
 let typedCount = 0;
 
-const recordMistake = useFrappeAction<{ progress: number }, { name: string; word_index: number }>(
-	`${MODULE}.record_mistake`
-);
+const recordMistake = useFrappeAction<
+	{ progress: number },
+	{ name: string; word_index: number }
+>(`${MODULE}.record_mistake`);
 const completeSession = useFrappeAction<
 	Record<string, unknown>,
-	{ name: string; mode: string; mistakes: number; correct_word_indices: number[] }
+	{
+		name: string;
+		mode: string;
+		mistakes: number;
+		correct_word_indices: number[];
+	}
 >(`${MODULE}.complete_session`);
 
 const isTouch = window.matchMedia("(pointer: coarse)").matches;
@@ -112,12 +136,15 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const statusLine = computed(() =>
 	mistakes.value === 1
-		? __("{0} of {1} words, 1 mistake so far", [position.value, words.length])
+		? __("{0} of {1} words, 1 mistake so far", [
+				position.value,
+				words.length,
+			])
 		: __("{0} of {1} words, {2} mistakes so far", [
 				position.value,
 				words.length,
 				mistakes.value,
-		  ])
+			]),
 );
 
 /** Words you have not typed blur more as your progress grows, and hide fully from 50%. */
@@ -127,7 +154,8 @@ function blurFor(progress: number): number {
 
 function wordClass(index: number): string {
 	if (index < position.value) return slips[index] ? "word-slip" : "";
-	const current = index === position.value ? "word-blank is-current" : "word-blank";
+	const current =
+		index === position.value ? "word-blank is-current" : "word-blank";
 	return flashing.value === index ? `${current} word-slip` : current;
 }
 
@@ -145,7 +173,10 @@ async function showCurrent() {
 	await nextTick();
 	wordElements
 		.get(position.value)
-		?.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "center" });
+		?.scrollIntoView({
+			behavior: reducedMotion.matches ? "auto" : "smooth",
+			block: "center",
+		});
 }
 
 function focusInput() {
@@ -182,7 +213,7 @@ function rejectWord(index: number) {
 			currentProgress.value = result.progress;
 			emit("progress", result.progress);
 		},
-		() => {}
+		() => {},
 	);
 }
 
@@ -196,14 +227,20 @@ async function save() {
 		})
 		.then(
 			(result) => result && emit("finished", result),
-			() => (finished.value = false)
+			() => (finished.value = false),
 		);
 }
 
 /** A keyboard types into the page; a phone's on-screen keyboard needs a focused field, which a tap opens. */
 function onKeydown(event: KeyboardEvent) {
 	if (document.activeElement === input.value) return;
-	if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1) return;
+	if (
+		event.metaKey ||
+		event.ctrlKey ||
+		event.altKey ||
+		event.key.length !== 1
+	)
+		return;
 	event.preventDefault();
 	typeLetter(event.key);
 }

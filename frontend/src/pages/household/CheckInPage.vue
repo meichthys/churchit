@@ -1,10 +1,17 @@
 <template>
 	<PageHead
-		:crumbs="[{ label: __('My Household'), route: '/household' }, { label: __('Check-in') }]"
+		:crumbs="[
+			{ label: __('My Household'), route: '/household' },
+			{ label: __('Check-in') },
+		]"
 		back="/household"
 	/>
 	<PageBody>
-		<Masthead :title="__('Check-in')" :label="boot.church?.title" :dateline="dateline" />
+		<Masthead
+			:title="__('Check-in')"
+			:label="boot.church?.title"
+			:dateline="dateline"
+		/>
 		<LoadState :resource="preCheckIn" v-slot="{ data }">
 			<EmptyState
 				v-if="!data.functions.length"
@@ -25,7 +32,7 @@
 				:title="__('No one to check in')"
 				:body="
 					__(
-						'Only adults check in their household. Ask the church office if someone is missing.'
+						'Only adults check in their household. Ask the church office if someone is missing.',
 					)
 				"
 			/>
@@ -36,7 +43,10 @@
 					:class="pass && 'order-2 md:order-1'"
 					aria-labelledby="check-in-who"
 				>
-					<SectionHead id="check-in-who" :title="__('Who is coming')" />
+					<SectionHead
+						id="check-in-who"
+						:title="__('Who is coming')"
+					/>
 					<TabButtons
 						v-if="data.functions.length > 1"
 						v-model="functionName"
@@ -54,7 +64,9 @@
 							· <TimeText :value="data.functions[0].start_time!"
 						/></template>
 					</p>
-					<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+					<ul
+						class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+					>
 						<li v-for="person in data.people" :key="person.name">
 							<label
 								class="flex min-h-[4.5rem] cursor-pointer items-center gap-4 py-3"
@@ -65,24 +77,36 @@
 									:disabled="isIn(person)"
 									:aria-label="person.display_name"
 								/>
-								<Avatar :label="person.display_name" size="xl" shape="circle" />
+								<Avatar
+									:label="person.display_name"
+									size="xl"
+									shape="circle"
+								/>
 								<span class="min-w-0 flex-1">
-									<span class="block text-xl-medium text-ink-gray-9">{{
-										person.display_name
-									}}</span>
+									<span
+										class="block text-xl-medium text-ink-gray-9"
+										>{{ person.display_name }}</span
+									>
 									<span
 										v-if="person.age"
 										class="block text-lg text-ink-gray-6 md:text-md"
-										>{{ __("{0} years old", [person.age]) }}</span
+										>{{
+											__("{0} years old", [person.age])
+										}}</span
 									>
 								</span>
-								<span v-if="isIn(person)" class="text-md-medium text-ink-green-8">
+								<span
+									v-if="isIn(person)"
+									class="text-md-medium text-ink-green-8"
+								>
 									<span
 										class="lucide-check me-1 inline-block size-4 align-text-bottom"
 										aria-hidden="true"
 									/>{{
 										__("In at {0}", [
-											formatTime(person.checked_in[functionName]),
+											formatTime(
+												person.checked_in[functionName],
+											),
 										])
 									}}
 								</span>
@@ -96,11 +120,17 @@
 						icon-left="lucide-qr-code"
 						:loading="code.loading"
 						:disabled="!selected.length"
-						:label="pass ? __('Update our pass') : __('Show our pass')"
+						:label="
+							pass ? __('Update our pass') : __('Show our pass')
+						"
 						@click="makePass"
 					/>
 					<p class="mt-4 text-lg text-ink-gray-6 md:text-md">
-						{{ __("Trouble at the door? A volunteer can check you in by name.") }}
+						{{
+							__(
+								"Trouble at the door? A volunteer can check you in by name.",
+							)
+						}}
 					</p>
 				</section>
 
@@ -109,7 +139,9 @@
 					class="order-1 md:order-2 md:col-span-5"
 					aria-labelledby="check-in-pass"
 				>
-					<h2 id="check-in-pass" class="sr-only">{{ __("Your check-in pass") }}</h2>
+					<h2 id="check-in-pass" class="sr-only">
+						{{ __("Your check-in pass") }}
+					</h2>
 					<CheckInPass
 						:church-name="boot.church?.title || ''"
 						:function-name="passFunction?.function_name || ''"
@@ -124,12 +156,16 @@
 						:is-fresh="stripIsFresh"
 					/>
 					<p class="mt-4 text-lg text-ink-gray-8 md:text-md">
-						{{ __("Show this at the door. Name tags print when staff scan it.") }}
+						{{
+							__(
+								"Show this at the door. Name tags print when staff scan it.",
+							)
+						}}
 						{{
 							data.has_pickup_codes && hasChildren
 								? __(
-										"Use the pickup code on the name tag to collect your children."
-								  )
+										"Use the pickup code on the name tag to collect your children.",
+									)
 								: ""
 						}}
 					</p>
@@ -192,7 +228,7 @@ const REOPEN_CHECK_MS = 60_000;
 const preCheckIn = useRead<PreCheckIn>("household.get_pre_check_in");
 const code = useRead<{ qr_code: string; ends: string }, Record<string, any>>(
 	"household.get_check_in_code",
-	{ immediate: false }
+	{ immediate: false },
 );
 const functionName = ref("");
 const chosen = reactive<Record<string, boolean>>({});
@@ -202,21 +238,25 @@ const stripIsFresh = ref(false);
 let stripTimer: ReturnType<typeof setTimeout> | undefined;
 
 const today = new Date().toLocaleDateString("en-CA");
-const dateline = computed(() => __("Show this pass at the door of the service"));
+const dateline = computed(() =>
+	__("Show this pass at the door of the service"),
+);
 
 const people = computed(() => preCheckIn.data?.people ?? []);
 const selected = computed(() =>
 	people.value
 		.filter((person) => chosen[person.name] && !isIn(person))
-		.map((person) => person.name)
+		.map((person) => person.name),
 );
 const passFunction = computed(() =>
-	preCheckIn.data?.functions.find((row) => row.name === pass.value?.function)
+	preCheckIn.data?.functions.find((row) => row.name === pass.value?.function),
 );
 const hasChildren = computed(() =>
 	people.value.some(
-		(person) => pass.value?.persons.includes(person.name) && person.household_role === "Child"
-	)
+		(person) =>
+			pass.value?.persons.includes(person.name) &&
+			person.household_role === "Child",
+	),
 );
 const validUntil = computed(() => {
 	if (!pass.value) return "";
@@ -231,9 +271,11 @@ const stub = computed(() =>
 			name: person.name,
 			display_name: person.display_name,
 			at: person.checked_in[pass.value!.function] ?? null,
-		}))
+		})),
 );
-const isDone = computed(() => stub.value.length > 0 && stub.value.every((person) => person.at));
+const isDone = computed(
+	() => stub.value.length > 0 && stub.value.every((person) => person.at),
+);
 
 watch(
 	() => preCheckIn.data,
@@ -241,9 +283,10 @@ watch(
 		if (!data) return;
 		if (!data.functions.some((row) => row.name === functionName.value))
 			functionName.value = data.functions[0]?.name ?? "";
-		for (const person of data.people) if (!(person.name in chosen)) chosen[person.name] = true;
+		for (const person of data.people)
+			if (!(person.name in chosen)) chosen[person.name] = true;
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 function isIn(person: Person): boolean {
@@ -260,17 +303,22 @@ function closedBody(data: PreCheckIn): string {
 	if (data.opens_minutes === null)
 		return __("Your church does not use self check-in right now.");
 	if (data.opens_minutes === 0)
-		return __("Check-in opens when a service starts. This page checks again by itself.");
+		return __(
+			"Check-in opens when a service starts. This page checks again by itself.",
+		);
 	return __(
 		"Check-in opens {0} minutes before the service starts. This page checks again by itself.",
-		[data.opens_minutes]
+		[data.opens_minutes],
 	);
 }
 
 async function makePass() {
 	const persons = selected.value;
 	const result = await code
-		.submit({ function: functionName.value, persons: JSON.stringify(persons) })
+		.submit({
+			function: functionName.value,
+			persons: JSON.stringify(persons),
+		})
 		.catch((error: unknown) => {
 			if (error instanceof Error)
 				error.message = error.message.replace(/<br\s*\/?>/gi, "; ");
@@ -292,12 +340,15 @@ async function showScan(previous: Pass, before: Set<string>) {
 		(person) =>
 			previous.persons.includes(person.name) &&
 			person.checked_in[previous.function] &&
-			!before.has(person.name)
+			!before.has(person.name),
 	);
 	if (!arrived.length) return;
 	const names = arrived.map((person) => person.display_name.split(" ")[0]);
 	const at = formatTime(arrived[0].checked_in[previous.function]);
-	strip.value = __("{0} checked in at {1}", [new Intl.ListFormat(boot.lang).format(names), at]);
+	strip.value = __("{0} checked in at {1}", [
+		new Intl.ListFormat(boot.lang).format(names),
+		at,
+	]);
 	stripIsFresh.value = true;
 	clearTimeout(stripTimer);
 	stripTimer = setTimeout(() => (stripIsFresh.value = false), 8000);
@@ -308,13 +359,14 @@ useLiveRefresh(["check-in"], () => {
 	const before = new Set(
 		people.value
 			.filter((person) => person.checked_in[pass.value!.function])
-			.map((person) => person.name)
+			.map((person) => person.name),
 	);
 	void showScan(pass.value, before);
 });
 
 const reopenTimer = setInterval(() => {
-	if (preCheckIn.data && !preCheckIn.data.functions.length) void preCheckIn.reload();
+	if (preCheckIn.data && !preCheckIn.data.functions.length)
+		void preCheckIn.reload();
 }, REOPEN_CHECK_MS);
 onBeforeUnmount(() => {
 	clearInterval(reopenTimer);

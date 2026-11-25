@@ -10,20 +10,33 @@
 		</template>
 	</PageHead>
 	<PageBody>
-		<Masthead :title="__('My Household')" :label="boot.church?.title" :dateline="dateline" />
+		<Masthead
+			:title="__('My Household')"
+			:label="boot.church?.title"
+			:dateline="dateline"
+		/>
 		<LoadState :resource="household" v-slot="{ data }">
 			<div class="mt-8 grid gap-x-10 gap-y-10 md:grid-cols-12">
 				<div class="md:col-span-8">
 					<section aria-labelledby="household-people">
-						<SectionHead id="household-people" :title="__('People')" />
-						<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+						<SectionHead
+							id="household-people"
+							:title="__('People')"
+						/>
+						<ul
+							class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+						>
 							<li
 								v-for="member in data.members"
 								:key="member.name"
 								class="flex items-center gap-4 py-4"
 								:class="isFresh(member.name) && 'is-fresh'"
 							>
-								<Avatar :label="member.display_name" size="xl" shape="circle" />
+								<Avatar
+									:label="member.display_name"
+									size="xl"
+									shape="circle"
+								/>
 								<div class="min-w-0 flex-1">
 									<p class="text-xl-medium text-ink-gray-9">
 										{{ member.display_name }}
@@ -38,7 +51,11 @@
 											member.household_role
 												? __(member.household_role)
 												: null,
-											member.age ? __('{0} years old', [member.age]) : null,
+											member.age
+												? __('{0} years old', [
+														member.age,
+													])
+												: null,
 										]"
 										class="mt-0.5 text-lg text-ink-gray-6 md:text-md"
 									/>
@@ -49,7 +66,9 @@
 									size="lg"
 									class="min-h-11"
 									:label="__('Edit')"
-									:aria-label="__('Edit {0}', [member.display_name])"
+									:aria-label="
+										__('Edit {0}', [member.display_name])
+									"
 									:route="`/personal-details/${member.name}/edit`"
 								/>
 							</li>
@@ -58,9 +77,11 @@
 							{{
 								data.add_child
 									? __(
-											"To add an adult or remove someone, contact the church office."
-									  )
-									: __("To add or remove someone, contact the church office.")
+											"To add an adult or remove someone, contact the church office.",
+										)
+									: __(
+											"To add or remove someone, contact the church office.",
+										)
 							}}
 						</p>
 						<div v-if="data.add_child" class="mt-5 md:hidden">
@@ -76,9 +97,17 @@
 					</section>
 				</div>
 
-				<aside class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10">
-					<section v-if="data.family" aria-labelledby="household-photo">
-						<SectionHead id="household-photo" :title="data.family.title" />
+				<aside
+					class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10"
+				>
+					<section
+						v-if="data.family"
+						aria-labelledby="household-photo"
+					>
+						<SectionHead
+							id="household-photo"
+							:title="data.family.title"
+						/>
 						<img
 							v-if="data.family.photo"
 							:src="data.family.photo"
@@ -102,10 +131,15 @@
 							:docname="data.family.name"
 							:private="false"
 							:validate-file="validatePhoto"
-							@success="(file) => savePhoto(data.family!.name, file.file_url)"
+							@success="
+								(file) =>
+									savePhoto(data.family!.name, file.file_url)
+							"
 							@failure="(message) => toast.error(String(message))"
 						>
-							<template #default="{ openFileSelector, uploading }">
+							<template
+								#default="{ openFileSelector, uploading }"
+							>
 								<Button
 									class="mt-4 min-h-11 w-full md:w-auto"
 									variant="outline"
@@ -113,7 +147,9 @@
 									icon-left="lucide-camera"
 									:loading="uploading || photoAction.loading"
 									:label="
-										data.family.photo ? __('Change photo') : __('Add a photo')
+										data.family.photo
+											? __('Change photo')
+											: __('Add a photo')
 									"
 									@click="openFileSelector"
 								/>
@@ -125,14 +161,19 @@
 						class="mt-10"
 						aria-labelledby="household-check-in"
 					>
-						<SectionHead id="household-check-in" :title="__('Check-in')" />
+						<SectionHead
+							id="household-check-in"
+							:title="__('Check-in')"
+						/>
 						<p class="text-lg text-ink-gray-8 md:text-md">
 							{{
 								boot.check_in.open
 									? __(
-											"Check-in is open. Make your pass and show it at the door."
-									  )
-									: __("Check-in opens shortly before the service.")
+											"Check-in is open. Make your pass and show it at the door.",
+										)
+									: __(
+											"Check-in opens shortly before the service.",
+										)
 							}}
 						</p>
 						<Button
@@ -187,31 +228,51 @@ interface Member {
 
 interface Household {
 	person: string;
-	family: { name: string; title: string; photo: string | null; address: string | null } | null;
+	family: {
+		name: string;
+		title: string;
+		photo: string | null;
+		address: string | null;
+	} | null;
 	can_change_photo: boolean;
 	members: Member[];
-	add_child: { last_name: string | null; adult_age: number; today: string } | null;
+	add_child: {
+		last_name: string | null;
+		adult_age: number;
+		today: string;
+	} | null;
 }
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 const household = useRead<Household>("household.get_household");
-const photoAction = useFrappeAction<unknown, Record<string, any>>("frappe.client.set_value");
+const photoAction = useFrappeAction<unknown, Record<string, any>>(
+	"frappe.client.set_value",
+);
 const addingChild = ref(false);
 const { mark, isFresh } = useFreshInk();
 
 const dateline = computed(() => {
 	const data = household.data;
 	if (!data) return __("The people in your household");
-	return data.family?.address || data.family?.title || __("The people in your household");
+	return (
+		data.family?.address ||
+		data.family?.title ||
+		__("The people in your household")
+	);
 });
 
 useLiveRefresh(["household"], (hint) => {
-	const before = new Set(household.data?.members.map((member) => member.name));
+	const before = new Set(
+		household.data?.members.map((member) => member.name),
+	);
 	Promise.resolve(household.reload()).then(() => {
-		const added = household.data?.members.filter((member) => !before.has(member.name));
+		const added = household.data?.members.filter(
+			(member) => !before.has(member.name),
+		);
 		if (hint && added?.length) added.forEach((member) => mark(member.name));
-		else if (hint && household.data?.family) mark(household.data.family.name);
+		else if (hint && household.data?.family)
+			mark(household.data.family.name);
 	});
 });
 
@@ -222,10 +283,15 @@ function validatePhoto(file: File): string | undefined {
 
 async function savePhoto(family: string, fileUrl: string) {
 	const isSaved = await photoAction
-		.submit({ doctype: "Family", name: family, fieldname: "photo", value: fileUrl })
+		.submit({
+			doctype: "Family",
+			name: family,
+			fieldname: "photo",
+			value: fileUrl,
+		})
 		.then(
 			() => true,
-			() => false
+			() => false,
 		);
 	if (!isSaved) return;
 

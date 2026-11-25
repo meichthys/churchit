@@ -49,7 +49,10 @@
 
 			<section class="mt-8" aria-labelledby="learning">
 				<SectionHead id="learning" :title="__('Learning')" />
-				<ul v-if="learning(data).length" class="border-t border-outline-gray-1">
+				<ul
+					v-if="learning(data).length"
+					class="border-t border-outline-gray-1"
+				>
 					<li
 						v-for="item in learning(data)"
 						:key="item.name"
@@ -57,19 +60,28 @@
 						:class="{ 'is-fresh': isFresh(item.name) }"
 					>
 						<div class="min-w-0">
-							<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+							<div
+								class="flex flex-wrap items-baseline gap-x-3 gap-y-1"
+							>
 								<h3 class="t-subhead text-ink-gray-9">
 									{{ item.bible_reference }}
 								</h3>
-								<span class="t-label text-ink-gray-6">{{ item.translation }}</span>
+								<span class="t-label text-ink-gray-6">{{
+									item.translation
+								}}</span>
 							</div>
 							<p
 								v-if="item.assigned_by_name"
 								class="mt-1 text-lg text-ink-gray-6 md:text-md"
 							>
-								{{ __("Assigned by {0}", [item.assigned_by_name])
+								{{
+									__("Assigned by {0}", [
+										item.assigned_by_name,
+									])
 								}}<template v-if="item.group_name">
-									{{ __("through {0}", [item.group_name]) }}</template
+									{{
+										__("through {0}", [item.group_name])
+									}}</template
 								>
 							</p>
 							<p
@@ -78,19 +90,26 @@
 							>
 								{{ item.preview }}
 							</p>
-							<div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+							<div
+								class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2"
+							>
 								<div class="w-36">
 									<Progress
 										:value="item.progress"
 										:intervals="10"
 										size="md"
-										:label="__('{0} learned', [item.bible_reference])"
+										:label="
+											__('{0} learned', [
+												item.bible_reference,
+											])
+										"
 										class="[&>div:first-child]:sr-only"
 									/>
 								</div>
-								<span class="text-lg text-ink-gray-6 md:text-md">{{
-									stateWords(item)
-								}}</span>
+								<span
+									class="text-lg text-ink-gray-6 md:text-md"
+									>{{ stateWords(item) }}</span
+								>
 							</div>
 						</div>
 						<div
@@ -101,7 +120,10 @@
 								class="t-numeral text-[44px] text-ink-gray-9 md:text-[52px]"
 							>
 								{{ item.progress
-								}}<span class="ms-0.5 text-[0.45em] text-ink-gray-6">%</span>
+								}}<span
+									class="ms-0.5 text-[0.45em] text-ink-gray-6"
+									>%</span
+								>
 							</p>
 							<Badge
 								v-else
@@ -119,7 +141,9 @@
 									@click="confirmRemove(item)"
 								/>
 								<Button
-									:variant="item.progress ? 'solid' : 'outline'"
+									:variant="
+										item.progress ? 'solid' : 'outline'
+									"
 									size="lg"
 									class="min-h-11 min-w-[7.5rem]"
 									:label="__('Practice')"
@@ -133,7 +157,9 @@
 					v-else
 					:title="__('Nothing to learn yet')"
 					:body="
-						__('Add a passage by its reference. It lists here with a Practice button.')
+						__(
+							'Add a passage by its reference. It lists here with a Practice button.',
+						)
 					"
 				>
 					<Button
@@ -191,7 +217,9 @@
 				<EmptyState
 					v-else
 					:title="__('None yet')"
-					:body="__('A passage moves here once you know it by heart.')"
+					:body="
+						__('A passage moves here once you know it by heart.')
+					"
 				/>
 			</section>
 		</LoadState>
@@ -235,7 +263,12 @@
 				:label="__('Add')"
 				@click="addPassage"
 			/>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="addOpen = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="addOpen = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -288,12 +321,17 @@ interface MemoryList {
 }
 
 const list = useRead<MemoryList>("faith.get_memory_list");
-const add = useAction<{ name: string }, { reference: string; translation: string }>(
-	"faith.add_memory_item",
-	{ onError: () => {} }
+const add = useAction<
+	{ name: string },
+	{ reference: string; translation: string }
+>("faith.add_memory_item", { onError: () => {} });
+const remove = useAction<{ name: string }, { item: string }>(
+	"faith.remove_memory_item",
 );
-const remove = useAction<{ name: string }, { item: string }>("faith.remove_memory_item");
-const checkCall = useCall<{ reference?: string; problem?: string }, { text: string }>({
+const checkCall = useCall<
+	{ reference?: string; problem?: string },
+	{ text: string }
+>({
 	url: "/api/v2/method/churchit.scripture.check_reference",
 	method: "GET",
 	immediate: false,
@@ -301,25 +339,31 @@ const checkCall = useCall<{ reference?: string; problem?: string }, { text: stri
 
 const { mark, isFresh } = useFreshInk();
 const knownNames = ref<Set<string> | null>(null);
-const namesOf = () => new Set((list.data?.items || []).map((item) => item.name));
+const namesOf = () =>
+	new Set((list.data?.items || []).map((item) => item.name));
 watch(
 	() => list.data,
 	(data) => {
 		if (!data) return;
 		knownNames.value ??= namesOf();
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 useLiveRefresh(["memory"], async (hint) => {
 	await list.reload();
 	const names = namesOf();
 	const arrived = (list.data?.items || []).filter(
-		(item) => knownNames.value && !knownNames.value.has(item.name)
+		(item) => knownNames.value && !knownNames.value.has(item.name),
 	);
 	knownNames.value = names;
-	const hidden = arrived.filter((item) => groupFilter.value && item.group !== groupFilter.value);
-	arrived.filter((item) => !hidden.includes(item)).forEach((item) => mark(item.name));
-	if (hint && hidden.length) toast.success(__("A new passage is on your list."));
+	const hidden = arrived.filter(
+		(item) => groupFilter.value && item.group !== groupFilter.value,
+	);
+	arrived
+		.filter((item) => !hidden.includes(item))
+		.forEach((item) => mark(item.name));
+	if (hint && hidden.length)
+		toast.success(__("A new passage is on your list."));
 });
 
 const groupFilter = ref("");
@@ -331,20 +375,29 @@ const referenceError = ref("");
 function groupOptions(data: MemoryList) {
 	const groups = [
 		...new Map(
-			data.items.filter((item) => item.group).map((item) => [item.group, item.group_name])
+			data.items
+				.filter((item) => item.group)
+				.map((item) => [item.group, item.group_name]),
 		).entries(),
 	];
 	return [
 		{ label: __("All"), value: "" },
-		...groups.map(([name, title]) => ({ label: title || String(name), value: String(name) })),
+		...groups.map(([name, title]) => ({
+			label: title || String(name),
+			value: String(name),
+		})),
 	];
 }
 
 function visible(data: MemoryList) {
-	return data.items.filter((item) => !groupFilter.value || item.group === groupFilter.value);
+	return data.items.filter(
+		(item) => !groupFilter.value || item.group === groupFilter.value,
+	);
 }
-const learning = (data: MemoryList) => visible(data).filter((item) => !item.memorized);
-const memorized = (data: MemoryList) => visible(data).filter((item) => item.memorized);
+const learning = (data: MemoryList) =>
+	visible(data).filter((item) => !item.memorized);
+const memorized = (data: MemoryList) =>
+	visible(data).filter((item) => item.memorized);
 
 function stateWords(item: MemoryItem): string {
 	if (item.memorized) {
@@ -360,20 +413,26 @@ function stateWords(item: MemoryItem): string {
 	if (item.times_memorized === 1)
 		return __("{0} of 100 learned, 1 perfect run", [item.progress]);
 	return item.times_memorized > 1
-		? __("{0} of 100 learned, {1} perfect runs", [item.progress, item.times_memorized])
+		? __("{0} of 100 learned, {1} perfect runs", [
+				item.progress,
+				item.times_memorized,
+			])
 		: __("{0} of 100 learned", [item.progress]);
 }
 
 function openAdd() {
 	reference.value = "";
 	referenceError.value = "";
-	translation.value = list.data?.default_translation || list.data?.translations[0] || "";
+	translation.value =
+		list.data?.default_translation || list.data?.translations[0] || "";
 	addOpen.value = true;
 }
 
 async function checkReference() {
 	if (!reference.value.trim()) return;
-	const result = await checkCall.submit({ text: reference.value }).catch(() => null);
+	const result = await checkCall
+		.submit({ text: reference.value })
+		.catch(() => null);
 	referenceError.value = result?.problem || "";
 	if (result?.reference) reference.value = result.reference;
 }
@@ -384,29 +443,33 @@ async function addPassage() {
 		referenceError.value = __("Type the reference of the passage.");
 		return;
 	}
-	await add.submit({ reference: reference.value, translation: translation.value }).then(
-		() => {
-			addOpen.value = false;
-			toast.success(__("Added to your list."));
-			return list.reload();
-		},
-		() => {
-			referenceError.value = errorText(add.error);
-		}
-	);
+	await add
+		.submit({ reference: reference.value, translation: translation.value })
+		.then(
+			() => {
+				addOpen.value = false;
+				toast.success(__("Added to your list."));
+				return list.reload();
+			},
+			() => {
+				referenceError.value = errorText(add.error);
+			},
+		);
 }
 
 function confirmRemove(item: MemoryItem) {
 	dialog.confirm({
 		title: __("Remove {0}", [item.bible_reference]),
-		message: __("The passage and your progress on it are removed from your list."),
+		message: __(
+			"The passage and your progress on it are removed from your list.",
+		),
 		confirmLabel: __("Remove"),
 		cancelLabel: __("Cancel"),
 		theme: "red",
 		onConfirm: async ({ close }) => {
 			await remove.submit({ item: item.name }).then(
 				() => list.reload(),
-				() => {}
+				() => {},
 			);
 			close();
 		},

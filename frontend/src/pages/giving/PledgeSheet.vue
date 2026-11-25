@@ -4,7 +4,7 @@
 		:title="editing ? __('Change your pledge') : __('Make a pledge')"
 		:description="
 			__(
-				'A pledge is what you plan to give. You can give through the church as you always do.'
+				'A pledge is what you plan to give. You can give through the church as you always do.',
 			)
 		"
 	>
@@ -28,7 +28,9 @@
 					@click="$emit('edit', existingPledge)"
 				/>
 				<template v-else>{{
-					__("Only the church office can change it. You can still make another pledge.")
+					__(
+						"Only the church office can change it. You can still make another pledge.",
+					)
 				}}</template>
 			</p>
 			<FormControl
@@ -57,7 +59,12 @@
 				:loading="save.loading"
 				@click="submit"
 			/>
-			<Button variant="subtle" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="subtle"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -85,21 +92,31 @@ const campaignOptions = computed(() => {
 		label: campaign.title,
 	}));
 	const current = props.editing;
-	if (current && !options.some((option) => option.value === current.campaign)) {
-		options.push({ value: current.campaign, label: current.campaign_title });
+	if (
+		current &&
+		!options.some((option) => option.value === current.campaign)
+	) {
+		options.push({
+			value: current.campaign,
+			label: current.campaign_title,
+		});
 	}
 	return options;
 });
 const frequencyOptions = computed(() =>
-	props.pledges.frequencies.map((value) => ({ value, label: __(value) }))
+	props.pledges.frequencies.map((value) => ({ value, label: __(value) })),
 );
 const existingPledge = computed(() =>
-	props.editing ? null : props.pledges.existing[form.campaign] || null
+	props.editing ? null : props.pledges.existing[form.campaign] || null,
 );
 const canChangeExisting = computed(() =>
-	props.pledges.items.some((pledge) => pledge.name === existingPledge.value && pledge.can_edit)
+	props.pledges.items.some(
+		(pledge) => pledge.name === existingPledge.value && pledge.can_edit,
+	),
 );
-const canSave = computed(() => Boolean(form.campaign && Number(form.amount) > 0));
+const canSave = computed(() =>
+	Boolean(form.campaign && Number(form.amount) > 0),
+);
 
 watch(
 	[open, () => props.editing],
@@ -107,12 +124,13 @@ watch(
 		if (!isOpen) return;
 		const current = props.editing;
 		Object.assign(form, {
-			campaign: current?.campaign || props.pledges.campaigns[0]?.name || "",
+			campaign:
+				current?.campaign || props.pledges.campaigns[0]?.name || "",
 			amount: current ? String(current.amount) : "",
 			frequency: current?.frequency || "One Time",
 		});
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 async function submit() {

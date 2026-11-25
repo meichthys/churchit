@@ -2,7 +2,11 @@
 	<FormSheet
 		v-model:open="open"
 		:title="__('Attendance')"
-		:description="meeting ? `${meeting.title}, ${formatShortDate(meeting.date)}` : undefined"
+		:description="
+			meeting
+				? `${meeting.title}, ${formatShortDate(meeting.date)}`
+				: undefined
+		"
 	>
 		<template v-if="meeting">
 			<Checkbox
@@ -15,9 +19,15 @@
 			/>
 			<template v-if="!didNotMeet">
 				<p class="rubric mb-2 mt-3 text-lg">
-					{{ __("Tick everyone who came. The rest are marked absent.") }}
+					{{
+						__(
+							"Tick everyone who came. The rest are marked absent.",
+						)
+					}}
 				</p>
-				<ul class="divide-y divide-outline-gray-1 border-y border-outline-gray-1">
+				<ul
+					class="divide-y divide-outline-gray-1 border-y border-outline-gray-1"
+				>
 					<li v-for="person in roster" :key="person.name">
 						<Checkbox
 							:model-value="here.has(person.name)"
@@ -25,7 +35,9 @@
 							class="!h-auto min-h-14 w-full [&_[data-slot=label]]:text-lg"
 							size="md"
 							padded
-							@update:model-value="toggle(person.name, Boolean($event))"
+							@update:model-value="
+								toggle(person.name, Boolean($event))
+							"
 						/>
 					</li>
 				</ul>
@@ -39,7 +51,12 @@
 				:loading="save.loading"
 				@click="submit"
 			/>
-			<Button variant="subtle" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="subtle"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -55,14 +72,17 @@ import { __ } from "@/translate";
 
 import { COUNTED_ATTENDANCE, type LedMeeting, type RosterRow } from "./types";
 
-const props = defineProps<{ meeting: LedMeeting | null; roster: RosterRow[] }>();
+const props = defineProps<{
+	meeting: LedMeeting | null;
+	roster: RosterRow[];
+}>();
 const emit = defineEmits<{ saved: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
 const didNotMeet = ref(false);
 const here = reactive(new Set<string>());
 const save = useFrappeAction<unknown, Record<string, unknown>>(
-	"churchit.church_people.group_meetings.record_group_attendance"
+	"churchit.church_people.group_meetings.record_group_attendance",
 );
 
 watch(open, (isOpen) => {
@@ -86,10 +106,14 @@ async function submit() {
 
 	const present = didNotMeet.value
 		? []
-		: props.roster.filter((person) => here.has(person.name)).map((person) => person.name);
+		: props.roster
+				.filter((person) => here.has(person.name))
+				.map((person) => person.name);
 	const absent = didNotMeet.value
 		? []
-		: props.roster.filter((person) => !here.has(person.name)).map((person) => person.name);
+		: props.roster
+				.filter((person) => !here.has(person.name))
+				.map((person) => person.name);
 	const done = await save
 		.submit({
 			function: props.meeting.name,
@@ -99,7 +123,7 @@ async function submit() {
 		})
 		.then(
 			() => true,
-			() => false
+			() => false,
 		);
 	if (!done) return;
 

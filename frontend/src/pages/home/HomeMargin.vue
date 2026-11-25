@@ -13,7 +13,9 @@
 						>
 						<template v-else>{{ notice.title }}</template>
 					</h3>
-					<p class="t-dateline text-ink-gray-6">{{ notice.date_display }}</p>
+					<p class="t-dateline text-ink-gray-6">
+						{{ notice.date_display }}
+					</p>
 					<!-- eslint-disable-next-line vue/no-v-html -->
 					<div
 						class="mt-2 text-p-lg text-ink-gray-8 [&_a]:underline [&_li]:ms-5 [&_li]:list-disc [&_p]:mt-2"
@@ -23,9 +25,14 @@
 			</div>
 		</section>
 
-		<section v-if="home.prayer_requests.length" aria-labelledby="prayer-head">
+		<section
+			v-if="home.prayer_requests.length"
+			aria-labelledby="prayer-head"
+		>
 			<SectionHead id="prayer-head" :title="__('Remember in prayer')" />
-			<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1 pt-4">
+			<ul
+				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1 pt-4"
+			>
 				<PrayerNotice
 					v-for="request in home.prayer_requests"
 					:key="request.name"
@@ -42,14 +49,22 @@
 		</section>
 
 		<section
-			v-if="home.bulletin || home.members_only_pages.length || installable"
+			v-if="
+				home.bulletin || home.members_only_pages.length || installable
+			"
 			aria-labelledby="church-head"
 		>
 			<SectionHead id="church-head" :title="__('From the church')" />
-			<div class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+			<div
+				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+			>
 				<div v-if="home.bulletin" class="py-4">
-					<p class="t-subhead text-ink-gray-9">{{ home.bulletin.title }}</p>
-					<p class="t-dateline text-ink-gray-6">{{ home.bulletin.date_display }}</p>
+					<p class="t-subhead text-ink-gray-9">
+						{{ home.bulletin.title }}
+					</p>
+					<p class="t-dateline text-ink-gray-6">
+						{{ home.bulletin.date_display }}
+					</p>
 					<div class="mt-3 flex flex-wrap gap-2">
 						<Button
 							variant="outline"
@@ -57,7 +72,9 @@
 							class="min-h-11"
 							:label="__('Read it')"
 							@click="
-								open(`/bulletins?name=${encodeURIComponent(home.bulletin.name)}`)
+								open(
+									`/bulletins?name=${encodeURIComponent(home.bulletin.name)}`,
+								)
 							"
 						/>
 						<Button
@@ -82,7 +99,9 @@
 					/>
 				</a>
 				<div v-if="installable" class="py-4">
-					<p class="rubric">{{ __("Add this app to your home screen.") }}</p>
+					<p class="rubric">
+						{{ __("Add this app to your home screen.") }}
+					</p>
 					<Button
 						class="mt-3 min-h-11"
 						variant="outline"
@@ -111,11 +130,13 @@ import type { Home } from "./types";
 
 defineProps<{ home: Home }>();
 
-const installable = computed(() => boot.offer_app_install && Boolean(installPrompt.value));
+const installable = computed(
+	() => boot.offer_app_install && Boolean(installPrompt.value),
+);
 
 function pdfUrl(name: string): string {
 	return `/api/method/churchit.church_communications.doctype.bulletin.bulletin.download_pdf?name=${encodeURIComponent(
-		name
+		name,
 	)}`;
 }
 

@@ -5,12 +5,17 @@
 		class="grid grid-cols-[4.75rem_minmax(0,1fr)] gap-x-3 md:grid-cols-[5.5rem_minmax(0,1fr)] md:gap-x-4"
 		:class="fresh && 'is-fresh -mx-3 rounded-4 px-3 py-2'"
 	>
-		<p class="pt-px text-lg font-medium text-ink-gray-8" :class="dimTime && 'text-ink-gray-5'">
+		<p
+			class="pt-px text-lg font-medium text-ink-gray-8"
+			:class="dimTime && 'text-ink-gray-5'"
+		>
 			<TimeText v-if="time" :value="time" />
 		</p>
 
 		<div class="min-w-0">
-			<div class="flex flex-wrap items-baseline gap-x-3 md:flex-nowrap md:gap-x-0">
+			<div
+				class="flex flex-wrap items-baseline gap-x-3 md:flex-nowrap md:gap-x-0"
+			>
 				<RouterLink
 					v-if="route"
 					:to="route"
@@ -25,10 +30,15 @@
 				>
 					{{ title }}
 				</a>
-				<span v-else class="text-xl-medium text-ink-gray-9">{{ title }}</span>
+				<span v-else class="text-xl-medium text-ink-gray-9">{{
+					title
+				}}</span>
 				<template v-if="who">
 					<span class="leader hidden md:block" aria-hidden="true" />
-					<span class="t-label ms-auto shrink-0 text-ink-gray-7 md:ms-0">{{ who }}</span>
+					<span
+						class="t-label ms-auto shrink-0 text-ink-gray-7 md:ms-0"
+						>{{ who }}</span
+					>
 				</template>
 			</div>
 
@@ -37,7 +47,11 @@
 				:facts="facts || []"
 				class="mt-1 text-lg text-ink-gray-6"
 			>
-				<StatusBadge v-if="status" :status="status" class="mt-1.5 md:ms-1 md:mt-0" />
+				<StatusBadge
+					v-if="status"
+					:status="status"
+					class="mt-1.5 md:ms-1 md:mt-0"
+				/>
 			</Facts>
 
 			<div v-if="$slots.default" class="mt-3">

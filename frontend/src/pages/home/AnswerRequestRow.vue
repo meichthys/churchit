@@ -1,5 +1,8 @@
 <template>
-	<li class="py-4 first:pt-0 last:pb-0" :class="fresh && 'is-fresh -mx-3 rounded-4 px-3'">
+	<li
+		class="py-4 first:pt-0 last:pb-0"
+		:class="fresh && 'is-fresh -mx-3 rounded-4 px-3'"
+	>
 		<p class="text-lg text-ink-gray-9">
 			{{
 				__("You are asked to serve as {0} at {1} on {2}.", [
@@ -46,11 +49,13 @@ const props = defineProps<{ request: AnswerRequest; fresh?: boolean }>();
 const emit = defineEmits<{ answered: [] }>();
 
 const answer = useFrappeAction<null, { assignment: string; status: string }>(
-	"churchit.church_ministries.member_ministry_team.answer_own_assignment"
+	"churchit.church_ministries.member_ministry_team.answer_own_assignment",
 );
 
 async function send(status: "Accepted" | "Declined") {
-	await answer.submit({ assignment: props.request.name, status }).catch(() => {});
+	await answer
+		.submit({ assignment: props.request.name, status })
+		.catch(() => {});
 	if (!answer.error) emit("answered");
 }
 </script>

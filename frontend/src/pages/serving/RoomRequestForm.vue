@@ -4,7 +4,7 @@
 		:title="booking ? __('Change your request') : __('Ask for a room')"
 		:description="
 			__(
-				'A room can be asked for up to one day at a time. The office answers a request that needs approval.'
+				'A room can be asked for up to one day at a time. The office answers a request that needs approval.',
 			)
 		"
 	>
@@ -54,11 +54,18 @@
 				variant="solid"
 				size="lg"
 				:label="booking ? __('Save') : __('Send request')"
-				:disabled="!form.room || !form.start || !form.end || !form.purpose"
+				:disabled="
+					!form.room || !form.start || !form.end || !form.purpose
+				"
 				:loading="request.loading || update.loading"
 				@click="save"
 			/>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -99,7 +106,7 @@ watch(
 			notes: booking?.notes || "",
 		});
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 type Fields = {
@@ -111,7 +118,7 @@ type Fields = {
 };
 const request = useAction<{ name: string }, Fields>("serving.request_room");
 const update = useAction<{ name: string }, Fields & { name: string }>(
-	"serving.update_room_request"
+	"serving.update_room_request",
 );
 
 async function save() {
@@ -130,7 +137,7 @@ async function save() {
 			open.value = false;
 			emit("saved", result?.name || "");
 		},
-		() => {}
+		() => {},
 	);
 }
 </script>

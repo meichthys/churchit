@@ -4,7 +4,7 @@
 		:title="request ? __('Change your request') : __('Ask for help')"
 		:description="
 			__(
-				'The care team reviews each request. You can change or delete it until it is reviewed.'
+				'The care team reviews each request. You can change or delete it until it is reviewed.',
 			)
 		"
 	>
@@ -30,7 +30,11 @@
 				:initial-label="initialLabel"
 				:label="__('Who is it for?')"
 			/>
-			<p v-if="errors.recipient" class="-mt-3 text-p-base text-ink-red-8" role="alert">
+			<p
+				v-if="errors.recipient"
+				class="-mt-3 text-p-base text-ink-red-8"
+				role="alert"
+			>
 				{{ errors.recipient }}
 			</p>
 			<FormControl
@@ -52,7 +56,12 @@
 				:loading="save.loading"
 				:label="__('Send')"
 			/>
-			<Button size="lg" variant="outline" :label="__('Cancel')" @click="open = false" />
+			<Button
+				size="lg"
+				variant="outline"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -96,7 +105,7 @@ const recipientTypes = [
 	{ label: __("Family"), value: "Family" },
 ];
 const initialLabel = computed(() =>
-	props.request ? props.request.recipient_name : props.me.full_name
+	props.request ? props.request.recipient_name : props.me.full_name,
 );
 
 function reset() {
@@ -114,16 +123,22 @@ watch(open, (isOpen) => isOpen && reset(), { immediate: true });
 
 async function submit() {
 	errors.recipient = form.recipient ? "" : __("Choose who the help is for.");
-	errors.description = form.description.trim() ? "" : __("Say what the need is.");
+	errors.description = form.description.trim()
+		? ""
+		: __("Say what the need is.");
 	if (errors.recipient || errors.description) return;
 
-	const params = { ...form, amount: Number(form.amount) || 0, name: props.request?.name };
+	const params = {
+		...form,
+		amount: Number(form.amount) || 0,
+		name: props.request?.name,
+	};
 	await save.submit(params).then(
 		() => {
 			open.value = false;
 			emit("saved");
 		},
-		() => {}
+		() => {},
 	);
 }
 </script>

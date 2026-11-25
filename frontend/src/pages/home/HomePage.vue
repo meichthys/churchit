@@ -18,7 +18,11 @@
 		</template>
 	</PageHead>
 	<PageBody>
-		<Masthead :title="__('This week')" :label="boot.church?.title" :dateline="dateline" />
+		<Masthead
+			:title="__('This week')"
+			:label="boot.church?.title"
+			:dateline="dateline"
+		/>
 		<div
 			v-if="boot.person && (give || canSharePrayer)"
 			class="mt-5 flex flex-wrap gap-2 md:hidden"
@@ -49,7 +53,7 @@
 			:title="__('Your login is not linked to a member yet')"
 			:body="
 				__(
-					'The church office can link it to your record. Until then, the pages of the church are open to you.'
+					'The church office can link it to your record. Until then, the pages of the church are open to you.',
 				)
 			"
 		>
@@ -89,7 +93,9 @@
 					</section>
 
 					<section aria-labelledby="week-head">
-						<h2 id="week-head" class="sr-only">{{ __("The week") }}</h2>
+						<h2 id="week-head" class="sr-only">
+							{{ __("The week") }}
+						</h2>
 						<template v-if="data.week.length">
 							<DayBlock
 								v-for="day in data.week"
@@ -104,7 +110,8 @@
 									:time="entry.time"
 									:dim-time="
 										Boolean(entry.time) &&
-										entry.time === day.entries[index - 1]?.time
+										entry.time ===
+											day.entries[index - 1]?.time
 									"
 									:route="entry.route || undefined"
 									:facts="[entry.who]"
@@ -118,7 +125,7 @@
 							:title="__('Nothing is planned for you this week')"
 							:body="
 								__(
-									'Your sign-ups, the times you serve and your group meetings are listed here.'
+									'Your sign-ups, the times you serve and your group meetings are listed here.',
 								)
 							"
 						>
@@ -133,9 +140,18 @@
 						</EmptyState>
 					</section>
 
-					<section v-if="data.ahead.length" class="mt-8" aria-labelledby="ahead-head">
-						<SectionHead id="ahead-head" :title="__('Looking ahead')" />
-						<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+					<section
+						v-if="data.ahead.length"
+						class="mt-8"
+						aria-labelledby="ahead-head"
+					>
+						<SectionHead
+							id="ahead-head"
+							:title="__('Looking ahead')"
+						/>
+						<ul
+							class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+						>
 							<li v-for="entry in data.ahead" :key="entry.key">
 								<IndexRow
 									:title="entry.title"
@@ -144,13 +160,17 @@
 									:status="entry.status"
 									:fresh="isFresh(entry.key)"
 								>
-									<template #prefix><DateStack :date="entry.date" /></template>
+									<template #prefix
+										><DateStack :date="entry.date"
+									/></template>
 								</IndexRow>
 							</li>
 						</ul>
 					</section>
 
-					<footer class="mt-10 border-t border-outline-gray-1 pt-6 text-center">
+					<footer
+						class="mt-10 border-t border-outline-gray-1 pt-6 text-center"
+					>
 						<p class="t-dateline is-large text-ink-gray-8">
 							{{ __("That is the week.") }}
 						</p>
@@ -199,16 +219,20 @@ import HomeMargin from "./HomeMargin.vue";
 import NowBlock from "./NowBlock.vue";
 import type { Entry, Home } from "./types";
 
-const home = useRead<Home>("home.get_home", { immediate: Boolean(boot.person) });
+const home = useRead<Home>("home.get_home", {
+	immediate: Boolean(boot.person),
+});
 const { mark, isFresh } = useFreshInk();
 
-const calendar = computed(() => boot.site_links.find((link) => link.page === "calendar"));
+const calendar = computed(() =>
+	boot.site_links.find((link) => link.page === "calendar"),
+);
 const signUpsOpen = computed(() => !isPageHidden("function-sign-up"));
 const give = boot.site_links.find((link) => link.page === "give");
 const canSharePrayer =
 	!isPageHidden("prayer-request") &&
 	boot.navigation.some((section) =>
-		section.links.some((link) => link.page === "prayer-request")
+		section.links.some((link) => link.page === "prayer-request"),
 	);
 
 /** A page of the website, in the same tab (frappe-ui's Button href would open a new one). */
@@ -216,10 +240,13 @@ function openPage(href: string) {
 	window.location.assign(href);
 }
 
-const entries = computed<Entry[]>(() => home.data?.week.flatMap((day) => day.entries) ?? []);
+const entries = computed<Entry[]>(
+	() => home.data?.week.flatMap((day) => day.entries) ?? [],
+);
 
 function phrase(entry: Entry): string {
-	const isToday = entry.date === home.data?.week[0]?.date && home.data.week[0].is_today;
+	const isToday =
+		entry.date === home.data?.week[0]?.date && home.data.week[0].is_today;
 	const day = formatDayMonth(entry.date, true);
 	const time = entry.time ? formatTime(entry.time) : "";
 	const name = entry.kind === "serving" ? entry.who || "" : entry.title;
@@ -251,7 +278,8 @@ function phrase(entry: Entry): string {
 }
 
 const dateline = computed(() => {
-	if (!boot.person) return __("Your week at the church, once your login is linked");
+	if (!boot.person)
+		return __("Your week at the church, once your login is linked");
 	if (!home.data) return "";
 	const first = entries.value.slice(0, 2).map(phrase);
 	if (first.length) return first.join(" ");
@@ -280,6 +308,6 @@ useLiveRefresh(
 			...(home.data?.needs_answer.map((request) => request.name) ?? []),
 		];
 		for (const key of keys) if (!before.has(key)) mark(key);
-	}
+	},
 );
 </script>

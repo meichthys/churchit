@@ -2,7 +2,11 @@
 	<FormSheet
 		v-model:open="open"
 		:title="__('Add a file')"
-		:description="__('Only the members of the group and the church staff can open it.')"
+		:description="
+			__(
+				'Only the members of the group and the church staff can open it.',
+			)
+		"
 	>
 		<div class="space-y-4">
 			<FormControl
@@ -25,19 +29,36 @@
 			<div>
 				<p class="mb-1.5 text-sm text-ink-gray-5">{{ __("File") }}</p>
 				<FileUploader :validate-file="checkSize" @success="attachFile">
-					<template #default="{ openFileSelector, uploading, progress, file, error }">
+					<template
+						#default="{
+							openFileSelector,
+							uploading,
+							progress,
+							file,
+							error,
+						}"
+					>
 						<Button
 							size="lg"
 							class="min-h-11"
 							icon-left="lucide-paperclip"
 							:loading="uploading"
-							:label="file && !error ? file.name : __('Choose a file')"
+							:label="
+								file && !error ? file.name : __('Choose a file')
+							"
 							@click="openFileSelector"
 						/>
-						<p v-if="uploading" class="mt-1.5 text-lg text-ink-gray-6 md:text-md">
+						<p
+							v-if="uploading"
+							class="mt-1.5 text-lg text-ink-gray-6 md:text-md"
+						>
 							{{ __("Uploading, {0}%", [progress]) }}
 						</p>
-						<ErrorMessage v-if="error" class="mt-1.5" :message="error" />
+						<ErrorMessage
+							v-if="error"
+							class="mt-1.5"
+							:message="error"
+						/>
 					</template>
 				</FileUploader>
 			</div>
@@ -51,45 +72,65 @@
 				:loading="save.loading"
 				@click="submit"
 			/>
-			<Button variant="subtle" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="subtle"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
 
 <script setup lang="ts">
-import { Button, ErrorMessage, FileUploader, FormControl, toast } from "frappe-ui";
+import {
+	Button,
+	ErrorMessage,
+	FileUploader,
+	FormControl,
+	toast,
+} from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 
 import { useAction } from "@/api";
 import FormSheet from "@/components/FormSheet.vue";
 import { __ } from "@/translate";
 
-const props = defineProps<{ groups: { value: string; label: string }[]; initialGroup?: string }>();
+const props = defineProps<{
+	groups: { value: string; label: string }[];
+	initialGroup?: string;
+}>();
 const emit = defineEmits<{ added: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const form = reactive({ group: "", title: "", file_url: "" });
-const save = useAction<{ name: string }, { group: string; title: string; attached_file: string }>(
-	"groups.add_group_file"
+const save = useAction<
+	{ name: string },
+	{ group: string; title: string; attached_file: string }
+>("groups.add_group_file");
+const canSave = computed(() =>
+	Boolean(form.group && form.title.trim() && form.file_url),
 );
-const canSave = computed(() => Boolean(form.group && form.title.trim() && form.file_url));
 
 watch(
 	open,
 	(isOpen) => {
 		if (!isOpen) return;
 		Object.assign(form, {
-			group: props.initialGroup || (props.groups.length === 1 ? props.groups[0].value : ""),
+			group:
+				props.initialGroup ||
+				(props.groups.length === 1 ? props.groups[0].value : ""),
 			title: "",
 			file_url: "",
 		});
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 function checkSize(file: File) {
-	if (file.size > MAX_BYTES) return __("This file is too large. Choose one under 25 MB.");
+	if (file.size > MAX_BYTES)
+		return __("This file is too large. Choose one under 25 MB.");
 }
 
 function attachFile(uploaded: { file_url: string }) {
@@ -97,14 +138,18 @@ function attachFile(uploaded: { file_url: string }) {
 }
 
 async function submit() {
-	const params = { group: form.group, title: form.title.trim(), attached_file: form.file_url };
+	const params = {
+		group: form.group,
+		title: form.title.trim(),
+		attached_file: form.file_url,
+	};
 	await save.submit(params).then(
 		() => {
 			toast.success(__("File added."));
 			open.value = false;
 			emit("added");
 		},
-		() => {}
+		() => {},
 	);
 }
 </script>

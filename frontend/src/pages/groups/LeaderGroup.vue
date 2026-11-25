@@ -1,13 +1,18 @@
 <template>
 	<section class="mt-10" :aria-labelledby="`led-${group.name}`">
-		<h2 :id="`led-${group.name}`" class="t-head text-[1.75rem] text-ink-gray-9">
+		<h2
+			:id="`led-${group.name}`"
+			class="t-head text-[1.75rem] text-ink-gray-9"
+		>
 			{{ group.group_name }}
 		</h2>
 		<div class="mt-3 border-t-2 border-ink-gray-9" />
 
 		<div v-if="group.join_requests.length" class="mt-8">
 			<SectionHead :level="3" :title="__('Asking to join')" />
-			<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+			<ul
+				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+			>
 				<li v-for="request in group.join_requests" :key="request.name">
 					<RequestRow
 						:request="request"
@@ -19,7 +24,11 @@
 		</div>
 
 		<div class="mt-8">
-			<SectionHead :level="3" :title="__('Meetings')" :note="__('The last eight weeks')" />
+			<SectionHead
+				:level="3"
+				:title="__('Meetings')"
+				:note="__('The last eight weeks')"
+			/>
 			<ul
 				v-if="group.meetings.length"
 				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
@@ -32,7 +41,9 @@
 				>
 					<DateStack :date="meeting.date" />
 					<div class="min-w-0 flex-1 basis-48">
-						<p class="text-xl-medium text-ink-gray-9">{{ meeting.title }}</p>
+						<p class="text-xl-medium text-ink-gray-9">
+							{{ meeting.title }}
+						</p>
 						<p class="mt-1 text-lg text-ink-gray-6 md:text-md">
 							{{ meetingState(meeting) }}
 						</p>
@@ -42,13 +53,19 @@
 						size="lg"
 						class="min-h-11"
 						:label="
-							isRecorded(meeting) ? __('Change attendance') : __('Take attendance')
+							isRecorded(meeting)
+								? __('Change attendance')
+								: __('Take attendance')
 						"
 						@click="take(meeting)"
 					/>
 				</li>
 			</ul>
-			<EmptyState v-else :title="__('No meetings yet')" :body="noMeetings" />
+			<EmptyState
+				v-else
+				:title="__('No meetings yet')"
+				:body="noMeetings"
+			/>
 		</div>
 
 		<div class="mt-8">
@@ -64,17 +81,31 @@
 					/>
 				</template>
 				<p v-else class="text-lg text-ink-gray-6 md:text-md">
-					{{ __("This site cannot send email yet. Ask the church office.") }}
+					{{
+						__(
+							"This site cannot send email yet. Ask the church office.",
+						)
+					}}
 				</p>
 			</div>
 		</div>
 
 		<div class="mt-8">
 			<SectionHead :level="3" :title="__('People')" />
-			<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
-				<li v-for="person in group.roster" :key="person.name" class="py-4">
-					<p class="text-xl-medium text-ink-gray-9">{{ person.full_name }}</p>
-					<p class="mt-1 text-lg text-ink-gray-6 md:text-md">{{ person.group_role }}</p>
+			<ul
+				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+			>
+				<li
+					v-for="person in group.roster"
+					:key="person.name"
+					class="py-4"
+				>
+					<p class="text-xl-medium text-ink-gray-9">
+						{{ person.full_name }}
+					</p>
+					<p class="mt-1 text-lg text-ink-gray-6 md:text-md">
+						{{ person.group_role }}
+					</p>
 					<p
 						v-if="person.email || person.phone"
 						class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-lg md:text-md"
@@ -140,12 +171,17 @@ const current = ref<LedMeeting | null>(null);
 const noMeetings = computed(() => {
 	const upcoming = props.group.upcoming;
 	if (upcoming?.next_date_label)
-		return __("The next meeting is on {0}. It appears here once it has happened.", [
-			upcoming.next_date_label,
-		]);
+		return __(
+			"The next meeting is on {0}. It appears here once it has happened.",
+			[upcoming.next_date_label],
+		);
 	if (upcoming?.has_schedule)
-		return __("The group meets on a schedule. Each meeting appears here after its date.");
-	return __("No meetings are scheduled for this group. Ask the church office to add them.");
+		return __(
+			"The group meets on a schedule. Each meeting appears here after its date.",
+		);
+	return __(
+		"No meetings are scheduled for this group. Ask the church office to add them.",
+	);
 });
 
 function isRecorded(meeting: LedMeeting): boolean {
@@ -156,7 +192,7 @@ function meetingState(meeting: LedMeeting): string {
 	if (meeting.did_not_meet) return __("The group did not meet");
 	if (!isRecorded(meeting)) return __("Attendance not recorded yet");
 	const here = Object.values(meeting.attendance).filter((type) =>
-		COUNTED_ATTENDANCE.includes(type)
+		COUNTED_ATTENDANCE.includes(type),
 	).length;
 	return __("Attendance recorded: {0} here", [here]);
 }

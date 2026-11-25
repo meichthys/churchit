@@ -13,7 +13,9 @@
 				v-if="!choices.length"
 				:title="__('No Bible text yet')"
 				:body="
-					__('The church has not set up a translation to read. Ask the church office.')
+					__(
+						'The church has not set up a translation to read. Ask the church office.',
+					)
 				"
 			/>
 			<template v-else>
@@ -86,7 +88,12 @@
 					:aria-label="__('Loading')"
 				>
 					<p v-if="!books.data" class="t-dateline text-ink-gray-6">
-						{{ __("Opening {0}. The first time can take a minute.", [translation]) }}
+						{{
+							__(
+								"Opening {0}. The first time can take a minute.",
+								[translation],
+							)
+						}}
 					</p>
 					<div
 						v-for="line in 6"
@@ -95,7 +102,10 @@
 						:style="{ width: `${96 - line * 8}%` }"
 					/>
 				</div>
-				<article v-else-if="currentBook" class="mt-8 border-t border-outline-gray-1 pt-8">
+				<article
+					v-else-if="currentBook"
+					class="mt-8 border-t border-outline-gray-1 pt-8"
+				>
 					<h2 class="t-title text-ink-gray-9" :dir="direction">
 						{{ currentBook.name }} {{ chapter }}
 					</h2>
@@ -117,9 +127,15 @@
 								v-else-if="block.type === 'verses'"
 								class="t-scripture text-ink-gray-9"
 							>
-								<template v-for="verse in block.verses" :key="verse.number">
-									<span class="verse-number">{{ verse.number }}</span
-									><span class="whitespace-pre-line">{{ verse.text }}</span
+								<template
+									v-for="verse in block.verses"
+									:key="verse.number"
+								>
+									<span class="verse-number">{{
+										verse.number
+									}}</span><span
+										class="whitespace-pre-line"
+										>{{ verse.text }}</span
 									>{{ " " }}
 								</template>
 							</p>
@@ -159,7 +175,9 @@
 							/></template>
 						</Button>
 					</nav>
-					<p class="t-label mt-8 text-ink-gray-5">{{ translationTitle }}</p>
+					<p class="t-label mt-8 text-ink-gray-5">
+						{{ translationTitle }}
+					</p>
 				</article>
 			</template>
 		</LoadState>
@@ -217,34 +235,38 @@ const books = useCall<BookEntry[], { translation: string }>({
 	method: "GET",
 	immediate: false,
 });
-const chapterCall = useCall<ChapterItem[], { book: string; chapter: number; translation: string }>(
-	{
-		url: `${SCRIPTURE}.get_chapter`,
-		method: "GET",
-		immediate: false,
-	}
-);
+const chapterCall = useCall<
+	ChapterItem[],
+	{ book: string; chapter: number; translation: string }
+>({
+	url: `${SCRIPTURE}.get_chapter`,
+	method: "GET",
+	immediate: false,
+});
 
 const translation = ref(String(route.query.translation || ""));
 const book = ref(String(route.query.book || "").toUpperCase());
 const chapter = ref(Number(route.query.chapter) || 1);
 
-const currentBook = computed(() => books.data?.find((entry) => entry.id === book.value) || null);
+const currentBook = computed(
+	() => books.data?.find((entry) => entry.id === book.value) || null,
+);
 const translationTitle = computed(
 	() =>
-		translations.data?.find((entry) => entry.name === translation.value)?.translation ||
-		translation.value
+		translations.data?.find((entry) => entry.name === translation.value)
+			?.translation || translation.value,
 );
 const direction = computed(() =>
-	translations.data?.find((entry) => entry.name === translation.value)?.text_direction === "RTL"
+	translations.data?.find((entry) => entry.name === translation.value)
+		?.text_direction === "RTL"
 		? "rtl"
-		: "ltr"
+		: "ltr",
 );
 const chapterOptions = computed(() =>
 	Array.from({ length: currentBook.value?.chapters || 0 }, (_, index) => ({
 		label: String(index + 1),
 		value: String(index + 1),
-	}))
+	})),
 );
 
 const places = computed<Place[]>(() =>
@@ -253,15 +275,19 @@ const places = computed<Place[]>(() =>
 			id: entry.id,
 			name: entry.name,
 			chapter: index + 1,
-		}))
-	)
+		})),
+	),
 );
 const position = computed(() =>
-	places.value.findIndex((place) => place.id === book.value && place.chapter === chapter.value)
+	places.value.findIndex(
+		(place) => place.id === book.value && place.chapter === chapter.value,
+	),
 );
-const previous = computed(() => (position.value > 0 ? places.value[position.value - 1] : null));
+const previous = computed(() =>
+	position.value > 0 ? places.value[position.value - 1] : null,
+);
 const following = computed(() =>
-	position.value >= 0 ? places.value[position.value + 1] || null : null
+	position.value >= 0 ? places.value[position.value + 1] || null : null,
 );
 
 /** Verses join one paragraph until a line break; a heading or subtitle stands on its own. */
@@ -275,7 +301,8 @@ const blocks = computed<Block[]>(() => {
 			continue;
 		}
 		verses = null;
-		if (item.type === "heading") result.push({ type: "heading", text: item.text || "" });
+		if (item.type === "heading")
+			result.push({ type: "heading", text: item.text || "" });
 		if (item.type === "hebrew_subtitle")
 			result.push({ type: "subtitle", text: item.text || "" });
 	}
@@ -288,7 +315,9 @@ function chapterLabel(place: Place): string {
 
 async function loadBooks() {
 	if (!translation.value) return;
-	const found = await books.submit({ translation: translation.value }).catch(() => null);
+	const found = await books
+		.submit({ translation: translation.value })
+		.catch(() => null);
 	if (!found) return;
 	if (!found.some((entry) => entry.id === book.value)) {
 		book.value = found[0]?.id || "";
@@ -296,7 +325,7 @@ async function loadBooks() {
 	}
 	chapter.value = Math.min(
 		Math.max(chapter.value, 1),
-		found.find((entry) => entry.id === book.value)?.chapters || 1
+		found.find((entry) => entry.id === book.value)?.chapters || 1,
 	);
 	await loadChapter();
 }
@@ -304,7 +333,11 @@ async function loadBooks() {
 async function loadChapter() {
 	if (!book.value) return;
 	await chapterCall
-		.submit({ book: book.value, chapter: chapter.value, translation: translation.value })
+		.submit({
+			book: book.value,
+			chapter: chapter.value,
+			translation: translation.value,
+		})
 		.catch(() => {});
 	router.replace({
 		query: {
@@ -340,6 +373,6 @@ watch(
 			translation.value = choices[0].name;
 		loadBooks();
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 </script>

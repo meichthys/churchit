@@ -13,7 +13,9 @@
 				:label="boot.church?.title"
 				:dateline="
 					[
-						data.recipient_name ? __('For {0}', [data.recipient_name]) : null,
+						data.recipient_name
+							? __('For {0}', [data.recipient_name])
+							: null,
 						data.type,
 						data.date_display,
 					]
@@ -27,17 +29,23 @@
 						v-if="data.is_team_only"
 						class="mb-5 flex items-start gap-2 text-p-lg text-ink-gray-8"
 					>
-						<span class="lucide-lock mt-1 size-5 shrink-0" aria-hidden="true" />
+						<span
+							class="lucide-lock mt-1 size-5 shrink-0"
+							aria-hidden="true"
+						/>
 						{{
 							__(
-								"Only the prayer team sees this request. Please keep it within the team."
+								"Only the prayer team sees this request. Please keep it within the team.",
 							)
 						}}
 					</p>
 					<p v-if="data.urgent" class="t-label mb-3 text-ink-red-8">
 						{{ __("Urgent") }}
 					</p>
-					<p v-if="data.request" class="whitespace-pre-line text-p-lg text-ink-gray-9">
+					<p
+						v-if="data.request"
+						class="whitespace-pre-line text-p-lg text-ink-gray-9"
+					>
 						{{ data.request }}
 					</p>
 
@@ -53,7 +61,11 @@
 							:label="__('A note with your prayer (optional)')"
 						/>
 						<div class="mt-3">
-							<PrayButton :request="data" :note="note" @prayed="onPrayed" />
+							<PrayButton
+								:request="data"
+								:note="note"
+								@prayed="onPrayed"
+							/>
 						</div>
 					</div>
 
@@ -69,11 +81,17 @@
 								class="py-4"
 								:class="isFresh(comment.name) && 'is-fresh'"
 							>
-								<p class="text-lg-medium text-ink-gray-9 md:text-md-medium">
+								<p
+									class="text-lg-medium text-ink-gray-9 md:text-md-medium"
+								>
 									{{ comment.comment_by }}
-									<span class="text-ink-gray-6">{{ comment.date_display }}</span>
+									<span class="text-ink-gray-6">{{
+										comment.date_display
+									}}</span>
 								</p>
-								<p class="mt-1 whitespace-pre-line text-p-lg text-ink-gray-8">
+								<p
+									class="mt-1 whitespace-pre-line text-p-lg text-ink-gray-8"
+								>
 									{{ comment.content }}
 								</p>
 							</li>
@@ -102,7 +120,9 @@
 						</form>
 					</div>
 				</section>
-				<aside class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10">
+				<aside
+					class="md:col-span-4 md:border-s md:border-outline-gray-1 md:ps-10"
+				>
 					<Button
 						class="min-h-11"
 						size="lg"
@@ -141,12 +161,18 @@ import { useLiveRefresh } from "@/realtime";
 import PrayButton from "./PrayButton.vue";
 import type { PrayerComment, PrayerRequest } from "./types";
 
-type Detail = PrayerRequest & { comments: PrayerComment[]; is_team_only: boolean };
+type Detail = PrayerRequest & {
+	comments: PrayerComment[];
+	is_team_only: boolean;
+};
 
 const route = useRoute();
-const request = useRead<Detail, { name: string }>("care.get_community_request", {
-	params: { name: String(route.params.name) },
-});
+const request = useRead<Detail, { name: string }>(
+	"care.get_community_request",
+	{
+		params: { name: String(route.params.name) },
+	},
+);
 const commenting = useAction<
 	{ comments: PrayerComment[] },
 	{ prayer_request: string; comment: string }
@@ -162,14 +188,17 @@ function onPrayed() {
 
 async function postComment() {
 	await commenting
-		.submit({ prayer_request: String(route.params.name), comment: comment.value })
+		.submit({
+			prayer_request: String(route.params.name),
+			comment: comment.value,
+		})
 		.then(
 			() => {
 				comment.value = "";
 				toast.success(__("Comment added."));
 				request.reload();
 			},
-			() => {}
+			() => {},
 		);
 }
 

@@ -6,7 +6,9 @@
 		class="border-t border-outline-gray-1 py-10 text-center"
 		role="alert"
 	>
-		<p class="t-dateline is-large text-ink-gray-8">{{ __("This did not load") }}</p>
+		<p class="t-dateline is-large text-ink-gray-8">
+			{{ __("This did not load") }}
+		</p>
 		<p class="mx-auto mt-2 max-w-[30rem] text-p-lg text-ink-gray-6">
 			{{ errorText(resource.error) }}
 		</p>
@@ -48,7 +50,7 @@ withDefaults(
 		};
 		lines?: number;
 	}>(),
-	{ lines: 4 }
+	{ lines: 4 },
 );
 
 defineSlots<{ default(props: { data: T }): unknown }>();

@@ -27,11 +27,15 @@
 			@click="openReplacement"
 		/>
 	</div>
-	<p v-if="assignment.pending_replacement" class="mt-2 text-lg text-ink-gray-6 md:text-md">
+	<p
+		v-if="assignment.pending_replacement"
+		class="mt-2 text-lg text-ink-gray-6 md:text-md"
+	>
 		{{
-			__("You asked {0} to take your place. It passes to them when they accept.", [
-				assignment.pending_replacement,
-			])
+			__(
+				"You asked {0} to take your place. It passes to them when they accept.",
+				[assignment.pending_replacement],
+			)
 		}}
 	</p>
 
@@ -57,7 +61,12 @@
 				:loading="answer.loading"
 				@click="decline"
 			/>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="declining = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="declining = false"
+			/>
 		</template>
 	</FormSheet>
 
@@ -84,7 +93,12 @@
 				:loading="ask.loading"
 				@click="sendAsk"
 			/>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="replacing = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="replacing = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -109,13 +123,17 @@ const reason = ref("");
 const replacement = ref<string | null>(null);
 const answering = ref<string | null>(null);
 
-const answer = useFrappeAction<void, { assignment: string; status: string; reason?: string }>(
-	`${TEAM}.answer_own_assignment`
-);
+const answer = useFrappeAction<
+	void,
+	{ assignment: string; status: string; reason?: string }
+>(`${TEAM}.answer_own_assignment`);
 const ask = useFrappeAction<void, { assignment: string; replacement: string }>(
-	`${TEAM}.ask_for_replacement`
+	`${TEAM}.ask_for_replacement`,
 );
-const candidates = useCall<{ person: string; full_name: string }[], { assignment: string }>({
+const candidates = useCall<
+	{ person: string; full_name: string }[],
+	{ assignment: string }
+>({
 	url: `/api/v2/method/${TEAM}.get_replacement_candidates`,
 	method: "GET",
 	immediate: false,
@@ -123,15 +141,20 @@ const candidates = useCall<{ person: string; full_name: string }[], { assignment
 });
 
 const options = computed(() =>
-	(candidates.data || []).map((row) => ({ label: row.full_name, value: row.person }))
+	(candidates.data || []).map((row) => ({
+		label: row.full_name,
+		value: row.person,
+	})),
 );
 
 async function accept() {
 	answering.value = "Accepted";
-	await answer.submit({ assignment: props.assignment.name, status: "Accepted" }).then(
-		() => emit("changed"),
-		() => {}
-	);
+	await answer
+		.submit({ assignment: props.assignment.name, status: "Accepted" })
+		.then(
+			() => emit("changed"),
+			() => {},
+		);
 }
 
 async function decline() {
@@ -147,14 +170,16 @@ async function decline() {
 				declining.value = false;
 				emit("changed");
 			},
-			() => {}
+			() => {},
 		);
 }
 
 async function openReplacement() {
 	replacement.value = null;
 	candidates.data = null;
-	await candidates.submit({ assignment: props.assignment.name }).catch(() => {});
+	await candidates
+		.submit({ assignment: props.assignment.name })
+		.catch(() => {});
 	const list = candidates.data as { person: string }[] | null;
 	if (!list) return;
 	if (!list.length) {
@@ -166,12 +191,17 @@ async function openReplacement() {
 
 async function sendAsk() {
 	if (!replacement.value) return;
-	await ask.submit({ assignment: props.assignment.name, replacement: replacement.value }).then(
-		() => {
-			replacing.value = false;
-			emit("changed");
-		},
-		() => {}
-	);
+	await ask
+		.submit({
+			assignment: props.assignment.name,
+			replacement: replacement.value,
+		})
+		.then(
+			() => {
+				replacing.value = false;
+				emit("changed");
+			},
+			() => {},
+		);
 }
 </script>

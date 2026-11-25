@@ -46,7 +46,11 @@
 	// type was applied already, so it keeps a tick the user changes before the save.
 	async function get_receives_texts(phone_type) {
 		if (!phone_type) return 1;
-		const { message } = await frappe.db.get_value("Phone Type", phone_type, "receives_texts");
+		const { message } = await frappe.db.get_value(
+			"Phone Type",
+			phone_type,
+			"receives_texts",
+		);
 		return message.receives_texts;
 	}
 

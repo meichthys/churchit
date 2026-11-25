@@ -1,8 +1,13 @@
 <template>
 	<!-- Check-in is open: the first thing on the page. -->
-	<section class="mt-8 border-y border-outline-gray-3 py-6" aria-labelledby="now-head">
+	<section
+		class="mt-8 border-y border-outline-gray-3 py-6"
+		aria-labelledby="now-head"
+	>
 		<p class="t-label text-accent">{{ __("Now") }}</p>
-		<h2 id="now-head" class="t-head mt-1 text-ink-gray-9">{{ __("Check-in is open") }}</h2>
+		<h2 id="now-head" class="t-head mt-1 text-ink-gray-9">
+			{{ __("Check-in is open") }}
+		</h2>
 		<ul class="mt-3 space-y-1">
 			<li
 				v-for="function_ in checkIn.functions"
@@ -39,11 +44,14 @@ import type { Home } from "./types";
 const props = defineProps<{ checkIn: NonNullable<Home["check_in"]> }>();
 
 const label = computed(() => {
-	const names = props.checkIn.people.map((person) => person.display_name.split(" ")[0]);
-	if (!names.length) return __("Open check-in");
-	const list = new Intl.ListFormat(boot.lang, { style: "long", type: "conjunction" }).format(
-		names
+	const names = props.checkIn.people.map(
+		(person) => person.display_name.split(" ")[0],
 	);
+	if (!names.length) return __("Open check-in");
+	const list = new Intl.ListFormat(boot.lang, {
+		style: "long",
+		type: "conjunction",
+	}).format(names);
 	return __("Check in {0}", [list]);
 });
 </script>

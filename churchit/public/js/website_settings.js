@@ -18,11 +18,12 @@ frappe.ui.form.on("Website Settings", {
 		mark_picked_theme(frm);
 	},
 	after_save(frm) {
-		const still_linked = [...frm.doc.top_bar_items, ...frm.doc.footer_items].map(
-			(row) => row.url
-		);
+		const still_linked = [
+			...frm.doc.top_bar_items,
+			...frm.doc.footer_items,
+		].map((row) => row.url);
 		const urls = [...(frm.removed_link_urls || [])].filter(
-			(url) => !still_linked.includes(url)
+			(url) => !still_linked.includes(url),
 		);
 		frm.removed_link_urls = new Set();
 		offer_to_unpublish(urls);
@@ -41,7 +42,7 @@ async function offer_to_unpublish(urls) {
 		const page = await frappe.xcall(
 			"churchit.church_website.api.get_published_web_page",
 			{ url },
-			"GET"
+			"GET",
 		);
 		if (page) await confirm_unpublish(page);
 	}
@@ -52,10 +53,13 @@ function confirm_unpublish(page) {
 		frappe.confirm(
 			__(
 				"The page <b>{0}</b> is no longer linked from the website menu, but it is still published and reachable at <code>/{1}</code>. Un-publish it?",
-				[frappe.utils.escape_html(page.title), frappe.utils.escape_html(page.route)]
+				[
+					frappe.utils.escape_html(page.title),
+					frappe.utils.escape_html(page.route),
+				],
 			),
 			() => unpublish(page).then(resolve),
-			resolve
+			resolve,
 		);
 	});
 }
@@ -72,7 +76,7 @@ function unpublish(page) {
 			frappe.show_alert({
 				message: __("Un-published {0}", [
 					`<a href="/app/web-page/${encodeURIComponent(
-						page.name
+						page.name,
 					)}">${frappe.utils.escape_html(page.title)}</a>`,
 				]),
 				indicator: "green",
@@ -113,12 +117,12 @@ async function show_theme_picker(frm) {
 	const themes = await frappe.xcall(
 		"churchit.church_website.theme_palette.get_website_theme_palettes",
 		{},
-		"GET"
+		"GET",
 	);
 	$wrapper.find(".ch-theme-picker").remove();
 	const $grid = $('<div class="ch-theme-grid" role="radiogroup">').attr(
 		"aria-label",
-		__("Website Theme")
+		__("Website Theme"),
 	);
 	for (const theme of themes) {
 		$grid.append(make_theme_card(frm, theme));
@@ -127,10 +131,10 @@ async function show_theme_picker(frm) {
 		.append(
 			$('<div class="ch-theme-picker-help">').text(
 				__(
-					"Pick the colors of your website and member portal, then save. Each theme has a light and a dark page. Preview opens your home page in a theme before you save."
-				)
+					"Pick the colors of your website and member portal, then save. Each theme has a light and a dark page. Preview opens your home page in a theme before you save.",
+				),
 			),
-			$grid
+			$grid,
 		)
 		.appendTo($wrapper);
 	mark_picked_theme(frm);
@@ -145,15 +149,15 @@ function make_theme_card(frm, theme) {
 		.append(
 			$('<div class="ch-theme-pages">').append(
 				make_theme_page(theme.light),
-				make_theme_page(theme.dark)
+				make_theme_page(theme.dark),
 			),
 			$('<div class="ch-theme-name">').append(
 				$("<span>").text(theme.name),
 				$('<a target="_blank" rel="noopener">')
 					.attr("href", preview_url)
 					.text(__("Preview"))
-					.on("click", (event) => event.stopPropagation())
-			)
+					.on("click", (event) => event.stopPropagation()),
+			),
 		)
 		.on("click", () => frm.set_value("website_theme", theme.name))
 		.on("keydown", (event) => {
@@ -173,12 +177,17 @@ function make_theme_page(colors) {
 			$('<span class="ch-theme-sample">').text("Aa"),
 			$('<span class="ch-theme-line">').css("background", colors.muted),
 			$('<span class="ch-theme-line">').css("background", colors.rule),
-			$('<span class="ch-theme-dot">').css("background", colors.accent)
+			$('<span class="ch-theme-dot">').css("background", colors.accent),
 		);
 }
 
 function mark_picked_theme(frm) {
-	frm.fields_dict.website_theme.$wrapper.find(".ch-theme-card").each(function () {
-		this.setAttribute("aria-checked", this.dataset.themeName === frm.doc.website_theme);
-	});
+	frm.fields_dict.website_theme.$wrapper
+		.find(".ch-theme-card")
+		.each(function () {
+			this.setAttribute(
+				"aria-checked",
+				this.dataset.themeName === frm.doc.website_theme,
+			);
+		});
 }

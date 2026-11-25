@@ -74,7 +74,9 @@
 									size="lg"
 									variant="outline"
 									:icon-left="
-										isAnswered(item) ? 'lucide-rotate-ccw' : 'lucide-check'
+										isAnswered(item)
+											? 'lucide-rotate-ccw'
+											: 'lucide-check'
 									"
 									:label="
 										isAnswered(item)
@@ -106,7 +108,7 @@
 							>
 								{{
 									__(
-										"People have prayed for this request, so it stays. Change who can see it to Private to take it off the prayer list."
+										"People have prayed for this request, so it stays. Change who can see it to Private to take it off the prayer list.",
 									)
 								}}
 							</p>
@@ -116,7 +118,11 @@
 				<EmptyState
 					v-else
 					:title="__('Nothing here yet')"
-					:body="__('A request you share is listed here, with how many are praying.')"
+					:body="
+						__(
+							'A request you share is listed here, with how many are praying.',
+						)
+					"
 				>
 					<Button
 						variant="solid"
@@ -168,12 +174,15 @@ import PrayerRequestSheet from "./PrayerRequestSheet.vue";
 import { useRequestSheet } from "./useRequestSheet";
 import type { PrayerForm, PrayerRequest } from "./types";
 
-const requests = useRead<{ items: PrayerRequest[] }>("care.get_my_prayer_requests");
+const requests = useRead<{ items: PrayerRequest[] }>(
+	"care.get_my_prayer_requests",
+);
 const form = useRead<PrayerForm>("care.get_prayer_form");
 const remove = useAction<null, { name: string }>("care.delete_prayer_request");
-const setAnswered = useAction<{ status: string }, { name: string; answered: boolean }>(
-	"care.set_prayer_request_answered"
-);
+const setAnswered = useAction<
+	{ status: string },
+	{ name: string; answered: boolean }
+>("care.set_prayer_request_answered");
 const { mark, isFresh } = useFreshInk();
 
 const {
@@ -183,7 +192,7 @@ const {
 	openEdit,
 } = useRequestSheet<PrayerRequest>(
 	"/prayer-request",
-	computed(() => requests.data?.items)
+	computed(() => requests.data?.items),
 );
 
 const openComments = ref<string | null>(null);
@@ -194,7 +203,9 @@ function toggleComments(name: string) {
 
 function tally(item: PrayerRequest): string | null {
 	if (!item.prayer_count) return null;
-	return item.prayer_count === 1 ? __("1 prayer") : __("{0} prayers", [item.prayer_count]);
+	return item.prayer_count === 1
+		? __("1 prayer")
+		: __("{0} prayers", [item.prayer_count]);
 }
 
 const answering = ref<string | null>(null);
@@ -211,7 +222,7 @@ async function toggleAnswered(item: PrayerRequest) {
 		toast.success(
 			answered
 				? __("Marked answered. It is off the prayer list.")
-				: __("Marked not answered yet.")
+				: __("Marked not answered yet."),
 		);
 		await requests.reload();
 	} finally {
@@ -222,7 +233,10 @@ async function toggleAnswered(item: PrayerRequest) {
 function confirmDelete(item: PrayerRequest) {
 	dialog.danger({
 		title: __("Delete this request?"),
-		message: __("{0} will be removed from your list and from the prayer list.", [item.title]),
+		message: __(
+			"{0} will be removed from your list and from the prayer list.",
+			[item.title],
+		),
 		confirmLabel: __("Delete"),
 		cancelLabel: __("Keep it"),
 		onConfirm: async ({ close }) => {

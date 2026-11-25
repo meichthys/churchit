@@ -21,7 +21,9 @@ import { boot } from "@/boot";
 const props = defineProps<{ value: string }>();
 
 const parts = computed(() => {
-	const time = props.value.includes(" ") ? props.value.split(" ")[1] : props.value;
+	const time = props.value.includes(" ")
+		? props.value.split(" ")[1]
+		: props.value;
 	const [hour, minute] = time.split(":").map(Number);
 	const date = new Date(2000, 0, 1, hour, minute);
 	return new Intl.DateTimeFormat(boot.lang, {

@@ -1,20 +1,32 @@
 <template>
-	<PageHead :crumbs="[{ label: __('Giving') }, { label: __('Giving Statements') }]" />
+	<PageHead
+		:crumbs="[{ label: __('Giving') }, { label: __('Giving Statements') }]"
+	/>
 	<PageBody>
 		<Masthead
 			:title="__('Giving Statements')"
 			:label="boot.church?.title"
-			:dateline="__('Your giving, year by year, to keep for your records')"
+			:dateline="
+				__('Your giving, year by year, to keep for your records')
+			"
 		/>
 		<LoadState :resource="statements" v-slot="{ data }">
 			<section v-if="data.items.length" class="mt-8">
 				<template v-for="group in years(data.items)" :key="group.year">
 					<SectionHead :title="group.year" />
-					<ul class="mb-8 divide-y divide-outline-gray-1 border-t border-outline-gray-1">
-						<li v-for="statement in group.items" :key="statement.name">
+					<ul
+						class="mb-8 divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+					>
+						<li
+							v-for="statement in group.items"
+							:key="statement.name"
+						>
 							<IndexRow
 								:title="statement.title"
-								:facts="[statement.period_display, statement.total_display]"
+								:facts="[
+									statement.period_display,
+									statement.total_display,
+								]"
 							>
 								<template #suffix>
 									<Button
@@ -37,7 +49,7 @@
 				:title="__('No statements yet')"
 				:body="
 					__(
-						'The church issues your giving statement after the year ends. It will be listed here.'
+						'The church issues your giving statement after the year ends. It will be listed here.',
 					)
 				"
 			/>

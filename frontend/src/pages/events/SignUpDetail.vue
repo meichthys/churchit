@@ -24,7 +24,10 @@
 			>
 				<div
 					class="mt-4"
-					:class="isFresh('status') && 'is-fresh -mx-3 rounded-4 px-3 py-2'"
+					:class="
+						isFresh('status') &&
+						'is-fresh -mx-3 rounded-4 px-3 py-2'
+					"
 				>
 					<StatusBadge :status="data.status" />
 					<p
@@ -58,7 +61,9 @@
 								class="py-3 text-lg text-ink-gray-9"
 							>
 								{{ attendee.name }}
-								<span v-if="attendee.selection" class="text-ink-gray-6"
+								<span
+									v-if="attendee.selection"
+									class="text-ink-gray-6"
 									>· {{ attendee.selection }}</span
 								>
 							</li>
@@ -71,15 +76,24 @@
 						</p>
 					</section>
 
-					<section v-if="data.items.some((item) => item.my_quantity)" class="mt-10">
+					<section
+						v-if="data.items.some((item) => item.my_quantity)"
+						class="mt-10"
+					>
 						<SectionHead :title="__('What you bring')" />
-						<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+						<ul
+							class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+						>
 							<li
-								v-for="row in data.items.filter((item) => item.my_quantity)"
+								v-for="row in data.items.filter(
+									(item) => item.my_quantity,
+								)"
 								:key="row.item"
 								class="flex justify-between gap-4 py-3 text-lg"
 							>
-								<span class="text-ink-gray-9">{{ row.item }}</span>
+								<span class="text-ink-gray-9">{{
+									row.item
+								}}</span>
 								<span class="tabular-nums text-ink-gray-7">{{
 									row.my_quantity
 								}}</span>
@@ -104,13 +118,25 @@
 					<section v-if="hasMoney(data)">
 						<SectionHead :title="__('Payment')" />
 						<dl class="space-y-2 text-lg">
-							<div v-if="data.amount_due" class="flex items-baseline gap-2">
-								<dt class="text-ink-gray-7">{{ __("Amount due") }}</dt>
+							<div
+								v-if="data.amount_due"
+								class="flex items-baseline gap-2"
+							>
+								<dt class="text-ink-gray-7">
+									{{ __("Amount due") }}
+								</dt>
 								<span class="leader" aria-hidden="true" />
-								<dd class="tabular-nums text-ink-gray-9">{{ data.amount_due }}</dd>
+								<dd class="tabular-nums text-ink-gray-9">
+									{{ data.amount_due }}
+								</dd>
 							</div>
-							<div v-if="data.amount_paid" class="flex items-baseline gap-2">
-								<dt class="text-ink-gray-7">{{ __("Paid") }}</dt>
+							<div
+								v-if="data.amount_paid"
+								class="flex items-baseline gap-2"
+							>
+								<dt class="text-ink-gray-7">
+									{{ __("Paid") }}
+								</dt>
 								<span class="leader" aria-hidden="true" />
 								<dd class="tabular-nums text-ink-green-8">
 									{{ data.amount_paid }}
@@ -123,7 +149,9 @@
 							class="mt-3"
 						/>
 						<p v-if="data.pay_url" class="mt-4">
-							<span class="rubric">{{ __("Pay to keep your place.") }}</span>
+							<span class="rubric">{{
+								__("Pay to keep your place.")
+							}}</span>
 							<a
 								:href="data.pay_url"
 								class="mt-2 block min-h-11 text-xl-medium text-ink-gray-9 underline decoration-outline-gray-3 underline-offset-4"
@@ -133,12 +161,15 @@
 						</p>
 					</section>
 
-					<section v-if="data.can_cancel" :class="hasMoney(data) && 'mt-10'">
+					<section
+						v-if="data.can_cancel"
+						:class="hasMoney(data) && 'mt-10'"
+					>
 						<SectionHead :title="__('Cancel')" />
 						<p class="text-p-lg text-ink-gray-7">
 							{{
 								__(
-									"If you cannot come, cancel so someone on the waitlist can have your place."
+									"If you cannot come, cancel so someone on the waitlist can have your place.",
 								)
 							}}
 						</p>
@@ -161,7 +192,11 @@
 		:description="__('Your place goes to the next person on the waitlist.')"
 	>
 		<template #actions>
-			<Button size="lg" :label="__('Keep my place')" @click="isCancelling = false" />
+			<Button
+				size="lg"
+				:label="__('Keep my place')"
+				@click="isCancelling = false"
+			/>
 			<Button
 				size="lg"
 				variant="solid"
@@ -221,11 +256,14 @@ function statusLine(data: SignUpDetail): string {
 			? __("Pay by {0} to keep your place.", [data.hold_expires])
 			: __("Pay to keep your place.");
 	}
-	if (data.status === "Pending") return __("The church must approve your place.");
+	if (data.status === "Pending")
+		return __("The church must approve your place.");
 	if (data.status === "Waitlisted")
 		return __("The event is full. You will get an email if a place opens.");
 	if (data.status === "Cancelled")
-		return __("This sign-up is cancelled. Make a new sign-up if you want to come.");
+		return __(
+			"This sign-up is cancelled. Make a new sign-up if you want to come.",
+		);
 	return "";
 }
 

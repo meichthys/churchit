@@ -2,7 +2,11 @@
 	<FormSheet
 		v-model:open="open"
 		:title="__('Message the group')"
-		:description="__('Everyone in the group who has agreed to group messages gets it.')"
+		:description="
+			__(
+				'Everyone in the group who has agreed to group messages gets it.',
+			)
+		"
 	>
 		<div class="space-y-4">
 			<FormControl
@@ -40,7 +44,12 @@
 				:loading="send.loading"
 				@click="submit"
 			/>
-			<Button variant="subtle" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="subtle"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 		</template>
 	</FormSheet>
 </template>
@@ -53,19 +62,25 @@ import { useFrappeAction } from "@/api";
 import FormSheet from "@/components/FormSheet.vue";
 import { __ } from "@/translate";
 
-const props = defineProps<{ group: string; canEmail: boolean; canText: boolean }>();
+const props = defineProps<{
+	group: string;
+	canEmail: boolean;
+	canText: boolean;
+}>();
 const open = defineModel<boolean>("open", { default: false });
 
 const form = reactive({ channel: "Email", subject: "", message: "" });
 const send = useFrappeAction<number, Record<string, unknown>>(
-	"churchit.church_people.group_api.message_group"
+	"churchit.church_people.group_api.message_group",
 );
 
 const channels = computed(() => [
 	...(props.canEmail ? [{ value: "Email", label: __("Email") }] : []),
 	...(props.canText ? [{ value: "SMS", label: __("Text message") }] : []),
 ]);
-const canSend = computed(() => Boolean(form.subject.trim() && form.message.trim()));
+const canSend = computed(() =>
+	Boolean(form.subject.trim() && form.message.trim()),
+);
 
 watch(open, (isOpen) => {
 	if (isOpen)
@@ -77,14 +92,18 @@ watch(open, (isOpen) => {
 });
 
 async function submit() {
-	const reached = await send.submit({ group: props.group, ...form }).catch(() => null);
+	const reached = await send
+		.submit({ group: props.group, ...form })
+		.catch(() => null);
 	if (reached === null) return;
 
 	open.value = false;
 	if (reached) toast.success(__("Your message is on its way."));
 	else
 		toast.warning(
-			__("No one received it. People get group messages only when they have agreed to them.")
+			__(
+				"No one received it. People get group messages only when they have agreed to them.",
+			),
 		);
 }
 </script>

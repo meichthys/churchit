@@ -6,7 +6,10 @@
 		>
 			{{ request.title || __("Prayer request") }}
 		</RouterLink>
-		<p v-if="request.request" class="mt-1 line-clamp-4 text-p-lg text-ink-gray-8">
+		<p
+			v-if="request.request"
+			class="mt-1 line-clamp-4 text-p-lg text-ink-gray-8"
+		>
 			{{ request.request }}
 		</p>
 		<div class="mt-3 flex flex-wrap items-center gap-3">
@@ -46,9 +49,11 @@ import type { Home } from "./types";
 const props = defineProps<{ request: Home["prayer_requests"][number] }>();
 
 const prayed = ref(false);
-const count = computed(() => props.request.prayer_count + (prayed.value ? 1 : 0));
+const count = computed(
+	() => props.request.prayer_count + (prayed.value ? 1 : 0),
+);
 const pray = useFrappeAction<{ name: string }, { prayer_request: string }>(
-	"churchit.church_prayers.api.create_prayer"
+	"churchit.church_prayers.api.create_prayer",
 );
 
 async function send() {

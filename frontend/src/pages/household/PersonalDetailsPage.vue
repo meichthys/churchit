@@ -1,13 +1,20 @@
 <template>
 	<PageHead
-		:crumbs="[{ label: __('My Household'), route: '/household' }, { label: title }]"
+		:crumbs="[
+			{ label: __('My Household'), route: '/household' },
+			{ label: title },
+		]"
 		back="/household"
 	/>
 	<PageBody>
 		<Masthead
 			:title="title"
 			:label="boot.church?.title"
-			:dateline="__('What the church keeps about you, and what other members see')"
+			:dateline="
+				__(
+					'What the church keeps about you, and what other members see',
+				)
+			"
 		/>
 		<LoadState :resource="details" v-slot="{ data }">
 			<div
@@ -18,7 +25,7 @@
 				<p class="text-lg text-ink-gray-9">
 					{{
 						__(
-							"This record was changed while you had it open. Reload it, then make your change again."
+							"This record was changed while you had it open. Reload it, then make your change again.",
 						)
 					}}
 				</p>
@@ -41,8 +48,13 @@
 				@submit.prevent="save"
 			>
 				<section aria-labelledby="pd-personal">
-					<SectionHead id="pd-personal" :title="__('Personal information')" />
-					<div class="grid gap-4 border-t border-outline-gray-1 pt-5 sm:grid-cols-2">
+					<SectionHead
+						id="pd-personal"
+						:title="__('Personal information')"
+					/>
+					<div
+						class="grid gap-4 border-t border-outline-gray-1 pt-5 sm:grid-cols-2"
+					>
 						<FormControl
 							size="lg"
 							v-if="has('first_name')"
@@ -90,7 +102,10 @@
 							class="sm:col-span-2"
 						/>
 					</div>
-					<div v-if="has('photo') && data.can_edit" class="mt-5 flex items-center gap-4">
+					<div
+						v-if="has('photo') && data.can_edit"
+						class="mt-5 flex items-center gap-4"
+					>
 						<Avatar
 							:label="data.display_name"
 							:image="form.values.photo || undefined"
@@ -102,10 +117,14 @@
 							doctype="Person"
 							:docname="data.name"
 							:validate-file="validatePhoto"
-							@success="(file) => (form!.values.photo = file.file_url)"
+							@success="
+								(file) => (form!.values.photo = file.file_url)
+							"
 							@failure="(message) => toast.error(String(message))"
 						>
-							<template #default="{ openFileSelector, uploading }">
+							<template
+								#default="{ openFileSelector, uploading }"
+							>
 								<Button
 									variant="outline"
 									size="lg"
@@ -113,7 +132,9 @@
 									icon-left="lucide-camera"
 									:loading="uploading"
 									:label="
-										form.values.photo ? __('Change photo') : __('Add a photo')
+										form.values.photo
+											? __('Change photo')
+											: __('Add a photo')
 									"
 									@click="openFileSelector"
 								/>
@@ -122,8 +143,14 @@
 					</div>
 				</section>
 
-				<section v-if="has('emails') || has('phones')" aria-labelledby="pd-contact">
-					<SectionHead id="pd-contact" :title="__('Contact information')" />
+				<section
+					v-if="has('emails') || has('phones')"
+					aria-labelledby="pd-contact"
+				>
+					<SectionHead
+						id="pd-contact"
+						:title="__('Contact information')"
+					/>
 					<div v-if="has('emails')" class="mb-8">
 						<p class="mb-2 text-lg text-ink-gray-6 md:text-md">
 							{{ __("Mark the one we should use to reach you.") }}
@@ -147,28 +174,47 @@
 						/>
 					</div>
 					<div v-if="data.addresses.length" class="mt-8">
-						<p class="t-label mb-2 text-ink-gray-7">{{ __("Addresses") }}</p>
-						<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+						<p class="t-label mb-2 text-ink-gray-7">
+							{{ __("Addresses") }}
+						</p>
+						<ul
+							class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+						>
 							<li
 								v-for="address in data.addresses"
 								:key="address.name"
 								class="py-3 text-lg text-ink-gray-9"
 							>
 								{{ address.text }}
-								<span v-if="address.address_type" class="text-ink-gray-6">
+								<span
+									v-if="address.address_type"
+									class="text-ink-gray-6"
+								>
 									· {{ __(address.address_type) }}</span
 								>
 							</li>
 						</ul>
 						<p class="mt-2 text-lg text-ink-gray-6 md:text-md">
-							{{ __("To change your address, tell the church office.") }}
+							{{
+								__(
+									"To change your address, tell the church office.",
+								)
+							}}
 						</p>
 					</div>
 				</section>
 
-				<section v-if="has('marital_status')" aria-labelledby="pd-family">
-					<SectionHead id="pd-family" :title="__('Family information')" />
-					<div class="grid gap-4 border-t border-outline-gray-1 pt-5 sm:grid-cols-2">
+				<section
+					v-if="has('marital_status')"
+					aria-labelledby="pd-family"
+				>
+					<SectionHead
+						id="pd-family"
+						:title="__('Family information')"
+					/>
+					<div
+						class="grid gap-4 border-t border-outline-gray-1 pt-5 sm:grid-cols-2"
+					>
 						<FormControl
 							size="lg"
 							v-model="form.values.marital_status"
@@ -194,13 +240,16 @@
 					</div>
 				</section>
 
-				<section v-if="has('hide_from_directory')" aria-labelledby="pd-directory">
+				<section
+					v-if="has('hide_from_directory')"
+					aria-labelledby="pd-directory"
+				>
 					<SectionHead
 						id="pd-directory"
 						:title="__('Directory')"
 						:note="
 							__(
-								'What the other members of your church see about you on the Member Directory page.'
+								'What the other members of your church see about you on the Member Directory page.',
 							)
 						"
 					/>
@@ -210,7 +259,7 @@
 					>
 						{{
 							__(
-								"Your church has no Member Directory page now. If it adds one, other members see what you choose here."
+								"Your church has no Member Directory page now. If it adds one, other members see what you choose here.",
 							)
 						}}
 					</p>
@@ -221,7 +270,7 @@
 							:label="__('Hide me from the member directory')"
 							:description="
 								__(
-									'Leave me out of the member directory, the printed church directory, and the birthdays and anniversaries in the bulletin.'
+									'Leave me out of the member directory, the printed church directory, and the birthdays and anniversaries in the bulletin.',
 								)
 							"
 							class="min-h-11"
@@ -247,7 +296,7 @@
 					<p class="mb-1 text-lg text-ink-gray-6 md:text-md">
 						{{
 							__(
-								"The church's system can use AI to help staff: briefings, note drafts, report explanations and suggestions on new requests."
+								"The church's system can use AI to help staff: briefings, note drafts, report explanations and suggestions on new requests.",
 							)
 						}}
 					</p>
@@ -258,10 +307,12 @@
 						<FormControl
 							v-model="form.values.exclude_from_ai"
 							type="checkbox"
-							:label="__('Leave me out of the church\'s AI features')"
+							:label="
+								__('Leave me out of the church\'s AI features')
+							"
 							:description="
 								__(
-									'Church staff still read your details in the church\'s system, and staff who use an AI chat or their own AI app read what their rights allow.'
+									'Church staff still read your details in the church\'s system, and staff who use an AI chat or their own AI app read what their rights allow.',
 								)
 							"
 							class="min-h-11"
@@ -296,7 +347,14 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, FileUploader, FormControl, FrappeResponseError, toast } from "frappe-ui";
+import {
+	Avatar,
+	Button,
+	FileUploader,
+	FormControl,
+	FrappeResponseError,
+	toast,
+} from "frappe-ui";
 import { computed, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -338,17 +396,23 @@ const router = useRouter();
 /** /personal-details, /personal-details/list and /personal-details/<person>/edit all open one record. */
 const requested = computed(() => {
 	const rest = ([] as string[]).concat(
-		(route.params.rest as string | string[] | undefined) ?? []
+		(route.params.rest as string | string[] | undefined) ?? [],
 	);
 	return rest[0] && !["list", "new"].includes(rest[0]) ? rest[0] : undefined;
 });
 
-const details = useRead<Details, Record<string, any>>("account.get_personal_details", {
-	params: () => ({ person: requested.value }),
-});
-const action = useAction<Details, Record<string, any>>("account.save_personal_details", {
-	onError: handleSaveError,
-});
+const details = useRead<Details, Record<string, any>>(
+	"account.get_personal_details",
+	{
+		params: () => ({ person: requested.value }),
+	},
+);
+const action = useAction<Details, Record<string, any>>(
+	"account.save_personal_details",
+	{
+		onError: handleSaveError,
+	},
+);
 const form = ref<{
 	values: Record<string, any>;
 	emails: ContactRow[];
@@ -358,10 +422,12 @@ const stale = ref(false);
 const saving = computed(() => action.loading);
 
 const title = computed(() =>
-	!details.data || details.data.is_you ? __("My Details") : details.data.display_name
+	!details.data || details.data.is_you
+		? __("My Details")
+		: details.data.display_name,
 );
 const showsAnniversary = computed(() =>
-	["Married", "Widowed"].includes(form.value?.values.marital_status)
+	["Married", "Widowed"].includes(form.value?.values.marital_status),
 );
 const shares = [
 	{ field: "share_email", label: __("Show email") },
@@ -380,7 +446,7 @@ watch(
 			phones: data.phones.map((row) => ({ ...row })),
 		});
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 function has(field: string): boolean {
@@ -398,7 +464,10 @@ function reload() {
 }
 
 function handleSaveError(error: unknown) {
-	if (error instanceof FrappeResponseError && error.type === "TimestampMismatchError")
+	if (
+		error instanceof FrappeResponseError &&
+		error.type === "TimestampMismatchError"
+	)
 		stale.value = true;
 	else reportError(error);
 }
@@ -407,7 +476,7 @@ async function save() {
 	if (!details.data || !form.value) return;
 	const values: Record<string, unknown> = {};
 	for (const field of details.data.fields.filter(
-		(name) => name !== "emails" && name !== "phones"
+		(name) => name !== "emails" && name !== "phones",
 	))
 		values[field] = form.value.values[field];
 	const result = await action

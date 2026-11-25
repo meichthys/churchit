@@ -32,10 +32,10 @@ const props = defineProps<{
 }>();
 const value = defineModel<string | null>({ default: null });
 
-const search = useRead<{ items: Recipient[] }, { page: string; doctype: string; txt: string }>(
-	"care.search_recipients",
-	{ immediate: false }
-);
+const search = useRead<
+	{ items: Recipient[] },
+	{ page: string; doctype: string; txt: string }
+>("care.search_recipients", { immediate: false });
 const found = ref<Recipient[]>([]);
 const picked = ref<Recipient | null>(null);
 const query = ref(props.initialLabel || "");
@@ -48,7 +48,8 @@ const options = computed(() => {
 		(value.value && props.initialLabel
 			? { name: value.value, label: props.initialLabel }
 			: null);
-	if (current && !rows.some((row) => row.name === current.name)) rows.unshift(current);
+	if (current && !rows.some((row) => row.name === current.name))
+		rows.unshift(current);
 	return rows.map((row) => ({ label: row.label, value: row.name }));
 });
 
@@ -74,6 +75,6 @@ watch(
 		picked.value = null;
 		value.value = null;
 		query.value = "";
-	}
+	},
 );
 </script>

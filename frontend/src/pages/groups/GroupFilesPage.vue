@@ -23,7 +23,9 @@
 					:note="
 						data.can_add
 							? undefined
-							: __('Only the leaders of a group can add a file to it.')
+							: __(
+									'Only the leaders of a group can add a file to it.',
+								)
 					"
 				>
 					<Button
@@ -44,7 +46,10 @@
 						<IndexRow
 							:title="file.title"
 							:href="file.file_url"
-							:facts="[file.group_name, __('Added {0}', [file.added_on])]"
+							:facts="[
+								file.group_name,
+								__('Added {0}', [file.added_on]),
+							]"
 							:fresh="isFresh(file.name)"
 						>
 							<template #prefix
@@ -60,7 +65,9 @@
 					:title="__('No files yet')"
 					:body="
 						data.can_add
-							? __('Add a file and the members of the group can open it.')
+							? __(
+									'Add a file and the members of the group can open it.',
+								)
 							: __('A leader can add a file to your group.')
 					"
 				>
@@ -113,14 +120,15 @@ const { mark, isFresh } = useFreshInk();
 const adding = ref(
 	String(route.params.rest ?? "")
 		.split(",")
-		.includes("new")
+		.includes("new"),
 );
 
 useLiveRefresh(["group-files", "groups"], async () => {
 	const before = new Set(files.data?.items.map((file) => file.name));
 	await files.reload();
 
-	const added = files.data?.items.filter((file) => !before.has(file.name)) ?? [];
+	const added =
+		files.data?.items.filter((file) => !before.has(file.name)) ?? [];
 	added.forEach((file) => mark(file.name));
 });
 </script>

@@ -20,14 +20,21 @@ frappe.provide("churchit.live");
 
 	churchit.live.on = function (doctypes, read_again) {
 		if (!listeners.length) subscribe();
-		listeners.push({ doctypes: new Set(doctypes), read_again, timer: null, missed: false });
+		listeners.push({
+			doctypes: new Set(doctypes),
+			read_again,
+			timer: null,
+			missed: false,
+		});
 	};
 
 	function subscribe() {
 		if (!frappe.realtime) return;
 		frappe.realtime.on(EVENT, (data) => {
 			listeners
-				.filter((listener) => data && listener.doctypes.has(data.doctype))
+				.filter(
+					(listener) => data && listener.doctypes.has(data.doctype),
+				)
 				.forEach(schedule);
 		});
 		watch_visibility();
@@ -39,7 +46,10 @@ frappe.provide("churchit.live");
 			return;
 		}
 		clearTimeout(listener.timer);
-		listener.timer = setTimeout(listener.read_again, DELAY_MS + Math.random() * SPREAD_MS);
+		listener.timer = setTimeout(
+			listener.read_again,
+			DELAY_MS + Math.random() * SPREAD_MS,
+		);
 	}
 
 	function watch_visibility() {
@@ -63,7 +73,9 @@ frappe.provide("churchit.live");
 
 		const doctypes = new Set();
 		regions.forEach((region) =>
-			region.dataset.live.split(",").forEach((doctype) => doctypes.add(doctype.trim()))
+			region.dataset.live
+				.split(",")
+				.forEach((doctype) => doctypes.add(doctype.trim())),
 		);
 		churchit.live.on(doctypes, read_page);
 	});
@@ -74,13 +86,17 @@ frappe.provide("churchit.live");
 		url.searchParams.set("_live", Date.now());
 		const response = await fetch(url, { credentials: "same-origin" });
 		if (!response.ok) return;
-		const page = new DOMParser().parseFromString(await response.text(), "text/html");
+		const page = new DOMParser().parseFromString(
+			await response.text(),
+			"text/html",
+		);
 		document.querySelectorAll("[data-live][id]").forEach((region) => {
 			const fresh = page.getElementById(region.id);
 			if (!fresh) return;
 			// The page's links carry the visitor's church; so must the new part's, or every part differs.
 			if (churchit.carry_church) churchit.carry_church(fresh);
-			if (fresh.innerHTML !== region.innerHTML && !is_in_use(region)) swap(region, fresh);
+			if (fresh.innerHTML !== region.innerHTML && !is_in_use(region))
+				swap(region, fresh);
 		});
 	}
 
@@ -88,13 +104,15 @@ frappe.provide("churchit.live");
 	// series). It catches up with the next change.
 	function is_in_use(region) {
 		const playing = [...region.querySelectorAll("audio, video")].some(
-			(media) => !media.paused
+			(media) => !media.paused,
 		);
 		return playing || region.contains(document.activeElement);
 	}
 
 	function swap(region, fresh) {
-		const before = new Set([...get_entries(region)].map((entry) => entry.outerHTML));
+		const before = new Set(
+			[...get_entries(region)].map((entry) => entry.outerHTML),
+		);
 		region.innerHTML = fresh.innerHTML;
 		for (const entry of get_entries(region)) {
 			if (before.has(entry.outerHTML)) continue;

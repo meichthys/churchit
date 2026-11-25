@@ -6,7 +6,10 @@
 		v-bind="route ? { to: route } : href ? { href } : {}"
 		size="lg"
 		class="-mx-3 min-h-14 rounded-4 px-3 py-4"
-		:class="[(route || href) && 'hover:bg-surface-gray-1', fresh && 'is-fresh']"
+		:class="[
+			(route || href) && 'hover:bg-surface-gray-1',
+			fresh && 'is-fresh',
+		]"
 	>
 		<template v-if="$slots.prefix" #prefix>
 			<slot name="prefix" />
@@ -18,7 +21,11 @@
 				:facts="facts || []"
 				class="mt-1 text-lg text-ink-gray-6 md:text-md"
 			>
-				<StatusBadge v-if="status" :status="status" class="mt-1.5 md:ms-1 md:mt-0" />
+				<StatusBadge
+					v-if="status"
+					:status="status"
+					class="mt-1.5 md:ms-1 md:mt-0"
+				/>
 			</Facts>
 			<slot />
 		</div>

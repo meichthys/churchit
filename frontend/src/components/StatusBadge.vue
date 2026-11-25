@@ -47,6 +47,8 @@ const INK: Record<Theme, string> = {
 };
 
 const props = defineProps<{ status: string; label?: string; theme?: Theme }>();
-const theme = computed<Theme>(() => props.theme || THEMES[props.status] || "gray");
+const theme = computed<Theme>(
+	() => props.theme || THEMES[props.status] || "gray",
+);
 const ink = computed(() => INK[theme.value]);
 </script>

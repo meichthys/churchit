@@ -31,7 +31,11 @@
 				:label="__('Birthday')"
 				:max="today"
 				required
-				:description="__('The church office adds anyone {0} or older.', [adultAge])"
+				:description="
+					__('The church office adds anyone {0} or older.', [
+						adultAge,
+					])
+				"
 			/>
 			<FormControl
 				size="lg"
@@ -45,10 +49,20 @@
 				:placeholder="__('Choose one')"
 				required
 			/>
-			<button type="submit" class="hidden" tabindex="-1" aria-hidden="true" />
+			<button
+				type="submit"
+				class="hidden"
+				tabindex="-1"
+				aria-hidden="true"
+			/>
 		</form>
 		<template #actions>
-			<Button variant="outline" size="lg" :label="__('Cancel')" @click="open = false" />
+			<Button
+				variant="outline"
+				size="lg"
+				:label="__('Cancel')"
+				@click="open = false"
+			/>
 			<Button
 				variant="solid"
 				size="lg"
@@ -83,11 +97,11 @@ const lastName = ref("");
 const birthday = ref("");
 const gender = ref<string | null>(null);
 const action = useFrappeAction<string, Record<string, any>>(
-	"churchit.church_people.member_access.add_household_child"
+	"churchit.church_people.member_access.add_household_child",
 );
 
 const canSubmit = computed(() =>
-	Boolean(firstName.value.trim() && birthday.value && gender.value)
+	Boolean(firstName.value.trim() && birthday.value && gender.value),
 );
 
 watch(open, (isOpen) => {
@@ -109,7 +123,9 @@ async function submit() {
 		})
 		.catch(() => null);
 	if (!name) return;
-	toast.success(__("{0} was added to your household.", [firstName.value.trim()]));
+	toast.success(
+		__("{0} was added to your household.", [firstName.value.trim()]),
+	);
 	open.value = false;
 	emit("added", name as string);
 }

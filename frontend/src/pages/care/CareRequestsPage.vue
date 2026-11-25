@@ -15,7 +15,7 @@
 			:label="boot.church?.title"
 			:dateline="
 				__(
-					'Ask the care team for practical help. A deacon or pastor will follow up shortly.'
+					'Ask the care team for practical help. A deacon or pastor will follow up shortly.',
 				)
 			"
 		/>
@@ -68,7 +68,9 @@
 					v-else
 					:title="__('No requests yet')"
 					:body="
-						__('When you ask for care, your request and its status are listed here.')
+						__(
+							'When you ask for care, your request and its status are listed here.',
+						)
 					"
 				>
 					<Button
@@ -131,7 +133,7 @@ const {
 	openEdit,
 } = useRequestSheet<CareRequest>(
 	"/care-request",
-	computed(() => requests.data?.items)
+	computed(() => requests.data?.items),
 );
 
 useLiveRefresh(["care"], async (hint) => {

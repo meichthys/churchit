@@ -11,7 +11,10 @@
 				<span class="relative">
 					<span
 						class="block size-6"
-						:class="[tab.icon, active ? 'text-accent' : 'text-ink-gray-6']"
+						:class="[
+							tab.icon,
+							active ? 'text-accent' : 'text-ink-gray-6',
+						]"
 						aria-hidden="true"
 					/>
 					<span
@@ -23,7 +26,10 @@
 			</template>
 		</MobileNavItem>
 		<MobileNavItem :label="__('More')" @click="emit('more')">
-			<span class="lucide-menu block size-6 text-ink-gray-6" aria-hidden="true" />
+			<span
+				class="lucide-menu block size-6 text-ink-gray-6"
+				aria-hidden="true"
+			/>
 		</MobileNavItem>
 	</MobileNav>
 </template>

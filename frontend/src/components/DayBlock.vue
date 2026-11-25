@@ -8,7 +8,9 @@
 			<span
 				class="t-numeral"
 				:class="[
-					compact ? 'text-[36px] md:text-[44px]' : 'text-[44px] md:text-[60px]',
+					compact
+						? 'text-[36px] md:text-[44px]'
+						: 'text-[44px] md:text-[60px]',
 					today ? 'text-accent' : 'text-ink-gray-9',
 				]"
 			>
@@ -16,7 +18,10 @@
 			</span>
 			<div class="pb-0.5 md:mt-3">
 				<p class="t-label text-ink-gray-7">{{ parts.weekday }}</p>
-				<p class="t-label mt-0.5" :class="today ? 'text-accent' : 'text-ink-gray-6'">
+				<p
+					class="t-label mt-0.5"
+					:class="today ? 'text-accent' : 'text-ink-gray-6'"
+				>
 					{{ today ? __("Today") : parts.month }}
 				</p>
 			</div>
@@ -32,7 +37,11 @@ import { computed } from "vue";
 
 import { boot } from "@/boot";
 
-const props = defineProps<{ date: string; today?: boolean; compact?: boolean }>();
+const props = defineProps<{
+	date: string;
+	today?: boolean;
+	compact?: boolean;
+}>();
 
 const parts = computed(() => {
 	const [year, month, day] = props.date.slice(0, 10).split("-").map(Number);

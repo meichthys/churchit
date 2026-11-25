@@ -9,19 +9,24 @@
 			:aria-label="__('The passage, with some words blurred')"
 		>
 			<template v-for="(token, index) in tokens" :key="index">
-				<span v-if="token.kind === 'verse'" class="verse-number">{{ token.raw }}</span>
-				<span v-else-if="token.kind === 'other'">{{ token.raw }}{{ " " }}</span>
+				<span v-if="token.kind === 'verse'" class="verse-number">{{
+					token.raw
+				}}</span>
+				<span v-else-if="token.kind === 'other'"
+					>{{ token.raw }}{{ " " }}</span
+				>
 				<template v-else>
 					<span
 						class="transition-[filter] duration-150"
 						:style="wordStyle(token.wordIndex)"
-						>{{ token.raw }}</span
-					>{{ " " }}
+						>{{ token.raw }}</span>{{ " " }}
 				</template>
 			</template>
 		</p>
 
-		<div class="mt-8 flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-5">
+		<div
+			class="mt-8 flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-5"
+		>
 			<Button
 				variant="subtle"
 				size="lg"
@@ -73,7 +78,7 @@
 		<p class="mt-4 text-p-lg text-ink-gray-6 md:text-p-md">
 			{{
 				__(
-					"Hold the eye to show the whole passage. Hide more words, then say the passage aloud. Done adds 5% to your progress, up to 99%. Only Type reaches 100%."
+					"Hold the eye to show the whole passage. Hide more words, then say the passage aloud. Done adds 5% to your progress, up to 99%. Only Type reaches 100%.",
 				)
 			}}
 		</p>
@@ -104,11 +109,22 @@ const saving = ref(false);
 
 const completeSession = useFrappeAction<
 	Record<string, unknown>,
-	{ name: string; mode: string; mistakes: number; correct_word_indices: number[] }
->("churchit.church_study.doctype.bible_memory_item.bible_memory_item.complete_session");
+	{
+		name: string;
+		mode: string;
+		mistakes: number;
+		correct_word_indices: number[];
+	}
+>(
+	"churchit.church_study.doctype.bible_memory_item.bible_memory_item.complete_session",
+);
 
-const hiddenCount = computed(() => levels.value.filter((level) => level > 0).length);
-const statusLine = computed(() => __("{0} of {1} words hidden", [hiddenCount.value, total]));
+const hiddenCount = computed(
+	() => levels.value.filter((level) => level > 0).length,
+);
+const statusLine = computed(() =>
+	__("{0} of {1} words hidden", [hiddenCount.value, total]),
+);
 
 function wordStyle(index: number): Record<string, string> | undefined {
 	const level = revealing.value ? 0 : levels.value[index];
@@ -117,11 +133,18 @@ function wordStyle(index: number): Record<string, string> | undefined {
 
 /** Each step hides about a sixth of the passage, chosen at random among words that can still blur more. */
 function hideMore() {
-	const candidates = levels.value.flatMap((level, index) => (level < MAX_LEVEL ? [index] : []));
+	const candidates = levels.value.flatMap((level, index) =>
+		level < MAX_LEVEL ? [index] : [],
+	);
 	const picks: number[] = [];
 	const stepSize = Math.max(1, Math.ceil(total / 6));
 	while (picks.length < stepSize && candidates.length) {
-		picks.push(candidates.splice(Math.floor(Math.random() * candidates.length), 1)[0]);
+		picks.push(
+			candidates.splice(
+				Math.floor(Math.random() * candidates.length),
+				1,
+			)[0],
+		);
 	}
 	picks.forEach((index) => (levels.value[index] += 1));
 	if (picks.length) history.value.push(picks);
@@ -129,7 +152,9 @@ function hideMore() {
 
 function undo() {
 	const last = history.value.pop();
-	last?.forEach((index) => (levels.value[index] = Math.max(0, levels.value[index] - 1)));
+	last?.forEach(
+		(index) => (levels.value[index] = Math.max(0, levels.value[index] - 1)),
+	);
 }
 
 function reset() {
@@ -140,10 +165,15 @@ function reset() {
 async function save() {
 	saving.value = true;
 	await completeSession
-		.submit({ name: props.name, mode: "blur", mistakes: 0, correct_word_indices: [] })
+		.submit({
+			name: props.name,
+			mode: "blur",
+			mistakes: 0,
+			correct_word_indices: [],
+		})
 		.then(
 			(result) => result && emit("finished", result),
-			() => {}
+			() => {},
 		);
 	saving.value = false;
 }

@@ -34,17 +34,23 @@ const props = defineProps<{ position: string; title: string; value: number }>();
 const emit = defineEmits<{ saved: [] }>();
 
 const times = ref(String(props.value));
-const save = useFrappeAction<void, { position: string; max_times_per_month: string }>(
-	"churchit.church_ministries.member_ministry_team.set_own_frequency"
-);
+const save = useFrappeAction<
+	void,
+	{ position: string; max_times_per_month: string }
+>("churchit.church_ministries.member_ministry_team.set_own_frequency");
 
 async function submit() {
-	await save.submit({ position: props.position, max_times_per_month: times.value || "0" }).then(
-		() => {
-			toast.success(__("Saved"));
-			emit("saved");
-		},
-		() => {}
-	);
+	await save
+		.submit({
+			position: props.position,
+			max_times_per_month: times.value || "0",
+		})
+		.then(
+			() => {
+				toast.success(__("Saved"));
+				emit("saved");
+			},
+			() => {},
+		);
 }
 </script>

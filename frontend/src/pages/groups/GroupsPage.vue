@@ -39,8 +39,11 @@
 							:route="`/groups/${group.name}`"
 							:facts="[
 								group.meets,
-								group.leaders && __('Led by {0}', [group.leaders]),
-								group.is_leader ? __('You lead this group') : null,
+								group.leaders &&
+									__('Led by {0}', [group.leaders]),
+								group.is_leader
+									? __('You lead this group')
+									: null,
 							]"
 							:fresh="isFresh(group.name)"
 						/>
@@ -51,28 +54,45 @@
 					:title="__('You are not in a group yet')"
 					:body="
 						data.joinable.length
-							? __('Pick one of the groups below, or ask a leader to add you.')
+							? __(
+									'Pick one of the groups below, or ask a leader to add you.',
+								)
 							: __('Ask a leader to add you to one.')
 					"
 				/>
 			</section>
 
-			<section v-if="data.waiting.length" class="mt-10" aria-labelledby="waiting-groups">
+			<section
+				v-if="data.waiting.length"
+				class="mt-10"
+				aria-labelledby="waiting-groups"
+			>
 				<SectionHead
 					id="waiting-groups"
 					:title="__('Waiting for a leader')"
 					:note="__('A leader will answer your request.')"
 				/>
-				<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+				<ul
+					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+				>
 					<li v-for="group in data.waiting" :key="group.name">
-						<IndexRow :title="group.group_name" status="Requested" />
+						<IndexRow
+							:title="group.group_name"
+							status="Requested"
+						/>
 					</li>
 				</ul>
 			</section>
 
-			<section v-if="data.joinable.length" class="mt-10" aria-labelledby="open-groups">
+			<section
+				v-if="data.joinable.length"
+				class="mt-10"
+				aria-labelledby="open-groups"
+			>
 				<SectionHead id="open-groups" :title="__('Open to join')" />
-				<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+				<ul
+					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+				>
 					<li v-for="group in data.joinable" :key="group.name">
 						<JoinRow :group="group" @done="groups.reload()" />
 					</li>
@@ -105,14 +125,19 @@ import { __ } from "@/translate";
 const groups = useRead<MyGroups>("groups.get_my_groups");
 const { mark, isFresh } = useFreshInk();
 
-const leadsAny = computed(() => groups.data?.groups.some((group) => group.is_leader));
+const leadsAny = computed(() =>
+	groups.data?.groups.some((group) => group.is_leader),
+);
 
 useLiveRefresh(["groups"], async (hint) => {
 	const before = new Set(groups.data?.groups.map((group) => group.name));
-	const wasWaiting = groups.data?.waiting.some((group) => group.name === hint?.name);
+	const wasWaiting = groups.data?.waiting.some(
+		(group) => group.name === hint?.name,
+	);
 	await groups.reload();
 
-	const added = groups.data?.groups.filter((group) => !before.has(group.name)) ?? [];
+	const added =
+		groups.data?.groups.filter((group) => !before.has(group.name)) ?? [];
 	added.forEach((group) => mark(group.name));
 	const isListed = [
 		...(groups.data?.groups ?? []),

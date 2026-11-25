@@ -7,7 +7,11 @@
 		back="/memorize"
 	>
 		<template #actions>
-			<Button variant="subtle" :label="__('Back to your list')" route="/memorize" />
+			<Button
+				variant="subtle"
+				:label="__('Back to your list')"
+				route="/memorize"
+			/>
 		</template>
 	</PageHead>
 
@@ -17,7 +21,9 @@
 				<p class="t-label text-ink-gray-6">
 					{{ __("Practice, {0}", [data.translation]) }}
 				</p>
-				<h1 class="t-title mt-3 text-ink-gray-9">{{ data.bible_reference }}</h1>
+				<h1 class="t-title mt-3 text-ink-gray-9">
+					{{ data.bible_reference }}
+				</h1>
 				<div
 					class="mt-4 flex flex-wrap items-baseline gap-x-7 gap-y-1 text-lg tabular-nums text-ink-gray-6"
 				>
@@ -28,9 +34,10 @@
 						v-if="data.memorized || result?.memorized"
 						class="inline-flex items-center gap-1.5 text-ink-green-8"
 					>
-						<span class="lucide-check size-4" aria-hidden="true" />{{
-							__("Memorized")
-						}}
+						<span
+							class="lucide-check size-4"
+							aria-hidden="true"
+						/>{{ __("Memorized") }}
 					</span>
 				</div>
 				<Progress
@@ -51,16 +58,25 @@
 				</div>
 			</header>
 
-			<section v-if="result" class="mt-8 border-y border-outline-gray-1 py-6" role="status">
-				<p class="t-subhead text-ink-gray-9">{{ __("Session complete") }}</p>
-				<p class="mt-2 flex flex-wrap items-center gap-x-3 text-lg text-ink-gray-7">
+			<section
+				v-if="result"
+				class="mt-8 border-y border-outline-gray-1 py-6"
+				role="status"
+			>
+				<p class="t-subhead text-ink-gray-9">
+					{{ __("Session complete") }}
+				</p>
+				<p
+					class="mt-2 flex flex-wrap items-center gap-x-3 text-lg text-ink-gray-7"
+				>
 					{{ resultWords(result) }}
 					<span
 						v-if="result.memorized"
 						class="inline-flex items-center gap-1.5 text-ink-green-8"
-						><span class="lucide-check size-4" aria-hidden="true" />{{
-							__("Memorized")
-						}}</span
+						><span
+							class="lucide-check size-4"
+							aria-hidden="true"
+						/>{{ __("Memorized") }}</span
 					>
 				</p>
 				<div class="mt-5 flex flex-wrap gap-2">
@@ -87,7 +103,7 @@
 					:title="__('No passage text')"
 					:body="
 						__(
-							'This translation has no text for the passage. Try again from your list.'
+							'This translation has no text for the passage. Try again from your list.',
 						)
 					"
 				>
@@ -108,7 +124,12 @@
 					@progress="progress = $event"
 					@finished="finish"
 				/>
-				<BlurPractice v-else :name="data.name" :text="data.text" @finished="finish" />
+				<BlurPractice
+					v-else
+					:name="data.name"
+					:text="data.text"
+					@finished="finish"
+				/>
 			</div>
 		</LoadState>
 	</PageBody>
@@ -159,9 +180,11 @@ const attempt = ref(0);
 watch(
 	() => practice.data,
 	(data) => data && (progress.value = data.progress),
-	{ immediate: true }
+	{ immediate: true },
 );
-watch(mode, (value) => router.replace({ query: { ...route.query, mode: value } }));
+watch(mode, (value) =>
+	router.replace({ query: { ...route.query, mode: value } }),
+);
 
 const hasWords = (text: string) => /\p{L}/u.test(text);
 
@@ -178,7 +201,10 @@ async function again() {
 
 function resultWords(finished: SessionResult): string {
 	return finished.bonus
-		? __("Progress: {0}%, +{1}% this session", [finished.progress, finished.bonus])
+		? __("Progress: {0}%, +{1}% this session", [
+				finished.progress,
+				finished.bonus,
+			])
 		: __("Progress: {0}%", [finished.progress]);
 }
 </script>

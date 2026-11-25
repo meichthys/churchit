@@ -6,7 +6,9 @@
 		<span class="lucide-check size-5" aria-hidden="true" />
 		<span>{{ __("You prayed") }}</span>
 		<span v-if="request.prayer_count" class="text-ink-gray-6">{{
-			request.prayer_count === 1 ? __("1 prayer") : __("{0} prayers", [request.prayer_count])
+			request.prayer_count === 1
+				? __("1 prayer")
+				: __("{0} prayers", [request.prayer_count])
 		}}</span>
 	</p>
 	<div v-else class="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -19,9 +21,15 @@
 			:label="__('I prayed')"
 			@click="prayNow"
 		/>
-		<span v-if="request.prayer_count" class="text-p-lg text-ink-gray-6 md:text-p-base">{{
-			request.prayer_count === 1 ? __("1 prayer") : __("{0} prayers", [request.prayer_count])
-		}}</span>
+		<span
+			v-if="request.prayer_count"
+			class="text-p-lg text-ink-gray-6 md:text-p-base"
+			>{{
+				request.prayer_count === 1
+					? __("1 prayer")
+					: __("{0} prayers", [request.prayer_count])
+			}}</span
+		>
 	</div>
 </template>
 
@@ -34,16 +42,20 @@ import type { PrayerRequest } from "./types";
 
 const props = defineProps<{ request: PrayerRequest; note?: string }>();
 const emit = defineEmits<{ prayed: [] }>();
-const pray = useFrappeAction<unknown, { prayer_request: string; content: string | null }>(
-	"churchit.church_prayers.api.create_prayer"
-);
+const pray = useFrappeAction<
+	unknown,
+	{ prayer_request: string; content: string | null }
+>("churchit.church_prayers.api.create_prayer");
 
 async function prayNow() {
 	await pray
-		.submit({ prayer_request: props.request.name, content: props.note?.trim() || null })
+		.submit({
+			prayer_request: props.request.name,
+			content: props.note?.trim() || null,
+		})
 		.then(
 			() => emit("prayed"),
-			() => {}
+			() => {},
 		);
 }
 </script>

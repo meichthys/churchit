@@ -29,23 +29,39 @@
 				<dl
 					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1 text-lg md:text-md"
 				>
-					<div class="flex flex-wrap items-baseline justify-between gap-2 py-4">
-						<dt class="t-label text-ink-gray-7">{{ __("Status") }}</dt>
+					<div
+						class="flex flex-wrap items-baseline justify-between gap-2 py-4"
+					>
+						<dt class="t-label text-ink-gray-7">
+							{{ __("Status") }}
+						</dt>
 						<dd><StatusBadge :status="data.status" /></dd>
 					</div>
-					<div class="flex flex-wrap items-baseline justify-between gap-2 py-4">
-						<dt class="t-label text-ink-gray-7">{{ __("Room") }}</dt>
+					<div
+						class="flex flex-wrap items-baseline justify-between gap-2 py-4"
+					>
+						<dt class="t-label text-ink-gray-7">
+							{{ __("Room") }}
+						</dt>
 						<dd class="text-ink-gray-9">{{ data.room_name }}</dd>
 					</div>
-					<div class="flex flex-wrap items-baseline justify-between gap-2 py-4">
-						<dt class="t-label text-ink-gray-7">{{ __("Time") }}</dt>
+					<div
+						class="flex flex-wrap items-baseline justify-between gap-2 py-4"
+					>
+						<dt class="t-label text-ink-gray-7">
+							{{ __("Time") }}
+						</dt>
 						<dd class="text-ink-gray-9">
 							<bdi>{{ timeRange(data) }}</bdi>
 						</dd>
 					</div>
 					<div v-if="data.notes" class="py-4">
-						<dt class="t-label text-ink-gray-7">{{ __("Notes") }}</dt>
-						<dd class="mt-1 whitespace-pre-line text-ink-gray-9">{{ data.notes }}</dd>
+						<dt class="t-label text-ink-gray-7">
+							{{ __("Notes") }}
+						</dt>
+						<dd class="mt-1 whitespace-pre-line text-ink-gray-9">
+							{{ data.notes }}
+						</dd>
 					</div>
 				</dl>
 				<p
@@ -53,7 +69,9 @@
 					class="mt-4 text-lg text-ink-gray-6 md:text-md"
 				>
 					{{
-						__("The office has not answered yet. You will get a message when it does.")
+						__(
+							"The office has not answered yet. You will get a message when it does.",
+						)
 					}}
 				</p>
 				<Button
@@ -101,15 +119,21 @@ const booking = useRead<Booking, { name: string }>("serving.get_room_request", {
 	params: () => ({ name: name.value }),
 	refetch: true,
 });
-const rooms = useRead<{ rooms: { name: string; room_name: string }[] }>("serving.get_rooms");
+const rooms = useRead<{ rooms: { name: string; room_name: string }[] }>(
+	"serving.get_rooms",
+);
 const roomOptions = computed(() =>
-	(rooms.data?.rooms || []).map((room) => ({ label: room.room_name, value: room.name }))
+	(rooms.data?.rooms || []).map((room) => ({
+		label: room.room_name,
+		value: room.name,
+	})),
 );
 
 /** /room-request/<name>/edit (a link from the old form) opens the change sheet when the request can still change. */
 const editing = ref(false);
 watch(editing, (open) => {
-	if (!open && route.path.endsWith("/edit")) router.replace(`/room-request/${name.value}`);
+	if (!open && route.path.endsWith("/edit"))
+		router.replace(`/room-request/${name.value}`);
 });
 watch(
 	() => booking.data,
@@ -118,7 +142,7 @@ watch(
 		if (data.can_edit) editing.value = true;
 		else router.replace(`/room-request/${name.value}`);
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 const fresh = ref(false);
@@ -131,7 +155,11 @@ function saved() {
 useLiveRefresh(["rooms"], async (hint) => {
 	const before = booking.data?.status;
 	await booking.reload();
-	if (hint?.name === name.value && booking.data && booking.data.status !== before) {
+	if (
+		hint?.name === name.value &&
+		booking.data &&
+		booking.data.status !== before
+	) {
 		fresh.value = true;
 		setTimeout(() => (fresh.value = false), 8000);
 	}
