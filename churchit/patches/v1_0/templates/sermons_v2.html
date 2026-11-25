@@ -1,0 +1,197 @@
+<div class="row justify-content-center">
+{%- set q = (frappe.form_dict.q or "").strip() -%}
+{%- set page_length = 12 -%}
+{%- set page_number = [frappe.utils.cint(frappe.form_dict.page), 1] | max -%}
+{%- set sermon_rows = frappe.get_all(
+    "Sermon",
+    fields=["name", "title", "sermon_date", "scripture", "notes", "handout", "audio_recording", "prepared_by", "series"],
+    filters=selected_church_filters(publish=1),
+    or_filters=[["title", "like", "%" ~ q ~ "%"], ["scripture", "like", "%" ~ q ~ "%"]] if q else None,
+    ignore_permissions=True,
+    order_by="sermon_date desc, modified desc",
+    limit_start=(page_number - 1) * page_length,
+    limit_page_length=page_length + 1
+) -%}
+{%- set has_older = sermon_rows | length > page_length -%}
+{%- set published_sermons = sermon_rows[:page_length] -%}
+{%- set published_series = frappe.get_all(
+    "Sermon Series",
+    fields=["name", "series_name", "description", "image"],
+    filters=selected_church_filters(publish=1),
+    ignore_permissions=True,
+    order_by="start_date desc"
+) -%}
+{%- set page_series = published_sermons | map(attribute="series") | select | unique | list -%}
+{%- set series_totals = dict(frappe.get_all("Sermon", fields=["series", {"COUNT": "name", "as": "total"}], filters=selected_church_filters(publish=1, series=("in", page_series)), group_by="series", ignore_permissions=True, as_list=True)) if page_series else {} -%}
+{%- set preacher_ids = published_sermons | map(attribute="prepared_by") | select | unique | list -%}
+{%- set preachers = dict(frappe.get_all("Person", filters={"name": ("in", preacher_ids)}, fields=["name", "full_name"], as_list=True)) if preacher_ids else {} -%}
+{%- set off_pages = get_switched_off_pages() -%}
+
+  <div class="col-12 mb-4 d-flex flex-wrap align-items-center justify-content-between" style="gap: 8px;">
+    <form class="form-inline" method="get" action="/sermons" role="search" style="gap: 8px;">
+      {% if frappe.form_dict.church %}<input type="hidden" name="church" value="{{ frappe.form_dict.church | e }}">{% endif %}
+      <input class="form-control" type="search" name="q" value="{{ q | e }}" placeholder="Title or passage" aria-label="Search sermons">
+      <button class="btn btn-default" type="submit">Search</button>
+      {% if q %}<a href="/sermons" class="small">Show all</a>{% endif %}
+    </form>
+    {% if "podcast.xml" not in off_pages %}<a href="{{ get_feed_url(get_church().name) | e }}" class="small">Subscribe to the podcast</a>{% endif %}
+  </div>
+
+{%- macro page_url(number) -%}
+  {%- set params = [] -%}
+  {%- if frappe.form_dict.church %}{% set _ = params.append(("church", frappe.form_dict.church)) %}{% endif -%}
+  {%- if q %}{% set _ = params.append(("q", q)) %}{% endif -%}
+  {%- if number > 1 %}{% set _ = params.append(("page", number)) %}{% endif -%}
+  {{- "/sermons" -}}{%- if params %}?{{ params | urlencode }}{% endif -%}
+{%- endmacro -%}
+
+{%- macro sermon_meta(sermon) -%}
+  {% if sermon.sermon_date or sermon.scripture %}
+    <div class="small text-muted mb-2">
+      {% if sermon.sermon_date %}{{ frappe.utils.formatdate(sermon.sermon_date, "EEEE, MMMM d, yyyy") }}{% endif %}
+      {% if sermon.sermon_date and sermon.scripture %}&middot;{% endif %}
+      {% if sermon.scripture %}{{ sermon.scripture | e }}{% endif %}
+    </div>
+  {% endif %}
+{%- endmacro -%}
+
+{%- macro sermon_card(sermon) -%}
+  <div class="col-md-4 mb-4">
+    <div class="card h-100">
+      <div class="card-header">{% if "sermon" in off_pages %}<strong>{{ sermon.title | e }}</strong>{% else %}<a href="/sermon/{{ sermon.name | urlencode }}"><strong>{{ sermon.title | e }}</strong></a>{% endif %}</div>
+      <div class="card-body">
+        {{ sermon_meta(sermon) }}
+        {% if sermon.notes and not sermon.handout %}<p class="card-text">{{ (sermon.notes.split("<p>", 1)[1].split("</p>")[0] if "<p>" in sermon.notes else sermon.notes) | striptags | replace("[", "") | replace("]", "") | truncate(180, False, "…") | e }}</p>{% endif %}
+        {% if sermon.audio_recording %}
+          <audio controls style="width: 100%; margin-top: 8px;">
+            <source src="{{ sermon.audio_recording | e }}">
+          </audio>
+        {% endif %}
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <div class="small text-muted">
+          {% if sermon.prepared_by %}{{ preachers.get(sermon.prepared_by) | e }}{% endif %}
+        </div>
+        {% if "sermon_presentation" not in off_pages %}<a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>{% endif %}
+      </div>
+    </div>
+  </div>
+{%- endmacro -%}
+
+</div>
+
+<div class="row justify-content-center" id="sermon-list" data-live="Sermon,Sermon Series">
+{% if published_sermons %}
+  {%- set grouped_names = [] -%}
+
+  {# A published series is a single card listing its sermons. #}
+  {% for series in published_series %}
+    {% set series_sermons = published_sermons | selectattr("series", "equalto", series.name) | list %}
+    {% if series_sermons %}
+      {% for s in series_sermons %}{% set _ = grouped_names.append(s.name) %}{% endfor %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 series-card" data-series-card>
+          {% if series.image and not series.image.startswith("/private/") %}
+            <img class="card-img-top" src="{{ series.image | e }}" alt="{{ series.series_name | e }}">
+          {% endif %}
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>{{ series.series_name | e }}</strong>
+            <span class="series-tag">Series</span>
+          </div>
+          <div class="card-body">
+
+            {# List view (default) #}
+            <div data-series-list>
+              {% if series.description %}<p class="text-muted small">{{ series.description | safe }}</p>{% endif %}
+              {%- set series_total = series_totals.get(series.name) or series_sermons | length -%}
+              <div class="small text-muted mb-2">{{ series_total }} sermon{{ "" if series_total == 1 else "s" }} in this series{% if series_sermons | length < series_total %} ({{ series_sermons | length }} on this page){% endif %}</div>
+              <ul class="list-unstyled series-sermon-list mb-0">
+                {% for sermon in series_sermons %}
+                <li><button type="button" class="series-sermon-link" data-sermon-link="{{ loop.index }}">{{ sermon.title | e }}</button></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            {# Per-sermon detail views (hidden until selected) #}
+            {% for sermon in series_sermons %}
+            <div data-sermon-detail="{{ loop.index }}" style="display: none;">
+              <button type="button" class="series-back small" data-series-back>&larr; Back to series</button>
+              <h2 class="h6 mt-2 mb-1" tabindex="-1" data-sermon-title>{% if "sermon" in off_pages %}{{ sermon.title | e }}{% else %}<a href="/sermon/{{ sermon.name | urlencode }}">{{ sermon.title | e }}</a>{% endif %}</h2>
+              {{ sermon_meta(sermon) }}
+              {% if sermon.prepared_by %}<div class="small text-muted mb-2">{{ preachers.get(sermon.prepared_by) | e }}</div>{% endif %}
+              {% if sermon.notes and not sermon.handout %}<p class="card-text">{{ (sermon.notes.split("<p>", 1)[1].split("</p>")[0] if "<p>" in sermon.notes else sermon.notes) | striptags | replace("[", "") | replace("]", "") | truncate(180, False, "…") | e }}</p>{% endif %}
+              {% if sermon.audio_recording %}
+                <audio controls style="width: 100%; margin-top: 8px;">
+                  <source src="{{ sermon.audio_recording | e }}">
+                </audio>
+              {% endif %}
+              {% if "sermon_presentation" not in off_pages %}
+              <div class="mt-2">
+                <a href="/sermon_presentation?name={{ sermon.name | urlencode }}" target="_blank" class="btn btn-sm btn-primary">Present</a>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {# Standalone sermons (not in a published series) shown directly as normal cards. #}
+  {% for sermon in published_sermons %}
+    {% if sermon.name not in grouped_names %}{{ sermon_card(sermon) }}{% endif %}
+  {% endfor %}
+
+  {% if page_number > 1 or has_older %}
+  <nav class="col-12 d-flex justify-content-between" aria-label="Sermon pages">
+    {% if page_number > 1 %}<a class="btn btn-default" href="{{ page_url(page_number - 1) }}">&larr; Newer sermons</a>{% else %}<span></span>{% endif %}
+    {% if has_older %}<a class="btn btn-default" href="{{ page_url(page_number + 1) }}">Older sermons &rarr;</a>{% endif %}
+  </nav>
+  {% endif %}
+
+{% elif page_number > 1 %}
+  <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+    <p class="text-muted" style="font-size: 1.1em;">There are no more sermons.</p>
+    <a href="{{ page_url(1) }}">Show the newest sermons</a>
+  </div>
+{% elif q %}
+  <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+    <p class="text-muted" style="font-size: 1.1em;">No sermon matches your search.</p>
+  </div>
+{% else %}
+  <div class="col-lg-8 col-md-10 text-center" style="padding: 60px 20px;">
+    <p class="text-muted" style="font-size: 1.1em;">No sermons have been published yet. Please check back soon.</p>
+  </div>
+{% endif %}
+
+</div>
+
+<script>
+(function () {
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest("[data-sermon-link]");
+    if (link) {
+      var card = link.closest("[data-series-card]");
+      if (!card) return;
+      var target = link.getAttribute("data-sermon-link");
+      card.querySelector("[data-series-list]").style.display = "none";
+      card.querySelectorAll("[data-sermon-detail]").forEach(function (d) {
+        d.style.display = d.getAttribute("data-sermon-detail") === target ? "block" : "none";
+      });
+      card.querySelector('[data-sermon-detail="' + target + '"] [data-sermon-title]').focus();
+      return;
+    }
+    var back = e.target.closest("[data-series-back]");
+    if (back) {
+      var card = back.closest("[data-series-card]");
+      if (!card) return;
+      var opened = back.closest("[data-sermon-detail]").getAttribute("data-sermon-detail");
+      card.querySelectorAll("[data-sermon-detail]").forEach(function (d) { d.style.display = "none"; });
+      card.querySelector("[data-series-list]").style.display = "block";
+      card.querySelector('[data-sermon-link="' + opened + '"]').focus();
+    }
+  });
+})();
+</script>

@@ -188,3 +188,4 @@ churchit.patches.v1_0.add_live_sermon_list
 churchit.patches.v1_0.move_home_page_to_blocks
 churchit.patches.v1_0.set_phone_numbers_receive_texts
 churchit.patches.v1_0.give_members_pages_the_page_header
+churchit.patches.v1_0.list_sermons_one_a_row
