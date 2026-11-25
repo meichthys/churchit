@@ -4,7 +4,7 @@
 		<Masthead
 			:title="__('Sign-Ups')"
 			:label="boot.church?.title"
-			:dateline="__('Your places at events and the ones open to you')"
+			:dateline="__('Events you signed up for and ones you can still join')"
 		/>
 		<SignUpTabs :current="tab" />
 
@@ -32,11 +32,7 @@
 				<EmptyState
 					v-else
 					:title="__('No sign-ups yet')"
-					:body="
-						__(
-							'When you sign up for an event, your place is listed here with its status.'
-						)
-					"
+					:body="__('When you sign up for an event, it is listed here with its status.')"
 				>
 					<Button
 						variant="solid"
