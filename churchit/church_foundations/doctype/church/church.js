@@ -8,7 +8,9 @@ frappe.ui.form.on("Church", {
 		const address = frm.fields_dict.address;
 		address.new_doc = () => {
 			frappe.ui.form
-				.make_quick_entry("Address", (doc) => address.set_value(doc.name))
+				.make_quick_entry("Address", (doc) =>
+					address.set_value(doc.name),
+				)
 				.then((quick_entry) => {
 					if (!quick_entry.fields_dict) return; // Address opened as a full form
 					quick_entry.set_values({
@@ -21,13 +23,18 @@ frappe.ui.form.on("Church", {
 	},
 	refresh(frm) {
 		if (frm.doc.publish) {
-			frm.set_intro("🌐 This church is published to the public website", "blue");
+			frm.set_intro(
+				"🌐 This church is published to the public website",
+				"blue",
+			);
 		}
 
 		// Whether AI is in use, under Keep This Church Away From AI (churchit.ai.opt_outs).
 		const ai_state = frm.doc.__onload?.ai_state;
 		frm.get_field("ai_status").$wrapper.html(
-			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
+			ai_state
+				? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>`
+				: "",
 		);
 	},
 });

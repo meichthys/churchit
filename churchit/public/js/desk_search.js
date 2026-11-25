@@ -7,7 +7,9 @@
 
 	function title_filter(doctype, text) {
 		const meta = frappe.get_meta(doctype);
-		const field = (meta && meta.show_title_field_in_link && meta.title_field) || "name";
+		const field =
+			(meta && meta.show_title_field_in_link && meta.title_field) ||
+			"name";
 		return { [field]: ["like", "%" + text + "%"] };
 	}
 
@@ -36,23 +38,28 @@
 	// A churchit sidebar label that differs from its target is a name the search bar does not know.
 	const links = [];
 	const targets = {};
-	Object.entries(frappe.boot.module_sidebars || {}).forEach(([shell, sidebar]) => {
-		if (sidebar.app !== "churchit") return;
-		(sidebar.items || []).forEach((item) => {
-			const key = (item.label || "").toLowerCase();
-			if (item.type !== "Link" || item.link_type === "Workspace") return;
-			if (!key || key === (item.link_to || "").toLowerCase()) return;
+	Object.entries(frappe.boot.module_sidebars || {}).forEach(
+		([shell, sidebar]) => {
+			if (sidebar.app !== "churchit") return;
+			(sidebar.items || []).forEach((item) => {
+				const key = (item.label || "").toLowerCase();
+				if (item.type !== "Link" || item.link_type === "Workspace")
+					return;
+				if (!key || key === (item.link_to || "").toLowerCase()) return;
 
-			links.push({ shell, sidebar, item, key });
-			targets[key] = (targets[key] || new Set()).add(item.link_to);
-		});
-	});
+				links.push({ shell, sidebar, item, key });
+				targets[key] = (targets[key] || new Set()).add(item.link_to);
+			});
+		},
+	);
 
 	// One label on two different pages, such as Unread Letters, names its sidebar too.
 	const labels = new Set();
 	links.forEach(({ shell, sidebar, item, key }) => {
 		const is_shared = targets[key].size > 1;
-		const label = is_shared ? __("{0} ({1})", [item.label, sidebar.label]) : item.label;
+		const label = is_shared
+			? __("{0} ({1})", [item.label, sidebar.label])
+			: item.label;
 		if (labels.has(label.toLowerCase())) return;
 
 		labels.add(label.toLowerCase());

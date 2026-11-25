@@ -33,8 +33,13 @@ frappe.provide("churchit.ai");
 
 	// The paragraphs of a Text Editor value that the server built from escaped text, as plain lines.
 	function lines_of(html) {
-		const body = new DOMParser().parseFromString(html || "", "text/html").body;
-		return [...body.querySelectorAll("p")].map((paragraph) => paragraph.textContent);
+		const body = new DOMParser().parseFromString(
+			html || "",
+			"text/html",
+		).body;
+		return [...body.querySelectorAll("p")].map(
+			(paragraph) => paragraph.textContent,
+		);
 	}
 
 	function ask(title, field, action_label, run) {
@@ -63,9 +68,14 @@ frappe.provide("churchit.ai");
 
 	function render_brief(result, response) {
 		const links = (response.sources || [])
-			.map(({ title, url }) => `<a href="${escape(path_of(url))}">${escape(title)}</a>`)
+			.map(
+				({ title, url }) =>
+					`<a href="${escape(path_of(url))}">${escape(title)}</a>`,
+			)
 			.join(", ");
-		const why = links ? `<p class="small"><b>${escape(__("Why"))}:</b> ${links}</p>` : "";
+		const why = links
+			? `<p class="small"><b>${escape(__("Why"))}:</b> ${links}</p>`
+			: "";
 		const check = __("Check the timeline before you act.");
 		return `${churchit.ai.paragraphs(result.summary.split("\n"))}${why}
 			<p class="text-muted small">${escape(check)}</p>`;
@@ -83,7 +93,10 @@ frappe.provide("churchit.ai");
 					label: __("Draft"),
 					options: [
 						{ value: "Person Note", label: __("Person Note") },
-						{ value: "Visitation Log", label: __("Visitation Log") },
+						{
+							value: "Visitation Log",
+							label: __("Visitation Log"),
+						},
 					],
 					default: "Person Note",
 				},
@@ -93,7 +106,7 @@ frappe.provide("churchit.ai");
 					label: __("Your Notes"),
 					reqd: 1,
 					description: __(
-						"Paste or dictate rough notes. Nothing is saved until you save the draft."
+						"Paste or dictate rough notes. Nothing is saved until you save the draft.",
 					),
 				},
 			],
@@ -109,7 +122,7 @@ frappe.provide("churchit.ai");
 						render: render_note,
 						on_use: (result) => open_note(frm, result),
 						use_label: __("Open the Draft"),
-					})
+					}),
 				);
 			},
 		});
@@ -124,10 +137,14 @@ frappe.provide("churchit.ai");
 					df.fieldtype === "Text Editor"
 						? churchit.ai.paragraphs(lines_of(value))
 						: escape(
-								df.fieldtype === "Check" ? (value ? __("Yes") : __("No")) : value
-						  );
+								df.fieldtype === "Check"
+									? value
+										? __("Yes")
+										: __("No")
+									: value,
+							);
 				return `<tr><th class="text-muted">${escape(
-					__(df.label || fieldname)
+					__(df.label || fieldname),
 				)}</th><td>${text}</td></tr>`;
 			})
 			.join("");
@@ -156,7 +173,7 @@ frappe.provide("churchit.ai");
 					label: __("Who do you want to see?"),
 					reqd: 1,
 					description: __(
-						"For example: members who have not attended in 2 months and are not in a group."
+						"For example: members who have not attended in 2 months and are not in a group.",
 					),
 				},
 				__("Find"),
@@ -168,13 +185,15 @@ frappe.provide("churchit.ai");
 						render: render_people,
 						on_use: (result) => show_people(result.filters),
 						use_label: __("Apply Filters"),
-					})
-			)
+					}),
+			),
 		);
 	};
 
 	function render_people({ count, words, notes }) {
-		const filters = words.map((text) => `<li>${escape(text)}</li>`).join("");
+		const filters = words
+			.map((text) => `<li>${escape(text)}</li>`)
+			.join("");
 		const keep = __("Check the list, then save the filters to keep them.");
 		const people = count === 1 ? __("1 person") : __("{0} people", [count]);
 		return `<p><b>${escape(people)}</b></p>
@@ -185,7 +204,8 @@ frappe.provide("churchit.ai");
 	function show_people(filters) {
 		const options = {};
 		for (const [doctype, fieldname, operator, value] of filters) {
-			const key = doctype === "Person" ? fieldname : `${doctype}.${fieldname}`;
+			const key =
+				doctype === "Person" ? fieldname : `${doctype}.${fieldname}`;
 			(options[key] = options[key] || []).push([operator, value]);
 		}
 		frappe.route_options = options;
@@ -212,16 +232,22 @@ frappe.provide("churchit.ai");
 					<td>${escape(task.due_date ? frappe.datetime.str_to_user(task.due_date) : "")}</td>
 					<td>${escape(__(task.priority || ""))}</td>
 					<td><a href="${escape(path_of(task.url))}" target="_blank" rel="noopener">${escape(
-					__("Open")
-				)}</a></td>
-				</tr>`
+						__("Open"),
+					)}</a></td>
+				</tr>`,
 			)
 			.join("");
-		const head = [__("Task"), __("Owner in the Minutes"), __("Due"), __("Priority"), ""]
+		const head = [
+			__("Task"),
+			__("Owner in the Minutes"),
+			__("Due"),
+			__("Priority"),
+			"",
+		]
 			.map((label) => `<th>${escape(label)}</th>`)
 			.join("");
 		const help = __(
-			"Open each task to keep, check it and save it, then pick its owner with Assign To."
+			"Open each task to keep, check it and save it, then pick its owner with Assign To.",
 		);
 		return `<table class="table table-sm small"><thead><tr>${head}</tr></thead>
 			<tbody>${rows}</tbody></table><p class="text-muted small">${escape(help)}</p>`;
@@ -234,22 +260,26 @@ frappe.provide("churchit.ai");
 			title: __("Suggest Mapping"),
 			method: `${PEOPLE}.suggest_import_mapping`,
 			args: { data_import: frm.doc.name },
-			render: (result) => render_mapping(frm, get_new_mapping(frm, result)),
+			render: (result) =>
+				render_mapping(frm, get_new_mapping(frm, result)),
 			on_use: (result) =>
-				frm.import_preview.events.remap_column(get_new_mapping(frm, result)),
+				frm.import_preview.events.remap_column(
+					get_new_mapping(frm, result),
+				),
 			use_label: __("Use This Mapping"),
 		});
 	}
 
 	// The suggested columns that the preview shows as unmatched, for this import only.
 	function get_new_mapping(frm, result) {
-		if (result.import !== frm.doc.reference_doctype) throw new Error("another import");
+		if (result.import !== frm.doc.reference_doctype)
+			throw new Error("another import");
 		const columns = frm.import_preview?.preview_data?.columns || [];
 		return Object.fromEntries(
 			Object.entries(result.mapping).filter(([index]) => {
 				const column = columns[Number(index) + 1]; // the preview's first column numbers the rows
 				return column && !column.df;
-			})
+			}),
 		);
 	}
 
@@ -258,13 +288,20 @@ frappe.provide("churchit.ai");
 		const rows = Object.entries(mapping)
 			.map(([index, fieldname]) => {
 				const heading = columns[Number(index) + 1].header_title;
-				const label = frappe.meta.get_label(frm.doc.reference_doctype, fieldname);
+				const label = frappe.meta.get_label(
+					frm.doc.reference_doctype,
+					fieldname,
+				);
 				return `<tr><td>${escape(heading)}</td><td>${escape(__(label))}</td></tr>`;
 			})
 			.join("");
 		if (!rows)
-			return churchit.ai.paragraphs([__("The AI found no field for these headings.")]);
-		const help = __("Save the import to see the new mapping in the preview.");
+			return churchit.ai.paragraphs([
+				__("The AI found no field for these headings."),
+			]);
+		const help = __(
+			"Save the import to see the new mapping in the preview.",
+		);
 		return `<table class="table table-sm small"><thead><tr>
 				<th>${escape(__("Heading"))}</th><th>${escape(__("Field"))}</th>
 			</tr></thead><tbody>${rows}</tbody></table>
@@ -279,7 +316,7 @@ frappe.provide("churchit.ai");
 				frm.add_custom_button(
 					__("Draft Note With AI"),
 					() => draft_note(frm),
-					__("Actions")
+					__("Actions"),
 				);
 			}
 		},
@@ -303,7 +340,7 @@ frappe.provide("churchit.ai");
 				frm.add_custom_button(
 					__("Find Action Items"),
 					() => find_action_items(frm),
-					__("Actions")
+					__("Actions"),
 				);
 			}
 		},
@@ -320,7 +357,11 @@ frappe.provide("churchit.ai");
 			if (can_map) {
 				frm.add_custom_button(__("Suggest Mapping"), () => {
 					if (!frm.import_preview) {
-						frappe.msgprint(__("Wait for the preview of the file, then try again."));
+						frappe.msgprint(
+							__(
+								"Wait for the preview of the file, then try again.",
+							),
+						);
 						return;
 					}
 					suggest_mapping(frm);

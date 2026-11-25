@@ -5,12 +5,12 @@ frappe.ui.form.on("Group", {
 	refresh(frm) {
 		const grid = frm.fields_dict.members.grid;
 		// Frappe prepends custom buttons; append so "Add row" stays first.
-		grid.add_custom_button(__("Email Group"), () => email_members(frm, false)).appendTo(
-			grid.grid_buttons
-		);
-		grid.add_custom_button(__("Email Selected"), () => email_members(frm, true)).appendTo(
-			grid.grid_buttons
-		);
+		grid.add_custom_button(__("Email Group"), () =>
+			email_members(frm, false),
+		).appendTo(grid.grid_buttons);
+		grid.add_custom_button(__("Email Selected"), () =>
+			email_members(frm, true),
+		).appendTo(grid.grid_buttons);
 
 		if (!frm.is_new() && frappe.model.can_create("Church Email")) {
 			frm.add_custom_button(
@@ -23,7 +23,7 @@ frappe.ui.form.on("Group", {
 						// communication_purpose.GROUP_MESSAGES, which cannot be deleted
 						purpose: "Group Messages",
 					}),
-				__("Actions")
+				__("Actions"),
 			);
 		}
 
@@ -38,7 +38,7 @@ frappe.ui.form.on("Group", {
 						auto_repeat: 1,
 						church: frm.doc.church,
 					}),
-				__("Actions")
+				__("Actions"),
 			);
 		}
 	},
@@ -59,14 +59,16 @@ frappe.ui.form.on("Group", {
 
 function email_members(frm, selected_only) {
 	const grid = frm.fields_dict.members.grid;
-	const rows = selected_only ? grid.get_selected_children() : frm.doc.members || [];
+	const rows = selected_only
+		? grid.get_selected_children()
+		: frm.doc.members || [];
 	const persons = rows.map((r) => r.person).filter(Boolean);
 
 	if (!persons.length) {
 		frappe.msgprint(
 			selected_only
 				? __("Please select at least one member.")
-				: __("No members in this group.")
+				: __("No members in this group."),
 		);
 		return;
 	}
@@ -86,7 +88,7 @@ function email_members(frm, selected_only) {
 					indicator: "orange",
 					message:
 						__(
-							"⚠️ The following members have no email address and will not be included:"
+							"⚠️ The following members have no email address and will not be included:",
 						) +
 						"<ul>" +
 						missing.map((n) => `<li>${n}</li>`).join("") +

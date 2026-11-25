@@ -15,9 +15,14 @@ frappe.query_reports["Pathway Progress"] = {
 	onload: function (report) {
 		if (report.get_filter_value("pathway")) return;
 		frappe.db
-			.get_list("Pathway", { fields: ["name"], order_by: "pathway_name asc", limit: 1 })
+			.get_list("Pathway", {
+				fields: ["name"],
+				order_by: "pathway_name asc",
+				limit: 1,
+			})
 			.then((rows) => {
-				if (rows.length) report.set_filter_value("pathway", rows[0].name);
+				if (rows.length)
+					report.set_filter_value("pathway", rows[0].name);
 			});
 	},
 };

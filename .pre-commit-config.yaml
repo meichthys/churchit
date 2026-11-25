@@ -5,7 +5,7 @@ fail_fast: false
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         files: "church.*"
@@ -42,7 +42,7 @@ repos:
         verbose: true
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.17.6
     hooks:
       - id: ruff
         name: "Run ruff import sorter"
@@ -55,7 +55,7 @@ repos:
         name: "Run ruff formatter"
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         types_or: [javascript, vue, scss]
@@ -72,7 +72,7 @@ repos:
 
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.44.0
+    rev: v10.15.0
     hooks:
       - id: eslint
         types_or: [javascript]

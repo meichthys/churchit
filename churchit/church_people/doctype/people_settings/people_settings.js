@@ -8,9 +8,9 @@ frappe.ui.form.on("People Settings", {
 		frm.disable_form();
 		frm.set_intro(
 			__(
-				"People Settings apply to every church. Only someone who works across every church can change them."
+				"People Settings apply to every church. Only someone who works across every church can change them.",
 			),
-			"blue"
+			"blue",
 		);
 	},
 });

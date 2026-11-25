@@ -8,12 +8,21 @@ frappe.ui.form.on("Follow-up Card", {
 		if (read_only) frm.disable_form();
 		render_contact_details(frm);
 		add_draft_email_button(frm);
-		if (frm.is_new() || frm.doc.status !== "Open" || !frm.has_perm("write") || read_only)
+		if (
+			frm.is_new() ||
+			frm.doc.status !== "Open" ||
+			!frm.has_perm("write") ||
+			read_only
+		)
 			return;
 
 		for (const step of frm.doc.__onload?.steps || []) {
 			if (step === frm.doc.step) continue;
-			frm.add_custom_button(step, () => save_with(frm, { step }), __("Move To"));
+			frm.add_custom_button(
+				step,
+				() => save_with(frm, { step }),
+				__("Move To"),
+			);
 		}
 		frm.add_custom_button(__("Snooze"), () => snooze(frm));
 		frm.add_custom_button(__("Close"), () => close_card(frm));
@@ -28,13 +37,13 @@ function render_contact_details(frm) {
 	}
 	const phone = contact.phone
 		? `<a href="tel:${encodeURIComponent(contact.phone)}">${frappe.utils.escape_html(
-				contact.phone
-		  )}</a>`
+				contact.phone,
+			)}</a>`
 		: __("No phone number on file");
 	const email = contact.email
 		? `<a href="mailto:${encodeURIComponent(contact.email)}">${frappe.utils.escape_html(
-				contact.email
-		  )}</a>`
+				contact.email,
+			)}</a>`
 		: __("No email address on file");
 	frm.get_field("contact_details").$wrapper.html(`
 		<p class="text-muted small">${__("Contact Details")}</p>
@@ -46,15 +55,21 @@ function render_contact_details(frm) {
 function add_draft_email_button(frm) {
 	const comments = frm.get_docinfo()?.comments || [];
 	const has_email = comments.some((comment) =>
-		(comment.content || "").includes("data-ai-email")
+		(comment.content || "").includes("data-ai-email"),
 	);
-	if (!has_email || !frappe.boot.churchit?.ai?.on || !frappe.model.can_create("Church Email"))
+	if (
+		!has_email ||
+		!frappe.boot.churchit?.ai?.on ||
+		!frappe.model.can_create("Church Email")
+	)
 		return;
 	frm.add_custom_button(__("Draft the Email"), () =>
-		frappe.xcall("churchit.ai.triage.draft_email", { card: frm.doc.name }).then(({ url }) => {
-			const target = new URL(url, window.location.origin);
-			frappe.set_route(target.pathname + target.search);
-		})
+		frappe
+			.xcall("churchit.ai.triage.draft_email", { card: frm.doc.name })
+			.then(({ url }) => {
+				const target = new URL(url, window.location.origin);
+				frappe.set_route(target.pathname + target.search);
+			}),
 	);
 }
 
@@ -73,7 +88,7 @@ function snooze(frm) {
 		},
 		(values) => save_with(frm, values),
 		__("Snooze Card"),
-		__("Snooze")
+		__("Snooze"),
 	);
 }
 
@@ -83,11 +98,14 @@ function close_card(frm) {
 			fieldname: "outcome",
 			fieldtype: "Small Text",
 			label: __("Outcome"),
-			description: __("What happened, for whoever reads this card later."),
+			description: __(
+				"What happened, for whoever reads this card later.",
+			),
 			default: frm.doc.outcome,
 		},
-		(values) => save_with(frm, { status: "Closed", outcome: values.outcome || "" }),
+		(values) =>
+			save_with(frm, { status: "Closed", outcome: values.outcome || "" }),
 		__("Close Card"),
-		__("Close")
+		__("Close"),
 	);
 }

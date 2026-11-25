@@ -12,7 +12,8 @@
 	const ALT_TEXT = "alt_text";
 	const PLACEHOLDER = /\{\{\s*[\w.]+\s*\}\}/g;
 
-	const get_fields = (doctype) => frappe.boot.churchit?.ai_writing?.[doctype] || {};
+	const get_fields = (doctype) =>
+		frappe.boot.churchit?.ai_writing?.[doctype] || {};
 	const escape = (text) => churchit.ai.escape(text);
 
 	const action_labels = () => ({
@@ -29,18 +30,22 @@
 	// target: the record whose field fills, the form's own or a table row's.
 	function add_links(frm, fields_dict, target) {
 		if (!churchit.ai?.can_run?.()) return;
-		for (const [fieldname, config] of Object.entries(get_fields(target.doctype))) {
+		for (const [fieldname, config] of Object.entries(
+			get_fields(target.doctype),
+		)) {
 			const field = fields_dict[fieldname];
 			if (!field?.$wrapper) continue;
 			field.$wrapper.find("." + LINK_CLASS).remove();
 			if (field.get_status?.() !== "Write") continue;
 			if (config.public_only && !is_public_page(frm)) continue;
 
-			const $link = $(`<a role="button" class="${LINK_CLASS} small text-muted"></a>`)
+			const $link = $(
+				`<a role="button" class="${LINK_CLASS} small text-muted"></a>`,
+			)
 				.text(
 					config.actions.includes(ALT_TEXT)
 						? __("Alt Text with AI")
-						: __("Draft with AI")
+						: __("Draft with AI"),
 				)
 				.css("margin-left", "8px")
 				.on("click", (event) => {
@@ -48,12 +53,16 @@
 					event.stopPropagation();
 					choose(frm, target, fieldname, config.actions);
 				});
-			field.$wrapper.find(".clearfix label, .clearfix .label-area").first().append($link);
+			field.$wrapper
+				.find(".clearfix label, .clearfix .label-area")
+				.first()
+				.append($link);
 		}
 	}
 
 	function choose(frm, target, fieldname, actions) {
-		if (actions.includes(ALT_TEXT)) return run(frm, target, fieldname, ALT_TEXT, "");
+		if (actions.includes(ALT_TEXT))
+			return run(frm, target, fieldname, ALT_TEXT, "");
 		const labels = action_labels();
 		const dialog = new frappe.ui.Dialog({
 			title: __("Draft with AI"),
@@ -62,7 +71,10 @@
 					fieldname: "action",
 					fieldtype: "Select",
 					label: __("Action"),
-					options: actions.map((action) => ({ label: labels[action], value: action })),
+					options: actions.map((action) => ({
+						label: labels[action],
+						value: action,
+					})),
 					default: target.doc[fieldname] ? "shorten" : "write",
 					reqd: 1,
 				},
@@ -71,7 +83,7 @@
 					fieldtype: "Small Text",
 					label: __("Request"),
 					description: __(
-						"Write: what to write. Change Tone: the tone, such as warmer or more formal. Translate: the language."
+						"Write: what to write. Change Tone: the tone, such as warmer or more formal. Translate: the language.",
 					),
 				},
 			],
@@ -87,7 +99,9 @@
 	function run(frm, target, fieldname, action, prompt) {
 		const source = target.doc[fieldname] || "";
 		const values = Object.fromEntries(
-			Object.entries(frm.doc).filter(([, value]) => typeof value !== "object")
+			Object.entries(frm.doc).filter(
+				([, value]) => typeof value !== "object",
+			),
 		);
 		const is_alt_text = action === ALT_TEXT;
 		churchit.ai.run_action({
@@ -103,7 +117,9 @@
 				values,
 			},
 			render: (result) =>
-				is_alt_text ? render_alt_texts(result) : render_text(result, source),
+				is_alt_text
+					? render_alt_texts(result)
+					: render_text(result, source),
 			on_use: (result) =>
 				is_alt_text
 					? use_alt_texts(target, fieldname, result.alt_texts)
@@ -113,43 +129,58 @@
 
 	function render_text(result, source) {
 		const passages = (result.references || []).map((passage) => {
-			const translation = passage.translation ? ` (${escape(passage.translation)})` : "";
+			const translation = passage.translation
+				? ` (${escape(passage.translation)})`
+				: "";
 			const text = passage.text ? `: ${escape(passage.text)}` : "";
 			return `<li><b>${escape(passage.reference)}</b>${translation}${text}</li>`;
 		});
 		const kept = new Set(result.text.match(PLACEHOLDER) || []);
 		const missing = [...new Set(source.match(PLACEHOLDER) || [])].filter(
-			(name) => !kept.has(name)
+			(name) => !kept.has(name),
 		);
 		const warnings = [
 			result.dropped?.length &&
-				__("Left out the part that named {0}, which is not in the Bible.", [
-					result.dropped.join(", "),
-				]),
-			missing.length && __("The answer leaves out {0}.", [missing.join(", ")]),
+				__(
+					"Left out the part that named {0}, which is not in the Bible.",
+					[result.dropped.join(", ")],
+				),
+			missing.length &&
+				__("The answer leaves out {0}.", [missing.join(", ")]),
 		].filter(Boolean);
 		return [
 			`<div style="white-space: pre-wrap">${escape(result.text)}</div>`,
 			passages.length
 				? `<p class="mt-3 mb-1"><b>${escape(
-						__("Bible passages")
-				  )}</b></p><ul>${passages.join("")}</ul>`
+						__("Bible passages"),
+					)}</b></p><ul>${passages.join("")}</ul>`
 				: "",
-			...warnings.map((warning) => `<p class="text-warning small">${escape(warning)}</p>`),
+			...warnings.map(
+				(warning) =>
+					`<p class="text-warning small">${escape(warning)}</p>`,
+			),
 		].join("");
 	}
 
 	function render_alt_texts(result) {
-		const items = result.alt_texts.map((text) => `<li>${escape(text || "-")}</li>`).join("");
+		const items = result.alt_texts
+			.map((text) => `<li>${escape(text || "-")}</li>`)
+			.join("");
 		return `<p>${escape(
-			__("Alt text for each image without one, in page order:")
+			__("Alt text for each image without one, in page order:"),
 		)}</p><ol>${items}</ol>`;
 	}
 
 	function use_text(target, fieldname, text, source) {
-		const fieldtype = frappe.meta.get_docfield(target.doctype, fieldname)?.fieldtype;
+		const fieldtype = frappe.meta.get_docfield(
+			target.doctype,
+			fieldname,
+		)?.fieldtype;
 		if (fieldtype === "Text Editor") {
-			target.set(fieldname, keep_own_images(frappe.markdown(text), source));
+			target.set(
+				fieldname,
+				keep_own_images(frappe.markdown(text), source),
+			);
 		} else if (fieldtype === "Data") {
 			target.set(fieldname, text.replace(/\s+/g, " ").trim());
 		} else {
@@ -159,8 +190,11 @@
 
 	// An image keeps its place only when the field already showed it, so an answer adds no image.
 	function keep_own_images(html, source) {
-		const parse = (text) => new DOMParser().parseFromString(text, "text/html");
-		const own = new Set([...parse(source).images].map((image) => image.getAttribute("src")));
+		const parse = (text) =>
+			new DOMParser().parseFromString(text, "text/html");
+		const own = new Set(
+			[...parse(source).images].map((image) => image.getAttribute("src")),
+		);
 		const doc = parse(html);
 		for (const image of [...doc.images]) {
 			if (!own.has(image.getAttribute("src"))) image.remove();
@@ -170,9 +204,12 @@
 
 	// The images without alt text, in the order churchit.ai.writing.get_images sent them.
 	function use_alt_texts(target, fieldname, alt_texts) {
-		const doc = new DOMParser().parseFromString(target.doc[fieldname] || "", "text/html");
+		const doc = new DOMParser().parseFromString(
+			target.doc[fieldname] || "",
+			"text/html",
+		);
 		const images = [...doc.images].filter(
-			(image) => !(image.getAttribute("alt") || "").trim()
+			(image) => !(image.getAttribute("alt") || "").trim(),
 		);
 		images.forEach((image, index) => {
 			if (alt_texts[index]) image.setAttribute("alt", alt_texts[index]);
@@ -189,7 +226,8 @@
 	const row_target = (cdt, cdn) => ({
 		doctype: cdt,
 		doc: locals[cdt][cdn],
-		set: (fieldname, value) => frappe.model.set_value(cdt, cdn, fieldname, value),
+		set: (fieldname, value) =>
+			frappe.model.set_value(cdt, cdn, fieldname, value),
 	});
 
 	function open_draft(url) {
@@ -204,14 +242,20 @@
 			["questions", __("Discussion Questions"), __("Copy")],
 			["summary", __("Summary"), __("Copy")],
 			...(frm.doc.series
-				? [["series_description", __("Series Description"), __("Open Draft")]]
+				? [
+						[
+							"series_description",
+							__("Series Description"),
+							__("Open Draft"),
+						],
+					]
 				: []),
 			["handout_blanks", __("Handout Blanks"), __("Use")],
 			...(frm.doc.publish
 				? [
 						["devotional", __("Devotional"), __("Copy")],
 						["social_post", __("Social Post"), __("Copy")],
-				  ]
+					]
 				: []),
 		];
 	}
@@ -230,28 +274,35 @@
 						on_use: (result) => use_study(frm, purpose, result),
 						use_label,
 					}),
-				__("Study with AI")
+				__("Study with AI"),
 			);
 		}
 	}
 
 	function render_study(purpose, result) {
 		if (purpose === "handout_blanks") {
-			const items = result.blanks.map((blank) => `<li>${escape(blank)}</li>`).join("");
+			const items = result.blanks
+				.map((blank) => `<li>${escape(blank)}</li>`)
+				.join("");
 			return `<p>${escape(
-				__("Use puts these in [brackets] in the notes:")
+				__("Use puts these in [brackets] in the notes:"),
 			)}</p><ul>${items}</ul>`;
 		}
 		if (purpose === "questions") {
-			return render_text({ ...result, text: number_lines(result.questions) }, "");
+			return render_text(
+				{ ...result, text: number_lines(result.questions) },
+				"",
+			);
 		}
 		return render_text(result, "");
 	}
 
-	const number_lines = (lines) => lines.map((line, index) => `${index + 1}. ${line}`).join("\n");
+	const number_lines = (lines) =>
+		lines.map((line, index) => `${index + 1}. ${line}`).join("\n");
 
 	function use_study(frm, purpose, result) {
-		if (purpose === "handout_blanks") return bracket_notes(frm, result.blanks);
+		if (purpose === "handout_blanks")
+			return bracket_notes(frm, result.blanks);
 		if (purpose === "series_description") {
 			return frappe
 				.xcall("churchit.ai.drafts.propose", {
@@ -261,13 +312,19 @@
 				})
 				.then((draft) => open_draft(draft.url));
 		}
-		const text = purpose === "questions" ? number_lines(result.questions) : result.text;
+		const text =
+			purpose === "questions"
+				? number_lines(result.questions)
+				: result.text;
 		frappe.utils.copy_to_clipboard(text);
 	}
 
 	// Each blank in [brackets] where the notes first show it, so Create Handout makes the blanks.
 	function bracket_notes(frm, blanks) {
-		const doc = new DOMParser().parseFromString(frm.doc.notes || "", "text/html");
+		const doc = new DOMParser().parseFromString(
+			frm.doc.notes || "",
+			"text/html",
+		);
 		const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
 		const texts = [];
 		while (walker.nextNode()) texts.push(walker.currentNode);
@@ -285,7 +342,7 @@
 		frappe.show_alert({
 			message: __(
 				"{0} blanks added. Check the notes, then save and choose Create Handout.",
-				[count]
+				[count],
 			),
 			indicator: count ? "green" : "orange",
 		});
@@ -329,18 +386,21 @@
 					(row) =>
 						`${row.label} (${__(row.question_type)}${
 							row.is_required ? ", " + __("required") : ""
-						})`
-			  )
+						})`,
+				)
 			: result.steps;
 		const items = lines.map((line) => `<li>${escape(line)}</li>`).join("");
 		const left_out = result.left_out
 			? `<p class="text-warning small">${escape(
-					__("Left out {0} triggers or actions that the workflow cannot do.", [
-						result.left_out,
-					])
-			  )}</p>`
+					__(
+						"Left out {0} triggers or actions that the workflow cannot do.",
+						[result.left_out],
+					),
+				)}</p>`
 			: "";
-		const note = __("Open Draft shows the whole form, unsaved, for you to check.");
+		const note = __(
+			"Open Draft shows the whole form, unsaved, for you to check.",
+		);
 		return `<ul>${items}</ul>${left_out}<p class="text-muted small">${escape(note)}</p>`;
 	}
 
@@ -352,7 +412,11 @@
 			form_render(frm, cdt, cdn) {
 				const row = frm.cur_grid;
 				if (row?.doc?.name === cdn && row.grid_form) {
-					add_links(frm, row.grid_form.fields_dict, row_target(cdt, cdn));
+					add_links(
+						frm,
+						row.grid_form.fields_dict,
+						row_target(cdt, cdn),
+					);
 				}
 			},
 		});
@@ -365,7 +429,7 @@
 				frm,
 				"churchit.church_setup.ai.draft_question_set",
 				__("Describe the Form"),
-				__("What should the form ask?")
+				__("What should the form ask?"),
 			),
 	});
 	frappe.ui.form.on("Follow-up Workflow", {
@@ -374,7 +438,7 @@
 				frm,
 				"churchit.church_setup.ai.draft_followup_workflow",
 				__("Describe the Process"),
-				__("What should happen, step by step?")
+				__("What should happen, step by step?"),
 			),
 	});
 })();

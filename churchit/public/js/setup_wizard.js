@@ -17,7 +17,7 @@ frappe.setup.on("before_load", function () {
 				fieldtype: "Check",
 				default: 0,
 				description: __(
-					"Fills the site with a made-up church, so you can try every part. Demo logins use their email address as the password. Do not use sample data on a site that people can reach from the internet. To start fresh, open Settings > Sample Data and click Delete All Data. It removes the sample records, the demo logins and every record you added."
+					"Fills the site with a made-up church, so you can try every part. Demo logins use their email address as the password. Do not use sample data on a site that people can reach from the internet. To start fresh, open Settings > Sample Data and click Delete All Data. It removes the sample records, the demo logins and every record you added.",
 				),
 			},
 		],

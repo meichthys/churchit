@@ -17,9 +17,12 @@ frappe.ui.form.on("Person", {
 
 		// The grid draws a Check on every row: draw No Year on Birth rows only, like the row form.
 		// The blank must be a non-empty string, because the grid formats an empty cell again against the Person.
-		const year_unknown = frappe.meta.docfield_map["Life Event"].year_unknown;
+		const year_unknown =
+			frappe.meta.docfield_map["Life Event"].year_unknown;
 		year_unknown.formatter = (value, df, options, doc) =>
-			doc?.event_type === "Birth" ? frappe.form.formatters.Check(value) : "<span></span>";
+			doc?.event_type === "Birth"
+				? frappe.form.formatters.Check(value)
+				: "<span></span>";
 	},
 	onload(frm) {
 		// A Person changes its name by a merge only (Actions > Merge Into), which the server still allows.
@@ -28,22 +31,29 @@ frappe.ui.form.on("Person", {
 	refresh(frm) {
 		// The Connections tab holds the dashboard, so this alert sits above the tabs instead.
 		if (frm.doc.__onload?.has_unsubscribed) {
-			frm.dashboard.set_headline_alert(__("Unsubscribed from Church Emails"), "orange");
+			frm.dashboard.set_headline_alert(
+				__("Unsubscribed from Church Emails"),
+				"orange",
+			);
 		} else if (frm.doc.__onload?.bounced_email) {
-			const address = frappe.utils.escape_html(frm.doc.__onload.bounced_email);
+			const address = frappe.utils.escape_html(
+				frm.doc.__onload.bounced_email,
+			);
 			frm.dashboard.set_headline_alert(
 				__(
 					"Email bounced: {0}. Church Emails skip it until you correct it or untick Bounced.",
-					[address]
+					[address],
 				),
-				"orange"
+				"orange",
 			);
 		}
 
 		// Whether AI is in use, under Keep Out of Churchit's AI Features (churchit.ai.opt_outs).
 		const ai_state = frm.doc.__onload?.ai_state;
 		frm.get_field("ai_status").$wrapper.html(
-			ai_state ? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>` : ""
+			ai_state
+				? `<p class="text-muted small">${frappe.utils.escape_html(ai_state)}</p>`
+				: "",
 		);
 
 		show_login_church(frm);
@@ -59,18 +69,20 @@ frappe.ui.form.on("Person", {
 	after_save(frm) {
 		// after_save runs before refresh, so saved_user is still the login before this save.
 		const login = frm.doc.__onload?.login_church_note;
-		if (login && frm.doc.user !== frm.saved_user) warn_about_login_church(frm, login);
+		if (login && frm.doc.user !== frm.saved_user)
+			warn_about_login_church(frm, login);
 	},
 });
 
 // Record actions under one Actions button, for a saved person.
 function add_actions(frm) {
-	const action = (label, fn) => frm.add_custom_button(label, fn, __("Actions"));
+	const action = (label, fn) =>
+		frm.add_custom_button(label, fn, __("Actions"));
 	add_note_action(frm, action);
 
 	if (frm.doc.last_name && !frm.doc.__onload?.is_primary_contact) {
 		action(__("New Family From Person"), () =>
-			frm.call("new_family_from_person").then(() => frm.reload_doc())
+			frm.call("new_family_from_person").then(() => frm.reload_doc()),
 		);
 	}
 
@@ -78,7 +90,7 @@ function add_actions(frm) {
 	if (has_email && !frm.doc.user) {
 		action(
 			__("Invite to Portal"),
-			() => refuse_without_email(frm) || frm.call("invite_to_portal")
+			() => refuse_without_email(frm) || frm.call("invite_to_portal"),
 		);
 	}
 
@@ -86,14 +98,20 @@ function add_actions(frm) {
 
 	const login = frm.doc.__onload?.login_church_note;
 	if (login?.can_limit) {
-		action(__("Limit Login to {0}", [frappe.utils.escape_html(login.church)]), () =>
-			limit_login(frm)
+		action(
+			__("Limit Login to {0}", [frappe.utils.escape_html(login.church)]),
+			() => limit_login(frm),
 		);
 	}
 
-	if (frm.doc.__onload?.has_unsubscribed && frappe.model.can_write("Person")) {
+	if (
+		frm.doc.__onload?.has_unsubscribed &&
+		frappe.model.can_write("Person")
+	) {
 		action(__("Resubscribe to Church Emails"), () =>
-			frm.call("resubscribe_to_church_emails").then(() => frm.reload_doc())
+			frm
+				.call("resubscribe_to_church_emails")
+				.then(() => frm.reload_doc()),
 		);
 	}
 }
@@ -106,30 +124,42 @@ function show_login_church(frm) {
 		frm.set_df_property(
 			"user",
 			"description",
-			frappe.meta.get_docfield("Person", "user").description
+			frappe.meta.get_docfield("Person", "user").description,
 		);
 		return;
 	}
-	const [works_in, church] = [login.works_in, login.church].map(frappe.utils.escape_html);
-	let description = __("This login works in {0}, not in {1}.", [works_in, church]);
+	const [works_in, church] = [login.works_in, login.church].map(
+		frappe.utils.escape_html,
+	);
+	let description = __("This login works in {0}, not in {1}.", [
+		works_in,
+		church,
+	]);
 	if (login.can_limit) {
-		description += " " + __("Actions > Limit Login to {0} changes that.", [church]);
+		description +=
+			" " + __("Actions > Limit Login to {0} changes that.", [church]);
 	}
 	frm.set_df_property("user", "description", description);
 }
 
 // Linking a staff login does not move it to this person's church, so say so on the save that links it.
 function warn_about_login_church(frm, login) {
-	const [user, works_in, church] = [frm.doc.user, login.works_in, login.church].map(
-		frappe.utils.escape_html
-	);
+	const [user, works_in, church] = [
+		frm.doc.user,
+		login.works_in,
+		login.church,
+	].map(frappe.utils.escape_html);
 	let message = __(
 		"{0} works in {1}, not in {2}. Linking it to this person does not change that.",
-		[`<b>${user}</b>`, works_in, church]
+		[`<b>${user}</b>`, works_in, church],
 	);
 	if (!login.can_limit) {
 		message +=
-			" " + __("Ask someone who works across every church to limit it to {0}.", [church]);
+			" " +
+			__(
+				"Ask someone who works across every church to limit it to {0}.",
+				[church],
+			);
 	}
 	frappe.msgprint({
 		title: __("Login Works in Another Church"),
@@ -144,9 +174,12 @@ function warn_about_login_church(frm, login) {
 
 function limit_login(frm) {
 	return frappe
-		.xcall("churchit.church_foundations.church_access.limit_login_to_church", {
-			person: frm.doc.name,
-		})
+		.xcall(
+			"churchit.church_foundations.church_access.limit_login_to_church",
+			{
+				person: frm.doc.name,
+			},
+		)
 		.then(() => frm.reload_doc());
 }
 
@@ -169,7 +202,10 @@ function show_background_check_status(frm) {
 			let label = `${__("Background Check")}: ${__(check.status)} (${check.check_type})`;
 			if (check.status !== "Cleared") {
 				const color = check.status === "Not Cleared" ? "red" : "orange";
-				frm.dashboard.set_headline_alert(frappe.utils.escape_html(label), color);
+				frm.dashboard.set_headline_alert(
+					frappe.utils.escape_html(label),
+					color,
+				);
 				return;
 			}
 			if (check.expires_on) {
@@ -188,8 +224,15 @@ function show_alert_notes(frm) {
 		if (!notes.length || frm.doc.name !== person) return;
 		const lines = notes.map((note) => {
 			const category = frappe.utils.escape_html(__(note.category));
-			const link = frappe.utils.get_form_link("Person Note", note.name, true, category);
-			const text = frappe.utils.escape_html(frappe.utils.html2text(note.note));
+			const link = frappe.utils.get_form_link(
+				"Person Note",
+				note.name,
+				true,
+				category,
+			);
+			const text = frappe.utils.escape_html(
+				frappe.utils.html2text(note.note),
+			);
 			return `<div>${link}: ${text}</div>`;
 		});
 		frm.set_intro(lines.join(""), "red");
@@ -211,22 +254,29 @@ function refuse_without_email(frm) {
 
 // The link lets the person change their own details without a login, once, for 7 days.
 function add_details_link_action(frm, action) {
-	const has_email = (frm.doc.emails || []).some((row) => row.is_primary && row.email_address);
+	const has_email = (frm.doc.emails || []).some(
+		(row) => row.is_primary && row.email_address,
+	);
 	if (!frm.perm[0]?.write || !has_email) return;
 	action(
 		__("Send Details Link"),
 		() =>
 			refuse_without_email(frm) ||
 			frappe
-				.xcall("churchit.church_people.details_link.send_details_link", {
-					person: frm.doc.name,
-				})
+				.xcall(
+					"churchit.church_people.details_link.send_details_link",
+					{
+						person: frm.doc.name,
+					},
+				)
 				.then((email) =>
 					frappe.show_alert({
-						message: __("Details link sent to {0}", [frappe.utils.escape_html(email)]),
+						message: __("Details link sent to {0}", [
+							frappe.utils.escape_html(email),
+						]),
 						indicator: "green",
-					})
-				)
+					}),
+				),
 	);
 }
 
@@ -255,7 +305,7 @@ function add_note_action(frm, action) {
 			after_insert,
 			set_category_query,
 			note,
-			true
+			true,
 		);
 	});
 }
@@ -265,9 +315,11 @@ function add_note_action(frm, action) {
 const check_for_possible_matches = frappe.utils.debounce((frm) => {
 	if (frm.doctype !== "Person" || !frm.is_new()) return;
 	const own_values = (rows, field) =>
-		(rows || []).filter((row) => row[field] && !row.shared_from).map((row) => row[field]);
+		(rows || [])
+			.filter((row) => row[field] && !row.shared_from)
+			.map((row) => row[field]);
 	const birth = (frm.doc.life_events || []).find(
-		(row) => row.event_type === "Birth" && row.date && !row.year_unknown
+		(row) => row.event_type === "Birth" && row.date && !row.year_unknown,
 	);
 	const candidate = {
 		first_name: frm.doc.first_name,
@@ -281,14 +333,22 @@ const check_for_possible_matches = frappe.utils.debounce((frm) => {
 		emails: own_values(frm.doc.emails, "email_address"),
 		phones: own_values(frm.doc.phones, "phone_number"),
 	};
-	if (!candidate.first_name || !(candidate.emails.length || candidate.phones.length)) {
+	if (
+		!candidate.first_name ||
+		!(candidate.emails.length || candidate.phones.length)
+	) {
 		frm.set_intro("");
 		return;
 	}
 	frappe
-		.xcall("churchit.church_people.matching.get_possible_matches", { candidate }, "GET")
+		.xcall(
+			"churchit.church_people.matching.get_possible_matches",
+			{ candidate },
+			"GET",
+		)
 		.then((matches) => {
-			if (frm.is_new()) frm.set_intro(possible_matches_note(matches), "yellow");
+			if (frm.is_new())
+				frm.set_intro(possible_matches_note(matches), "yellow");
 		});
 }, 500);
 
@@ -299,12 +359,16 @@ function possible_matches_note(matches) {
 			"Person",
 			match.person,
 			true,
-			frappe.utils.escape_html(match.full_name)
+			frappe.utils.escape_html(match.full_name),
 		);
-		const reasons = match.reasons.map((reason) => frappe.utils.escape_html(__(reason)));
+		const reasons = match.reasons.map((reason) =>
+			frappe.utils.escape_html(__(reason)),
+		);
 		return `${link} (${reasons.join(", ")})`;
 	});
-	return __("This person may already be in the directory: {0}", [people.join("; ")]);
+	return __("This person may already be in the directory: {0}", [
+		people.join("; "),
+	]);
 }
 
 frappe.ui.form.on("Person", {
@@ -324,7 +388,12 @@ frappe.ui.form.on("Phone Number", {
 // Set on the form, not as a field default: the server would fill a cleared date back in.
 frappe.ui.form.on("Position", {
 	positions_add(frm, cdt, cdn) {
-		frappe.model.set_value(cdt, cdn, "start_date", frappe.datetime.get_today());
+		frappe.model.set_value(
+			cdt,
+			cdn,
+			"start_date",
+			frappe.datetime.get_today(),
+		);
 	},
 });
 
@@ -342,23 +411,26 @@ function add_merge_menu_item(frm) {
 					options: "Person",
 					label: __("Person to Keep"),
 					reqd: 1,
-					get_query: () => ({ filters: { name: ["!=", frm.doc.name] } }),
+					get_query: () => ({
+						filters: { name: ["!=", frm.doc.name] },
+					}),
 					description: __(
 						"Everything that names {0} moves to this person, and {0} is deleted. This person keeps their own details, except the ones you choose below, and gets the ones they do not have from {0}. You cannot undo a merge.",
-						[name]
+						[name],
 					),
 					onchange: () =>
 						churchit.merge_choices.render(
 							choices(),
 							dialog.get_value("keep"),
-							frm.doc.name
+							frm.doc.name,
 						),
 				},
 				{ fieldname: "choices", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Merge"),
 			primary_action({ keep }) {
-				const take_from_removed = churchit.merge_choices.get_taken(choices());
+				const take_from_removed =
+					churchit.merge_choices.get_taken(choices());
 				dialog.hide();
 				frappe
 					.call({
@@ -381,7 +453,7 @@ function add_remove_personal_data_menu_item(frm) {
 		frappe.confirm(
 			__(
 				"Remove the personal data of {0}? The record stays, so their giving and attendance still count. Their first name, contact details, notes, photo, birth date, family, spouse and portal login go, and the last name stays. You cannot undo this.",
-				[frappe.utils.escape_html(frm.doc.full_name)]
+				[frappe.utils.escape_html(frm.doc.full_name)],
 			),
 			() =>
 				frappe
@@ -390,7 +462,7 @@ function add_remove_personal_data_menu_item(frm) {
 						args: { person: frm.doc.name },
 						freeze: true,
 					})
-					.then(() => frm.reload_doc())
+					.then(() => frm.reload_doc()),
 		);
 	});
 }

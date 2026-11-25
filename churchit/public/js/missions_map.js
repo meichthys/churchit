@@ -28,8 +28,8 @@
 			${
 				marker.country
 					? `<div class="missions-map-popup-country">${frappe.utils.escape_html(
-							marker.country
-					  )}</div>`
+							marker.country,
+						)}</div>`
 					: ""
 			}
 		`;
@@ -41,14 +41,19 @@
 		const label =
 			hiddenCount === 1
 				? __("1 missionary not shown for their safety")
-				: __("{0} missionaries not shown for their safety", [hiddenCount]);
+				: __("{0} missionaries not shown for their safety", [
+						hiddenCount,
+					]);
 		const notice = document.createElement("div");
 		notice.className = "missions-map-notice";
 		notice.innerHTML = `<span class="missions-map-pill">${label}</span>`;
 		mapEl.insertAdjacentElement("afterend", notice);
 	}
 
-	const map = L.map(mapEl, { scrollWheelZoom: false, worldCopyJump: true }).setView([20, 0], 2);
+	const map = L.map(mapEl, {
+		scrollWheelZoom: false,
+		worldCopyJump: true,
+	}).setView([20, 0], 2);
 	const { url, options } = frappe.utils.map_defaults.tiles.default_tile;
 	L.tileLayer(url, options).addTo(map);
 
@@ -59,7 +64,8 @@
 			args: churchit.with_church({}),
 		})
 		.then((r) => {
-			const { markers = [], hidden_count: hiddenCount = 0 } = r.message || {};
+			const { markers = [], hidden_count: hiddenCount = 0 } =
+				r.message || {};
 			showHiddenNotice(hiddenCount);
 			if (!markers.length) return;
 

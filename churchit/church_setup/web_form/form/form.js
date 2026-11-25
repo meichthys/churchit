@@ -7,7 +7,9 @@ frappe.ready(function () {
 		.call({
 			method: "churchit.church_setup.doctype.form_response.form_response.get_form",
 			type: "GET",
-			args: { question_set: frappe.utils.get_query_params().question_set },
+			args: {
+				question_set: frappe.utils.get_query_params().question_set,
+			},
 		})
 		.then((r) => show_questions(web_form, r.message))
 		.catch(() => $(".web-form").hide());

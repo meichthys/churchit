@@ -10,7 +10,7 @@ frappe.listview_settings["Church Task"] = {
 		listview.page.add_inner_button(__("My Tasks"), () =>
 			listview.filter_area.add([
 				["Church Task", "_assign", "like", `%${frappe.session.user}%`],
-			])
+			]),
 		);
 	},
 };

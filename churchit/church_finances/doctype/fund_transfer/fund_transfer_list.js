@@ -6,8 +6,10 @@ frappe.listview_settings["Fund Transfer"] = {
 	has_indicator_for_draft: true,
 	has_indicator_for_cancelled: true,
 	get_indicator(doc) {
-		if (doc.docstatus === 0) return [__("Pending"), "orange", "docstatus,=,0"];
-		if (doc.docstatus === 1) return [__("Submitted"), "green", "docstatus,=,1"];
+		if (doc.docstatus === 0)
+			return [__("Pending"), "orange", "docstatus,=,0"];
+		if (doc.docstatus === 1)
+			return [__("Submitted"), "green", "docstatus,=,1"];
 		return [__("Cancelled"), "gray", "docstatus,=,2"];
 	},
 };

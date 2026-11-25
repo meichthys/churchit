@@ -12,15 +12,16 @@ frappe.ui.form.on("Bulletin Settings", {
 function lock_shared_settings(frm) {
 	if (frm.doc.__onload?.has_every_church !== false) return;
 	for (const df of frm.meta.fields) {
-		if (df.fieldname !== "church_sections") frm.set_df_property(df.fieldname, "read_only", 1);
+		if (df.fieldname !== "church_sections")
+			frm.set_df_property(df.fieldname, "read_only", 1);
 	}
 	frm.set_query("church", "church_sections", () => ({
 		filters: { name: ["in", frappe.boot.churchit.churches] },
 	}));
 	frm.set_intro(
 		__(
-			"These settings apply to every church. Only someone who works across every church can change them. Add or change the row of your own church under Sections Per Church."
+			"These settings apply to every church. Only someone who works across every church can change them. Add or change the row of your own church under Sections Per Church.",
 		),
-		"blue"
+		"blue",
 	);
 }

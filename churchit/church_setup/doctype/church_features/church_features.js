@@ -14,9 +14,9 @@ frappe.ui.form.on("Church Features", {
 			frm.disable_form();
 			frm.set_intro(
 				__(
-					"Church Features apply to every church. Only someone who works across every church can change them."
+					"Church Features apply to every church. Only someone who works across every church can change them.",
 				),
-				"blue"
+				"blue",
 			);
 		}
 	},
@@ -25,10 +25,10 @@ frappe.ui.form.on("Church Features", {
 		if (!frm.doc.enable_multi_church || frm.saved_multi_church) return;
 		frappe.confirm(
 			__(
-				"Turn on Multi-Church? When you save, every existing record gets the main church and every existing user is limited to it. You cannot turn it off again while branch churches exist."
+				"Turn on Multi-Church? When you save, every existing record gets the main church and every existing user is limited to it. You cannot turn it off again while branch churches exist.",
 			),
 			null,
-			() => frm.set_value("enable_multi_church", 0)
+			() => frm.set_value("enable_multi_church", 0),
 		);
 	},
 	after_save(frm) {
@@ -36,8 +36,10 @@ frappe.ui.form.on("Church Features", {
 		// showing the old set until it is reloaded. Website page rows do not change them.
 		if (get_switches(frm) === frm.saved_switches) return;
 		frappe.confirm(
-			__("Settings that change the desk were saved. Reload now to apply them?"),
-			() => window.location.reload()
+			__(
+				"Settings that change the desk were saved. Reload now to apply them?",
+			),
+			() => window.location.reload(),
 		);
 	},
 });

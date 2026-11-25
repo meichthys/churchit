@@ -38,7 +38,11 @@ frappe.query_reports["Church Directory Report"] = {
 			if (!group) continue;
 			if (!groups[group]) {
 				groups[group] = $('<div class="directory-option-group"></div>')
-					.append($('<div class="directory-option-heading"></div>').text(group))
+					.append(
+						$('<div class="directory-option-heading"></div>').text(
+							group,
+						),
+					)
 					.appendTo($options);
 			}
 			groups[group].append(filter.wrapper);
@@ -54,15 +58,15 @@ frappe.query_reports["Church Directory Report"] = {
 				if (!r.message) return;
 				if (!report._$preview) {
 					report._$preview = $(
-						'<iframe style="display:block;height:80vh;margin:var(--margin-md) var(--padding-md);width:calc(100% - 2 * var(--padding-md));border:1px solid var(--border-color);border-radius:var(--border-radius-md);"></iframe>'
+						'<iframe style="display:block;height:80vh;margin:var(--margin-md) var(--padding-md);width:calc(100% - 2 * var(--padding-md));border:1px solid var(--border-color);border-radius:var(--border-radius-md);"></iframe>',
 					).insertAfter($(".report-wrapper"));
 					report._$booklet_note = $(
-						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>'
+						'<p class="text-muted small" style="padding: 0 var(--padding-md);"></p>',
 					)
 						.text(
 							__(
-								"To print the booklet, print double-sided and flip on the short edge. Keep the sheets in order, then fold the stack in half with the cover on the outside."
-							)
+								"To print the booklet, print double-sided and flip on the short edge. Keep the sheets in order, then fold the stack in half with the cover on the outside.",
+							),
 						)
 						.insertBefore(report._$preview);
 				}
@@ -70,11 +74,14 @@ frappe.query_reports["Church Directory Report"] = {
 				report._$preview.one("load", function () {
 					// The cover is 100vh of the frame: pin it to 80vh of the window before the frame grows.
 					const cover = this.contentDocument.querySelector(".cover");
-					if (cover) cover.style.minHeight = 0.8 * window.innerHeight + "px";
+					if (cover)
+						cover.style.minHeight = 0.8 * window.innerHeight + "px";
 					// The root's own height, as scrollHeight never goes below the frame; plus the frame's border.
 					const border = this.offsetHeight - this.clientHeight;
 					this.style.height =
-						this.contentDocument.documentElement.offsetHeight + border + "px";
+						this.contentDocument.documentElement.offsetHeight +
+						border +
+						"px";
 				});
 				report._$preview[0].srcdoc = r.message;
 			},
@@ -243,10 +250,13 @@ frappe.query_reports["Church Directory Report"] = {
 		frappe.query_reports["Church Directory Report"]._group_options(report);
 
 		report.page.add_inner_button(__("Print Directory"), function () {
-			const args = frappe.query_reports["Church Directory Report"]._directory_args(report);
+			const args =
+				frappe.query_reports["Church Directory Report"]._directory_args(
+					report,
+				);
 			window.open(
 				"/api/method/churchit.church_people.report.church_directory_report.church_directory_report.download_directory_pdf?" +
-					$.param(args)
+					$.param(args),
 			);
 		});
 	},

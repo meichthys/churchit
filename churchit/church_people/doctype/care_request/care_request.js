@@ -40,10 +40,15 @@ function add_suggestion_buttons(frm) {
 			["category", suggestion.suggested_type, __("Use Category")],
 			["urgency", suggestion.suggested_urgency, __("Use Urgency")],
 		]
-			.filter(([fieldname, value]) => value && value !== frm.doc[fieldname])
-			.map(([fieldname, value, label]) => [label, () => frm.set_value(fieldname, value)]),
+			.filter(
+				([fieldname, value]) => value && value !== frm.doc[fieldname],
+			)
+			.map(([fieldname, value, label]) => [
+				label,
+				() => frm.set_value(fieldname, value),
+			]),
 		note: __(
-			"AI suggests and never replies or assigns. Use a suggestion only after you check it."
+			"AI suggests and never replies or assigns. Use a suggestion only after you check it.",
 		),
 	}));
 }
