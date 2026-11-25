@@ -400,7 +400,8 @@ a.ch-row::after {
 .page_content .card-body {
   padding: 0.5rem 0 1rem;
 }
-.page_content .card-footer {
+.page_content .card-footer,
+[data-theme="dark"] .page_content .card-footer {
   padding: 0 0 1rem;
   background: transparent;
   border: 0;
@@ -900,7 +901,8 @@ body .grid-empty {
   background-color: var(--surface-elevation-1);
   border-color: var(--outline-gray-2);
 }
-[data-theme="dark"] a:not(.leaflet-container a, .btn, .es-button):hover {
+/* the theme compiles links in light ink; :where keeps any link with its own color rule winning */
+[data-theme="dark"] a:where(:not(.leaflet-container a, .btn, .es-button)) {
   color: var(--ink-gray-9);
 }
 

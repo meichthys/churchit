@@ -29,7 +29,11 @@ from churchit.church_website.pages import (
 )
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
-from churchit.patches.v1_0 import hide_sermons_on_the_home_page, tidy_shipped_website_pages
+from churchit.patches.v1_0 import (
+	give_members_pages_the_page_header,
+	hide_sermons_on_the_home_page,
+	tidy_shipped_website_pages,
+)
 from churchit.portal.nav import get_menu
 from churchit.tests.helpers import (
 	RollbackEachTest,
@@ -713,3 +717,23 @@ class TestClosedWebsite(RollbackEachTest):
 		self.set_closed(0)
 		self.assertEqual(serve("beliefs", "Guest").status_code, 200)
 		self.assertEqual(serve("about", "Guest").status_code, 200)
+
+
+class TestNewPageLayout(RollbackEachTest):
+	def test_a_new_page_has_the_title_and_width_of_the_other_pages(self):
+		page = make_web_page("_Test New Page Layout", route="_test-new-page-layout")
+
+		self.assertEqual((page.full_width, page.show_title), (0, 1))
+
+	def test_the_patch_gives_members_pages_the_page_header(self):
+		page = make_web_page("_Test Old Members Page", route="_test-old-members-page", members_only=1)
+		home = make_web_page("_Test Old Block Page", route="_test-old-block-page", members_only=1)
+		frappe.db.set_value("Web Page", page.name, {"full_width": 1, "show_title": 0})
+		frappe.db.set_value(
+			"Web Page", home.name, {"full_width": 1, "show_title": 0, "content_type": "Page Builder"}
+		)
+
+		give_members_pages_the_page_header.execute()
+
+		self.assertEqual(frappe.db.get_value("Web Page", page.name, ["full_width", "show_title"]), (0, 1))
+		self.assertEqual(frappe.db.get_value("Web Page", home.name, ["full_width", "show_title"]), (1, 0))
