@@ -279,6 +279,18 @@ class TestReadingSignUps(EventsTestCase):
 		self.assertFalse(detail["can_edit"])
 		self.assertFalse(detail["can_cancel"])
 
+	def test_a_sign_up_the_member_cannot_change_shows_its_items(self):
+		item = frappe.get_doc({"doctype": "Sign-Up Item", "item": "_Test Events Snacks"}).insert(
+			ignore_permissions=True
+		)
+		function = self.open_function(table_cxhh=[{"item": item.name, "quantity_needed": 3}])
+		staff = make_sign_up(function, self.person, table_iprj=[{"item": item.name, "my_quantity": 1}])
+
+		detail = events.get_sign_up(staff.name)
+
+		self.assertFalse(detail["can_edit"])
+		self.assertEqual([(row["item"], row["my_quantity"]) for row in detail["items"]], [(item.name, 1)])
+
 
 class TestChangingSignUps(EventsTestCase):
 	def test_update_changes_attending_and_notes_but_not_the_function(self):

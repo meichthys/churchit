@@ -322,7 +322,6 @@ def get_own_items(doc) -> list[dict]:
 			"item": row.item,
 			"description": row.description or "",
 			"quantity_needed": cint(row.quantity_needed),
-			"quantity_signed_up": cint(row.quantity_signed_up),
 			"my_quantity": cint(row.my_quantity),
 			"is_limited": bool(row.is_limited),
 		}
