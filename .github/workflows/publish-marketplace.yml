@@ -1,0 +1,95 @@
+name: Publish to Frappe Marketplace
+
+# Advertises each push to version-16 on github.com/frappe/marketplace, the
+# registry Pilot and Frappe Cloud v2 install from. The registry's own reusable
+# workflow pushes to frappe/marketplace itself, which only Frappe's apps can do,
+# so this one pushes to a fork and opens one rolling PR from it. The registry
+# check installs the release and merges the PR when it passes.
+#
+# Needs secrets.MARKETPLACE_PR_TOKEN: a classic PAT with `public_repo`, owned
+# by the fork's owner.
+
+on:
+  push:
+    branches: [version-16]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-marketplace
+  cancel-in-progress: true
+
+env:
+  APP: churchit
+  BRANCH: version-16
+  CHANNEL: stable
+  COMMIT: ${{ github.sha }}
+  UPSTREAM: frappe/marketplace
+  FORK: meichthys/marketplace
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/version-16'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the app
+        uses: actions/checkout@v4
+        with:
+          path: app
+          persist-credentials: false
+
+      - name: Check out the registry
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UPSTREAM }}
+          ref: main
+          path: registry
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Add the release entry
+        run: |
+          pip install -q packaging
+          python3 registry/tools/add_release.py --app-dir app --registry registry
+
+      - name: Open or update the pull request
+        working-directory: registry
+        env:
+          GH_TOKEN: ${{ secrets.MARKETPLACE_PR_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "Release already advertised, nothing to publish."
+            exit 0
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Set the MARKETPLACE_PR_TOKEN secret."
+            exit 1
+          fi
+
+          short="${COMMIT:0:8}"
+          branch="publish/$APP-$BRANCH"
+          owner="${FORK%%/*}"
+          title="feat($APP): advertise $short from $BRANCH"
+          body="Automated release published from ${GITHUB_REPOSITORY}@${COMMIT}. Later publishes from \`$BRANCH\` update this PR in place."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -qB "$branch"
+          git commit -qam "feat($APP): advertise $short"
+          # Rebuilt from upstream main on every publish, so a force push is expected
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${FORK}.git" "HEAD:refs/heads/$branch"
+
+          number=$(gh pr list --repo "$UPSTREAM" --state open --head "$branch" \
+            --json number,headRepositoryOwner \
+            --jq "map(select(.headRepositoryOwner.login == \"$owner\")) | .[0].number // empty")
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --repo "$UPSTREAM" --title "$title" --body "$body"
+            echo "Updated $UPSTREAM#$number to $short."
+          else
+            gh pr create --repo "$UPSTREAM" --base main --head "$owner:$branch" --title "$title" --body "$body"
+          fi
