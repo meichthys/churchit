@@ -8,6 +8,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from churchit.church_setup.doctype.church_features.church_features import MODULE_FIELDS
+from churchit.church_website.pages import sync_page_switches
 from churchit.church_website.published_fields import (
 	CACHE_KEY,
 	LINK_HOLDERS,
@@ -17,12 +19,13 @@ from churchit.church_website.published_fields import (
 	clear_published_field_cache,
 	code_sources,
 	fields_used_in,
+	get_reachable_field_map,
 	published_field_map,
 	web_form_access,
 	web_form_entries,
 	www_routes,
 )
-from churchit.tests.helpers import make_function, make_person
+from churchit.tests.helpers import RollbackEachTest, make_function, make_person
 
 
 def routes(published, doctype, fieldname):
@@ -305,3 +308,40 @@ class TestPublishedFields(FrappeTestCase):
 		self.assertEqual(access["update-your-details"], LINK_HOLDERS)
 		self.assertEqual(web_form_access(frappe._dict(login_required=1, key_required=1)), MEMBERS)
 		self.assertIn("update-your-details", routes(published_field_map(), "Person", "alergies"))
+
+
+class TestBadgeReach(RollbackEachTest):
+	"""The desk badge: each field's pages as visitors reach them now."""
+
+	def setUp(self):
+		super().setUp()
+		sync_page_switches()
+		self.set_features()
+
+	def set_features(self, closed=0, off_routes=()):
+		features = frappe.get_single("Church Features")
+		for field in MODULE_FIELDS:
+			features.set(field, 1)
+		for row in features.website_pages:
+			row.enabled = row.route not in off_routes
+		features.disable_public_website = closed
+		features.save()
+
+	def get_access(self, doctype, fieldname):
+		sources = get_reachable_field_map().get(doctype, {}).get(fieldname, [])
+		return {source["route"]: source["access"] for source in sources}
+
+	def test_a_page_that_is_off_shows_no_field(self):
+		self.assertEqual(self.get_access("Sermon", "sermon_date").get("podcast"), PUBLIC)
+
+		self.set_features(off_routes=("podcast.xml",))
+		self.assertNotIn("podcast", self.get_access("Sermon", "sermon_date"))
+
+	def test_with_the_website_off_only_members_see_a_page_behind_the_login(self):
+		self.set_features(closed=1)
+
+		sermon_date = self.get_access("Sermon", "sermon_date")
+		self.assertEqual(sermon_date.get("podcast"), PUBLIC)
+		self.assertEqual(sermon_date.get("sermon"), MEMBERS)
+		self.assertEqual(sermon_date.get("sermon-presentation"), MEMBERS)
+		self.assertNotIn("beliefs", self.get_access("Belief", "title"))

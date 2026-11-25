@@ -89,7 +89,7 @@ The following features have been implemented in this app (see the [🗺️ Roadm
 - Publishable beliefs/statement of faith
 - Members-only web pages: tick Members Only on a Web Page, and visitors go to the login page
 - Turn each shipped website page off in Church Features: the page answers "Page not found" and its menu, footer and portal links go
-- Turn the whole public website off in Church Features when the church has its own website: visitors get the login page, and members keep the member portal
+- Turn the whole public website off in Church Features when the church has its own website: visitors get the login page, and members keep the member portal. A new site starts with the public website off
 - A Watch Live page (/live) that plays the church's live stream, or a branch's parent's, and a Watch live button on streamed events in the calendar
 - Publishable missionary profiles with sensitive-info redaction
 - Website themes: the shipped **Churchit** look, or Frappe's plain **Standard** look. Pick one under Website Settings → Website Theme. Both have a light and a dark mode; visitors switch with the sun/moon button in the navbar, and it follows their system setting until they do
@@ -322,7 +322,7 @@ When both apps are on one site:
 | Area | What happens |
 |---|---|
 | Setup wizard | After you add ERPNext to a Churchit site, desk users go to ERPNext's setup wizard until a System Manager completes it. |
-| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. |
+| Website | Churchit owns the public website: home page, menu, theme, favicon and login logo. Installing Churchit on an ERPNext site replaces the website menu and footer and turns off sign-up. It also turns off the public website, so visitors who are not signed in get the login page in place of your Web Pages and Web Forms. To open it, see [First steps after installing](#first-steps-after-installing). |
 | Letterhead | The church's default letterhead, such as **Church Letter Head**, stays the default, so ERPNext documents also print with it. To print them with an ERPNext letterhead, set it in **Company > Default Letter Head**. |
 | Email | Churchit turns off the standard email footer, so church emails do not end with "Sent via ERPNext". You can turn it on again in **System Settings**. |
 | Address Template | ERPNext's setup wizard replaces the default Address Template for your country, and its template has no phone and email lines. Giving statements print the church address with that template, so check **Address Template** after the wizard. |
@@ -371,6 +371,7 @@ Until the Payments app is installed, **Giving Settings** shows a notice, and Chu
 
    Combine profiles when one person has several jobs. Open the `Role Permissions Manager` to see exactly what each role can do.
 4. Members do not need a desk login. Use **Invite to Portal** on their Person. It gives them the `Church User` role, which reaches the portal and their own records only.
+5. The public website starts off, because most churches already have a website. Visitors who are not signed in get only the login page, and members keep the member portal. To open the website, type `Church Features` in the search bar, clear **Turn Off the Public Website** in the **Website Pages** section and save.
 
 ### Setting up a public domain
 

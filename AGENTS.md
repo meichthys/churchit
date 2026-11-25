@@ -662,9 +662,12 @@ see, so `PERSONAL_DETAILS_SOURCE` badges them, as members-only. `MEMORIZE_SOURCE
 such as `churchit.church_people.membership` as a read of the field `membership`, so a badge can name
 a field the page does not show.
 
-The scan is cached in `frappe.cache` (`published_field_map(use_cache=True)`, which the badges read).
+The scan is cached in `frappe.cache` (`published_field_map(use_cache=True)`).
 A Web Page or Web Form save or delete and every migrate clear it (`clear_published_field_cache`);
-Function schedule entries are read on each call.
+Function schedule entries are read on each call. The badges read `get_reachable_field_map`, which
+applies the page switches on each call: a page that is off badges no field, and while the public
+website is off, a page that sends guests to the login page (`pages.sends_guests_to_login`) counts
+as members-only.
 
 Each source is public, members-only or for link holders (`PUBLIC`, `MEMBERS`, `LINK_HOLDERS`). A
 web form with `login_required`, or a page that sends every guest to the login screen, is
@@ -783,7 +786,9 @@ keeps the redirect. `get_switched_off_pages` then adds `VISITOR_PAGES` and every
 that is not members-only, so those pages go for members too, and `get_hidden_pages` hides every
 shipped page from a guest. A new shipped page that tells visitors about the church goes in
 `VISITOR_PAGES`. A page that a key in an email opens for someone with no login goes in
-`EMAILED_KEY_PAGES`. File routes, such as the podcast feed, stay open.
+`EMAILED_KEY_PAGES`. File routes, such as the podcast feed, stay open. A new site starts with the
+box ticked (`after_install`), and the `before_tests` hook (`tests.helpers.open_public_website`)
+clears it, so a test that serves a page to a guest needs no setup.
 
 ## Settings a church can differ on
 

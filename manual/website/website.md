@@ -32,7 +32,7 @@ To make a new page, click **Add Web Page**, write it and tick **Published**. Pub
 
 ## Which fields the public can see
 
-In the desk, a small badge beside a field label shows that the field appears outside the desk. An outgoing-link badge means anyone can see it. A people badge means only signed-in members can see it. Point at the badge to see which pages show the field, and click it to open one. On a phone, tap the badge.
+In the desk, a small badge beside a field label shows that the field appears outside the desk. An outgoing-link badge means anyone can see it. A people badge means only signed-in members can see it. Point at the badge to see which pages show the field, and click it to open one. On a phone, tap the badge. A page that is off marks no field. While the public website is off, a page that sends visitors to the login page counts as members only, so the outgoing-link badge stays only where anyone can still see the field, for example in the podcast feed.
 
 :::note[Example]
 On a Missionary form, the badge beside Photo says that the Missions page shows it to anyone. Before you add a photo of a missionary in a closed country, you know that the public would see it.

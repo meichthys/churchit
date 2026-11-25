@@ -15,11 +15,11 @@ Open **Church Features** and open the **Website Pages** section. Each page that 
 
 ## No public website
 
-If your church already has its own website, tick **Turn Off the Public Website** in the Website Pages section of **Church Features** and save. A visitor who is not signed in then sees only the login page. Members sign in and keep the member portal and the pages that are on, such as Calendar, Give and Bulletins.
+A new site starts with the public website off, because most churches already have a website. To open it, clear **Turn Off the Public Website** in the Website Pages section of **Church Features** and save. While the box is ticked, a visitor who is not signed in sees only the login page. Members sign in and keep the member portal and the pages that are on, such as Calendar, Give and Bulletins.
 
 The pages about the church go for members too: Home, Beliefs, Sermons, Missions, Ministries, About Us, Contact Us, Locations, Watch Live, Find a Group, the Connection Card, the prayer request form for visitors, and your own Web Pages that are not Members Only.
 
-Visitors cannot give online or sign up for a function until they sign in. The podcast feed stays on, and the link in a ministry team request email still opens without a login. Clear the box and save to bring the website back.
+Visitors cannot give online or sign up for a function until they sign in. The podcast feed stays on, and the link in a ministry team request email still opens without a login. The Web Site workspace then says that the website is off, in place of the preview of the home page. Tick the box and save to take the website off again.
 
 :::note[Example]
 First Church already has a website made by a designer. It wants Churchit only for the member portal, online giving and the calendar. It ticks Turn Off the Public Website and puts links to /give and /calendar on its own website. Members who follow those links sign in once.
