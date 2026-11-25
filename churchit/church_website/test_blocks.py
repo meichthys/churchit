@@ -14,7 +14,13 @@ from churchit.church_website.blocks import HOME_BLOCKS
 from churchit.church_website.pages import sync_page_switches
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import move_home_page_to_blocks
-from churchit.tests.helpers import RollbackEachTest, ensure_root_church, force_single_church, make_function
+from churchit.tests.helpers import (
+	RollbackEachTest,
+	ensure_root_church,
+	ensure_user,
+	force_single_church,
+	make_function,
+)
 from churchit.www.podcast import get_feed_url
 
 
@@ -214,3 +220,10 @@ class TestHomePageBlocks(RollbackEachTest):
 		page = frappe.get_doc("Web Page", "home")
 		self.assertEqual(page.content_type, "HTML")
 		self.assertEqual(page.main_section_html, edited)
+
+	def test_a_website_manager_may_read_the_blocks_but_not_change_them(self):
+		user = ensure_user("_test_blocks_website_manager@example.com", "Blocks", roles=("Website Manager",))
+		frappe.set_user(user)
+
+		self.assertTrue(frappe.has_permission("Web Template", "read", doc=HOME_BLOCKS[0][0]))
+		self.assertFalse(frappe.has_permission("Web Template", "write", doc=HOME_BLOCKS[0][0]))
