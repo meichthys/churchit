@@ -6,14 +6,14 @@ from frappe.model.document import Document
 from frappe.utils import today
 
 from churchit.church_people.doctype.note_category.note_category import PASTORAL_ROLES
-from churchit.church_people.member_access import pin_to_members_own_person, validate_members_recipient
+from churchit.church_people.member_access import is_portal_member, validate_members_recipient
 from churchit.church_prayers.prayer_access import (
 	PRAYER_REQUEST,
 	PRAYER_TEAM_ROLE,
 	get_community_filters,
 	get_open_request_filters,
 )
-from churchit.utils import resolve_link_titles
+from churchit.church_scope import session_person
 
 ANSWERED = "Answered"
 PRAYER_TEAM_NOTIFICATION = "New Prayer Request for the Prayer Team"
@@ -54,11 +54,11 @@ class PrayerRequest(Document):
 
 	def validate(self):
 		self.validate_public_church()
-		pin_to_members_own_person(self, "requestor")
+		self.fill_requestor_from_login()
 		validate_members_recipient(self)
 		# Resolve the display name for the dynamic recipient link using the linked
-		# doctype's title_field (e.g. full_name for Person). Stored so it can be
-		# shown in web form list views, which cannot resolve Dynamic Link titles.
+		# doctype's title_field (e.g. full_name for Person). Stored so that lists,
+		# which cannot resolve Dynamic Link titles, can show it.
 		# See: https://github.com/frappe/frappe/issues/27330
 		if self.recipient and self.recipient_type:
 			meta = frappe.get_meta(self.recipient_type)
@@ -74,6 +74,11 @@ class PrayerRequest(Document):
 		if not self.is_new():
 			# Only prayer.recount_prayers writes the count, so a form opened before a prayer cannot undo it.
 			self.prayer_count = frappe.db.get_value(self.doctype, self.name, "prayer_count", for_update=True)
+
+	def fill_requestor_from_login(self):
+		"""A member always names themselves, and the member app names whoever asks through it."""
+		if is_portal_member() or (self.flags.from_member_app and not self.requestor):
+			self.requestor = session_person()
 
 	def set_answered_on(self):
 		"""Keep the day the request turned Answered, so a later edit does not count it again."""
@@ -100,21 +105,6 @@ class PrayerRequest(Document):
 		filters, or_filters = get_open_request_filters()
 		filters = {"name": self.name, **get_community_filters(), **filters}
 		return bool(frappe.get_all(PRAYER_REQUEST, filters=filters, or_filters=or_filters, limit=1))
-
-
-def get_list_context(context):
-	context.filters = {"owner": frappe.session.user}
-	context.order_by = "modified desc"
-
-	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
-		from frappe.www.list import get_list as default_get_list
-
-		rows = default_get_list(doctype, txt, filters, limit_start, limit_page_length, **kwargs)
-		resolve_link_titles(rows, doctype)
-		return rows
-
-	context.get_list = get_list
-	return context
 
 
 def create_new_prayer_request_notifications(names: tuple[str, ...] | None = None) -> None:

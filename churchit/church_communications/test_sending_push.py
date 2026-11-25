@@ -6,7 +6,6 @@
 from unittest import mock
 
 import frappe
-from frappe.utils import get_html_for_route
 
 from churchit.church_communications.consent import allowed, allowed_people
 from churchit.church_communications.doctype.communication_consent.communication_consent import (
@@ -208,22 +207,6 @@ class TestPushPreference(PreferencesTestCase):
 		self.assertFalse(allowed(self.person, PUSH, CHURCH_NEWS))
 		self.assertEqual(result["message"], "You will not get Church News as a notification.")
 		self.assertTrue(allowed(self.person, EMAIL, CHURCH_NEWS), "a push choice leaves email alone")
-
-	def test_the_page_renders_a_push_switch_for_each_purpose(self):
-		subscribe(MEMBER_EMAIL, "member")
-		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-		html = get_html_for_route("preferences")
-
-		self.assertIn('data-channel="Push"', html)
-		self.assertIn('<th scope="col" class="channel">Push</th>', html)
-		self.assertIn('data-has-push-column="1"', html)
-
-	def test_a_page_with_no_push_column_says_so_to_its_script(self):
-		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-		html = get_html_for_route("preferences")
-
-		self.assertNotIn('data-channel="Push"', html)
-		self.assertIn('data-has-push-column="0"', html)
 
 
 class TestGroupMessagePush(GroupLeaderTestCase):

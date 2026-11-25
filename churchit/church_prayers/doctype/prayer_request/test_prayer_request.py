@@ -56,11 +56,11 @@ class TestPrayerRequest(FrappeTestCase):
 	def test_visibility_defaults_to_the_most_private_option(self):
 		self.assertEqual(self._request().visibility, "Private")
 
-	def test_the_web_forms_offer_private_first(self):
-		for name in ("prayer-request", "prayer-request-anonymous"):
-			field = frappe.get_doc("Web Form", name).get("web_form_fields", {"fieldname": "visibility"})[0]
-			self.assertEqual(frappe.get_meta("Prayer Request").get_field("visibility").default, "Private")
-			self.assertEqual(field.default or "Private", "Private")
+	def test_the_guest_form_offers_private_first(self):
+		web_form = frappe.get_doc("Web Form", "prayer-request-anonymous")
+		field = web_form.get("web_form_fields", {"fieldname": "visibility"})[0]
+		self.assertEqual(frappe.get_meta("Prayer Request").get_field("visibility").default, "Private")
+		self.assertEqual(field.default or "Private", "Private")
 
 	def test_a_guest_request_waits_for_approval(self):
 		ensure("Prayer Request Status", {"status": "Answered"})
@@ -100,7 +100,6 @@ class TestPrayerRequest(FrappeTestCase):
 		member = ensure_user("_test_prayer_status@example.com", "_Test Status")
 		if not frappe.db.exists("Person", {"user": member}):
 			make_person("_Test Prayer", "Status", user=member)
-		self.addCleanup(setattr, frappe.flags, "in_web_form", False)
 		values = {
 			"title": "_Test Status Request",
 			"type": self.request_type,
@@ -110,12 +109,10 @@ class TestPrayerRequest(FrappeTestCase):
 		}
 
 		frappe.set_user(member)
-		saved = accept("prayer-request", json.dumps(values))
-		self.assertEqual(saved.status, "Requested")
-		self.assertEqual(
-			accept("prayer-request", json.dumps({**values, "name": saved.name})).status, "Requested"
-		)
-		frappe.flags.in_web_form = False
+		# The member app takes no status, so Frappe drops the one sent along.
+		saved = frappe._dict(frappe.call("churchit.portal.care.save_prayer_request", **values))
+		frappe.call("churchit.portal.care.save_prayer_request", **values, name=saved.name)
+		self.assertEqual(frappe.db.get_value("Prayer Request", saved.name, "status"), "Requested")
 		self.assertEqual(insert({"doctype": "Prayer Request", **values})["status"], "Requested")
 
 		frappe.set_user(

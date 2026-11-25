@@ -16,7 +16,6 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe.desk.form.load import get_docinfo
 from frappe.desk.listview import get_group_by_count
-from frappe.website.doctype.web_form.web_form import get_form_data
 
 from churchit.ai import runner, triage
 from churchit.ai.drafts import get_draft, get_key
@@ -25,8 +24,8 @@ from churchit.ai.test_runner import FlowRunnerTestCase, fake_run, flow_session, 
 from churchit.church_foundations.church_access import set_user_church
 from churchit.church_people.doctype.follow_up_card.test_follow_up_card import make_workflow
 from churchit.church_people.followup import add_card
-from churchit.church_prayers.web_form.community_prayer_requests import community_prayer_requests
 from churchit.church_setup.doctype.church_ai_suggestion.church_ai_suggestion import SUGGESTION_DOCTYPE
+from churchit.portal import care
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -361,15 +360,17 @@ class TestStore(TriageCase):
 		frappe.set_user("Administrator")
 		self.assertTrue(frappe.get_doc("Prayer Request", request.name).has_permission("read", user=TEAM_A))
 
-	def test_a_member_reads_no_suggestion_on_the_web_form_of_their_request(self):
+	def test_a_member_reads_no_suggestion_on_their_own_request_in_the_app(self):
 		request = self.prayer_request(user=MEMBER)
 		self.store_as_reviewer(request, {"type": self.prayer_type, "urgent": True, "flags": ["health"]})
 		self.assertTrue(get_suggestion(request).suggested_flags)
 
 		frappe.set_user(MEMBER)
-		form = get_form_data("Prayer Request", request.name, web_form_name="prayer-request")
-		self.assertEqual(form.doc.name, request.name, "The member reads their own request")
-		self.assertNotIn("Health details", frappe.as_json(form.doc))
+		mine = care.get_my_prayer_requests()
+		self.assertIn(
+			request.name, [row["name"] for row in mine["items"]], "The member reads their own request"
+		)
+		self.assertNotIn("Health details", frappe.as_json(mine))
 		self.assertEqual(self.listed(request), [])
 
 	def test_a_member_never_reads_a_suggestion_on_community_prayer_requests(self):
@@ -380,11 +381,9 @@ class TestStore(TriageCase):
 		self.assertTrue(get_suggestion(request).suggested_flags)
 
 		frappe.set_user(MEMBER)
-		context = community_prayer_requests.get_list_context(frappe._dict())
-		rows = context.get_list("Prayer Request", "", [], 0, 100)
-		[row] = [row for row in rows if row.name == request.name]
+		[row] = [row for row in care.get_community_requests()["items"] if row["name"] == request.name]
 		self.assertNotIn("Health details", frappe.as_json(row))
-		self.assertEqual(row.request, request.request, "The list still shows the request")
+		self.assertEqual(row["request"], request.request, "The list still shows the request")
 
 	def test_a_care_suggestion_names_only_a_readable_type_and_a_listed_urgency(self):
 		request = self.care_request()

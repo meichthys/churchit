@@ -16,8 +16,8 @@ from frappe import _
 from frappe.utils import get_datetime, get_system_timezone, get_url, strip_html_tags
 
 from churchit.church_foundations.doctype.church.church import get_church
+from churchit.church_people.directory import is_public
 from churchit.church_scope import church_filters, is_multi_church
-from churchit.www.directory import is_public
 
 base_template_path = "www/podcast.xml"
 no_cache = 1

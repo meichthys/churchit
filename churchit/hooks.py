@@ -96,10 +96,8 @@ app_include_js = [
 web_include_css = ["/assets/churchit/css/website.css", "/assets/churchit/css/pwa.css"]
 web_include_js = [
 	"/assets/churchit/js/site_church.js",
-	"/assets/churchit/js/portal_groups.js",
 	"/assets/churchit/js/missions_map.js",
 	"/assets/churchit/js/nav_active_state.js",
-	"/assets/churchit/js/web_form_lists.js",
 	"/assets/churchit/js/pwa.js",
 	"/assets/churchit/js/questions.js",
 ]
@@ -148,11 +146,59 @@ website_redirects = [
 	# and delivered by email. Keep the public Frappe newsletter web view off the site.
 	{"source": r"/newsletters.*", "target": "/home"},
 	# The preferences page replaced the newsletter subscription page.
-	{"source": "/newsletter-subscription", "target": "/preferences"},
+	{"source": "/newsletter-subscription", "target": "/portal/preferences"},
+	# The member app's page file; the app runs at /portal.
+	{"source": "/member_portal", "target": "/portal", "redirect_http_status": 302},
+	# The member app (frontend/) replaced the member pages and web forms. Their links (emails, bookmarks,
+	# the installed app's shortcuts) open the same page in the app, /<route>/<rest> as
+	# /portal/<route>/<rest> with the query string. 302, because a browser keeps a 301 for good.
+	*(
+		{
+			"source": rf"/{route}(/.*)?",
+			"target": rf"/portal/{route}\1",
+			"redirect_http_status": 302,
+			"forward_query_parameters": True,
+		}
+		for route in (
+			"household",
+			"personal-details",
+			"preferences",
+			"directory",
+			"attendance",
+			"function-sign-up",
+			"ministry-team",
+			"room-request",
+			"groups",
+			"group-files",
+			"group-leader",
+			"prayer-request",
+			"community-prayer-requests",
+			"care-request",
+			"alms-request",
+			"memorize",
+			"pledge",
+		)
+	),
+	# The digital bulletin and the printable statement (?name=) stay pages of their own; the lists move
+	# into the app, with any other query string (?church=, a mail tool's utm_ tags).
+	*(
+		{
+			"source": rf"/{route}(\?(?!(?:.*&)?name=).*)?",
+			"target": f"/portal/{route}",
+			"redirect_http_status": 302,
+			"match_with_query_string": True,
+		}
+		for route in ("bulletins", "statements")
+	),
 ]
 
-# One page per published sermon. A sermon name can hold a slash.
-website_route_rules = [{"from_route": "/sermon/<path:name>", "to_route": "sermon"}]
+# One page per published sermon. A sermon name can hold a slash. The member app (frontend/) draws
+# /portal and every path under it in one page; <path:> needs at least one character, hence two rules.
+website_route_rules = [
+	{"from_route": "/sermon/<path:name>", "to_route": "sermon"},
+	{"from_route": "/portal", "to_route": "member_portal"},
+	{"from_route": "/portal/<path:app_path>", "to_route": "member_portal"},
+]
 
 # /app-start, where the installed app opens. With the public website off, a guest gets the login
 # page. Shipped pages a church switched off answer 404 before Frappe's own renderers or its page
@@ -198,7 +244,6 @@ jinja = {
 		"churchit.church_scope.church_filters",
 		"churchit.church_scope.selected_church_filters",
 		"churchit.church_website.pages.get_switched_off_pages",
-		"churchit.church_website.portal_home.get_portal_home_sections",
 		"churchit.scripture.get_passage_text",
 		"churchit.www.podcast.get_feed_url",
 		# The Member QR Card print format draws its code with Frappe's own QR function.
@@ -309,6 +354,7 @@ has_permission = {
 	"Follow-up Card": "churchit.church_people.followup.has_card_permission",
 	"Group File": "churchit.church_people.member_access.has_group_file_permission",
 	"Pledge": "churchit.church_people.member_access.has_own_record_permission",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.has_own_item_permission",
 	"Function Sign-Up": "churchit.church_people.member_access.has_own_record_permission",
 	"Push Subscription": "churchit.church_communications.push.has_subscription_permission",
 	# While AI is off no Flow chat starts or continues (churchit.ai.flow_switch). Never run without Flow.
@@ -332,6 +378,7 @@ permission_query_conditions = {
 	"Follow-up Card": "churchit.church_people.followup.card_query_conditions",
 	"Group File": "churchit.church_people.member_access.group_file_query_conditions",
 	"Pledge": "churchit.church_people.member_access.own_records_query_conditions",
+	"Bible Memory Item": "churchit.church_study.doctype.bible_memory_item.bible_memory_item.own_items_query_conditions",
 	"Function Sign-Up": "churchit.church_people.member_access.own_records_query_conditions",
 	"Push Subscription": "churchit.church_communications.push.subscription_query_conditions",
 	"Flow Agent": "churchit.ai.flow_switch.agent_query_conditions",
@@ -505,8 +552,17 @@ extend_bootinfo = [
 
 # User menu switch for parent-church users; hidden for everyone else. One
 # item per state, since a Navbar Item's label is fixed. Install App shows while
-# this browser can install the app (public/js/pwa.js).
+# this browser can install the app (public/js/pwa.js). Member Portal shows to a
+# desk user with a Person; migrate adds a new item to existing sites.
 standard_navbar_items = [
+	{
+		"item_label": "Member Portal",
+		"item_type": "Route",
+		"route": "/portal",
+		"icon": "users",
+		"condition": "frappe.boot.churchit && frappe.boot.churchit.has_person",
+		"is_standard": 1,
+	},
 	{
 		"item_label": "Include Branch Churches",
 		"item_type": "Action",

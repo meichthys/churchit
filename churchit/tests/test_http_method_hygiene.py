@@ -19,6 +19,12 @@ from churchit.tests.test_doc_method_hygiene import (
 
 VERBS = {"GET", "POST", "PUT", "DELETE"}
 
+MEMBER_BIBLE_TEXT = (
+	"a members-only read of the member's own Bible memory items; the passage text it returns can start "
+	"the first-read download of a Free Use Bible API text, which any guest can also start, so a GET "
+	"from another site adds nothing"
+)
+
 PUBLIC_BIBLE_TEXT = (
 	"a public guest API for Bible text; its only write is the first-read download of a Free Use "
 	"Bible API text, which any guest starts with GET or POST and no CSRF token, so a GET from another "
@@ -53,6 +59,8 @@ GET_BY_DESIGN = {
 		"stands in for Frappe's own Data Import export, which takes GET; it writes only the Access Log "
 		"entry of the download, and the file goes to the browser that asked"
 	),
+	"churchit.portal.faith.get_memory_list": MEMBER_BIBLE_TEXT,
+	"churchit.portal.faith.get_practice": MEMBER_BIBLE_TEXT,
 	"churchit.scripture.get_books": PUBLIC_BIBLE_TEXT,
 	"churchit.scripture.get_chapter": PUBLIC_BIBLE_TEXT,
 	"churchit.scripture.get_passage": PUBLIC_BIBLE_TEXT,

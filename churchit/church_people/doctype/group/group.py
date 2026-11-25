@@ -54,18 +54,6 @@ class Group(Document):
 			and not closed
 		)
 
-	def has_webform_permission(self):
-		"""Portal access: only members of a portal-visible group may view it."""
-		if not self.show_in_portal:
-			return False
-		user = frappe.session.user
-		if user == "Guest":
-			return False
-		person = frappe.db.get_value("Person", {"user": user}, "name")
-		if not person:
-			return False
-		return bool(frappe.db.exists("Group Member", {"parent": self.name, "person": person}))
-
 
 @frappe.whitelist(methods=["POST"])
 def add_people(group: str, people: str | list[str], group_role: str | None = None) -> dict:

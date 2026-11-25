@@ -10,6 +10,7 @@ from pathlib import Path
 
 import frappe
 
+from churchit.church_people.member_access import PERSONAL_DETAILS_EDITABLE, PERSONAL_DETAILS_READ_ONLY
 from churchit.church_website.pages import (
 	get_switched_off_pages,
 	is_page_off,
@@ -28,11 +29,42 @@ LINK_HOLDERS = "link holders"
 
 SITE_WIDE_SOURCE = {"title": "Every page (navbar, footer, app name)", "route": "", "access": PUBLIC}
 
-# Pages that show a Function's schedule, where a row shows the title of the record it links to.
+# Pages that show a Function's schedule, where a row shows the title of the record it links to: the
+# digital bulletin and the member app's Serving page.
 SCHEDULE_SOURCES = (
 	{"title": "Bulletins", "route": "bulletins", "access": MEMBERS},
-	{"title": "Ministry Team", "route": "ministry-team", "access": MEMBERS},
+	{"title": "Member Portal: Serving", "route": "portal/ministry-team", "access": MEMBERS},
 )
+
+# The member app's My Details page: portal.account reads the Person fields of PERSONAL_DETAILS_EDITABLE
+# and PERSONAL_DETAILS_READ_ONLY by names held in a variable, which the scan cannot see.
+PERSONAL_DETAILS_SOURCE = {
+	"title": "Member Portal: Account",
+	"route": "portal/personal-details",
+	"access": MEMBERS,
+}
+
+# The member app's Memorize page: portal.faith.get_practice sends word_mistakes through
+# Bible Memory Item.load_word_mistakes, which the scan cannot follow.
+MEMORIZE_SOURCE = {
+	"title": "Member Portal: Memorize",
+	"route": "portal/memorize",
+	"access": MEMBERS,
+}
+
+# The member app's endpoints (churchit/portal), each module by the app page it serves at /portal/<route>.
+# A module not listed is badged at /portal itself.
+PORTAL_MODULE_PAGES = {
+	"household": "household",
+	"account": "personal-details",
+	"events": "function-sign-up",
+	"serving": "ministry-team",
+	"groups": "groups",
+	"directory": "directory",
+	"care": "community-prayer-requests",
+	"faith": "memorize",
+	"giving": "pledge",
+}
 
 # A page that sends every guest to the login screen is the portal, not the public site.
 # A redirect gated on anything else (giving allows anonymous gifts) still serves guests.
@@ -154,6 +186,9 @@ def scanned_entries():
 			for fieldname in fields_used_in(doctype, code, attributes):
 				yield source, doctype, fieldname
 	yield from web_form_entries()
+	for fieldname in (*PERSONAL_DETAILS_EDITABLE, *PERSONAL_DETAILS_READ_ONLY):
+		yield PERSONAL_DETAILS_SOURCE, "Person", fieldname
+	yield MEMORIZE_SOURCE, "Bible Memory Item", "word_mistakes"
 
 
 def schedule_item_entries(doctypes):
@@ -175,6 +210,7 @@ def code_sources():
 	yield from web_page_sources()
 	yield from www_sources()
 	yield from guest_api_sources()
+	yield from portal_api_sources()
 	website_dir = Path(frappe.get_app_path("churchit")) / "church_website"
 	yield SITE_WIDE_SOURCE, "\n".join((website_dir / name).read_text() for name in SITE_WIDE_MODULES)
 
@@ -207,9 +243,9 @@ def www_sources():
 def www_routes(www_dir):
 	"""Route → the files that render it, for every page under *www_dir*.
 
-	Frappe serves ``www/memorize/session.py`` at /memorize/session, a folder's
+	Frappe serves ``www/<folder>/<page>.py`` at /<folder>/<page>, a folder's
 	``index`` at the folder itself, and reads underscores and dashes alike, so
-	``ministry_team.py`` and ``ministry-team.html`` are one page, not two.
+	``find_a_group.py`` and ``find-a-group.html`` are one page, not two.
 	"""
 	routes = defaultdict(list)
 	for entry in sorted(www_dir.rglob("*")):
@@ -238,6 +274,24 @@ def guest_api_sources():
 				"access": PUBLIC,
 			}
 			yield source, match.group("body")
+
+
+def portal_api_sources():
+	"""Each module of the member app's API (churchit/portal): what the app shows to signed-in members.
+
+	The app reads records only through these endpoints, so they stand for its pages. They take no guest.
+	"""
+	portal_dir = Path(frappe.get_app_path("churchit")) / "portal"
+	for entry in sorted(portal_dir.glob("*.py")):
+		if entry.name.startswith(("test_", "__")):
+			continue
+		page = PORTAL_MODULE_PAGES.get(entry.stem)
+		source = {
+			"title": f"Member Portal: {frappe.unscrub(entry.stem)}",
+			"route": f"portal/{page}" if page else "portal",
+			"access": MEMBERS,
+		}
+		yield source, entry.read_text()
 
 
 def web_form_entries():

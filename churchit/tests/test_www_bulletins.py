@@ -14,27 +14,12 @@ from churchit.tests.helpers import (
 	make_person,
 	make_two_churches,
 )
-from churchit.www.bulletins import get_context, get_published_bulletins
+from churchit.www.bulletins import get_context
 
 ROUTE = "bulletins"
 
 
 class TestBulletinsPage(FrappeTestCase):
-	def make_bulletin(self, function_name, publish):
-		function = make_function(function_name)
-		return frappe.get_doc({"doctype": "Bulletin", "function": function.name, "publish": publish}).insert(
-			ignore_permissions=True
-		)
-
-	def test_lists_only_published_bulletins(self):
-		shared = self.make_bulletin("_Test Shared Service", publish=1)
-		private = self.make_bulletin("_Test Draft Service", publish=0)
-
-		names = [row.name for row in get_published_bulletins()]
-
-		self.assertIn(shared.name, names)
-		self.assertNotIn(private.name, names)
-
 	def test_guests_are_sent_to_log_in(self):
 		frappe.set_user("Guest")
 		try:
@@ -85,16 +70,11 @@ class TestBulletinsPageChurches(RollbackEachTest):
 		frappe.local.form_dict = frappe._dict(query)
 		return get_response(ROUTE)
 
-	def test_the_list_holds_only_the_members_church_even_when_another_is_asked_for(self):
-		mine = self.make_bulletin("_Test Bulletins Mine", self.church_a)
-		theirs = self.make_bulletin("_Test Bulletins Theirs", self.church_b)
+	def test_a_page_without_a_bulletin_name_is_not_found(self):
+		frappe.set_user(self.member)
 
-		html = self.serve(church=self.church_b).get_data(as_text=True)
-
-		self.assertIn("_Test Bulletins Mine", html)
-		self.assertIn(f"/bulletins?name={mine.name}", html)
-		self.assertNotIn("_Test Bulletins Theirs", html)
-		self.assertNotIn(theirs.name, html)
+		with self.assertRaises(frappe.PageDoesNotExistError):
+			get_context(frappe._dict())
 
 	def test_a_digital_bulletin_shows_the_bulletin_and_its_pdf_link(self):
 		bulletin = self.make_bulletin(

@@ -17,10 +17,10 @@ from werkzeug.routing import Rule
 
 from churchit.church_finances.doctype.giving_settings.giving_settings import GivingSettings
 from churchit.church_foundations.doctype.church.church import selected_church_name
+from churchit.church_people.directory import is_directory_member
 from churchit.church_people.group_leaders import get_led_groups
 from churchit.church_scope import get_transaction_cached, is_multi_church, session_person
 from churchit.church_website.menu import get_route
-from churchit.www.directory import is_directory_member
 
 # Routes that serve a file, not a page: no menu, no members-only content and nothing per visitor
 # beyond what the file's own page module decides. A dot alone does not mark a file: a sermon or a
@@ -134,8 +134,10 @@ class SwitchedOffPage(BaseRenderer):
 
 		# A route rule hands over its endpoint ("sermon"), not the path ("sermon/<name>"). Read the
 		# path from the request: only Frappe's own resolver sets frappe.local.path, Builder's does not.
+		# The member app draws a page at /portal/<its old route>, so that path follows the same switch.
 		request = getattr(frappe.local, "request", None)
-		if is_page_off(self.path, off_pages) or (request and is_page_off(request.path, off_pages)):
+		path = request.path.strip("/").removeprefix("portal/") if request else ""
+		if is_page_off(self.path, off_pages) or (path and is_page_off(path, off_pages)):
 			return True
 
 		# Frappe finds a Web Page by route with a case and accent insensitive lookup ("Sérmons").

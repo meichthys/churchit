@@ -20,7 +20,6 @@ from churchit.tests.helpers import (
 	ensure_user,
 	force_single_church,
 	make_branch,
-	make_person,
 	set_multi_church,
 )
 
@@ -30,13 +29,10 @@ def menu():
 
 
 def serve(path):
-	"""Render *path*, following a web form's redirect to its list."""
+	"""The HTML of the page at *path*."""
 	frappe.local.form_dict = frappe._dict()
 	set_request(method="GET", path=path)
-	response = get_response(path)
-	if response.status_code in (301, 302):
-		return serve(response.headers["Location"].lstrip("/"))
-	return response.get_data(as_text=True)
+	return get_response(path).get_data(as_text=True)
 
 
 def labels_for(user):
@@ -78,21 +74,21 @@ class TestPortalSidebar(FrappeTestCase):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
 
-	def test_every_portal_page_shows_the_whole_menu(self):
-		# A web form fills its sidebar from a Website Sidebar record alone, and a
-		# www page shows one only when it asks to, so either could drop the menu.
+	def test_a_website_page_with_a_sidebar_shows_the_whole_menu(self):
+		# The member pages are in the member app; /bible keeps the website's sidebar for a member.
 		frappe.set_user(ensure_user("_test_sidebar_member@example.com", "_Test Sidebar Member"))
 		menu = get_portal_sidebar_items()
 		self.assertTrue(menu)
+
+		html = serve("bible")
+
+		self.assertIn('class="web-sidebar"', html)
+		self.assertIn(f'href="{PORTAL_URL}"', html)
 		# Lead a Group shows only to a group leader.
-		shown = [link for link in menu if link.route.strip("/") != "group-leader"]
-		for item in menu:
-			with self.subTest(route=item.route):
-				html = serve(item.route)
-				self.assertIn('class="web-sidebar"', html)
-				for link in shown:
-					self.assertIn(f'href="/{link.route.lstrip("/")}"', html)
-				self.assertNotIn('href="/group-leader"', html)
+		for link in menu:
+			if link.route.strip("/") != "group-leader":
+				self.assertIn(f'href="/{link.route.lstrip("/")}"', html)
+		self.assertNotIn('href="/group-leader"', html)
 
 	def test_relative_routes_are_made_absolute(self):
 		# "bible" seen from /prayer-request/new would be /prayer-request/bible
@@ -273,36 +269,11 @@ class TestMultiChurchNavbar(RollbackEachTest):
 		update_website_context(context)
 		self.assertEqual([row.label for row in rows], ["Home"])
 
-	def test_a_member_page_names_the_member_s_own_church(self):
-		user = ensure_user("_test_navbar_member@example.com", "Navbar")
-		make_person("_Test Navbar", "Member", church=self.branch, user=user)
-		frappe.set_user(user)
-		frappe.local.form_dict = frappe._dict(church=self.root)
-
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		titles = {}
-		for path in ("directory", "community-prayer-requests/list", "sermons"):
-			frappe.local.path = path
-			context = frappe._dict(title="_Test Title")
-			update_website_context(context)
-			titles[path] = context.title
-
-		self.assertEqual(titles["directory"], "_Test Title: _Test Navbar Branch")
-		self.assertEqual(titles["community-prayer-requests/list"], "_Test Title: _Test Navbar Branch")
-		self.assertEqual(titles["sermons"], "_Test Title")
-
-	def test_a_single_church_site_keeps_the_plain_title_and_its_home_link(self):
+	def test_a_single_church_site_keeps_its_home_link(self):
 		force_single_church()
-		user = ensure_user("_test_navbar_single@example.com", "Single")
-		make_person("_Test Navbar", "Single", church=self.root, user=user)
-		frappe.set_user(user)
-
-		self.addCleanup(setattr, frappe.local, "path", getattr(frappe.local, "path", None))
-		frappe.local.path = "directory"
-		context = frappe._dict(title="_Test Title", top_bar_items=[frappe._dict(label="Home", url="/home")])
+		context = frappe._dict(top_bar_items=[frappe._dict(label="Home", url="/home")])
 		update_website_context(context)
 
-		self.assertEqual(context.title, "_Test Title")
 		self.assertEqual([item.label for item in context.top_bar_items], ["Home"])
 		self.assertIsNone(context.body_class)
 

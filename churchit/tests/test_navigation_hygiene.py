@@ -120,6 +120,18 @@ class TestNavigationHygiene(FrappeTestCase):
 				wrong.append((sidebar.name, first.link_type, first.link_to))
 		self.assertEqual(wrong, [])
 
+	def test_the_manual_is_right_under_home(self):
+		"""A module's manual is the second item of its sidebar, so users find it in one place everywhere."""
+		wrong = []
+		for sidebar in self.documents:
+			manual = frappe.db.get_value(
+				"Workspace", {"module": sidebar.module, "name": ["like", "Manual:%"]}, "name"
+			)
+			second = sidebar.items[1]
+			if manual and (second.link_type, second.link_to, second.label) != ("Workspace", manual, "Manual"):
+				wrong.append((sidebar.name, second.label))
+		self.assertEqual(wrong, [])
+
 	def test_every_icon_is_in_a_sprite_the_desk_loads(self):
 		uses = [("Dock", row.title, row.icon) for row in frappe.get_doc("Dock", "churchit").items]
 		for sidebar in self.documents:

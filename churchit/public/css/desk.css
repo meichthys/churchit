@@ -92,3 +92,60 @@ body.churchit-one-church
 	flex-shrink: 1;
 	min-width: 0;
 }
+
+/* A manual's callout (:::note in manual/) is one paragraph block led by its title, drawn as a box.
+   Frappe zeroes a workspace paragraph's padding with a long selector, hence the !important. */
+.ce-paragraph:has(> .manual-callout) {
+	padding: 10px 14px !important;
+	border-left: 3px solid var(--outline-blue-4);
+	border-radius: var(--radius);
+	background-color: var(--surface-blue-1);
+}
+.ce-paragraph:has(> .manual-callout-tip) {
+	border-left-color: var(--outline-green-4);
+	background-color: var(--surface-green-1);
+}
+.ce-paragraph:has(> .manual-callout-caution) {
+	border-left-color: var(--outline-amber-4);
+	background-color: var(--surface-amber-1);
+}
+.ce-paragraph:has(> .manual-callout-danger) {
+	border-left-color: var(--outline-red-4);
+	background-color: var(--surface-red-1);
+}
+.manual-callout {
+	font-weight: 600;
+}
+
+/* A manual picture (<picture> in manual/) shows its light or its dark image, with the desk's theme. */
+.manual-image {
+	display: block;
+	max-width: 100%;
+	margin: 4px 0;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+}
+.manual-image-dark,
+[data-theme="dark"] .manual-image-light {
+	display: none;
+}
+[data-theme="dark"] .manual-image-dark {
+	display: block;
+}
+
+/* A manual table (a Markdown table in manual/). */
+.manual-table {
+	border-collapse: collapse;
+	margin: 4px 0;
+}
+.manual-table th,
+.manual-table td {
+	padding: 6px 10px;
+	border: 1px solid var(--border-color);
+	text-align: left;
+	vertical-align: top;
+}
+.manual-table th {
+	background-color: var(--subtle-fg);
+	font-weight: 600;
+}

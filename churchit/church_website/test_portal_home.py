@@ -1,12 +1,10 @@
 # This source code is freely given for the sake of the gospel (Matthew 10:8)
 # and is licensed under MIT No Attribution (MIT-0).
 
-"""The sections of the member portal home page."""
+"""The sections of the member app's menu."""
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
 
 from churchit.church_website.portal_home import get_portal_home_sections
 
@@ -48,15 +46,3 @@ class TestPortalHomeSections(FrappeTestCase):
 		(section,) = get_portal_home_sections(items)
 
 		self.assertEqual(routes_of(section), ["groups", "group-files"])
-
-
-class TestGuestPortal(FrappeTestCase):
-	def test_a_guest_is_offered_the_connection_card(self):
-		frappe.set_user("Guest")
-		self.addCleanup(frappe.set_user, "Administrator")
-		set_request(method="GET", path="portal")
-
-		html = get_response("portal").get_data(as_text=True)
-
-		self.assertIn('<a href="/connection-card/new">Fill in a Connection Card</a>', html)
-		self.assertIn('Ask <a href="/contact">the church office</a> to invite you.', html)

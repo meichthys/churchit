@@ -30,6 +30,7 @@ from churchit.church_website.pages import (
 from churchit.church_website.published_fields import MEMBERS, PUBLIC, published_field_map
 from churchit.patches.after_install import read_template
 from churchit.patches.v1_0 import hide_sermons_on_the_home_page, tidy_shipped_website_pages
+from churchit.portal.nav import get_menu
 from churchit.tests.helpers import (
 	RollbackEachTest,
 	ensure,
@@ -328,23 +329,28 @@ class TestSwitchedOffPage(RollbackEachTest):
 		features.save()
 
 	def test_a_page_switched_off_is_not_found_until_it_is_on_again(self):
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 200)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 200)
 
-		self.switch("bulletins", 0)
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 404)
-		self.assertEqual(serve("bulletins/anything", "Administrator").status_code, 404)
+		self.switch("announcements", 0)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 404)
+		self.assertEqual(serve("announcements/anything", "Administrator").status_code, 404)
 
-		self.switch("bulletins", 1)
-		self.assertEqual(serve("bulletins", "Administrator").status_code, 200)
+		self.switch("announcements", 1)
+		self.assertEqual(serve("announcements", "Administrator").status_code, 200)
 
 	def test_the_portal_drops_its_link_and_gets_it_back(self):
-		self.assertIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertIn("bulletins", portal_menu_pages("Administrator"))
 
 		self.switch("bulletins", 0)
-		self.assertNotIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertNotIn("bulletins", portal_menu_pages("Administrator"))
 
 		self.switch("bulletins", 1)
-		self.assertIn('href="/bulletins"', serve("portal", "Administrator").get_data(as_text=True))
+		self.assertIn("bulletins", portal_menu_pages("Administrator"))
+
+	def test_the_app_page_of_a_switched_off_page_is_not_found(self):
+		self.switch("bulletins", 0)
+		self.assertEqual(serve("portal/bulletins", "Administrator").status_code, 404)
+		self.assertEqual(serve("portal/bulletins/anything", "Administrator").status_code, 404)
 
 	def test_navbar_and_footer_links_go_and_the_cached_rows_stay(self):
 		settings = frappe.get_doc("Website Settings")
@@ -381,10 +387,11 @@ class TestSwitchedOffPage(RollbackEachTest):
 	def test_a_module_switched_off_takes_its_pages_with_it(self):
 		self.set_module("enable_study", 0)
 
-		for path in ("sermons", "sermon/_test-sermon", "podcast.xml", "memorize/session"):
+		for path in ("sermons", "sermon/_test-sermon", "podcast.xml"):
 			self.assertIsInstance(resolve(path), SwitchedOffPage, path)
 		self.assertEqual(serve("sermons", "Guest").status_code, 404)
-		for path in ("live", "bulletins", "about"):
+		self.assertEqual(serve("portal/memorize/_test-item", "Administrator").status_code, 404)
+		for path in ("live", "announcements", "about"):
 			self.assertNotIsInstance(resolve(path), SwitchedOffPage, path)
 
 	def test_a_sermon_page_links_back_only_to_a_sermons_page_that_is_on(self):
@@ -502,7 +509,7 @@ class TestSwitchedOffPage(RollbackEachTest):
 		self.assertIn(get_url("/announcements"), serve("sitemap.xml", "Guest").get_data(as_text=True))
 
 	def test_a_page_renders_when_a_path_resolver_sets_no_local_path(self):
-		self.switch("bulletins", 0)
+		self.switch("announcements", 0)
 		self.addCleanup(setattr, frappe.local, "path", None)
 		resolver = "churchit.church_website.test_pages.resolve_without_local_path"
 		with patch_hooks({"website_path_resolver": [resolver]}):
@@ -510,9 +517,9 @@ class TestSwitchedOffPage(RollbackEachTest):
 			self.assertEqual(serve("about", "Guest").status_code, 200)
 
 			# A value an earlier call left behind must not turn this page off.
-			frappe.local.path = "bulletins"
+			frappe.local.path = "announcements"
 			self.assertEqual(serve("about", "Guest").status_code, 200)
-			self.assertEqual(serve("bulletins", "Guest").status_code, 404)
+			self.assertEqual(serve("announcements", "Guest").status_code, 404)
 
 	def set_home_page(self, html):
 		frappe.db.set_value("Web Page", "home", "main_section_html", html)
@@ -587,7 +594,8 @@ class TestLinksThatDoNotApply(RollbackEachTest):
 	"""No link leads to a page that does not exist on this site, or that does nothing for this visitor."""
 
 	def test_the_sitemap_lists_locations_only_while_the_site_has_branches(self):
-		locations = f"<loc>{get_url('/locations')}</loc>"
+		# The path alone: get_url outside the sitemap's own request names another host.
+		locations = "/locations</loc>"
 		force_single_church()
 		self.assertNotIn(locations, serve("sitemap.xml", "Guest").get_data(as_text=True))
 
@@ -615,8 +623,14 @@ class TestLinksThatDoNotApply(RollbackEachTest):
 			frappe.set_user(user)
 			self.assertEqual("group-leader" not in get_hidden_pages(), is_shown, user)
 
-		self.assertIn('href="/group-leader"', serve("portal", leader).get_data(as_text=True))
-		self.assertNotIn('href="/group-leader"', serve("portal", member).get_data(as_text=True))
+		self.assertIn("group-leader", portal_menu_pages(leader))
+		self.assertNotIn("group-leader", portal_menu_pages(member))
+
+
+def portal_menu_pages(user):
+	"""The pages the member app's menu offers *user*."""
+	frappe.set_user(user)
+	return [link["page"] for section in get_menu()["navigation"] for link in section["links"]]
 
 
 def own_labels(items):
@@ -652,7 +666,7 @@ class TestClosedWebsite(RollbackEachTest):
 		self.assert_redirect("", "/login")
 		self.assert_redirect("beliefs", "/login")
 		self.assert_redirect("about", "/login")
-		self.assert_redirect("bulletins", "/login?redirect-to=/bulletins")
+		self.assert_redirect("calendar", "/login?redirect-to=/calendar")
 		self.assertEqual(serve("login", "Guest").status_code, 200)
 
 	def test_the_podcast_and_an_emailed_key_still_reach_a_guest(self):
@@ -667,8 +681,10 @@ class TestClosedWebsite(RollbackEachTest):
 			"_Test Closed Members Page", route="_test-closed-members", members_only=1
 		)
 
-		for path in ("bulletins", "portal", members_page.route):
+		for path in ("calendar", members_page.route):
 			self.assertEqual(serve(path, "Administrator").status_code, 200, path)
+		for path in ("portal", "portal/household"):
+			self.assertNotIsInstance(resolve(path), ClosedWebsitePage, path)
 		for path in ("beliefs", "about", own_page.route):
 			self.assertEqual(serve(path, "Administrator").status_code, 404, path)
 

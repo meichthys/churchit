@@ -12,7 +12,7 @@ from churchit.church_people.member_access import (
 	validate_members_recipient,
 )
 from churchit.church_scope import refuse_another_churches_parent, session_person
-from churchit.utils import resolve_link_titles
+from churchit.portal.realtime import notify
 
 PENDING = "Pending"
 FINANCE_ROLE = "Church Finance"
@@ -71,6 +71,10 @@ class AlmsRequest(Document):
 				key, has_category and frappe.has_permission("Person Note", ptype, note, throw=False)
 			)
 
+	def on_update(self):
+		if self.has_value_changed("status") and not self.flags.in_insert:
+			notify(self.owner, "alms", self.name)
+
 	def validate(self):
 		# Before the fill: `church` came from the requestor as sent, and the fill does not change it.
 		refuse_another_churches_parent(
@@ -98,11 +102,11 @@ class AlmsRequest(Document):
 			)
 
 	def fill_requestor_from_login(self):
-		"""The web form does not show Requester: a member always names themselves, and staff fill it when empty.
+		"""A member always names themselves, and the member app names whoever asks through it.
 
 		Requester is a Person, so a login with no Person cannot send a request, and a Family cannot stand in.
 		"""
-		if not (is_portal_member() or (frappe.flags.in_web_form and not self.requestor)):
+		if not (is_portal_member() or (self.flags.from_member_app and not self.requestor)):
 			return
 		person = session_person()
 		if not person:
@@ -112,12 +116,15 @@ class AlmsRequest(Document):
 	def keep_the_decision_with_the_care_team(self):
 		"""A requester sets no status, and changes the request only until the care team reviews it.
 
-		The web form and REST save a member's own request with their if_owner write right, and the
-		portal form sends the status it shows back, so the status is pinned here.
+		The member app and REST save a member's own request with their if_owner write right, so the
+		status is pinned here.
 		"""
-		if not is_member_only(self.doctype, frappe.session.user):
-			return
 		before = self.get_doc_before_save()
+		if not is_member_only(self.doctype, frappe.session.user):
+			if self.flags.from_member_app:
+				# A save from the member app never carries the status; only the desk changes it.
+				self.status = before.status if before else PENDING
+			return
 		if before and is_reviewed(before):
 			frappe.throw(
 				_(
@@ -171,6 +178,7 @@ def create_expense(alms_request_name: str) -> str:
 	if alms.status == "Approved":
 		values["status"] = "Distributed"
 	frappe.db.set_value("Alms Request", alms.name, values)
+	notify(alms.owner, "alms", alms.name)
 	return expense.name
 
 
@@ -225,18 +233,3 @@ def create_alms_request_approved_notification() -> None:
 			"message": APPROVED_MESSAGE,
 		}
 	).insert(ignore_permissions=True)
-
-
-def get_list_context(context):
-	context.filters = {"owner": frappe.session.user}
-	context.order_by = "modified desc"
-
-	def get_list(doctype, txt, filters, limit_start, limit_page_length=20, **kwargs):
-		from frappe.www.list import get_list as default_get_list
-
-		rows = default_get_list(doctype, txt, filters, limit_start, limit_page_length, **kwargs)
-		resolve_link_titles(rows, doctype)
-		return rows
-
-	context.get_list = get_list
-	return context

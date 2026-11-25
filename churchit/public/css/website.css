@@ -200,6 +200,26 @@ body .grid-empty {
 .web-footer .footer-links:first-child {
   margin-top: 0;
 }
+/* The login page's help for a visitor with no login, above the footer's own rows. */
+.web-footer .footer-login-help {
+  max-width: 36rem;
+  margin: 0 auto 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  font-size: var(--text-base);
+  color: var(--text-color);
+}
+.web-footer .footer-login-help p {
+  margin-bottom: 0.5rem;
+}
+.web-footer .footer-login-help p:last-child {
+  margin-bottom: 0;
+}
+.web-footer .footer-login-help a {
+  font-weight: 500;
+  text-decoration: underline;
+}
 .web-footer .footer-top a,
 .web-footer .footer-link {
   color: var(--text-muted);
@@ -725,75 +745,6 @@ body[frappe-session-status="logged-in"] .btn-login-area {
   }
 }
 
-/* ---- Portal landing (/portal) --------------------------------------------- */
-.portal-home {
-  padding: 1rem 0 2rem;
-}
-.portal-home .lead {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  max-width: 52ch;
-}
-.portal-home-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
-  align-items: start;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-.portal-home-section {
-  padding-bottom: 0.5rem;
-}
-.portal-home-section-title {
-  margin: 1rem 1.25rem 0.5rem;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.portal-home-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0 0.5rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--border-radius-md, 8px);
-  color: var(--heading-color);
-  text-decoration: none;
-}
-.portal-home-link:hover,
-.portal-home-link:focus-visible {
-  background: var(--subtle-fg, rgba(0, 0, 0, 0.04));
-  color: var(--heading-color);
-  text-decoration: none;
-}
-.portal-link-icon {
-  flex-shrink: 0;
-  stroke: var(--primary-color);
-}
-.portal-link-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-.portal-card-title {
-  font-weight: 600;
-}
-.portal-link-description {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-.portal-card-arrow {
-  color: var(--primary-color);
-  transition: transform 0.15s ease;
-}
-.portal-home-link:hover .portal-card-arrow {
-  transform: translateX(3px);
-}
-
 /* ---- Portal sidebar ---------------------------------------------------------
    frappe's web sidebar, listing the Portal Settings menu on pages that set
    show_sidebar. frappe gives it a col-sm-2 column and hides it below the
@@ -845,19 +796,6 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 .web-list-header .web-list-title h1 {
   white-space: normal;
   overflow: visible;
-}
-/* web_form_lists.js adds the form's introduction and marks a list that cannot
-   delete, which has nothing to select */
-.web-list-introduction {
-  flex: 0 0 100%;
-  color: var(--text-muted);
-}
-.web-list-introduction p:last-child,
-.web-list-introduction blockquote:last-child {
-  margin-bottom: 0;
-}
-.web-list-without-delete .web-list-table tr > :first-child {
-  display: none;
 }
 @media (max-width: 575.98px) {
   /* the row number takes room a phone does not have */
@@ -913,34 +851,6 @@ body[frappe-session-status="logged-in"] .btn-login-area {
     padding-left: 0;
     padding-right: 0;
   }
-}
-
-/* ---- Recipient search (prayer-request web form) -----------------------------
-   The form's client script builds this list itself; colours come from the
-   same tokens as frappe's Link-field dropdown so it follows the theme. */
-.recipient-search-results {
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 4;
-  margin: 0;
-  padding: var(--padding-xs);
-  list-style: none;
-  max-height: 180px;
-  overflow-y: auto;
-  color: var(--text-color);
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
-}
-.recipient-search-results li {
-  padding: var(--padding-sm);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-}
-.recipient-search-results li:hover {
-  background-color: var(--awesomplete-hover-bg);
 }
 
 /* ---- Sermon series cards (sermons template) ------------------------------- */
@@ -1039,17 +949,15 @@ body[frappe-session-status="logged-in"] .btn-login-area {
 }
 
 /* ---- Reduced motion ---------------------------------------------------------
-   The Churchit theme lifts its buttons on hover and the portal card arrow
-   slides. The theme's rules are more specific, so these use !important. */
+   The Churchit theme lifts its buttons on hover. The theme's rules are more
+   specific, so these use !important. */
 @media (prefers-reduced-motion: reduce) {
   .page_content .btn-primary,
-  #home .home-btn-ghost,
-  .portal-card-arrow {
+  #home .home-btn-ghost {
     transition: none !important;
   }
   .page_content .btn-primary:hover,
-  #home .home-btn-ghost:hover,
-  .portal-home-link:hover .portal-card-arrow {
+  #home .home-btn-ghost:hover {
     transform: none !important;
   }
 }

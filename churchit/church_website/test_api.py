@@ -7,14 +7,8 @@ import frappe
 from frappe.exceptions import PermissionError
 from frappe.tests.utils import FrappeTestCase
 
-from churchit.church_website.api import (
-	get_published_fields,
-	get_published_web_page,
-	get_recipient_doctypes,
-	get_website_home_page,
-	search_church_recipient,
-)
-from churchit.tests.helpers import ensure_user, make_person
+from churchit.church_website.api import get_published_fields, get_published_web_page, get_website_home_page
+from churchit.tests.helpers import ensure_user
 
 
 class TestWebsiteApi(FrappeTestCase):
@@ -67,17 +61,3 @@ class TestWebsiteApi(FrappeTestCase):
 		frappe.set_user(ensure_user("_test_church_user@example.com", "_Test Church User"))
 		with self.assertRaises(PermissionError):
 			get_published_web_page("/home")
-
-	def test_recipient_doctypes_are_the_ones_a_request_may_name(self):
-		names = [row["name"] for row in get_recipient_doctypes()]
-		self.assertEqual(names, ["Person", "Family", "Group", "Ministry", "Missionary"])
-
-	def test_recipient_search_matches_on_title(self):
-		person = make_person("_Test Searchable", "Recipient")
-		results = search_church_recipient("Person", "_Test Searchable")
-		self.assertIn({"name": person.name, "label": "_Test Searchable Recipient"}, results)
-
-	def test_recipient_search_rejects_other_doctypes(self):
-		for doctype in ("User", "Counseling Case"):
-			with self.assertRaises(PermissionError):
-				search_church_recipient(doctype, "admin")

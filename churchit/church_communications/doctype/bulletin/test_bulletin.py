@@ -2,6 +2,7 @@
 # and is licensed under MIT No Attribution (MIT-0).
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.api.v1 import update_doc
@@ -412,6 +413,21 @@ class TestBulletinChurches(RollbackEachTest):
 		frappe.set_user(self.member_a)
 		with self.assertRaises(frappe.PermissionError):
 			download_pdf(theirs.name)
+
+	def test_the_pdf_uses_frappes_chrome_engine_where_wkhtmltopdf_is_missing(self):
+		bulletin = frappe.new_doc("Bulletin", function=self.function_a, publish=1).insert()
+		module = "churchit.church_communications.doctype.bulletin.bulletin"
+		self.addCleanup(setattr, frappe.local, "response", frappe.local.response)
+		frappe.local.response = frappe._dict()
+
+		for version, generator in (("0", "chrome"), ("0.12.6", None)):
+			with (
+				patch(f"{module}.get_wkhtmltopdf_version", return_value=version),
+				patch(f"{module}.download_print_pdf") as download,
+			):
+				download_pdf(bulletin.name)
+
+			self.assertEqual(download.call_args.kwargs["pdf_generator"], generator)
 
 	def test_copy_from_last_week_gives_the_newest_bulletins_text_of_the_same_church(self):
 		older, newer = (

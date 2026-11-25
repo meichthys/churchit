@@ -23,16 +23,41 @@ DASH_ENTITIES = [f"&{prefix}dash;" for prefix in ("m", "n")]
 DASH_ESCAPES = r"\\u201[34]"
 DASHES = re.compile("|".join([DASH_CHARACTERS, DASH_ESCAPES, *DASH_ENTITIES]))
 
-SCANNED = (".py", ".md", ".html", ".js", ".json", ".txt", ".css", ".scss", ".sh", ".yml", ".yaml", ".example")
+SCANNED = (
+	".py",
+	".md",
+	".html",
+	".js",
+	".ts",
+	".vue",
+	".json",
+	".txt",
+	".css",
+	".scss",
+	".sh",
+	".yml",
+	".yaml",
+	".example",
+)
 SKIPPED_DIRS = {".git", "node_modules", "__pycache__", ".venv", "env"}
+# What frontend/ builds from its packages' code; frontend/src, the source, is checked.
+SKIPPED_PATHS = {
+	os.path.join(APP_DIR, "public", "frontend"),
+	os.path.join(APP_DIR, "www", "member_portal.html"),
+}
 
 
 def scanned_files():
 	for root, dirs, files in os.walk(REPO_DIR):
-		dirs[:] = [name for name in dirs if name not in SKIPPED_DIRS]
+		dirs[:] = [
+			name
+			for name in dirs
+			if name not in SKIPPED_DIRS and os.path.join(root, name) not in SKIPPED_PATHS
+		]
 		for name in files:
-			if name.endswith(SCANNED):
-				yield os.path.join(root, name)
+			path = os.path.join(root, name)
+			if name.endswith(SCANNED) and path not in SKIPPED_PATHS:
+				yield path
 
 
 class TestNoDashes(FrappeTestCase):

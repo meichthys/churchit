@@ -8,7 +8,6 @@ from churchit.church_people.report.pastoral_care_watch_list import pastoral_care
 from churchit.church_people.report.visitation_followups_needed import visitation_followups_needed
 from churchit.church_people.summaries.test_care import make_visit
 from churchit.church_prayers.report.active_prayer_list import active_prayer_list
-from churchit.church_prayers.web_form.community_prayer_requests import community_prayer_requests
 from churchit.patches.v1_0 import fill_prayer_request_answered_on
 from churchit.tests.helpers import RollbackEachTest, ensure, force_single_church, make_person
 
@@ -160,15 +159,3 @@ class TestAnsweredOn(RollbackEachTest):
 			frappe.db.get_value("Prayer Request", request.name, "answered_on"),
 			frappe.utils.getdate(frappe.db.get_value("Prayer Request", request.name, "modified")),
 		)
-
-
-class TestCommunityPrayerForm(RollbackEachTest):
-	def test_the_list_puts_urgent_requests_first_and_shows_who_may_see_each(self):
-		form = frappe.get_doc("Web Form", "community-prayer-requests")
-		columns = [column.fieldname for column in form.list_columns]
-
-		self.assertEqual(columns[:2], ["recipient_name", "request"])
-		self.assertIn("visibility", columns)
-		context = frappe._dict()
-		community_prayer_requests.get_list_context(context)
-		self.assertTrue(context.order_by.startswith("urgent desc"))

@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import formatdate, getdate
+from frappe.utils.pdf import get_wkhtmltopdf_version
 from frappe.utils.print_format import download_pdf as download_print_pdf
 
 from churchit.church_communications.doctype.bulletin.sections import BulletinSections
@@ -180,7 +181,11 @@ def get_last_week_text(function: str | None = None, name: str | None = None) -> 
 
 @frappe.whitelist(methods=["GET"])
 def download_pdf(name: str) -> None:
-	"""The bulletin as a PDF named after its date, for the portal's download link. Reads only."""
-	download_print_pdf("Bulletin", name, format=PRINT_FORMAT, no_letterhead=1)
+	"""The bulletin as a PDF named after its date, for the portal's download link. Reads only.
+
+	A server without wkhtmltopdf, Frappe's default PDF engine, uses Frappe's Chrome engine instead.
+	"""
+	pdf_generator = None if get_wkhtmltopdf_version() != "0" else "chrome"
+	download_print_pdf("Bulletin", name, format=PRINT_FORMAT, no_letterhead=1, pdf_generator=pdf_generator)
 	function_date = frappe.db.get_value("Bulletin", name, "function_date")
 	frappe.local.response.filename = f"Bulletin {formatdate(function_date, 'yyyy-MM-dd')}.pdf"
