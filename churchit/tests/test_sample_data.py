@@ -227,6 +227,14 @@ class TestSampleDataLoader(FrappeTestCase):
 	def test_a_group_is_public_so_the_portal_has_something_to_join(self):
 		self.assertTrue(frappe.db.exists("Group", {"public": 1, "show_in_portal": 1}))
 
+	def test_the_members_page_waits_for_the_church_to_publish_it(self):
+		sample_data._delete_members_page()
+		sample_data._create_members_page()
+		page = frappe.db.get_value(
+			"Web Page", {"route": sample_data._MEMBERS_PAGE}, ["published", "members_only"]
+		)
+		self.assertEqual(page, (0, 1))
+
 	def test_the_manager_and_the_loader_have_assignments(self):
 		for user in (sample_data._CHURCH_MANAGER_EMAIL, frappe.session.user):
 			self.assertTrue(frappe.db.exists("ToDo", {"allocated_to": user, "status": "Open"}), user)
