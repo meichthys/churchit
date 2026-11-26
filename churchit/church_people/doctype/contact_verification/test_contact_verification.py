@@ -93,7 +93,7 @@ class TestContactVerification(RollbackEachTest):
 
 		ann_lines = {line["label"]: line for line in ann["lines"]}
 		self.assertEqual(ann_lines["Email"]["value"], "_test.cards.ann@example.com")
-		self.assertEqual(ann_lines["Mobile Phone"]["value"], "+1 217 555 0181")
+		self.assertEqual(ann_lines["Mobile Phone"]["value"], "+1 217-555-0181")
 		self.assertIsNone(ann_lines["Address"]["value"])
 		self.assertEqual([add["label"] for add in ann["adds"]], ["Another email", "Another phone"])
 		self.assertTrue(ann["qr_code"].startswith("data:image/svg+xml"))
@@ -157,7 +157,7 @@ class TestContactVerification(RollbackEachTest):
 		ann = frappe.get_doc("Person", self.ann.name)
 		self.assertEqual([row.email_address for row in ann.emails], ["_test.cards.ann.new@example.com"])
 		self.assertEqual(
-			[(row.phone_number, row.phone_type) for row in ann.phones], [("+1 217 555 0182", "Home")]
+			[(row.phone_number, row.phone_type) for row in ann.phones], [("+1 217-555-0182", "Home")]
 		)
 		address = frappe.get_doc("Address", ann.addresses[0].address)
 		self.assertEqual(
@@ -199,8 +199,20 @@ class TestContactVerification(RollbackEachTest):
 		self.assertEqual(record_returned_card(verification.name, self.ann.name, card), UPDATED)
 		row = frappe.get_doc("Person", self.ann.name).addresses[0]
 		self.assertNotEqual(row.address, address.name)
-		self.assertEqual(frappe.db.get_value("Address", row.address, "state"), "NY")
+		self.assertEqual(frappe.db.get_value("Address", row.address, "state"), "New York")
 		self.assertTrue(row.is_mailing_address)
+
+	def test_a_state_code_for_the_same_state_keeps_the_address(self):
+		address = make_address("_Test Cards Ann Same State", state="Illinois")
+		self.ann.append("addresses", {"address": address.name, "is_primary": 1, "is_mailing_address": 1})
+		self.ann.save()
+		verification = make_verification([self.ann.name])
+		card = get_returned_card(verification.name, self.ann.name)
+		card["addresses"][0]["state"] = "il"
+
+		record_returned_card(verification.name, self.ann.name, card)
+
+		self.assertEqual(frappe.get_doc("Person", self.ann.name).addresses[0].address, address.name)
 
 	def test_a_birthday_without_a_year_and_a_yes_to_texts(self):
 		verification = make_verification([self.bob.name])

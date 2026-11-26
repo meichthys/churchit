@@ -373,7 +373,7 @@ class TestMailingLabels(FrappeTestCase):
 
 		self.assertIn("_Test List Ann Label", html)
 		self.assertIn("12 &lt;b&gt;Elm&lt;/b&gt; St", html)
-		self.assertIn("Springfield, IL 62701", html)
+		self.assertIn("Springfield, Illinois 62701", html)
 		self.assertNotIn(self.country, html)
 
 	def test_names_on_a_label_are_escaped(self):
@@ -399,4 +399,4 @@ class TestMailingLabels(FrappeTestCase):
 		html = frappe.get_print("Family", self.family, "Household Label")
 
 		self.assertIn("_Test List &lt;b&gt;Bob&lt;/b&gt; &amp; _Test List Ann Label", html)
-		self.assertIn("Springfield, IL 62701", html)
+		self.assertIn("Springfield, Illinois 62701", html)

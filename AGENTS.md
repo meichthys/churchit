@@ -418,8 +418,18 @@ the age. For a window of days use `celebrations.get_birthday_rows`; for this wee
 needs (month, day) pairs rather than a range.
 
 An anniversary's month and day always count, its year only when `anniversary_year_unknown` (No
-Year) is off. `marriage_years` stores 0 for an unknown year, so test the check, not the years. The
-check goes with the anniversary: `Person.link_spouse` gives it to the spouse.
+Year) is off. `marriage_years` stores 0 for an unknown year, so test the check, not the years.
+`anniversary` and its check are read-only copies of the Wedding life event of the current marriage
+(`derived.get_current_wedding`: the row whose `spouse` is the person's spouse, else the last row
+naming no one), set only while the marital status is Married, Widowed or blank. A value written to
+`anniversary` (portal, card, import, API) moves onto that row (`weddings.record_typed_anniversary`),
+and `Person.link_spouse` copies the row to the spouse's (`weddings.share_with_spouse`). A new
+marriage (a person who becomes Married, or links a different spouse) gets its own row without a date
+(`weddings.start_wedding`), so an earlier marriage's row never becomes the new one, and a Widowed
+person set back to Married with the spouse who died is refused (`weddings.refuse_marrying_a_late_spouse`). A deleted or anonymized
+person's name goes from the Wedding rows that name them (`weddings.forget_spouse`). Birth, Death and
+Wedding cannot be renamed or deleted (`life_event_type.FILLS_IN_PERSON_FIELDS`). Change a marriage
+date on the Wedding row, never on `anniversary` alone.
 
 `next_birthday` and `next_anniversary` hold the next date on or after today
 (`derived.get_next_occurrence`), and are empty for someone who died. Frappe's Days Before and Days
@@ -1869,7 +1879,8 @@ no year stays without a year.
 ## People events and history
 
 `church_people/events.py` emits the people events from `Person.on_update`; its docstring lists them
-and shows how an app subscribes. Install, patches and migrate emit nothing; data import does. A
+and shows how an app subscribes. Install, patches and migrate emit nothing; data import does, except
+for a Wedding life event, so an imported marriage starts no follow-up card. A
 `frappe.db.set_value` skips `on_update`, so it emits nothing.
 
 Membership history is Milestone rows written by `membership.record_changes` for
@@ -1991,6 +2002,12 @@ same doctype; the map opens from the 'Map of Addresses' shortcut. Address also k
 column, because the ID (address title and type) says whose address it is, and hiding it would need a
 list script that also changes ERPNext's Address list. `test_lists_with_a_title_hide_the_id` reads
 only churchit's doctypes, so it does not check Address.
+
+`church_people/address_states.py` owns Address `state`. The Property Setter makes it an Autocomplete
+that keeps any text (ERPNext shares Address). For a country in `STATE_COUNTRIES` (US, CA, AU),
+`public/js/address.js` suggests its ISO 3166-2 states from pycountry, and the Address `validate` hook
+stores a changed state, typed as a code or a name, by its full name and refuses one the country lacks.
+Compare a state through `get_full_state`, never as raw text: ERPNext's Tax Rule matches it exactly.
 
 `privacy.get_due_query` is the one rule for whose data the daily retention job removes; the
 Personal Data Due for Removal report scopes the same query.
@@ -2195,7 +2212,8 @@ and the matcher opens Possible Duplicates. The insert sets `flags.from_household
 
 `Person.birthday` is virtual: a value set on a save rewrites the first Birth life event
 (`sync_birthday`, before `sync_derived`). Read birthdays from `birth_month`, `birth_day` and
-`birth_date`, never from `birthday`.
+`birth_date`, never from `birthday`. A changed `anniversary` likewise rewrites the current Wedding
+life event (`weddings.record_typed_anniversary`).
 
 The defaults of `share_email`, `share_phone`, `share_address` and `share_birthday` are site-local
 Property Setters that People Settings `on_update` writes. A Single field that migrate stores without

@@ -27,6 +27,7 @@ from churchit.church_communications.doctype.communication_consent.communication_
 	WITHDRAWN,
 	record,
 )
+from churchit.church_people.address_states import get_full_state
 from churchit.church_people.derived import BIRTH
 from churchit.church_people.details_link import get_details_url
 from churchit.church_people.imports.record import ADDRESS_COLUMNS, get_contact_type
@@ -148,8 +149,9 @@ def get_address_rows(holder: Document) -> list[dict]:
 
 
 def get_address_key(address: dict) -> tuple:
-	"""*address*'s lines for comparing, with the site's country when it names none."""
+	"""*address*'s lines for comparing, with the site's country when it names none and its state in full."""
 	values = {**address, "country": address.get("country") or frappe.db.get_default("country")}
+	values["state"] = get_full_state(values["country"], cstr(values.get("state"))) or values.get("state")
 	return tuple(cstr(values.get(column)).strip().lower() for column in ADDRESS_KEY_COLUMNS)
 
 

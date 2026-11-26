@@ -8,6 +8,9 @@ the primary email and phone, which change only with a save. On the day itself, `
 `next_anniversary` hold today's date until the day ends, so a Notification on them sends whichever daily job runs
 first. `warn_if_after_death` reads the death fields to warn about attendance, a membership, a sign-up or a pledge
 dated after a death.
+
+The anniversary comes from the Wedding life event of the current marriage (`get_current_wedding`). `weddings`
+moves an anniversary typed elsewhere onto that row and shares the row with the spouse.
 """
 
 import calendar
@@ -16,10 +19,11 @@ from datetime import date
 import frappe
 from dateutil.relativedelta import relativedelta
 from frappe import _
-from frappe.utils import add_years, escape_html, formatdate, getdate, nowdate
+from frappe.utils import add_years, cint, escape_html, formatdate, getdate, nowdate
 
 from churchit.church_people import household
 from churchit.church_people.celebrations import occurrence_between
+from churchit.church_people.doctype.marital_status.marital_status import WITH_SPOUSE
 from churchit.contacts import primary_email, primary_phone
 from churchit.utils import LONG_DATE_FORMAT
 
@@ -27,6 +31,7 @@ ADULT = "Adult"
 CHILD = "Child"
 BIRTH = "Birth"
 DEATH = "Death"
+WEDDING = "Wedding"
 DERIVED_FIELDS = (
 	"birth_date",
 	"birth_month",
@@ -85,6 +90,7 @@ def sync_derived(person) -> None:
 	# A new or changed family has no roster row for this person until on_update adds it.
 	role = None if person.has_value_changed("family") else household.role_of(person.name)
 	person.update(get_derived_values(person.life_events or [], role))
+	person.update(get_anniversary_values(person.life_events or [], person.marital_status, person.spouse))
 	person.next_anniversary = get_next_anniversary(person.anniversary, person.is_deceased)
 	person.marriage_years = get_marriage_years(person.anniversary, person.anniversary_year_unknown)
 	person.grade = get_grade(person.graduation_year)
@@ -116,6 +122,24 @@ def get_derived_values(life_events, role) -> dict:
 		"age": age or 0,
 		"life_stage": life_stage_for(role, age),
 	}
+
+
+def get_current_wedding(life_events, spouse: str | None):
+	"""The Wedding row of the marriage to *spouse*: the row that names them, else the last row that names no one."""
+	weddings = [row for row in life_events if row.event_type == WEDDING]
+	named = next((row for row in weddings if spouse and row.spouse == spouse), None)
+	return named or next((row for row in reversed(weddings) if not row.spouse), None)
+
+
+def get_anniversary_values(life_events, marital_status: str | None, spouse: str | None) -> dict:
+	"""The anniversary and its No Year from the current Wedding row, while the person is married or widowed.
+
+	A blank marital status keeps the anniversary too, as an import may give one without the other.
+	"""
+	is_married = not marital_status or marital_status in WITH_SPOUSE
+	wedding = get_current_wedding(life_events, spouse) if is_married else None
+	date = wedding.date if wedding else None
+	return {"anniversary": date, "anniversary_year_unknown": cint(wedding.year_unknown) if date else 0}
 
 
 def warn_if_after_death(person: str, day, what: str) -> None:

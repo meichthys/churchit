@@ -12,8 +12,9 @@ relationship, on their record and on other people's, because named relatives wou
 left with no one in it is anonymized too, since its name and contact details were the person's; a family that
 keeps members loses the person's first name from its name.
 
-A Birth life event goes, because a birth date identifies a person. The other life events keep their type and
-date, so the number of baptisms or new members in a year stays right, and lose their location and notes.
+The Birth and Wedding life events go, because a birth date and an anniversary identify a person. The other life
+events keep their type and date, so the number of baptisms or new members in a year stays right, and lose their
+location and notes.
 
 The records that name the person keep the link and lose the copies of the person's name and email addresses in
 their text (titles, fetched names, donor emails). Their notes, connection cards and the pickup restrictions that
@@ -59,8 +60,9 @@ from frappe.query_builder.functions import Coalesce, Lower
 from frappe.utils.global_search import delete_for_document, update_global_search
 
 from churchit.ai.switch import has_flow
+from churchit.church_people import weddings
 from churchit.church_people.contact_cards import forget_card_photos
-from churchit.church_people.derived import BIRTH
+from churchit.church_people.derived import BIRTH, WEDDING
 from churchit.church_people.doctype.person.person import (
 	UNKNOWN_GENDER,
 	get_display_name,
@@ -169,6 +171,7 @@ def anonymize(person: str, emails: Iterable[str] = ()) -> None:
 	if doc.spouse:
 		# The spouse keeps their own marital status and anniversary; only the link to this record goes.
 		frappe.db.set_value("Person", {"name": doc.spouse, "spouse": doc.name}, "spouse", None)
+	weddings.forget_spouse(doc.name)
 	strip_person(doc)
 	doc.save(ignore_permissions=True)
 	refresh_search_row(doc)
@@ -349,7 +352,7 @@ def strip_person(doc: Document) -> None:
 	doc.update({"first_name": ANONYMIZED, "gender": UNKNOWN_GENDER, "hide_from_directory": 1})
 	for fieldname in PERSONAL_TABLES:
 		doc.set(fieldname, [])
-	doc.set("life_events", [row for row in doc.life_events if row.event_type != BIRTH])
+	doc.set("life_events", [row for row in doc.life_events if row.event_type not in (BIRTH, WEDDING)])
 	for row in doc.life_events:
 		row.update({"location": None, "notes": None})
 	for row in doc.positions:

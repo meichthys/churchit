@@ -52,6 +52,6 @@ def get_data(filters=None):
 	)
 	rows = scoped(query, Person, filters).run(as_dict=True)
 	for row in rows:
-		if row.pop("anniversary_year_unknown"):
+		if row.anniversary_year_unknown:
 			row.marriage_years = None
 	return rows

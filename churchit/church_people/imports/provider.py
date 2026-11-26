@@ -10,6 +10,7 @@ from frappe.core.doctype.data_import.importer import ACTION_INSERT, ACTION_UPDAT
 from frappe.model.document import Document
 from frappe.utils import escape_html, validate_email_address, validate_phone_number
 
+from churchit.church_people.address_states import get_full_state
 from churchit.church_people.imports.record import ImportedPerson, get_imported_people
 
 
@@ -94,6 +95,16 @@ def get_row_warnings(row: int, record: ImportedPerson, person: str | None, impor
 				"row": row,
 				"message": _(
 					"The address has no country that Churchit knows. Correct the country, or set the site's country in System Settings."
+				),
+			}
+		]
+	address = record.address or {}
+	if address.get("state") and not get_full_state(address["country"], address["state"]):
+		return [
+			{
+				"row": row,
+				"message": _("{0} is not a state or province of {1}.").format(
+					escape_html(address["state"]), _(address["country"])
 				),
 			}
 		]

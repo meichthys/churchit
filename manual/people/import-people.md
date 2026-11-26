@@ -64,7 +64,7 @@ The Head of Household becomes the Primary Contact. A Child is a Child, and a Spo
 
 ## The preview and after the import
 
-- A row that cannot be imported stops the import, for example a row with no first name, or an address with a country that Churchit does not know. Correct the file, or click **Skip Row**. A value that Churchit does not know stops the import until you map it. A note, such as an invalid email that Churchit leaves out, does not stop it.
+- A row that cannot be imported stops the import, for example a row with no first name, an address with a country that Churchit does not know, or a state that its country does not have. A state can be a code or a full name: IL and Illinois both become Illinois. Correct the file, or click **Skip Row**. A value that Churchit does not know stops the import until you map it. A note, such as an invalid email that Churchit leaves out, does not stop it.
 
 - The same person twice in a file is imported once, with a note.
 

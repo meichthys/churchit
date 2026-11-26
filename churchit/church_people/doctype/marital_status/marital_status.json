@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "field:status",
  "creation": "2026-10-12 00:10:00",
- "description": "Whether a person is single, married, widowed or divorced, or a status the church adds. A married or widowed person keeps a spouse and an anniversary.",
+ "description": "Whether a person is single, married, widowed or divorced, or a status the church adds. Only Married and Widowed people have a spouse and an anniversary.",
  "doctype": "DocType",
  "documentation": "/app/manual%3A-people",
  "engine": "InnoDB",
@@ -35,7 +35,7 @@
    "link_fieldname": "marital_status"
   }
  ],
- "modified": "2026-11-15 05:42:25.577759",
+ "modified": "2026-11-25 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Marital Status",

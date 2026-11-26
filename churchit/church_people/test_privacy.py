@@ -58,6 +58,7 @@ class TestAnonymizePerson(RollbackEachTest):
 			life_events=[
 				life_event("Birth", "1980-02-03"),
 				{**life_event("Baptism", "2001-04-01"), "location": "River", "notes": "With family"},
+				life_event("Wedding", "2005-06-07"),
 			],
 			**values,
 		)
@@ -229,6 +230,11 @@ class TestAnonymizePerson(RollbackEachTest):
 			frappe.db.get_value("Person", wife.name, ["spouse", "marital_status"], as_dict=True),
 			{"spouse": None, "marital_status": "Married"},
 		)
+		# The wife's Wedding row no longer names the person, and her anniversary stays after her next save.
+		wife = frappe.get_doc("Person", wife.name)
+		wife.save()
+		self.assertEqual([(row.event_type, row.spouse) for row in wife.life_events], [("Wedding", None)])
+		self.assertEqual(str(wife.anniversary), "2005-06-01")
 		family.reload()
 		self.assertEqual(
 			([row.member for row in family.members], family.primary_contact), ([wife.name], None)

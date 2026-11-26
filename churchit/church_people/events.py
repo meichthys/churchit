@@ -10,7 +10,8 @@ An app subscribes in its hooks.py, with dotted paths to its handlers:
 A handler runs in a background job after the save commits, and receives ``(person, **data)``:
 
 - `membership_changed`: field (one of `membership.TRACKED_FIELDS`), old, new
-- `life_event_added`: event_type, date
+- `life_event_added`: event_type, date. An import adds no Wedding event: an imported marriage is history,
+  so it starts no follow-up card.
 - `person_deceased`: date
 
 A date is a ``datetime.date`` or None; an empty value is None.
@@ -19,6 +20,7 @@ A date is a ``datetime.date`` or None; an empty value is None.
 import frappe
 from frappe.utils import getdate
 
+from churchit.church_people.derived import WEDDING
 from churchit.church_people.membership import TRACKED_FIELDS
 
 HOOK = "churchit_people_events"
@@ -59,8 +61,9 @@ def emit_changes(person) -> None:
 
 	earlier = {row.name for row in before.life_events}
 	for row in person.life_events:
-		if row.name not in earlier:
-			emit(LIFE_EVENT_ADDED, person.name, event_type=row.event_type, date=as_date(row.date))
+		if row.name in earlier or (frappe.flags.in_import and row.event_type == WEDDING):
+			continue
+		emit(LIFE_EVENT_ADDED, person.name, event_type=row.event_type, date=as_date(row.date))
 
 	if person.is_deceased and not before.is_deceased:
 		emit(PERSON_DECEASED, person.name, date=as_date(person.deceased_date))

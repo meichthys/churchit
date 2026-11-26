@@ -60,7 +60,7 @@ On the Automation tab, under **Start a Card When**, add a row for each event tha
 
 - **Form Submitted**: a person sends a form. Which is the Question Set.
 
-- **Life Event Added**: a life event is added, for example a Baptism.
+- **Life Event Added**: a life event is added, for example a Baptism. A Wedding that an import adds starts no card.
 
 - **Membership Type Becomes** and **Member Status Becomes**: a person's membership or status changes to this value.
 

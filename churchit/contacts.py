@@ -31,6 +31,7 @@ shared email, carries it on a row whose ``shared_from`` names the record it belo
 import re
 
 import frappe
+import phonenumbers
 from frappe import _
 from frappe.utils import cint, get_link_to_form
 from pypika import Order
@@ -284,7 +285,7 @@ def validate_contact_tables(doc):
 
 	Trims values, rejects duplicates within a record, makes sure each table
 	has exactly one primary row (and, for addresses, at most one mailing row),
-	keeps each phone number's digits, and unticks Bounced on an email
+	formats each phone number and keeps its digits, and unticks Bounced on an email
 	row whose address changed.
 	Flags are corrected rather than rejected so that data imports and the sample
 	data loader never fail on a missing checkbox.
@@ -314,6 +315,7 @@ def validate_contact_tables(doc):
 	sync_notification_addresses(emails)
 	clear_bounced_on_change(emails, before)
 	for row in doc.get(PHONE_FIELD) or []:
+		row.phone_number = format_phone_number(row.phone_number)
 		row.digits = phone_digits(row.phone_number)
 		set_receives_texts(row)
 
@@ -370,6 +372,31 @@ def _trim_values(rows, value_field):
 def phone_digits(value: str | None) -> str:
 	"""The digits of a phone number, which Phone Number keeps in `digits` so it can be found however it was typed."""
 	return re.sub(r"\D", "", value or "")
+
+
+def format_phone_number(value: str | None) -> str | None:
+	"""*value* in its country's standard format, such as (202) 555-0123, or as typed when it is not valid.
+
+	A number with no country code is in the site's country (System Settings). The digits never change: a number
+	typed with its country code keeps it, in the international format, so texts still reach it.
+	"""
+	if not value:
+		return value
+	country = frappe.db.get_default("country")
+	region = country and frappe.get_cached_value("Country", country, "code")
+	try:
+		number = phonenumbers.parse(value, region.upper() if region else None)
+	except phonenumbers.NumberParseException:
+		return value
+	if not phonenumbers.is_valid_number(number):
+		return value
+
+	digits = phone_digits(value)
+	for style in (phonenumbers.PhoneNumberFormat.NATIONAL, phonenumbers.PhoneNumberFormat.INTERNATIONAL):
+		formatted = phonenumbers.format_number(number, style)
+		if phone_digits(formatted) == digits:
+			return formatted
+	return value
 
 
 def contact_key(child_doctype, value):

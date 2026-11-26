@@ -603,13 +603,10 @@ class TestMergeFieldChoice(RollbackEachTest):
 			field["fieldname"]: (field["label"], field["keep"], field["remove"])
 			for field in choices["fields"]
 		}
-		self.assertEqual(sorted(fields), ["anniversary", "family", "first_name", "middle_name"])
+		# The anniversary comes from the Wedding rows, which the merge carries over.
+		self.assertEqual(sorted(fields), ["family", "first_name", "middle_name"])
 		self.assertEqual(fields["middle_name"], ("Middle Name", "Ann", "Bea"))
 		self.assertEqual(fields["family"], ("Family", "_Test Kept Family", "_Test Removed Family"))
-		self.assertEqual(
-			fields["anniversary"][1:],
-			(frappe.utils.formatdate("2001-02-03"), frappe.utils.formatdate("2004-05-06")),
-		)
 
 	def test_the_choices_need_the_right_to_read_both_people(self):
 		_root, branch_a, branch_b = make_two_churches()

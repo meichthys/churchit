@@ -50,11 +50,13 @@ Two Inactive Reasons are set for you and cannot be deleted or renamed: **Decease
 
 Record birth, baptism, membership, marriage and death in the **Life Events** table.
 
-- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank.
+- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank. The form then shows the date as the month and day only, such as March 14.
 
 - A **Death** event ticks **Deceased**, fills in **Deceased Date**, sets the Status to Inactive and, if no Inactive Reason is set, the reason to Deceased. The person's spouse becomes Widowed. People who have died are left out of the birthday and anniversary lists and cards, the bulletin, the Church Directory, the Rolodex, the Check-In Station and Church Emails.
 
-- A date cannot be in the future, and a death or anniversary cannot be before the birth. A person has one Birth and one Death event.
+- A **Wedding** event fills in **Anniversary** and **Years Married**, so you do not type them. When you set a person to Married or give them a new spouse, Churchit adds a Wedding event without a date: fill in its date there. Tick **No Year** on the Wedding row when you know only the month and day. Open the row to see **Spouse**, the person they married, which Churchit fills in when the couple is linked.
+
+- A date cannot be in the future, and a death or wedding cannot be before the birth. A person has one Birth and one Death event. The Birth, Death and Wedding types cannot be renamed or deleted, because Churchit fills in fields from them.
 
 - When you add a person who has died to a function's attendance after the date of death, or to a group, a sign-up or a pledge, Churchit saves it with an orange warning. History is often entered late.
 
@@ -80,7 +82,11 @@ A person can have several emails, phone numbers and addresses, each in its own t
 
 - **Texts** on a phone number: untick it on a number that cannot get texts, such as a landline. A new number takes it from its Phone Type: each Phone Type has **New Numbers Receive Texts**, which is ticked for every type except Home. Changing a number's type sets it again from the new type.
 
+- **Phone Number**: when you save, Churchit writes each number the standard way for its country, so 2025550147 becomes (202) 555-0147. A number typed with its country code keeps it, such as +44 20 7946 0958. A number that is not a real phone number stays as you typed it.
+
 - **Mailing**: tick it on the address that gets mail from the church. **Returned** shows that mail sent there came back.
+
+- **State/Province** on an address in the United States, Canada or Australia: choose it from the list, or type its code. Churchit keeps the full name, so IL becomes Illinois, and refuses a state that the country does not have. Addresses in other countries take any text.
 
 - **Bounced** on an email shows that email to this address came back. Church Emails skip it, and the form shows an orange line when the primary email has bounced (see the [Communications manual](../communications/README.md)). Churchit clears it when you change the address.
 
@@ -96,17 +102,15 @@ John and Mary Smith share the email smiths@example.com. John signs in to the mem
 
 The third column at the top of the Details tab shows the person's family and marriage.
 
-- **Marital Status** is Single, Married, Widowed or Divorced. **Spouse** and **Anniversary** show only for Married and Widowed people.
+- **Marital Status** is Single, Married, Widowed or Divorced. **Spouse** and **Anniversary** show only for Married and Widowed people. Anniversary comes from the Wedding life event of the current marriage: to change it, change the date on that Wedding row.
 
-- When you give a Married person a spouse, the spouse is linked back as Married and shares the anniversary. The couple shares one family: if only one has a family, the other joins it. If neither has one, Churchit makes a family named after the person you save.
+- When you give a Married person a spouse, the spouse is linked back as Married and gets the same Wedding life event, with its date, location and officiant. The couple shares one family: if only one has a family, the other joins it. If neither has one, Churchit makes a family named after the person you save.
 
-- When you set a person to Divorced or Single, the marriage ends for both people: the spouse and the anniversary are removed from both.
+- When you set a person to Divorced or Single, the marriage ends for both people: the spouse and the anniversary are removed from both. The Wedding events stay as history. A new marriage gets its own Wedding event.
 
-- A Widowed person keeps the spouse and the anniversary.
+- When you set a person to Widowed, the spouse and the anniversary stay. To record a new marriage later, set Married and choose the new spouse: Churchit refuses Married with the spouse who has died.
 
 - When a married person moves to another family, their spouse moves too if they were in the same family.
-
-- **No Year** under the anniversary works as for birthdays.
 
 **New Family From Person.** Click **Actions**, then **New Family From Person**, to make a family for a person who has a last name and is not yet the primary contact of a family, such as a married son who starts his own household. The person becomes its primary contact. If a family with that name already exists in your church, the person joins it instead.
 
@@ -235,7 +239,7 @@ You cannot undo Remove Personal Data.
 
 - Churchit removes the names except the last name, the emails, phones, addresses, letters, photo, medical notes, emergency contact, allergies, anniversary, skills, church fields, portal login and Imported ID. The person is hidden from the directory, and the portal login is disabled.
 
-- The Birth life event is removed. Other life events keep their type and date, so the yearly counts stay right.
+- The Birth and Wedding life events are removed. Other life events keep their type and date, so the yearly counts stay right.
 
 - The person leaves their family and their spouse, and loses their relationships. A family with no members left is anonymized too.
 

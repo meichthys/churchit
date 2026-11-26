@@ -11,7 +11,7 @@ DEFAULT_STATUSES = {
 	WIDOWED: "The spouse has died. The spouse and anniversary stay on the record.",
 	"Divorced": "The marriage ended in divorce.",
 }
-# The statuses that keep a spouse and an anniversary
+# The statuses that have a spouse and an anniversary
 WITH_SPOUSE = (MARRIED, WIDOWED)
 
 

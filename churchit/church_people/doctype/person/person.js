@@ -15,14 +15,26 @@ frappe.ui.form.on("Person", {
 			"Form Response": () => false,
 		};
 
-		// The grid draws a Check on every row: draw No Year on Birth rows only, like the row form.
+		// The grid draws a Check on every row: draw No Year on Birth and Wedding rows only, like the row form.
 		// The blank must be a non-empty string, because the grid formats an empty cell again against the Person.
 		const year_unknown =
 			frappe.meta.docfield_map["Life Event"].year_unknown;
 		year_unknown.formatter = (value, df, options, doc) =>
-			doc?.event_type === "Birth"
+			["Birth", "Wedding"].includes(doc?.event_type)
 				? frappe.form.formatters.Check(value)
 				: "<span></span>";
+
+		// A date with No Year shows its month and day only, because its year is made up.
+		const life_event_date = frappe.meta.docfield_map["Life Event"].date;
+		life_event_date.formatter = (value, df, options, doc) =>
+			value && doc?.year_unknown
+				? get_month_and_day(value)
+				: frappe.form.formatters.Date(value);
+		const anniversary = frappe.meta.docfield_map.Person.anniversary;
+		anniversary.formatter = (value, df, options, doc) =>
+			value && doc?.anniversary_year_unknown
+				? get_month_and_day(value)
+				: frappe.form.formatters.Date(value);
 	},
 	onload(frm) {
 		// A Person changes its name by a merge only (Actions > Merge Into), which the server still allows.
@@ -73,6 +85,47 @@ frappe.ui.form.on("Person", {
 			warn_about_login_church(frm, login);
 	},
 });
+
+frappe.ui.form.on("Life Event", {
+	form_render(frm, cdt, cdn) {
+		show_without_year(
+			get_row_date_control(frm, cdn),
+			() => locals[cdt][cdn].year_unknown,
+		);
+	},
+	year_unknown(frm, cdt, cdn) {
+		get_row_date_control(frm, cdn)?.set_formatted_input(
+			locals[cdt][cdn].date,
+		);
+	},
+});
+
+function get_row_date_control(frm, cdn) {
+	return frm.fields_dict.life_events.grid.get_row(cdn).grid_form?.fields_dict
+		.date;
+}
+
+// Shows the Date *control* as month and day while *is_year_unknown()*. Only the text changes: the date keeps
+// its year, and the date picker still sets a whole date.
+function show_without_year(control, is_year_unknown) {
+	if (!control || control.shows_without_year) return;
+	control.shows_without_year = true;
+	const set_formatted_input = control.set_formatted_input.bind(control);
+	control.set_formatted_input = (value) => {
+		set_formatted_input(value);
+		if (value && is_year_unknown())
+			control.$input.val(get_month_and_day(value));
+	};
+	control.set_formatted_input(control.value);
+}
+
+function get_month_and_day(value) {
+	return new Intl.DateTimeFormat(frappe.boot.lang, {
+		month: "long",
+		day: "numeric",
+		timeZone: "UTC",
+	}).format(new Date(value));
+}
 
 // Record actions under one Actions button, for a saved person.
 function add_actions(frm) {
