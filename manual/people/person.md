@@ -50,7 +50,7 @@ Two Inactive Reasons are set for you and cannot be deleted or renamed: **Decease
 
 Record birth, baptism, membership, marriage and death in the **Life Events** table.
 
-- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank.
+- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank. The form then shows the date as the month and day only, such as March 14.
 
 - A **Death** event ticks **Deceased**, fills in **Deceased Date**, sets the Status to Inactive and, if no Inactive Reason is set, the reason to Deceased. The person's spouse becomes Widowed. People who have died are left out of the birthday and anniversary lists and cards, the bulletin, the Church Directory, the Rolodex, the Check-In Station and Church Emails.
 
