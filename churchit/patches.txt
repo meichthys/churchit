@@ -192,3 +192,4 @@ churchit.patches.v1_0.list_sermons_one_a_row
 churchit.patches.v1_0.add_salvation_interest
 churchit.patches.v1_0.name_address_states_in_full
 churchit.patches.v1_0.format_phone_numbers
+churchit.patches.v1_0.move_anniversaries_to_wedding_events

@@ -29,7 +29,7 @@ Members see their household on the **My Household** page of the member portal: t
 
 ## My Details
 
-On **My Details**, a member changes their name, gender, birthday, allergies, emails, phone numbers (with the primary ones), marital status, anniversary and photo. The birthday goes into the Birth life event, so Birth Date and Age follow. Members cannot change their addresses there: they tell the church office.
+On **My Details**, a member changes their name, gender, birthday, allergies, emails, phone numbers (with the primary ones), marital status, anniversary and photo. The birthday goes into the Birth life event, so Birth Date and Age follow, and the anniversary into the Wedding life event. Members cannot change their addresses there: they tell the church office.
 
 - **Hide me from the member directory** leaves them out of the member directory, the printed Church Directory and the bulletin's birthdays and anniversaries.
 

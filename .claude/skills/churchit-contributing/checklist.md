@@ -16,6 +16,7 @@ Work through "Every change" and each section that the change touches. Each item 
 - [ ] User-facing text is in `_()` or `__()`.
 - [ ] A full date in a page, email, notification, print or stored title uses the long form `LONG_DATE_FORMAT` ("EEEE, MMMM d, yyyy"), and a stored title uses `churchit.utils.get_dated_title`. Only a tight space (portal list, table column, Kanban card, name tag) uses the System Settings format ([House style](../../../AGENTS.md#house-style)).
 - [ ] A message about a fund goes through `fund.show_fund_change` or `fund.warn_of_negative_balance`, and an amount in it through `fund.format_amount`, never a written '$' or a raw float ([Giving and the fund ledger](../../../AGENTS.md#giving-and-the-fund-ledger)).
+- [ ] Code that sets a marriage date writes the Wedding life event (or `anniversary`, which `weddings.record_typed_anniversary` moves onto it), and code that reads one reads `anniversary`, `next_anniversary` or `marriage_years`, never a Wedding row ([Adding a report, chart or number card](../../../AGENTS.md#adding-a-report-chart-or-number-card)).
 - [ ] A currency comes from `giving_settings.get_currency()`, and a shipped number card or chart leaves `currency` empty ([Giving and the fund ledger](../../../AGENTS.md#giving-and-the-fund-ledger)).
 - [ ] Existing sites keep working after migrate: no renamed or removed field, setting, whitelisted method or route without a patch and an upgrade path.
 

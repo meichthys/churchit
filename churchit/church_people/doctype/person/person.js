@@ -15,12 +15,12 @@ frappe.ui.form.on("Person", {
 			"Form Response": () => false,
 		};
 
-		// The grid draws a Check on every row: draw No Year on Birth rows only, like the row form.
+		// The grid draws a Check on every row: draw No Year on Birth and Wedding rows only, like the row form.
 		// The blank must be a non-empty string, because the grid formats an empty cell again against the Person.
 		const year_unknown =
 			frappe.meta.docfield_map["Life Event"].year_unknown;
 		year_unknown.formatter = (value, df, options, doc) =>
-			doc?.event_type === "Birth"
+			["Birth", "Wedding"].includes(doc?.event_type)
 				? frappe.form.formatters.Check(value)
 				: "<span></span>";
 
@@ -28,6 +28,11 @@ frappe.ui.form.on("Person", {
 		const life_event_date = frappe.meta.docfield_map["Life Event"].date;
 		life_event_date.formatter = (value, df, options, doc) =>
 			value && doc?.year_unknown
+				? get_month_and_day(value)
+				: frappe.form.formatters.Date(value);
+		const anniversary = frappe.meta.docfield_map.Person.anniversary;
+		anniversary.formatter = (value, df, options, doc) =>
+			value && doc?.anniversary_year_unknown
 				? get_month_and_day(value)
 				: frappe.form.formatters.Date(value);
 	},
@@ -65,10 +70,6 @@ frappe.ui.form.on("Person", {
 
 		show_login_church(frm);
 		frm.saved_user = frm.doc.user;
-		show_without_year(
-			frm.fields_dict.anniversary,
-			() => frm.doc.anniversary_year_unknown,
-		);
 		if (!frm.is_new()) {
 			add_actions(frm);
 			show_background_check_status(frm);
@@ -76,9 +77,6 @@ frappe.ui.form.on("Person", {
 			add_merge_menu_item(frm);
 			add_remove_personal_data_menu_item(frm);
 		}
-	},
-	anniversary_year_unknown(frm) {
-		frm.fields_dict.anniversary.set_formatted_input(frm.doc.anniversary);
 	},
 	after_save(frm) {
 		// after_save runs before refresh, so saved_user is still the login before this save.

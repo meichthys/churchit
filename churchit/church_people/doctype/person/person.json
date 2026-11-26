@@ -296,17 +296,21 @@
   },
   {
    "depends_on": "eval:[\"Married\", \"Widowed\"].includes(doc.marital_status)",
+   "description": "Set from the Wedding row in Life Events.",
    "fieldname": "anniversary",
    "fieldtype": "Date",
-   "label": "Anniversary"
+   "label": "Anniversary",
+   "read_only": 1
   },
   {
    "default": "0",
    "depends_on": "eval:doc.anniversary",
-   "description": "Tick when only the month and day are known. The year is then ignored.",
+   "description": "Set from the Wedding row in Life Events.",
    "fieldname": "anniversary_year_unknown",
    "fieldtype": "Check",
-   "label": "No Year"
+   "hidden": 1,
+   "label": "No Year",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.anniversary && !doc.anniversary_year_unknown",
@@ -418,7 +422,7 @@
    "search_index": 1
   },
   {
-   "description": "A married or widowed person keeps a spouse and an anniversary.",
+   "description": "Only Married and Widowed people have a Spouse and an Anniversary. Another status removes the spouse from both people. The Wedding life event stays.",
    "fieldname": "marital_status",
    "fieldtype": "Link",
    "label": "Marital Status",
@@ -1043,7 +1047,7 @@
    "link_fieldname": "person"
   }
  ],
- "modified": "2026-11-15 15:07:56.456045",
+ "modified": "2026-11-25 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Church People",
  "name": "Person",

@@ -69,6 +69,28 @@ class TestEmitChanges(FrappeTestCase):
 			],
 		)
 
+	def test_an_imported_wedding_emits_no_life_event(self):
+		ensure("Life Event Type", {"type": "Wedding"})
+		person = frappe.get_doc(
+			{
+				"doctype": "Person",
+				"first_name": "_Test Imported Bride",
+				"marital_status": "Married",
+				"anniversary": "2001-06-05",
+				"life_events": [{"event_type": "Birth", "date": "1990-05-01"}],
+			}
+		)
+		frappe.flags.in_import = True
+		self.addCleanup(setattr, frappe.flags, "in_import", False)
+
+		emitted = self.emitted(lambda: person.insert(ignore_permissions=True))
+
+		self.assertEqual(
+			[data["event_type"] for event, _person, data in emitted if event == events.LIFE_EVENT_ADDED],
+			["Birth"],
+		)
+		self.assertEqual([row.event_type for row in person.life_events], ["Birth", "Wedding"])
+
 	def test_a_new_person_emits_no_membership_they_do_not_have(self):
 		person = frappe.get_doc({"doctype": "Person", "first_name": "_Test Unconnected"})
 

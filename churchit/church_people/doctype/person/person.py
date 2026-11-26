@@ -14,13 +14,11 @@ from churchit.church_ministries.attendance import COUNTED_TYPES
 from churchit.church_ministries.doctype.ministry_team_assignment.ministry_team_assignment import (
 	can_send_email,
 )
-from churchit.church_people import events, followup, household, matching, membership, summaries
+from churchit.church_people import events, followup, household, matching, membership, summaries, weddings
 from churchit.church_people.date_rules import refuse_impossible_dates
 from churchit.church_people.derived import (
 	BIRTH,
 	DEATH,
-	get_marriage_years,
-	get_next_anniversary,
 	sync_derived,
 )
 from churchit.church_people.doctype.authorized_pickup.authorized_pickup import set_pickups_church
@@ -327,6 +325,7 @@ class Person(Document):
 			self.remove_from_family(self.family)
 		stop_sharing_from(self.doctype, self.name)
 		remove_relationships_with(self.name)
+		weddings.forget_spouse(self.name)
 		# Milestones name the person in a Data field, so the next person given this number would show them.
 		frappe.db.delete("Milestone", {"reference_type": self.doctype, "reference_name": self.name})
 
@@ -411,6 +410,10 @@ class Person(Document):
 
 		self.refuse_another_churches_spouse()
 		self.sync_anniversary_year()
+		weddings.refuse_marrying_a_late_spouse(self)
+		weddings.refuse_another_churches_partner(self)
+		weddings.start_wedding(self)
+		weddings.record_typed_anniversary(self)
 		self.sync_spouse()
 		self.share_family_with_spouse()
 		self.refuse_another_churches_family()
@@ -576,7 +579,7 @@ class Person(Document):
 	def sync_spouse(self):
 		"""Mirror a marriage onto the spouse, and end it on both people when this person is no longer married.
 
-		A widowed person keeps the spouse and anniversary, and the late spouse is left as they are.
+		A widowed person still has the spouse and the anniversary, and the late spouse is left as they are.
 		"""
 		before = self.get_doc_before_save()
 		previous = before.spouse if before else None
@@ -588,7 +591,6 @@ class Person(Document):
 			return
 		if previous:
 			self.unlink_spouse(previous, self.marital_status)
-			self.anniversary, self.anniversary_year_unknown = None, 0
 		self.spouse = None
 
 	@property
@@ -634,16 +636,11 @@ class Person(Document):
 			frappe.msgprint(_("New family created: {0}").format(family_link))
 
 	def link_spouse(self):
-		"""Point the spouse back at this person as Married, sharing the anniversary.
+		"""Point the spouse back at this person as Married, sharing the wedding.
 
 		A spouse who already points here keeps their own marital status, so a widow stays Widowed.
 		"""
 		spouse = frappe.get_doc("Person", self.spouse)
-		if not self.anniversary:
-			self.anniversary, self.anniversary_year_unknown = (
-				spouse.anniversary,
-				spouse.anniversary_year_unknown,
-			)
 		values = {}
 		if spouse.spouse != self.name:
 			if spouse.spouse:
@@ -655,17 +652,7 @@ class Person(Document):
 						escape_html(self.full_name), escape_html(spouse.full_name)
 					)
 				)
-		year_unknown = cint(self.anniversary_year_unknown)
-		if (cstr(spouse.anniversary), spouse.anniversary_year_unknown) != (
-			cstr(self.anniversary),
-			year_unknown,
-		):
-			values.update(
-				anniversary=self.anniversary,
-				anniversary_year_unknown=year_unknown,
-				marriage_years=get_marriage_years(self.anniversary, year_unknown),
-				next_anniversary=get_next_anniversary(self.anniversary, spouse.is_deceased),
-			)
+		values.update(weddings.share_with_spouse(self, spouse))
 		if values:
 			frappe.db.set_value("Person", spouse.name, values)
 

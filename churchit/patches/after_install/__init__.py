@@ -1060,7 +1060,6 @@ def _create_default_life_event_types():
 		"Baptism",
 		"Membership",
 		"Wedding",
-		"Anniversary",
 		"Confirmation",
 		"Graduation",
 		"Dedication",

@@ -1228,11 +1228,11 @@ class TestPersonDateRules(RollbackEachTest):
 
 	def test_an_anniversary_in_the_future_or_before_the_birth_is_refused(self):
 		self.assertRefused(
-			"An anniversary cannot be in the future.", lambda p: p.set("anniversary", add_years(nowdate(), 1))
+			"A wedding date cannot be in the future.", lambda p: p.set("anniversary", add_years(nowdate(), 1))
 		)
 		self.person.reload()
 		self.assertRefused(
-			"An anniversary cannot be before the birth date.", lambda p: p.set("anniversary", "1950-01-01")
+			"A wedding date cannot be before the birth date.", lambda p: p.set("anniversary", "1950-01-01")
 		)
 
 	def test_unticking_no_year_on_a_date_ahead_is_refused(self):
@@ -1245,7 +1245,7 @@ class TestPersonDateRules(RollbackEachTest):
 		)
 		self.person.reload()
 		self.assertRefused(
-			"An anniversary cannot be in the future.", lambda p: p.set("anniversary_year_unknown", 0)
+			"A wedding date cannot be in the future.", lambda p: p.set("anniversary_year_unknown", 0)
 		)
 
 	def test_a_second_birth_event_is_refused(self):
