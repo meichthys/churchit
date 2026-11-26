@@ -80,6 +80,8 @@ A person can have several emails, phone numbers and addresses, each in its own t
 
 - **Texts** on a phone number: untick it on a number that cannot get texts, such as a landline. A new number takes it from its Phone Type: each Phone Type has **New Numbers Receive Texts**, which is ticked for every type except Home. Changing a number's type sets it again from the new type.
 
+- **Phone Number**: when you save, Churchit writes each number the standard way for its country, so 2025550147 becomes (202) 555-0147. A number typed with its country code keeps it, such as +44 20 7946 0958. A number that is not a real phone number stays as you typed it.
+
 - **Mailing**: tick it on the address that gets mail from the church. **Returned** shows that mail sent there came back.
 
 - **State/Province** on an address in the United States, Canada or Australia: choose it from the list, or type its code. Churchit keeps the full name, so IL becomes Illinois, and refuses a state that the country does not have. Addresses in other countries take any text.

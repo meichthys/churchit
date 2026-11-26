@@ -30,7 +30,7 @@ class TestRolodexCards(FrappeTestCase):
 		cls.elder = ensure("Position Type", {"position": "_Test Rolodex Elder"})
 		usher = ensure("Position Type", {"position": "_Test Rolodex Usher"})
 		cls.family = frappe.get_doc({"doctype": "Family", "family_name": "_Test Rolodex - Household"})
-		cls.family.append("phones", {"phone_number": "202-555-0190"})
+		cls.family.append("phones", {"phone_number": "(202) 555-0190"})
 		cls.family.insert(ignore_permissions=True)
 		address = make_address(
 			"_Test Rolodex Home", address_line1="12 Elm St", state="IL", pincode="62701"
@@ -44,7 +44,7 @@ class TestRolodexCards(FrappeTestCase):
 			}
 		)
 		person.append("emails", {"email_address": "_test_rolodex_card@example.com"})
-		person.append("phones", {"phone_number": "202-555-0191"})
+		person.append("phones", {"phone_number": "(202) 555-0191"})
 		person.append("addresses", {"address": address})
 		person.append("life_events", {"event_type": "Birth", "date": "1980-03-14"})
 		person.append("positions", {"position": cls.elder, "start_date": "2020-01-01"})
@@ -61,7 +61,7 @@ class TestRolodexCards(FrappeTestCase):
 	def test_a_card_carries_contact_details_and_what_its_back_shows(self):
 		card = card_for(get_directory(), self.person.name)
 
-		self.assertEqual((card.phone, card.email), ("202-555-0191", "_test_rolodex_card@example.com"))
+		self.assertEqual((card.phone, card.email), ("(202) 555-0191", "_test_rolodex_card@example.com"))
 		self.assertEqual(card.address, "12 Elm St, Springfield, Illinois 62701")
 		self.assertIn("openstreetmap.org", card.map_url)
 		self.assertEqual(str(card.birth_date), "1980-03-14")
@@ -94,7 +94,7 @@ class TestRolodexCards(FrappeTestCase):
 
 	def test_a_household_carries_its_own_contact_details(self):
 		family = next(family for family in get_directory()["families"] if family.name == self.family.name)
-		self.assertEqual(family.phone, "202-555-0190")
+		self.assertEqual(family.phone, "(202) 555-0190")
 
 	def test_filter_choices_list_groups_and_positions(self):
 		choices = get_directory()["choices"]

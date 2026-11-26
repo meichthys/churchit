@@ -52,6 +52,7 @@ from churchit.contacts import (
 	PHONE_DOCTYPE,
 	PHONE_FIELD,
 	contact_key,
+	format_phone_number,
 	pick,
 	primary_email,
 	stop_sharing_from,
@@ -406,6 +407,7 @@ class Person(Document):
 		# Normalise the emails / phones / addresses tables before anything else
 		# reads a primary value off them.
 		validate_contact_tables(self)
+		self.emergency_contact_phone = format_phone_number(self.emergency_contact_phone)
 
 		self.refuse_another_churches_spouse()
 		self.sync_anniversary_year()

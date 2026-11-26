@@ -120,7 +120,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 			"_Test",
 			"Directory Contacts",
 			family=family.name,
-			phones=[{"phone_number": "202-555-0187", "is_primary": 1}],
+			phones=[{"phone_number": "(202) 555-0187", "is_primary": 1}],
 			emails=[{"email_address": "_test.directory@example.com", "is_primary": 1}],
 		)
 		missionary_email = "_test.directory.missionary@example.com"
@@ -132,7 +132,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 		contact_details = [
-			"202-555-0187",
+			"(202) 555-0187",
 			"_test.directory@example.com",
 			"_Test Directory Lane",
 			missionary_email,
@@ -141,7 +141,7 @@ class TestChurchDirectoryReport(FrappeTestCase):
 		html = self.render(show_missionaries="1")
 		for detail in contact_details:
 			self.assertIn(detail, html)
-		self.assertIn("<th>Phone</th><td>202-555-0187</td>", html)
+		self.assertIn("<th>Phone</th><td>(202) 555-0187</td>", html)
 		self.assertIn("<th>Email</th><td>_test.directory@example.com</td>", html)
 
 		html = self.render(show_missionaries="1", show_phone="0", show_email="0", show_address="0")

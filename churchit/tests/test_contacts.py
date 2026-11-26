@@ -7,6 +7,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from churchit.contacts import (
 	create_default_contact_types,
+	format_phone_number,
 	get_emails_for,
 	get_mailing_address,
 	get_primary_address,
@@ -388,6 +389,50 @@ class TestPhoneDigits(RollbackEachTest):
 		fill_phone_digits.execute()
 
 		self.assertEqual(frappe.db.get_value("Phone Number", row, "digits"), "2175550212")
+
+
+class TestPhoneFormat(RollbackEachTest):
+	"""Phone numbers saved in the standard format of their country."""
+
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(frappe.db.set_default, "country", frappe.db.get_default("country"))
+		frappe.db.set_default("country", "United States")
+
+	def test_a_number_in_the_site_country_takes_the_national_format(self):
+		for typed in ("2175550215", "217.555.0215", "(217)-555-0215"):
+			self.assertEqual(format_phone_number(typed), "(217) 555-0215")
+
+	def test_the_digits_never_change(self):
+		self.assertEqual(format_phone_number("+1 217 555 0215"), "+1 217-555-0215")
+		self.assertEqual(format_phone_number("12175550215"), "+1 217-555-0215")
+		self.assertEqual(format_phone_number("+44 20 7946 0958"), "+44 20 7946 0958")
+		self.assertEqual(format_phone_number("217 555 0215 x12"), "(217) 555-0215 ext. 12")
+
+	def test_a_number_that_is_not_valid_stays_as_typed(self):
+		for typed in ("1112221234", "555-0199", "020 7946 0958", "", None):
+			self.assertEqual(format_phone_number(typed), typed)
+
+	def test_a_saved_number_is_formatted(self):
+		person = make_person("_Test Format", "Saved", phones=[{"phone_number": "2175550216"}])
+		self.assertEqual(person.phones[0].phone_number, "(217) 555-0216")
+		self.assertEqual(person.phones[0].digits, "2175550216")
+		self.assertEqual(person.primary_phone, "(217) 555-0216")
+
+	def test_the_patch_formats_the_numbers_saved_before(self):
+		from churchit.patches.v1_0 import format_phone_numbers
+
+		person = make_person("_Test Format", "Patched", phones=[{"phone_number": "(217) 555-0217"}])
+		row = person.phones[0].name
+		frappe.db.set_value("Phone Number", row, "phone_number", "217-555-0217")
+		frappe.db.set_value("Person", person.name, "emergency_contact_phone", "2175550218")
+
+		format_phone_numbers.execute()
+
+		self.assertEqual(frappe.db.get_value("Phone Number", row, "phone_number"), "(217) 555-0217")
+		self.assertEqual(
+			frappe.db.get_value("Person", person.name, "emergency_contact_phone"), "(217) 555-0218"
+		)
 
 
 class TestReceivesTexts(RollbackEachTest):

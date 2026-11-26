@@ -13,6 +13,7 @@ from churchit.church_scope import (
 	root_church,
 	session_church,
 )
+from churchit.contacts import format_phone_number
 from churchit.utils import validate_https_url
 
 ADDRESS_FIELDS = ["address_title", "address_line1", "address_line2", "city", "state", "pincode", "country"]
@@ -31,6 +32,7 @@ class Church(NestedSet):
 		from churchit.scripture import format_reference  # scripture reads the church tree from here
 
 		self.church_verse = format_reference(self.church_verse)
+		self.phone = format_phone_number(self.phone)
 		if self.live_stream_url and self.has_value_changed("live_stream_url"):
 			self.live_stream_url = validate_https_url(self.live_stream_url, "Live Stream Link")
 		if not is_multi_church():

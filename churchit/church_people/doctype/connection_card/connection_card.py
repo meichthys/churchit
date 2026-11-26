@@ -30,7 +30,7 @@ from churchit.church_people.matching import (
 )
 from churchit.church_people.membership import VISITOR
 from churchit.church_scope import is_multi_church
-from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, get_holders
+from churchit.contacts import EMAIL_DOCTYPE, PHONE_DOCTYPE, format_phone_number, get_holders
 
 NEW = "New"
 PROCESSED = "Processed"
@@ -44,6 +44,7 @@ class ConnectionCard(Document):
 
 	def validate(self):
 		self.full_name = get_display_name(self.first_name, self.last_name)
+		self.phone = format_phone_number(self.phone)
 		self.keep_only_a_published_church()
 		if self.is_new():
 			self.refuse_future_birth_dates()

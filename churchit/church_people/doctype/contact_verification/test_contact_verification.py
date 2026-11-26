@@ -93,7 +93,7 @@ class TestContactVerification(RollbackEachTest):
 
 		ann_lines = {line["label"]: line for line in ann["lines"]}
 		self.assertEqual(ann_lines["Email"]["value"], "_test.cards.ann@example.com")
-		self.assertEqual(ann_lines["Mobile Phone"]["value"], "+1 217 555 0181")
+		self.assertEqual(ann_lines["Mobile Phone"]["value"], "+1 217-555-0181")
 		self.assertIsNone(ann_lines["Address"]["value"])
 		self.assertEqual([add["label"] for add in ann["adds"]], ["Another email", "Another phone"])
 		self.assertTrue(ann["qr_code"].startswith("data:image/svg+xml"))
@@ -157,7 +157,7 @@ class TestContactVerification(RollbackEachTest):
 		ann = frappe.get_doc("Person", self.ann.name)
 		self.assertEqual([row.email_address for row in ann.emails], ["_test.cards.ann.new@example.com"])
 		self.assertEqual(
-			[(row.phone_number, row.phone_type) for row in ann.phones], [("+1 217 555 0182", "Home")]
+			[(row.phone_number, row.phone_type) for row in ann.phones], [("+1 217-555-0182", "Home")]
 		)
 		address = frappe.get_doc("Address", ann.addresses[0].address)
 		self.assertEqual(
