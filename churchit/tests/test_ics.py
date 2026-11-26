@@ -147,7 +147,9 @@ class TestPublicCalendar(RollbackEachTest):
 		)
 		self.function("_Test Feed Venue Night", publish=1, address=address.name)
 
-		self.assertIn("LOCATION:12 Chapel Rd\\, Springfield\\, IL\\, United States", unfold(self.feed()))
+		self.assertIn(
+			"LOCATION:12 Chapel Rd\\, Springfield\\, Illinois\\, United States", unfold(self.feed())
+		)
 
 	def test_a_link_only_function_is_left_out(self):
 		listed = self.function("_Test Feed Listed", publish=1)

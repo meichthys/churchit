@@ -35,12 +35,12 @@ class TestFooterChurch(FrappeTestCase):
 	def test_the_footer_gets_name_address_phone_and_founding_year(self):
 		footer = get_footer_church()
 		self.assertEqual(footer.name, get_church().church_name)
-		self.assertEqual(footer.address, "12 Chapel Rd, Springfield, IL 62701")
+		self.assertEqual(footer.address, "12 Chapel Rd, Springfield, Illinois 62701")
 		self.assertEqual(footer.phone, "555-0100")
 		self.assertEqual(footer.established, "Established 1952")
 		self.assertEqual(
 			footer.map_url,
-			"https://www.openstreetmap.org/search?query=12+Chapel+Rd%2C+Springfield%2C+IL+62701",
+			"https://www.openstreetmap.org/search?query=12+Chapel+Rd%2C+Springfield%2C+Illinois+62701",
 		)
 
 	def test_missing_details_are_left_blank_rather_than_invented(self):
@@ -81,10 +81,10 @@ class TestFooterChurch(FrappeTestCase):
 		self.assertIn("&copy; Test Church", copyright)
 		self.assertIn('href="tel:555-0100"', contact)
 		self.assertIn(
-			'href="https://www.openstreetmap.org/search?query=12+Chapel+Rd%2C+Springfield%2C+IL+62701"',
+			'href="https://www.openstreetmap.org/search?query=12+Chapel+Rd%2C+Springfield%2C+Illinois+62701"',
 			contact,
 		)
-		self.assertIn("12 Chapel Rd, Springfield, IL 62701</a>", contact)
+		self.assertIn("12 Chapel Rd, Springfield, Illinois 62701</a>", contact)
 		self.assertIn('<a href="/prayer-request-anonymous" class="footer-link"', links)
 		self.assertNotIn("/nested", links)
 

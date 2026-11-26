@@ -62,7 +62,7 @@ class TestPossibleDuplicate(RollbackEachTest):
 		frappe.db.set_value("Person", self.jane, "nickname", "Janie")
 		person = frappe.get_doc("Person", self.janet)
 		person.append("emails", {"email_address": "janet.pair@example.com"})
-		person.append("phones", {"phone_number": "217-555-0180"})
+		person.append("phones", {"phone_number": "(217) 555-0180"})
 		person.save()
 		(name,) = record_possible_duplicates(self.jane, [Match(self.janet, 90)])
 
@@ -73,4 +73,4 @@ class TestPossibleDuplicate(RollbackEachTest):
 		self.assertEqual(set(people), {self.jane, self.janet})
 		self.assertEqual(people[self.jane]["nickname"], "Janie")
 		self.assertEqual(people[self.janet]["emails"], ["janet.pair@example.com"])
-		self.assertEqual(people[self.janet]["phones"], ["217-555-0180"])
+		self.assertEqual(people[self.janet]["phones"], ["(217) 555-0180"])

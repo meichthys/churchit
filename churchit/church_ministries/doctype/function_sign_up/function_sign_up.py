@@ -46,7 +46,7 @@ from churchit.church_scope import (
 	session_church,
 	session_person,
 )
-from churchit.contacts import get_primary_email
+from churchit.contacts import format_phone_number, get_primary_email
 from churchit.ics import make_calendar, make_event
 from churchit.portal.realtime import notify, notify_person
 from churchit.questions import get_questions, validate_answers
@@ -93,6 +93,7 @@ class FunctionSignUp(Document):
 	def validate(self):
 		self.refuse_changing_cancelled()
 		self.refuse_closed_function()
+		self.phone = format_phone_number(self.phone)
 		self.set_person()
 		self.restore_protected_fields()
 		self.set_attendees()

@@ -47,10 +47,15 @@ class TestAnniversaryLists(FrappeTestCase):
 		known = marry("Known", make_person("Spouse", "_Test Anniversary"))
 		unknown = marry("Unknown", make_person("Other", "_Test Anniversary"), anniversary_year_unknown=1)
 
-		years = {row["name"]: row["marriage_years"] for row in person_anniversaries_this_month.execute({})[1]}
+		rows = {row["name"]: row for row in person_anniversaries_this_month.execute({})[1]}
 
-		self.assertEqual(years[known.name], 20)
-		self.assertIsNone(years[unknown.name])
+		self.assertEqual(
+			(rows[known.name].marriage_years, rows[known.name].anniversary_year_unknown), (20, 0)
+		)
+		# The desk script shows the anniversary of a row with the flag without its year.
+		self.assertEqual(
+			(rows[unknown.name].marriage_years, rows[unknown.name].anniversary_year_unknown), (None, 1)
+		)
 
 	def test_this_month_is_the_month_of_the_sites_date(self):
 		next_month = add_months(getdate(), 1)

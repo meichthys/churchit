@@ -929,7 +929,7 @@ class TestVersionedPatches(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Address Template", {"is_default": 1}))
 
 		display = make_address("_Test Template Church", state="IL", pincode="62701").get_display()
-		self.assertIn("Springfield, IL 62701", display)
+		self.assertIn("Springfield, Illinois 62701", display)
 
 	def test_default_address_template_leaves_a_church_that_made_its_own_alone(self):
 		frappe.db.delete("Address Template")

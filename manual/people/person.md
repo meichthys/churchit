@@ -50,7 +50,7 @@ Two Inactive Reasons are set for you and cannot be deleted or renamed: **Decease
 
 Record birth, baptism, membership, marriage and death in the **Life Events** table.
 
-- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank.
+- The **Birth** event fills in **Birth Date** and **Age**, so you do not type them. When you know only the month and day of a birthday, enter any year and tick **No Year**: the birthday still counts, but Birth Date and Age stay blank. The form then shows the date as the month and day only, such as March 14.
 
 - A **Death** event ticks **Deceased**, fills in **Deceased Date**, sets the Status to Inactive and, if no Inactive Reason is set, the reason to Deceased. The person's spouse becomes Widowed. People who have died are left out of the birthday and anniversary lists and cards, the bulletin, the Church Directory, the Rolodex, the Check-In Station and Church Emails.
 
@@ -80,7 +80,11 @@ A person can have several emails, phone numbers and addresses, each in its own t
 
 - **Texts** on a phone number: untick it on a number that cannot get texts, such as a landline. A new number takes it from its Phone Type: each Phone Type has **New Numbers Receive Texts**, which is ticked for every type except Home. Changing a number's type sets it again from the new type.
 
+- **Phone Number**: when you save, Churchit writes each number the standard way for its country, so 2025550147 becomes (202) 555-0147. A number typed with its country code keeps it, such as +44 20 7946 0958. A number that is not a real phone number stays as you typed it.
+
 - **Mailing**: tick it on the address that gets mail from the church. **Returned** shows that mail sent there came back.
+
+- **State/Province** on an address in the United States, Canada or Australia: choose it from the list, or type its code. Churchit keeps the full name, so IL becomes Illinois, and refuses a state that the country does not have. Addresses in other countries take any text.
 
 - **Bounced** on an email shows that email to this address came back. Church Emails skip it, and the form shows an orange line when the primary email has bounced (see the [Communications manual](../communications/README.md)). Churchit clears it when you change the address.
 

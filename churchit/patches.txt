@@ -190,3 +190,5 @@ churchit.patches.v1_0.set_phone_numbers_receive_texts
 churchit.patches.v1_0.give_members_pages_the_page_header
 churchit.patches.v1_0.list_sermons_one_a_row
 churchit.patches.v1_0.add_salvation_interest
+churchit.patches.v1_0.name_address_states_in_full
+churchit.patches.v1_0.format_phone_numbers

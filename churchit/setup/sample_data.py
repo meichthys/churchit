@@ -3447,7 +3447,7 @@ def _clear_live_stream():
 
 
 def _create_members_page():
-	"""A published Web Page that only signed-in members open. Publishing it adds it to the website menu."""
+	"""An unpublished Web Page that only signed-in members open. Publishing it adds it to the website menu."""
 	if frappe.db.exists("Web Page", {"route": _MEMBERS_PAGE}):
 		return
 	frappe.get_doc(
@@ -3455,13 +3455,17 @@ def _create_members_page():
 			"doctype": "Web Page",
 			"title": "Members' Corner",
 			"route": _MEMBERS_PAGE,
-			"published": 1,
+			"published": 0,
 			"members_only": 1,
 			# Frappe's defaults drop the page container and the title.
 			"full_width": 0,
 			"show_title": 1,
 			"content_type": "Rich Text",
-			"main_section": "<p>News for members: the annual business meeting is next month.</p>",
+			"main_section": (
+				"<p><em>A sample page that only signed-in members can open. Tick Published to put it on "
+				"the website and in the menu.</em></p>"
+				"<p>News for members: the annual business meeting is next month.</p>"
+			),
 		}
 	).insert(ignore_permissions=True)
 
