@@ -119,6 +119,8 @@ web_include_js = [
 doctype_js = {
 	# Filters the payments app's unfiltered "Gateway Settings" doctype picker.
 	"Payment Gateway": "public/js/payment_gateway.js",
+	# Suggests the states of the address's country.
+	"Address": "public/js/address.js",
 	# Offers to un-publish the Web Page behind a removed navbar/footer link.
 	"Website Settings": "public/js/website_settings.js",
 	# A QR code of a web form's address, to print on a bulletin or a welcome card.
@@ -448,6 +450,7 @@ doc_events = {
 		],
 	},
 	"Address": {
+		"validate": "churchit.church_people.address_states.set_state",
 		"on_update": "churchit.church_people.geocoding.queue_geocode",
 	},
 	"Communication": {

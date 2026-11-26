@@ -94,7 +94,7 @@ class TestCalendarPage(FrappeTestCase):
 		self.assertEqual(events[timed.name]["start"], f"{getdate()}T09:30:00")
 		self.assertEqual(events[timed.name]["end"], f"{getdate()}T10:30:00")
 		self.assertFalse(events[timed.name]["allDay"])
-		self.assertEqual(events[timed.name]["address"], "12 Chapel Rd, Springfield, IL, United States")
+		self.assertEqual(events[timed.name]["address"], "12 Chapel Rd, Springfield, Illinois, United States")
 		self.assertEqual(events[timed.name]["description"], "Bring a friend")
 
 		self.assertEqual(events[all_day.name]["start"], str(getdate()))

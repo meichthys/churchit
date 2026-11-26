@@ -62,7 +62,7 @@ class TestRolodexCards(FrappeTestCase):
 		card = card_for(get_directory(), self.person.name)
 
 		self.assertEqual((card.phone, card.email), ("202-555-0191", "_test_rolodex_card@example.com"))
-		self.assertEqual(card.address, "12 Elm St, Springfield, IL 62701")
+		self.assertEqual(card.address, "12 Elm St, Springfield, Illinois 62701")
 		self.assertIn("openstreetmap.org", card.map_url)
 		self.assertEqual(str(card.birth_date), "1980-03-14")
 		self.assertEqual(card.groups, [self.group.name])

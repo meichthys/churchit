@@ -1992,6 +1992,12 @@ column, because the ID (address title and type) says whose address it is, and hi
 list script that also changes ERPNext's Address list. `test_lists_with_a_title_hide_the_id` reads
 only churchit's doctypes, so it does not check Address.
 
+`church_people/address_states.py` owns Address `state`. The Property Setter makes it an Autocomplete
+that keeps any text (ERPNext shares Address). For a country in `STATE_COUNTRIES` (US, CA, AU),
+`public/js/address.js` suggests its ISO 3166-2 states from pycountry, and the Address `validate` hook
+stores a changed state, typed as a code or a name, by its full name and refuses one the country lacks.
+Compare a state through `get_full_state`, never as raw text: ERPNext's Tax Rule matches it exactly.
+
 `privacy.get_due_query` is the one rule for whose data the daily retention job removes; the
 Personal Data Due for Removal report scopes the same query.
 

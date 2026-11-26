@@ -222,6 +222,19 @@ class TestPeopleImport(ImportCase):
 		self.assertBlocked(self.run_import(PEOPLE_IMPORT, rows), "no first name")
 		self.assertEqual(count_imported("Person", "Spreadsheet", column(self.rows, "Person ID")), 0)
 
+	def test_a_state_that_the_country_does_not_have_blocks_the_import(self):
+		rows = edit(self.rows, "Quill", **{"State": "Ontario"})
+
+		self.assertBlocked(
+			self.run_import(PEOPLE_IMPORT, rows), "Ontario is not a state or province of United States"
+		)
+
+	def test_an_imported_state_code_is_stored_in_full(self):
+		self.assertImported(self.run_import(PEOPLE_IMPORT, self.rows))
+
+		address = frappe.get_doc("Person", get_person("Quill").name).addresses[0].address
+		self.assertEqual(frappe.db.get_value("Address", address, "state"), "Illinois")
+
 	def test_the_same_person_twice_in_one_file_blocks_the_import(self):
 		self.assertBlocked(self.run_import(PEOPLE_IMPORT, [*self.rows, self.rows[2]]), "also on row 3")
 

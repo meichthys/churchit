@@ -82,6 +82,8 @@ A person can have several emails, phone numbers and addresses, each in its own t
 
 - **Mailing**: tick it on the address that gets mail from the church. **Returned** shows that mail sent there came back.
 
+- **State/Province** on an address in the United States, Canada or Australia: choose it from the list, or type its code. Churchit keeps the full name, so IL becomes Illinois, and refuses a state that the country does not have. Addresses in other countries take any text.
+
 - **Bounced** on an email shows that email to this address came back. Church Emails skip it, and the form shows an orange line when the primary email has bounced (see the [Communications manual](../communications/README.md)). Churchit clears it when you change the address.
 
 - An email or phone number can be on one person only, so the same person is not entered twice. Churchit matches phone numbers however they are written: (202) 555-0147 and 202.555.0147 are the same.

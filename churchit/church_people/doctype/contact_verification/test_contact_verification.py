@@ -199,8 +199,20 @@ class TestContactVerification(RollbackEachTest):
 		self.assertEqual(record_returned_card(verification.name, self.ann.name, card), UPDATED)
 		row = frappe.get_doc("Person", self.ann.name).addresses[0]
 		self.assertNotEqual(row.address, address.name)
-		self.assertEqual(frappe.db.get_value("Address", row.address, "state"), "NY")
+		self.assertEqual(frappe.db.get_value("Address", row.address, "state"), "New York")
 		self.assertTrue(row.is_mailing_address)
+
+	def test_a_state_code_for_the_same_state_keeps_the_address(self):
+		address = make_address("_Test Cards Ann Same State", state="Illinois")
+		self.ann.append("addresses", {"address": address.name, "is_primary": 1, "is_mailing_address": 1})
+		self.ann.save()
+		verification = make_verification([self.ann.name])
+		card = get_returned_card(verification.name, self.ann.name)
+		card["addresses"][0]["state"] = "il"
+
+		record_returned_card(verification.name, self.ann.name, card)
+
+		self.assertEqual(frappe.get_doc("Person", self.ann.name).addresses[0].address, address.name)
 
 	def test_a_birthday_without_a_year_and_a_yes_to_texts(self):
 		verification = make_verification([self.bob.name])
